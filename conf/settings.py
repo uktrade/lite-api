@@ -256,7 +256,7 @@ LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
 if LITE_API_ENABLE_ES:
     ELASTICSEARCH_DSL = {
         'default': {
-            'hosts': 'localhost:9200'
+            'hosts': env.str("ELASTICSEARCH_HOST", "http://localhost:9200/")
         },
     }
 
