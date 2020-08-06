@@ -5,8 +5,10 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
-from conf import settings
-from conf.settings import ADMIN_ENABLED
+from django.conf import settings
+
+import core.views
+
 
 api_info = openapi.Info(
     title="LITE API",
@@ -42,5 +44,11 @@ urlpatterns = [
     re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json",),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-if ADMIN_ENABLED:
+if settings.ADMIN_ENABLED:
     urlpatterns += (path("admin/", admin.site.urls),)
+
+    if settings.FEATURE_STAFF_SSO_ENABLED:
+        urlpatterns = [
+            path("admin/login/", core.views.LoginProviderView.as_view()),
+            path("auth/", include("authbroker_client.urls")),
+        ] + urlpatterns

@@ -6,7 +6,7 @@ from mohawk import Receiver
 from mohawk.exc import HawkFail, AlreadyProcessed
 from rest_framework import authentication
 
-from conf import settings
+from django.conf import settings
 from conf.exceptions import PermissionDeniedError
 from conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS
 from gov_users.enums import GovUserStatuses

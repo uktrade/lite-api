@@ -1,6 +1,7 @@
 import uuid
 from abc import abstractmethod
 
+from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -60,11 +61,16 @@ class BaseUser(AbstractUser, TimestampableModel):
     username = None
     email = models.EmailField(default=None, blank=True)
     password = None
-    is_superuser = None
     last_login = None
-    is_staff = None
-    is_active = None
     type = models.CharField(choices=UserType.choices(), null=False, blank=False, max_length=8)
+
+    @property
+    def has_django_admin_permission(self):
+        return self.email in settings.ALLOWED_ADMIN_EMAILS
+
+    is_superuser = has_django_admin_permission
+    is_staff = has_django_admin_permission
+    is_active = True
 
     # Set this to use id as email cannot be unique in the base user model
     # (and we couldn't think of anything else to use instead)

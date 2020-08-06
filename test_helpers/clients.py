@@ -5,9 +5,8 @@ from datetime import datetime, timezone
 from typing import Optional, List
 
 import django.utils.timezone
-from django.conf import settings as conf_settings
 from django.db import connection
-from django.test import tag
+from django.test import tag, override_settings
 from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
@@ -1072,14 +1071,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
 
 @tag("performance")
+# we need to set debug to true otherwise we can't see the amount of queries
+@override_settings(DEBUG=True, SUPPRESS_TEST_OUTPUT=True)
 class PerformanceTestClient(DataTestClient):
     def setUp(self):
         super().setUp()
         print("\n---------------")
         print(self._testMethodName)
-        # we need to set debug to true otherwise we can't see the amount of queries
-        conf_settings.DEBUG = True
-        settings.SUPPRESS_TEST_OUTPUT = True
 
     def timeit(self, request, amount=1):
         time = timeit.timeit(request, number=amount)

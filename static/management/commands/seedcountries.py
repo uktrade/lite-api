@@ -1,6 +1,6 @@
 from django.db import transaction, IntegrityError
 
-from conf import settings
+from django.conf import settings
 from static.countries.models import Country
 from static.management.SeedCommand import SeedCommand
 
