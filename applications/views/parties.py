@@ -29,7 +29,7 @@ class ApplicationPartyView(APIView):
     @application_in_state(is_major_editable=True)
     def post(self, request, pk):
         """
-        Add a party to an application.
+        Add a party to an application
         """
         application = get_application(pk)
 
@@ -38,36 +38,34 @@ class ApplicationPartyView(APIView):
 
         serializer = PartySerializer(data=data, application_type=application.case_type.sub_type)
 
-        # Validate data
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid(raise_exception=True):
+            if str_to_bool(data.get("validate_only", False)):
+                return JsonResponse(data={data["type"]: serializer.initial_data}, status=status.HTTP_200_OK)
 
-        if str_to_bool(data.get("validate_only", False)):
-            return JsonResponse(data={data["type"]: serializer.initial_data}, status=status.HTTP_200_OK)
+            # Save party and add to application
+            serializer.save()
 
-        # Save party and add to application
-        serializer.save()
-        try:
-            party, removed_party = application.add_party(serializer.instance)
-        except ApplicationException as exc:
-            return JsonResponse(data={"errors": exc.data}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                party, removed_party = application.add_party(serializer.instance)
+            except ApplicationException as exc:
+                return JsonResponse(data={"errors": exc.data}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Audit
-        if removed_party:
+            # Audit
+            if removed_party:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.REMOVE_PARTY,
+                    target=application.get_case(),
+                    payload={"party_type": removed_party.type.replace("_", " "), "party_name": removed_party.name},
+                )
             audit_trail_service.create(
                 actor=request.user,
-                verb=AuditType.REMOVE_PARTY,
+                verb=AuditType.ADD_PARTY,
                 target=application.get_case(),
-                payload={"party_type": removed_party.type.replace("_", " "), "party_name": removed_party.name},
+                payload={"party_type": party.type.replace("_", " "), "party_name": party.name},
             )
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.ADD_PARTY,
-            target=application.get_case(),
-            payload={"party_type": party.type.replace("_", " "), "party_name": party.name},
-        )
 
-        return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
 
     @authorised_to_view_application(ExporterUser)
     def delete(self, request, pk, party_pk):

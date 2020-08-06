@@ -146,6 +146,7 @@ HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
 HAWK_ALGORITHM = "sha256"
 HAWK_LITE_API_CREDENTIALS = "lite-api"
 HAWK_LITE_PERFORMANCE_CREDENTIALS = "lite-performance"
+HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS = "hmrc-integration"
 HAWK_CREDENTIALS = {
     "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
     "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
@@ -154,8 +155,8 @@ HAWK_CREDENTIALS = {
         "key": env("LITE_ACTIVITY_STREAM_HAWK_KEY"),
         "algorithm": HAWK_ALGORITHM,
     },
-    "hmrc-integration": {
-        "id": "hmrc-integration",
+    HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS: {
+        "id": HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS,
         "key": env("LITE_HMRC_INTEGRATION_HAWK_KEY"),
         "algorithm": HAWK_ALGORITHM,
     },
@@ -197,10 +198,23 @@ BACKGROUND_TASK_RUN_ASYNC = True
 MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt (assuming instantaneous failures)
 
 # AWS
-AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-AWS_REGION = env("AWS_REGION")
+VCAP_SERVICES = env.json("VCAP_SERVICES", {})
+
+if VCAP_SERVICES:
+    if "aws-s3-bucket" not in VCAP_SERVICES:
+        raise Exception("S3 Bucket not bound to environment")
+
+    aws_credentials = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]
+    AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
+    AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
+    AWS_REGION = aws_credentials["aws_region"]
+    AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
+else:
+    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+    AWS_REGION = env("AWS_REGION")
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+
 S3_CONNECT_TIMEOUT = 60  # Maximum time, in seconds, to wait for an initial connection
 S3_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
 S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180

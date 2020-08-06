@@ -51,35 +51,9 @@ class Role(models.Model):
 
 
 class CustomUserManager(BaseUserManager):
-    use_in_migrations = True
+    """Cannot remove class as it's embedded in users/migrations/0001_initial"""
 
-    def _create_user(self, email, password, **extra_fields):
-        """
-        Create and save a user with the given email, and password.
-        """
-        if not email:
-            raise ValueError("The given email must be set")
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_user(self, email=None, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", False)
-        extra_fields.setdefault("is_superuser", False)
-        return self._create_user(email, password, **extra_fields)
-
-    def create_superuser(self, email, password, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
-
-        return self._create_user(email, password, **extra_fields)
+    use_in_migrations = False
 
 
 class BaseUser(AbstractUser, TimestampableModel):
@@ -110,7 +84,9 @@ class BaseUser(AbstractUser, TimestampableModel):
     def __str__(self):
         return self.email
 
-    objects = CustomUserManager()
+    def save(self, *args, **kwargs):
+        self.email = self.email.lower() if self.email else None
+        super().save(*args, **kwargs)
 
     @abstractmethod
     def send_notification(self, **kwargs):

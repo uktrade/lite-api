@@ -1,11 +1,13 @@
 from django.urls import reverse
+from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import GoodOnApplication
+from flags.enums import SystemFlags
 from goods.enums import GoodStatus
-from goods.models import Good
+from goods.models import Good, FirearmGoodDetails
 from users.models import UserOrganisationRelationship
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
@@ -76,7 +78,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         )
         good_on_application2.save()
 
-        url = reverse("applications:good_on_application", kwargs={"obj_pk": good_on_application1.id},)
+        url = reverse("applications:good_on_application", kwargs={"obj_pk": good_on_application1.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -153,3 +155,23 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 1)
+
+    def test_delete_firearm_good_from_application_removes_flag_from_case_success(self):
+        application = self.create_draft_standard_application(self.organisation)
+        goa = application.goods.first()
+        firearm_derails = FirearmGoodDetails.objects.create(
+            year_of_manufacture=timezone.now().year,
+            has_identification_markings=True,
+            is_covered_by_firearm_act_section_one_two_or_five=True,
+        )
+        goa.good.firearm_derails = firearm_derails
+        goa.good.save()
+        application.flags.add(SystemFlags.FIREARMS_ID)
+        application.save()
+        url = reverse("applications:good_on_application", kwargs={"obj_pk": goa.id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 0)
+        self.assertFalse(application.flags.filter(id=SystemFlags.FIREARMS_ID).exists())

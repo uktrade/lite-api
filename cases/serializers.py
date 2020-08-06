@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from applications.libraries.get_applications import get_application
-from applications.serializers.advice import CaseAdviceSerializer
+from applications.serializers.advice import AdviceViewSerializer
 from audit_trail.models import Audit
 from cases.enums import (
     CaseTypeTypeEnum,
@@ -14,7 +14,6 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
 )
-from cases.fields import HasOpenECJUQueriesRelatedField
 from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
@@ -33,7 +32,7 @@ from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisi
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
-from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
+from gov_users.serializers import GovUserSimpleSerializer
 from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from queries.serializers import QueryViewSerializer
@@ -97,8 +96,8 @@ class CaseListSerializer(serializers.Serializer):
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
     next_review_date = serializers.DateField()
+    has_open_queries = serializers.BooleanField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -151,7 +150,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     audit_notification = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    advice = CaseAdviceSerializer(many=True)
+    advice = AdviceViewSerializer(many=True)
     data = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     next_review_date = serializers.SerializerMethodField()
@@ -209,7 +208,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         return list(instance.queues.values_list("name", flat=True))
 
     def get_assigned_users(self, instance):
-        return instance.get_users()
+        return instance.get_assigned_users()
 
     def get_has_advice(self, instance):
         has_advice = {"user": False, "my_user": False, "team": False, "my_team": False, "final": False}
@@ -245,8 +244,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         queryset = GovNotification.objects.filter(user=self.user, content_type=content_type, case=instance)
 
         if queryset.exists():
-            notification = queryset.first()
-            return GovUserNotificationSerializer(notification).data
+            return {"audit_id": queryset.first().object_id}
 
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
@@ -424,7 +422,8 @@ class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
     """
-    Create specific serializer, which does not take a response as gov users don't respond to their own queries!
+    Query CREATE serializer for GOV users
+    Does not take a response as they cannot respond to their own queries
     """
 
     question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)

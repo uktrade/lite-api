@@ -3,7 +3,6 @@ from rest_framework.exceptions import ValidationError
 
 from cases.enums import AdviceType
 from cases.models import Advice
-from conf.helpers import ensure_x_items_not_none
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from flags.enums import FlagStatuses
 from goods.models import Good
@@ -19,7 +18,28 @@ from teams.serializers import TeamReadOnlySerializer
 from users.models import GovUser
 
 
-class CaseAdviceSerializer(serializers.ModelSerializer):
+class AdviceViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    text = serializers.CharField()
+    note = serializers.CharField()
+    type = KeyValueChoiceField(choices=AdviceType.choices)
+    level = serializers.CharField()
+    proviso = serializers.CharField()
+    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True)
+    footnote = serializers.CharField()
+    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
+    created_at = serializers.DateTimeField()
+
+    good = serializers.UUIDField(source="good_id")
+    goods_type = serializers.UUIDField(source="goods_type_id")
+    country = serializers.UUIDField(source="country_id")
+    end_user = serializers.UUIDField(source="end_user_id")
+    ultimate_end_user = serializers.UUIDField(source="ultimate_end_user_id")
+    consignee = serializers.UUIDField(source="consignee_id")
+    third_party = serializers.UUIDField(source="third_party_id")
+
+
+class AdviceCreateSerializer(serializers.ModelSerializer):
     text = serializers.CharField(required=True, max_length=5000, error_messages={"blank": strings.Advice.TEXT})
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
     type = KeyValueChoiceField(
@@ -58,27 +78,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     collated_pv_grading = serializers.CharField(default=None, allow_blank=True, allow_null=True, max_length=120)
 
     def to_representation(self, instance):
-        repr_dict = super().to_representation(instance)
-        fields = [
-            "team",
-            "end_user",
-            "consignee",
-            "ultimate_end_user",
-            "third_party",
-            "country",
-            "good",
-            "goods_type",
-            "proviso",
-            "denial_reasons",
-            "pv_grading",
-            "collated_pv_grading",
-        ]
-
-        for field in fields:
-            if field in repr_dict and not repr_dict[field]:
-                del repr_dict[field]
-
-        return repr_dict
+        return AdviceViewSerializer(instance).data
 
     def validate_denial_reasons(self, value):
         """
@@ -105,28 +105,13 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def __init__(self, *args, **kwargs):
-        super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
+        super(AdviceCreateSerializer, self).__init__(*args, **kwargs)
 
-        application_fields = (
-            "good",
-            "goods_type",
-            "country",
-            "end_user",
-            "ultimate_end_user",
-            "consignee",
-            "third_party",
-        )
-
-        # Ensure only one item is provided
         if hasattr(self, "initial_data"):
-            for data in self.initial_data:
-                if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
-                    raise ValidationError({"end_user": ["Only one item (such as an end_user) can be given at a time"]})
-
             self._footnote_fields_setup()
 
             # Only require a reason for the advice decision if it is of type refuse
-            if self.initial_data[0]["type"] != AdviceType.REFUSE:
+            if self.initial_data[0].get("type") != AdviceType.REFUSE:
                 self.fields["text"].required = False
                 self.fields["text"].allow_null = True
                 self.fields["text"].allow_blank = True

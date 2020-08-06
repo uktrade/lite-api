@@ -11,10 +11,10 @@ class GovNotifyTemplateTests(DataTestClient):
     def test_send_email(self, mock_client):
         email = "fake@email.com"
         template_type = TemplateType.ECJU_CREATED
-        data = {"ecju_reference": "123", "application_reference": "456", "link": "http"}
+        data = {"case_reference": "123", "application_reference": "456", "link": "http"}
 
         ecju_email_data = EcjuCreatedEmailData(
-            ecju_reference=data["ecju_reference"],
+            case_reference=data["case_reference"],
             application_reference=data["application_reference"],
             link=data["link"],
         )

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import F
 from django.http.response import JsonResponse, HttpResponse
@@ -6,22 +7,31 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType
+from cases.enums import (
+    CaseTypeSubTypeEnum,
+    AdviceType,
+    AdviceLevel,
+    CaseTypeTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
-from cases.helpers import remove_next_review_date
 from cases.libraries.advice import group_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
+from cases.libraries.finalise import get_required_decision_document_types
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
+from cases.libraries.get_goods_type_countries_decisions import (
+    good_type_to_country_decisions,
+    get_required_good_type_to_country_combinations,
+    get_existing_good_type_to_country_decisions,
+)
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -36,8 +46,7 @@ from cases.serializers import (
     EcjuQueryCreateSerializer,
     CaseDetailSerializer,
     EcjuQueryGovSerializer,
-    CaseAdviceSerializer,
-    GoodCountryDecisionSerializer,
+    AdviceViewSerializer,
     CaseOfficerUpdateSerializer,
     ReviewDateUpdateSerializer,
     EcjuQueryExporterViewSerializer,
@@ -45,36 +54,33 @@ from cases.serializers import (
 )
 from cases.service import get_destinations
 from compliance.helpers import generate_compliance_site_case
+from compliance.models import ComplianceVisitCase
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
-from conf.exceptions import NotFoundError, BadRequestError
+from conf.exceptions import NotFoundError
 from conf.helpers import convert_date_to_string
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
-from goodstype.helpers import get_goods_type
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
+from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData, EcjuComplianceCreatedEmailData
 from licences.models import Licence
 from licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
 from organisations.libraries.get_organisation import get_request_user_organisation_id
+from organisations.models import Site
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
-from queues.serializers import TinyQueueSerializer
-from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
-from workflow.automation import run_routing_rules
-from workflow.user_queue_assignment import user_queue_assignment_workflow
 
 
 class CaseDetail(APIView):
@@ -99,7 +105,9 @@ class CaseDetail(APIView):
         Change case status
         """
         case = get_case(pk)
-        case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
+        case.change_status(
+            request.user, get_case_status_by_status(request.data.get("status")), request.data.get("note")
+        )
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
@@ -111,6 +119,7 @@ class SetQueues(APIView):
         case = get_case(pk)
         request_queues = set(request.data.get("queues", []))
         queues = Queue.objects.filter(id__in=request_queues)
+        note = request.data.get("note")
 
         if len(request_queues) > len(queues):
             queues_not_found = list(request_queues - set(str(id) for id in queues.values_list("id", flat=True)))
@@ -132,14 +141,14 @@ class SetQueues(APIView):
                 actor=request.user,
                 verb=AuditType.REMOVE_CASE,
                 target=case,
-                payload={"queues": sorted([queue.name for queue in removed_queues])},
+                payload={"queues": sorted([queue.name for queue in removed_queues]), "additional_text": note},
             )
         if new_queues:
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.MOVE_CASE,
                 target=case,
-                payload={"queues": sorted([queue.name for queue in new_queues])},
+                payload={"queues": sorted([queue.name for queue in new_queues]), "additional_text": note},
             )
         return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
@@ -168,7 +177,7 @@ class CaseDocuments(APIView):
         for document in data:
             document["case"] = pk
             document["user"] = request.user.id
-            document["visible_to_exporter"] = True
+            document["visible_to_exporter"] = False
 
         serializer = CaseDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
@@ -207,7 +216,7 @@ class ExporterCaseDocumentDownload(APIView):
     def get(self, request, case_pk, document_pk):
         case = get_case(case_pk)
         if case.organisation.id != get_request_user_organisation_id(request):
-            return HttpResponse(status.HTTP_401_UNAUTHORIZED)
+            raise PermissionDenied()
         try:
             document = CaseDocument.objects.get(id=document_pk, case=case, visible_to_exporter=True)
             return document_download_stream(document)
@@ -227,7 +236,6 @@ class UserAdvice(APIView):
 
         return super(UserAdvice, self).dispatch(request, *args, **kwargs)
 
-    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -278,10 +286,9 @@ class TeamAdviceView(APIView):
         else:
             team_advice = self.team_advice
 
-        serializer = CaseAdviceSerializer(team_advice, many=True)
+        serializer = AdviceViewSerializer(team_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -321,15 +328,10 @@ class FinalAdviceDocuments(APIView):
         """
         # Get all advice
         advice_values = AdviceType.as_dict()
-        final_advice = list(Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True))
+
+        final_advice = get_required_decision_document_types(get_case(pk))
         if not final_advice:
             return JsonResponse(data={"documents": {}}, status=status.HTTP_200_OK)
-
-        # Map Proviso -> Approve advice (Proviso results in Approve document)
-        if AdviceType.PROVISO in final_advice:
-            if AdviceType.APPROVE not in final_advice:
-                final_advice.append(AdviceType.APPROVE)
-            final_advice.remove(AdviceType.PROVISO)
 
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
@@ -389,10 +391,9 @@ class FinalAdvice(APIView):
         else:
             final_advice = self.final_advice
 
-        serializer = CaseAdviceSerializer(final_advice, many=True)
+        serializer = AdviceViewSerializer(final_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -406,13 +407,15 @@ class FinalAdvice(APIView):
         """
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         self.final_advice.delete()
+        # Delete GoodCountryDecisions as final advice is no longer applicable
+        GoodCountryDecision.objects.filter(case_id=pk).delete()
         audit_trail_service.create(
             actor=request.user, verb=AuditType.CLEARED_FINAL_ADVICE, target=self.case,
         )
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
 
-class CaseEcjuQueries(APIView):
+class ECJUQueries(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
@@ -439,43 +442,68 @@ class CaseEcjuQueries(APIView):
         """
         Add a new ECJU query
         """
-        data = JSONParser().parse(request)
-        data["case"] = pk
-        data["raised_by_user"] = request.user.id
-        data["team"] = request.user.team.id
+        data = {**request.data, "case": pk, "raised_by_user": request.user.id, "team": request.user.team.id}
         serializer = EcjuQueryCreateSerializer(data=data)
-        if serializer.is_valid():
-            if "validate_only" not in data or not data["validate_only"]:
-                serializer.save()
 
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.ECJU_QUERY,
-                    action_object=serializer.instance,
-                    target=serializer.instance.case,
-                    payload={"ecju_query": data["question"]},
-                )
-                if serializer.data["query_type"]["key"] == ECJUQueryType.ECJU:
-                    # Only send email for standard ECJU queries
-                    application_info = (
-                        Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
-                        .values("email", "name", "reference_code")
-                        .get(id=pk)
-                    )
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+
+            # Audit the creation of the query
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.ECJU_QUERY,
+                action_object=serializer.instance,
+                target=serializer.instance.case,
+                payload={"ecju_query": data["question"]},
+            )
+
+            # Send an email to the user(s) that submitted the application
+            case_info = (
+                Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
+                .values("id", "email", "name", "reference_code", "case_type__type", "case_type__reference")
+                .get(id=pk)
+            )
+
+            # For each licence in a compliance case, email the user that submitted the application
+            if case_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
+                emails = set()
+                case_id = case_info["id"]
+                link = f"{settings.EXPORTER_BASE_URL}/compliance/{pk}/ecju-queries/"
+
+                if case_info["case_type__reference"] == CaseTypeReferenceEnum.COMP_VISIT:
+                    # If the case is a compliance visit case, use the parent compliance site case ID instead
+                    case_id = ComplianceVisitCase.objects.get(pk=case_id).site_case.id
+                    link = f"{settings.EXPORTER_BASE_URL}/compliance/{case_id}/visit/{pk}/ecju-queries/"
+
+                site = Site.objects.get(compliance__id=case_id)
+
+                for licence in Case.objects.filter_for_cases_related_to_compliance_case(case_id):
+                    emails.add(licence.submitted_by.email)
+
+                for email in emails:
                     gov_notify_service.send_email(
-                        email_address=application_info["email"],
-                        template_type=TemplateType.ECJU_CREATED,
-                        data=EcjuCreatedEmailData(
-                            application_reference=application_info["reference_code"],
-                            ecju_reference=application_info["name"],
-                            link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
+                        email_address=email,
+                        template_type=TemplateType.ECJU_COMPLIANCE_CREATED,
+                        data=EcjuComplianceCreatedEmailData(
+                            query=serializer.data["question"],
+                            case_reference=case_info["reference_code"],
+                            site_name=site.name,
+                            site_address=str(site.address),
+                            link=link,
                         ),
                     )
-
-                return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
             else:
-                return JsonResponse(data={}, status=status.HTTP_200_OK)
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                gov_notify_service.send_email(
+                    email_address=case_info["email"],
+                    template_type=TemplateType.ECJU_CREATED,
+                    data=EcjuCreatedEmailData(
+                        application_reference=case_info["name"] or "",
+                        case_reference=case_info["reference_code"],
+                        link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
+                    ),
+                )
+
+            return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
 
 
 class EcjuQueryDetail(APIView):
@@ -520,35 +548,65 @@ class GoodsCountriesDecisions(APIView):
 
     def get(self, request, pk):
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        goods_countries = GoodCountryDecision.objects.filter(case=pk)
-        serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
+        approved, refused = good_type_to_country_decisions(pk)
+        return JsonResponse({"approved": list(approved.values()), "refused": list(refused.values())})
 
-        return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
-
+    @transaction.atomic
     def post(self, request, pk):
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        data = request.data.get("good_countries")
 
-        if not data:
-            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
+        data = {k: v for k, v in request.data.items() if v is not None}
 
-        country_count = CountryOnApplication.objects.filter(application=get_case(data[0]["case"])).count()
+        # Get list of all required item id's
+        required_decisions = get_required_good_type_to_country_combinations(pk)
+        required_decision_ids = set()
+        for goods_type, country_list in required_decisions.items():
+            for country in country_list:
+                required_decision_ids.add(f"{goods_type}.{country}")
 
-        if len(data) != country_count:
-            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
+        if not required_decision_ids.issubset(data):
+            missing_ids = required_decision_ids.difference(request.data)
+            raise ParseError({missing_id: [Cases.GoodCountryMatrix.MISSING_ITEM] for missing_id in missing_ids})
 
-        serializer = GoodCountryDecisionSerializer(data=data, many=True)
+        # Delete existing decision documents if decision changes
+        existing_decisions = get_existing_good_type_to_country_decisions(pk)
+        for decision_id in required_decision_ids:
+            if (data.get(decision_id) != AdviceType.REFUSE) != existing_decisions.get(decision_id):
+                # Proviso N/A as there is no proviso document type
+                GeneratedCaseDocument.objects.filter(
+                    case_id=pk, advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE], visible_to_exporter=False
+                ).delete()
+                break
 
-        if serializer.is_valid(raise_exception=True):
-            for item in data:
-                GoodCountryDecision(
-                    good=get_goods_type(item["good"]),
-                    case=get_case(item["case"]),
-                    country=get_country(item["country"]),
-                    decision=item["decision"],
-                ).save()
+        # Update or create GoodCountryDecisions
+        for id in required_decision_ids:
+            goods_type_id, country_id = id.split(".")
+            value = data[id] == AdviceType.APPROVE
+            GoodCountryDecision.objects.update_or_create(
+                case_id=pk, goods_type_id=goods_type_id, country_id=country_id, defaults={"approve": value}
+            )
 
-            return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
+        audit_trail_service.create(
+            actor=request.user, verb=AuditType.UPDATED_GOOD_ON_DESTINATION_MATRIX, target=get_case(pk),
+        )
+
+        return JsonResponse(
+            data={"good_country_decisions": list(required_decision_ids)}, status=status.HTTP_201_CREATED
+        )
+
+
+class OpenLicenceDecision(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        return JsonResponse(
+            data={
+                "decision": AdviceType.APPROVE
+                if GoodCountryDecision.objects.filter(case_id=pk, approve=True).exists()
+                else AdviceType.REFUSE
+            }
+        )
 
 
 class Destination(APIView):
@@ -641,11 +699,7 @@ class FinaliseView(UpdateAPIView):
         else:
             assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
-        # Check all decision types have documents
-        required_decisions = set(Advice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
-        if AdviceType.PROVISO in required_decisions:
-            required_decisions.add(AdviceType.APPROVE)
-            required_decisions.remove(AdviceType.PROVISO)
+        required_decisions = get_required_decision_document_types(case)
 
         # Check that each decision has a document
         # Excluding approve (done in the licence section below)
@@ -683,7 +737,7 @@ class FinaliseView(UpdateAPIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.GRANTED_APPLICATION
-                if Licence.objects.filter(application=case).count() < 2
+                if Licence.objects.filter(case=case).count() < 2
                 else AuditType.REINSTATED_APPLICATION,
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
@@ -712,7 +766,10 @@ class FinaliseView(UpdateAPIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=case,
-            payload={"status": {"new": case.status.status, "old": old_status}},
+            payload={
+                "status": {"new": case.status.status, "old": old_status},
+                "additional_text": request.data.get("note"),
+            },
         )
 
         # Show documents to exporter & notify
@@ -722,64 +779,6 @@ class FinaliseView(UpdateAPIView):
             document.send_exporter_notifications()
 
         return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
-
-
-class AssignedQueues(APIView):
-    authentication_classes = (GovAuthentication,)
-    serializer_class = TinyQueueSerializer
-
-    def get(self, request, pk):
-        # Get all queues where this user is assigned to this case
-        queues = Queue.objects.filter(case_assignments__user=request.user.pk, case_assignments__case=pk)
-        serializer = TinyQueueSerializer(queues, many=True)
-        return JsonResponse(data={"queues": serializer.data}, status=status.HTTP_200_OK)
-
-    @transaction.atomic
-    def put(self, request, pk):
-        queues = request.data.get("queues")
-        if queues:
-            queue_names = []
-            assignments = (
-                CaseAssignment.objects.select_related("queue")
-                .filter(user=request.user, case__id=pk, queue__id__in=queues)
-                .order_by("queue__name")
-            )
-            case = get_case(pk)
-
-            if assignments:
-                remove_next_review_date(case, request, pk)
-                queues = [assignment.queue for assignment in assignments]
-                queue_names = [queue.name for queue in queues]
-                assignments.delete()
-                user_queue_assignment_workflow(queues, case)
-                audit_trail_service.create(
-                    actor=request.user, verb=AuditType.UNASSIGNED_QUEUES, target=case, payload={"queues": queue_names},
-                )
-            else:
-                # When users click done without queue assignments
-                # Only a single queue ID can be passed
-                if len(queues) != 1:
-                    return JsonResponse(
-                        data={"errors": {"queues": [Cases.UnassignQueues.NOT_ASSIGNED_MULTIPLE_QUEUES]}},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                # Check queue belongs to that users team
-                queues = Queue.objects.filter(id=queues[0], team=request.user.team)
-                if not queues.exists():
-                    return JsonResponse(
-                        data={"errors": {"queues": [Cases.UnassignQueues.INVALID_TEAM]}},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                user_queue_assignment_workflow(queues, case)
-                audit_trail_service.create(
-                    actor=request.user, verb=AuditType.UNASSIGNED, target=case,
-                )
-
-            return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
-        else:
-            return JsonResponse(
-                data={"errors": {"queues": [Cases.UnassignQueues.NO_QUEUES]}}, status=status.HTTP_400_BAD_REQUEST
-            )
 
 
 class AdditionalContacts(ListCreateAPIView):
@@ -818,26 +817,6 @@ class CaseApplicant(APIView):
             {"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email},
             status=status.HTTP_200_OK,
         )
-
-
-class RerunRoutingRules(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    def put(self, request, pk):
-        """
-        Reruns routing rules against a given case, in turn removing all existing queues, and user assignments,
-            and starting again from scratch on the given status
-        Audits who requests the rules to be rerun
-        """
-        case = get_case(pk)
-
-        audit_trail_service.create(
-            actor=request.user, verb=AuditType.RERUN_ROUTING_RULES, target=case,
-        )
-
-        run_routing_rules(case)
-
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class NextReviewDate(APIView):

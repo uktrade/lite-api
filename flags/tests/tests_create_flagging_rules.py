@@ -40,11 +40,8 @@ class FlaggingRulesCreateTest(DataTestClient):
 
     def test_gov_user_can_create_flagging_rule_good(self):
         application = self.create_standard_application_case(self.organisation)
-        control_list_entry = (
-            GoodOnApplication.objects.filter(application_id=application.id)
-            .values_list("good__control_list_entries", flat=True)
-            .first()
-        )
+        goa = GoodOnApplication.objects.filter(application_id=application.id).first()
+        control_list_entry = goa.good.control_list_entries.first()
 
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
@@ -53,7 +50,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         data = {
             "level": FlagLevels.GOOD,
             "flag": str(flag.id),
-            "matching_value": control_list_entry,
+            "matching_value": control_list_entry.rating,
             "is_for_verified_goods_only": "True",
         }
 
@@ -62,14 +59,14 @@ class FlaggingRulesCreateTest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["level"], FlagLevels.GOOD)
-        self.assertEqualIgnoreType(response_data["flag"], flag.id)
-        self.assertEqualIgnoreType(response_data["matching_value"], control_list_entry)
+        self.assertEqual(response_data["flag"], str(flag.id))
+        self.assertEqual(response_data["matching_value"], control_list_entry.rating)
         self.assertTrue(response_data["is_for_verified_goods_only"])
 
         rule = FlaggingRule.objects.get()
         self.assertEqual(rule.level, FlagLevels.GOOD)
         self.assertEqual(rule.flag, flag)
-        self.assertEqualIgnoreType(rule.matching_value, control_list_entry)
+        self.assertEqual(rule.matching_value, control_list_entry.rating)
 
     def test_gov_user_can_create_flagging_rule_destination(self):
         application = self.create_standard_application_case(self.organisation)

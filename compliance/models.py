@@ -1,12 +1,11 @@
-from django.utils import timezone
-
-from cases.enums import CaseTypeEnum
-from cases.models import Case
 import uuid
 
 from django.db import models
 from django.db.models import deletion
+from django.utils import timezone
 
+from cases.enums import CaseTypeEnum
+from cases.models import Case
 from common.models import CreatedAt, TimestampableModel
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from licences.models import Licence

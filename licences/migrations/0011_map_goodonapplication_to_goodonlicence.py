@@ -11,13 +11,15 @@ def convert_good_on_application_to_good_on_licence(apps, schema_editor):
     Licence = apps.get_model("licences", "Licence")
 
     for good_on_application in GoodOnApplication.objects.filter(licenced_quantity__isnull=False):
-        GoodOnLicence.objects.create(
-            good=good_on_application,
-            licence=good_on_application.application.licence.first(),
-            usage=good_on_application.usage,
-            quantity=good_on_application.licenced_quantity,
-            value=good_on_application.licenced_value,
-        )
+        licence = good_on_application.application.licence.first()
+        if licence:
+            GoodOnLicence.objects.create(
+                good=good_on_application,
+                licence=licence,
+                usage=good_on_application.usage,
+                quantity=good_on_application.licenced_quantity,
+                value=good_on_application.licenced_value,
+            )
 
 
 def reverse_good_on_application_to_good_on_licence(apps, schema_editor):

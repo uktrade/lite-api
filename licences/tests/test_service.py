@@ -15,7 +15,7 @@ class GetCaseLicenceTests(DataTestClient):
         super().setUp()
         self.application = StandardApplicationFactory()
         self.licence = LicenceFactory(
-            application=self.application,
+            case=self.application,
             start_date=timezone.now().date(),
             status=LicenceStatus.REVOKED,
             duration=100,
@@ -37,7 +37,7 @@ class GetCaseLicenceTests(DataTestClient):
         data = get_case_licences(self.application)[0]
         self.assertEqual(data["id"], str(self.licence.id))
         self.assertEqual(data["reference_code"], self.licence.reference_code)
-        self.assertEqual(data["status"], LicenceStatus.human_readable(self.licence.status))
+        self.assertEqual(data["status"], LicenceStatus.to_str(self.licence.status))
         self.assertEqual(data["goods"][0]["control_list_entries"], [])
         self.assertEqual(data["goods"][0]["description"], self.good.description)
         self.assertEqual(data["goods"][0]["quantity"], self.good_on_licence.quantity)

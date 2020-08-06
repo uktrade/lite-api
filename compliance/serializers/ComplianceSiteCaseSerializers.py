@@ -2,10 +2,13 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from addresses.serializers import AddressSerializer
+from cases.enums import CaseTypeEnum
 from cases.models import Case
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
 from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField
+from licences.enums import LicenceStatus
+from licences.models import Licence
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 
@@ -65,7 +68,9 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
                 "reference_code": case.reference_code,
                 "visit_date": case.visit_date,
                 "case_officer": f"{case.case_officer.first_name} {case.case_officer.last_name}"
-                if case.case_officer
+                if case.case_officer and case.case_officer.first_name
+                else case.case_officer.email
+                if case.case_officer and case.case_officer.email
                 else None,
                 "flags": get_ordered_flags(case=case, team=self.team, limit=3),
             }
@@ -105,13 +110,25 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
         return get_ordered_flags(case=instance, team=self.team, limit=3)
 
     def get_status(self, instance):
-        # Temporarily display the case status, until licence status story is played.
-        if instance.status:
+        # Not all case types contain a licence, for example OGLs do not. As a result we display the case status
+        if instance.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
             return {
                 "key": instance.status.status,
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
-        return None
+
+        # The latest non draft licence should be the only non-draft licence on a case or the licence that was active
+        last_licence = (
+            Licence.objects.filter(case_id=instance.id)
+            .exclude(status=LicenceStatus.DRAFT)
+            .order_by("created_at")
+            .last()
+        )
+
+        return {
+            "key": last_licence.status,
+            "value": LicenceStatus.to_str(last_licence.status),
+        }
 
     def get_case_type(self, instance):
         from cases.serializers import CaseTypeSerializer

@@ -349,15 +349,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_doc
 
     @staticmethod
-    def create_application_document(application):
+    def create_application_document(application, safe=True):
         application_doc = ApplicationDocument(
             application=application,
             description="document description",
             name="document name",
             s3_key="documentkey",
             size=12,
-            virus_scanned_at=None,
-            safe=None,
+            virus_scanned_at=django.utils.timezone.now(),
+            safe=safe,
         )
 
         application_doc.save()
@@ -365,7 +365,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_good_document(
-        good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str,
+        good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str, safe=True
     ):
         good_doc = GoodDocument(
             good=good,
@@ -375,8 +375,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             name=name,
             s3_key=s3_key,
             size=123456,
-            virus_scanned_at=None,
-            safe=None,
+            virus_scanned_at=django.utils.timezone.now(),
+            safe=safe,
         )
         good_doc.save()
         return good_doc
@@ -524,9 +524,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return good
 
     def create_goods_query(self, description, organisation, clc_reason, pv_reason) -> GoodsQuery:
-        good = DataTestClient.create_good(
-            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
-        )
+        good = DataTestClient.create_good(description=description, organisation=organisation)
 
         goods_query = GoodsQuery.objects.create(
             clc_raised_reasons=clc_reason,
@@ -544,9 +542,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return goods_query
 
     def create_clc_query(self, description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(
-            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
-        )
+        good = DataTestClient.create_good(description=description, organisation=organisation)
 
         clc_query = GoodsQuery.objects.create(
             clc_raised_reasons="this is a test text",
@@ -633,10 +629,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
     @staticmethod
-    def create_good_country_decision(case, goods_type, country, decision):
-        GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
-
-    @staticmethod
     def add_additional_information(application):
         additional_information = {
             "expedited": False,
@@ -681,8 +673,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         site=True,
         case_type_id=CaseTypeEnum.SIEL.id,
         add_a_good=True,
+        user: ExporterUser = None,
         good=None,
     ):
+        if not user:
+            user = UserOrganisationRelationship.objects.filter(organisation_id=organisation.id).first().user
+
         application = StandardApplication(
             name=reference_name,
             export_type=ApplicationExportType.PERMANENT,
@@ -702,7 +698,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
             status_id="00000000-0000-0000-0000-000000000000",
-            submitted_by=self.exporter_user,
+            submitted_by=user,
         )
 
         application.save()
@@ -871,8 +867,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         GoodsTypeFactory(application=application, is_good_controlled=True)
         GoodsTypeFactory(application=application, is_good_controlled=True)
 
-        # Add a country to the application
-        CountryOnApplication(application=application, country=get_country("GB")).save()
+        # Add a country to the application - GB cannot be a destination on licences!
+        CountryOnApplication(application=application, country=get_country("FR")).save()
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()
@@ -932,7 +928,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates a complete standard application case
         """
-        draft = self.create_draft_standard_application(organisation, reference_name, parties=parties, site=site)
+        draft = self.create_draft_standard_application(
+            organisation, reference_name, parties=parties, site=site, user=user
+        )
 
         return self.submit_application(draft, self.exporter_user)
 
@@ -1016,20 +1014,27 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_licence(
-        application: BaseApplication, status: LicenceStatus, reference_code=None, decisions=None, sent_at=None
+        application: Case,
+        status: LicenceStatus,
+        reference_code=None,
+        decisions=None,
+        hmrc_integration_sent_at=None,
+        start_date=None,
     ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
         if not reference_code:
             reference_code = get_licence_reference_code(application.reference_code)
+        if not start_date:
+            start_date = django.utils.timezone.now().date()
 
         licence = Licence.objects.create(
-            application=application,
+            case=application,
             reference_code=reference_code,
-            start_date=django.utils.timezone.now().date(),
+            start_date=start_date,
             duration=get_default_duration(application),
             status=status,
-            sent_at=sent_at,
+            hmrc_integration_sent_at=hmrc_integration_sent_at,
         )
         licence.decisions.set(decisions)
         return licence

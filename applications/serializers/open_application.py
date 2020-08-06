@@ -70,9 +70,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
 
     def get_goods_types(self, application):
         goods_types = application.goods_type.all().prefetch_related("countries", "countries__flags")
-        default_countries = list(
-            Country.include_special_countries.filter(countries_on_application__application_id=application.id)
-        )
+        default_countries = list(Country.objects.filter(countries_on_application__application_id=application.id))
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
     def get_goodstype_category(self, instance):
@@ -81,8 +79,9 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
         return {"key": key, "value": value}
 
     def get_licence(self, instance):
-        licence = Licence.objects.filter(application=instance).first()
-        return CaseLicenceViewSerializer(licence).data
+        licence = Licence.objects.filter(case=instance).first()
+        if licence:
+            return CaseLicenceViewSerializer(licence).data
 
     def get_trade_control_activity(self, instance):
         key = instance.trade_control_activity

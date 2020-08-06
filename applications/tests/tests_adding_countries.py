@@ -48,7 +48,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         CountryOnApplication(application=self.draft, country=get_country("US")).save()
         self.submit_application(self.draft)
         countries_on_app_before = CountryOnApplication.objects.filter(application=self.draft).count()
-        data = {"countries": [get_country("GB").pk]}
+        data = {"countries": [get_country("FR").pk]}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -123,7 +123,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_remove_countries_to_application_in_editable_status_success(self, editable_status):
         add_second_country_data = {
-            "countries": Country.objects.filter(id__in=("GA", "GB")).values_list("id", flat=True)
+            "countries": Country.objects.filter(id__in=("GA", "FR")).values_list("id", flat=True)
         }
 
         delete_country_data = {"countries": Country.objects.filter(id="GA").values_list("id", flat=True)}
@@ -137,7 +137,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
 
         response = self.client.post(url, delete_country_data, **self.exporter_headers)
 
-        # Assert 'GB' country removed and 'GA' country remains
+        # Assert 'FR' country removed and 'GA' country remains
         self.assertEqual(application.application_countries.count(), 1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(application.application_countries.first().country.id, "GA")

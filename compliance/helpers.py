@@ -9,6 +9,7 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
+from compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
@@ -35,10 +36,6 @@ def get_compliance_site_case(pk):
         raise NotFoundError({"case": strings.Cases.CASE_NOT_FOUND})
 
 
-# SIEL type compliance cases require a specific control code prefixes. currently: (0 to 9)D, (0 to 9)E, ML21, ML22.
-COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
-
-
 def case_meets_conditions_for_compliance(case: Case):
     if case.case_type.id == CaseTypeEnum.SIEL.id:
         if not (
@@ -50,14 +47,14 @@ def case_meets_conditions_for_compliance(case: Case):
         ):
             return False
         return True
-    elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OGL_ID_LIST]:
+    elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS]:
         return True
     else:
         return False
 
 
 def get_record_holding_sites_for_case(case):
-    if case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
+    if case.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
         return {case.site.site_records_located_at_id}
     else:
         return set(
@@ -152,7 +149,7 @@ def fetch_and_validate_licences(references, organisation_id):
         raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_LICENCES]})
 
     licence_ids = list(
-        Licence.objects.filter(reference_code__in=references, application__organisation_id=organisation_id).values_list(
+        Licence.objects.filter(reference_code__in=references, case__organisation_id=organisation_id).values_list(
             "id", flat=True
         )
     )

@@ -61,8 +61,8 @@ class Command(SeedCommand):
                     address_line_2="",
                     country=get_country("GB"),
                     city="London",
-                    region="London",
-                    postcode="Islington",
+                    region="Greater London",
+                    postcode="SW1A 0AA",
                 )
 
                 site = Site.objects.create(name="Headquarters", organisation=org, address=address)

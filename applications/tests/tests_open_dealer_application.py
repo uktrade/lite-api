@@ -42,7 +42,7 @@ class OpenDealerTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
             CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(),
-            Country.objects.filter(is_eu=1).exclude(id="GB").count(),
+            Country.exclude_special_countries.filter(is_eu=1).exclude(id="GB").count(),
         )
 
     def test_cannot_add_goodstypes_on_dealer_application(self):
