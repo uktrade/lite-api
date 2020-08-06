@@ -1,7 +1,6 @@
-from organisations.models import Organisation
-from django_elasticsearch_dsl import Document, Index, fields
+from django_elasticsearch_dsl import Document
 from django_elasticsearch_dsl.registries import registry
-from django_elasticsearch_dsl.fields import ListField, TextField
+from django_elasticsearch_dsl.fields import TextField
 
 from cases.models import Case
 

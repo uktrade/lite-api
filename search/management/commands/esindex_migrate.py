@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.core.management import call_command
 from django.utils.crypto import get_random_string
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl.connections import connections
