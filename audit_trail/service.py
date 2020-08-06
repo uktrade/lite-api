@@ -16,9 +16,14 @@ from users.models import ExporterUser, GovUser, BaseUser
 
 
 @validate_kwargs
-def create(actor, verb, action_object=None, target=None, payload=None, ignore_case_status=False):
+def create(
+    actor, verb, action_object=None, target=None, payload=None, ignore_case_status=False, send_notification=True
+):
     if not payload:
         payload = {}
+
+    if "additional_text" in payload and not payload["additional_text"]:
+        del payload["additional_text"]
 
     return Audit.objects.create(
         actor=actor,
@@ -27,6 +32,7 @@ def create(actor, verb, action_object=None, target=None, payload=None, ignore_ca
         target=target,
         payload=payload,
         ignore_case_status=ignore_case_status,
+        send_notification=send_notification,
     )
 
 
@@ -104,7 +110,11 @@ def filter_object_activity(
         audit_qs = audit_qs.filter(actor_content_type=user_type_content_type)
 
     if audit_type:
-        audit_qs = audit_qs.filter(verb=audit_type)
+        if audit_type == AuditType.CREATED_CASE_NOTE:
+            # Query based on payload additional text rather than type for case notes
+            audit_qs = audit_qs.filter(payload__contains="additional_text")
+        else:
+            audit_qs = audit_qs.filter(verb=audit_type)
 
     if date_from:
         audit_qs = audit_qs.filter(created_at__date__gte=date_from)
@@ -116,12 +126,18 @@ def filter_object_activity(
 
 
 def get_objects_activity_filters(object_id, object_content_type):
-
     audit_qs = Audit.objects.filter(
         Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
         | Q(target_object_id=object_id, target_content_type=object_content_type)
     )
-    activity_types = audit_qs.order_by("verb").values_list("verb", flat=True).distinct()
+    activity_types = (
+        audit_qs.order_by("verb").exclude(verb=AuditType.CREATED_CASE_NOTE).values_list("verb", flat=True).distinct()
+    )
+    # Add the created case note audit type if an audit entry exists with additional text
+    if audit_qs.filter(payload__contains="additional_text").exists():
+        activity_types = list(activity_types)
+        activity_types.append(AuditType.CREATED_CASE_NOTE)
+        activity_types = sorted(activity_types)
     user_ids = audit_qs.order_by("actor_object_id").values_list("actor_object_id", flat=True).distinct()
     users = BaseUser.objects.filter(id__in=list(user_ids)).values("id", "first_name", "last_name")
     teams = Team.objects.filter(users__id__in=list(user_ids)).order_by("id").values("name", "id").distinct()
@@ -135,7 +151,6 @@ def get_objects_activity_filters(object_id, object_content_type):
         ],
         "users": [{"key": str(user["id"]), "value": f"{user['first_name']} {user['last_name']}"} for user in users],
     }
-
     return filters
 
 

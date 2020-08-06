@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from gov_notify.enums import TemplateType
+from licences.enums import LicenceStatus
 from licences.models import Licence
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
@@ -33,8 +34,10 @@ class FinaliseCaseTests(DataTestClient):
     @mock.patch("cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_success(self, send_exporter_notifications_func, mock_notify_client):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        licence = self.create_licence(self.standard_case, is_complete=False)
-        self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
+        licence = self.create_licence(self.standard_case, status=LicenceStatus.DRAFT)
+        self.create_generated_case_document(
+            self.standard_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
+        )
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
         self.standard_case.refresh_from_db()
@@ -43,8 +46,8 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.json()["licence"], str(licence.id))
         self.assertEqual(
             Licence.objects.filter(
-                application=self.standard_case,
-                is_complete=True,
+                case=self.standard_case,
+                status=LicenceStatus.ISSUED,
                 decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
             ).count(),
             1,
@@ -67,7 +70,7 @@ class FinaliseCaseTests(DataTestClient):
 
     def test_grant_standard_application_wrong_permission_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
-        self.create_licence(self.standard_case, is_complete=False)
+        self.create_licence(self.standard_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
@@ -77,12 +80,12 @@ class FinaliseCaseTests(DataTestClient):
 
     def test_missing_advice_document_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.create_licence(self.standard_case, is_complete=False)
+        self.create_licence(self.standard_case, status=LicenceStatus.DRAFT)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": [Cases.Licence.MISSING_DOCUMENTS]})
+        self.assertEqual(response.json(), {"errors": {"decision-approve": [Cases.Licence.MISSING_DOCUMENTS]}})
 
     @mock.patch("gov_notify.service.client")
     @mock.patch("cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
@@ -93,8 +96,10 @@ class FinaliseCaseTests(DataTestClient):
         self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
-        licence = self.create_licence(clearance_case, is_complete=False)
-        self.create_generated_case_document(clearance_case, self.template, advice_type=AdviceType.APPROVE)
+        licence = self.create_licence(clearance_case, status=LicenceStatus.DRAFT)
+        self.create_generated_case_document(
+            clearance_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
+        )
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
         clearance_case.refresh_from_db()
@@ -103,8 +108,8 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.json()["licence"], str(licence.id))
         self.assertEqual(
             Licence.objects.filter(
-                application=clearance_case,
-                is_complete=True,
+                case=clearance_case,
+                status=LicenceStatus.ISSUED,
                 decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
             ).count(),
             1,
@@ -131,7 +136,7 @@ class FinaliseCaseTests(DataTestClient):
         self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.create_licence(clearance_case, is_complete=False)
+        self.create_licence(clearance_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(clearance_case, self.template, advice_type=AdviceType.APPROVE)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)

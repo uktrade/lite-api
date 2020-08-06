@@ -6,7 +6,7 @@ from static.countries.models import Country
 
 
 def set_destinations_for_uk_continental_shelf_application(application):
-    country = Country.include_special_countries.get(id="UKCS")
+    country = Country.objects.get(id="UKCS")
     CountryOnApplication(country=country, application=application).save()
 
 
@@ -15,7 +15,7 @@ def set_goods_and_countries_for_open_dealer_application(application):
     CountryOnApplication.objects.bulk_create(
         [
             CountryOnApplication(country=country, application=application)
-            for country in Country.objects.filter(is_eu=True).exclude(id="GB")
+            for country in Country.exclude_special_countries.filter(is_eu=True).exclude(id="GB")
         ]
     )
 
@@ -24,7 +24,10 @@ def set_goods_and_countries_for_open_media_application(application):
     _add_goodstypes_from_csv("MEDIA", application)
 
     CountryOnApplication.objects.bulk_create(
-        [CountryOnApplication(country=country, application=application) for country in Country.objects.all()]
+        [
+            CountryOnApplication(country=country, application=application)
+            for country in Country.exclude_special_countries.exclude(id="GB")
+        ]
     )
 
 

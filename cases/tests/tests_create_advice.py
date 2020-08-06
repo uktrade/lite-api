@@ -53,19 +53,6 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertIsNotNone(Advice.objects.get())
         self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
 
-    def test_cannot_create_empty_advice(self):
-        """
-        Tests that a gov user cannot create an empty piece of advice for an end user
-        """
-        data = {
-            "text": "I Am Easy to Find",
-            "note": "I Am Easy to Find",
-            "type": AdviceType.APPROVE,
-        }
-
-        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
     def test_cannot_create_advice_for_two_items(self):
         """
         Tests that a gov user cannot create a piece of advice for more than one item
@@ -116,7 +103,7 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["footnote"], None)
-        self.assertEqual(response_data["footnote_required"], None)
+        self.assertEqual(Advice.objects.filter(footnote_required=None, footnote=None).count(), 1)
 
     def test_cannot_create_advice_without_footnote_and_having_permission(self):
         self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
@@ -147,7 +134,7 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["footnote"], None)
-        self.assertEqual(response_data["footnote_required"], False)
+        self.assertEqual(Advice.objects.filter(footnote_required=False, footnote=None).count(), 1)
 
     def test_cannot_create_advice_with_footnote_required_and_no_footnote(self):
         self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
@@ -163,7 +150,7 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_can_create_advice_with_footnote_not_required(self):
+    def test_can_create_advice_with_footnote_required(self):
         self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
         data = {
             "text": "I Am Easy to Find",
@@ -180,4 +167,4 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["footnote"], "footnote")
-        self.assertEqual(response_data["footnote_required"], True)
+        self.assertEqual(Advice.objects.filter(footnote_required=True, footnote=data["footnote"]).count(), 1)

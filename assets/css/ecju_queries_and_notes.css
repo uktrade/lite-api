@@ -1,0 +1,37 @@
+@font-face {
+    font-family: "GDS Transport";
+    src: url("../fonts/light.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: "GDS Transport";
+    src: url("../fonts/bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+.document b {
+    font-family: "GDS Transport", Arial, sans-serif;
+    font-size: 1.2rem;
+    line-height: 1.25;
+    font-weight: bold;
+}
+.document p {
+    font-family: "GDS Transport", Arial, sans-serif;
+    font-size: 1.2rem;
+    line-height: 1.25;
+    font-weight: normal;
+}
+.document i {
+    font-family: "GDS Transport", Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.25;
+    font-weight: normal;
+}
+.document h1 {
+    font-family: "GDS Transport", Arial, sans-serif;
+    font-size: 1.5rem;
+    margin-top: 40px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}

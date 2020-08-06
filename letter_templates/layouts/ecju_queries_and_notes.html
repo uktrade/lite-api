@@ -1,0 +1,30 @@
+<div class="document">
+	<p>
+		Reference: {{ case_reference }}<br>
+		<b>OFFICIAL-SENSITIVE</b>
+	</p>
+
+	<h1>ECJU Queries</h1>
+	{% for query in ecju_queries %}
+		<p>Question: {{ query.question.text }}</p>
+		<i>(raised by {{ query.question.user }} on {{ query.question.date }} at {{ query.question.time }})</i>
+		{% if query.response %}
+			<p>Answer: {{ query.response.text }}</p>
+			<i>(responded by {{ query.response.user }} on {{ query.response.date }} at {{ query.response.time }})</i>
+		{% endif %}
+		{% if not forloop.last %}
+			<hr>
+		{% endif %}
+	{% endfor %}
+
+	<h1>Notes</h1>
+	{% for note in notes %}
+		{% if note.visible_to_exporter %}
+			<p>{{ note.text }}</p>
+			<i>(created by {{ note.user }} on {{ note.date }} at {{ note.time }})</i>
+			{% if not forloop.last %}
+				<hr>
+			{% endif %}
+		{% endif %}
+	{% endfor %}
+</div>

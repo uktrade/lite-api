@@ -33,8 +33,9 @@ def can_status_be_set_by_exporter_user(original_status: str, new_status: str) ->
     return True
 
 
-def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, is_licence_application: bool) -> bool:
-    """ Check that a status can be set by a gov user. Gov users can not set a case's status to
+def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, is_mod: bool) -> bool:
+    """
+    Check that a status can be set by a gov user. Gov users can not set a case's status to
     `Applicant editing`. They also cannot set a case's status to `Finalised` or open a closed case
     without additional permissions.
     """
@@ -47,11 +48,11 @@ def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, i
         return False
 
     if new_status == CaseStatusEnum.FINALISED:
-        if is_licence_application:
-            if not assert_user_has_permission(user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE):
+        if is_mod:
+            if not assert_user_has_permission(user, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE):
                 return False
         else:
-            if not assert_user_has_permission(user, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE):
+            if not assert_user_has_permission(user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE):
                 return False
     return True
 
@@ -67,4 +68,6 @@ def create_submitted_audit(request, application, old_status):
                 "old": CaseStatusEnum.get_text(old_status),
             }
         },
+        ignore_case_status=True,
+        send_notification=False,
     )

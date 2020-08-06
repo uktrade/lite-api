@@ -25,22 +25,25 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.LetterTemplates.NAME_REQUIRED},
     )
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(), many=True)
-
     case_types = PrimaryKeyRelatedSerializerField(
         queryset=CaseType.objects.all(),
         serializer=CaseTypeSerializer,
         error_messages={"required": strings.LetterTemplates.SELECT_THE_CASE_TYPES},
         many=True,
     )
-
     layout = PrimaryKeyRelatedSerializerField(
         queryset=LetterLayout.objects.all(),
         serializer=LetterLayoutSerializer,
         error_messages={"required": strings.LetterTemplates.SELECT_THE_LAYOUT},
     )
-
     decisions = PrimaryKeyRelatedSerializerField(
         queryset=Decision.objects.all(), serializer=DecisionSerializer, required=False, many=True
+    )
+    visible_to_exporter = serializers.BooleanField(
+        required=True, allow_null=False, error_messages={"required": strings.LetterTemplates.VISIBLE_TO_EXPORTER},
+    )
+    include_digital_signature = serializers.BooleanField(
+        required=True, allow_null=False, error_messages={"required": strings.LetterTemplates.INCLUDE_DIGITAL_SIGNATURE},
     )
 
     class Meta:
@@ -80,3 +83,4 @@ class LetterTemplateListSerializer(serializers.Serializer):
     name = serializers.CharField()
     case_types = CaseTypeReferenceListSerializer(many=True)
     layout = LetterLayoutReadOnlySerializer()
+    updated_at = serializers.DateTimeField()

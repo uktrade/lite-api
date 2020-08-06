@@ -7,6 +7,7 @@ from rest_framework import status
 
 from cases.models import CaseAssignment
 from gov_notify.enums import TemplateType
+from licences.enums import LicenceStatus
 from lite_content.lite_api import strings
 from users.models import UserOrganisationRelationship
 from static.statuses.enums import CaseStatusEnum
@@ -96,6 +97,11 @@ class ApplicationManageStatusTests(DataTestClient):
         case_assignment = CaseAssignment.objects.create(
             case=self.standard_application, queue=self.queue, user=self.gov_user
         )
+        if case_status == CaseStatusEnum.REVOKED:
+            self.standard_application.licences.add(
+                self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+            )
+
         data = {"status": case_status}
 
         with mock.patch("gov_notify.service.client") as mock_notify_client:
@@ -117,6 +123,27 @@ class ApplicationManageStatusTests(DataTestClient):
                 "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_application.pk}",
             },
         )
+
+    @parameterized.expand(
+        [
+            (CaseStatusEnum.SUSPENDED, LicenceStatus.SUSPENDED,),
+            (CaseStatusEnum.SURRENDERED, LicenceStatus.SURRENDERED,),
+            (CaseStatusEnum.REVOKED, LicenceStatus.REVOKED,),
+        ]
+    )
+    def test_certain_case_statuses_changes_licence_status(self, case_status, licence_status):
+        licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+
+        data = {"status": case_status}
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.standard_application.refresh_from_db()
+        licence.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["data"]["status"]["key"], case_status)
+        self.assertEqual(self.standard_application.status.status, case_status)
+        self.assertEqual(licence.status, licence_status)
 
     def test_exporter_set_application_status_withdrawn_when_application_terminal_failure(self):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
@@ -167,7 +194,7 @@ class ApplicationManageStatusTests(DataTestClient):
     def test_exporter_set_application_status_surrendered_success(self, mock_notify_client):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
-        self.create_licence(self.standard_application, is_complete=True)
+        self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
         surrendered_status = get_case_status_by_status("surrendered")
 
         data = {"status": CaseStatusEnum.SURRENDERED}
@@ -196,6 +223,7 @@ class ApplicationManageStatusTests(DataTestClient):
         """ Test failure in exporter user setting a case status to surrendered when the case
         does not have a licence duration
         """
+        self.standard_application.licences.update(duration=None)
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
 
@@ -205,7 +233,9 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]})
+        self.assertEqual(
+            response.json(), {"errors": {"status": [strings.Applications.Generic.Finalise.Error.SURRENDER]}}
+        )
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
 
     def test_exporter_set_application_status_surrendered_not_finalised_failure(self):
@@ -248,10 +278,22 @@ class ApplicationManageStatusTests(DataTestClient):
         [
             status
             for status, value in CaseStatusEnum.choices
-            if status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.FINALISED, CaseStatusEnum.SURRENDERED]
+            if status
+            not in [
+                CaseStatusEnum.APPLICANT_EDITING,
+                CaseStatusEnum.FINALISED,
+                CaseStatusEnum.SURRENDERED,
+                CaseStatusEnum.SUSPENDED,
+                CaseStatusEnum.REOPENED_FOR_CHANGES,
+            ]
         ]
     )
     def test_gov_set_status_for_all_except_applicant_editing_and_finalised_success(self, case_status):
+        if case_status == CaseStatusEnum.REVOKED:
+            self.standard_application.licences.add(
+                self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+            )
+
         data = {"status": case_status}
 
         with mock.patch("gov_notify.service.client") as mock_notify_client:
@@ -325,3 +367,33 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.status.status, CaseStatusEnum.UNDER_REVIEW)
         self.assertEqual(self.standard_application.queues.count(), 1)
         self.assertEqual(self.standard_application.queues.first().id, routing_queue.id)
+
+    def test_gov_user_set_hmrc_status_closed_success(self):
+        self.hmrc_query = self.create_hmrc_query(self.organisation)
+        self.submit_application(self.hmrc_query)
+
+        data = {"status": CaseStatusEnum.CLOSED}
+        url = reverse("applications:manage_status", kwargs={"pk": self.hmrc_query.id})
+        response = self.client.put(url, data=data, **self.gov_headers)
+
+        self.hmrc_query.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.hmrc_query.status, get_case_status_by_status(CaseStatusEnum.CLOSED))
+
+    def test_gov_user_set_hmrc_invalid_status_failure(self):
+        self.hmrc_query = self.create_hmrc_query(self.organisation)
+        self.submit_application(self.hmrc_query)
+
+        # HMRC case status can only be CLOSED, SUBMITTED or RESUBMITTED
+        data = {"status": CaseStatusEnum.WITHDRAWN}
+        url = reverse("applications:manage_status", kwargs={"pk": self.hmrc_query.id})
+        response = self.client.put(url, data=data, **self.gov_headers)
+
+        self.hmrc_query.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json().get("errors")["status"][0], strings.Statuses.BAD_STATUS)
+        self.assertEqual(
+            self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+        )

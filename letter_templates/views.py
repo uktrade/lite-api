@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import generics, status
 
@@ -8,7 +9,7 @@ from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import GovAuthentication
-from conf.helpers import str_to_bool
+from conf.helpers import str_to_bool, friendly_boolean
 from conf.permissions import assert_user_has_permission
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
@@ -42,7 +43,9 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         if decision:
             case = get_case(pk=case)
             decision = Decision.objects.get(name=decision)
-            return queryset.filter(case_types=case.case_type, decisions=decision)
+            return queryset.filter(
+                Q(case_types=case.case_type, decisions=decision) | Q(case_types=case.case_type, decisions__isnull=True)
+            )
         elif case:
             case = get_case(pk=case)
             return queryset.filter(case_types=case.case_type, decisions__isnull=True)
@@ -62,6 +65,14 @@ class LetterTemplatesList(generics.ListCreateAPIView):
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
+
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.CREATED_DOCUMENT_TEMPLATE,
+                target=serializer.instance,
+                payload={"template_name": data["name"]},
+            )
+
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -81,6 +92,8 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         paragraphs = PicklistItem.objects.filter(
             type=PicklistType.LETTER_PARAGRAPH, id__in=template["letter_paragraphs"]
         )
+        # Sort
+        paragraphs = [paragraphs.get(id=paragraph_id) for paragraph_id in template["letter_paragraphs"]]
         paragraph_text = get_paragraphs_as_html(paragraphs)
 
         if str_to_bool(request.GET.get("generate_preview")):
@@ -117,6 +130,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         new_layout = request.data.get("layout", old_layout)
 
         old_paragraphs = list(template_object.letter_paragraphs.values_list("id", "name"))
+
+        old_include_digital_signature = template_object.include_digital_signature
+        new_include_digital_signature = request.data.get("include_digital_signature", old_include_digital_signature)
 
         serializer = self.get_serializer(template_object, data=request.data, partial=True)
 
@@ -218,6 +234,19 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     target=serializer.instance,
                 )
 
+            if friendly_boolean(old_include_digital_signature) != friendly_boolean(new_include_digital_signature):
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_INCLUDE_DIGITAL_SIGNATURE,
+                    target=serializer.instance,
+                    payload={
+                        "old_include_digital_signature": friendly_boolean(old_include_digital_signature),
+                        "new_include_digital_signature": friendly_boolean(
+                            serializer.instance.include_digital_signature
+                        ),
+                    },
+                )
+
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -230,6 +259,9 @@ class TemplatePreview(generics.RetrieveAPIView):
         paragraphs = PicklistItem.objects.filter(
             type=PicklistType.LETTER_PARAGRAPH, id__in=request.GET.getlist("paragraphs")
         )
+        # Sort
+        paragraphs = [paragraphs.get(id=paragraph_id) for paragraph_id in request.GET.getlist("paragraphs")]
+
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
         text = get_paragraphs_as_html(paragraphs)
         preview = generate_preview(layout, text=text)

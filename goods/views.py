@@ -1,6 +1,7 @@
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, Count
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
@@ -112,6 +113,7 @@ class GoodsListControlCode(APIView):
                             "good_name": good.description,
                             "new_control_list_entry": new_control_list_entries,
                             "old_control_list_entry": old_control_list_entries,
+                            "additional_text": data.get("comment"),
                         },
                     )
 
@@ -188,6 +190,9 @@ class GoodList(ListCreateAPIView):
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
 
+        if isinstance(data.get("control_list_entries"), str):
+            data["control_list_entries"] = data["control_list_entries"].split(" ")
+
         item_category = data.get("item_category")
         if item_category:
             # return bad request if trying to edit software_or_technology details outside of category group 3
@@ -252,7 +257,7 @@ class GoodTAUDetails(APIView):
 
         if isinstance(request.user, ExporterUser):
             if good.organisation.id != get_request_user_organisation_id(request):
-                raise Http404
+                raise PermissionDenied()
             else:
                 serializer = TinyGoodDetailsSerializer(good)
 
@@ -294,7 +299,7 @@ class GoodOverview(APIView):
 
         if isinstance(request.user, ExporterUser):
             if good.organisation.id != get_request_user_organisation_id(request):
-                raise Http404
+                raise PermissionDenied()
 
             if str_to_bool(request.GET.get("full_detail")):
                 serializer = GoodSerializerExporterFullDetail(
@@ -323,7 +328,7 @@ class GoodOverview(APIView):
         good = get_good(pk)
 
         if good.organisation.id != get_request_user_organisation_id(request):
-            raise Http404
+            raise PermissionDenied()
 
         if good.status == GoodStatus.SUBMITTED:
             return JsonResponse(
@@ -348,7 +353,7 @@ class GoodOverview(APIView):
         good = get_good(pk)
 
         if good.organisation.id != get_request_user_organisation_id(request):
-            raise Http404
+            raise PermissionDenied()
 
         if good.status != GoodStatus.DRAFT:
             return JsonResponse(
@@ -386,7 +391,7 @@ class GoodDocuments(APIView):
 
         if good.organisation.id != get_request_user_organisation_id(request):
             delete_documents_on_bad_request(data)
-            raise Http404
+            raise PermissionDenied()
 
         if good.status != GoodStatus.DRAFT:
             delete_documents_on_bad_request(data)
@@ -426,7 +431,7 @@ class GoodDocumentDetail(APIView):
         good = get_good(pk)
 
         if good.organisation.id != get_request_user_organisation_id(request):
-            raise Http404
+            raise PermissionDenied()
 
         if good.status != GoodStatus.DRAFT:
             return JsonResponse(
@@ -445,7 +450,7 @@ class GoodDocumentDetail(APIView):
         good = get_good(pk)
 
         if good.organisation.id != get_request_user_organisation_id(request):
-            raise Http404
+            raise PermissionDenied()
 
         if good.status != GoodStatus.DRAFT:
             return JsonResponse(

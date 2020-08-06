@@ -6,6 +6,7 @@ from environ import Env
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,6 +28,7 @@ env = Env(
     ENV=(str, "dev"),
     EXPORTER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
+    DOCUMENT_SIGNING_ENABLED=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -49,7 +51,7 @@ INSTALLED_APPS = [
     "applications.apps.ApplicationsConfig",
     "audit_trail",
     "background_task",
-    "cases.app.CasesConfig",
+    "cases",
     "cases.generated_documents",
     "compliance",
     "django.contrib.admin",
@@ -146,6 +148,7 @@ HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
 HAWK_ALGORITHM = "sha256"
 HAWK_LITE_API_CREDENTIALS = "lite-api"
 HAWK_LITE_PERFORMANCE_CREDENTIALS = "lite-performance"
+HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS = "hmrc-integration"
 HAWK_CREDENTIALS = {
     "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
     "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
@@ -154,8 +157,8 @@ HAWK_CREDENTIALS = {
         "key": env("LITE_ACTIVITY_STREAM_HAWK_KEY"),
         "algorithm": HAWK_ALGORITHM,
     },
-    "hmrc-integration": {
-        "id": "hmrc-integration",
+    HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS: {
+        "id": HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS,
         "key": env("LITE_HMRC_INTEGRATION_HAWK_KEY"),
         "algorithm": HAWK_ALGORITHM,
     },
@@ -197,10 +200,23 @@ BACKGROUND_TASK_RUN_ASYNC = True
 MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt (assuming instantaneous failures)
 
 # AWS
-AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-AWS_REGION = env("AWS_REGION")
+VCAP_SERVICES = env.json("VCAP_SERVICES", {})
+
+if VCAP_SERVICES:
+    if "aws-s3-bucket" not in VCAP_SERVICES:
+        raise Exception("S3 Bucket not bound to environment")
+
+    aws_credentials = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]
+    AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
+    AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
+    AWS_REGION = aws_credentials["aws_region"]
+    AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
+else:
+    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+    AWS_REGION = env("AWS_REGION")
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+
 S3_CONNECT_TIMEOUT = 60  # Maximum time, in seconds, to wait for an initial connection
 S3_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
 S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180
@@ -269,24 +285,24 @@ else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}
 
 # Sentry
-if env.str('SENTRY_DSN', ''):
+if env.str("SENTRY_DSN", ""):
     sentry_sdk.init(
-        dsn=env.str('SENTRY_DSN'),
-        environment=env.str('SENTRY_ENVIRONMENT'),
+        dsn=env.str("SENTRY_DSN"),
+        environment=env.str("SENTRY_ENVIRONMENT"),
         integrations=[DjangoIntegration()],
-        send_default_pii=True
+        send_default_pii=True,
     )
 
 # Application Performance Monitoring
-if env.str('ELASTIC_APM_SERVER_URL', ''):
+if env.str("ELASTIC_APM_SERVER_URL", ""):
     ELASTIC_APM = {
-        'SERVICE_NAME': env.str('ELASTIC_APM_SERVICE_NAME', 'lite-api'),
-        'SECRET_TOKEN': env.str('ELASTIC_APM_SECRET_TOKEN'),
-        'SERVER_URL': env.str('ELASTIC_APM_SERVER_URL'),
-        'ENVIRONMENT': env.str('SENTRY_ENVIRONMENT'),
-        'DEBUG': DEBUG,
+        "SERVICE_NAME": env.str("ELASTIC_APM_SERVICE_NAME", "lite-api"),
+        "SECRET_TOKEN": env.str("ELASTIC_APM_SECRET_TOKEN"),
+        "SERVER_URL": env.str("ELASTIC_APM_SERVER_URL"),
+        "ENVIRONMENT": env.str("SENTRY_ENVIRONMENT"),
+        "DEBUG": DEBUG,
     }
-    INSTALLED_APPS.append('elasticapm.contrib.django')
+    INSTALLED_APPS.append("elasticapm.contrib.django")
 
 
 RECENTLY_UPDATED_WORKING_DAYS = env(
@@ -311,6 +327,15 @@ EXPORTER_BASE_URL = (
     env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
 )
 
+# Document signing
+DOCUMENT_SIGNING_ENABLED = env("DOCUMENT_SIGNING_ENABLED")
+P12_CERTIFICATE = env("P12_CERTIFICATE")
+CERTIFICATE_PASSWORD = env("CERTIFICATE_PASSWORD")
+SIGNING_EMAIL = env("SIGNING_EMAIL")
+SIGNING_LOCATION = env("SIGNING_LOCATION")
+SIGNING_REASON = env("SIGNING_REASON")
+
+# Django Extensions
 if DEBUG:
     INSTALLED_APPS.append("django_extensions")
 
@@ -319,3 +344,18 @@ if DEBUG:
         "group_models": True,
     }
 
+
+# SSO config
+FEATURE_STAFF_SSO_ENABLED = env.bool("FEATURE_STAFF_SSO_ENABLED", False)
+if FEATURE_STAFF_SSO_ENABLED:
+    INSTALLED_APPS.append("authbroker_client")
+    AUTHENTICATION_BACKENDS = [
+        "django.contrib.auth.backends.ModelBackend",
+        "authbroker_client.backends.AuthbrokerBackend",
+    ]
+    LOGIN_URL = reverse_lazy("authbroker_client:login")
+    LOGIN_REDIRECT_URL = reverse_lazy("admin:index")
+    AUTHBROKER_URL = env.str("STAFF_SSO_AUTHBROKER_URL")
+    AUTHBROKER_CLIENT_ID = env.str("STAFF_SSO_AUTHBROKER_CLIENT_ID")
+    AUTHBROKER_CLIENT_SECRET = env.str("STAFF_SSO_AUTHBROKER_CLIENT_SECRET")
+    ALLOWED_ADMIN_EMAILS = env.list("ALLOWED_ADMIN_EMAILS")

@@ -1,6 +1,6 @@
 from django.db import transaction, IntegrityError
 
-from conf import settings
+from django.conf import settings
 from static.countries.models import Country
 from static.management.SeedCommand import SeedCommand
 
@@ -22,7 +22,7 @@ class Command(SeedCommand):
         csv = self.read_csv(COUNTRIES_FILE)
         for row in csv:
             obj_id = row["id"]
-            obj = Country.include_special_countries.filter(id=obj_id)
+            obj = Country.objects.filter(id=obj_id)
             if not obj.exists():
                 Country.objects.create(**row)
                 if not settings.SUPPRESS_TEST_OUTPUT:
@@ -31,7 +31,7 @@ class Command(SeedCommand):
                 SeedCommand.update_if_not_equal(obj, row)
 
         ids = [row["id"] for row in csv]
-        for obj in Country.include_special_countries.all():
+        for obj in Country.objects.all():
             id = str(obj.id)
             if id not in ids:
                 try:

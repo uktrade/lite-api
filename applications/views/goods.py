@@ -23,6 +23,7 @@ from conf.decorators import (
     application_in_state,
 )
 from conf.exceptions import BadRequestError
+from flags.enums import SystemFlags
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
@@ -68,9 +69,8 @@ class ApplicationGoodsOnApplication(APIView):
     @application_in_state(is_major_editable=True)
     @authorised_to_view_application(ExporterUser)
     def post(self, request, pk):
-        application = get_application(pk)
         data = request.data
-        data["application"] = application.id
+        data["application"] = pk
 
         if "validate_only" in data and not isinstance(data["validate_only"], bool):
             return JsonResponse(data={"error": strings.Goods.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
@@ -100,7 +100,7 @@ class ApplicationGoodsOnApplication(APIView):
                     actor=request.user,
                     verb=AuditType.ADD_GOOD_TO_APPLICATION,
                     action_object=good,
-                    target=application.get_case(),
+                    target=Case.objects.get(id=pk),
                     payload={"good_name": good.description},
                 )
 
@@ -136,6 +136,13 @@ class ApplicationGoodOnApplication(APIView):
             good_on_application.good.save()
 
         good_on_application.delete()
+
+        # if the application no longer has goods with firearm details, remove the flag
+        if (
+            not application.goods.filter(good__firearm_details__isnull=False).exists()
+            and application.flags.filter(id=SystemFlags.FIREARMS_ID).exists()
+        ):
+            application.flags.remove(SystemFlags.FIREARMS_ID)
 
         audit_trail_service.create(
             actor=request.user,

@@ -1,5 +1,6 @@
 import uuid
 from collections import defaultdict
+from typing import Optional
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
@@ -25,6 +26,7 @@ from conf.permissions import assert_user_has_permission
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
+from lite_content.lite_api import strings
 from organisations.models import Organisation
 from queues.models import Queue
 from static.countries.models import Country
@@ -101,7 +103,7 @@ class Case(TimestampableModel):
 
         return Case.objects.get(id=self.id)
 
-    def get_users(self):
+    def get_assigned_users(self):
         case_assignments = self.case_assignments.select_related("queue", "user").order_by("queue__name")
         return_value = defaultdict(list)
 
@@ -111,16 +113,23 @@ class Case(TimestampableModel):
                     "id": assignment.user.id,
                     "first_name": assignment.user.first_name,
                     "last_name": assignment.user.last_name,
+                    "email": assignment.user.email,
                 }
             )
 
         return return_value
 
-    def change_status(self, user, status: CaseStatus):
+    def change_status(self, user, status: CaseStatus, note: Optional[str] = ""):
+        """
+        Sets the status for the case, runs validation on various parameters,
+        creates audit entries and also runs flagging and automation rules
+        """
+        from cases.helpers import can_set_status
         from audit_trail import service as audit_trail_service
         from applications.libraries.application_helpers import can_status_be_set_by_gov_user
         from workflow.automation import run_routing_rules
         from workflow.flagging_rules_automation import apply_flagging_rules_to_case
+        from licences.helpers import update_licence_status
 
         old_status = self.status.status
 
@@ -128,11 +137,17 @@ class Case(TimestampableModel):
         if status.status == CaseStatusEnum.FINALISED:
             assert_user_has_permission(user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
-        if not can_status_be_set_by_gov_user(user, old_status, status.status, is_licence_application=False):
+        if not can_set_status(self, status.status):
+            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
+
+        if not can_status_be_set_by_gov_user(user, old_status, status.status, is_mod=False):
             raise ValidationError({"status": ["Status cannot be set by user"]})
 
         self.status = status
         self.save()
+
+        # Update licence status if applicable case status change
+        update_licence_status(self, status.status)
 
         if CaseStatusEnum.is_terminal(old_status) and not CaseStatusEnum.is_terminal(self.status.status):
             apply_flagging_rules_to_case(self)
@@ -141,7 +156,10 @@ class Case(TimestampableModel):
             actor=user,
             verb=AuditType.UPDATED_STATUS,
             target=self,
-            payload={"status": {"new": CaseStatusEnum.get_text(self.status.status), "old": old_status}},
+            payload={
+                "status": {"new": CaseStatusEnum.get_text(self.status.status), "old": old_status},
+                "additional_text": note,
+            },
         )
 
         if old_status != self.status.status:
@@ -178,8 +196,7 @@ class Case(TimestampableModel):
 
     def remove_all_case_assignments(self):
         """
-        Will look at a case, and should the case contain any queue or user assignments will remove assignments, and
-            audit the removal of said assignments against the case.
+        Removes all queue and user assignments, and also audits the removal of said assignments against the case
         """
         from audit_trail import service as audit_trail_service
 
@@ -215,8 +232,8 @@ class CaseNote(TimestampableModel):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    case = models.ForeignKey(Case, related_name="case_note", on_delete=models.CASCADE)
-    user = models.ForeignKey(BaseUser, related_name="case_note", on_delete=models.CASCADE, default=None, null=False,)
+    case = models.ForeignKey(Case, related_name="case_notes", on_delete=models.CASCADE)
+    user = models.ForeignKey(BaseUser, related_name="case_notes", on_delete=models.CASCADE, default=None, null=False,)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
@@ -253,17 +270,29 @@ class CaseAssignment(TimestampableModel):
         from audit_trail import service as audit_trail_service
 
         audit_user = None
+        user = None
+        audit_note = None
 
         if "audit_user" in kwargs:
             audit_user = kwargs.pop("audit_user")
 
+        if "user" in kwargs:
+            user = kwargs.pop("user")
+
+        if "audit_note" in kwargs:
+            audit_note = kwargs.pop("audit_note")
+
         super(CaseAssignment, self).save(*args, **kwargs)
-        if audit_user:
+        if audit_user and user:
             audit_trail_service.create(
                 actor=audit_user,
-                verb=AuditType.ASSIGN_CASE,
+                verb=AuditType.ASSIGN_USER_TO_CASE,
                 action_object=self.case,
-                payload={"assignment": f"{self.user.first_name} {self.user.last_name}"},
+                payload={
+                    "user": user.first_name + " " + user.last_name,
+                    "queue": self.queue.name,
+                    "additional_text": audit_note,
+                },
             )
 
 
@@ -433,14 +462,12 @@ class EcjuQuery(TimestampableModel):
 class GoodCountryDecision(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    good = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)
+    goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    decision = models.CharField(choices=AdviceType.choices, max_length=30)
+    approve = models.BooleanField(blank=False, null=False)
 
-    def save(self, *args, **kwargs):
-        GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
-
-        super(GoodCountryDecision, self).save(*args, **kwargs)
+    class Meta:
+        unique_together = [["case", "goods_type", "country"]]
 
 
 class EnforcementCheckID(models.Model):

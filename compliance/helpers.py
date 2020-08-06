@@ -1,5 +1,6 @@
 import csv
 import re
+from typing import Optional
 
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -8,13 +9,17 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
+from compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
+from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
+from conf.permissions import check_user_has_permission
 from goods.models import Good
 from licences.models import Licence
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance
-from organisations.models import Site
+from organisations.libraries.get_organisation import get_request_user_organisation
+from organisations.models import Site, Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.enums import SystemUser
@@ -31,29 +36,25 @@ def get_compliance_site_case(pk):
         raise NotFoundError({"case": strings.Cases.CASE_NOT_FOUND})
 
 
-# SIEL type compliance cases require a specific control code prefixes. currently: (0 to 9)D, (0 to 9)E, ML21, ML22.
-COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
-
-
 def case_meets_conditions_for_compliance(case: Case):
     if case.case_type.id == CaseTypeEnum.SIEL.id:
         if not (
             Good.objects.filter(
                 goods_on_application__application_id=case.id,
                 control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-                goods_on_application__licenced_quantity__isnull=False,
+                goods_on_application__licence__quantity__isnull=False,
             ).exists()
         ):
             return False
         return True
-    elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OGL_ID_LIST]:
+    elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS]:
         return True
     else:
         return False
 
 
 def get_record_holding_sites_for_case(case):
-    if case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
+    if case.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
         return {case.site.site_records_located_at_id}
     else:
         return set(
@@ -148,7 +149,7 @@ def fetch_and_validate_licences(references, organisation_id):
         raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_LICENCES]})
 
     licence_ids = list(
-        Licence.objects.filter(reference_code__in=references, application__organisation_id=organisation_id).values_list(
+        Licence.objects.filter(reference_code__in=references, case__organisation_id=organisation_id).values_list(
             "id", flat=True
         )
     )
@@ -185,3 +186,16 @@ def compliance_visit_case_complete(case: ComplianceVisitCase) -> bool:
             return False
 
     return CompliancePerson.objects.filter(visit_case_id=case.id).exists()
+
+
+def get_exporter_visible_compliance_site_cases(request, organisation: Optional[Organisation]):
+    if not organisation:
+        organisation = get_request_user_organisation(request)
+    qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(organisation_id=organisation.id)
+
+    # if user does not have permission to manage all sites, filter by sites accessible
+    if not check_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, organisation):
+        sites = Site.objects.get_by_user_and_organisation(request.user, organisation).values_list("id", flat=True)
+        qs = qs.filter(site__in=sites)
+
+    return qs

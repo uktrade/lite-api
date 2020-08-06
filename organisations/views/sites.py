@@ -40,6 +40,9 @@ class SitesList(APIView):
         else:
             sites = Site.objects.filter(organisation=organisation)
 
+        if request.GET.get("postcode"):
+            sites = sites.filter(address__postcode=request.GET.get("postcode"))
+
         sites = list(sites)
         sites.sort(key=lambda x: x.id == primary_site_id, reverse=True)
         serializer_data = SiteListSerializer(sites, many=True).data

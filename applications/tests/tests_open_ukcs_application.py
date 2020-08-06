@@ -45,7 +45,7 @@ class OpenUKCSTests(DataTestClient):
         )
         self.assertEqual(
             CountryOnApplication.objects.get(application=OpenApplication.objects.first()).country,
-            Country.include_special_countries.get(id="UKCS"),
+            Country.objects.get(id="UKCS"),
         )
 
     def test_cannot_change_countries_on_ukcs_application(self):

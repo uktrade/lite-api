@@ -4,7 +4,6 @@ from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from flags.enums import SystemFlags
 from lite_content.lite_api import strings
-from picklists.models import PicklistItem
 
 
 def initialize_good_or_goods_type_control_list_entries_serializer(self):
@@ -14,9 +13,10 @@ def initialize_good_or_goods_type_control_list_entries_serializer(self):
                 {"control_list_entries": [strings.Goods.CONTROL_LIST_ENTRY_IF_CONTROLLED_ERROR]}
             )
         self.fields["control_list_entries"] = ControlListEntryField(many=True)
-        self.fields["report_summary"] = serializers.PrimaryKeyRelatedField(
-            queryset=PicklistItem.objects.all(),
+        self.fields["report_summary"] = serializers.CharField(
             required=True,
+            allow_blank=False,
+            allow_null=False,
             error_messages={
                 "required": strings.Picklists.REQUIRED_REPORT_SUMMARY,
                 "null": strings.Picklists.REQUIRED_REPORT_SUMMARY,
@@ -26,9 +26,7 @@ def initialize_good_or_goods_type_control_list_entries_serializer(self):
 
 def update_good_or_goods_type_control_list_entries_details(instance, validated_data):
     instance.comment = validated_data.get("comment")
-
-    report_summary = validated_data.get("report_summary")
-    instance.report_summary = report_summary.text if report_summary else ""
+    instance.report_summary = validated_data.get("report_summary")
 
     if str_to_bool(instance.is_good_controlled):
         if not instance.control_list_entries:
@@ -37,6 +35,7 @@ def update_good_or_goods_type_control_list_entries_details(instance, validated_d
             )
         instance.control_list_entries.set(validated_data.get("control_list_entries"))
     else:
+        instance.report_summary = ""
         instance.control_list_entries.clear()
 
     instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)

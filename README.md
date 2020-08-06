@@ -41,6 +41,13 @@ Do this after installing the python packages in the Pipfile;
 > Linux: https://weasyprint.readthedocs.io/en/stable/install.html#debian-ubuntu
 
 
+## Installing endesive for document signing
+To digitally sign documents `endsesive` requires the OS library swig to be installed.
+To install run `sudo apt-get install swig;`
+
+A p12 file is also required. Please see https://uktrade.atlassian.net/wiki/spaces/ILT/pages/1390870733/PDF+Document+Signing
+
+
 ## Documentation
 
 

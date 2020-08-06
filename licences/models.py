@@ -2,39 +2,96 @@ import uuid
 
 from django.db import models
 
-from applications.models import BaseApplication
+from applications.models import GoodOnApplication
+from cases.models import Case
 from common.models import TimestampableModel
+from conf.helpers import add_months
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
+from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
+from licences.managers import LicenceManager
 from static.decisions.models import Decision
+
+
+class HMRCIntegrationUsageUpdate(TimestampableModel):
+    """
+    A history of when a Licence was updated via a Usage Update from HMRC Integration
+    This is to prevent the same update from being processed multiple times
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 
 class Licence(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, editable=False)
-    application = models.ForeignKey(
-        BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licence"
-    )
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
+    status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
     start_date = models.DateField(blank=False, null=False)
+    end_date = models.DateField(blank=False, null=False)
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
-    is_complete = models.BooleanField(default=False, null=False, blank=False)
     decisions = models.ManyToManyField(Decision, related_name="licence")
-    sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
+    hmrc_integration_sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
+    hmrc_integration_usage_updates = models.ManyToManyField(
+        HMRCIntegrationUsageUpdate, related_name="licences"
+    )  # Usage Update IDs from from HMRC Integration
+
+    objects = LicenceManager()
+
+    def surrender(self, send_status_change_to_hmrc=True):
+        self.status = LicenceStatus.SURRENDERED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+
+    def suspend(self, send_status_change_to_hmrc=True):
+        self.status = LicenceStatus.SUSPENDED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+
+    def revoke(self, send_status_change_to_hmrc=True):
+        self.status = LicenceStatus.REVOKED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+
+    def exhaust(self, send_status_change_to_hmrc=True):
+        self.status = LicenceStatus.EXHAUSTED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+
+    def expire(self, send_status_change_to_hmrc=True):
+        self.status = LicenceStatus.EXPIRED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+
+    def cancel(self, send_status_change_to_hmrc=True):
+        self.status = LicenceStatus.CANCELLED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+
+    def issue(self, send_status_change_to_hmrc=True):
+        # re-issue the licence if an older version exists
+        status = LicenceStatus.ISSUED
+        old_licence = (
+            Licence.objects.filter(case=self.case).exclude(status=LicenceStatus.DRAFT).order_by("-created_at").first()
+        )
+        if old_licence:
+            old_licence.cancel(send_status_change_to_hmrc=False)
+            status = LicenceStatus.REINSTATED
+
+        self.status = status
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def save(self, *args, **kwargs):
+        self.end_date = add_months(self.start_date, self.duration, "%Y-%m-%d")
+        send_status_change_to_hmrc = kwargs.pop("send_status_change_to_hmrc", False)
         super(Licence, self).save(*args, **kwargs)
 
-        if LITE_HMRC_INTEGRATION_ENABLED and self.is_complete:
+        if LITE_HMRC_INTEGRATION_ENABLED and send_status_change_to_hmrc and self.status != LicenceStatus.DRAFT:
             self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
         from licences.tasks import schedule_licence_for_hmrc_integration
 
-        schedule_licence_for_hmrc_integration(str(self.id), self.reference_code)
+        schedule_licence_for_hmrc_integration(str(self.id), licence_status_to_hmrc_integration_action.get(self.status))
 
-    def set_sent_at(self, value):
-        """
-        For avoiding use of 'save()' which would trigger 'send_to_hmrc_integration()' again
-        """
 
-        self.sent_at = value
-        super(Licence, self).save()
+class GoodOnLicence(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    good = models.ForeignKey(GoodOnApplication, on_delete=models.CASCADE, related_name="licence")
+    licence = models.ForeignKey(Licence, on_delete=models.CASCADE, related_name="goods", related_query_name="goods")
+    usage = models.FloatField(null=False, blank=False, default=0)
+    quantity = models.FloatField(null=False, blank=False)
+    value = models.DecimalField(max_digits=15, decimal_places=2, null=False, blank=False)

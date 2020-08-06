@@ -17,7 +17,8 @@ from conf.authentication import (
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date, str_to_bool
-from conf.permissions import assert_user_has_permission
+from conf.permissions import assert_user_has_permission, check_user_has_permission
+from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Users
 from organisations.enums import OrganisationStatus
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
@@ -51,15 +52,29 @@ class AuthenticateExporterUser(APIView):
         """
         data = request.data
 
+        user_profile = data.get("user_profile")
+        if not user_profile:
+            return JsonResponse(
+                data={"errors": [strings.Login.Error.USER_PROFILE]}, status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        first_name = data.get("user_profile").get("first_name")
+        last_name = data.get("user_profile").get("last_name")
+        if not first_name or not last_name:
+            return JsonResponse(
+                data={"errors": [strings.Login.Error.USER_PROFILE]}, status=status.HTTP_400_BAD_REQUEST,
+            )
+
         try:
             user = ExporterUser.objects.get(email=data.get("email"))
-
             # Update the user's first and last names
-            user.first_name = data.get("user_profile").get("first_name")
-            user.last_name = data.get("user_profile").get("last_name")
+            user.first_name = first_name
+            user.last_name = last_name
             user.save()
         except ExporterUser.DoesNotExist:
-            return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(
+                data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
         token = user_to_token(user)
         return JsonResponse(
@@ -187,18 +202,47 @@ class NotificationViewSet(APIView):
         """
         Count the number of application, eua_query and goods_query exporter user notifications
         """
-        notifications = (
-            self.queryset.filter(user=request.user, organisation_id=get_request_user_organisation_id(request))
-            .prefetch_related("case__case_type")
-            .values("case__case_type__sub_type", "case__case_type__type")
+        organisation = get_request_user_organisation(request)
+        notifications_list = list(
+            self.queryset.filter(user=request.user, organisation_id=organisation.id)
+            .prefetch_related("case__case_type", "case__compliancesitecase")
+            .values(
+                "case__case_type__sub_type",
+                "case__case_type__type",
+                "case__compliancesitecase__site_id",
+                "case__compliancevisitcase__site_case__site_id",
+            )
         )
-        case_types = [notification["case__case_type__type"] for notification in notifications]
-        case_sub_types = [notification["case__case_type__sub_type"] for notification in notifications]
+        case_types = [notification["case__case_type__type"] for notification in notifications_list]
+        case_sub_types = [notification["case__case_type__sub_type"] for notification in notifications_list]
         notifications = {
             CaseTypeTypeEnum.APPLICATION: case_types.count(CaseTypeTypeEnum.APPLICATION),
             CaseTypeSubTypeEnum.EUA: case_sub_types.count(CaseTypeSubTypeEnum.EUA),
             CaseTypeSubTypeEnum.GOODS: case_sub_types.count(CaseTypeSubTypeEnum.GOODS),
         }
+
+        # Compliance
+        can_administer_sites = check_user_has_permission(
+            self.request.user, ExporterPermissions.ADMINISTER_SITES, organisation
+        )
+
+        request_user_sites = (
+            list(Site.objects.get_by_user_and_organisation(request.user, organisation).values_list("id", flat=True))
+            if not can_administer_sites
+            else []
+        )
+
+        notifications[CaseTypeTypeEnum.COMPLIANCE] = len(
+            [
+                notification
+                for notification in notifications_list
+                if (notification["case__compliancesitecase__site_id"] and can_administer_sites)
+                or (notification["case__compliancevisitcase__site_case__site_id"] and can_administer_sites)
+                or notification["case__compliancesitecase__site_id"] in request_user_sites
+                or notification["case__compliancevisitcase__site_case__site_id"] in request_user_sites
+            ]
+        )
+
         return JsonResponse(data={"notifications": notifications}, status=status.HTTP_200_OK)
 
 

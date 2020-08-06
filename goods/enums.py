@@ -35,7 +35,15 @@ class GoodControlled:
     NO = "no"
     UNSURE = "unsure"
 
-    choices = [(YES, "Yes"), (NO, "No"), (UNSURE, "I don't know")]
+    choices = [
+        (YES, "Yes"),
+        (NO, "No"),
+        (UNSURE, "I don't know"),
+    ]
+
+    @classmethod
+    def to_str(cls, obj):
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
 
 
 class GoodPvGraded:
@@ -43,7 +51,15 @@ class GoodPvGraded:
     NO = "no"
     GRADING_REQUIRED = "grading_required"
 
-    choices = [(YES, "Yes"), (NO, "No"), (GRADING_REQUIRED, "Good needs to be graded")]
+    choices = [
+        (YES, "Yes"),
+        (NO, "No"),
+        (GRADING_REQUIRED, "Good needs to be graded"),
+    ]
+
+    @classmethod
+    def to_str(cls, option):
+        return next(choice[1] for choice in cls.choices if choice[0] == option)
 
 
 class PvGrading:
@@ -85,11 +101,9 @@ class PvGrading:
         (UK_TOP_SECRET, "UK top secret"),
     ]
 
-    choices_as_dict = {key: value for key, value in choices}
-
     @classmethod
     def to_str(cls, obj):
-        return [grading[1] for grading in PvGrading.choices if grading[0] == obj][0]
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
 
 
 class ItemCategory:
@@ -115,6 +129,10 @@ class ItemCategory:
     group_two = [GROUP2_FIREARMS]
     group_three = [GROUP3_SOFTWARE, GROUP3_TECHNOLOGY]
 
+    @classmethod
+    def to_str(cls, obj):
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
+
 
 class MilitaryUse:
     YES_DESIGNED = "yes_designed"
@@ -126,6 +144,10 @@ class MilitaryUse:
         (YES_MODIFIED, "Yes, modified for military use"),
         (NO, "No"),
     ]
+
+    @classmethod
+    def to_str(cls, obj):
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
 
 
 class Component:
@@ -141,6 +163,10 @@ class Component:
         (NO, "No"),
     ]
 
+    @classmethod
+    def to_str(cls, obj):
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
+
 
 class FirearmGoodType:
     FIREARMS = "firearms"
@@ -154,3 +180,7 @@ class FirearmGoodType:
         (AMMUNITION, "Ammunition"),
         (COMPONENTS_FOR_AMMUNITION, "Components for ammunition"),
     ]
+
+    @classmethod
+    def to_str(cls, obj):
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None

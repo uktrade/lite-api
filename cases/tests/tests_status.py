@@ -1,11 +1,56 @@
 from django.urls import reverse
+from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
+from applications.tests.factories import StandardApplicationFactory
+from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from cases.models import CaseAssignment
+from licences.enums import LicenceStatus
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+
+faker = Faker()
+
+
+class ChangeStatusTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.case = StandardApplicationFactory()
+        self.url = reverse("cases:case", kwargs={"pk": self.case.id})
+
+    def test_optional_note(self):
+        """
+        When changing status, allow for optional notes to be added
+        """
+
+        data = {"status": CaseStatusEnum.WITHDRAWN, "note": faker.word()}
+
+        response = self.client.patch(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Audit.objects.get(verb=AuditType.UPDATED_STATUS).payload["additional_text"], data["note"])
+
+    @parameterized.expand(
+        [
+            (CaseStatusEnum.SUSPENDED, LicenceStatus.SUSPENDED,),
+            (CaseStatusEnum.SURRENDERED, LicenceStatus.SURRENDERED,),
+            (CaseStatusEnum.REVOKED, LicenceStatus.REVOKED,),
+        ]
+    )
+    def test_certain_case_statuses_changes_licence_status(self, case_status, licence_status):
+        licence = self.create_licence(self.case, status=LicenceStatus.ISSUED)
+
+        data = {"status": case_status}
+        response = self.client.patch(self.url, data=data, **self.gov_headers)
+
+        self.case.refresh_from_db()
+        licence.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.case.status.status, case_status)
+        self.assertEqual(licence.status, licence_status)
 
 
 class EndUserAdvisoryUpdate(DataTestClient):

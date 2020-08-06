@@ -35,7 +35,7 @@ class GoodViewTests(DataTestClient):
                 "HTTP_ORGANISATION_ID": str(organisation_2.id),
             },
         )
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_view_good__query_filter_by_description(self):
         org = self.organisation

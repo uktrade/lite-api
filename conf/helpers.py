@@ -1,9 +1,10 @@
 import datetime
 import re
 
+from dateutil.relativedelta import relativedelta
 from django.templatetags.tz import do_timezone
 from django.utils import timezone
-
+from pytz import timezone as get_timezone
 
 DATE_FORMAT = "%d %B %Y"
 TIME_FORMAT = "%H:%M"
@@ -21,10 +22,6 @@ def str_to_bool(v, invert_none=False):
 
 def convert_queryset_to_str(queryset):
     return [str(x) for x in queryset]
-
-
-def ensure_x_items_not_none(data, x):
-    return x == len([item for item in data if item is not None])
 
 
 def convert_pascal_case_to_snake_case(name):
@@ -82,20 +79,20 @@ def pluralise_unit(unit, value):
     return unit
 
 
+def get_local_datetime():
+    utc = timezone.now()
+    return utc.astimezone(get_timezone("Europe/London"))
+
+
 def get_date_and_time():
-    now = timezone.now()
+    now = get_local_datetime()
     return now.strftime(DATE_FORMAT), now.strftime(TIME_FORMAT)
 
 
 def add_months(start_date, months, date_format=DATE_FORMAT):
-    year = start_date.year
-    month = start_date.month
-
-    for _ in range(months):
-        month += 1
-        if month == 13:
-            year += 1
-            month = 1
-
-    new_date = datetime.date(year=year, month=month, day=start_date.day)
+    """
+    Return a date with an added desired number of business months
+    Example 31/1/2020 + 1 month = 29/2/2020 (one business month)
+    """
+    new_date = start_date + relativedelta(months=+months)
     return new_date.strftime(date_format)

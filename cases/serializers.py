@@ -3,9 +3,8 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework import serializers
 
-from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
-from applications.serializers.advice import CaseAdviceSerializer
+from applications.serializers.advice import AdviceViewSerializer
 from audit_trail.models import Audit
 from cases.enums import (
     CaseTypeTypeEnum,
@@ -15,7 +14,6 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
 )
-from cases.fields import HasOpenECJUQueriesRelatedField
 from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
@@ -34,7 +32,7 @@ from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisi
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
-from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
+from gov_users.serializers import GovUserSimpleSerializer
 from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from queries.serializers import QueryViewSerializer
@@ -44,11 +42,8 @@ from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
-from users.models import BaseUser, GovUser, ExporterUser, GovNotification
-from users.serializers import (
-    BaseUserViewSerializer,
-    ExporterUserViewSerializer,
-)
+from users.models import BaseUser, GovUser, GovNotification, ExporterUser
+from users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -101,8 +96,8 @@ class CaseListSerializer(serializers.Serializer):
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
     next_review_date = serializers.DateField()
+    has_open_queries = serializers.BooleanField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -155,7 +150,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     audit_notification = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    advice = CaseAdviceSerializer(many=True)
+    advice = AdviceViewSerializer(many=True)
     data = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     next_review_date = serializers.SerializerMethodField()
@@ -189,6 +184,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
     def get_data(self, instance):
         from licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer
+        from applications.helpers import get_application_view_serializer
 
         if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
             return OpenGeneralLicenceCaseSerializer(get_open_general_export_licence_case(instance.id)).data
@@ -212,7 +208,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         return list(instance.queues.values_list("name", flat=True))
 
     def get_assigned_users(self, instance):
-        return instance.get_users()
+        return instance.get_assigned_users()
 
     def get_has_advice(self, instance):
         has_advice = {"user": False, "my_user": False, "team": False, "my_team": False, "final": False}
@@ -248,8 +244,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         queryset = GovNotification.objects.filter(user=self.user, content_type=content_type, case=instance)
 
         if queryset.exists():
-            notification = queryset.first()
-            return GovUserNotificationSerializer(notification).data
+            return {"audit_id": queryset.first().object_id}
 
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
@@ -371,11 +366,9 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
             return instance.responded_by_user.get_full_name()
 
 
-class EcjuQueryExporterSerializer(serializers.ModelSerializer):
+class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
-    responded_by_user = PrimaryKeyRelatedSerializerField(
-        queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
-    )
+    responded_by_user = serializers.SerializerMethodField()
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
 
     def get_team(self, instance):
@@ -396,10 +389,41 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
             "responded_at",
         )
 
+    def get_responded_by_user(self, instance):
+        if instance.responded_by_user:
+            return {"id": instance.responded_by_user.id, "name": instance.responded_by_user.get_full_name()}
+
+
+class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
+    team = serializers.SerializerMethodField()
+    responded_by_user = PrimaryKeyRelatedSerializerField(
+        queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
+    )
+    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+
+    class Meta:
+        model = EcjuQuery
+        fields = (
+            "id",
+            "question",
+            "response",
+            "case",
+            "responded_by_user",
+            "team",
+            "created_at",
+            "responded_at",
+        )
+
+    def get_team(self, instance):
+        # If the team is not available, use the user's current team.
+        team = instance.team if instance.team else instance.raised_by_user.team
+        return TeamSerializer(team).data
+
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
     """
-    Create specific serializer, which does not take a response as gov users don't respond to their own queries!
+    Query CREATE serializer for GOV users
+    Does not take a response as they cannot respond to their own queries
     """
 
     question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)

@@ -1,12 +1,14 @@
 from parameterized import parameterized
 
 from applications.models import SiteOnApplication, GoodOnApplication
+from applications.tests.factories import GoodOnApplicationFactory
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from compliance.helpers import generate_compliance_site_case
 from compliance.models import ComplianceSiteCase
 from goods.enums import GoodControlled
 from goods.tests.factories import GoodFactory
+from licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
 from open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from organisations.tests.factories import SiteFactory
 from static.control_list_entries.factories import ControlListEntriesFactory
@@ -69,7 +71,12 @@ class ComplianceCreateTests(DataTestClient):
         good = GoodFactory(
             organisation=self.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=[control_code],
         )
-        GoodOnApplication(application_id=case.id, good=good, licenced_quantity=5, licenced_value=10, usage=0).save()
+        GoodOnLicenceFactory(
+            good=GoodOnApplicationFactory(application=case, good=good),
+            licence=LicenceFactory(case=case),
+            quantity=100,
+            value=1,
+        )
 
         generate_compliance_site_case(case)
 

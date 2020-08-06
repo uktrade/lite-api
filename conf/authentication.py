@@ -6,9 +6,9 @@ from mohawk import Receiver
 from mohawk.exc import HawkFail, AlreadyProcessed
 from rest_framework import authentication
 
-from conf import settings
+from django.conf import settings
 from conf.exceptions import PermissionDeniedError
-from conf.settings import HAWK_AUTHENTICATION_ENABLED
+from conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS
 from gov_users.enums import GovUserStatuses
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation
@@ -126,9 +126,24 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
         """
 
         try:
-            hawk_receiver = _authenticate(request)
+            hawk_receiver = _authenticate(request, _lookup_credentials)
         except HawkFail as e:
-            logging.warning(f"Failed HAWK authentication {e}")
+            logging.error(f"Failed HAWK authentication {e}")
+            raise e
+
+        return AnonymousUser, hawk_receiver
+
+
+class HMRCIntegrationOnlyAuthentication(authentication.BaseAuthentication):
+    def authenticate(self, request):
+        """
+        Only approve HAWK Signed requests from the HMRC Integration service
+        """
+
+        try:
+            hawk_receiver = _authenticate(request, _lookup_credentials_hmrc_integration)
+        except HawkFail as e:
+            logging.error(f"Failed HAWK authentication {e}")
             raise e
 
         return AnonymousUser, hawk_receiver
@@ -190,14 +205,14 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
             return HawkOnlyAuthentication().authenticate(request)
 
 
-def _authenticate(request):
+def _authenticate(request, lookup_credentials):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
 
     if HAWK_AUTHENTICATION_ENABLED:
         return Receiver(
-            _lookup_credentials,
+            lookup_credentials,
             request.META["HTTP_HAWK_AUTHENTICATION"],
             # build_absolute_uri() returns 'http' which is incorrect since our clients communicate via https
             request.build_absolute_uri().replace("http", "https"),
@@ -240,3 +255,13 @@ def _lookup_credentials(access_key_id):
         "algorithm": "sha256",
         **credentials,
     }
+
+
+def _lookup_credentials_hmrc_integration(access_key_id):
+    """
+    Raises HawkFail if the access key ID cannot be found.
+    """
+    if access_key_id != HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS:
+        raise HawkFail(f"No Hawk ID of {access_key_id}")
+
+    return _lookup_credentials(access_key_id)

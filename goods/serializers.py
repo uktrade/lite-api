@@ -29,7 +29,6 @@ from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetail
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
-from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
 from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
@@ -547,6 +546,7 @@ class GoodDocumentViewSerializer(serializers.Serializer):
     description = serializers.CharField()
     user = ExporterUserSimpleSerializer()
     s3_key = serializers.SerializerMethodField()
+    safe = serializers.BooleanField()
 
     def get_s3_key(self, instance):
         return instance.s3_key if instance.safe else "File not ready"
@@ -688,9 +688,6 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
     )
     control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
-    report_summary = serializers.PrimaryKeyRelatedField(
-        queryset=PicklistItem.objects.all(), required=False, allow_null=True
-    )
 
     class Meta:
         model = Good

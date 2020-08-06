@@ -1,4 +1,5 @@
 from common.enums import LiteEnum, autostr
+from lite_content.lite_api import audit
 
 
 class AuditType(LiteEnum):
@@ -29,6 +30,7 @@ class AuditType(LiteEnum):
     ADD_ADDITIONAL_CONTACT_TO_CASE = autostr()
     MOVE_CASE = autostr()
     ASSIGN_CASE = autostr()
+    ASSIGN_USER_TO_CASE = autostr()
     REMOVE_CASE = autostr()
     REMOVE_CASE_FROM_ALL_QUEUES = autostr()
     REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS = autostr()
@@ -60,9 +62,11 @@ class AuditType(LiteEnum):
     ADD_CASE_OFFICER_TO_CASE = autostr()
     REMOVE_CASE_OFFICER_FROM_CASE = autostr()
     GRANTED_APPLICATION = autostr()
+    REINSTATED_APPLICATION = autostr()
     FINALISED_APPLICATION = autostr()
     UNASSIGNED_QUEUES = autostr()
     UNASSIGNED = autostr()
+    CREATED_DOCUMENT_TEMPLATE = autostr()
     UPDATED_LETTER_TEMPLATE_NAME = autostr()
     ADDED_LETTER_TEMPLATE_CASE_TYPES = autostr()
     UPDATED_LETTER_TEMPLATE_CASE_TYPES = autostr()
@@ -75,6 +79,7 @@ class AuditType(LiteEnum):
     ADDED_LETTER_TEMPLATE_PARAGRAPHS = autostr()
     UPDATED_LETTER_TEMPLATE_LAYOUT = autostr()
     UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING = autostr()
+    UPDATED_LETTER_TEMPLATE_INCLUDE_DIGITAL_SIGNATURE = autostr()
     CREATED_PICKLIST = autostr()
     UPDATED_PICKLIST_TEXT = autostr()
     UPDATED_PICKLIST_NAME = autostr()
@@ -107,7 +112,19 @@ class AuditType(LiteEnum):
     COMPLIANCE_PEOPLE_PRESENT_CREATED = autostr()
     COMPLIANCE_PEOPLE_PRESENT_UPDATED = autostr()
     COMPLIANCE_PEOPLE_PRESENT_DELETED = autostr()
+    UPDATED_GOOD_ON_DESTINATION_MATRIX = autostr()
+    LICENCE_UPDATED_GOOD_USAGE = autostr()
+    OGEL_REISSUED = autostr()
+    LICENCE_UPDATED_STATUS = autostr()
 
     def human_readable(self):
+        """
+        Return a human readable version of the audit type
+
+        If a human readable string exists in content return that,
+        else return an auto generated string (i.e. correct capitalisation, no underscores)
+        """
+        if hasattr(audit, self.name):
+            return getattr(audit, self.name)
         value = self.value.replace("_", " ")
         return value.capitalize()

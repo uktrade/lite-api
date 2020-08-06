@@ -1,4 +1,5 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.db.models import Q
 
 from applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
 from applications.models import (
@@ -10,18 +11,28 @@ from applications.models import (
     HmrcQuery,
     CountryOnApplication,
 )
-from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
-from cases.models import Advice, EcjuQuery, CaseNote
-from compliance.models import ComplianceVisitCase, CompliancePerson
-from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
-from goods.enums import PvGrading
+from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryType
+from cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision
+from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
+from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
+from conf.helpers import (
+    get_date_and_time,
+    add_months,
+    DATE_FORMAT,
+    TIME_FORMAT,
+    friendly_boolean,
+    pluralise_unit,
+    get_value_from_enum,
+)
+from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled, GoodPvGraded
+from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
-from parties.enums import PartyRole
+from parties.enums import PartyRole, PartyType, SubType
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
-from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from static.units.enums import Units
 
 
@@ -30,7 +41,7 @@ def get_document_context(case, addressee=None):
     Generate universal context dictionary to provide data for all document types.
     """
     date, time = get_date_and_time()
-    licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
+    licence = Licence.objects.get_draft_or_active_licence(case.pk)
     final_advice = Advice.objects.filter(level=AdviceLevel.FINAL, case_id=case.pk)
     ecju_queries = EcjuQuery.objects.filter(case=case)
     notes = CaseNote.objects.filter(case=case)
@@ -41,9 +52,14 @@ def get_document_context(case, addressee=None):
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
 
     if getattr(base_application, "goods", "") and base_application.goods.exists():
-        goods = _get_goods_context(base_application.goods.all(), final_advice)
+        goods = _get_goods_context(base_application, final_advice, licence)
     elif getattr(base_application, "goods_type", "") and base_application.goods_type.exists():
-        goods = _get_goods_type_context(base_application.goods_type.all(), case.pk)
+        goods = _get_goods_type_context(
+            base_application.goods_type.all()
+            .order_by("created_at")
+            .prefetch_related("countries", "control_list_entries"),
+            case.pk,
+        )
     else:
         goods = None
 
@@ -123,7 +139,6 @@ def _get_standard_application_context(case):
             "export_type": standard_application.export_type,
             "reference_number_on_information_form": standard_application.reference_number_on_information_form,
             "has_been_informed": standard_application.have_you_been_informed,
-            "contains_firearm_goods": friendly_boolean(standard_application.contains_firearm_goods),
             "shipped_waybill_or_lading": friendly_boolean(standard_application.is_shipped_waybill_or_lading),
             "non_waybill_or_lading_route_details": standard_application.non_waybill_or_lading_route_details,
             "proposed_return_date": standard_application.proposed_return_date.strftime(DATE_FORMAT)
@@ -201,15 +216,15 @@ def _get_f680_clearance_context(case):
             "foreign_technology_description": f680.foreign_technology_description,
             "locally_manufactured": friendly_boolean(f680.locally_manufactured),
             "locally_manufactured_description": f680.locally_manufactured_description,
-            "mtcr_type": MTCRAnswers.choices_as_dict.get(f680.mtcr_type) if f680.mtcr_type else None,
+            "mtcr_type": MTCRAnswers.to_str(f680.mtcr_type) if f680.mtcr_type else None,
             "electronic_warfare_requirement": friendly_boolean(f680.electronic_warfare_requirement),
             "uk_service_equipment": friendly_boolean(f680.uk_service_equipment),
             "uk_service_equipment_description": f680.uk_service_equipment_description,
-            "uk_service_equipment_type": ServiceEquipmentType.choices_as_dict.get(f680.uk_service_equipment_type)
+            "uk_service_equipment_type": ServiceEquipmentType.to_str(f680.uk_service_equipment_type)
             if f680.uk_service_equipment_type
             else None,
             "prospect_value": f680.prospect_value,
-            "clearance_level": PvGrading.choices_as_dict.get(f680.clearance_level),
+            "clearance_level": PvGrading.to_str(f680.clearance_level),
         }
     )
     return context
@@ -255,37 +270,96 @@ def _get_goods_query_context(case):
     }
 
 
-def _get_compliance_site_context(case):
-    return None
+def _get_compliance_licence_status(case):
+    # The latest non draft licence should be the only active licence on a case or the licence that was active
+    last_licence = (
+        Licence.objects.filter(case_id=case.id).exclude(status=LicenceStatus.DRAFT).order_by("created_at").last()
+    )
+
+    # not all case types contain a licence, for example OGLs do not. As a result we display the case status
+    if last_licence:
+        return LicenceStatus.to_str(last_licence.status)
+    else:
+        return get_status_value_from_case_status_enum(case.status.status)
 
 
-def _get_compliance_visit_context(case):
-    def _get_people_present_compliance_visit_context(case):
-        people = list(CompliancePerson.objects.filter(visit_case=case.id))
-        if people:
-            return [{"name": person.name, "job_title": person.job_title} for person in people]
-        else:
-            return None
+def _get_compliance_site_licences(case_id):
+    cases = Case.objects.filter_for_cases_related_to_compliance_case(case_id)
+    context = [
+        {"reference_code": case.reference_code, "status": _get_compliance_licence_status(case),} for case in cases
+    ]
+    return context
 
-    comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
+
+def _get_organisations_open_licence_returns(organisation_id):
+    olrs = OpenLicenceReturns.objects.filter(organisation_id=organisation_id).order_by("-year", "-created_at")
+
+    return [
+        {
+            "file_name": f"{olr.year}OpenLicenceReturns.csv",
+            "year": olr.year,
+            "timestamp": olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
+        }
+        for olr in olrs
+    ]
+
+
+def _get_people_present_compliance_visit_context(case):
+    people = list(CompliancePerson.objects.filter(visit_case=case.id))
+    if people:
+        return [{"name": person.name, "job_title": person.job_title} for person in people]
+    else:
+        return None
+
+
+def _convert_compliance_visit_case_to_dict(comp_case):
     return {
-        "site_case_reference": comp_case.site_case.reference_code,
-        "site_name": comp_case.site_case.site.name,
-        "site_address": comp_case.site_case.site.address,
-        "visit_type": comp_case.visit_type,
-        "visit_date": comp_case.visit_date,
-        "overall_risk_value": comp_case.overall_risk_value,
+        "reference_code": comp_case.reference_code,
+        "visit_type": ComplianceVisitTypes.to_str(comp_case.visit_type) if comp_case.visit_type else None,
+        "visit_date": comp_case.visit_date.strftime(DATE_FORMAT) if comp_case.visit_date else None,
+        "overall_risk_value": ComplianceRiskValues.to_str(comp_case.overall_risk_value)
+        if comp_case.overall_risk_value
+        else None,
         "licence_risk_value": comp_case.licence_risk_value,
         "overview": comp_case.overview,
         "inspection": comp_case.inspection,
         "compliance_overview": comp_case.compliance_overview,
-        "compliance_risk_value": comp_case.compliance_risk_value,
+        "compliance_risk_value": ComplianceRiskValues.to_str(comp_case.compliance_risk_value)
+        if comp_case.overall_risk_value
+        else None,
         "individuals_overview": comp_case.individuals_overview,
-        "individuals_risk_value": comp_case.individuals_risk_value,
+        "individuals_risk_value": ComplianceRiskValues.to_str(comp_case.individuals_risk_value)
+        if comp_case.overall_risk_value
+        else None,
         "products_overview": comp_case.products_overview,
-        "products_risk_value": comp_case.products_risk_value,
+        "products_risk_value": ComplianceRiskValues.to_str(comp_case.products_risk_value)
+        if comp_case.overall_risk_value
+        else None,
         "people_present": _get_people_present_compliance_visit_context(comp_case),
     }
+
+
+def _get_compliance_site_context(case, with_visit_reports=True):
+    context = {
+        "reference_code": case.reference_code,
+        "site_name": case.compliancesitecase.site.name,
+        **_get_address(case.compliancesitecase.site.address),
+        "open_licence_returns": _get_organisations_open_licence_returns(case.organisation.id),
+        "licences": _get_compliance_site_licences(case.id),
+    }
+    if with_visit_reports:
+        context["visit_reports"] = [
+            _convert_compliance_visit_case_to_dict(visit)
+            for visit in ComplianceVisitCase.objects.filter(site_case_id=case.id)
+        ]
+    return context
+
+
+def _get_compliance_visit_context(case):
+    comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
+    context = _convert_compliance_visit_case_to_dict(comp_case)
+    context["site_case"] = _get_compliance_site_context(comp_case.site_case, with_visit_reports=False)
+    return context
 
 
 def _get_details_context(case):
@@ -345,15 +419,23 @@ def _get_licence_context(licence):
 
 
 def _get_party_context(party):
-    return {
+    context = {
         "name": party.name,
-        "type": party.sub_type,
+        "type": party.sub_type_other if party.sub_type_other else get_value_from_enum(party.sub_type, SubType),
         "address": party.address,
         "descriptors": party.descriptors,
         "country": {"name": party.country.name, "code": party.country.id},
         "website": party.website,
-        "clearance_level": PvGrading.choices_as_dict.get(party.clearance_level),
     }
+    if party.clearance_level:
+        context["clearance_level"] = PvGrading.to_str(party.clearance_level)
+    else:
+        context["clearance_level"] = None
+
+    if party.type == PartyType.THIRD_PARTY:
+        context["role"] = party.role_other if party.role_other else get_value_from_enum(party.role, PartyRole)
+
+    return context
 
 
 def _get_third_parties_context(third_parties):
@@ -372,93 +454,242 @@ def _get_third_parties_context(third_parties):
 
 def _format_quantity(quantity, unit):
     if quantity and unit:
-        return " ".join([intcomma(quantity), pluralise_unit(Units.choices_as_dict[unit], quantity),])
+        return " ".join([intcomma(quantity), pluralise_unit(Units.to_str(unit), quantity),])
+    elif unit:
+        return "0 " + pluralise_unit(Units.to_str(unit), quantity)
 
 
-def _get_good_context(good_on_application, advice=None):
+def _get_pv_grading_context(pv_grading_details):
+    context = {
+        "prefix": pv_grading_details.prefix,
+        "suffix": pv_grading_details.suffix,
+        "issuing_authority": pv_grading_details.issuing_authority,
+        "reference": pv_grading_details.reference,
+        "date_of_issue": pv_grading_details.date_of_issue.strftime(DATE_FORMAT)
+        if pv_grading_details.date_of_issue
+        else None,
+    }
+    if pv_grading_details.grading:
+        context["grading"] = PvGrading.to_str(pv_grading_details.grading)
+    else:
+        context["grading"] = pv_grading_details.custom_grading
+
+    return context
+
+
+def _get_good_on_application_context(good_on_application, advice=None):
     good_context = {
         "description": good_on_application.good.description,
         "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
-        "is_controlled": good_on_application.good.is_good_controlled,
+        "is_controlled": GoodControlled.to_str(good_on_application.good.is_good_controlled),
         "part_number": good_on_application.good.part_number,
         "applied_for_quantity": _format_quantity(good_on_application.quantity, good_on_application.unit)
         if good_on_application.quantity
         else None,
         "applied_for_value": f"£{good_on_application.value}",
         "is_incorporated": friendly_boolean(good_on_application.is_good_incorporated),
+        "item_category": ItemCategory.to_str(good_on_application.good.item_category),
+        "is_pv_graded": GoodPvGraded.to_str(good_on_application.good.is_pv_graded),
     }
+
+    # handle item categories for goods and their differences
+    if good_on_application.good.item_category in ItemCategory.group_one:
+        good_context["is_military_use"] = MilitaryUse.to_str(good_on_application.good.is_military_use)
+        if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
+            good_context["modified_military_use_details"] = good_on_application.good.modified_military_use_details
+        good_context["is_component"] = Component.to_str(good_on_application.good.is_component)
+        if good_on_application.good.is_component != Component.NO:
+            good_context["component_details"] = good_on_application.good.component_details
+        good_context["uses_information_security"] = friendly_boolean(good_on_application.good.uses_information_security)
+        if good_on_application.good.uses_information_security:
+            good_context["information_security_details"] = good_on_application.good.information_security_details
+    elif good_on_application.good.item_category in ItemCategory.group_two:
+        good_context["firearm_type"] = FirearmGoodType.to_str(good_on_application.good.firearm_details.type)
+        good_context["year_of_manufacture"] = good_on_application.good.firearm_details.year_of_manufacture
+        good_context["calibre"] = good_on_application.good.firearm_details.calibre
+        good_context["is_covered_by_firearm_act_section_one_two_or_five"] = friendly_boolean(
+            good_on_application.good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five
+        )
+        if good_on_application.good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five:
+            good_context[
+                "section_certificate_number"
+            ] = good_on_application.good.firearm_details.section_certificate_number
+            good_context[
+                "section_certificate_date_of_expiry"
+            ] = good_on_application.good.firearm_details.section_certificate_date_of_expiry
+        good_context["has_identification_markings"] = friendly_boolean(
+            good_on_application.good.firearm_details.has_identification_markings
+        )
+        if good_on_application.good.firearm_details.has_identification_markings:
+            good_context[
+                "identification_markings_details"
+            ] = good_on_application.good.firearm_details.identification_markings_details
+        else:
+            good_context[
+                "no_identification_markings_details"
+            ] = good_on_application.good.firearm_details.no_identification_markings_details
+    elif good_on_application.good.item_category in ItemCategory.group_three:
+        good_context["is_military_use"] = MilitaryUse.to_str(good_on_application.good.is_military_use)
+        if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
+            good_context["modified_military_use_details"] = good_on_application.good.modified_military_use_details
+        good_context["software_or_technology_details"] = good_on_application.good.software_or_technology_details
+        good_context["uses_information_security"] = friendly_boolean(good_on_application.good.uses_information_security)
+        if good_on_application.good.uses_information_security:
+            good_context["information_security_details"] = good_on_application.good.information_security_details
+
     if advice:
         good_context["reason"] = advice.text
         good_context["note"] = advice.note
         if advice.proviso:
             good_context["proviso_reason"] = advice.proviso
-    if good_on_application.licenced_quantity:
-        good_context["quantity"] = _format_quantity(good_on_application.licenced_quantity, good_on_application.unit)
-    if good_on_application.licenced_value:
-        good_context["value"] = f"£{good_on_application.licenced_value}"
     if good_on_application.item_type:
         good_context["item_type"] = good_on_application.item_type
         good_context["other_item_type"] = good_on_application.other_item_type
 
+    if good_on_application.good.is_pv_graded != GoodPvGraded.NO:
+        good_context["pv_grading"] = _get_pv_grading_context(good_on_application.good.pv_grading_details)
+
     return good_context
 
 
-def _get_goods_context(goods, final_advice):
+def _get_good_on_licence_context(good_on_licence, advice=None):
+    good_context = _get_good_on_application_context(good_on_licence.good, advice)
+    good_context["quantity"] = _format_quantity(good_on_licence.quantity, good_on_licence.good.unit)
+    good_context["value"] = f"£{good_on_licence.value}"
+
+    return good_context
+
+
+def _get_goods_context(application, final_advice, licence=None):
+    goods_on_application = application.goods.all().order_by("good__description")
     final_advice = final_advice.filter(good_id__isnull=False)
-    goods = goods.order_by("good__description")
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
-    goods_context["all"] = [_get_good_context(good_on_application) for good_on_application in goods]
-    goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods}
+
+    goods_on_application_dict = {
+        good_on_application.good_id: good_on_application for good_on_application in goods_on_application
+    }
+    goods_context["all"] = [_get_good_on_application_context(good) for good in goods_on_application]
+
+    if licence:
+        goods_on_licence = licence.goods.all().order_by("good__good__description")
+        if goods_on_licence.exists():
+            goods_context[AdviceType.APPROVE] = [
+                _get_good_on_licence_context(good_on_licence) for good_on_licence in goods_on_licence
+            ]
+        # Remove APPROVE from advice as it is no longer needed
+        # (no need to get approved GoodOnApplications if we have GoodOnLicence)
+        final_advice = final_advice.exclude(type=AdviceType.APPROVE)
 
     for advice in final_advice:
-        good_on_application = goods_on_application[advice.good_id]
-        goods_context[advice.type].append(_get_good_context(good_on_application, advice))
+        good_on_application = goods_on_application_dict[advice.good_id]
+        goods_context[advice.type].append(_get_good_on_application_context(good_on_application, advice))
 
     # Move proviso elements into approved because they are treated the same
     goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))
     return goods_context
 
 
-def _get_goods_type_context(goods_types, case_pk):
-    goods_type_context = {
-        "all": [
-            {
-                "description": good.description,
-                "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
-                "is_controlled": friendly_boolean(good.is_good_controlled),
-            }
-            for good in goods_types
-        ],
-        "countries": {},
+def _get_goods_type(goods_type):
+    return {
+        "description": goods_type.description,
+        "control_list_entries": [clc.rating for clc in goods_type.control_list_entries.all()],
+        "is_controlled": friendly_boolean(goods_type.is_good_controlled),
     }
 
-    countries = set(goods_types.values_list("countries", "countries__name"))
-    default_countries = set(
-        Country.include_special_countries.filter(countries_on_application__application_id=case_pk).values_list(
-            "id", "name"
-        )
+
+def _get_approved_goods_type_context(approved_goods_type_on_country_decisions):
+    # Approved goods types on country
+    if approved_goods_type_on_country_decisions:
+        context = {}
+        for decision in approved_goods_type_on_country_decisions:
+            if decision.country.name not in context:
+                context[decision.country.name] = [_get_goods_type(decision.goods_type)]
+            else:
+                context[decision.country.name].append(_get_goods_type(decision.goods_type))
+        return context
+
+
+def _get_entities_refused_at_the_final_advice_level(case_pk):
+    # Get Refused Final advice on Country & GoodsType
+    rejected_entities = Advice.objects.filter(
+        Q(goods_type__isnull=False) | Q(country__isnull=False),
+        case_id=case_pk,
+        level=AdviceLevel.FINAL,
+        type=AdviceType.REFUSE,
+    ).prefetch_related("goods_type", "goods_type__control_list_entries", "country")
+
+    refused_final_advice_countries = []
+    refused_final_advice_goods_types = []
+    for rejected_entity in rejected_entities:
+        if rejected_entity.goods_type:
+            refused_final_advice_goods_types.append(rejected_entity.goods_type)
+        else:
+            refused_final_advice_countries.append(rejected_entity.country)
+
+    return refused_final_advice_countries, refused_final_advice_goods_types
+
+
+def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_country_decisions):
+    # Refused goods types on country from GoodCountryDecisions
+    context = {}
+    if refused_goods_type_on_country_decisions:
+        for decision in refused_goods_type_on_country_decisions:
+            if decision.country.name not in context:
+                context[decision.country.name] = {decision.goods_type.id: _get_goods_type(decision.goods_type)}
+            else:
+                context[decision.country.name][decision.goods_type.id] = _get_goods_type(decision.goods_type)
+
+    refused_final_advice_countries, refused_final_advice_goods_types = _get_entities_refused_at_the_final_advice_level(
+        case_pk
     )
 
-    for country_id, country_name in countries:
-        if country_id:
-            goods = goods_types.filter(countries=country_id)
-            goods_type_context["countries"][country_name] = [
-                {
-                    "description": good.description,
-                    "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
-                }
-                for good in goods
-            ]
+    # Countries refused for all goods types at final advice level
+    if refused_final_advice_countries:
+        for country in refused_final_advice_countries:
+            goods_type_for_country = goods_types.filter(countries=country)
+            for goods_type in goods_type_for_country:
+                if country.name not in context:
+                    context[country.name] = {goods_type.id: _get_goods_type(goods_type)}
+                elif goods_type.id not in context[country.name]:
+                    context[country.name][goods_type.id] = _get_goods_type(goods_type)
 
-    for country_id, country_name in default_countries:
-        # Default countries apply to all goods types
-        goods_type_context["countries"][country_name] = [
-            {
-                "description": good.description,
-                "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
-            }
-            for good in goods_types
-        ]
+    # Goods types refused for all countries at final advice level
+    if refused_final_advice_goods_types:
+        for goods_type in refused_final_advice_goods_types:
+            for country in goods_type.countries.all():
+                if country.name not in context:
+                    context[country.name] = {goods_type.id: _get_goods_type(goods_type)}
+                elif goods_type.id not in context[country.name]:
+                    context[country.name][goods_type.id] = _get_goods_type(goods_type)
+
+    # Remove ID's used to avoid duplication
+    return {key: list(context[key].values()) for key in context} if context else None
+
+
+def _get_goods_type_context(goods_types, case_pk):
+    goods_type_context = {"all": [_get_goods_type(goods_type) for goods_type in goods_types]}
+
+    # Get GoodCountryDecisions
+    goods_type_on_country_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).prefetch_related(
+        "goods_type", "goods_type__control_list_entries", "country"
+    )
+    approved_goods_type_on_country_decisions = []
+    refused_goods_type_on_country_decisions = []
+    for goods_type_on_country_decision in goods_type_on_country_decisions:
+        if goods_type_on_country_decision.approve:
+            approved_goods_type_on_country_decisions.append(goods_type_on_country_decision)
+        else:
+            refused_goods_type_on_country_decisions.append(goods_type_on_country_decision)
+
+    approved_goods_type_context = _get_approved_goods_type_context(approved_goods_type_on_country_decisions)
+    if approved_goods_type_context:
+        goods_type_context[AdviceType.APPROVE] = approved_goods_type_context
+
+    refused_goods_type_context = _get_refused_goods_type_context(
+        case_pk, goods_types, refused_goods_type_on_country_decisions
+    )
+    if refused_goods_type_context:
+        goods_type_context[AdviceType.REFUSE] = refused_goods_type_context
 
     return goods_type_context
 
@@ -470,6 +701,7 @@ def _get_ecju_query_context(query):
             "user": " ".join([query.raised_by_user.first_name, query.raised_by_user.last_name]),
             "date": query.created_at.strftime(DATE_FORMAT),
             "time": query.created_at.strftime(TIME_FORMAT),
+            "type": ECJUQueryType.to_str(query.query_type),
         }
     }
 
@@ -490,6 +722,7 @@ def _get_case_note_context(note):
         "user": " ".join([note.user.first_name, note.user.last_name]),
         "date": note.created_at.strftime(DATE_FORMAT),
         "time": note.created_at.strftime(TIME_FORMAT),
+        "visible_to_exporter": note.is_visible_to_exporter,
     }
 
 
