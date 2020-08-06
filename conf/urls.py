@@ -41,6 +41,7 @@ urlpatterns = [
     path("routing-rules/", include("workflow.routing_rules.urls")),
     path("licences/", include("licences.urls")),
     path("open-general-licences/", include("open_general_licences.urls")),
+    path("search/", include("search.urls")),
     re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json",),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
