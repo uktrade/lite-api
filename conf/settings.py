@@ -336,7 +336,7 @@ SIGNING_LOCATION = env("SIGNING_LOCATION")
 SIGNING_REASON = env("SIGNING_REASON")
 
 # Django Extensions
-if DEBUG:
+if DEBUG and "django_extensions" in sys.modules:
     INSTALLED_APPS.append("django_extensions")
 
     GRAPH_MODELS = {
