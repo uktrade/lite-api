@@ -7,8 +7,8 @@ from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from PIL import Image, ImageFont, ImageDraw
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.serialization import pkcs12
+from django.utils import timezone
 
-from conf.helpers import get_local_datetime
 from conf.settings import (
     BASE_DIR,
     P12_CERTIFICATE,
@@ -91,7 +91,7 @@ def sign_pdf(original_pdf: bytes):
     if DOCUMENT_SIGNING_ENABLED:
         from endesive.pdf.cms import sign  # noqa
 
-        date = get_local_datetime()
+        date = timezone.localtime()
         # Specify signing metadata
         signing_metadata = {
             "sigandcertify": True,

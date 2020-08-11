@@ -1,7 +1,7 @@
 import timeit
 import uuid
 import warnings
-from datetime import datetime, timezone
+from django.utils import timezone
 from typing import Optional, List
 
 import django.utils.timezone
@@ -180,7 +180,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             ]
         )
         if settings.TIME_TESTS:
-            self.tick = datetime.now()
+            self.tick = timezone.localtime()
 
     def tearDown(self):
         """
@@ -189,7 +189,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if settings.SUPPRESS_TEST_OUTPUT:
             pass
         elif settings.TIME_TESTS:
-            self.tock = datetime.now()
+            self.tock = timezone.localtime()
 
             diff = self.tock - self.tick
             time = round(diff.microseconds / 1000, 2)
@@ -307,7 +307,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not user:
             user = UserOrganisationRelationship.objects.filter(organisation_id=application.organisation_id).first().user
 
-        application.submitted_at = datetime.now(timezone.utc)
+        application.submitted_at = timezone.localtime()
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
@@ -949,7 +949,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             case_type_id=CaseTypeEnum.EUA.id,
             submitted_by=self.exporter_user,
-            submitted_at=datetime.now(timezone.utc),
+            submitted_at=timezone.localtime(),
         )
         end_user_advisory_query.save()
         return end_user_advisory_query
@@ -964,7 +964,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             name=document_name,
             user=self.gov_user,
             s3_key=uuid.uuid4(),
-            virus_scanned_at=datetime.now(timezone.utc),
+            virus_scanned_at=timezone.localtime(),
             safe=True,
             type=CaseDocumentState.GENERATED,
             case=case,

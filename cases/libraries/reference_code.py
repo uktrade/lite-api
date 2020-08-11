@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.utils import timezone
 
 from applications.enums import ApplicationExportType
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
@@ -18,7 +19,7 @@ def generate_reference_code(case):
         reference_code = case.case_type.reference + SEPARATOR
 
     # Year
-    reference_code += str(datetime.now().year) + SEPARATOR
+    reference_code += str(timezone.make_aware(datetime.now()).year) + SEPARATOR
 
     # Int
     value = CaseReferenceCode.objects.create()

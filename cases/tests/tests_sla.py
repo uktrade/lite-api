@@ -2,9 +2,11 @@ from datetime import time, datetime
 from unittest import mock
 from unittest.mock import patch
 
+from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from parameterized import parameterized
+from pytz import timezone as tz
 from rest_framework import status
 
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
@@ -26,8 +28,8 @@ TODAY = datetime(2020, 2, 12)
 YESTERDAY = datetime(2020, 2, 11)
 
 
-def _set_submitted_at(case, time, date=timezone.now()):
-    case.submitted_at = datetime.combine(date, time, tzinfo=timezone.utc)
+def _set_submitted_at(case, time, date=timezone.localtime()):
+    case.submitted_at = datetime.combine(date, time, tzinfo=tz(settings.TIME_ZONE))
     case.save()
 
 
