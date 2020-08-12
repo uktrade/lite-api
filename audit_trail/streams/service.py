@@ -44,9 +44,7 @@ VERB_MAPPING = {
 
 
 def date_to_local_tz(date):
-    date = date.replace(microsecond=0)
-    if not timezone.is_aware(date):
-        date = timezone.make_aware(date)
+    date = timezone.localtime(date).replace(microsecond=0)
 
     return date.isoformat()
 
