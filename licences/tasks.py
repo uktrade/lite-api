@@ -3,8 +3,10 @@ from datetime import datetime, time, timedelta
 
 from background_task import background
 from background_task.models import Task
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from pytz import timezone as tz
 
 from conf.settings import MAX_ATTEMPTS, BACKGROUND_TASK_ENABLED
 from licences.enums import LicenceStatus
@@ -16,7 +18,9 @@ HMRC_INTEGRATION_QUEUE = "hmrc_integration_queue"
 TASK_BACK_OFF = 3600  # Time, in seconds, to wait before scheduling a new task (used after MAX_ATTEMPTS is reached)
 
 
-@background(schedule=datetime.combine(timezone.now(), EXPIRE_LICENCES_SCHEDULE_TIME, tzinfo=timezone.utc))
+@background(
+    schedule=datetime.combine(timezone.localtime(), EXPIRE_LICENCES_SCHEDULE_TIME, tzinfo=tz(settings.TIME_ZONE))
+)
 def expire_licences():
     """Expire any Licences that have `start_date + duration > date_now`"""
 
@@ -90,7 +94,7 @@ def schedule_max_tried_task_as_new_task(licence_id, action):
         f"Maximum attempts of {MAX_ATTEMPTS} for licence '{licence_id}', action '{action}' has been reached"
     )
 
-    schedule_datetime = timezone.now() + timedelta(seconds=TASK_BACK_OFF)
+    schedule_datetime = timezone.localtime() + timedelta(seconds=TASK_BACK_OFF)
     logging.info(
         f"Scheduling new task for licence '{licence_id}', action '{action}' to commence at {schedule_datetime}"
     )

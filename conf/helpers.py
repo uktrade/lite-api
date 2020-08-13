@@ -2,6 +2,7 @@ import datetime
 import re
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.templatetags.tz import do_timezone
 from django.utils import timezone
 from pytz import timezone as get_timezone
@@ -36,7 +37,7 @@ def get_value_from_enum(value, enum):
 
 
 def convert_date_to_string(value):
-    return_value = do_timezone(datetime.datetime.strptime(str(value), "%Y-%m-%d"), "Europe/London")
+    return_value = do_timezone(datetime.datetime.strptime(str(value), "%Y-%m-%d"), settings.TIME_ZONE)
     return return_value.strftime("%d %B " "%Y")
 
 
@@ -45,7 +46,8 @@ def date_to_drf_date(date):
     Given a date, returns a correctly formatted string instance of it
     suitable for comparison to rest framework datetimes
     """
-    return date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    date = timezone.localtime(date)
+    return date.isoformat()
 
 
 def friendly_boolean(boolean):
@@ -80,12 +82,11 @@ def pluralise_unit(unit, value):
 
 
 def get_local_datetime():
-    utc = timezone.now()
-    return utc.astimezone(get_timezone("Europe/London"))
+    return timezone.localtime()
 
 
 def get_date_and_time():
-    now = get_local_datetime()
+    now = timezone.localtime()
     return now.strftime(DATE_FORMAT), now.strftime(TIME_FORMAT)
 
 

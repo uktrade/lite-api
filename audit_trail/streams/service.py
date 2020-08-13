@@ -43,9 +43,10 @@ VERB_MAPPING = {
 }
 
 
-def date_to_string_utc(date):
-    date = date.replace(microsecond=0)
-    return datetime.utcfromtimestamp(datetime.timestamp(date)).isoformat()
+def date_to_local_tz(date):
+    date = timezone.localtime(date).replace(microsecond=0)
+
+    return date.isoformat()
 
 
 def case_record_json(case_id, last_created_at, countries):
@@ -58,7 +59,7 @@ def case_record_json(case_id, last_created_at, countries):
         "id": "dit:lite:case:{case_type}:{id}:{verb}".format(
             case_type=case.case_type.sub_type, id=case.id, verb="Update"
         ),
-        "published": "{ts}".format(ts=date_to_string_utc(last_created_at)),
+        "published": "{ts}".format(ts=date_to_local_tz(last_created_at)),
         "object": {
             "type": [
                 "dit:lite:case",
@@ -66,7 +67,7 @@ def case_record_json(case_id, last_created_at, countries):
                 "dit:lite:case:{case_type}".format(case_type=case.case_type.sub_type),
             ],
             "id": "dit:lite:case:{case_type}:{id}".format(case_type=case.case_type.sub_type, id=case.id),
-            "dit:submittedDate": "{ts}".format(ts=date_to_string_utc(case.submitted_at) if case.submitted_at else ""),
+            "dit:submittedDate": "{ts}".format(ts=date_to_local_tz(case.submitted_at) if case.submitted_at else ""),
             "dit:status": "{status}".format(status=case.status.status),
             "dit:caseOfficer": case.case_officer.email if case.case_officer else "",
             "dit:countries": countries,
@@ -130,7 +131,7 @@ def case_activity_json(audit, case_type):
         "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}:create".format(
             data_type=data_type, id=case.id, audit_id=audit.id, verb=verb
         ),
-        "published": "{ts}".format(ts=date_to_string_utc(audit.created_at)),
+        "published": "{ts}".format(ts=date_to_local_tz(audit.created_at)),
         "object": object_data,
     }
 

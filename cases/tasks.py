@@ -2,10 +2,12 @@ import logging
 from datetime import datetime, time
 
 from background_task import background
+from django.conf import settings
 from django.db import transaction
 from django.db.models import F
 from django.db.models import Q
 from django.utils import timezone
+from pytz import timezone as tz
 
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
@@ -34,14 +36,17 @@ def get_application_target_sla(_type):
         return MOD_CLEARANCE_TARGET_DAYS
 
 
-def today(time=timezone.now().time()):
+def today(time=None):
     """
     returns today's date with the provided time
     """
-    return datetime.combine(timezone.now(), time, tzinfo=timezone.utc)
+    if not time:
+        time = timezone.localtime().time()
+
+    return datetime.combine(timezone.localtime(), time, tzinfo=tz(settings.TIME_ZONE))
 
 
-def yesterday(date=timezone.now(), time=None):
+def yesterday(date=timezone.localtime(), time=None):
     """
     returns the previous working day from the date provided (defaults to now) at the time provided (defaults to now)
     """
@@ -50,7 +55,7 @@ def yesterday(date=timezone.now(), time=None):
     while is_bank_holiday(day, call_api=False) or is_weekend(day):
         day = day - timezone.timedelta(days=1)
     if time:
-        day = datetime.combine(day.date(), time, tzinfo=timezone.utc)
+        day = datetime.combine(day.date(), time, tzinfo=tz(settings.TIME_ZONE))
     return day
 
 
@@ -68,7 +73,7 @@ def get_case_ids_with_active_ecju_queries(date):
     )
 
 
-@background(schedule=datetime.combine(timezone.now(), SLA_UPDATE_TASK_TIME, tzinfo=timezone.utc))
+@background(schedule=datetime.combine(timezone.localtime(), SLA_UPDATE_TASK_TIME, tzinfo=tz(settings.TIME_ZONE)))
 def update_cases_sla():
     """
     Updates all applicable cases SLA.
@@ -78,7 +83,7 @@ def update_cases_sla():
     """
 
     logging.info(f"{LOG_PREFIX} SLA Update Started")
-    date = timezone.now()
+    date = timezone.localtime()
     if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
         try:
             # Get cases submitted before the cutoff time today, where they have never been closed
@@ -90,7 +95,7 @@ def update_cases_sla():
                 results = (
                     Case.objects.select_for_update()
                     .filter(
-                        submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
+                        submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=tz(settings.TIME_ZONE)),
                         last_closed_at__isnull=True,
                         sla_remaining_days__isnull=False,
                     )

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from django.utils import timezone
 
 from rest_framework import serializers
 
@@ -115,7 +115,7 @@ class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(end_user_serializer.errors)
         validated_data["organisation_id"] = end_user_data["organisation"]
         validated_data["status"] = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        validated_data["submitted_at"] = datetime.now(timezone.utc)
+        validated_data["submitted_at"] = timezone.localtime()
         validated_data["case_type_id"] = CaseTypeEnum.EUA.id
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
         end_user_advisory_query.save()

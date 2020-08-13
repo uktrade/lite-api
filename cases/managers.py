@@ -263,7 +263,7 @@ class CaseManager(models.Manager):
             # We hide cases that have a next review date that is set in the future (for your team)
             case_qs = case_qs.exclude(
                 id__in=CaseReviewDate.objects.filter(
-                    team_id=user.team.id, next_review_date__gt=timezone.now().date()
+                    team_id=user.team.id, next_review_date__gt=timezone.localtime().date()
                 ).values("case_id")
             )
 
@@ -447,7 +447,7 @@ class CaseManager(models.Manager):
 class CaseReferenceCodeManager(models.Manager):
     def create(self):
         CaseReferenceCode = self.model
-        year = datetime.now().year
+        year = timezone.make_aware(datetime.now()).year
 
         # transaction.atomic is required to lock the database (which is achieved using select_for_update)
         #  we lock the case reference code record so that multiple cases being assigned a record don't end up with same

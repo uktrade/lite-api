@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from audit_trail.models import Audit
 from audit_trail.enums import AuditType
-from audit_trail.streams.service import date_to_string_utc
+from audit_trail.streams.service import date_to_local_tz
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
@@ -46,7 +46,7 @@ class AuditTrailStreamTestCase(DataTestClient):
                     "dit:from": {"dit:lite:case:status": CaseStatusEnum.DRAFT},
                     "type": ["dit:lite:case:change", "dit:lite:activity", "dit:lite:case:change:status"],
                 },
-                "published": str(date_to_string_utc(audit.created_at)),
+                "published": str(date_to_local_tz(audit.created_at)),
             },
         )
         self.assertEqual(
@@ -59,7 +59,7 @@ class AuditTrailStreamTestCase(DataTestClient):
                     "dit:caseOfficer": "",
                     "dit:countries": [],
                     "dit:status": self.case.status.status,
-                    "dit:submittedDate": str(date_to_string_utc(self.case.submitted_at)),
+                    "dit:submittedDate": str(date_to_local_tz(self.case.submitted_at)),
                     "id": "dit:lite:case:{case_type}:{id}".format(
                         case_type=self.case.case_type.sub_type, id=self.case.id
                     ),
@@ -69,7 +69,7 @@ class AuditTrailStreamTestCase(DataTestClient):
                         "dit:lite:case:{case_type}".format(case_type=self.case.case_type.sub_type),
                     ],
                 },
-                "published": str(date_to_string_utc(audit.created_at)),
+                "published": str(date_to_local_tz(audit.created_at)),
             },
         )
 
