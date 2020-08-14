@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.generics import UpdateAPIView
 from rest_framework.status import HTTP_208_ALREADY_REPORTED
 
-from conf.authentication import HMRCIntegrationOnlyAuthentication
+from api.conf.authentication import HMRCIntegrationOnlyAuthentication
 from licences.libraries.hmrc_integration_operations import validate_licence_usage_updates, save_licence_usage_updates
 from licences.models import HMRCIntegrationUsageUpdate
 from licences.serializers.hmrc_integration import HMRCIntegrationUsageUpdateLicencesSerializer

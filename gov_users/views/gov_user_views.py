@@ -4,9 +4,9 @@ from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication, HawkOnlyAuthentication
-from conf.constants import Roles, GovPermissions
-from conf.custom_views import OptionalPaginationView
+from api.conf.authentication import GovAuthentication, HawkOnlyAuthentication
+from api.conf.constants import Roles, GovPermissions
+from api.conf.custom_views import OptionalPaginationView
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateOrUpdateSerializer, GovUserViewSerializer, GovUserListSerializer
 from organisations.enums import OrganisationStatus

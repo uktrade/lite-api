@@ -1,6 +1,6 @@
 from django.db.models import QuerySet, Q
 
-from conf.constants import Roles
+from api.conf.constants import Roles
 from users.models import BaseUser, GovUser, Role, ExporterUser
 
 

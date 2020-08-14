@@ -5,7 +5,7 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
-from conf.constants import GovPermissions
+from api.conf.constants import GovPermissions
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from lite_content.lite_api.strings import Cases

@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 
 from audit_trail.enums import AuditType
 from audit_trail.payload import audit_type_format
-from conf.constants import GovPermissions
+from api.conf.constants import GovPermissions
 from picklists.enums import PickListStatus, PicklistType
 from test_helpers.clients import DataTestClient
 

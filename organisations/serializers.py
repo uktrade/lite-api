@@ -5,9 +5,9 @@ from rest_framework import serializers
 
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
-from conf.constants import ExporterPermissions
-from conf.helpers import str_to_bool
-from conf.serializers import (
+from api.conf.constants import ExporterPermissions
+from api.conf.helpers import str_to_bool
+from api.conf.serializers import (
     PrimaryKeyRelatedSerializerField,
     KeyValueChoiceField,
     CountrySerializerField,

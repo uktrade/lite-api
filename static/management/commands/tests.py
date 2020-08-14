@@ -4,8 +4,8 @@ from django.test import tag
 
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
-from conf.constants import GovPermissions, ExporterPermissions
-from conf.settings import BASE_DIR
+from api.conf.constants import GovPermissions, ExporterPermissions
+from api.conf.settings import BASE_DIR
 from flags.models import Flag
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry

@@ -2,7 +2,7 @@ from django.core.validators import URLValidator
 from rest_framework import serializers, relations
 
 from cases.enums import CaseTypeSubTypeEnum
-from conf.serializers import KeyValueChoiceField, CountrySerializerField
+from api.conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
 from flags.serializers import FlagSerializer
 from goods.enums import PvGrading

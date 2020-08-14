@@ -5,8 +5,8 @@ from rest_framework.status import HTTP_200_OK
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
-from conf.authentication import SharedAuthentication
-from conf.helpers import str_to_bool
+from api.conf.authentication import SharedAuthentication
+from api.conf.helpers import str_to_bool
 
 
 class CaseTypes(APIView):

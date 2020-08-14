@@ -21,8 +21,8 @@ from cases.enums import (
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from common.models import TimestampableModel, CreatedAt
-from conf.constants import GovPermissions
-from conf.permissions import assert_user_has_permission
+from api.conf.constants import GovPermissions
+from api.conf.permissions import assert_user_has_permission
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading

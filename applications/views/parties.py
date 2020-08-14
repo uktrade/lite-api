@@ -6,13 +6,13 @@ from applications.libraries.get_applications import get_application
 from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from conf.authentication import ExporterAuthentication
-from conf.decorators import (
+from api.conf.authentication import ExporterAuthentication
+from api.conf.decorators import (
     authorised_to_view_application,
     allowed_party_type_for_open_application_goodstype_category,
     application_in_state,
 )
-from conf.helpers import str_to_bool
+from api.conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from parties.enums import PartyType

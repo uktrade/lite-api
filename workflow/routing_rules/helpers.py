@@ -1,4 +1,4 @@
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 from lite_content.lite_api.strings import RoutingRules
 from workflow.routing_rules.models import RoutingRule
 

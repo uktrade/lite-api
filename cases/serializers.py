@@ -29,7 +29,7 @@ from cases.models import (
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase
 from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
 from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
-from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
+from api.conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer

@@ -2,7 +2,7 @@ import logging
 
 from rest_framework import serializers
 
-from conf.settings import BACKGROUND_TASK_ENABLED
+from api.conf.settings import BACKGROUND_TASK_ENABLED
 from documents.tasks import scan_document_for_viruses
 
 

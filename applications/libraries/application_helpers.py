@@ -1,7 +1,7 @@
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from conf.constants import GovPermissions
-from conf.permissions import assert_user_has_permission
+from api.conf.constants import GovPermissions
+from api.conf.permissions import assert_user_has_permission
 from static.statuses.enums import CaseStatusEnum
 
 

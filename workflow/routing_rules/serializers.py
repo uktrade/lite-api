@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
-from conf.serializers import PrimaryKeyRelatedSerializerField, CountrySerializerField
+from api.conf.serializers import PrimaryKeyRelatedSerializerField, CountrySerializerField
 from flags.models import Flag
 from flags.serializers import FlagSerializer
 from lite_content.lite_api import strings

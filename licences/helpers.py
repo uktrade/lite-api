@@ -7,7 +7,7 @@ from applications.models import GoodOnApplication
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import GoodCountryDecision
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 from licences.models import Licence
 from lite_content.lite_api import strings
 from static.countries.models import Country

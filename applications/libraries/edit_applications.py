@@ -7,7 +7,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.models import Case
 from flags.enums import SystemFlags
-from conf.helpers import str_to_bool, convert_date_to_string
+from api.conf.helpers import str_to_bool, convert_date_to_string
 from goods.enums import ItemCategory
 from goods.models import Good
 from lite_content.lite_api.strings import Applications as strings

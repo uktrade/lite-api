@@ -3,8 +3,8 @@ from json import loads as serialize
 from django.db import transaction
 
 from addresses.models import Address
-from conf.constants import Roles
-from conf.settings import env
+from api.conf.constants import Roles
+from api.conf.settings import env
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site
 from static.countries.helpers import get_country

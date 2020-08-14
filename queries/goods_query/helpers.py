@@ -1,4 +1,4 @@
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 from lite_content.lite_api import strings
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum

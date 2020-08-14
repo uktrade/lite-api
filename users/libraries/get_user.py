@@ -1,4 +1,4 @@
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 from users.enums import UserStatuses
 from users.models import ExporterUser, GovUser, UserOrganisationRelationship
 

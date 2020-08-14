@@ -1,4 +1,4 @@
-from conf.settings import env
+from api.conf.settings import env
 
 from test_helpers.test_endpoints.client import get, post
 

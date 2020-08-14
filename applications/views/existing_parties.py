@@ -4,7 +4,7 @@ from rest_framework import generics
 
 from applications.libraries.get_applications import get_application
 from cases.enums import CaseTypeEnum
-from conf.authentication import ExporterAuthentication
+from api.conf.authentication import ExporterAuthentication
 from parties.models import Party
 from parties.serializers import PartySerializer
 

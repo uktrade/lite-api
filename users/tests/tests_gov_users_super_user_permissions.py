@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from conf import constants
+from api.conf import constants
 from test_helpers.clients import DataTestClient
 from users.models import GovUser, Permission
 

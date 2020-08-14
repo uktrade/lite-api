@@ -6,9 +6,9 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import ExporterAuthentication
-from conf.constants import Roles, ExporterPermissions
-from conf.permissions import assert_user_has_permission
+from api.conf.authentication import ExporterAuthentication
+from api.conf.constants import Roles, ExporterPermissions
+from api.conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.enums import UserType

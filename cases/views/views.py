@@ -55,12 +55,12 @@ from cases.serializers import (
 from cases.service import get_destinations
 from compliance.helpers import generate_compliance_site_case
 from compliance.models import ComplianceVisitCase
-from conf import constants
-from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
-from conf.constants import GovPermissions
-from conf.exceptions import NotFoundError
-from conf.helpers import convert_date_to_string
-from conf.permissions import assert_user_has_permission
+from api.conf import constants
+from api.conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
+from api.conf.constants import GovPermissions
+from api.conf.exceptions import NotFoundError
+from api.conf.helpers import convert_date_to_string
+from api.conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document

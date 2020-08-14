@@ -9,9 +9,9 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import SharedAuthentication
-from conf.constants import Roles, ExporterPermissions
-from conf.permissions import assert_user_has_permission
+from api.conf.authentication import SharedAuthentication
+from api.conf.constants import Roles, ExporterPermissions
+from api.conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleListSerializer
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_organisation_by_pk

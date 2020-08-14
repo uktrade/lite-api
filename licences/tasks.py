@@ -8,7 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 from pytz import timezone as tz
 
-from conf.settings import MAX_ATTEMPTS, BACKGROUND_TASK_ENABLED
+from api.conf.settings import MAX_ATTEMPTS, BACKGROUND_TASK_ENABLED
 from licences.enums import LicenceStatus
 from licences.libraries import hmrc_integration_operations
 from licences.models import Licence

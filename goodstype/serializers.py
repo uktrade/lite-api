@@ -7,8 +7,8 @@ from common.libraries import (
     update_good_or_goods_type_control_list_entries_details,
     initialize_good_or_goods_type_control_list_entries_serializer,
 )
-from conf.helpers import str_to_bool
-from conf.serializers import ControlListEntryField
+from api.conf.helpers import str_to_bool
+from api.conf.serializers import ControlListEntryField
 from goods.enums import GoodControlled
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument

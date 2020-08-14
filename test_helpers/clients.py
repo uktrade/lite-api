@@ -33,9 +33,9 @@ from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSub
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
 from cases.tasks import get_application_target_sla
-from conf import settings
-from conf.constants import Roles
-from conf.urls import urlpatterns
+from api.conf import settings
+from api.conf.constants import Roles
+from api.conf.urls import urlpatterns
 from flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from flags.models import Flag, FlaggingRule
 from flags.tests.factories import FlagFactory

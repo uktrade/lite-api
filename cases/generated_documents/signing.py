@@ -9,7 +9,7 @@ from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.serialization import pkcs12
 from django.utils import timezone
 
-from conf.settings import (
+from api.conf.settings import (
     BASE_DIR,
     P12_CERTIFICATE,
     CERTIFICATE_PASSWORD,

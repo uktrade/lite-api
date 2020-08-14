@@ -16,8 +16,8 @@ from applications.libraries.get_applications import get_application
 from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from cases.enums import CaseTypeSubTypeEnum
-from conf.authentication import ExporterAuthentication
-from conf.decorators import (
+from api.conf.authentication import ExporterAuthentication
+from api.conf.decorators import (
     authorised_to_view_application,
     allowed_application_types,
     application_in_state,

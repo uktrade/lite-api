@@ -12,7 +12,7 @@ from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from applications.models import StandardApplication, OpenApplication, GoodOnApplication
 from flags.models import Flag
 from applications.serializers.open_application import OpenApplicationCreateSerializer
-from conf.constants import Roles
+from api.conf.constants import Roles
 from goods.models import Good
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site

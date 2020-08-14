@@ -7,8 +7,8 @@ from mohawk.exc import HawkFail, AlreadyProcessed
 from rest_framework import authentication
 
 from django.conf import settings
-from conf.exceptions import PermissionDeniedError
-from conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS
+from api.conf.exceptions import PermissionDeniedError
+from api.conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS
 from gov_users.enums import GovUserStatuses
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation

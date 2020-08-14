@@ -13,10 +13,10 @@ from audit_trail.enums import AuditType
 from cases.libraries.get_case import get_case
 from cases.libraries.get_flags import get_flags
 from cases.models import Case
-from conf.authentication import GovAuthentication
-from conf.constants import GovPermissions
-from conf.helpers import str_to_bool
-from conf.permissions import assert_user_has_permission
+from api.conf.authentication import GovAuthentication
+from api.conf.constants import GovPermissions
+from api.conf.helpers import str_to_bool
+from api.conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses, SystemFlags
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flagging_rule

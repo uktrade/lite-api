@@ -7,7 +7,7 @@ from audit_trail.models import Audit
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from cases.models import CaseAssignment
-from conf import constants
+from api.conf import constants
 from flags.enums import SystemFlags
 from flags.models import Flag
 from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading

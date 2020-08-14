@@ -6,7 +6,7 @@ from cases.enums import AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import GoodCountryDecision, Advice
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
-from conf.constants import GovPermissions
+from api.conf.constants import GovPermissions
 from goodstype.tests.factories import GoodsTypeFactory
 from lite_content.lite_api.strings import Cases
 from static.control_list_entries.models import ControlListEntry

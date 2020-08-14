@@ -5,10 +5,10 @@ from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf import constants
-from conf.authentication import GovAuthentication
-from conf.constants import Roles
-from conf.permissions import assert_user_has_permission
+from api.conf import constants
+from api.conf.authentication import GovAuthentication
+from api.conf.constants import Roles
+from api.conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
 from users.enums import UserType
 from users.libraries.get_role import get_role_by_pk

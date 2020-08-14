@@ -11,7 +11,7 @@ from django.core.cache import cache
 from mohawk import Sender
 from mohawk.exc import AlreadyProcessed
 
-from conf.settings import (
+from api.conf.settings import (
     HAWK_AUTHENTICATION_ENABLED,
     HAWK_RECEIVER_NONCE_EXPIRY_SECONDS,
     HAWK_CREDENTIALS,

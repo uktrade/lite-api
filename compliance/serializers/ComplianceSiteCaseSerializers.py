@@ -6,7 +6,7 @@ from cases.enums import CaseTypeEnum
 from cases.models import Case
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
 from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
-from conf.serializers import PrimaryKeyRelatedSerializerField
+from api.conf.serializers import PrimaryKeyRelatedSerializerField
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Organisation

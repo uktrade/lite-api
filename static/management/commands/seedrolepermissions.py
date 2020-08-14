@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from conf.constants import GovPermissions, ExporterPermissions, Roles
+from api.conf.constants import GovPermissions, ExporterPermissions, Roles
 from static.management.SeedCommand import SeedCommand
 from static.statuses.models import CaseStatus
 from users.enums import UserType

@@ -1,5 +1,5 @@
 from cases.models import EcjuQuery
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 
 
 def get_ecju_queries_from_case(case):

@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 
 from applications.libraries.get_applications import get_application
 from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
-from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_to_view_application
+from api.conf.authentication import ExporterAuthentication
+from api.conf.decorators import authorised_to_view_application
 from parties.serializers import PartyDocumentSerializer
 from users.models import ExporterUser
 

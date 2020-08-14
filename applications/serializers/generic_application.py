@@ -12,8 +12,8 @@ from applications.models import BaseApplication, ApplicationDenialReason, Applic
 from applications.serializers.document import ApplicationDocumentSerializer
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import CaseType
-from conf.helpers import get_value_from_enum
-from conf.serializers import KeyValueChoiceField
+from api.conf.helpers import get_value_from_enum
+from api.conf.serializers import KeyValueChoiceField
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation, Site, ExternalLocation

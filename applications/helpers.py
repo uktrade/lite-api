@@ -38,7 +38,7 @@ from applications.serializers.standard_application import (
 from applications.serializers.good import GoodOnStandardLicenceSerializer
 from applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType, AdviceLevel
-from conf.exceptions import BadRequestError
+from api.conf.exceptions import BadRequestError
 from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 

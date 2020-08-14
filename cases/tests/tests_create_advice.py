@@ -6,7 +6,7 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import AdviceType
 from cases.models import Advice
-from conf.constants import GovPermissions
+from api.conf.constants import GovPermissions
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient

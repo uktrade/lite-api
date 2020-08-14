@@ -8,10 +8,10 @@ from rest_framework.views import APIView
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from audit_trail.serializers import AuditSerializer
-from conf import constants
-from conf.authentication import SharedAuthentication, GovAuthentication
-from conf.helpers import str_to_bool
-from conf.permissions import assert_user_has_permission
+from api.conf import constants
+from api.conf.authentication import SharedAuthentication, GovAuthentication
+from api.conf.helpers import str_to_bool
+from api.conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.models import OpenGeneralLicence, OpenGeneralLicenceCase
 from open_general_licences.serializers import OpenGeneralLicenceSerializer

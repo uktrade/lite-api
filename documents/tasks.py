@@ -4,7 +4,7 @@ from background_task import background
 from background_task.models import Task
 from django.db import transaction
 
-from conf.settings import MAX_ATTEMPTS
+from api.conf.settings import MAX_ATTEMPTS
 from documents.libraries.av_operations import VirusScanException
 from documents.models import Document
 

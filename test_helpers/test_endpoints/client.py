@@ -1,6 +1,6 @@
-from conf import requests
+from api.conf import requests
 
-from conf.settings import env, HAWK_LITE_PERFORMANCE_CREDENTIALS
+from api.conf.settings import env, HAWK_LITE_PERFORMANCE_CREDENTIALS
 
 
 def get(appended_address, headers=None):

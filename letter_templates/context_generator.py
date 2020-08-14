@@ -15,7 +15,7 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryT
 from cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
-from conf.helpers import (
+from api.conf.helpers import (
     get_date_and_time,
     add_months,
     DATE_FORMAT,

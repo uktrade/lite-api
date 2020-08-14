@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from conf.constants import Roles
-from conf.exceptions import NotFoundError
-from conf.serializers import KeyValueChoiceField
+from api.conf.constants import Roles
+from api.conf.exceptions import NotFoundError
+from api.conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer, GovUserViewSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation, Site
