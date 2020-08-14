@@ -3,8 +3,8 @@ import re
 from django.db import transaction
 from rest_framework import serializers
 
-from addresses.models import Address
-from addresses.serializers import AddressSerializer
+from api.addresses.models import Address
+from api.addresses.serializers import AddressSerializer
 from api.conf.constants import ExporterPermissions
 from api.conf.helpers import str_to_bool
 from api.conf.serializers import (

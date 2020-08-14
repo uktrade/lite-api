@@ -9,8 +9,8 @@ from api.goods.enums import GoodStatus
 from api.goods.models import Good
 from api.goodstype.models import GoodsType
 from api.parties.models import Party
-from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from queries.goods_query.models import GoodsQuery
+from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
+from api.queries.goods_query.models import GoodsQuery
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 

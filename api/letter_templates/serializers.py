@@ -7,7 +7,7 @@ from cases.serializers import CaseTypeSerializer, CaseTypeReferenceListSerialize
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
 from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
-from picklists.models import PicklistItem
+from api.picklists.models import PicklistItem
 from static.decisions.models import Decision
 from static.decisions.serializers import DecisionSerializer
 from static.letter_layouts.models import LetterLayout

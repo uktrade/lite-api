@@ -10,7 +10,7 @@ from api.goods.enums import GoodControlled
 from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
-from picklists.enums import PicklistType, PickListStatus
+from api.picklists.enums import PicklistType, PickListStatus
 from static.control_list_entries.helpers import get_control_list_entry
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

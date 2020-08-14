@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from addresses.models import Address
+from api.addresses.models import Address
 from api.common.models import TimestampableModel
 from api.conf.constants import ExporterPermissions
 from api.conf.exceptions import NotFoundError

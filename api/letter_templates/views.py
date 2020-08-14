@@ -14,8 +14,8 @@ from api.conf.permissions import assert_user_has_permission
 from api.letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from api.letter_templates.models import LetterTemplate
 from api.letter_templates.serializers import LetterTemplateSerializer, LetterTemplateListSerializer
-from picklists.enums import PicklistType
-from picklists.models import PicklistItem
+from api.picklists.enums import PicklistType
+from api.picklists.models import PicklistItem
 from cases.enums import AdviceType
 from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout

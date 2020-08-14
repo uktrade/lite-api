@@ -3,7 +3,7 @@ import random
 import factory
 from django.utils import timezone
 
-from addresses.tests.factories import AddressFactory
+from api.addresses.tests.factories import AddressFactory
 from organisations import models
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.tests.providers import OrganisationProvider
