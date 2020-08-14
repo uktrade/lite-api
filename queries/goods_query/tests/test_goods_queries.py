@@ -8,8 +8,8 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from cases.models import CaseAssignment
 from api.conf import constants
-from flags.enums import SystemFlags
-from flags.models import Flag
+from api.flags.enums import SystemFlags
+from api.flags.models import Flag
 from api.goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
 from api.goods.models import Good
 from lite_content.lite_api import strings

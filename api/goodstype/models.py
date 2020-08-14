@@ -4,7 +4,7 @@ from django.db import models
 
 from api.applications.models import BaseApplication
 from api.common.models import TimestampableModel
-from flags.models import Flag
+from api.flags.models import Flag
 from api.goodstype.constants import DESCRIPTION_MAX_LENGTH
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country

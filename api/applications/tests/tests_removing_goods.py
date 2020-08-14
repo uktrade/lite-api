@@ -5,7 +5,7 @@ from rest_framework import status
 
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.models import GoodOnApplication
-from flags.enums import SystemFlags
+from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.models import Good, FirearmGoodDetails
 from api.users.models import UserOrganisationRelationship

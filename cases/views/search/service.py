@@ -14,7 +14,7 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from cases.models import Case
 from api.common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
-from flags.serializers import CaseListFlagSerializer
+from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
@@ -42,7 +42,7 @@ def get_advice_types_list():
 
 
 def populate_other_flags(cases: List[Dict]):
-    from flags.models import Flag
+    from api.flags.models import Flag
 
     case_ids = [case["id"] for case in cases]
 
@@ -61,7 +61,7 @@ def populate_other_flags(cases: List[Dict]):
 
 
 def populate_goods_flags(cases: List[Dict]):
-    from flags.models import Flag
+    from api.flags.models import Flag
 
     case_ids = [case["id"] for case in cases]
     flags = Flag.objects.filter(
@@ -90,7 +90,7 @@ def populate_goods_flags(cases: List[Dict]):
 
 
 def populate_destinations_flags(cases: List[Dict]):
-    from flags.models import Flag
+    from api.flags.models import Flag
 
     case_ids = [case["id"] for case in cases]
     flags = Flag.objects.filter(

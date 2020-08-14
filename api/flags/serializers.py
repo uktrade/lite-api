@@ -3,8 +3,8 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
-from flags.enums import FlagLevels, FlagStatuses, FlagColours
-from flags.models import Flag, FlaggingRule
+from api.flags.enums import FlagLevels, FlagStatuses, FlagColours
+from api.flags.models import Flag, FlaggingRule
 from lite_content.lite_api import strings
 from static.control_list_entries.models import ControlListEntry
 from api.teams.models import Team

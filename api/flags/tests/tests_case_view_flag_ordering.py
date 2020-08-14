@@ -1,7 +1,7 @@
 from api.applications.models import GoodOnApplication, PartyOnApplication
 from cases.libraries.get_flags import get_ordered_flags
-from flags.enums import FlagLevels
-from flags.tests.factories import FlagFactory
+from api.flags.enums import FlagLevels
+from api.flags.tests.factories import FlagFactory
 from api.parties.enums import PartyType
 from api.teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient

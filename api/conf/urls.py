@@ -34,7 +34,7 @@ urlpatterns = [
     path("users/", include("api.users.urls")),
     path("teams/", include("api.teams.urls")),
     path("gov-users/", include("gov_users.urls")),
-    path("flags/", include("flags.urls")),
+    path("flags/", include("api.flags.urls")),
     path("picklist/", include("picklists.urls")),
     path("documents/", include("documents.urls")),
     path("queries/", include("queries.urls")),

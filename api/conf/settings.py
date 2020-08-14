@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "api.core",
     "documents",
-    "flags",
+    "api.flags",
     "api.goods",
     "api.goodstype",
     "gov_users",

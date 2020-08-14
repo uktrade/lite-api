@@ -4,8 +4,8 @@ from rest_framework import status
 
 from api.applications.models import GoodOnApplication
 from api.conf import constants
-from flags.enums import FlagLevels
-from flags.tests.factories import FlagFactory
+from api.flags.enums import FlagLevels
+from api.flags.tests.factories import FlagFactory
 from api.goods.enums import GoodControlled
 from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory

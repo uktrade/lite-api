@@ -2,9 +2,9 @@ from django.db.models import QuerySet, When, Case as DB_Case, IntegerField, Bina
 
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
-from flags.enums import FlagLevels
-from flags.models import Flag
-from flags.serializers import CaseListFlagSerializer
+from api.flags.enums import FlagLevels
+from api.flags.models import Flag
+from api.flags.serializers import CaseListFlagSerializer
 from api.teams.models import Team
 
 

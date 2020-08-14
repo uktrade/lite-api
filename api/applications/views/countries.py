@@ -15,7 +15,7 @@ from cases.models import Case
 from api.conf.authentication import ExporterAuthentication
 from api.conf.decorators import allowed_application_types, authorised_to_view_application, application_in_state
 from api.conf.exceptions import BadRequestError
-from flags.models import Flag
+from api.flags.models import Flag
 from static.countries.helpers import get_country
 from static.countries.serializers import CountrySerializer
 from static.statuses.enums import CaseStatusEnum

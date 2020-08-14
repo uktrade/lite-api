@@ -4,7 +4,7 @@ from django.db import models
 
 from api.common.models import TimestampableModel
 from documents.models import Document
-from flags.models import Flag
+from api.flags.models import Flag
 from api.goods.enums import PvGrading
 from api.organisations.models import Organisation
 from api.parties.enums import PartyType, SubType, PartyRole

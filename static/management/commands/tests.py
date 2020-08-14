@@ -6,7 +6,7 @@ from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from api.conf.constants import GovPermissions, ExporterPermissions
 from api.conf.settings import BASE_DIR
-from flags.models import Flag
+from api.flags.models import Flag
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country

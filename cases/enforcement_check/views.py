@@ -12,8 +12,8 @@ from cases.models import Case
 from api.conf.authentication import GovAuthentication
 from api.conf.constants import GovPermissions
 from api.conf.permissions import assert_user_has_permission
-from flags.enums import SystemFlags
-from flags.models import Flag
+from api.flags.enums import SystemFlags
+from api.flags.models import Flag
 from lite_content.lite_api.strings import Cases
 from queues.models import Queue
 

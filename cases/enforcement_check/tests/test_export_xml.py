@@ -9,7 +9,7 @@ from cases.enforcement_check.import_xml import enforcement_id_to_uuid
 from cases.enums import EnforcementXMLEntityTypes
 from cases.models import EnforcementCheckID
 from api.conf.constants import GovPermissions
-from flags.enums import SystemFlags
+from api.flags.enums import SystemFlags
 from api.parties.enums import PartyType, PartyRole
 from test_helpers.clients import DataTestClient
 

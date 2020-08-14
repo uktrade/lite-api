@@ -11,8 +11,8 @@ from api.conf import constants
 from api.conf.authentication import ExporterAuthentication, GovAuthentication
 from api.conf.helpers import str_to_bool
 from api.conf.permissions import assert_user_has_permission
-from flags.enums import SystemFlags
-from flags.models import Flag
+from api.flags.enums import SystemFlags
+from api.flags.models import Flag
 from api.goods.enums import GoodStatus, GoodControlled, GoodPvGraded
 from api.goods.libraries.get_goods import get_good
 from api.goods.libraries.get_pv_grading import get_pv_grading_value_from_key

@@ -3,7 +3,7 @@ from rest_framework import status
 
 from api.applications.models import CountryOnApplication
 from cases.libraries.get_flags import get_ordered_flags
-from flags.tests.factories import FlagFactory
+from api.flags.tests.factories import FlagFactory
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient

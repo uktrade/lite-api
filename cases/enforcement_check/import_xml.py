@@ -11,7 +11,7 @@ from audit_trail.enums import AuditType
 from cases.enums import EnforcementXMLEntityTypes
 from cases.models import EnforcementCheckID, Case
 from api.conf.settings import BASE_DIR
-from flags.enums import SystemFlags
+from api.flags.enums import SystemFlags
 from lite_content.lite_api.strings import Cases
 from api.users.enums import SystemUser
 from api.users.models import BaseUser

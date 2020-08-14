@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from api.common.models import TimestampableModel
-from flags.enums import FlagLevels, FlagStatuses, FlagColours
+from api.flags.enums import FlagLevels, FlagStatuses, FlagColours
 from api.teams.models import Team
 
 

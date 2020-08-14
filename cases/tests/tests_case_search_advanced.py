@@ -17,7 +17,7 @@ from api.applications.tests.factories import (
     OpenApplicationFactory,
 )
 from api.parties.tests.factories import PartyFactory
-from flags.tests.factories import FlagFactory
+from api.flags.tests.factories import FlagFactory
 from api.goods.enums import GoodControlled
 from api.goods.tests.factories import GoodFactory
 from static.statuses.enums import CaseStatusEnum

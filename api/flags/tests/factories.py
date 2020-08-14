@@ -2,8 +2,8 @@ import random
 
 import factory
 
-from flags import models
-from flags.enums import FlagColours, FlagStatuses, FlagLevels
+from api.flags import models
+from api.flags.enums import FlagColours, FlagStatuses, FlagLevels
 
 
 def get_flag_priority():
