@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.utils import timezone
 
-from applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
+from api.applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
 from api.goods.tests.factories import GoodFactory
 from licences.enums import LicenceStatus
 from licences.service import get_case_licences

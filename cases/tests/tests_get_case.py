@@ -2,7 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.models import CountryOnApplication
+from api.applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum
 from flags.enums import SystemFlags
 from flags.models import Flag

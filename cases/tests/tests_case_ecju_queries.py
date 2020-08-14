@@ -4,7 +4,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.models import BaseApplication
+from api.applications.models import BaseApplication
 from cases.enums import ECJUQueryType
 from cases.models import EcjuQuery
 from compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory

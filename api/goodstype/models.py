@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from applications.models import BaseApplication
+from api.applications.models import BaseApplication
 from api.common.models import TimestampableModel
 from flags.models import Flag
 from api.goodstype.constants import DESCRIPTION_MAX_LENGTH

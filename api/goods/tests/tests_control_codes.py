@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.models import GoodOnApplication
+from api.applications.models import GoodOnApplication
 from api.conf import constants
 from flags.enums import FlagLevels
 from flags.tests.factories import FlagFactory

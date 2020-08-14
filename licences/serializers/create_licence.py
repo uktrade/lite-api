@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from applications.enums import LicenceDuration
+from api.applications.enums import LicenceDuration
 from licences.models import Licence
 from lite_content.lite_api import strings
 

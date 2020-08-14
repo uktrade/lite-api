@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 
-from applications.models import GoodOnApplication, BaseApplication
+from api.applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum

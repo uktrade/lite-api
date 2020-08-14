@@ -10,11 +10,11 @@ from django.test import tag, override_settings
 from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
-from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
-from applications.libraries.licence import get_default_duration
-from applications.models import (
+from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
+from api.applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
+from api.applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
+from api.applications.libraries.licence import get_default_duration
+from api.applications.models import (
     BaseApplication,
     GoodOnApplication,
     SiteOnApplication,

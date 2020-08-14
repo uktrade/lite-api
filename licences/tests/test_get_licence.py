@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
+from api.applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
 from cases.enums import AdviceType, CaseTypeEnum
 from cases.tests.factories import FinalAdviceFactory
 from api.goods.tests.factories import GoodFactory

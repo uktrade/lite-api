@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from applications.models import BaseApplication
+from api.applications.models import BaseApplication
 from cases.enums import CaseTypeSubTypeEnum
 from api.common.libraries import (
     update_good_or_goods_type_control_list_entries_details,

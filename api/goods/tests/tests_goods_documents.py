@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import GoodOnApplication
+from api.applications.models import GoodOnApplication
 from test_helpers.clients import DataTestClient
 
 

@@ -21,7 +21,7 @@ api_info = openapi.Info(
 schema_view = get_schema_view(api_info, public=True, permission_classes=(permissions.AllowAny,),)
 
 urlpatterns = [
-    path("applications/", include("applications.urls")),
+    path("applications/", include("api.applications.urls")),
     path("audit-trail/", include("audit_trail.urls")),
     path("cases/", include("cases.urls")),
     path("compliance/", include("compliance.urls")),

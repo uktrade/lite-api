@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from applications.enums import ApplicationExportType
+from api.applications.enums import ApplicationExportType
 from cases.enums import CaseTypeEnum
 from cases.libraries.reference_code import LICENCE_APPLICATION_PREFIX, SEPARATOR
 from test_helpers.clients import DataTestClient

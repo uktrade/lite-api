@@ -3,8 +3,8 @@ from string import ascii_uppercase
 from django.db import transaction
 from rest_framework.exceptions import ParseError
 
-from applications.models import GoodOnApplication
-from applications.serializers.good import GoodOnApplicationViewSerializer
+from api.applications.models import GoodOnApplication
+from api.applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import GoodCountryDecision
 from api.conf.exceptions import NotFoundError

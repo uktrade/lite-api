@@ -1,6 +1,6 @@
 from django.db.models import QuerySet
 
-from applications.models import PartyOnApplication, GoodOnApplication
+from api.applications.models import PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from flags.enums import FlagLevels, FlagStatuses

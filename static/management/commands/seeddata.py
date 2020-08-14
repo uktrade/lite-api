@@ -7,11 +7,11 @@ from django import db
 from django.utils.dateparse import parse_date
 from faker import Faker
 
-from applications.enums import GoodsTypeCategory, ApplicationExportType
+from api.applications.enums import GoodsTypeCategory, ApplicationExportType
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
-from applications.models import StandardApplication, OpenApplication, GoodOnApplication
+from api.applications.models import StandardApplication, OpenApplication, GoodOnApplication
 from flags.models import Flag
-from applications.serializers.open_application import OpenApplicationCreateSerializer
+from api.applications.serializers.open_application import OpenApplicationCreateSerializer
 from api.conf.constants import Roles
 from api.goods.models import Good
 from api.organisations.enums import OrganisationType

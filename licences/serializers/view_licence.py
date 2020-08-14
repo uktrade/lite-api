@@ -3,7 +3,7 @@ from __future__ import division
 from django.db.models import F
 from rest_framework import serializers
 
-from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
+from api.applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType

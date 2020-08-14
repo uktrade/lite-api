@@ -1,8 +1,8 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.db.models import Q
 
-from applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
-from applications.models import (
+from api.applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
+from api.applications.models import (
     ApplicationDocument,
     StandardApplication,
     OpenApplication,

@@ -126,7 +126,7 @@ class Case(TimestampableModel):
         """
         from cases.helpers import can_set_status
         from audit_trail import service as audit_trail_service
-        from applications.libraries.application_helpers import can_status_be_set_by_gov_user
+        from api.applications.libraries.application_helpers import can_status_be_set_by_gov_user
         from workflow.automation import run_routing_rules
         from workflow.flagging_rules_automation import apply_flagging_rules_to_case
         from licences.helpers import update_licence_status
@@ -171,9 +171,9 @@ class Case(TimestampableModel):
             and puts these objects into a set
         :return: set object
         """
-        from applications.models import PartyOnApplication
-        from applications.models import GoodOnApplication
-        from applications.models import CountryOnApplication
+        from api.applications.models import PartyOnApplication
+        from api.applications.models import GoodOnApplication
+        from api.applications.models import CountryOnApplication
         from api.goodstype.models import GoodsType
 
         parameter_set = set(self.flags.all()) | {self.case_type} | set(self.organisation.flags.all())

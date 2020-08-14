@@ -3,7 +3,7 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import GoodOnApplication
+from api.applications.models import GoodOnApplication
 from api.goods.enums import GoodStatus
 from api.goods.models import Good
 from static.statuses.enums import CaseStatusEnum

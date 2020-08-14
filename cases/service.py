@@ -1,6 +1,6 @@
 from django.db.models import Min, When, BinaryField, Case
 
-from applications.models import CountryOnApplication
+from api.applications.models import CountryOnApplication
 from flags.enums import FlagStatuses
 from users.enums import UserType
 
