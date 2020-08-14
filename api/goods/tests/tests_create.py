@@ -6,7 +6,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import (
+from api.goods.enums import (
     GoodControlled,
     GoodPvGraded,
     PvGrading,
@@ -16,7 +16,7 @@ from goods.enums import (
     Component,
     FirearmGoodType,
 )
-from goods.models import Good
+from api.goods.models import Good
 from lite_content.lite_api import strings
 from static.control_list_entries.helpers import get_control_list_entry
 from static.control_list_entries.models import ControlListEntry

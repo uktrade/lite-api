@@ -1,7 +1,7 @@
 from django.http import Http404
 
-from goodstype.document.models import GoodsTypeDocument
-from goodstype.models import GoodsType
+from api.goodstype.document.models import GoodsTypeDocument
+from api.goodstype.models import GoodsType
 
 
 def get_goods_type(pk):

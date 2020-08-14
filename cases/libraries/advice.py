@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from cases.enums import AdviceType
 from cases.models import Advice
-from goods.enums import PvGrading
+from api.goods.enums import PvGrading
 
 
 def group_advice(case, advice, user, new_level):

@@ -1,7 +1,7 @@
 from django.db import models
 
 from documents.models import Document
-from goodstype.models import GoodsType
+from api.goodstype.models import GoodsType
 
 
 class GoodsTypeDocument(Document):

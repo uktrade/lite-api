@@ -16,7 +16,7 @@ from applications.models import (
     F680ClearanceApplication,
 )
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
-from goodstype.models import GoodsType
+from api.goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

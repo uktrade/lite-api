@@ -24,12 +24,12 @@ from api.conf.decorators import (
 )
 from api.conf.exceptions import BadRequestError
 from flags.enums import SystemFlags
-from goods.enums import GoodStatus
-from goods.libraries.get_goods import get_good_with_organisation
-from goods.models import GoodDocument
-from goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
-from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
+from api.goods.enums import GoodStatus
+from api.goods.libraries.get_goods import get_good_with_organisation
+from api.goods.models import GoodDocument
+from api.goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
+from api.goodstype.models import GoodsType
+from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.countries.models import Country

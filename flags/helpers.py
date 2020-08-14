@@ -1,7 +1,7 @@
 from cases.libraries.get_case import get_case
 from cases.libraries.get_destination import get_destination
-from goods.models import Good
-from goodstype.helpers import get_goods_type
+from api.goods.models import Good
+from api.goodstype.helpers import get_goods_type
 from organisations.libraries.get_organisation import get_organisation_by_pk
 
 

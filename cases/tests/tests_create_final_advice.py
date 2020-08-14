@@ -7,8 +7,8 @@ from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import Advice, GoodCountryDecision
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from api.conf import constants
-from goods.enums import PvGrading
-from goodstype.tests.factories import GoodsTypeFactory
+from api.goods.enums import PvGrading
+from api.goodstype.tests.factories import GoodsTypeFactory
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum

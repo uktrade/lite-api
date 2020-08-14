@@ -9,8 +9,8 @@ from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
 from cases.serializers import SimpleAdviceSerializer
 from api.conf.serializers import KeyValueChoiceField, CountrySerializerField, ControlListEntryField
-from goods.models import Good
-from goodstype.models import GoodsType
+from api.goods.models import Good
+from api.goodstype.models import GoodsType
 from licences.enums import LicenceStatus
 from licences.helpers import serialize_goods_on_licence, get_approved_countries
 from licences.models import Licence

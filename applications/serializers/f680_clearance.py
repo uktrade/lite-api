@@ -15,7 +15,7 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from api.conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
-from goods.enums import PvGrading
+from api.goods.enums import PvGrading
 from lite_content.lite_api import strings
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.f680_clearance_types.models import F680ClearanceType

@@ -16,7 +16,7 @@ from cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
 from api.conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, get_value_from_enum
-from goods.enums import (
+from api.goods.enums import (
     PvGrading,
     ItemType,
     MilitaryUse,
@@ -26,8 +26,8 @@ from goods.enums import (
     GoodControlled,
     GoodPvGraded,
 )
-from goods.tests.factories import GoodFactory, FirearmFactory
-from goodstype.tests.factories import GoodsTypeFactory
+from api.goods.tests.factories import GoodFactory, FirearmFactory
+from api.goodstype.tests.factories import GoodsTypeFactory
 from letter_templates.context_generator import get_document_context
 from licences.enums import LicenceStatus
 from licences.tests.factories import GoodOnLicenceFactory

@@ -19,7 +19,7 @@ from applications.serializers.generic_application import (
 from applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
 from api.conf.serializers import KeyValueChoiceField
-from goodstype.serializers import GoodsTypeViewSerializer
+from api.goodstype.serializers import GoodsTypeViewSerializer
 from licences.models import Licence
 from licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings

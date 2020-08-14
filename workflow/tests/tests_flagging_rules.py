@@ -3,8 +3,8 @@ from parameterized import parameterized
 from applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
 from cases.enums import CaseTypeEnum
 from flags.enums import FlagLevels, FlagStatuses
-from goods.enums import GoodStatus
-from goodstype.models import GoodsType
+from api.goods.enums import GoodStatus
+from api.goodstype.models import GoodsType
 from static.control_list_entries.helpers import get_control_list_entry
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

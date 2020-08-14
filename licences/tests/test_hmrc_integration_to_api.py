@@ -10,7 +10,7 @@ from audit_trail.models import Audit
 from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
 from cases.models import CaseType
 from cases.tests.factories import GoodCountryDecisionFactory
-from goodstype.models import GoodsType
+from api.goodstype.models import GoodsType
 from licences.enums import LicenceStatus, HMRCIntegrationActionEnum
 from licences.models import HMRCIntegrationUsageUpdate, Licence
 from licences.tests.factories import GoodOnLicenceFactory

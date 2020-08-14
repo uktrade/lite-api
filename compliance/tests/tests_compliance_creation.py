@@ -6,8 +6,8 @@ from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from compliance.helpers import generate_compliance_site_case
 from compliance.models import ComplianceSiteCase
-from goods.enums import GoodControlled
-from goods.tests.factories import GoodFactory
+from api.goods.enums import GoodControlled
+from api.goods.tests.factories import GoodFactory
 from licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
 from open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from organisations.tests.factories import SiteFactory

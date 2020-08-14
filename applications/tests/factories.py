@@ -11,7 +11,7 @@ from applications.models import (
 )
 from cases.enums import CaseTypeEnum
 from static.countries.factories import CountryFactory
-from goods.tests.factories import GoodFactory
+from api.goods.tests.factories import GoodFactory
 from organisations.tests.factories import OrganisationFactory, SiteFactory
 from parties.tests.factories import PartyFactory
 from static.statuses.enums import CaseStatusEnum

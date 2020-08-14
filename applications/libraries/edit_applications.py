@@ -8,8 +8,8 @@ from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.models import Case
 from flags.enums import SystemFlags
 from api.conf.helpers import str_to_bool, convert_date_to_string
-from goods.enums import ItemCategory
-from goods.models import Good
+from api.goods.enums import ItemCategory
+from api.goods.models import Good
 from lite_content.lite_api.strings import Applications as strings
 from static.trade_control.enums import TradeControlActivity
 

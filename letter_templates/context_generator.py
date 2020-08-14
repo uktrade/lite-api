@@ -24,7 +24,7 @@ from api.conf.helpers import (
     pluralise_unit,
     get_value_from_enum,
 )
-from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled, GoodPvGraded
+from api.goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled, GoodPvGraded
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation

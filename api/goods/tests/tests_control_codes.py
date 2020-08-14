@@ -6,10 +6,10 @@ from applications.models import GoodOnApplication
 from api.conf import constants
 from flags.enums import FlagLevels
 from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled
-from goods.models import Good
-from goods.tests.factories import GoodFactory
-from goodstype.tests.factories import GoodsTypeFactory
+from api.goods.enums import GoodControlled
+from api.goods.models import Good
+from api.goods.tests.factories import GoodFactory
+from api.goodstype.tests.factories import GoodsTypeFactory
 from picklists.enums import PicklistType, PickListStatus
 from static.control_list_entries.helpers import get_control_list_entry
 from static.statuses.enums import CaseStatusEnum

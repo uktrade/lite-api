@@ -13,7 +13,7 @@ from applications.models import StandardApplication, OpenApplication, GoodOnAppl
 from flags.models import Flag
 from applications.serializers.open_application import OpenApplicationCreateSerializer
 from api.conf.constants import Roles
-from goods.models import Good
+from api.goods.models import Good
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site
 from organisations.tests.factories import SiteFactory

@@ -9,10 +9,10 @@ from api.common.libraries import (
 )
 from api.conf.helpers import str_to_bool
 from api.conf.serializers import ControlListEntryField
-from goods.enums import GoodControlled
-from goodstype.constants import DESCRIPTION_MAX_LENGTH
-from goodstype.document.models import GoodsTypeDocument
-from goodstype.models import GoodsType
+from api.goods.enums import GoodControlled
+from api.goodstype.constants import DESCRIPTION_MAX_LENGTH
+from api.goodstype.document.models import GoodsTypeDocument
+from api.goodstype.models import GoodsType
 from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.countries.serializers import CountrySerializer
 

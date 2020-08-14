@@ -1,4 +1,4 @@
-from goods.enums import PvGrading
+from api.goods.enums import PvGrading
 
 
 def get_pv_grading_value_from_key(key: str):

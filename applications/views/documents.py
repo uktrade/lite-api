@@ -22,8 +22,8 @@ from api.conf.decorators import (
     allowed_application_types,
     application_in_state,
 )
-from goodstype.document.serializers import GoodsTypeDocumentSerializer
-from goodstype.helpers import get_goods_type
+from api.goodstype.document.serializers import GoodsTypeDocumentSerializer
+from api.goodstype.helpers import get_goods_type
 from users.models import ExporterUser
 
 

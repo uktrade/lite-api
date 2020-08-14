@@ -1,7 +1,7 @@
 import csv
 
 from applications.models import CountryOnApplication
-from goodstype.serializers import GoodsTypeSerializer
+from api.goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
 
 
