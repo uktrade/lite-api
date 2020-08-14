@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from addresses.serializers import AddressSerializer
+from api.addresses.serializers import AddressSerializer
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns

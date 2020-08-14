@@ -5,7 +5,7 @@ from sortedm2m.fields import SortedManyToManyField
 
 from cases.models import CaseType
 from api.common.models import TimestampableModel
-from picklists.models import PicklistItem
+from api.picklists.models import PicklistItem
 from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout
 

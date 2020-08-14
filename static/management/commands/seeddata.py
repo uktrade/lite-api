@@ -18,7 +18,7 @@ from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation, Site
 from api.organisations.tests.factories import SiteFactory
 from api.organisations.tests.providers import OrganisationProvider
-from queries.end_user_advisories.models import EndUserAdvisoryQuery
+from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.management.SeedCommand import SeedCommand
 from static.management.commands.seedapplications import Command as AppCommand
 from static.management.commands.seedorganisation import Command as OrgCommand

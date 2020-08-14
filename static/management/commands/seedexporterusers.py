@@ -2,7 +2,7 @@ from json import loads as serialize
 
 from django.db import transaction
 
-from addresses.models import Address
+from api.addresses.models import Address
 from api.conf.constants import Roles
 from api.conf.settings import env
 from api.organisations.enums import OrganisationType, OrganisationStatus

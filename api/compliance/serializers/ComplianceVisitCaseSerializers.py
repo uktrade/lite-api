@@ -4,7 +4,7 @@ from rest_framework.fields import empty
 from lite_content.lite_api import strings
 
 from api.conf.serializers import KeyValueChoiceField
-from addresses.serializers import AddressSerializer
+from api.addresses.serializers import AddressSerializer
 from api.compliance.enums import ComplianceRiskValues, ComplianceVisitTypes
 from api.compliance.models import ComplianceVisitCase, CompliancePerson
 from api.conf.serializers import PrimaryKeyRelatedSerializerField

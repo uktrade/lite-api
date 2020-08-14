@@ -3,7 +3,7 @@ from django.http import Http404
 
 from api.conf.exceptions import NotFoundError
 from api.goods.models import Good, GoodDocument
-from queries.goods_query.models import GoodsQuery
+from api.queries.goods_query.models import GoodsQuery
 from api.users.models import ExporterUser
 
 
@@ -34,7 +34,7 @@ def get_good_with_organisation(pk, organisation_id):
 def get_good_query_with_notifications(
     good: Good, exporter_user: ExporterUser, organisation_id, total_count: bool
 ) -> dict:
-    from queries.goods_query.serializers import ExporterReadGoodQuerySerializer
+    from api.queries.goods_query.serializers import ExporterReadGoodQuerySerializer
 
     good_query = GoodsQuery.objects.filter(good__id=good.id)
     if good_query:

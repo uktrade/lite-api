@@ -47,7 +47,7 @@ ALLOWED_HOSTS = json.loads(env("ALLOWED_HOSTS")) if env("ALLOWED_HOSTS") else []
 # Application definition
 
 INSTALLED_APPS = [
-    "addresses",
+    "api.addresses",
     "api.applications.apps.ApplicationsConfig",
     "audit_trail",
     "background_task",
@@ -70,10 +70,10 @@ INSTALLED_APPS = [
     "licences",
     "api.organisations",
     "api.parties",
-    "picklists",
-    "queries",
-    "queries.goods_query",
-    "queries.end_user_advisories",
+    "api.picklists",
+    "api.queries",
+    "api.queries.goods_query",
+    "api.queries.end_user_advisories",
     "queues",
     "open_general_licences",
     "rest_framework",

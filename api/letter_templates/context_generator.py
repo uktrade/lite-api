@@ -29,8 +29,8 @@ from licences.enums import LicenceStatus
 from licences.models import Licence
 from api.organisations.models import Site, ExternalLocation
 from api.parties.enums import PartyRole, PartyType, SubType
-from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from queries.goods_query.models import GoodsQuery
+from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
+from api.queries.goods_query.models import GoodsQuery
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from static.units.enums import Units

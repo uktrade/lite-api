@@ -29,7 +29,7 @@ from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDe
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
-from queries.goods_query.models import GoodsQuery
+from api.queries.goods_query.models import GoodsQuery
 from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
@@ -657,7 +657,7 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
         return SimpleGoodDocumentViewSerializer(documents, many=True).data
 
     def get_query(self, instance):
-        from queries.goods_query.serializers import ExporterReadGoodQuerySerializer
+        from api.queries.goods_query.serializers import ExporterReadGoodQuerySerializer
 
         if self.goods_query:
             serializer = ExporterReadGoodQuerySerializer(
