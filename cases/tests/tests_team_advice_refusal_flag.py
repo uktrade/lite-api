@@ -4,8 +4,8 @@ from cases.enums import AdviceType, AdviceLevel
 from cases.libraries.post_advice import case_advice_contains_refusal
 from cases.models import Case
 from api.conf import constants
-from flags.enums import SystemFlags
-from flags.models import Flag
+from api.flags.enums import SystemFlags
+from api.flags.models import Flag
 from test_helpers.clients import DataTestClient
 from api.users.models import Role
 

@@ -36,9 +36,9 @@ from cases.tasks import get_application_target_sla
 from api.conf import settings
 from api.conf.constants import Roles
 from api.conf.urls import urlpatterns
-from flags.enums import SystemFlags, FlagStatuses, FlagLevels
-from flags.models import Flag, FlaggingRule
-from flags.tests.factories import FlagFactory
+from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
+from api.flags.models import Flag, FlaggingRule
+from api.flags.tests.factories import FlagFactory
 from api.goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from api.goods.tests.factories import GoodFactory

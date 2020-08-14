@@ -1,6 +1,6 @@
 from django.db import models
 
-from flags.models import Flag
+from api.flags.models import Flag
 
 
 class CountryManager(models.Manager):

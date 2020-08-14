@@ -2,7 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from flags.enums import FlagLevels, FlagColours
+from api.flags.enums import FlagLevels, FlagColours
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 

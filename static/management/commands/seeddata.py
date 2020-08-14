@@ -10,7 +10,7 @@ from faker import Faker
 from api.applications.enums import GoodsTypeCategory, ApplicationExportType
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from api.applications.models import StandardApplication, OpenApplication, GoodOnApplication
-from flags.models import Flag
+from api.flags.models import Flag
 from api.applications.serializers.open_application import OpenApplicationCreateSerializer
 from api.conf.constants import Roles
 from api.goods.models import Good

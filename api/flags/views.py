@@ -17,11 +17,11 @@ from api.conf.authentication import GovAuthentication
 from api.conf.constants import GovPermissions
 from api.conf.helpers import str_to_bool
 from api.conf.permissions import assert_user_has_permission
-from flags.enums import FlagStatuses, SystemFlags
-from flags.helpers import get_object_of_level
-from flags.libraries.get_flag import get_flagging_rule
-from flags.models import Flag, FlaggingRule
-from flags.serializers import (
+from api.flags.enums import FlagStatuses, SystemFlags
+from api.flags.helpers import get_object_of_level
+from api.flags.libraries.get_flag import get_flagging_rule
+from api.flags.models import Flag, FlaggingRule
+from api.flags.serializers import (
     FlagSerializer,
     FlagAssignmentSerializer,
     FlaggingRuleSerializer,

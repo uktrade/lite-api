@@ -3,8 +3,8 @@ from django.db.models import QuerySet
 from api.applications.models import PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from flags.enums import FlagLevels, FlagStatuses
-from flags.models import FlaggingRule, Flag
+from api.flags.enums import FlagLevels, FlagStatuses
+from api.flags.models import FlaggingRule, Flag
 from api.goods.enums import GoodStatus
 from api.goods.models import Good
 from api.goodstype.models import GoodsType

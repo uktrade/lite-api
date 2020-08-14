@@ -8,8 +8,8 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.conf.constants import GovPermissions
-from flags.enums import FlagLevels
-from flags.tests.factories import FlagFactory
+from api.flags.enums import FlagLevels
+from api.flags.tests.factories import FlagFactory
 from licences.enums import LicenceStatus
 from licences.models import Licence, GoodOnLicence
 from lite_content.lite_api import strings

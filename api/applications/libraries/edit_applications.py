@@ -6,7 +6,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.models import Case
-from flags.enums import SystemFlags
+from api.flags.enums import SystemFlags
 from api.conf.helpers import str_to_bool, convert_date_to_string
 from api.goods.enums import ItemCategory
 from api.goods.models import Good

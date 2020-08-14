@@ -68,8 +68,8 @@ from api.conf.decorators import (
 )
 from api.conf.helpers import convert_date_to_string, str_to_bool
 from api.conf.permissions import assert_user_has_permission
-from flags.enums import FlagStatuses, SystemFlags
-from flags.models import Flag
+from api.flags.enums import FlagStatuses, SystemFlags
+from api.flags.models import Flag
 from api.goods.serializers import GoodCreateSerializer
 from api.goodstype.models import GoodsType
 from gov_notify import service as gov_notify_service

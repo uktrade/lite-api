@@ -3,9 +3,9 @@ from rest_framework import status
 
 from api.applications.models import GoodOnApplication, PartyOnApplication
 from cases.enums import CaseTypeReferenceEnum
-from flags.enums import FlagLevels
-from flags.models import FlaggingRule
-from flags.tests.factories import FlagFactory
+from api.flags.enums import FlagLevels
+from api.flags.models import FlaggingRule
+from api.flags.tests.factories import FlagFactory
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 

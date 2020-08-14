@@ -1,6 +1,6 @@
 from django.urls import path
 
-from flags import views
+from api.flags import views
 
 app_name = "flags"
 

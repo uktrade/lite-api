@@ -4,9 +4,9 @@ from rest_framework import status
 
 from api.applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum
-from flags.enums import SystemFlags
-from flags.models import Flag
-from flags.tests.factories import FlagFactory
+from api.flags.enums import SystemFlags
+from api.flags.models import Flag
+from api.flags.tests.factories import FlagFactory
 from api.parties.enums import PartyType
 from static.countries.helpers import get_country
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory

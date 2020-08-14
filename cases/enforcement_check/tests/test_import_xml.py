@@ -9,7 +9,7 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enforcement_check.export_xml import get_enforcement_id
 from api.conf.constants import GovPermissions
-from flags.enums import SystemFlags
+from api.flags.enums import SystemFlags
 from lite_content.lite_api.strings import Cases
 from test_helpers.clients import DataTestClient
 

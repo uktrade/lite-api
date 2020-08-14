@@ -24,7 +24,7 @@ from api.common.models import TimestampableModel, CreatedAt
 from api.conf.constants import GovPermissions
 from api.conf.permissions import assert_user_has_permission
 from documents.models import Document
-from flags.models import Flag
+from api.flags.models import Flag
 from api.goods.enums import PvGrading
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation

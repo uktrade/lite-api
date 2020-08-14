@@ -1,7 +1,7 @@
 from api.applications.models import CountryOnApplication, PartyOnApplication
 from cases.models import CaseType
-from flags.enums import FlagStatuses
-from flags.tests.factories import FlagFactory
+from api.flags.enums import FlagStatuses
+from api.flags.tests.factories import FlagFactory
 from api.parties.models import Party
 from queues.models import Queue
 from static.countries.models import Country

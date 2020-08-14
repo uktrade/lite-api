@@ -5,8 +5,8 @@ from separatedvaluesfield.models import SeparatedValuesField
 
 from cases.models import CaseType
 from api.common.models import TimestampableModel
-from flags.enums import FlagStatuses
-from flags.models import Flag
+from api.flags.enums import FlagStatuses
+from api.flags.models import Flag
 from queues.models import Queue
 from static.countries.models import Country
 from static.statuses.models import CaseStatus

@@ -23,7 +23,7 @@ from api.conf.decorators import (
     application_in_state,
 )
 from api.conf.exceptions import BadRequestError
-from flags.enums import SystemFlags
+from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.libraries.get_goods import get_good_with_organisation
 from api.goods.models import GoodDocument

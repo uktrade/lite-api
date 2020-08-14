@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from flags.models import Flag
+from api.flags.models import Flag
 from static.management.SeedCommand import SeedCommand
 
 FLAGS_FILE = "lite_content/lite_api/system_flags.csv"

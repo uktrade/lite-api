@@ -1,8 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from flags.enums import SystemFlags, FlagLevels
-from flags.tests.factories import FlagFactory
+from api.flags.enums import SystemFlags, FlagLevels
+from api.flags.tests.factories import FlagFactory
 from test_helpers.clients import DataTestClient
 
 

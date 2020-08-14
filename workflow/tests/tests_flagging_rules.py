@@ -2,7 +2,7 @@ from parameterized import parameterized
 
 from api.applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
 from cases.enums import CaseTypeEnum
-from flags.enums import FlagLevels, FlagStatuses
+from api.flags.enums import FlagLevels, FlagStatuses
 from api.goods.enums import GoodStatus
 from api.goodstype.models import GoodsType
 from static.control_list_entries.helpers import get_control_list_entry
