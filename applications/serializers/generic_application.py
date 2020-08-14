@@ -16,8 +16,8 @@ from api.conf.helpers import get_value_from_enum
 from api.conf.serializers import KeyValueChoiceField
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
-from organisations.models import Organisation, Site, ExternalLocation
-from organisations.serializers import OrganisationDetailSerializer, ExternalLocationSerializer, SiteListSerializer
+from api.organisations.models import Organisation, Site, ExternalLocation
+from api.organisations.serializers import OrganisationDetailSerializer, ExternalLocationSerializer, SiteListSerializer
 from parties.serializers import PartySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum

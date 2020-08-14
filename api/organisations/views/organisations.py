@@ -15,11 +15,11 @@ from api.conf.constants import GovPermissions
 from api.conf.helpers import str_to_bool
 from api.conf.permissions import check_user_has_permission, assert_user_has_permission
 from lite_content.lite_api.strings import Organisations
-from organisations.enums import OrganisationStatus, OrganisationType
-from organisations.helpers import audit_edited_organisation_fields, audit_reviewed_organisation
-from organisations.libraries.get_organisation import get_organisation_by_pk, get_request_user_organisation
-from organisations.models import Organisation
-from organisations.serializers import (
+from api.organisations.enums import OrganisationStatus, OrganisationType
+from api.organisations.helpers import audit_edited_organisation_fields, audit_reviewed_organisation
+from api.organisations.libraries.get_organisation import get_organisation_by_pk, get_request_user_organisation
+from api.organisations.models import Organisation
+from api.organisations.serializers import (
     OrganisationDetailSerializer,
     OrganisationCreateUpdateSerializer,
     OrganisationListSerializer,

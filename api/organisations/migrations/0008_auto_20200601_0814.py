@@ -5,7 +5,7 @@ import django.db.models.deletion
 
 from applications.models import SiteOnApplication
 from cases.models import Case
-from organisations.models import Site
+from api.organisations.models import Site
 
 
 def set_site_used_on_application(apps, schema_editor):

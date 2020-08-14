@@ -9,8 +9,8 @@ from api.conf.constants import Roles, GovPermissions
 from api.conf.custom_views import OptionalPaginationView
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateOrUpdateSerializer, GovUserViewSerializer, GovUserListSerializer
-from organisations.enums import OrganisationStatus
-from organisations.models import Organisation
+from api.organisations.enums import OrganisationStatus
+from api.organisations.models import Organisation
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token

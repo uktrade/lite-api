@@ -49,9 +49,9 @@ from letter_templates.models import LetterTemplate
 from licences.enums import LicenceStatus
 from licences.helpers import get_licence_reference_code
 from licences.models import Licence
-from organisations.enums import OrganisationType
-from organisations.models import Organisation, ExternalLocation
-from organisations.tests.factories import OrganisationFactory, SiteFactory
+from api.organisations.enums import OrganisationType
+from api.organisations.models import Organisation, ExternalLocation
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party
 from parties.models import PartyDocument

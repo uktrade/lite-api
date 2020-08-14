@@ -3,8 +3,8 @@ from parameterized import parameterized
 from rest_framework import status
 
 from addresses.tests.factories import AddressFactory
-from organisations.enums import OrganisationStatus
-from organisations.tests.factories import OrganisationFactory, SiteFactory
+from api.organisations.enums import OrganisationStatus
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from test_helpers.clients import DataTestClient
 
 

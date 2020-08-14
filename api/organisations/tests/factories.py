@@ -5,8 +5,8 @@ from django.utils import timezone
 
 from addresses.tests.factories import AddressFactory
 from organisations import models
-from organisations.enums import OrganisationType, OrganisationStatus
-from organisations.tests.providers import OrganisationProvider
+from api.organisations.enums import OrganisationType, OrganisationStatus
+from api.organisations.tests.providers import OrganisationProvider
 
 factory.Faker.add_provider(OrganisationProvider)
 

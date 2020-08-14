@@ -7,7 +7,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.models import Audit
 from audit_trail.serializers import AuditSerializer
 from api.conf.authentication import GovAuthentication
-from organisations.models import Organisation, Site
+from api.organisations.models import Organisation, Site
 
 
 class OrganisationActivityView(APIView):

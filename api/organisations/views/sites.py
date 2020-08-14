@@ -12,9 +12,9 @@ from api.conf.constants import ExporterPermissions
 from api.conf.helpers import str_to_bool
 from api.conf.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
-from organisations.libraries.get_organisation import get_organisation_by_pk
-from organisations.models import Site
-from organisations.serializers import SiteViewSerializer, SiteCreateUpdateSerializer, SiteListSerializer
+from api.organisations.libraries.get_organisation import get_organisation_by_pk
+from api.organisations.models import Site
+from api.organisations.serializers import SiteViewSerializer, SiteCreateUpdateSerializer, SiteListSerializer
 from users.models import ExporterUser, UserOrganisationRelationship
 
 

@@ -9,7 +9,7 @@ from api.conf.authentication import ExporterAuthentication
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from licences.serializers.view_licence import LicenceSerializer, NLRdocumentSerializer, LicenceListSerializer
-from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from parties.enums import PartyType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus

@@ -18,8 +18,8 @@ from api.goods.models import Good
 from licences.models import Licence
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance
-from organisations.libraries.get_organisation import get_request_user_organisation
-from organisations.models import Site, Organisation
+from api.organisations.libraries.get_organisation import get_request_user_organisation
+from api.organisations.models import Site, Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.enums import SystemUser

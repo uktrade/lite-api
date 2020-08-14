@@ -5,9 +5,9 @@ from rest_framework.views import APIView
 
 from cases.enums import CaseTypeReferenceEnum
 from api.conf.authentication import ExporterAuthentication
-from organisations.enums import LocationType
-from organisations.models import ExternalLocation
-from organisations.serializers import ExternalLocationSerializer, SiclExternalLocationSerializer
+from api.organisations.enums import LocationType
+from api.organisations.models import ExternalLocation
+from api.organisations.serializers import ExternalLocationSerializer, SiclExternalLocationSerializer
 
 
 class ExternalLocationList(APIView):

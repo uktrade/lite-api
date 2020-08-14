@@ -6,7 +6,7 @@ from cases.enums import CaseTypeSubTypeEnum
 from api.conf.authentication import ORGANISATION_ID
 from api.conf.decorators import allowed_application_types, application_in_state, authorised_to_view_application
 from lite_content.lite_api import strings
-from organisations.tests.factories import OrganisationFactory
+from api.organisations.tests.factories import OrganisationFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient

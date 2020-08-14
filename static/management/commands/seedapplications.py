@@ -7,8 +7,8 @@ from applications.models import (
 )
 from api.goods.enums import GoodPvGraded, GoodControlled, GoodStatus
 from api.goods.models import Good
-from organisations.enums import OrganisationType
-from organisations.models import Organisation
+from api.organisations.enums import OrganisationType
+from api.organisations.models import Organisation
 from static.management.SeedCommand import SeedCommand
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient

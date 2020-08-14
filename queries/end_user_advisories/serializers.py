@@ -4,8 +4,8 @@ from rest_framework import serializers
 
 from cases.enums import CaseTypeEnum
 from api.conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
-from organisations.models import Organisation
-from organisations.serializers import OrganisationDetailSerializer
+from api.organisations.models import Organisation
+from api.organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
 from parties.serializers import PartySerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery

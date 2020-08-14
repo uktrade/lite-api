@@ -14,11 +14,11 @@ from api.conf.constants import Roles, GovPermissions
 from api.conf.helpers import date_to_drf_date
 from gov_notify.enums import TemplateType
 from lite_content.lite_api.strings import Organisations
-from organisations.constants import UK_VAT_VALIDATION_REGEX
-from organisations.enums import OrganisationType, OrganisationStatus
-from organisations.tests.factories import OrganisationFactory
-from organisations.models import Organisation
-from organisations.tests.providers import OrganisationProvider
+from api.organisations.constants import UK_VAT_VALIDATION_REGEX
+from api.organisations.enums import OrganisationType, OrganisationStatus
+from api.organisations.tests.factories import OrganisationFactory
+from api.organisations.models import Organisation
+from api.organisations.tests.providers import OrganisationProvider
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient

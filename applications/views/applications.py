@@ -80,9 +80,9 @@ from licences.helpers import get_licence_reference_code, update_licence_status
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
-from organisations.enums import OrganisationType
-from organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
-from organisations.models import Site
+from api.organisations.enums import OrganisationType
+from api.organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
+from api.organisations.models import Site
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft

@@ -14,10 +14,10 @@ from flags.models import Flag
 from applications.serializers.open_application import OpenApplicationCreateSerializer
 from api.conf.constants import Roles
 from api.goods.models import Good
-from organisations.enums import OrganisationType
-from organisations.models import Organisation, Site
-from organisations.tests.factories import SiteFactory
-from organisations.tests.providers import OrganisationProvider
+from api.organisations.enums import OrganisationType
+from api.organisations.models import Organisation, Site
+from api.organisations.tests.factories import SiteFactory
+from api.organisations.tests.providers import OrganisationProvider
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.management.SeedCommand import SeedCommand
 from static.management.commands.seedapplications import Command as AppCommand

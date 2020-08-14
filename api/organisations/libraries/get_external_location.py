@@ -1,6 +1,6 @@
 from applications.models import BaseApplication, ExternalLocationOnApplication
 from api.conf.exceptions import NotFoundError
-from organisations.models import ExternalLocation
+from api.organisations.models import ExternalLocation
 
 
 def get_location(pk, organisation=None):

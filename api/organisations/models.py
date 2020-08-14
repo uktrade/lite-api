@@ -10,7 +10,7 @@ from api.conf.constants import ExporterPermissions
 from api.conf.exceptions import NotFoundError
 from flags.models import Flag
 from open_general_licences.enums import OpenGeneralLicenceStatus
-from organisations.enums import OrganisationType, OrganisationStatus, LocationType
+from api.organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

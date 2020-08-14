@@ -1,5 +1,5 @@
 from api.conf.exceptions import PermissionDeniedError
-from organisations.models import Organisation
+from api.organisations.models import Organisation
 from users.models import GovUser
 
 

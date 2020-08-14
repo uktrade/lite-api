@@ -4,8 +4,8 @@ from rest_framework.reverse import reverse
 
 from audit_trail.models import Audit
 from lite_content.lite_api import strings
-from organisations.models import Site
-from organisations.tests.factories import OrganisationFactory
+from api.organisations.models import Site
+from api.organisations.tests.factories import OrganisationFactory
 from test_helpers.clients import DataTestClient
 from users.models import UserOrganisationRelationship
 

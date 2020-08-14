@@ -28,7 +28,7 @@ urlpatterns = [
     path("goods/", include("api.goods.urls")),
     path("goods-types/", include("api.goodstype.urls")),
     path("letter-templates/", include("letter_templates.urls")),
-    path("organisations/", include("organisations.urls")),
+    path("organisations/", include("api.organisations.urls")),
     path("queues/", include("queues.urls")),
     path("static/", include("static.urls")),
     path("users/", include("users.urls")),

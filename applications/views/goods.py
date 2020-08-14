@@ -31,7 +31,7 @@ from api.goodstype.helpers import get_goods_type, delete_goods_type_document_if_
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
-from organisations.libraries.get_organisation import get_request_user_organisation_id
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.countries.models import Country
 from users.models import ExporterUser
 

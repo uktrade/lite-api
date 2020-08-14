@@ -15,7 +15,7 @@ from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from cases.models import Case
 from api.common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
 from flags.serializers import CaseListFlagSerializer
-from organisations.models import Organisation
+from api.organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
 from users.models import GovUser
@@ -133,7 +133,7 @@ def populate_destinations_flags(cases: List[Dict]):
 
 
 def populate_organisation(cases: List[Dict]):
-    from organisations.serializers import OrganisationCaseSerializer
+    from api.organisations.serializers import OrganisationCaseSerializer
 
     case_ids = [case["id"] for case in cases]
     organisations = (

@@ -19,7 +19,7 @@ from api.goods.libraries.get_pv_grading import get_pv_grading_value_from_key
 from api.goods.models import Good
 from api.goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
-from organisations.libraries.get_organisation import get_request_user_organisation_id
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from queries.goods_query.helpers import get_starting_status
 from queries.goods_query.models import GoodsQuery
 from queries.goods_query.serializers import PVGradingResponseSerializer

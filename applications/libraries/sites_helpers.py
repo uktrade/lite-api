@@ -10,7 +10,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations, Applications
-from organisations.models import Site
+from api.organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 

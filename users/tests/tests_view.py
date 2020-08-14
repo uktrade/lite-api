@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.conf.helpers import convert_queryset_to_str, date_to_drf_date
-from organisations.enums import OrganisationStatus
+from api.organisations.enums import OrganisationStatus
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import generate_key_value_pair
 from users.libraries.get_user import get_user_organisation_relationship

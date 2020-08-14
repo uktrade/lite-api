@@ -68,7 +68,7 @@ INSTALLED_APPS = [
     "gov_users",
     "letter_templates",
     "licences",
-    "organisations",
+    "api.organisations",
     "parties",
     "picklists",
     "queries",

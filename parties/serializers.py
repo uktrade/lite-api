@@ -7,7 +7,7 @@ from documents.libraries.process_document import process_document
 from flags.serializers import FlagSerializer
 from api.goods.enums import PvGrading
 from lite_content.lite_api.strings import PartyErrors
-from organisations.models import Organisation
+from api.organisations.models import Organisation
 from parties.enums import PartyType, SubType, PartyRole
 from parties.models import Party
 from parties.models import PartyDocument

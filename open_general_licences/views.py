@@ -15,8 +15,8 @@ from api.conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.models import OpenGeneralLicence, OpenGeneralLicenceCase
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
-from organisations.libraries.get_organisation import get_request_user_organisation
-from organisations.models import Site
+from api.organisations.libraries.get_organisation import get_request_user_organisation
+from api.organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserType
 from users.models import GovUser, GovNotification

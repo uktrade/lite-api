@@ -1,10 +1,10 @@
 from django.db import transaction
 
 from api.conf.constants import Roles
-from organisations.enums import OrganisationType
-from organisations.models import Organisation
-from organisations.tests.factories import OrganisationFactory, SiteFactory
-from organisations.tests.providers import OrganisationProvider
+from api.organisations.enums import OrganisationType
+from api.organisations.models import Organisation
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory
+from api.organisations.tests.providers import OrganisationProvider
 from static.management.SeedCommand import SeedCommand
 
 from faker import Faker

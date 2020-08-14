@@ -8,8 +8,8 @@ from addresses.serializers import AddressSerializer
 from compliance.enums import ComplianceRiskValues, ComplianceVisitTypes
 from compliance.models import ComplianceVisitCase, CompliancePerson
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
-from organisations.models import Organisation
-from organisations.serializers import OrganisationDetailSerializer
+from api.organisations.models import Organisation
+from api.organisations.serializers import OrganisationDetailSerializer
 
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 

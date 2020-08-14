@@ -9,8 +9,8 @@ from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSeri
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
 from licences.enums import LicenceStatus
 from licences.models import Licence
-from organisations.models import Organisation
-from organisations.serializers import OrganisationDetailSerializer
+from api.organisations.models import Organisation
+from api.organisations.serializers import OrganisationDetailSerializer
 
 from cases.libraries.get_flags import get_ordered_flags
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
