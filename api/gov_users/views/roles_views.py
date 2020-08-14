@@ -9,7 +9,7 @@ from api.conf import constants
 from api.conf.authentication import GovAuthentication
 from api.conf.constants import Roles
 from api.conf.permissions import assert_user_has_permission
-from gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
+from api.gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
 from api.users.enums import UserType
 from api.users.libraries.get_role import get_role_by_pk
 from api.users.models import Role

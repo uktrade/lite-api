@@ -9,7 +9,7 @@ from rest_framework import authentication
 from django.conf import settings
 from api.conf.exceptions import PermissionDeniedError
 from api.conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS
-from gov_users.enums import GovUserStatuses
+from api.gov_users.enums import GovUserStatuses
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.models import Organisation
 from api.users.enums import UserStatuses

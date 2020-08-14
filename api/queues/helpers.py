@@ -1,5 +1,5 @@
 from api.conf.exceptions import NotFoundError
-from queues.models import Queue
+from api.queues.models import Queue
 
 
 def get_queue(pk):

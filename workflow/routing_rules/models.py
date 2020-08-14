@@ -7,7 +7,7 @@ from cases.models import CaseType
 from api.common.models import TimestampableModel
 from api.flags.enums import FlagStatuses
 from api.flags.models import Flag
-from queues.models import Queue
+from api.queues.models import Queue
 from static.countries.models import Country
 from static.statuses.models import CaseStatus
 from api.teams.models import Team

@@ -59,7 +59,7 @@ from api.picklists.enums import PickListStatus, PicklistType
 from api.picklists.models import PicklistItem
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
-from queues.models import Queue
+from api.queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
 from static.countries.models import Country

@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from gov_users.enums import GovUserStatuses
+from api.gov_users.enums import GovUserStatuses
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
 from api.users.models import GovUser

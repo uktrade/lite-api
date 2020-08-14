@@ -1,8 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from queues.constants import SYSTEM_QUEUES
-from queues.models import Queue
+from api.queues.constants import SYSTEM_QUEUES
+from api.queues.models import Queue
 from test_helpers.clients import DataTestClient
 
 

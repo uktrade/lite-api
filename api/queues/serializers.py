@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 from lite_content.lite_api import strings
-from queues.constants import SYSTEM_QUEUES
-from queues.models import Queue
+from api.queues.constants import SYSTEM_QUEUES
+from api.queues.models import Queue
 from api.teams.models import Team
 from api.teams.serializers import TeamReadOnlySerializer
 

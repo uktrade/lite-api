@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from queues.tests.factories import QueueFactory
+from api.queues.tests.factories import QueueFactory
 from test_helpers.clients import DataTestClient
 
 

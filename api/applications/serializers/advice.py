@@ -7,7 +7,7 @@ from api.conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoic
 from api.flags.enums import FlagStatuses
 from api.goods.models import Good
 from api.goodstype.models import GoodsType
-from gov_users.serializers import GovUserListSerializer
+from api.gov_users.serializers import GovUserListSerializer
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
 from api.parties.models import Party

@@ -3,8 +3,8 @@ from typing import List, Dict
 from django.db.models import Count, QuerySet
 
 from cases.models import Case
-from queues import helpers
-from queues.constants import (
+from api.queues import helpers
+from api.queues.constants import (
     ALL_CASES_QUEUE_ID,
     OPEN_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
@@ -13,7 +13,7 @@ from queues.constants import (
     UPDATED_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
 )
-from queues.models import Queue
+from api.queues.models import Queue
 
 
 def get_queue(pk):

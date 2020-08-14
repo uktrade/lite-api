@@ -15,7 +15,7 @@ from api.conf.permissions import assert_user_has_permission
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from lite_content.lite_api.strings import Cases
-from queues.models import Queue
+from api.queues.models import Queue
 
 
 class EnforcementCheckView(APIView):
