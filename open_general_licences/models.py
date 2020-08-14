@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from cases.models import CaseType, Case
-from common.models import TimestampableModel
+from api.common.models import TimestampableModel
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from organisations.models import Site
 from static.control_list_entries.models import ControlListEntry

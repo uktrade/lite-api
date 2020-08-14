@@ -8,7 +8,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from common.models import TimestampableModel
+from api.common.models import TimestampableModel
 from api.conf.constants import Roles
 from queues.constants import ALL_CASES_QUEUE_ID
 from static.statuses.models import CaseStatus

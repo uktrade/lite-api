@@ -1,4 +1,4 @@
-from common.enums import LiteEnum, autostr
+from api.common.enums import LiteEnum, autostr
 from lite_content.lite_api import audit
 
 
