@@ -20,7 +20,7 @@ from cases.enums import (
 )
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
-from common.models import TimestampableModel, CreatedAt
+from api.common.models import TimestampableModel, CreatedAt
 from api.conf.constants import GovPermissions
 from api.conf.permissions import assert_user_has_permission
 from documents.models import Document

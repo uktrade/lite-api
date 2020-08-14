@@ -4,7 +4,7 @@ import uuid
 from django.db import models
 from django.utils.timezone import now
 
-from common.models import TimestampableModel
+from api.common.models import TimestampableModel
 from documents.libraries import s3_operations, av_operations
 
 

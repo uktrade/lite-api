@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from applications.models import BaseApplication
-from common.models import TimestampableModel
+from api.common.models import TimestampableModel
 from flags.models import Flag
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from static.control_list_entries.models import ControlListEntry

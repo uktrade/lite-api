@@ -4,7 +4,7 @@ from django.db import models
 from separatedvaluesfield.models import SeparatedValuesField
 
 from cases.models import CaseType
-from common.models import TimestampableModel
+from api.common.models import TimestampableModel
 from flags.enums import FlagStatuses
 from flags.models import Flag
 from queues.models import Queue

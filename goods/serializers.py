@@ -2,7 +2,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from common.libraries import (
+from api.common.libraries import (
     initialize_good_or_goods_type_control_list_entries_serializer,
     update_good_or_goods_type_control_list_entries_details,
 )

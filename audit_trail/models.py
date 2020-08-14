@@ -9,7 +9,7 @@ from jsonfield import JSONField
 
 from audit_trail.managers import AuditManager
 from audit_trail.enums import AuditType
-from common.models import TimestampableModel
+from api.common.models import TimestampableModel
 from users.models import GovNotification
 
 

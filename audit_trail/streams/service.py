@@ -12,7 +12,7 @@ from applications.models import CountryOnApplication
 from audit_trail.models import Audit
 from audit_trail.enums import AuditType
 from cases.models import Case
-from common.models import prefetch_generic_relations
+from api.common.models import prefetch_generic_relations
 from static.statuses.enums import CaseStatusEnum
 
 STREAMED_AUDITS = [

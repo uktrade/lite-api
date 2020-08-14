@@ -1,7 +1,7 @@
 from django.utils.datetime_safe import date, datetime
 from parameterized import parameterized
 
-from common.dates import is_weekend, is_bank_holiday, number_of_days_since, working_hours_in_range
+from api.common.dates import is_weekend, is_bank_holiday, number_of_days_since, working_hours_in_range
 from test_helpers.clients import DataTestClient
 
 

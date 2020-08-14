@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from common.models import TimestampableModel
+from api.common.models import TimestampableModel
 from picklists.enums import PicklistType, PickListStatus
 from teams.models import Team
 

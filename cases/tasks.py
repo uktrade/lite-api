@@ -12,7 +12,7 @@ from pytz import timezone as tz
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from cases.models import EcjuQuery
-from common.dates import is_weekend, is_bank_holiday
+from api.common.dates import is_weekend, is_bank_holiday
 
 # DST safe version of midnight
 SLA_UPDATE_TASK_TIME = time(22, 30, 0)
