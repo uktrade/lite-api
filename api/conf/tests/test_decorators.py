@@ -10,7 +10,7 @@ from api.organisations.tests.factories import OrganisationFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
-from users.models import ExporterUser, GovUser
+from api.users.models import ExporterUser, GovUser
 
 
 class _FakeRequest:

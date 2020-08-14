@@ -17,7 +17,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
-from users.models import Role, GovUser
+from api.users.models import Role, GovUser
 
 
 class GoodsVerifiedTestsStandardApplication(DataTestClient):

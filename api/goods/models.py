@@ -19,7 +19,7 @@ from api.goods.enums import (
 from api.organisations.models import Organisation
 from static.control_list_entries.models import ControlListEntry
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class PvGradingDetails(models.Model):

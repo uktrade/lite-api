@@ -10,7 +10,7 @@ from cases.generated_documents.models import GeneratedCaseDocument
 from licences.enums import LicenceStatus
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
-from users.models import ExporterNotification
+from api.users.models import ExporterNotification
 
 
 class GenerateDocumentTests(DataTestClient):

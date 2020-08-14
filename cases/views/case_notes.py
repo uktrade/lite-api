@@ -12,7 +12,7 @@ from api.conf.authentication import SharedAuthentication
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.statuses.enums import CaseStatusEnum
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class CaseNoteList(APIView):

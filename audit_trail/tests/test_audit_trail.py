@@ -4,7 +4,7 @@ from audit_trail import service
 from audit_trail.models import Audit
 from audit_trail.enums import AuditType
 from test_helpers.clients import DataTestClient
-from users.models import BaseUser
+from api.users.models import BaseUser
 
 
 class CasesAuditTrail(DataTestClient):

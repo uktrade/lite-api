@@ -10,10 +10,10 @@ from api.conf.authentication import GovAuthentication
 from api.conf.constants import Roles
 from api.conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
-from users.enums import UserType
-from users.libraries.get_role import get_role_by_pk
-from users.models import Role
-from users.services import filter_roles_by_user_role
+from api.users.enums import UserType
+from api.users.libraries.get_role import get_role_by_pk
+from api.users.models import Role
+from api.users.services import filter_roles_by_user_role
 
 
 class RolesViews(APIView):

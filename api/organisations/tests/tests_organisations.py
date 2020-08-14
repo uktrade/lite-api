@@ -23,10 +23,10 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import generate_key_value_pair
-from users.libraries.get_user import get_users_from_organisation
-from users.libraries.user_to_token import user_to_token
-from users.models import UserOrganisationRelationship
-from users.tests.factories import UserOrganisationRelationshipFactory
+from api.users.libraries.get_user import get_users_from_organisation
+from api.users.libraries.user_to_token import user_to_token
+from api.users.models import UserOrganisationRelationship
+from api.users.tests.factories import UserOrganisationRelationshipFactory
 
 
 class GetOrganisationTests(DataTestClient):

@@ -12,7 +12,7 @@ from api.organisations.models import Organisation
 from static.management.SeedCommand import SeedCommand
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from users.models import GovUser
+from api.users.models import GovUser
 
 # helper functions
 def verify_good(good):

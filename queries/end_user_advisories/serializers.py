@@ -11,8 +11,8 @@ from parties.serializers import PartySerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
-from users.libraries.notifications import get_exporter_user_notification_individual_count
-from users.models import ExporterUser
+from api.users.libraries.notifications import get_exporter_user_notification_individual_count
+from api.users.models import ExporterUser
 
 
 class EndUserAdvisoryListCountrySerializer(serializers.Serializer):

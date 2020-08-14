@@ -7,7 +7,7 @@ from api.conf import constants
 from flags.enums import SystemFlags
 from flags.models import Flag
 from test_helpers.clients import DataTestClient
-from users.models import Role
+from api.users.models import Role
 
 
 class CasesFilterAndSortTests(DataTestClient):

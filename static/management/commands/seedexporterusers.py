@@ -9,8 +9,8 @@ from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.models import Organisation, Site
 from static.countries.helpers import get_country
 from static.management.SeedCommand import SeedCommand
-from users.enums import UserType
-from users.models import ExporterUser, UserOrganisationRelationship, Role
+from api.users.enums import UserType
+from api.users.models import ExporterUser, UserOrganisationRelationship, Role
 
 DEFAULT_DEMO_ORG_NAME = "Archway Communications"
 DEFAULT_DEMO_HMRC_ORG_NAME = "HMRC office at Battersea heliport"

@@ -18,7 +18,7 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from parties.enums import PartyType
 from parties.models import Party
 from parties.serializers import PartySerializer
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class ApplicationPartyView(APIView):

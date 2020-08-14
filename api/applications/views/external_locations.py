@@ -22,7 +22,7 @@ from api.organisations.models import ExternalLocation
 from api.organisations.serializers import ExternalLocationSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class ApplicationExternalLocations(APIView):

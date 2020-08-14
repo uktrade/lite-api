@@ -2,8 +2,8 @@ from audit_trail.enums import AuditType
 from cases.models import Case, CaseAssignment
 from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
-from users.enums import SystemUser, UserStatuses
-from users.models import BaseUser
+from api.users.enums import SystemUser, UserStatuses
+from api.users.models import BaseUser
 from workflow.routing_rules.models import RoutingRule
 from workflow.user_queue_assignment import get_next_status_in_workflow_sequence
 from audit_trail import service as audit_trail_service

@@ -30,7 +30,7 @@ from static.management.commands import (
 )
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 from teams.models import Team
-from users.models import Permission
+from api.users.models import Permission
 
 
 @tag("seeding")

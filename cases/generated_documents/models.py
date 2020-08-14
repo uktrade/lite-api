@@ -4,9 +4,9 @@ from django.db import models
 from cases.enums import AdviceType
 from cases.models import CaseDocument
 from licences.models import Licence
-from users.models import ExporterNotification
+from api.users.models import ExporterNotification
 from letter_templates.models import LetterTemplate
-from users.models import UserOrganisationRelationship
+from api.users.models import UserOrganisationRelationship
 
 
 class GeneratedCaseDocument(CaseDocument):

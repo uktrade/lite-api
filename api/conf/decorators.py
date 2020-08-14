@@ -11,7 +11,7 @@ from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from parties.enums import PartyType
 from static.statuses.enums import CaseStatusEnum
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 def _get_application_id(request, kwargs):

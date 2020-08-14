@@ -1,4 +1,4 @@
-from users.libraries.token import Token
+from api.users.libraries.token import Token
 
 
 def token_to_user_pk(token):

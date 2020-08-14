@@ -33,8 +33,8 @@ from queries.goods_query.models import GoodsQuery
 from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
-from users.models import ExporterUser
-from users.serializers import ExporterUserSimpleSerializer
+from api.users.models import ExporterUser
+from api.users.serializers import ExporterUserSimpleSerializer
 
 
 class PvGradingDetailsSerializer(serializers.ModelSerializer):

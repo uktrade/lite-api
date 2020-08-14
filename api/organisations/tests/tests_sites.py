@@ -7,7 +7,7 @@ from lite_content.lite_api import strings
 from api.organisations.models import Site
 from api.organisations.tests.factories import OrganisationFactory
 from test_helpers.clients import DataTestClient
-from users.models import UserOrganisationRelationship
+from api.users.models import UserOrganisationRelationship
 
 faker = Faker()
 

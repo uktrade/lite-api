@@ -3,7 +3,7 @@ from rest_framework import status
 
 from api.conf import constants
 from test_helpers.clients import DataTestClient
-from users.models import GovUser, Permission
+from api.users.models import GovUser, Permission
 
 
 class SuperUserTests(DataTestClient):

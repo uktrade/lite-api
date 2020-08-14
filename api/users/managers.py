@@ -1,6 +1,6 @@
 from django.db import models
 
-from users.enums import UserType
+from api.users.enums import UserType
 
 
 class InternalManager(models.Manager):

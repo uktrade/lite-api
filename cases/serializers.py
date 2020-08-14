@@ -41,9 +41,9 @@ from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 from teams.serializers import TeamSerializer
-from users.enums import UserStatuses
-from users.models import BaseUser, GovUser, GovNotification, ExporterUser
-from users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer
+from api.users.enums import UserStatuses
+from api.users.models import BaseUser, GovUser, GovNotification, ExporterUser
+from api.users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):

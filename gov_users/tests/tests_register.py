@@ -6,7 +6,7 @@ from gov_users.enums import GovUserStatuses
 from lite_content.lite_api import strings
 from queues.constants import MY_TEAMS_QUEUES_CASES_ID
 from test_helpers.clients import DataTestClient
-from users.models import GovUser
+from api.users.models import GovUser
 
 
 class GovUserAuthenticateTests(DataTestClient):

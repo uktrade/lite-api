@@ -87,8 +87,8 @@ from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from users.libraries.notifications import get_case_notifications
-from users.models import ExporterUser
+from api.users.libraries.notifications import get_case_notifications
+from api.users.models import ExporterUser
 from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 

@@ -5,7 +5,7 @@ from api.conf import constants
 from lite_content.lite_api import strings
 from teams.models import Team
 from test_helpers.clients import DataTestClient
-from users.models import Role, GovUser
+from api.users.models import Role, GovUser
 
 
 class GovUserEditTests(DataTestClient):

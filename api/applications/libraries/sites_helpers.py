@@ -12,7 +12,7 @@ from cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations, Applications
 from api.organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 TRADING = "Trading"
 

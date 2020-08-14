@@ -10,7 +10,7 @@ from api.conf.authentication import GovAuthentication
 from api.conf.helpers import str_to_bool
 from queues.constants import ALL_CASES_QUEUE_ID, OPEN_CASES_QUEUE_ID
 from queues.helpers import get_queue
-from users.libraries.get_user import get_user_by_pk
+from api.users.libraries.get_user import get_user_by_pk
 
 
 class CaseAssignments(views.APIView):

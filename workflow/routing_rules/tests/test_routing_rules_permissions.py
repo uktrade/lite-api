@@ -4,7 +4,7 @@ from rest_framework import status
 from api.conf import constants
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
-from users.models import Role
+from api.users.models import Role
 
 
 class RoutingRuleCreationTests(DataTestClient):

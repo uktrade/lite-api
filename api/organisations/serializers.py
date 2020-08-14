@@ -18,9 +18,9 @@ from api.organisations.constants import UK_VAT_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from api.organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
-from users.libraries.get_user import get_user_organisation_relationship
-from users.models import GovUser, UserOrganisationRelationship, ExporterUser
-from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
+from api.users.libraries.get_user import get_user_organisation_relationship
+from api.users.models import GovUser, UserOrganisationRelationship, ExporterUser
+from api.users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
 class SiteListSerializer(serializers.Serializer):

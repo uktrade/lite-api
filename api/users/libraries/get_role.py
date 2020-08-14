@@ -1,5 +1,5 @@
 from api.conf.exceptions import NotFoundError
-from users.models import Role
+from api.users.models import Role
 
 
 def get_role_by_pk(pk, organisation=None):

@@ -12,9 +12,9 @@ from api.conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_LITE_HMRC_INTEGR
 from gov_users.enums import GovUserStatuses
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.models import Organisation
-from users.enums import UserStatuses
-from users.libraries.token_to_user import token_to_user_pk
-from users.models import UserOrganisationRelationship, ExporterUser, GovUser
+from api.users.enums import UserStatuses
+from api.users.libraries.token_to_user import token_to_user_pk
+from api.users.models import UserOrganisationRelationship, ExporterUser, GovUser
 
 GOV_USER_TOKEN_HEADER = "HTTP_GOV_USER_TOKEN"  # nosec
 

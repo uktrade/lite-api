@@ -20,7 +20,7 @@ from static.countries.helpers import get_country
 from static.countries.serializers import CountrySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class ApplicationCountries(APIView):

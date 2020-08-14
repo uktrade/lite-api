@@ -15,7 +15,7 @@ from api.organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
-from users.libraries.get_user import get_user_organisation_relationship
+from api.users.libraries.get_user import get_user_organisation_relationship
 
 
 class DraftTests(DataTestClient):

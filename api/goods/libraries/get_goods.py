@@ -4,7 +4,7 @@ from django.http import Http404
 from api.conf.exceptions import NotFoundError
 from api.goods.models import Good, GoodDocument
 from queries.goods_query.models import GoodsQuery
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 def get_good(pk):

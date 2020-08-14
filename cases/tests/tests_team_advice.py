@@ -12,7 +12,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
-from users.models import GovUser, Role
+from api.users.models import GovUser, Role
 
 
 class CreateCaseTeamAdviceTests(DataTestClient):

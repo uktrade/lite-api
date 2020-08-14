@@ -6,8 +6,8 @@ from api.goods.enums import GoodControlled
 from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
-from users.libraries.get_user import get_users_from_organisation
-from users.libraries.user_to_token import user_to_token
+from api.users.libraries.get_user import get_users_from_organisation
+from api.users.libraries.user_to_token import user_to_token
 
 
 class GoodViewTests(DataTestClient):

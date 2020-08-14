@@ -13,9 +13,9 @@ from static.statuses.models import CaseStatus
 from static.statuses.serializers import CaseStatusSerializer
 from teams.models import Team
 from teams.serializers import TeamSerializer, TeamReadOnlySerializer
-from users.enums import UserType
-from users.models import GovUser
-from users.models import Role, Permission
+from api.users.enums import UserType
+from api.users.models import GovUser
+from api.users.models import Role, Permission
 
 
 class PermissionSerializer(serializers.ModelSerializer):

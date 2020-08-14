@@ -8,11 +8,11 @@ from api.applications.models import GoodOnApplication
 from flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.models import Good, FirearmGoodDetails
-from users.models import UserOrganisationRelationship
+from api.users.models import UserOrganisationRelationship
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from users.libraries.user_to_token import user_to_token
+from api.users.libraries.user_to_token import user_to_token
 
 
 class RemovingGoodsOffDraftsTests(DataTestClient):

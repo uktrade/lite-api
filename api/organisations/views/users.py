@@ -17,14 +17,14 @@ from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_organisation_by_pk
 from api.organisations.models import Site
 from api.organisations.serializers import OrganisationUserListView, SiteListSerializer
-from users.enums import UserStatuses
-from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
-from users.models import ExporterUser, Role
-from users.serializers import (
+from api.users.enums import UserStatuses
+from api.users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
+from api.users.models import ExporterUser, Role
+from api.users.serializers import (
     ExporterUserCreateUpdateSerializer,
     UserOrganisationRelationshipSerializer,
 )
-from users.services import filter_roles_by_user_role
+from api.users.services import filter_roles_by_user_role
 
 
 class UsersList(generics.ListCreateAPIView):

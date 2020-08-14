@@ -23,7 +23,7 @@ from static.management.SeedCommand import SeedCommand
 from static.management.commands.seedapplications import Command as AppCommand
 from static.management.commands.seedorganisation import Command as OrgCommand
 from test_helpers.clients import DataTestClient
-from users.models import UserOrganisationRelationship, ExporterUser
+from api.users.models import UserOrganisationRelationship, ExporterUser
 
 faker = Faker()
 faker.add_provider(OrganisationProvider)

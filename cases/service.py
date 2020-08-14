@@ -2,7 +2,7 @@ from django.db.models import Min, When, BinaryField, Case
 
 from api.applications.models import CountryOnApplication
 from flags.enums import FlagStatuses
-from users.enums import UserType
+from api.users.enums import UserType
 
 
 def get_destinations(application_id, user_type=None):

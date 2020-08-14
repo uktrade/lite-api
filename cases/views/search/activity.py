@@ -8,7 +8,7 @@ from audit_trail.serializers import AuditSerializer
 from cases.libraries.delete_notifications import delete_gov_user_notifications
 from cases.models import Case
 from api.conf.authentication import GovAuthentication
-from users.models import GovUser
+from api.users.models import GovUser
 
 
 class CaseActivityView(APIView):
