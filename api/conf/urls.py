@@ -7,7 +7,7 @@ from rest_framework import permissions
 
 from django.conf import settings
 
-import core.views
+import api.core.views
 
 
 api_info = openapi.Info(
@@ -50,6 +50,6 @@ if settings.ADMIN_ENABLED:
 
     if settings.FEATURE_STAFF_SSO_ENABLED:
         urlpatterns = [
-            path("admin/login/", core.views.LoginProviderView.as_view()),
+            path("admin/login/", api.core.views.LoginProviderView.as_view()),
             path("auth/", include("authbroker_client.urls")),
         ] + urlpatterns
