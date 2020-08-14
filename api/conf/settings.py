@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "drf_yasg",
-    "core",
+    "api.core",
     "documents",
     "flags",
     "goods",
