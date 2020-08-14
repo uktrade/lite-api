@@ -1,7 +1,7 @@
 import random
 import uuid
 
-from applications.models import (
+from api.applications.models import (
     BaseApplication,
     GoodOnApplication,
 )

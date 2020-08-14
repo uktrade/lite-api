@@ -8,7 +8,7 @@ from cases.models import Case
 from cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from static.countries.factories import CountryFactory
-from applications.tests.factories import (
+from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     CountryOnApplicationFactory,
     SiteOnApplicationFactory,

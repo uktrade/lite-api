@@ -9,7 +9,7 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 from django.utils import timezone
 
-from applications.models import HmrcQuery
+from api.applications.models import HmrcQuery
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from cases.models import Case

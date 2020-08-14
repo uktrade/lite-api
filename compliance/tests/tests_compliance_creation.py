@@ -1,7 +1,7 @@
 from parameterized import parameterized
 
-from applications.models import SiteOnApplication, GoodOnApplication
-from applications.tests.factories import GoodOnApplicationFactory
+from api.applications.models import SiteOnApplication, GoodOnApplication
+from api.applications.tests.factories import GoodOnApplicationFactory
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from compliance.helpers import generate_compliance_site_case

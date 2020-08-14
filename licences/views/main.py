@@ -1,7 +1,7 @@
 from django.db.models import Q
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView
 
-from applications.models import CountryOnApplication
+from api.applications.models import CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType

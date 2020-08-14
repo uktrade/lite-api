@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import CountryOnApplication
+from api.applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
 from cases.models import CaseType
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory

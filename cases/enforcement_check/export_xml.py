@@ -2,7 +2,7 @@ from xml.dom import minidom  # nosec
 from xml.etree import ElementTree  # nosec
 from xml.sax.saxutils import escape  # nosec
 
-from applications.models import PartyOnApplication, SiteOnApplication, ExternalLocationOnApplication
+from api.applications.models import PartyOnApplication, SiteOnApplication, ExternalLocationOnApplication
 from cases.enums import EnforcementXMLEntityTypes
 from cases.models import EnforcementCheckID
 from parties.enums import PartyRole, PartyType

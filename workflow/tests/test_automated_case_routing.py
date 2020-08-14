@@ -1,4 +1,4 @@
-from applications.models import CountryOnApplication, PartyOnApplication
+from api.applications.models import CountryOnApplication, PartyOnApplication
 from cases.models import CaseType
 from flags.enums import FlagStatuses
 from flags.tests.factories import FlagFactory

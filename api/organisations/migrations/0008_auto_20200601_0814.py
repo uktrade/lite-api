@@ -3,7 +3,7 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
-from applications.models import SiteOnApplication
+from api.applications.models import SiteOnApplication
 from cases.models import Case
 from api.organisations.models import Site
 

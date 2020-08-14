@@ -2,15 +2,15 @@ from datetime import date
 
 from parameterized import parameterized
 
-from applications.enums import (
+from api.applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsTypeCategory,
     MTCRAnswers,
     ServiceEquipmentType,
 )
-from applications.models import ExternalLocationOnApplication, CountryOnApplication
-from applications.tests.factories import GoodOnApplicationFactory
+from api.applications.models import ExternalLocationOnApplication, CountryOnApplication
+from api.applications.tests.factories import GoodOnApplicationFactory
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues

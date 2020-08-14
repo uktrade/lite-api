@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.utils import timezone
 
-from applications.enums import ApplicationExportType
+from api.applications.enums import ApplicationExportType
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 
 LICENCE_APPLICATION_PREFIX = "GB"

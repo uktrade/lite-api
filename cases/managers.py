@@ -365,14 +365,14 @@ class CaseManager(models.Manager):
         return self.get_queryset().exclude(status=draft)
 
     def get_application(self, case):
-        from applications.models import StandardApplication
+        from api.applications.models import StandardApplication
 
         try:
             return StandardApplication.objects.get(baseapplication_ptr__case_ptr=case)
         except StandardApplication.DoesNotExist:
             pass
 
-        from applications.models import OpenApplication
+        from api.applications.models import OpenApplication
 
         try:
             return OpenApplication.objects.get(baseapplication_ptr__case_ptr=case)

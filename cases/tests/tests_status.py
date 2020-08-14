@@ -3,7 +3,7 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.tests.factories import StandardApplicationFactory
+from api.applications.tests.factories import StandardApplicationFactory
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.models import CaseAssignment

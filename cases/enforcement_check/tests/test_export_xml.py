@@ -3,7 +3,7 @@ from xml.etree import ElementTree  # nosec
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import SiteOnApplication, ExternalLocationOnApplication
+from api.applications.models import SiteOnApplication, ExternalLocationOnApplication
 from cases.enforcement_check.export_xml import _get_address_line_2, get_enforcement_id
 from cases.enforcement_check.import_xml import enforcement_id_to_uuid
 from cases.enums import EnforcementXMLEntityTypes

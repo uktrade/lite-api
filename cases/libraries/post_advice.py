@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from applications.serializers.advice import AdviceCreateSerializer
+from api.applications.serializers.advice import AdviceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceLevel, AdviceType

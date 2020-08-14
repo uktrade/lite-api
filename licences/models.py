@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from applications.models import GoodOnApplication
+from api.applications.models import GoodOnApplication
 from cases.models import Case
 from api.common.models import TimestampableModel
 from api.conf.helpers import add_months

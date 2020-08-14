@@ -1,6 +1,6 @@
 from parameterized import parameterized
 
-from applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
+from api.applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
 from cases.enums import CaseTypeEnum
 from flags.enums import FlagLevels, FlagStatuses
 from api.goods.enums import GoodStatus

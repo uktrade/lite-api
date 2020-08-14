@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
-from applications.models import CountryOnApplication
+from api.applications.models import CountryOnApplication
 from audit_trail.models import Audit
 from audit_trail.enums import AuditType
 from cases.models import Case

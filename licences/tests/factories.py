@@ -1,7 +1,7 @@
 import factory
 from django.utils import timezone
 
-from applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
+from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
 from licences.models import Licence, GoodOnLicence
 
 
