@@ -1,4 +1,4 @@
-from documents.models import Document
+from api.documents.models import Document
 
 
 def delete_documents_on_bad_request(data):

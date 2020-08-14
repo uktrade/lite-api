@@ -3,7 +3,7 @@ from rest_framework import serializers, relations
 
 from cases.enums import CaseTypeSubTypeEnum
 from api.conf.serializers import KeyValueChoiceField, CountrySerializerField
-from documents.libraries.process_document import process_document
+from api.documents.libraries.process_document import process_document
 from api.flags.serializers import FlagSerializer
 from api.goods.enums import PvGrading
 from lite_content.lite_api.strings import PartyErrors

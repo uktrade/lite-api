@@ -45,7 +45,7 @@ from api.goods.tests.factories import GoodFactory
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
 from api.goodstype.tests.factories import GoodsTypeFactory
-from letter_templates.models import LetterTemplate
+from api.letter_templates.models import LetterTemplate
 from licences.enums import LicenceStatus
 from licences.helpers import get_licence_reference_code
 from licences.models import Licence

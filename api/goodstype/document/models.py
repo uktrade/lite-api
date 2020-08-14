@@ -1,6 +1,6 @@
 from django.db import models
 
-from documents.models import Document
+from api.documents.models import Document
 from api.goodstype.models import GoodsType
 
 

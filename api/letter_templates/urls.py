@@ -1,6 +1,6 @@
 from django.urls import path
 
-from letter_templates import views
+from api.letter_templates import views
 
 app_name = "letter_templates"
 

@@ -23,7 +23,7 @@ from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from api.common.models import TimestampableModel, CreatedAt
 from api.conf.constants import GovPermissions
 from api.conf.permissions import assert_user_has_permission
-from documents.models import Document
+from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import PvGrading
 from lite_content.lite_api import strings

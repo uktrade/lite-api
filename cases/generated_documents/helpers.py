@@ -8,9 +8,9 @@ from cases.enums import CaseDocumentState
 from cases.libraries.get_case import get_case
 from cases.models import CaseDocument
 from api.conf.exceptions import NotFoundError
-from documents.libraries import s3_operations
-from letter_templates.helpers import get_css_location, generate_preview
-from letter_templates.models import LetterTemplate
+from api.documents.libraries import s3_operations
+from api.letter_templates.helpers import get_css_location, generate_preview
+from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
 from api.parties.models import Party

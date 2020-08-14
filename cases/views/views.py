@@ -61,9 +61,9 @@ from api.conf.constants import GovPermissions
 from api.conf.exceptions import NotFoundError
 from api.conf.helpers import convert_date_to_string
 from api.conf.permissions import assert_user_has_permission
-from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
-from documents.libraries.s3_operations import document_download_stream
-from documents.models import Document
+from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
+from api.documents.libraries.s3_operations import document_download_stream
+from api.documents.models import Document
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData, EcjuComplianceCreatedEmailData

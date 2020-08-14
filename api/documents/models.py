@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.timezone import now
 
 from api.common.models import TimestampableModel
-from documents.libraries import s3_operations, av_operations
+from api.documents.libraries import s3_operations, av_operations
 
 
 class Document(TimestampableModel):
