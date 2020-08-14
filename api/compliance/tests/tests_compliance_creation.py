@@ -4,8 +4,8 @@ from api.applications.models import SiteOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
-from compliance.helpers import generate_compliance_site_case
-from compliance.models import ComplianceSiteCase
+from api.compliance.helpers import generate_compliance_site_case
+from api.compliance.models import ComplianceSiteCase
 from api.goods.enums import GoodControlled
 from api.goods.tests.factories import GoodFactory
 from licences.tests.factories import LicenceFactory, GoodOnLicenceFactory

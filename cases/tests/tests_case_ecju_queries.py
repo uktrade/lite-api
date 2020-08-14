@@ -7,7 +7,7 @@ from rest_framework import status
 from api.applications.models import BaseApplication
 from cases.enums import ECJUQueryType
 from cases.models import EcjuQuery
-from compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
+from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
 from licences.enums import LicenceStatus
 from picklists.enums import PicklistType
 from static.statuses.enums import CaseStatusEnum

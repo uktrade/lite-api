@@ -46,8 +46,8 @@ def can_set_status(case, status):
     """
     Returns true or false depending on different case conditions
     """
-    from compliance.models import ComplianceVisitCase
-    from compliance.helpers import compliance_visit_case_complete
+    from api.compliance.models import ComplianceVisitCase
+    from api.compliance.helpers import compliance_visit_case_complete
 
     reference_type = case.case_type.reference
 

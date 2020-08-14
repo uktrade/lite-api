@@ -7,7 +7,7 @@ from django.utils import timezone
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from api.common.models import CreatedAt, TimestampableModel
-from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
+from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from licences.models import Licence
 from api.organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum

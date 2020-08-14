@@ -19,22 +19,22 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.libraries.get_case import get_case
 from cases.models import Case
-from compliance.helpers import (
+from api.compliance.helpers import (
     get_record_holding_sites_for_case,
     get_compliance_site_case,
     get_exporter_visible_compliance_site_cases,
 )
-from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
-from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
-from compliance.serializers.ComplianceSiteCaseSerializers import (
+from api.compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
+from api.compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
+from api.compliance.serializers.ComplianceSiteCaseSerializers import (
     ComplianceLicenceListSerializer,
     ExporterComplianceVisitListSerializer,
     ExporterComplianceVisitDetailSerializer,
     ExporterComplianceSiteListSerializer,
     ExporterComplianceSiteDetailSerializer,
 )
-from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer, CompliancePersonSerializer
-from compliance.serializers.OpenLicenceReturns import (
+from api.compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer, CompliancePersonSerializer
+from api.compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsCreateSerializer,
     OpenLicenceReturnsListSerializer,
     OpenLicenceReturnsViewSerializer,

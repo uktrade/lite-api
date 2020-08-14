@@ -6,9 +6,9 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import CaseTypeEnum
-from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
-from compliance.models import ComplianceVisitCase
-from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory
+from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
+from api.compliance.models import ComplianceVisitCase
+from api.compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient

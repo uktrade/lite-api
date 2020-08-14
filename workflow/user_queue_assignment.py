@@ -3,8 +3,8 @@ from audit_trail.enums import AuditType
 
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from compliance.helpers import compliance_visit_case_complete
-from compliance.models import ComplianceVisitCase
+from api.compliance.helpers import compliance_visit_case_complete
+from api.compliance.models import ComplianceVisitCase
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus

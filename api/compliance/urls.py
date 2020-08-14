@@ -1,6 +1,6 @@
 from django.urls import path
 
-from compliance import views
+from api.compliance import views
 
 app_name = "compliance"
 

@@ -4,8 +4,8 @@ from rest_framework import serializers
 from addresses.serializers import AddressSerializer
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
-from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
+from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
+from api.compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
 from licences.enums import LicenceStatus
 from licences.models import Licence

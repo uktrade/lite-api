@@ -2,7 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory, PeoplePresentFactory
+from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory, PeoplePresentFactory
 from api.conf.constants import GovPermissions
 from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum

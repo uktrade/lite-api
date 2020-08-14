@@ -5,8 +5,8 @@ from lite_content.lite_api import strings
 
 from api.conf.serializers import KeyValueChoiceField
 from addresses.serializers import AddressSerializer
-from compliance.enums import ComplianceRiskValues, ComplianceVisitTypes
-from compliance.models import ComplianceVisitCase, CompliancePerson
+from api.compliance.enums import ComplianceRiskValues, ComplianceVisitTypes
+from api.compliance.models import ComplianceVisitCase, CompliancePerson
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
 from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer

@@ -24,7 +24,7 @@ urlpatterns = [
     path("applications/", include("api.applications.urls")),
     path("audit-trail/", include("audit_trail.urls")),
     path("cases/", include("cases.urls")),
-    path("compliance/", include("compliance.urls")),
+    path("compliance/", include("api.compliance.urls")),
     path("goods/", include("api.goods.urls")),
     path("goods-types/", include("api.goodstype.urls")),
     path("letter-templates/", include("letter_templates.urls")),
