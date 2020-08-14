@@ -17,7 +17,7 @@ from api.applications.models import (
 )
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from api.goodstype.models import GoodsType
-from parties.models import Party, PartyDocument
+from api.parties.models import Party, PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity

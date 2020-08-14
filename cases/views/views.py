@@ -72,8 +72,8 @@ from licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.organisations.models import Site
-from parties.models import Party
-from parties.serializers import PartySerializer, AdditionalContactSerializer
+from api.parties.models import Party
+from api.parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.decisions.models import Decision

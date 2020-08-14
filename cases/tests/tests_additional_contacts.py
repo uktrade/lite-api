@@ -6,8 +6,8 @@ from rest_framework import status
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from lite_content.lite_api.strings import PartyErrors
-from parties.enums import PartyType
-from parties.models import Party
+from api.parties.enums import PartyType
+from api.parties.models import Party
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import generate_key_value_pair, generate_country_dict
 

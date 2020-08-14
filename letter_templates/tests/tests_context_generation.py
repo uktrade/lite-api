@@ -31,8 +31,8 @@ from api.goodstype.tests.factories import GoodsTypeFactory
 from letter_templates.context_generator import get_document_context
 from licences.enums import LicenceStatus
 from licences.tests.factories import GoodOnLicenceFactory
-from parties.enums import PartyType, SubType
-from parties.models import Party
+from api.parties.enums import PartyType, SubType
+from api.parties.models import Party
 from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.enums import CaseStatusEnum

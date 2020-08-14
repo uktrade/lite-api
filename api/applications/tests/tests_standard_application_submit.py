@@ -15,8 +15,8 @@ from flags.enums import SystemFlags
 from api.goods.enums import GoodStatus, ItemCategory
 from api.goods.tests.factories import FirearmFactory, GoodFactory
 from lite_content.lite_api import strings
-from parties.enums import PartyType
-from parties.models import PartyDocument
+from api.parties.enums import PartyType
+from api.parties.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory

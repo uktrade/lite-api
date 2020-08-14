@@ -16,7 +16,7 @@ from api.applications.tests.factories import (
     StandardApplicationFactory,
     OpenApplicationFactory,
 )
-from parties.tests.factories import PartyFactory
+from api.parties.tests.factories import PartyFactory
 from flags.tests.factories import FlagFactory
 from api.goods.enums import GoodControlled
 from api.goods.tests.factories import GoodFactory

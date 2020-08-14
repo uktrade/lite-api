@@ -2,7 +2,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
 from api.users.models import ExporterNotification
-from parties.models import Party
+from api.parties.models import Party
 from queries.models import Query
 
 

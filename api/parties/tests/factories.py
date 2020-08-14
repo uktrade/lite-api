@@ -1,8 +1,8 @@
 import factory
 
 from static.countries.factories import CountryFactory
-from parties.enums import SubType, PartyType
-from parties.models import Party
+from api.parties.enums import SubType, PartyType
+from api.parties.models import Party
 
 
 class PartyFactory(factory.django.DjangoModelFactory):

@@ -28,7 +28,7 @@ from api.goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, Fir
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from api.organisations.models import Site, ExternalLocation
-from parties.enums import PartyRole, PartyType, SubType
+from api.parties.enums import PartyRole, PartyType, SubType
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum

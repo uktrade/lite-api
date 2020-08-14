@@ -8,7 +8,7 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from api.goods.enums import PvGrading
 from lite_content.lite_api import strings
-from parties.enums import PartyType, SubType
+from api.parties.enums import PartyType, SubType
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

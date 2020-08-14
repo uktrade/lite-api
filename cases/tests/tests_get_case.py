@@ -7,7 +7,7 @@ from cases.enums import CaseTypeEnum
 from flags.enums import SystemFlags
 from flags.models import Flag
 from flags.tests.factories import FlagFactory
-from parties.enums import PartyType
+from api.parties.enums import PartyType
 from static.countries.helpers import get_country
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient

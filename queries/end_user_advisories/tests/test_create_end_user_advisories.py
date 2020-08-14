@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.models import Case
-from parties.enums import PartyType
+from api.parties.enums import PartyType
 from test_helpers.clients import DataTestClient
 
 

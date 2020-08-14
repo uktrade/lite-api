@@ -16,7 +16,7 @@ from api.goods.models import GoodDocument
 from api.goodstype.models import GoodsType
 from api.goodstype.document.models import GoodsTypeDocument
 from lite_content.lite_api import strings
-from parties.models import PartyDocument
+from api.parties.models import PartyDocument
 
 
 def _validate_locations(application, errors):

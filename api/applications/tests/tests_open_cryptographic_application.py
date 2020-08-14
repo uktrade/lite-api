@@ -7,7 +7,7 @@ from api.applications.models import OpenApplication, CountryOnApplication, Party
 from cases.enums import CaseTypeReferenceEnum
 from api.goodstype.models import GoodsType
 from api.goodstype.tests.factories import GoodsTypeFactory
-from parties.enums import PartyType
+from api.parties.enums import PartyType
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient

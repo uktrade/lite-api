@@ -8,7 +8,7 @@ from flags.models import FlaggingRule, Flag
 from api.goods.enums import GoodStatus
 from api.goods.models import Good
 from api.goodstype.models import GoodsType
-from parties.models import Party
+from api.parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country

@@ -12,8 +12,8 @@ from documents.libraries import s3_operations
 from letter_templates.helpers import get_css_location, generate_preview
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
-from parties.enums import PartyType
-from parties.models import Party
+from api.parties.enums import PartyType
+from api.parties.models import Party
 
 font_config = FontConfiguration()
 GeneratedDocumentPayload = namedtuple("GeneratedDocumentPayload", "case template document_html text")

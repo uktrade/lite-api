@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.applications.models import PartyOnApplication
-from parties.models import Party
+from api.parties.models import Party
 from test_helpers.clients import DataTestClient
 
 
