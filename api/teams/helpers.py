@@ -1,5 +1,5 @@
 from api.conf.exceptions import NotFoundError
-from teams.models import Team
+from api.teams.models import Team
 
 
 def get_team_by_pk(pk):

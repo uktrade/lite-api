@@ -3,7 +3,7 @@ from django.db import transaction, models
 from flags.models import Flag
 from queues.models import Queue
 from static.management.SeedCommand import SeedCommand
-from teams.models import Team
+from api.teams.models import Team
 
 FLAGS_FILE = "lite_content/lite_api/demo_flags.csv"
 QUEUES_FILE = "lite_content/lite_api/demo_queues.csv"

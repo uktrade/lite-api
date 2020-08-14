@@ -2,7 +2,7 @@ from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from teams.models import Team
+from api.teams.models import Team
 
 
 class TeamReadOnlySerializer(serializers.Serializer):

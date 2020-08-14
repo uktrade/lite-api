@@ -11,9 +11,9 @@ from api.conf.constants import Teams
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from gov_users.serializers import GovUserListSerializer
-from teams.helpers import get_team_by_pk
-from teams.models import Team
-from teams.serializers import TeamSerializer
+from api.teams.helpers import get_team_by_pk
+from api.teams.models import Team
+from api.teams.serializers import TeamSerializer
 from api.users.models import GovUser
 
 

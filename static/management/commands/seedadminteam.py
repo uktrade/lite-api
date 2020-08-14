@@ -2,7 +2,7 @@ from django.db import transaction
 
 from api.conf.constants import Teams
 from static.management.SeedCommand import SeedCommand
-from teams.models import Team
+from api.teams.models import Team
 
 
 class Command(SeedCommand):

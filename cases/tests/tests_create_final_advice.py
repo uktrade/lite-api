@@ -13,7 +13,7 @@ from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from teams.models import Team
+from api.teams.models import Team
 from test_helpers.clients import DataTestClient
 from api.users.models import GovUser, Role
 

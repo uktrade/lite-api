@@ -5,7 +5,7 @@ from cases.models import Case
 from flags.enums import FlagLevels
 from flags.models import Flag
 from flags.serializers import CaseListFlagSerializer
-from teams.models import Team
+from api.teams.models import Team
 
 
 def get_goods_flags(case, case_type):

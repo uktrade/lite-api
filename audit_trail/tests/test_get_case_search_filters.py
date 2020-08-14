@@ -6,7 +6,7 @@ from audit_trail.tests.factories import AuditFactory
 from cases.models import Case
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
-from teams.tests.factories import TeamFactory
+from api.teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserType
 from api.users.tests.factories import GovUserFactory, ExporterUserFactory

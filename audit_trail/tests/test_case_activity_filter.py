@@ -7,7 +7,7 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from audit_trail.tests.factories import AuditFactory
 from cases.models import Case
-from teams.tests.factories import TeamFactory
+from api.teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserType
 from api.users.models import GovUser
