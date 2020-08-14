@@ -17,7 +17,7 @@ from api.applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from api.common.models import TimestampableModel
-from documents.models import Document
+from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import ItemType
 from api.goods.enums import PvGrading

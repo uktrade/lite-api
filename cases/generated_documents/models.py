@@ -5,7 +5,7 @@ from cases.enums import AdviceType
 from cases.models import CaseDocument
 from licences.models import Licence
 from api.users.models import ExporterNotification
-from letter_templates.models import LetterTemplate
+from api.letter_templates.models import LetterTemplate
 from api.users.models import UserOrganisationRelationship
 
 

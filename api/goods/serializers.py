@@ -8,7 +8,7 @@ from api.common.libraries import (
 )
 from api.conf.helpers import str_to_bool
 from api.conf.serializers import KeyValueChoiceField, ControlListEntryField
-from documents.libraries.process_document import process_document
+from api.documents.libraries.process_document import process_document
 from api.goods.enums import (
     GoodStatus,
     GoodControlled,

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from api.applications.models import ApplicationDocument
-from documents.libraries.process_document import process_document
+from api.documents.libraries.process_document import process_document
 
 
 class ApplicationDocumentSerializer(serializers.ModelSerializer):

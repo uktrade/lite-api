@@ -28,7 +28,7 @@ from api.goods.enums import (
 )
 from api.goods.tests.factories import GoodFactory, FirearmFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
-from letter_templates.context_generator import get_document_context
+from api.letter_templates.context_generator import get_document_context
 from licences.enums import LicenceStatus
 from licences.tests.factories import GoodOnLicenceFactory
 from api.parties.enums import PartyType, SubType

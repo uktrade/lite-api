@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from documents.libraries.process_document import process_document
+from api.documents.libraries.process_document import process_document
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
 

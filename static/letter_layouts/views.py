@@ -1,7 +1,7 @@
 from rest_framework import generics
 
 from api.conf.authentication import SharedAuthentication
-from letter_templates.models import LetterLayout
+from api.letter_templates.models import LetterLayout
 from static.letter_layouts.serializers import LetterLayoutSerializer
 
 

@@ -3,7 +3,7 @@ import logging
 from rest_framework import serializers
 
 from api.conf.settings import BACKGROUND_TASK_ENABLED
-from documents.tasks import scan_document_for_viruses
+from api.documents.tasks import scan_document_for_viruses
 
 
 def process_document(document):

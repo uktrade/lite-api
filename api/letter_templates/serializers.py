@@ -5,7 +5,7 @@ from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseTypeReference
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer, CaseTypeReferenceListSerializer
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
-from letter_templates.models import LetterTemplate
+from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from picklists.models import PicklistItem
 from static.decisions.models import Decision

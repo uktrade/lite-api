@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from api.common.models import TimestampableModel
-from documents.models import Document
+from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import (
     GoodStatus,

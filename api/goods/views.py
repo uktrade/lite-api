@@ -18,8 +18,8 @@ from api.conf.authentication import ExporterAuthentication, SharedAuthentication
 from api.conf.exceptions import BadRequestError
 from api.conf.helpers import str_to_bool
 from api.conf.permissions import assert_user_has_permission
-from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
-from documents.models import Document
+from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
+from api.documents.models import Document
 from api.goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemCategory
 from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (

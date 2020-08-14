@@ -11,7 +11,7 @@ from api.applications.models import (
 )
 from cases.enums import CaseTypeSubTypeEnum
 from api.conf.helpers import str_to_bool
-from documents.models import Document
+from api.documents.models import Document
 from api.goods.models import GoodDocument
 from api.goodstype.models import GoodsType
 from api.goodstype.document.models import GoodsTypeDocument
