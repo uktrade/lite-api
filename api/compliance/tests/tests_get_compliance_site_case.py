@@ -2,7 +2,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from cases.enums import CaseTypeReferenceEnum
-from compliance.tests.factories import ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
+from api.compliance.tests.factories import ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
 from licences.enums import LicenceStatus
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

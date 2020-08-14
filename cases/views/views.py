@@ -53,8 +53,8 @@ from cases.serializers import (
     EcjuQueryExporterRespondSerializer,
 )
 from cases.service import get_destinations
-from compliance.helpers import generate_compliance_site_case
-from compliance.models import ComplianceVisitCase
+from api.compliance.helpers import generate_compliance_site_case
+from api.compliance.models import ComplianceVisitCase
 from api.conf import constants
 from api.conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from api.conf.constants import GovPermissions

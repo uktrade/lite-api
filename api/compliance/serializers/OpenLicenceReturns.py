@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 
-from compliance.models import OpenLicenceReturns
+from api.compliance.models import OpenLicenceReturns
 from lite_content.lite_api.strings import Compliance
 
 

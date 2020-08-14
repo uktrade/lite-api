@@ -9,8 +9,8 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
-from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
+from api.compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
 from api.conf.constants import ExporterPermissions
 from api.conf.exceptions import NotFoundError
 from api.conf.permissions import check_user_has_permission
