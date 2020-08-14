@@ -7,8 +7,8 @@ from flags.enums import FlagLevels, FlagStatuses, FlagColours
 from flags.models import Flag, FlaggingRule
 from lite_content.lite_api import strings
 from static.control_list_entries.models import ControlListEntry
-from teams.models import Team
-from teams.serializers import TeamSerializer, TeamReadOnlySerializer
+from api.teams.models import Team
+from api.teams.serializers import TeamSerializer, TeamReadOnlySerializer
 
 
 class FlagReadOnlySerializer(serializers.Serializer):

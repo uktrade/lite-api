@@ -10,8 +10,8 @@ from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from static.statuses.models import CaseStatus
 from static.statuses.serializers import CaseStatusSerializer
-from teams.models import Team
-from teams.serializers import TeamSerializer
+from api.teams.models import Team
+from api.teams.serializers import TeamSerializer
 from api.users.models import GovUser
 from gov_users.serializers import GovUserViewSerializer
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields

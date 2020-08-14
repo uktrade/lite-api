@@ -4,7 +4,7 @@ from django.db import models
 
 from api.common.models import TimestampableModel
 from picklists.enums import PicklistType, PickListStatus
-from teams.models import Team
+from api.teams.models import Team
 
 
 class PicklistItem(TimestampableModel):

@@ -72,7 +72,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
-from teams.models import Team
+from api.teams.models import Team
 from test_helpers import colours
 from api.users.enums import UserStatuses, SystemUser
 from api.users.libraries.user_to_token import user_to_token

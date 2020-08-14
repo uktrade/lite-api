@@ -6,7 +6,7 @@ from api.parties.models import Party
 from queues.models import Queue
 from static.countries.models import Country
 from static.statuses.models import CaseStatus
-from teams.models import Team
+from api.teams.models import Team
 from test_helpers.clients import DataTestClient
 from workflow.automation import run_routing_rules
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields

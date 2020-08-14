@@ -1,7 +1,7 @@
 from audit_trail.enums import AuditType
 from cases.models import Case, CaseAssignment
 from static.statuses.enums import CaseStatusEnum
-from teams.models import Team
+from api.teams.models import Team
 from api.users.enums import SystemUser, UserStatuses
 from api.users.models import BaseUser
 from workflow.routing_rules.models import RoutingRule

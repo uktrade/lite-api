@@ -6,8 +6,8 @@ from rest_framework.serializers import ModelSerializer
 from api.conf.serializers import KeyValueChoiceField
 from picklists.enums import PicklistType, PickListStatus
 from picklists.models import PicklistItem
-from teams.models import Team
-from teams.serializers import TeamReadOnlySerializer
+from api.teams.models import Team
+from api.teams.serializers import TeamReadOnlySerializer
 
 
 class TinyPicklistSerializer(ModelSerializer):

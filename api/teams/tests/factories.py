@@ -1,5 +1,5 @@
 import factory
-from teams.models import Team
+from api.teams.models import Team
 
 
 class TeamFactory(factory.django.DjangoModelFactory):

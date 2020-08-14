@@ -39,8 +39,8 @@ from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
-from teams.models import Team
-from teams.serializers import TeamSerializer
+from api.teams.models import Team
+from api.teams.serializers import TeamSerializer
 from api.users.enums import UserStatuses
 from api.users.models import BaseUser, GovUser, GovNotification, ExporterUser
 from api.users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer

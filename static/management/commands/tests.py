@@ -29,7 +29,7 @@ from static.management.commands import (
     seedfinaldecisions,
 )
 from static.statuses.models import CaseStatus, CaseStatusCaseType
-from teams.models import Team
+from api.teams.models import Team
 from api.users.models import Permission
 
 

@@ -2,7 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from teams.models import Team
+from api.teams.models import Team
 from test_helpers.clients import DataTestClient
 
 

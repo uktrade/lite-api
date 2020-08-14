@@ -90,7 +90,7 @@ INSTALLED_APPS = [
     "static.trade_control",
     "static.units",
     "static.upload_document_for_tests",
-    "teams",
+    "api.teams",
     "api.users",
     "workflow.routing_rules",
     "search",

@@ -32,7 +32,7 @@ urlpatterns = [
     path("queues/", include("queues.urls")),
     path("static/", include("static.urls")),
     path("users/", include("api.users.urls")),
-    path("teams/", include("teams.urls")),
+    path("teams/", include("api.teams.urls")),
     path("gov-users/", include("gov_users.urls")),
     path("flags/", include("flags.urls")),
     path("picklist/", include("picklists.urls")),

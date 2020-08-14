@@ -34,7 +34,7 @@ from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
-from teams.models import Team
+from api.teams.models import Team
 from api.users.models import (
     BaseUser,
     ExporterUser,

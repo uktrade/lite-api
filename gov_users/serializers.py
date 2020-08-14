@@ -11,8 +11,8 @@ from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from static.statuses.models import CaseStatus
 from static.statuses.serializers import CaseStatusSerializer
-from teams.models import Team
-from teams.serializers import TeamSerializer, TeamReadOnlySerializer
+from api.teams.models import Team
+from api.teams.serializers import TeamSerializer, TeamReadOnlySerializer
 from api.users.enums import UserType
 from api.users.models import GovUser
 from api.users.models import Role, Permission

@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from teams.models import Team
+from api.teams.models import Team
 
 
 class Queue(models.Model):
