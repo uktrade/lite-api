@@ -31,7 +31,7 @@ from flags.serializers import (
 from api.goods.models import Good
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
-from parties.models import Party
+from api.parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country

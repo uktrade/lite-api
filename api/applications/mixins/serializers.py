@@ -3,8 +3,8 @@ from collections import defaultdict
 from rest_framework import serializers
 
 from cases.enums import CaseTypeSubTypeEnum
-from parties.enums import PartyType
-from parties.serializers import PartySerializer
+from api.parties.enums import PartyType
+from api.parties.serializers import PartySerializer
 from django.db.models import Min, Case, When, BinaryField
 
 

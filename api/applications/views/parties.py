@@ -15,9 +15,9 @@ from api.conf.decorators import (
 from api.conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
-from parties.enums import PartyType
-from parties.models import Party
-from parties.serializers import PartySerializer
+from api.parties.enums import PartyType
+from api.parties.models import Party
+from api.parties.serializers import PartySerializer
 from api.users.models import ExporterUser
 
 

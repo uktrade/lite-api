@@ -1,5 +1,5 @@
-from parties.models import PartyDocument
-from parties.models import Party
+from api.parties.models import PartyDocument
+from api.parties.models import Party
 
 
 def delete_party_document_if_exists(party: Party):

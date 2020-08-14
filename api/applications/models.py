@@ -24,8 +24,8 @@ from api.goods.enums import PvGrading
 from api.goods.models import Good
 from lite_content.lite_api.strings import PartyErrors
 from api.organisations.models import Organisation, Site, ExternalLocation
-from parties.enums import PartyType
-from parties.models import Party
+from api.parties.enums import PartyType
+from api.parties.models import Party
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.f680_clearance_types.models import F680ClearanceType

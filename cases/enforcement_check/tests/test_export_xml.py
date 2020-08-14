@@ -10,7 +10,7 @@ from cases.enums import EnforcementXMLEntityTypes
 from cases.models import EnforcementCheckID
 from api.conf.constants import GovPermissions
 from flags.enums import SystemFlags
-from parties.enums import PartyType, PartyRole
+from api.parties.enums import PartyType, PartyRole
 from test_helpers.clients import DataTestClient
 
 

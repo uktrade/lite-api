@@ -18,7 +18,7 @@ from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.organisations.serializers import OrganisationDetailSerializer, ExternalLocationSerializer, SiteListSerializer
-from parties.serializers import PartySerializer
+from api.parties.serializers import PartySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import (

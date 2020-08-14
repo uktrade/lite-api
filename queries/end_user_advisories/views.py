@@ -8,7 +8,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from api.conf.authentication import ExporterAuthentication, SharedAuthentication
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
-from parties.enums import PartyType
+from api.parties.enums import PartyType
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisoryViewSerializer, EndUserAdvisoryListSerializer

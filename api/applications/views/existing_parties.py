@@ -5,8 +5,8 @@ from rest_framework import generics
 from api.applications.libraries.get_applications import get_application
 from cases.enums import CaseTypeEnum
 from api.conf.authentication import ExporterAuthentication
-from parties.models import Party
-from parties.serializers import PartySerializer
+from api.parties.models import Party
+from api.parties.serializers import PartySerializer
 
 
 class ExistingParties(generics.ListCreateAPIView):

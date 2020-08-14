@@ -52,9 +52,9 @@ from licences.models import Licence
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation, ExternalLocation
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
-from parties.enums import SubType, PartyType, PartyRole
-from parties.models import Party
-from parties.models import PartyDocument
+from api.parties.enums import SubType, PartyType, PartyRole
+from api.parties.models import Party
+from api.parties.models import PartyDocument
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
 from queries.end_user_advisories.models import EndUserAdvisoryQuery

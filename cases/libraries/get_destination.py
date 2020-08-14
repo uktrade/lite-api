@@ -1,6 +1,6 @@
 from django.http import Http404
 
-from parties.models import Party
+from api.parties.models import Party
 from static.countries.models import Country
 
 

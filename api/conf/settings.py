@@ -69,7 +69,7 @@ INSTALLED_APPS = [
     "letter_templates",
     "licences",
     "api.organisations",
-    "parties",
+    "api.parties",
     "picklists",
     "queries",
     "queries.goods_query",

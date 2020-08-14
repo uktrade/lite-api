@@ -8,9 +8,9 @@ from flags.serializers import FlagSerializer
 from api.goods.enums import PvGrading
 from lite_content.lite_api.strings import PartyErrors
 from api.organisations.models import Organisation
-from parties.enums import PartyType, SubType, PartyRole
-from parties.models import Party
-from parties.models import PartyDocument
+from api.parties.enums import PartyType, SubType, PartyRole
+from api.parties.models import Party
+from api.parties.models import PartyDocument
 
 
 class PartySerializer(serializers.ModelSerializer):

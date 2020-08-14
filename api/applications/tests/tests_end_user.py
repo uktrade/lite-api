@@ -6,9 +6,9 @@ from rest_framework import status
 
 from api.applications.models import PartyOnApplication
 from lite_content.lite_api.strings import PartyErrors
-from parties.enums import PartyType, SubType
-from parties.models import Party
-from parties.models import PartyDocument
+from api.parties.enums import PartyType, SubType
+from api.parties.models import Party
+from api.parties.models import PartyDocument
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 

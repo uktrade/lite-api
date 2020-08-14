@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from parties.enums import PartyType
+from api.parties.enums import PartyType
 
 
 def forward_migration(apps, schema_editor):

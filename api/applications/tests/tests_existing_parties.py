@@ -2,8 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from parties.enums import PartyType
-from parties.models import Party
+from api.parties.enums import PartyType
+from api.parties.models import Party
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 

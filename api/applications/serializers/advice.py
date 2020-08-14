@@ -9,8 +9,8 @@ from api.goods.models import Good
 from api.goodstype.models import GoodsType
 from gov_users.serializers import GovUserListSerializer
 from lite_content.lite_api import strings
-from parties.enums import PartyType
-from parties.models import Party
+from api.parties.enums import PartyType
+from api.parties.models import Party
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from teams.models import Team

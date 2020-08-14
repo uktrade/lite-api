@@ -6,8 +6,8 @@ from cases.enums import CaseTypeEnum
 from api.conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer
-from parties.enums import SubType
-from parties.serializers import PartySerializer
+from api.parties.enums import SubType
+from api.parties.serializers import PartySerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
