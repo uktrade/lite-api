@@ -1,8 +1,8 @@
 from actstream.gfk import GFKQuerySet, GFKManager
 
 from static.statuses.libraries.case_status_validate import is_case_status_draft
-from users.models import ExporterUser
-from users.models import GovUser
+from api.users.models import ExporterUser
+from api.users.models import GovUser
 
 
 class AuditQuerySet(GFKQuerySet):

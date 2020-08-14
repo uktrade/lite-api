@@ -22,8 +22,8 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.organisations.models import Site, Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from users.enums import SystemUser
-from users.models import BaseUser
+from api.users.enums import SystemUser
+from api.users.models import BaseUser
 
 
 def get_compliance_site_case(pk):

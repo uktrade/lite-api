@@ -42,7 +42,7 @@ from compliance.serializers.OpenLicenceReturns import (
 from api.conf.authentication import GovAuthentication, ExporterAuthentication, SharedAuthentication
 from lite_content.lite_api.strings import Compliance
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
-from users.libraries.notifications import get_compliance_site_case_notifications
+from api.users.libraries.notifications import get_compliance_site_case_notifications
 
 
 class ExporterComplianceListSerializer(ListAPIView):

@@ -33,7 +33,7 @@ from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializ
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.countries.models import Country
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class ApplicationGoodsOnApplication(APIView):

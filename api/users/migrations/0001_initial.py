@@ -5,7 +5,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
 import model_utils.fields
-import users.models
+import api.users.models
 import uuid
 
 
@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={"unique_together": {("email", "type")},},
-            managers=[("objects", users.models.CustomUserManager()),],
+            managers=[("objects", api.users.models.CustomUserManager()),],
         ),
         migrations.CreateModel(
             name="BaseNotification",
@@ -137,7 +137,7 @@ class Migration(migrations.Migration):
             ],
             options={"verbose_name": "user", "verbose_name_plural": "users", "abstract": False,},
             bases=("users.baseuser",),
-            managers=[("objects", users.models.CustomUserManager()),],
+            managers=[("objects", api.users.models.CustomUserManager()),],
         ),
         migrations.CreateModel(
             name="GovNotification",
@@ -233,7 +233,7 @@ class Migration(migrations.Migration):
             ],
             options={"verbose_name": "user", "verbose_name_plural": "users", "abstract": False,},
             bases=("users.baseuser",),
-            managers=[("objects", users.models.CustomUserManager()),],
+            managers=[("objects", api.users.models.CustomUserManager()),],
         ),
         migrations.CreateModel(
             name="ExporterNotification",

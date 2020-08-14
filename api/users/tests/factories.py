@@ -1,9 +1,9 @@
 import factory
 
 from api.organisations.tests.factories import OrganisationFactory
-from users import models
-from users.enums import UserType, UserStatuses
-from users.models import Role, UserOrganisationRelationship
+from api.users import models
+from api.users.enums import UserType, UserStatuses
+from api.users.models import Role, UserOrganisationRelationship
 
 
 class GovUserFactory(factory.django.DjangoModelFactory):

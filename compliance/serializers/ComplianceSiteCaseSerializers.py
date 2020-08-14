@@ -15,7 +15,7 @@ from api.organisations.serializers import OrganisationDetailSerializer
 from cases.libraries.get_flags import get_ordered_flags
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from teams.helpers import get_team_by_pk
-from users.libraries.notifications import (
+from api.users.libraries.notifications import (
     get_exporter_user_notification_individual_count,
     get_exporter_user_notification_individual_count_with_compliance_visit,
 )

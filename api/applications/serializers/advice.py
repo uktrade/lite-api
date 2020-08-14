@@ -15,7 +15,7 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from teams.models import Team
 from teams.serializers import TeamReadOnlySerializer
-from users.models import GovUser
+from api.users.models import GovUser
 
 
 class AdviceViewSerializer(serializers.Serializer):

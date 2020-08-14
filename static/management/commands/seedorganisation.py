@@ -10,7 +10,7 @@ from static.management.SeedCommand import SeedCommand
 from faker import Faker
 
 from test_helpers.helpers import create_exporter_users
-from users.models import ExporterUser, UserOrganisationRelationship
+from api.users.models import ExporterUser, UserOrganisationRelationship
 
 faker = Faker()
 faker.add_provider(OrganisationProvider)

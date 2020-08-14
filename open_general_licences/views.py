@@ -18,8 +18,8 @@ from open_general_licences.serializers import OpenGeneralLicenceSerializer
 from api.organisations.libraries.get_organisation import get_request_user_organisation
 from api.organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
-from users.enums import UserType
-from users.models import GovUser, GovNotification
+from api.users.enums import UserType
+from api.users.models import GovUser, GovNotification
 
 
 class OpenGeneralLicenceList(ListCreateAPIView):

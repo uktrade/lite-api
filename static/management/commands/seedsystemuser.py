@@ -1,8 +1,8 @@
 from django.db import transaction
 
 from static.management.SeedCommand import SeedCommand
-from users.enums import UserType, SystemUser
-from users.models import BaseUser
+from api.users.enums import UserType, SystemUser
+from api.users.models import BaseUser
 
 
 class Command(SeedCommand):

@@ -11,10 +11,10 @@ from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateOrUpdateSerializer, GovUserViewSerializer, GovUserListSerializer
 from api.organisations.enums import OrganisationStatus
 from api.organisations.models import Organisation
-from users.enums import UserStatuses
-from users.libraries.get_user import get_user_by_pk
-from users.libraries.user_to_token import user_to_token
-from users.models import GovUser
+from api.users.enums import UserStatuses
+from api.users.libraries.get_user import get_user_by_pk
+from api.users.libraries.user_to_token import user_to_token
+from api.users.models import GovUser
 
 
 class AuthenticateGovUser(APIView):

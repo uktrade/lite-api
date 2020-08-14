@@ -1,6 +1,6 @@
 from api.conf.exceptions import NotFoundError
-from users.enums import UserStatuses
-from users.models import ExporterUser, GovUser, UserOrganisationRelationship
+from api.users.enums import UserStatuses
+from api.users.models import ExporterUser, GovUser, UserOrganisationRelationship
 
 
 def get_user_by_pk(pk):

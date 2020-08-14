@@ -3,7 +3,7 @@ from rest_framework import status
 
 from teams.models import Team
 from test_helpers.clients import DataTestClient
-from users.models import GovUser
+from api.users.models import GovUser
 
 
 class UserByTeamListTests(DataTestClient):

@@ -3,7 +3,7 @@ from django.db import models
 
 from api.goods.models import Good
 from queries.models import Query
-from users.models import ExporterNotification
+from api.users.models import ExporterNotification
 
 
 class GoodsQuery(Query):

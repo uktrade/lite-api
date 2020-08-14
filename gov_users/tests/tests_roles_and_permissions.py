@@ -5,8 +5,8 @@ from rest_framework import status
 from api.conf import constants
 from api.conf.constants import Roles
 from test_helpers.clients import DataTestClient
-from users.enums import UserType
-from users.models import Role, Permission
+from api.users.enums import UserType
+from api.users.models import Role, Permission
 
 
 class RolesAndPermissionsTests(DataTestClient):

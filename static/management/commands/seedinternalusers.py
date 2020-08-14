@@ -4,8 +4,8 @@ from django.db import transaction
 from api.conf.constants import Teams, Roles
 from api.conf.settings import env
 from static.management.SeedCommand import SeedCommand
-from users.enums import UserType
-from users.models import Role, GovUser
+from api.users.enums import UserType
+from api.users.models import Role, GovUser
 
 
 class Command(SeedCommand):

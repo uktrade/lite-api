@@ -24,7 +24,7 @@ from api.conf.decorators import (
 )
 from api.goodstype.document.serializers import GoodsTypeDocumentSerializer
 from api.goodstype.helpers import get_goods_type
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class ApplicationDocumentView(APIView):

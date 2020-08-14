@@ -1,6 +1,6 @@
 from cases.enums import CaseTypeReferenceEnum
 from static.statuses.enums import CaseStatusEnum
-from users.models import GovUser, GovNotification
+from api.users.models import GovUser, GovNotification
 
 
 def get_assigned_to_user_case_ids(user: GovUser):

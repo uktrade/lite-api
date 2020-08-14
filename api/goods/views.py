@@ -47,7 +47,7 @@ from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
-from users.models import ExporterUser, ExporterNotification
+from api.users.models import ExporterUser, ExporterNotification
 from workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
 

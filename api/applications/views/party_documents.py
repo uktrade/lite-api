@@ -7,7 +7,7 @@ from api.applications.libraries.document_helpers import upload_party_document, d
 from api.conf.authentication import ExporterAuthentication
 from api.conf.decorators import authorised_to_view_application
 from parties.serializers import PartyDocumentSerializer
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class PartyDocumentView(APIView):

@@ -15,7 +15,7 @@ from licences.models import Licence, GoodOnLicence
 from lite_content.lite_api import strings
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
-from users.models import Role
+from api.users.models import Role
 
 
 class FinaliseApplicationTests(DataTestClient):

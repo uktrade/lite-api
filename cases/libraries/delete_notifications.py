@@ -1,4 +1,4 @@
-from users.models import ExporterNotification, ExporterUser, GovNotification, GovUser
+from api.users.models import ExporterNotification, ExporterUser, GovNotification, GovUser
 
 
 def delete_exporter_notifications(user: ExporterUser, organisation_id, objects: list):

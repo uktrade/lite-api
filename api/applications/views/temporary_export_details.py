@@ -12,7 +12,7 @@ from api.conf.decorators import (
     allowed_application_types,
     application_in_state,
 )
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class TemporaryExportDetails(UpdateAPIView):

@@ -8,8 +8,8 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
-from users.enums import UserType
-from users.tests.factories import GovUserFactory, ExporterUserFactory
+from api.users.enums import UserType
+from api.users.tests.factories import GovUserFactory, ExporterUserFactory
 
 
 class CasesAuditTrailSearchTestCase(DataTestClient):

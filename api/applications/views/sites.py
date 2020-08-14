@@ -10,7 +10,7 @@ from api.conf.decorators import authorised_to_view_application
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.organisations.models import Site
 from api.organisations.serializers import SiteListSerializer
-from users.models import ExporterUser
+from api.users.models import ExporterUser
 
 
 class ApplicationSites(APIView):

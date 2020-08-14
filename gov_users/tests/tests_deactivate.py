@@ -3,8 +3,8 @@ from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
 from test_helpers.clients import DataTestClient
-from users.libraries.user_to_token import user_to_token
-from users.models import GovUser
+from api.users.libraries.user_to_token import user_to_token
+from api.users.models import GovUser
 
 
 class GovUserDeactivateTests(DataTestClient):

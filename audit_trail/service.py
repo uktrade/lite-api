@@ -10,9 +10,9 @@ from audit_trail.models import Audit
 from audit_trail.schema import validate_kwargs
 from cases.libraries.dates import make_date_from_params
 from teams.models import Team
-from users.enums import UserType
-from users.enums import SystemUser
-from users.models import ExporterUser, GovUser, BaseUser
+from api.users.enums import UserType
+from api.users.enums import SystemUser
+from api.users.models import ExporterUser, GovUser, BaseUser
 
 
 @validate_kwargs

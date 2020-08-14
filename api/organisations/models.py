@@ -14,8 +14,8 @@ from api.organisations.enums import OrganisationType, OrganisationStatus, Locati
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from users.libraries.get_user import get_user_organisation_relationship
-from users.models import UserOrganisationRelationship
+from api.users.libraries.get_user import get_user_organisation_relationship
+from api.users.models import UserOrganisationRelationship
 
 
 class Organisation(TimestampableModel):

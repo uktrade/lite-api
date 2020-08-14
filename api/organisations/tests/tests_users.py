@@ -4,9 +4,9 @@ from rest_framework.reverse import reverse
 from django.conf import settings
 from api.conf.constants import ExporterPermissions
 from test_helpers.clients import DataTestClient
-from users.enums import UserStatuses
-from users.libraries.get_user import get_users_from_organisation, get_user_organisation_relationship
-from users.models import ExporterUser, UserOrganisationRelationship
+from api.users.enums import UserStatuses
+from api.users.libraries.get_user import get_users_from_organisation, get_user_organisation_relationship
+from api.users.models import ExporterUser, UserOrganisationRelationship
 
 
 class OrganisationUsersViewTests(DataTestClient):

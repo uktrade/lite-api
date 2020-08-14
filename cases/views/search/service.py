@@ -17,8 +17,8 @@ from api.common.dates import working_days_in_range, number_of_days_since, workin
 from flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
-from users.enums import UserStatuses
-from users.models import GovUser
+from api.users.enums import UserStatuses
+from api.users.models import GovUser
 
 
 def get_case_status_list() -> List[Dict]:

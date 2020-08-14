@@ -3,8 +3,8 @@ from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
 from test_helpers.clients import DataTestClient
-from users.enums import UserStatuses
-from users.models import GovUser
+from api.users.enums import UserStatuses
+from api.users.models import GovUser
 
 
 class GovUserViewTests(DataTestClient):

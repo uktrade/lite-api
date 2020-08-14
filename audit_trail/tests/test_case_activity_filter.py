@@ -9,9 +9,9 @@ from audit_trail.tests.factories import AuditFactory
 from cases.models import Case
 from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
-from users.enums import UserType
-from users.models import GovUser
-from users.tests.factories import GovUserFactory, ExporterUserFactory
+from api.users.enums import UserType
+from api.users.models import GovUser
+from api.users.tests.factories import GovUserFactory, ExporterUserFactory
 from audit_trail.service import filter_object_activity
 
 

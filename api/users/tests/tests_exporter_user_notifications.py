@@ -7,8 +7,8 @@ from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, EcjuQuery
 from test_helpers.clients import DataTestClient
-from users.libraries.user_to_token import user_to_token
-from users.models import ExporterNotification
+from api.users.libraries.user_to_token import user_to_token
+from api.users.models import ExporterNotification
 
 
 class ExporterUserNotificationTests(DataTestClient):

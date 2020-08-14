@@ -1,6 +1,6 @@
 from api.conf.exceptions import PermissionDeniedError
 from api.organisations.models import Organisation
-from users.models import GovUser
+from api.users.models import GovUser
 
 
 def assert_user_has_permission(user, permission, organisation: Organisation = None):

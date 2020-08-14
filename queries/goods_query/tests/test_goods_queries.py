@@ -21,7 +21,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
-from users.models import Role, GovUser
+from api.users.models import Role, GovUser
 
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):

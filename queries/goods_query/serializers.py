@@ -8,7 +8,7 @@ from api.organisations.models import Organisation
 from api.organisations.serializers import TinyOrganisationViewSerializer
 from queries.goods_query.models import GoodsQuery
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
-from users.libraries.notifications import (
+from api.users.libraries.notifications import (
     get_exporter_user_notification_total_count,
     get_exporter_user_notification_individual_count,
 )

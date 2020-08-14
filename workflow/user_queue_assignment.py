@@ -8,8 +8,8 @@ from compliance.models import ComplianceVisitCase
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
-from users.enums import SystemUser
-from users.models import BaseUser
+from api.users.enums import SystemUser
+from api.users.models import BaseUser
 
 
 def get_queues_with_case_assignments(case: Case):

@@ -14,7 +14,7 @@ from gov_users.serializers import GovUserListSerializer
 from teams.helpers import get_team_by_pk
 from teams.models import Team
 from teams.serializers import TeamSerializer
-from users.models import GovUser
+from api.users.models import GovUser
 
 
 class TeamList(APIView):

@@ -13,8 +13,8 @@ from api.conf.constants import Roles
 from queues.constants import ALL_CASES_QUEUE_ID
 from static.statuses.models import CaseStatus
 from teams.models import Team
-from users.enums import UserStatuses, UserType
-from users.managers import InternalManager, ExporterManager
+from api.users.enums import UserStatuses, UserType
+from api.users.managers import InternalManager, ExporterManager
 
 
 class Permission(models.Model):
