@@ -5,7 +5,7 @@ from django.db import models
 from api.common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
-from goods.enums import (
+from api.goods.enums import (
     GoodStatus,
     GoodControlled,
     PvGrading,

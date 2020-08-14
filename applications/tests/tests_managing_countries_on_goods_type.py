@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import CountryOnApplication
-from goodstype.models import GoodsType
+from api.goodstype.models import GoodsType
 from static.countries.helpers import get_country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

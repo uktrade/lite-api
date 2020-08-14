@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goodstype.models import GoodsType
+from api.goodstype.models import GoodsType
 from test_helpers.clients import DataTestClient
 
 

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from goodstype import views
+from api.goodstype import views
 
 app_name = "goodstype"
 

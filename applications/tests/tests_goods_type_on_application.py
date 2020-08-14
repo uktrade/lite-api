@@ -3,8 +3,8 @@ from unittest import mock
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goodstype.document.models import GoodsTypeDocument
-from goodstype.models import GoodsType
+from api.goodstype.document.models import GoodsTypeDocument
+from api.goodstype.models import GoodsType
 from static.control_list_entries.helpers import get_control_list_entry
 from static.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient

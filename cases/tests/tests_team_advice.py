@@ -7,7 +7,7 @@ from cases.models import Advice
 from cases.tests.factories import TeamAdviceFactory
 from api.conf import constants
 from api.conf.helpers import convert_queryset_to_str
-from goods.enums import PvGrading
+from api.goods.enums import PvGrading
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.tests.factories import TeamFactory

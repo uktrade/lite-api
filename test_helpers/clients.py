@@ -39,12 +39,12 @@ from api.conf.urls import urlpatterns
 from flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from flags.models import Flag, FlaggingRule
 from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
-from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
-from goods.tests.factories import GoodFactory
-from goodstype.document.models import GoodsTypeDocument
-from goodstype.models import GoodsType
-from goodstype.tests.factories import GoodsTypeFactory
+from api.goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
+from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
+from api.goods.tests.factories import GoodFactory
+from api.goodstype.document.models import GoodsTypeDocument
+from api.goodstype.models import GoodsType
+from api.goodstype.tests.factories import GoodsTypeFactory
 from letter_templates.models import LetterTemplate
 from licences.enums import LicenceStatus
 from licences.helpers import get_licence_reference_code

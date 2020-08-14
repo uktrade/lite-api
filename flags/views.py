@@ -28,7 +28,7 @@ from flags.serializers import (
     FlagReadOnlySerializer,
     FlaggingRuleListSerializer,
 )
-from goods.models import Good
+from api.goods.models import Good
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from parties.models import Party

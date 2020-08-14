@@ -7,8 +7,8 @@ from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationViewSerializer
 from cases.models import CaseType
-from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeViewSerializer
+from api.goodstype.models import GoodsType
+from api.goodstype.serializers import GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Organisation

@@ -4,8 +4,8 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import GoodOnApplication
-from goods.enums import GoodStatus
-from goods.models import Good
+from api.goods.enums import GoodStatus
+from api.goods.models import Good
 from static.statuses.enums import CaseStatusEnum
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient

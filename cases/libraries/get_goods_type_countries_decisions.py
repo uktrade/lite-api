@@ -2,7 +2,7 @@ from django.db.models import Q
 
 from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice, GoodCountryDecision
-from goodstype.models import GoodsType
+from api.goodstype.models import GoodsType
 
 
 def get_existing_good_type_to_country_decisions(case_pk):

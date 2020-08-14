@@ -2,9 +2,9 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodControlled
-from goods.models import Good
-from goods.tests.factories import GoodFactory
+from api.goods.enums import GoodControlled
+from api.goods.models import Good
+from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
 from users.libraries.user_to_token import user_to_token

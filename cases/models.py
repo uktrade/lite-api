@@ -25,7 +25,7 @@ from api.conf.constants import GovPermissions
 from api.conf.permissions import assert_user_has_permission
 from documents.models import Document
 from flags.models import Flag
-from goods.enums import PvGrading
+from api.goods.enums import PvGrading
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from queues.models import Queue
@@ -174,7 +174,7 @@ class Case(TimestampableModel):
         from applications.models import PartyOnApplication
         from applications.models import GoodOnApplication
         from applications.models import CountryOnApplication
-        from goodstype.models import GoodsType
+        from api.goodstype.models import GoodsType
 
         parameter_set = set(self.flags.all()) | {self.case_type} | set(self.organisation.flags.all())
 

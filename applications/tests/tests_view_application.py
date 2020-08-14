@@ -10,7 +10,7 @@ from applications.models import (
     SiteOnApplication,
 )
 from cases.enums import CaseTypeEnum
-from goodstype.models import GoodsType
+from api.goodstype.models import GoodsType
 from organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory

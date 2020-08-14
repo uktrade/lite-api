@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 from documents.libraries.process_document import process_document
-from goodstype.document.models import GoodsTypeDocument
-from goodstype.models import GoodsType
+from api.goodstype.document.models import GoodsTypeDocument
+from api.goodstype.models import GoodsType
 
 
 class GoodsTypeDocumentSerializer(serializers.ModelSerializer):

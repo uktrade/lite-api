@@ -1,8 +1,8 @@
 import factory
 from django.utils import timezone
 
-from goods import models
-from goods.enums import GoodControlled, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
+from api.goods import models
+from api.goods.enums import GoodControlled, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
 from static.control_list_entries.helpers import get_control_list_entry
 
 

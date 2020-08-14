@@ -3,8 +3,8 @@ from django.http import Http404
 from applications.models import GoodOnApplication, BaseApplication
 from cases.enums import CaseTypeSubTypeEnum
 from flags.enums import SystemFlags
-from goods.enums import GoodStatus
-from goodstype.models import GoodsType
+from api.goods.enums import GoodStatus
+from api.goodstype.models import GoodsType
 
 
 def get_good_on_application(pk):

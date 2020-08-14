@@ -9,7 +9,7 @@ from api.common.libraries import (
 from api.conf.helpers import str_to_bool
 from api.conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from goods.enums import (
+from api.goods.enums import (
     GoodStatus,
     GoodControlled,
     GoodPvGraded,
@@ -19,13 +19,13 @@ from goods.enums import (
     Component,
     FirearmGoodType,
 )
-from goods.helpers import (
+from api.goods.helpers import (
     validate_military_use,
     validate_component_details,
     validate_identification_markings,
     validate_section_certificate_number_and_expiry_date,
 )
-from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
+from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation

@@ -2,9 +2,9 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodPvGraded, GoodControlled, PvGrading, MilitaryUse, Component, ItemCategory, FirearmGoodType
-from goods.models import Good, PvGradingDetails
-from goods.tests.factories import GoodFactory
+from api.goods.enums import GoodPvGraded, GoodControlled, PvGrading, MilitaryUse, Component, ItemCategory, FirearmGoodType
+from api.goods.models import Good, PvGradingDetails
+from api.goods.tests.factories import GoodFactory
 from lite_content.lite_api import strings
 from static.control_list_entries.helpers import get_control_list_entry
 from static.control_list_entries.models import ControlListEntry

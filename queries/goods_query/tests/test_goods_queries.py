@@ -10,8 +10,8 @@ from cases.models import CaseAssignment
 from api.conf import constants
 from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
-from goods.models import Good
+from api.goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
+from api.goods.models import Good
 from lite_content.lite_api import strings
 from picklists.enums import PicklistType, PickListStatus
 from queries.goods_query.helpers import get_starting_status

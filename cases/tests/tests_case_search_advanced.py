@@ -6,7 +6,7 @@ from rest_framework.reverse import reverse
 from cases.enums import AdviceType
 from cases.models import Case
 from cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
-from goodstype.tests.factories import GoodsTypeFactory
+from api.goodstype.tests.factories import GoodsTypeFactory
 from static.countries.factories import CountryFactory
 from applications.tests.factories import (
     PartyOnApplicationFactory,
@@ -18,8 +18,8 @@ from applications.tests.factories import (
 )
 from parties.tests.factories import PartyFactory
 from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled
-from goods.tests.factories import GoodFactory
+from api.goods.enums import GoodControlled
+from api.goods.tests.factories import GoodFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient

@@ -1,7 +1,7 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
-from goods.models import Good
+from api.goods.models import Good
 from queries.models import Query
 from users.models import ExporterNotification
 

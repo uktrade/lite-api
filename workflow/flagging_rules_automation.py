@@ -5,9 +5,9 @@ from cases.enums import CaseTypeEnum
 from cases.models import Case
 from flags.enums import FlagLevels, FlagStatuses
 from flags.models import FlaggingRule, Flag
-from goods.enums import GoodStatus
-from goods.models import Good
-from goodstype.models import GoodsType
+from api.goods.enums import GoodStatus
+from api.goods.models import Good
+from api.goodstype.models import GoodsType
 from parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery

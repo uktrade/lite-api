@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from api.conf.exceptions import BadRequestError
-from goods.enums import Component, MilitaryUse
+from api.goods.enums import Component, MilitaryUse
 from lite_content.lite_api import strings
 
 

@@ -6,9 +6,9 @@ from applications.models import BaseApplication, GoodOnApplication
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from api.conf.serializers import KeyValueChoiceField
-from goods.enums import ItemType
-from goods.models import Good
-from goods.serializers import GoodSerializerInternal
+from api.goods.enums import ItemType
+from api.goods.models import Good
+from api.goods.serializers import GoodSerializerInternal
 from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from static.units.enums import Units

@@ -6,7 +6,7 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
-from goods.enums import PvGrading
+from api.goods.enums import PvGrading
 from lite_content.lite_api import strings
 from parties.enums import PartyType, SubType
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum

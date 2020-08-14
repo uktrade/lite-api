@@ -12,9 +12,9 @@ from applications.models import (
 from cases.enums import CaseTypeSubTypeEnum
 from api.conf.helpers import str_to_bool
 from documents.models import Document
-from goods.models import GoodDocument
-from goodstype.models import GoodsType
-from goodstype.document.models import GoodsTypeDocument
+from api.goods.models import GoodDocument
+from api.goodstype.models import GoodsType
+from api.goodstype.document.models import GoodsTypeDocument
 from lite_content.lite_api import strings
 from parties.models import PartyDocument
 

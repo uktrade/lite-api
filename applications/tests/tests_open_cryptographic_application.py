@@ -5,8 +5,8 @@ from rest_framework import status
 from applications.enums import ApplicationExportType, GoodsTypeCategory
 from applications.models import OpenApplication, CountryOnApplication, PartyOnApplication
 from cases.enums import CaseTypeReferenceEnum
-from goodstype.models import GoodsType
-from goodstype.tests.factories import GoodsTypeFactory
+from api.goodstype.models import GoodsType
+from api.goodstype.tests.factories import GoodsTypeFactory
 from parties.enums import PartyType
 from static.countries.helpers import get_country
 from static.countries.models import Country

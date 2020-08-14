@@ -5,8 +5,8 @@ from applications.models import (
     BaseApplication,
     GoodOnApplication,
 )
-from goods.enums import GoodPvGraded, GoodControlled, GoodStatus
-from goods.models import Good
+from api.goods.enums import GoodPvGraded, GoodControlled, GoodStatus
+from api.goods.models import Good
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from static.management.SeedCommand import SeedCommand

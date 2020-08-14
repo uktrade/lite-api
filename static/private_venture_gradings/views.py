@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 
 from api.conf.authentication import SharedAuthentication
-from goods.enums import PvGrading
+from api.goods.enums import PvGrading
 
 
 class PVGradingsList(APIView):

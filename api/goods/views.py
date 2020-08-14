@@ -20,16 +20,16 @@ from api.conf.helpers import str_to_bool
 from api.conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemCategory
-from goods.goods_paginator import GoodListPaginator
-from goods.helpers import (
+from api.goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemCategory
+from api.goods.goods_paginator import GoodListPaginator
+from api.goods.helpers import (
     check_if_firearm_details_edited_on_unsupported_good,
     check_if_unsupported_fields_edited_on_firearm_good,
 )
-from goods.libraries.get_goods import get_good, get_good_document
-from goods.libraries.save_good import create_or_update_good
-from goods.models import Good, GoodDocument
-from goods.serializers import (
+from api.goods.libraries.get_goods import get_good, get_good_document
+from api.goods.libraries.save_good import create_or_update_good
+from api.goods.models import Good, GoodDocument
+from api.goods.serializers import (
     GoodCreateSerializer,
     GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
@@ -41,8 +41,8 @@ from goods.serializers import (
     GoodMissingDocumentSerializer,
     TinyGoodDetailsSerializer,
 )
-from goodstype.helpers import get_goods_type
-from goodstype.serializers import ClcControlGoodTypeSerializer
+from api.goodstype.helpers import get_goods_type
+from api.goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from queries.goods_query.models import GoodsQuery

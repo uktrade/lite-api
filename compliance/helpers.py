@@ -14,7 +14,7 @@ from compliance.models import ComplianceSiteCase, ComplianceVisitCase, Complianc
 from api.conf.constants import ExporterPermissions
 from api.conf.exceptions import NotFoundError
 from api.conf.permissions import check_user_has_permission
-from goods.models import Good
+from api.goods.models import Good
 from licences.models import Licence
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance

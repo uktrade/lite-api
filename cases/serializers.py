@@ -31,7 +31,7 @@ from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteV
 from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from api.conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
-from goodstype.models import GoodsType
+from api.goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
 from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings

@@ -7,7 +7,7 @@ from rest_framework import status
 from applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
 from cases.enums import AdviceType, CaseTypeEnum
 from cases.tests.factories import FinalAdviceFactory
-from goods.tests.factories import GoodFactory
+from api.goods.tests.factories import GoodFactory
 from licences.enums import LicenceStatus
 from licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
 from static.units.enums import Units

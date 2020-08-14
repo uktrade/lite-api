@@ -5,8 +5,8 @@ from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from goodstype.document.models import GoodsTypeDocument
-from goodstype.document.serializers import GoodsTypeDocumentSerializer
+from api.goodstype.document.models import GoodsTypeDocument
+from api.goodstype.document.serializers import GoodsTypeDocumentSerializer
 from parties.models import PartyDocument
 from parties.serializers import PartyDocumentSerializer
 
