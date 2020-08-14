@@ -24,7 +24,7 @@ from api.organisations.enums import OrganisationStatus
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from api.organisations.libraries.get_site import get_site
 from api.organisations.models import Site
-from queues.models import Queue
+from api.queues.models import Queue
 from api.users.libraries.get_user import (
     get_user_by_pk,
     get_user_organisation_relationship,

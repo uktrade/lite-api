@@ -8,8 +8,8 @@ from rest_framework.views import APIView
 
 from api.conf.authentication import GovAuthentication
 from api.conf.constants import Teams
-from queues.models import Queue
-from queues.serializers import TinyQueueSerializer
+from api.queues.models import Queue
+from api.queues.serializers import TinyQueueSerializer
 from gov_users.serializers import GovUserListSerializer
 from api.teams.helpers import get_team_by_pk
 from api.teams.models import Team

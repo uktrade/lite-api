@@ -74,7 +74,7 @@ INSTALLED_APPS = [
     "api.queries",
     "api.queries.goods_query",
     "api.queries.end_user_advisories",
-    "queues",
+    "api.queues",
     "open_general_licences",
     "rest_framework",
     "static",

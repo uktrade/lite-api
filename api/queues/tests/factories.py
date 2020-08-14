@@ -1,5 +1,5 @@
 import factory
-from queues.models import Queue
+from api.queues.models import Queue
 
 
 class QueueFactory(factory.django.DjangoModelFactory):

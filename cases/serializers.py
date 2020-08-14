@@ -36,7 +36,7 @@ from gov_users.serializers import GovUserSimpleSerializer
 from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from api.queries.serializers import QueryViewSerializer
-from queues.models import Queue
+from api.queues.models import Queue
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from api.teams.models import Team

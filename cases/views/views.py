@@ -74,7 +74,7 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.organisations.models import Site
 from api.parties.models import Party
 from api.parties.serializers import PartySerializer, AdditionalContactSerializer
-from queues.models import Queue
+from api.queues.models import Queue
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum

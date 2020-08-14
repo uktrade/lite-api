@@ -10,7 +10,7 @@ from django.db import models
 
 from api.common.models import TimestampableModel
 from api.conf.constants import Roles
-from queues.constants import ALL_CASES_QUEUE_ID
+from api.queues.constants import ALL_CASES_QUEUE_ID
 from static.statuses.models import CaseStatus
 from api.teams.models import Team
 from api.users.enums import UserStatuses, UserType

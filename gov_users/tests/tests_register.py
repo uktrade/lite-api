@@ -4,7 +4,7 @@ from rest_framework import status
 from api.conf.constants import Roles
 from gov_users.enums import GovUserStatuses
 from lite_content.lite_api import strings
-from queues.constants import MY_TEAMS_QUEUES_CASES_ID
+from api.queues.constants import MY_TEAMS_QUEUES_CASES_ID
 from test_helpers.clients import DataTestClient
 from api.users.models import GovUser
 

@@ -5,7 +5,7 @@ from rest_framework import status
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.models import CaseAssignment
-from queues.models import Queue
+from api.queues.models import Queue
 from test_helpers.clients import DataTestClient
 
 faker = Faker()

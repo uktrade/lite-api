@@ -6,8 +6,8 @@ from api.conf.serializers import PrimaryKeyRelatedSerializerField, CountrySerial
 from api.flags.models import Flag
 from api.flags.serializers import FlagSerializer
 from lite_content.lite_api import strings
-from queues.models import Queue
-from queues.serializers import TinyQueueSerializer
+from api.queues.models import Queue
+from api.queues.serializers import TinyQueueSerializer
 from static.statuses.models import CaseStatus
 from static.statuses.serializers import CaseStatusSerializer
 from api.teams.models import Team

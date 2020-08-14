@@ -9,9 +9,9 @@ from cases.serializers import CaseListSerializer
 from cases.views.search import service
 from api.conf.authentication import GovAuthentication
 from api.conf.helpers import str_to_bool
-from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, NON_WORK_QUEUES
-from queues.models import Queue
-from queues.service import get_system_queues, get_team_queues
+from api.queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, NON_WORK_QUEUES
+from api.queues.models import Queue
+from api.queues.service import get_system_queues, get_team_queues
 
 
 class CasesSearchView(generics.ListAPIView):

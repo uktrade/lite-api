@@ -7,7 +7,7 @@ from cases.models import CaseType
 from api.conf.constants import GovPermissions, ExporterPermissions
 from api.conf.settings import BASE_DIR
 from api.flags.models import Flag
-from queues.models import Queue
+from api.queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 from cases.enums import AdviceType

@@ -1,6 +1,6 @@
 from parameterized import parameterized
 
-from queues.tests.factories import QueueFactory
+from api.queues.tests.factories import QueueFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient

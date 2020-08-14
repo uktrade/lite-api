@@ -28,7 +28,7 @@ from api.flags.models import Flag
 from api.goods.enums import PvGrading
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
-from queues.models import Queue
+from api.queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum

@@ -1,7 +1,7 @@
 from django.db import transaction, models
 
 from api.flags.models import Flag
-from queues.models import Queue
+from api.queues.models import Queue
 from static.management.SeedCommand import SeedCommand
 from api.teams.models import Team
 

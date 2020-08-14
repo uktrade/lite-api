@@ -11,7 +11,7 @@ from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, g
 from api.common.enums import SortOrder
 from api.compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
 from licences.enums import LicenceStatus
-from queues.constants import (
+from api.queues.constants import (
     ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
     OPEN_CASES_QUEUE_ID,
