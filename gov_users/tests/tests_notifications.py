@@ -2,8 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.conf.constants import GovPermissions
-from organisations.enums import OrganisationStatus
-from organisations.tests.factories import OrganisationFactory
+from api.organisations.enums import OrganisationStatus
+from api.organisations.tests.factories import OrganisationFactory
 from test_helpers.clients import DataTestClient
 
 

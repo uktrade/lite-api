@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from api.conf.authentication import ExporterAuthentication
 from open_general_licences.helpers import get_open_general_licence
-from organisations.libraries.get_organisation import get_request_user_organisation
+from api.organisations.libraries.get_organisation import get_request_user_organisation
 
 
 class Create(APIView):

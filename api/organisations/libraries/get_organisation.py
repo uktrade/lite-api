@@ -2,7 +2,7 @@ from uuid import UUID
 
 from api.conf.authentication import ORGANISATION_ID
 from api.conf.exceptions import NotFoundError
-from organisations.models import Organisation
+from api.organisations.models import Organisation
 
 
 def get_organisation_by_pk(pk):

@@ -23,7 +23,7 @@ from api.goods.enums import ItemType
 from api.goods.enums import PvGrading
 from api.goods.models import Good
 from lite_content.lite_api.strings import PartyErrors
-from organisations.models import Organisation, Site, ExternalLocation
+from api.organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country

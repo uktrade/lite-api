@@ -2,8 +2,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from lite_content.lite_api import strings
-from organisations.enums import LocationType
-from organisations.models import ExternalLocation
+from api.organisations.enums import LocationType
+from api.organisations.models import ExternalLocation
 from test_helpers.clients import DataTestClient
 
 

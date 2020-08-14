@@ -16,7 +16,7 @@ from api.goods.enums import (
     FirearmGoodType,
 )
 
-from organisations.models import Organisation
+from api.organisations.models import Organisation
 from static.control_list_entries.models import ControlListEntry
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from users.models import ExporterUser

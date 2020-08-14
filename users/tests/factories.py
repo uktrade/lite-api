@@ -1,6 +1,6 @@
 import factory
 
-from organisations.tests.factories import OrganisationFactory
+from api.organisations.tests.factories import OrganisationFactory
 from users import models
 from users.enums import UserType, UserStatuses
 from users.models import Role, UserOrganisationRelationship

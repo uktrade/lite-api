@@ -10,7 +10,7 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.serializers import CaseNoteSerializer
 from api.conf.authentication import SharedAuthentication
 from lite_content.lite_api import strings
-from organisations.libraries.get_organisation import get_request_user_organisation_id
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 

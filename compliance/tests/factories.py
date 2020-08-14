@@ -7,7 +7,7 @@ from django.utils import timezone
 from cases.enums import CaseTypeEnum
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import OpenLicenceReturns, ComplianceSiteCase, CompliancePerson, ComplianceVisitCase
-from organisations.tests.factories import OrganisationFactory, SiteFactory
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 
 
 class OpenLicenceReturnsFactory(factory.django.DjangoModelFactory):

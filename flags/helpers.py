@@ -2,7 +2,7 @@ from cases.libraries.get_case import get_case
 from cases.libraries.get_destination import get_destination
 from api.goods.models import Good
 from api.goodstype.helpers import get_goods_type
-from organisations.libraries.get_organisation import get_organisation_by_pk
+from api.organisations.libraries.get_organisation import get_organisation_by_pk
 
 
 def get_object_of_level(level, pk):

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from organisations.views import organisations, sites, external_locations, users, roles, activities
+from api.organisations.views import organisations, sites, external_locations, users, roles, activities
 
 app_name = "organisations"
 

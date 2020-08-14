@@ -5,7 +5,7 @@ from applications.models import (
     BaseApplication,
     ExternalLocationOnApplication,
 )
-from organisations.models import ExternalLocation
+from api.organisations.models import ExternalLocation
 
 
 class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):

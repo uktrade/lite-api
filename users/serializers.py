@@ -4,8 +4,8 @@ from api.conf.constants import Roles
 from api.conf.exceptions import NotFoundError
 from api.conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer, GovUserViewSerializer
-from organisations.libraries.get_organisation import get_organisation_by_pk
-from organisations.models import Organisation, Site
+from api.organisations.libraries.get_organisation import get_organisation_by_pk
+from api.organisations.models import Organisation, Site
 from users.enums import UserStatuses, UserType
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
 from users.models import (
@@ -50,7 +50,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
             return RoleSerializer(self.context.role).data
 
     def get_sites(self, _):
-        from organisations.serializers import SiteListSerializer
+        from api.organisations.serializers import SiteListSerializer
 
         if self.context:
             sites = Site.objects.get_by_user_organisation_relationship(self.context)

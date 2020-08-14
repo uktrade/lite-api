@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
-from organisations.tests.factories import SiteFactory
+from api.organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient

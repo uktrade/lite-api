@@ -10,7 +10,7 @@ from api.goods.enums import GoodControlled
 from api.goods.tests.factories import GoodFactory
 from licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
 from open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
-from organisations.tests.factories import SiteFactory
+from api.organisations.tests.factories import SiteFactory
 from static.control_list_entries.factories import ControlListEntriesFactory
 from test_helpers.clients import DataTestClient
 

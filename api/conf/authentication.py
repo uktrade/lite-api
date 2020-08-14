@@ -10,8 +10,8 @@ from django.conf import settings
 from api.conf.exceptions import PermissionDeniedError
 from api.conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS
 from gov_users.enums import GovUserStatuses
-from organisations.enums import OrganisationType, OrganisationStatus
-from organisations.models import Organisation
+from api.organisations.enums import OrganisationType, OrganisationStatus
+from api.organisations.models import Organisation
 from users.enums import UserStatuses
 from users.libraries.token_to_user import token_to_user_pk
 from users.models import UserOrganisationRelationship, ExporterUser, GovUser
@@ -34,7 +34,7 @@ class ExporterAuthentication(authentication.BaseAuthentication):
         organisation and that they're allowed to access that organisation
         """
 
-        from organisations.libraries.get_organisation import get_request_user_organisation_id
+        from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 
         _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
 
@@ -67,7 +67,7 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         When given an exporter user token and an HMRC organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation
         """
-        from organisations.libraries.get_organisation import get_request_user_organisation_id
+        from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 
         _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
 

@@ -44,7 +44,7 @@ from api.goods.serializers import (
 from api.goodstype.helpers import get_goods_type
 from api.goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
-from organisations.libraries.get_organisation import get_request_user_organisation_id
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser, ExporterNotification

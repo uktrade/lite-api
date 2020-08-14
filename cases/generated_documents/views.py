@@ -22,7 +22,7 @@ from api.conf.helpers import str_to_bool
 from documents.libraries import s3_operations
 from licences.models import Licence
 from lite_content.lite_api import strings
-from organisations.libraries.get_organisation import get_request_user_organisation_id
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.enums import UserType
 from users.models import GovUser
 

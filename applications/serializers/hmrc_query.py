@@ -10,9 +10,9 @@ from cases.models import CaseType
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import GoodsTypeViewSerializer
 from lite_content.lite_api import strings
-from organisations.enums import OrganisationType
-from organisations.models import Organisation
-from organisations.serializers import TinyOrganisationViewSerializer
+from api.organisations.enums import OrganisationType
+from api.organisations.models import Organisation
+from api.organisations.serializers import TinyOrganisationViewSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 

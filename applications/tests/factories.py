@@ -12,7 +12,7 @@ from applications.models import (
 from cases.enums import CaseTypeEnum
 from static.countries.factories import CountryFactory
 from api.goods.tests.factories import GoodFactory
-from organisations.tests.factories import OrganisationFactory, SiteFactory
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from parties.tests.factories import PartyFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

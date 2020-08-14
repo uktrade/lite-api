@@ -20,10 +20,10 @@ from api.conf.helpers import convert_queryset_to_str, get_value_from_enum, date_
 from api.conf.permissions import assert_user_has_permission, check_user_has_permission
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Users
-from organisations.enums import OrganisationStatus
-from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
-from organisations.libraries.get_site import get_site
-from organisations.models import Site
+from api.organisations.enums import OrganisationStatus
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from api.organisations.libraries.get_site import get_site
+from api.organisations.models import Site
 from queues.models import Queue
 from users.libraries.get_user import (
     get_user_by_pk,

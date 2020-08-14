@@ -14,9 +14,9 @@ from api.conf.constants import Roles, ExporterPermissions
 from api.conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleListSerializer
 from lite_content.lite_api import strings
-from organisations.libraries.get_organisation import get_organisation_by_pk
-from organisations.models import Site
-from organisations.serializers import OrganisationUserListView, SiteListSerializer
+from api.organisations.libraries.get_organisation import get_organisation_by_pk
+from api.organisations.models import Site
+from api.organisations.serializers import OrganisationUserListView, SiteListSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.models import ExporterUser, Role

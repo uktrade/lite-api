@@ -2,7 +2,7 @@ from django.db.models import F
 
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from organisations.enums import OrganisationType, OrganisationStatus
+from api.organisations.enums import OrganisationType, OrganisationStatus
 from gov_notify import service as gov_notify_service
 from gov_notify.payloads import OrganisationStatusEmailData
 from gov_notify.enums import TemplateType

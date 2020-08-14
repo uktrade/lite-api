@@ -4,8 +4,8 @@ from api.conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoic
 from api.goods.enums import PvGrading
 from api.goods.models import PvGradingDetails
 from lite_content.lite_api import strings
-from organisations.models import Organisation
-from organisations.serializers import TinyOrganisationViewSerializer
+from api.organisations.models import Organisation
+from api.organisations.serializers import TinyOrganisationViewSerializer
 from queries.goods_query.models import GoodsQuery
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.libraries.notifications import (

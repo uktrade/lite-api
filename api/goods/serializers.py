@@ -28,7 +28,7 @@ from api.goods.helpers import (
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
-from organisations.models import Organisation
+from api.organisations.models import Organisation
 from queries.goods_query.models import GoodsQuery
 from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons

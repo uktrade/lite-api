@@ -1,6 +1,6 @@
 from applications.models import BaseApplication, SiteOnApplication
 from api.conf.exceptions import NotFoundError
-from organisations.models import Site
+from api.organisations.models import Site
 
 
 def get_site(pk, organisation) -> Site:

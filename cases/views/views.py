@@ -70,8 +70,8 @@ from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
 from licences.models import Licence
 from licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
-from organisations.libraries.get_organisation import get_request_user_organisation_id
-from organisations.models import Site
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id
+from api.organisations.models import Site
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue

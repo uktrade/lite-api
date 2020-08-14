@@ -27,7 +27,7 @@ from api.conf.helpers import (
 from api.goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled, GoodPvGraded
 from licences.enums import LicenceStatus
 from licences.models import Licence
-from organisations.models import Site, ExternalLocation
+from api.organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole, PartyType, SubType
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
