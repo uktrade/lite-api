@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import ApplicationException, PartyOnApplication
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from api.conf.authentication import ExporterAuthentication
 from api.conf.decorators import (
     authorised_to_view_application,

@@ -27,8 +27,8 @@ from api.applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice

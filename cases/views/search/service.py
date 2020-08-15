@@ -10,7 +10,7 @@ from django.db.models.functions import Concat
 from django.utils import timezone
 
 from api.applications.models import HmrcQuery
-from audit_trail.models import Audit
+from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from cases.models import Case
 from api.common.dates import working_days_in_range, number_of_days_since, working_hours_in_range

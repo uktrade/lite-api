@@ -2,8 +2,8 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from audit_trail import service
-from audit_trail.enums import AuditType
+from api.audit_trail import service
+from api.audit_trail.enums import AuditType
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.delete_notifications import delete_exporter_notifications

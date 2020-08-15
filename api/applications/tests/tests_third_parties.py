@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.applications.models import PartyOnApplication
-from audit_trail.models import Audit
+from api.audit_trail.models import Audit
 from lite_content.lite_api.strings import PartyErrors
 from api.parties.enums import PartyType, PartyRole, SubType
 from api.parties.models import Party, PartyDocument

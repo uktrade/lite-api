@@ -3,8 +3,8 @@ import uuid
 from django.urls import reverse
 from rest_framework import status
 
-from audit_trail.models import Audit
-from audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
 from lite_content.lite_api.strings import Cases
 from test_helpers.clients import DataTestClient
 

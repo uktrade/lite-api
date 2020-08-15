@@ -5,8 +5,8 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from cases.helpers import remove_next_review_date
 from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment

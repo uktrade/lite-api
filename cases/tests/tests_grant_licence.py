@@ -6,7 +6,7 @@ from rest_framework import status
 from gov_notify.enums import TemplateType
 from licences.enums import LicenceStatus
 from licences.models import Licence
-from audit_trail.models import Audit
+from api.audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from api.conf.constants import GovPermissions

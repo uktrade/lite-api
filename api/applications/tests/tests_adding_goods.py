@@ -5,7 +5,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication
-from audit_trail.models import Audit
+from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from api.goods.enums import ItemType
 from lite_content.lite_api import strings

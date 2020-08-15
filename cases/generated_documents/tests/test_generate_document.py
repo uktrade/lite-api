@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from audit_trail.models import Audit
+from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
 from licences.enums import LicenceStatus

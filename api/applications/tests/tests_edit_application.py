@@ -3,8 +3,8 @@ from parameterized import parameterized, parameterized_class
 from rest_framework import status
 
 from api.applications.libraries.case_status_helpers import get_case_statuses
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from api.goods.enums import PvGrading
 from lite_content.lite_api import strings

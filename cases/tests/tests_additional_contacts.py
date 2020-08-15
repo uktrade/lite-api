@@ -3,8 +3,8 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from lite_content.lite_api.strings import PartyErrors
 from api.parties.enums import PartyType
 from api.parties.models import Party

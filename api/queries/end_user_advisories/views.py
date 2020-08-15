@@ -4,8 +4,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from api.conf.authentication import ExporterAuthentication, SharedAuthentication
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.parties.enums import PartyType

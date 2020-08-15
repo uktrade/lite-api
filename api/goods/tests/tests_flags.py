@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
-from audit_trail.models import Audit
+from api.audit_trail.models import Audit
 from cases.models import Case
 from test_helpers.clients import DataTestClient
 

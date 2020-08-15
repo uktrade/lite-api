@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
 from api.applications.serializers.advice import AdviceCreateSerializer
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from cases.enums import AdviceLevel, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.libraries.get_case import get_case

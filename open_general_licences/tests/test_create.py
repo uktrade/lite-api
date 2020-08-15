@@ -4,7 +4,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from audit_trail.models import Audit
+from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from open_general_licences.models import OpenGeneralLicence
 from test_helpers.clients import DataTestClient

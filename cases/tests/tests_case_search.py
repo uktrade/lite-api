@@ -3,8 +3,8 @@ import datetime
 from django.urls import reverse
 from rest_framework import status
 
-from audit_trail.models import Audit
-from audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from cases.models import Case, CaseAssignment
 from api.queues.constants import (

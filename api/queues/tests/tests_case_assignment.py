@@ -2,8 +2,8 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from cases.models import CaseAssignment
 from api.queues.models import Queue
 from test_helpers.clients import DataTestClient

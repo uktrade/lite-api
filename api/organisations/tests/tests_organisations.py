@@ -7,8 +7,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from api.addresses.tests.factories import ForeignAddressFactory
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.conf.authentication import EXPORTER_USER_TOKEN_HEADER
 from api.conf.constants import Roles, GovPermissions
 from api.conf.helpers import date_to_drf_date
