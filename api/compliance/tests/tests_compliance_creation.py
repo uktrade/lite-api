@@ -8,7 +8,7 @@ from api.compliance.helpers import generate_compliance_site_case
 from api.compliance.models import ComplianceSiteCase
 from api.goods.enums import GoodControlled
 from api.goods.tests.factories import GoodFactory
-from licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
+from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from api.organisations.tests.factories import SiteFactory
 from static.control_list_entries.factories import ControlListEntriesFactory

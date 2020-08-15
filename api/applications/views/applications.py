@@ -75,10 +75,10 @@ from api.goodstype.models import GoodsType
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
-from licences.enums import LicenceStatus
-from licences.helpers import get_licence_reference_code, update_licence_status
-from licences.models import Licence
-from licences.serializers.create_licence import LicenceCreateSerializer
+from api.licences.enums import LicenceStatus
+from api.licences.helpers import get_licence_reference_code, update_licence_status
+from api.licences.models import Licence
+from api.licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
 from api.organisations.enums import OrganisationType
 from api.organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id

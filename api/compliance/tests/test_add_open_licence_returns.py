@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from api.compliance.models import OpenLicenceReturns
-from licences.enums import LicenceStatus
+from api.licences.enums import LicenceStatus
 from lite_content.lite_api.strings import Compliance
 from test_helpers.clients import DataTestClient
 

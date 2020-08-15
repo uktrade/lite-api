@@ -67,8 +67,8 @@ from api.documents.models import Document
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData, EcjuComplianceCreatedEmailData
-from licences.models import Licence
-from licences.service import get_case_licences
+from api.licences.models import Licence
+from api.licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.organisations.models import Site

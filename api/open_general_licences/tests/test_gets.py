@@ -3,7 +3,7 @@ from rest_framework import status
 
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
-from licences.enums import LicenceStatus
+from api.licences.enums import LicenceStatus
 from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from api.organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum

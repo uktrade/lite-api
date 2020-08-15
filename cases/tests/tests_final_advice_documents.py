@@ -4,7 +4,7 @@ from rest_framework import status
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
-from licences.tests.factories import LicenceFactory
+from api.licences.tests.factories import LicenceFactory
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 

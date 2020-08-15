@@ -10,7 +10,7 @@ from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from api.common.enums import SortOrder
 from api.compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
-from licences.enums import LicenceStatus
+from api.licences.enums import LicenceStatus
 from api.queues.constants import (
     ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,

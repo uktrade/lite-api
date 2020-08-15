@@ -3,8 +3,8 @@ import datetime
 from django.utils import timezone
 
 from api.conf.exceptions import NotFoundError
-from licences.helpers import get_licence_reference_code
-from licences.models import Licence
+from api.licences.helpers import get_licence_reference_code
+from api.licences.models import Licence
 from api.open_general_licences.models import OpenGeneralLicenceCase
 
 

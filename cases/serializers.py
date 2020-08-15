@@ -33,7 +33,7 @@ from api.conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerialize
 from api.documents.libraries.process_document import process_document
 from api.goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
-from licences.helpers import get_open_general_export_licence_case
+from api.licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from api.queries.serializers import QueryViewSerializer
 from api.queues.models import Queue
@@ -183,7 +183,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
     def get_data(self, instance):
-        from licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer
+        from api.licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer
         from api.applications.helpers import get_application_view_serializer
 
         if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:

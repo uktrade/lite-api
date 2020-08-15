@@ -20,8 +20,8 @@ from api.applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
 from api.conf.serializers import KeyValueChoiceField
 from api.goodstype.serializers import GoodsTypeViewSerializer
-from licences.models import Licence
-from licences.serializers.view_licence import CaseLicenceViewSerializer
+from api.licences.models import Licence
+from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
