@@ -93,8 +93,8 @@ INSTALLED_APPS = [
     "api.teams",
     "api.users",
     "api.workflow.routing_rules",
-    "search",
-    "search.case",
+    "api.search",
+    "api.search.case",
 ]
 
 MIDDLEWARE = [
