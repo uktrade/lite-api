@@ -3,7 +3,7 @@ from faker import Faker
 
 from api.conf.constants import Roles
 from api.flags.enums import SystemFlags
-from static.countries.models import Country
+from api.staticdata.countries.models import Country
 from api.users.models import ExporterUser, UserOrganisationRelationship
 
 faker = Faker()

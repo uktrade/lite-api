@@ -11,7 +11,7 @@ from api.conf.serializers import PrimaryKeyRelatedSerializerField
 from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer
 
-from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 
 
 # ComplianceVisitCases have a number of textfields, this constant is for serializers to ensure max length on validation

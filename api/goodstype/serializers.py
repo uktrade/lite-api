@@ -13,8 +13,8 @@ from api.goods.enums import GoodControlled
 from api.goodstype.constants import DESCRIPTION_MAX_LENGTH
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
-from static.control_list_entries.serializers import ControlListEntrySerializer
-from static.countries.serializers import CountrySerializer
+from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.staticdata.countries.serializers import CountrySerializer
 
 
 class GoodsTypeSerializer(serializers.ModelSerializer):

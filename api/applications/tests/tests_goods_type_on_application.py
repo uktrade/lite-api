@@ -5,8 +5,8 @@ from rest_framework.reverse import reverse
 
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
-from static.control_list_entries.helpers import get_control_list_entry
-from static.control_list_entries.models import ControlListEntry
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
+from api.staticdata.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 
 

@@ -10,9 +10,9 @@ from api.licences.models import Licence
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.licences.views.main import LicenceType
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
-from static.countries.models import Country
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.models import CaseStatus
+from api.staticdata.countries.models import Country
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import node_by_id
 

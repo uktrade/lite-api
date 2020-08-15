@@ -10,7 +10,7 @@ from cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.parties.enums import PartyType
-from static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterUser
 
 

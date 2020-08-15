@@ -10,8 +10,8 @@ from cases.models import GoodCountryDecision
 from api.conf.exceptions import NotFoundError
 from api.licences.models import Licence
 from lite_content.lite_api import strings
-from static.countries.models import Country
-from static.statuses.enums import CaseStatusEnum
+from api.staticdata.countries.models import Country
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 def get_open_general_export_licence_case(pk):

@@ -18,8 +18,8 @@ from api.goods.enums import (
 )
 from api.goods.models import Good
 from lite_content.lite_api import strings
-from static.control_list_entries.helpers import get_control_list_entry
-from static.control_list_entries.models import ControlListEntry
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
+from api.staticdata.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 
 URL = reverse("goods:goods")

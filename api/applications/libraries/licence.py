@@ -1,6 +1,6 @@
 from api.applications.enums import ApplicationExportType, DefaultDuration
 from cases.enums import CaseTypeSubTypeEnum
-from static.countries.models import Country
+from api.staticdata.countries.models import Country
 
 
 def get_default_duration(application):

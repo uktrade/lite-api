@@ -20,7 +20,7 @@ from cases.enums import CaseTypeEnum
 from api.conf.serializers import KeyValueChoiceField
 from api.licences.models import Licence
 from lite_content.lite_api import strings
-from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
+from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):

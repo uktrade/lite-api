@@ -60,18 +60,18 @@ from api.picklists.models import PicklistItem
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
 from api.queues.models import Queue
-from static.control_list_entries.models import ControlListEntry
-from static.countries.helpers import get_country
-from static.countries.models import Country
-from static.decisions.models import Decision
-from static.f680_clearance_types.models import F680ClearanceType
-from static.letter_layouts.models import LetterLayout
-from static.management.commands import seedall
-from static.management.commands.seedall import SEED_COMMANDS
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from static.units.enums import Units
-from static.urls import urlpatterns as static_urlpatterns
+from api.staticdata.control_list_entries.models import ControlListEntry
+from api.staticdata.countries.helpers import get_country
+from api.staticdata.countries.models import Country
+from api.staticdata.decisions.models import Decision
+from api.staticdata.f680_clearance_types.models import F680ClearanceType
+from api.staticdata.letter_layouts.models import LetterLayout
+from api.staticdata.management.commands import seedall
+from api.staticdata.management.commands.seedall import SEED_COMMANDS
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.units.enums import Units
+from api.staticdata.urls import urlpatterns as static_urlpatterns
 from api.teams.models import Team
 from test_helpers import colours
 from api.users.enums import UserStatuses, SystemUser

@@ -18,7 +18,7 @@ from api.applications.models import (
 )
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
-from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
+from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
 

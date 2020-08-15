@@ -16,10 +16,10 @@ from api.conf.authentication import ExporterAuthentication
 from api.conf.decorators import allowed_application_types, authorised_to_view_application, application_in_state
 from api.conf.exceptions import BadRequestError
 from api.flags.models import Flag
-from static.countries.helpers import get_country
-from static.countries.serializers import CountrySerializer
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.case_status_validate import is_case_status_draft
+from api.staticdata.countries.helpers import get_country
+from api.staticdata.countries.serializers import CountrySerializer
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.users.models import ExporterUser
 
 

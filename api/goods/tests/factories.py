@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from api.goods import models
 from api.goods.enums import GoodControlled, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
-from static.control_list_entries.helpers import get_control_list_entry
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
 
 
 class GoodFactory(factory.django.DjangoModelFactory):

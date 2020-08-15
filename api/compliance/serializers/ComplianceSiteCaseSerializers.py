@@ -13,7 +13,7 @@ from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer
 
 from cases.libraries.get_flags import get_ordered_flags
-from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.teams.helpers import get_team_by_pk
 from api.users.libraries.notifications import (
     get_exporter_user_notification_individual_count,

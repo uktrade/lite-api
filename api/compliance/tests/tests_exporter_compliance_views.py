@@ -3,8 +3,8 @@ from rest_framework.reverse import reverse
 
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
 from api.organisations.tests.factories import SiteFactory
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from api.users.models import UserOrganisationRelationship
 

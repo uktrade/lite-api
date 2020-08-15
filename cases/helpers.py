@@ -1,5 +1,5 @@
 from cases.enums import CaseTypeReferenceEnum
-from static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import GovUser, GovNotification
 
 

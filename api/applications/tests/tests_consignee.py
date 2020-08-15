@@ -8,7 +8,7 @@ from api.applications.models import PartyOnApplication
 from lite_content.lite_api.strings import PartyErrors
 from api.parties.enums import PartyType, SubType
 from api.parties.models import PartyDocument
-from static.countries.helpers import get_country
+from api.staticdata.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
 

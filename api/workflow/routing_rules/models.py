@@ -8,8 +8,8 @@ from api.common.models import TimestampableModel
 from api.flags.enums import FlagStatuses
 from api.flags.models import Flag
 from api.queues.models import Queue
-from static.countries.models import Country
-from static.statuses.models import CaseStatus
+from api.staticdata.countries.models import Country
+from api.staticdata.statuses.models import CaseStatus
 from api.teams.models import Team
 from api.users.models import GovUser
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields

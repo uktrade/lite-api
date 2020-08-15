@@ -11,8 +11,8 @@ from api.applications.models import (
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations
 from api.organisations.tests.factories import SiteFactory
-from static.countries.helpers import get_country
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.countries.helpers import get_country
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

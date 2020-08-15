@@ -13,7 +13,7 @@ from api.flags.tests.factories import FlagFactory
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence, GoodOnLicence
 from lite_content.lite_api import strings
-from static.statuses.models import CaseStatus
+from api.staticdata.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from api.users.models import Role
 

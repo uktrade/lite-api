@@ -17,9 +17,9 @@ from api.goods.tests.factories import FirearmFactory, GoodFactory
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
 from api.parties.models import PartyDocument
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
 

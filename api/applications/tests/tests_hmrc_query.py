@@ -12,7 +12,7 @@ from api.flags.enums import SystemFlags
 from api.goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from api.parties.models import PartyDocument
-from static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 

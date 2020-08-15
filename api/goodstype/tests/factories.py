@@ -1,7 +1,7 @@
 import factory
 
 from goodstype import models
-from static.control_list_entries.helpers import get_control_list_entry
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
 
 
 class GoodsTypeFactory(factory.django.DjangoModelFactory):

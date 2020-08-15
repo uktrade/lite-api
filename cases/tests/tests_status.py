@@ -8,8 +8,8 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from cases.models import CaseAssignment
 from api.licences.enums import LicenceStatus
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 faker = Faker()

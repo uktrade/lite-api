@@ -11,7 +11,7 @@ from api.goods.models import Good
 from api.goods.serializers import GoodSerializerInternal
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
-from static.units.enums import Units
+from api.staticdata.units.enums import Units
 
 
 class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):

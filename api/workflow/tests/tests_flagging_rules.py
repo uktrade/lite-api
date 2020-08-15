@@ -5,9 +5,9 @@ from cases.enums import CaseTypeEnum
 from api.flags.enums import FlagLevels, FlagStatuses
 from api.goods.enums import GoodStatus
 from api.goodstype.models import GoodsType
-from static.control_list_entries.helpers import get_control_list_entry
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from api.workflow.flagging_rules_automation import (
     apply_flagging_rules_to_case,

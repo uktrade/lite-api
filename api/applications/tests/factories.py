@@ -10,12 +10,12 @@ from api.applications.models import (
     StandardApplication,
 )
 from cases.enums import CaseTypeEnum
-from static.countries.factories import CountryFactory
+from api.staticdata.countries.factories import CountryFactory
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from api.parties.tests.factories import PartyFactory
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class OpenApplicationFactory(factory.django.DjangoModelFactory):

@@ -9,8 +9,8 @@ from api.organisations.serializers import OrganisationDetailSerializer
 from api.parties.enums import SubType
 from api.parties.serializers import PartySerializer
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
 from api.users.libraries.notifications import get_exporter_user_notification_individual_count
 from api.users.models import ExporterUser
 

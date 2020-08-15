@@ -11,9 +11,9 @@ from lite_content.lite_api.strings import OpenGeneralLicences
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.open_general_licences.models import OpenGeneralLicence
 from api.organisations.serializers import SiteListSerializer
-from static.countries.models import Country
-from static.countries.serializers import CountrySerializer
-from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+from api.staticdata.countries.models import Country
+from api.staticdata.countries.serializers import CountrySerializer
+from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 
 
 class OpenGeneralLicenceCaseListSerializer(serializers.Serializer):

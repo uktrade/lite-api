@@ -14,8 +14,8 @@ from api.queues.constants import (
     SYSTEM_QUEUES,
 )
 from api.queues.tests.factories import QueueFactory
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
 from api.users.libraries.user_to_token import user_to_token

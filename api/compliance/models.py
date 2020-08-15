@@ -10,8 +10,8 @@ from api.common.models import CreatedAt, TimestampableModel
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.licences.models import Licence
 from api.organisations.models import Organisation
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class ComplianceSiteCase(Case):

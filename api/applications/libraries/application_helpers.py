@@ -2,7 +2,7 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.conf.constants import GovPermissions
 from api.conf.permissions import assert_user_has_permission
-from static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 def optional_str_to_bool(optional_string: str):
