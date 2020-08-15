@@ -1,8 +1,8 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from cases.enums import AdviceType, CaseTypeReferenceEnum
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from api.cases.enums import AdviceType, CaseTypeReferenceEnum
+from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from api.staticdata.decisions.models import Decision
 from test_helpers.clients import DataTestClient
 

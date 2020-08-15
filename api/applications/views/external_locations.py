@@ -10,7 +10,7 @@ from api.applications.models import SiteOnApplication, ExternalLocationOnApplica
 from api.applications.serializers.location import ExternalLocationOnApplicationSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.conf.authentication import ExporterAuthentication
 from api.conf.decorators import authorised_to_view_application, application_in_state
 from lite_content.lite_api.strings import ExternalLocations

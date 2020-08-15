@@ -2,9 +2,9 @@ from django.db.models import Q
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView
 
 from api.applications.models import CountryOnApplication
-from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeEnum
-from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseType
+from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeEnum
+from api.cases.generated_documents.models import GeneratedCaseDocument
+from api.cases.models import CaseType
 from api.conf.authentication import ExporterAuthentication
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence

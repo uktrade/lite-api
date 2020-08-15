@@ -1,8 +1,8 @@
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 
-from cases.enums import CaseTypeEnum
-from cases.models import Case
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import Case
 from api.compliance.helpers import compliance_visit_case_complete
 from api.compliance.models import ComplianceVisitCase
 from api.queues.models import Queue

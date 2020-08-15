@@ -29,10 +29,10 @@ from api.applications.models import (
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
-from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
-from cases.tasks import get_application_target_sla
+from api.cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
+from api.cases.generated_documents.models import GeneratedCaseDocument
+from api.cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
+from api.cases.tasks import get_application_target_sla
 from api.conf import settings
 from api.conf.constants import Roles
 from api.conf.urls import urlpatterns
@@ -1111,11 +1111,11 @@ class PerformanceTestClient(DataTestClient):
         hmrc_query_count_goods_gone: int = 1,
         hmrc_query_count_goods_in_uk: int = 1,
     ):
-        print(f"Creating {standard_app_case_count} standard cases...")
+        print(f"Creating {standard_app_case_count} standard api.cases...")
         for i in range(standard_app_case_count):
             self.create_standard_application_case(self.organisation)
 
-        print(f"Creating {open_app_case_count} open cases...")
+        print(f"Creating {open_app_case_count} open api.cases...")
         for i in range(open_app_case_count):
             self.create_open_application_case(self.organisation)
 

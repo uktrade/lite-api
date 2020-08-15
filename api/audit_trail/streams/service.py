@@ -11,7 +11,7 @@ from django.utils import timezone
 from api.applications.models import CountryOnApplication
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
-from cases.models import Case
+from api.cases.models import Case
 from api.common.models import prefetch_generic_relations
 from api.staticdata.statuses.enums import CaseStatusEnum
 

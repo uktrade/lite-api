@@ -5,7 +5,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.models import CaseAssignment
+from api.cases.models import CaseAssignment
 from gov_notify.enums import TemplateType
 from api.licences.enums import LicenceStatus
 from lite_content.lite_api import strings

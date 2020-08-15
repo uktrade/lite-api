@@ -15,7 +15,7 @@ from api.applications.libraries.document_helpers import (
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import ApplicationDocument
 from api.applications.serializers.document import ApplicationDocumentSerializer
-from cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.conf.authentication import ExporterAuthentication
 from api.conf.decorators import (
     authorised_to_view_application,

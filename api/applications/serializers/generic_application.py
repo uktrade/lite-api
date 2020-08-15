@@ -10,8 +10,8 @@ from api.applications.enums import (
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
 from api.applications.serializers.document import ApplicationDocumentSerializer
-from cases.enums import CaseTypeSubTypeEnum
-from cases.models import CaseType
+from api.cases.enums import CaseTypeSubTypeEnum
+from api.cases.models import CaseType
 from api.conf.helpers import get_value_from_enum
 from api.conf.serializers import KeyValueChoiceField
 from api.gov_users.serializers import GovUserSimpleSerializer
@@ -129,7 +129,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
             }
 
     def get_case_type(self, instance):
-        from cases.serializers import CaseTypeSerializer
+        from api.cases.serializers import CaseTypeSerializer
 
         return CaseTypeSerializer(instance.case_type).data
 

@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.staticdata.management.SeedCommand import SeedCommand
 
 from api.staticdata.statuses.models import CaseStatus, CaseStatusCaseType

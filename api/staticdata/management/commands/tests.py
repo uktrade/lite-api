@@ -2,15 +2,15 @@ import os
 
 from django.test import tag
 
-from cases.enums import CaseTypeEnum
-from cases.models import CaseType
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
 from api.conf.constants import GovPermissions, ExporterPermissions
 from api.conf.settings import BASE_DIR
 from api.flags.models import Flag
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
-from cases.enums import AdviceType
+from api.cases.enums import AdviceType
 from api.staticdata.decisions.models import Decision
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.letter_layouts.models import LetterLayout

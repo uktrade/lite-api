@@ -5,7 +5,7 @@ from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.compliance.models import ComplianceVisitCase
 from api.compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory

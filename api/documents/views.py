@@ -1,7 +1,7 @@
 from django.http import JsonResponse, HttpResponse
 from rest_framework.views import APIView
 
-from cases.generated_documents.signing import get_certificate_data
+from api.cases.generated_documents.signing import get_certificate_data
 from api.conf.authentication import GovAuthentication, SharedAuthentication
 from api.conf.exceptions import NotFoundError
 from api.documents.models import Document

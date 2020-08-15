@@ -8,7 +8,7 @@ from api.applications.models import (
     SiteOnApplication,
     ExternalLocationOnApplication,
 )
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations
 from api.organisations.tests.factories import SiteFactory
 from api.staticdata.countries.helpers import get_country

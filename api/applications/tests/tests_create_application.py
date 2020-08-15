@@ -16,7 +16,7 @@ from api.applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
+from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient

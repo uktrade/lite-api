@@ -1,7 +1,7 @@
 from django.urls import reverse
 from django.utils import timezone
 
-from cases.enums import CaseTypeReferenceEnum
+from api.cases.enums import CaseTypeReferenceEnum
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
 from api.licences.enums import LicenceStatus
 from api.staticdata.statuses.enums import CaseStatusEnum

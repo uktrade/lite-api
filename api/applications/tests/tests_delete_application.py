@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 
 from api.applications.models import BaseApplication
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 

@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import CaseTypeEnum, AdviceType
+from api.cases.enums import CaseTypeEnum, AdviceType
 from test_helpers.clients import DataTestClient
 
 

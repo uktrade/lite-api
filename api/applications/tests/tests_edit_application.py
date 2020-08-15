@@ -5,7 +5,7 @@ from rest_framework import status
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.goods.enums import PvGrading
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType, SubType

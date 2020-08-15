@@ -10,9 +10,9 @@ from rest_framework.views import APIView
 from api.applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from cases.libraries.get_case import get_case
-from cases.libraries.get_flags import get_flags
-from cases.models import Case
+from api.cases.libraries.get_case import get_case
+from api.cases.libraries.get_flags import get_flags
+from api.cases.models import Case
 from api.conf.authentication import GovAuthentication
 from api.conf.constants import GovPermissions
 from api.conf.helpers import str_to_bool
@@ -160,9 +160,9 @@ class AssignFlags(APIView):
         if isinstance(obj, Good):
             cases = []
 
-            cases.extend(Case.objects.filter(id__in=GoodsQuery.objects.filter(good=obj).values_list("id", flat=True)))
+            api.cases.extend(Case.objects.filter(id__in=GoodsQuery.objects.filter(good=obj).values_list("id", flat=True)))
 
-            cases.extend(
+            api.cases.extend(
                 Case.objects.filter(id__in=GoodOnApplication.objects.filter(good=obj).values_list("id", flat=True))
             )
 

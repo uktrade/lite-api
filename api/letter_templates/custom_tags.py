@@ -69,7 +69,7 @@ def get_exporter_lite_content_string(value):
     def get(object_to_search, nested_properties_list):
         """
         Recursive function used to search an unknown number of nested objects
-        for a property. For example if we had a path 'cases.CasePage.title' this function
+        for a property. For example if we had a path 'api.cases.CasePage.title' this function
         would take the current object `object_to_search` and get an object called 'CasePage'.
         It would then call itself again to search the 'CasePage' for a property called 'title'.
         :param object_to_search: An unknown object to get the given property from

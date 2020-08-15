@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from api.applications.models import GoodOnApplication
-from cases.models import Case
+from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.conf.helpers import add_months
 from api.conf.settings import LITE_HMRC_INTEGRATION_ENABLED

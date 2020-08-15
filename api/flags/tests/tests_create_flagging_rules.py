@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication, PartyOnApplication
-from cases.enums import CaseTypeReferenceEnum
+from api.cases.enums import CaseTypeReferenceEnum
 from api.flags.enums import FlagLevels
 from api.flags.models import FlaggingRule
 from api.flags.tests.factories import FlagFactory

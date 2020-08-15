@@ -1,7 +1,7 @@
 import factory
 
-from cases.enums import CaseTypeEnum
-from cases.models import CaseType
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
 from api.open_general_licences import models
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.staticdata.control_list_entries.helpers import get_control_list_entry

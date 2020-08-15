@@ -4,7 +4,7 @@ from rest_framework import status
 
 from api.applications.enums import ApplicationExportType, GoodsTypeCategory
 from api.applications.models import OpenApplication, CountryOnApplication, PartyOnApplication
-from cases.enums import CaseTypeReferenceEnum
+from api.cases.enums import CaseTypeReferenceEnum
 from api.goodstype.models import GoodsType
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.parties.enums import PartyType

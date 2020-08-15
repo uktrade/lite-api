@@ -4,7 +4,7 @@ from rest_framework import status
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from cases.models import CaseAssignment
+from api.cases.models import CaseAssignment
 from api.queues.models import Queue
 from test_helpers.clients import DataTestClient
 
@@ -56,7 +56,7 @@ class CaseAssignmentTests(DataTestClient):
                 self.assertTrue(CaseAssignment.objects.filter(case=case, user=user).exists())
 
     def test_all_assignments_are_cleared_when_a_case_leaves_a_queue(self):
-        self.queue.cases.add(self.case)
+        self.queue.api.cases.add(self.case)
         CaseAssignment.objects.create(queue=self.queue, case=self.case, user=self.gov_user)
 
         self.url = reverse("cases:queues", kwargs={"pk": self.case.id})

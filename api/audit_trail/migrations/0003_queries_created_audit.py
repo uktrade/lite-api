@@ -1,7 +1,7 @@
 from django.db import migrations
 
 from api.audit_trail.enums import AuditType
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 
 
 def create_missing_create_audits(apps, schema_editor):

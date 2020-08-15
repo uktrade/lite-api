@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from api.audit_trail.service import get_objects_activity_filters
 
 from api.audit_trail.tests.factories import AuditFactory
-from cases.models import Case
+from api.cases.models import Case
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.teams.tests.factories import TeamFactory

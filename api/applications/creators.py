@@ -9,7 +9,7 @@ from api.applications.models import (
     SiteOnApplication,
     ExternalLocationOnApplication,
 )
-from cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.conf.helpers import str_to_bool
 from api.documents.models import Document
 from api.goods.models import GoodDocument

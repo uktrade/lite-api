@@ -9,7 +9,7 @@ from rest_framework.exceptions import APIException
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.conf.requests import post
 from api.conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT, HAWK_LITE_API_CREDENTIALS
 from api.licences.enums import HMRCIntegrationActionEnum, hmrc_integration_action_to_licence_status

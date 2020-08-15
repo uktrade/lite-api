@@ -1,4 +1,4 @@
-from cases.models import Case
+from api.cases.models import Case
 
 
 class Query(Case):

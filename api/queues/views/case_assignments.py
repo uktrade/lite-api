@@ -3,9 +3,9 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import views
 
-from cases.libraries.get_case import get_case
-from cases.models import CaseAssignment
-from cases.serializers import CaseAssignmentSerializer
+from api.cases.libraries.get_case import get_case
+from api.cases.models import CaseAssignment
+from api.cases.serializers import CaseAssignmentSerializer
 from api.conf.authentication import GovAuthentication
 from api.conf.helpers import str_to_bool
 from api.queues.constants import ALL_CASES_QUEUE_ID, OPEN_CASES_QUEUE_ID

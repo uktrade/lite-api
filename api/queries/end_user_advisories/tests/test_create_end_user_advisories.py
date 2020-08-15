@@ -2,7 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.models import Case
+from api.cases.models import Case
 from api.parties.enums import PartyType
 from test_helpers.clients import DataTestClient
 

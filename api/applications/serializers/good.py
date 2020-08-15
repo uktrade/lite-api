@@ -3,8 +3,8 @@ from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.applications.models import BaseApplication, GoodOnApplication
-from cases.enums import CaseTypeEnum
-from cases.models import Case
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import Case
 from api.conf.serializers import KeyValueChoiceField
 from api.goods.enums import ItemType
 from api.goods.models import Good

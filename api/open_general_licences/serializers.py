@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from cases.enums import CaseTypeEnum
-from cases.models import CaseType
-from cases.serializers import CaseTypeSerializer
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
+from api.cases.serializers import CaseTypeSerializer
 from api.conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence

@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 from separatedvaluesfield.models import SeparatedValuesField
 
-from cases.models import CaseType
+from api.cases.models import CaseType
 from api.common.models import TimestampableModel
 from api.flags.enums import FlagStatuses
 from api.flags.models import Flag

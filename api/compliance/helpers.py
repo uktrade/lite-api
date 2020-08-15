@@ -7,8 +7,8 @@ from rest_framework.exceptions import ValidationError
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from cases.enums import CaseTypeEnum
-from cases.models import Case
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import Case
 from api.compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
 from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
 from api.conf.constants import ExporterPermissions

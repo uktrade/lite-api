@@ -6,9 +6,9 @@ from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
-from cases.models import CaseType
-from cases.tests.factories import GoodCountryDecisionFactory
+from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
+from api.cases.models import CaseType
+from api.cases.tests.factories import GoodCountryDecisionFactory
 from api.conf.constants import GovPermissions
 from api.conf.helpers import add_months
 from api.conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT

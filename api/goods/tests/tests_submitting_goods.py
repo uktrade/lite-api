@@ -14,7 +14,7 @@ from test_helpers.helpers import is_not_verified_flag_set_on_good
 
 class GoodTests(DataTestClient):
     @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
-    @mock.patch("cases.generated_documents.helpers.html_to_pdf")
+    @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_submitted_good_changes_status_and_adds_system_flag(self, upload_bytes_file_func, html_to_pdf_func):
         """
         Test that the good's status is set to submitted and the 'is_not_verified' flag is added

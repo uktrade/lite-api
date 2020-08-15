@@ -2,8 +2,8 @@ from parameterized import parameterized
 
 from api.applications.models import SiteOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
-from cases.enums import CaseTypeEnum
-from cases.models import CaseType
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
 from api.compliance.helpers import generate_compliance_site_case
 from api.compliance.models import ComplianceSiteCase
 from api.goods.enums import GoodControlled

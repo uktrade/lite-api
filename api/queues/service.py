@@ -2,7 +2,7 @@ from typing import List, Dict
 
 from django.db.models import Count, QuerySet
 
-from cases.models import Case
+from api.cases.models import Case
 from api.queues import helpers
 from api.queues.constants import (
     ALL_CASES_QUEUE_ID,

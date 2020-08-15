@@ -7,7 +7,7 @@ from api.applications.models import (
     HmrcQuery,
     ExhibitionClearanceApplication,
 )
-from cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.conf.exceptions import NotFoundError
 
 

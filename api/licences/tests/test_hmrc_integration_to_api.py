@@ -7,9 +7,9 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_207_MULTI_STATUS, H
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
-from cases.models import CaseType
-from cases.tests.factories import GoodCountryDecisionFactory
+from api.cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
+from api.cases.models import CaseType
+from api.cases.tests.factories import GoodCountryDecisionFactory
 from api.goodstype.models import GoodsType
 from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum
 from api.licences.models import HMRCIntegrationUsageUpdate, Licence

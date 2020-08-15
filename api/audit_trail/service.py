@@ -8,7 +8,7 @@ from rest_framework.exceptions import PermissionDenied
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.schema import validate_kwargs
-from cases.libraries.dates import make_date_from_params
+from api.cases.libraries.dates import make_date_from_params
 from api.teams.models import Team
 from api.users.enums import UserType
 from api.users.enums import SystemUser

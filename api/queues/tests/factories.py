@@ -15,4 +15,4 @@ class QueueFactory(factory.django.DjangoModelFactory):
         if not create or not extracted:
             # Simple build, do nothing.
             return
-        self.cases.set(extracted)
+        self.api.cases.set(extracted)

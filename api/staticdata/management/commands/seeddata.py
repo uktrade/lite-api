@@ -8,7 +8,7 @@ from django.utils.dateparse import parse_date
 from faker import Faker
 
 from api.applications.enums import GoodsTypeCategory, ApplicationExportType
-from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
+from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from api.applications.models import StandardApplication, OpenApplication, GoodOnApplication
 from api.flags.models import Flag
 from api.applications.serializers.open_application import OpenApplicationCreateSerializer

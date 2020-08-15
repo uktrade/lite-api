@@ -1,5 +1,5 @@
 from api.applications.models import CountryOnApplication, PartyOnApplication
-from cases.models import CaseType
+from api.cases.models import CaseType
 from api.flags.enums import FlagStatuses
 from api.flags.tests.factories import FlagFactory
 from api.parties.models import Party

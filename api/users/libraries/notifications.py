@@ -1,6 +1,6 @@
 from django.db.models import Count
 
-from cases.models import Case
+from api.cases.models import Case
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.users.models import ExporterNotification, ExporterUser
 

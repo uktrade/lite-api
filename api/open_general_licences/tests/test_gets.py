@@ -1,8 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import CaseTypeEnum
-from cases.models import CaseType
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
 from api.licences.enums import LicenceStatus
 from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from api.organisations.tests.factories import SiteFactory

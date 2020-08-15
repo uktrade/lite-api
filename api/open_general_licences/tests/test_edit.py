@@ -3,8 +3,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from api.audit_trail.models import Audit
-from cases.enums import CaseTypeEnum
-from cases.models import CaseType
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory
 from test_helpers.clients import DataTestClient

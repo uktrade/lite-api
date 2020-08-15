@@ -3,8 +3,8 @@ from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.enums import CaseTypeEnum
-from cases.models import CaseType
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.open_general_licences.enums import OpenGeneralLicenceStatus

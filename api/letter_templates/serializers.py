@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseTypeReferenceEnum
-from cases.models import CaseType
-from cases.serializers import CaseTypeSerializer, CaseTypeReferenceListSerializer
+from api.cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseTypeReferenceEnum
+from api.cases.models import CaseType
+from api.cases.serializers import CaseTypeSerializer, CaseTypeReferenceListSerializer
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
 from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
