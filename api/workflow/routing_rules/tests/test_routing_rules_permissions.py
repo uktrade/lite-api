@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.conf import constants
-from static.statuses.models import CaseStatus
+from api.static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from api.users.models import Role
 

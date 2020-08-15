@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from lite_content.lite_api import strings
-from static.missing_document_reasons.enums import GoodMissingDocumentReasons
+from api.static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from test_helpers.clients import DataTestClient
 
 

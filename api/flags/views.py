@@ -34,7 +34,7 @@ from api.organisations.models import Organisation
 from api.parties.models import Party
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
-from static.countries.models import Country
+from api.static.countries.models import Country
 from api.workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
 
 

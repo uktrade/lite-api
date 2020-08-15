@@ -11,8 +11,8 @@ from api.goodstype.models import GoodsType
 from api.parties.models import Party
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
-from static.countries.models import Country
-from static.statuses.enums import CaseStatusEnum
+from api.static.countries.models import Country
+from api.static.statuses.enums import CaseStatusEnum
 
 
 def get_active_flagging_rules_for_level(level):

@@ -32,10 +32,10 @@ from api.licences.tasks import (
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.open_general_licences.helpers import issue_open_general_licence
 from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
-from static.countries.models import Country
-from static.decisions.models import Decision
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.countries.models import Country
+from api.static.decisions.models import Decision
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

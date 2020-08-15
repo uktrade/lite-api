@@ -15,7 +15,7 @@ from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum
 from api.licences.models import HMRCIntegrationUsageUpdate, Licence
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
-from static.countries.models import Country
+from api.static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 

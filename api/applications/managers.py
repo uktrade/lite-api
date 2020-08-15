@@ -1,7 +1,7 @@
 from model_utils.managers import InheritanceManager
 
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class BaseApplicationManager(InheritanceManager):

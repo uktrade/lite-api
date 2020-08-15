@@ -3,8 +3,8 @@ from rest_framework import status
 
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from lite_content.lite_api.strings import Cases
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields

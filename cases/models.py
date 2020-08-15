@@ -29,11 +29,11 @@ from api.goods.enums import PvGrading
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queues.models import Queue
-from static.countries.models import Country
-from static.denial_reasons.models import DenialReason
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from static.statuses.models import CaseStatus
+from api.static.countries.models import Country
+from api.static.denial_reasons.models import DenialReason
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.models import CaseStatus
 from api.teams.models import Team
 from api.users.models import (
     BaseUser,

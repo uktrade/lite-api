@@ -10,8 +10,8 @@ from cases.models import EcjuQuery
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
 from api.licences.enums import LicenceStatus
 from api.picklists.enums import PicklistType
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from api.users.tests.factories import ExporterUserFactory
 

@@ -10,7 +10,7 @@ from cases.tests.factories import FinalAdviceFactory
 from api.goods.tests.factories import GoodFactory
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
-from static.units.enums import Units
+from api.static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 

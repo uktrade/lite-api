@@ -26,9 +26,9 @@ from api.organisations.serializers import (
     OrganisationStatusUpdateSerializer,
 )
 from api.audit_trail import service as audit_trail_service
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from static.statuses.models import CaseStatus
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.models import CaseStatus
 from api.users.enums import UserType
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 

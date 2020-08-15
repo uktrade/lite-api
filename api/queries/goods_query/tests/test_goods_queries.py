@@ -16,10 +16,10 @@ from lite_content.lite_api import strings
 from api.picklists.enums import PicklistType, PickListStatus
 from api.queries.goods_query.helpers import get_starting_status
 from api.queries.goods_query.models import GoodsQuery
-from static.control_list_entries.helpers import get_control_list_entry
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from static.statuses.models import CaseStatus
+from api.static.control_list_entries.helpers import get_control_list_entry
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from api.users.models import Role, GovUser
 

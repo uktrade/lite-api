@@ -13,8 +13,8 @@ from lite_content.lite_api import strings
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation
 from api.organisations.serializers import TinyOrganisationViewSerializer
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class HmrcQueryViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):

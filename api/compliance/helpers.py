@@ -20,8 +20,8 @@ from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance
 from api.organisations.libraries.get_organisation import get_request_user_organisation
 from api.organisations.models import Site, Organisation
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.enums import SystemUser
 from api.users.models import BaseUser
 

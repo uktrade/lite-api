@@ -75,10 +75,10 @@ from api.organisations.models import Site
 from api.parties.models import Party
 from api.parties.serializers import PartySerializer, AdditionalContactSerializer
 from api.queues.models import Queue
-from static.countries.models import Country
-from static.decisions.models import Decision
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.countries.models import Country
+from api.static.decisions.models import Decision
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_by_pk
 from api.users.models import ExporterUser
 

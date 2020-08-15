@@ -4,7 +4,7 @@ from rest_framework import status
 
 from api.parties.enums import PartyType
 from api.parties.models import Party
-from static.countries.models import Country
+from api.static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 

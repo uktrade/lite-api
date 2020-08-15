@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from static.countries.models import Country
+from api.static.countries.models import Country
 
 
 class Address(models.Model):

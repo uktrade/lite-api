@@ -83,10 +83,10 @@ from lite_content.lite_api import strings
 from api.organisations.enums import OrganisationType
 from api.organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
 from api.organisations.models import Site
-from static.f680_clearance_types.enums import F680ClearanceTypeEnum
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.case_status_validate import is_case_status_draft
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.case_status_validate import is_case_status_draft
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.notifications import get_case_notifications
 from api.users.models import ExporterUser
 from api.workflow.automation import run_routing_rules

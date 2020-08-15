@@ -19,8 +19,8 @@ from api.queues.constants import (
     MY_ASSIGNED_CASES_QUEUE_ID,
     MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
 )
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class CaseQuerySet(models.QuerySet):

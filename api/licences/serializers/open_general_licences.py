@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from api.open_general_licences.serializers import OpenGeneralLicenceSerializer
 from api.organisations.serializers import OrganisationDetailSerializer, SiteListSerializer
-from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+from api.static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 
 
 class OpenGeneralLicenceCaseSerializer(serializers.Serializer):

@@ -26,13 +26,13 @@ from lite_content.lite_api.strings import PartyErrors
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.parties.enums import PartyType
 from api.parties.models import Party
-from static.countries.models import Country
-from static.denial_reasons.models import DenialReason
-from static.f680_clearance_types.models import F680ClearanceType
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.case_status_validate import is_case_status_draft
-from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
-from static.units.enums import Units
+from api.static.countries.models import Country
+from api.static.denial_reasons.models import DenialReason
+from api.static.f680_clearance_types.models import F680ClearanceType
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.case_status_validate import is_case_status_draft
+from api.static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
+from api.static.units.enums import Units
 
 
 class ApplicationException(APIException):

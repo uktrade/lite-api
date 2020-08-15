@@ -9,8 +9,8 @@ from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from api.goods.enums import ItemType
 from lite_content.lite_api import strings
-from static.missing_document_reasons.enums import GoodMissingDocumentReasons
-from static.units.enums import Units
+from api.static.missing_document_reasons.enums import GoodMissingDocumentReasons
+from api.static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.decorators import none_param_tester
 

@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.parties.enums import PartyType
-from static.countries.helpers import get_country
+from api.static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
 

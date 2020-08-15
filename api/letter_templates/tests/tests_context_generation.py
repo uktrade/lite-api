@@ -33,12 +33,12 @@ from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.parties.enums import PartyType, SubType
 from api.parties.models import Party
-from static.countries.models import Country
-from static.f680_clearance_types.enums import F680ClearanceTypeEnum
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
-from static.units.enums import Units
+from api.static.countries.models import Country
+from api.static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
+from api.static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 

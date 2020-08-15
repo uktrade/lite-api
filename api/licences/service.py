@@ -1,6 +1,6 @@
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
-from static.control_list_entries.serializers import ControlListEntrySerializer
+from api.static.control_list_entries.serializers import ControlListEntrySerializer
 
 
 def get_case_licences(case):

@@ -6,7 +6,7 @@ from api.conf.serializers import PrimaryKeyRelatedSerializerField
 from api.flags.enums import FlagLevels, FlagStatuses, FlagColours
 from api.flags.models import Flag, FlaggingRule
 from lite_content.lite_api import strings
-from static.control_list_entries.models import ControlListEntry
+from api.static.control_list_entries.models import ControlListEntry
 from api.teams.models import Team
 from api.teams.serializers import TeamSerializer, TeamReadOnlySerializer
 

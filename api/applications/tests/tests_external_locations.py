@@ -6,7 +6,7 @@ from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.models import SiteOnApplication, ExternalLocationOnApplication
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

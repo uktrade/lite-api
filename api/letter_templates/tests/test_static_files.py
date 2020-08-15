@@ -1,7 +1,7 @@
 import os
 
 from api.conf.settings import LETTER_TEMPLATES_DIRECTORY, CSS_ROOT
-from static.letter_layouts.models import LetterLayout
+from api.static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 
 

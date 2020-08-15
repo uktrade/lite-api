@@ -6,8 +6,8 @@ from api.goods.enums import GoodPvGraded, GoodControlled, PvGrading, MilitaryUse
 from api.goods.models import Good, PvGradingDetails
 from api.goods.tests.factories import GoodFactory
 from lite_content.lite_api import strings
-from static.control_list_entries.helpers import get_control_list_entry
-from static.control_list_entries.models import ControlListEntry
+from api.static.control_list_entries.helpers import get_control_list_entry
+from api.static.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 
 

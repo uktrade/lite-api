@@ -4,8 +4,8 @@ from api.flags.enums import FlagStatuses
 from api.flags.tests.factories import FlagFactory
 from api.parties.models import Party
 from api.queues.models import Queue
-from static.countries.models import Country
-from static.statuses.models import CaseStatus
+from api.static.countries.models import Country
+from api.static.statuses.models import CaseStatus
 from api.teams.models import Team
 from test_helpers.clients import DataTestClient
 from api.workflow.automation import run_routing_rules

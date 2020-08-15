@@ -30,7 +30,7 @@ urlpatterns = [
     path("letter-templates/", include("api.letter_templates.urls")),
     path("organisations/", include("api.organisations.urls")),
     path("queues/", include("api.queues.urls")),
-    path("static/", include("static.urls")),
+    path("static/", include("api.static.urls")),
     path("users/", include("api.users.urls")),
     path("teams/", include("api.teams.urls")),
     path("gov-users/", include("gov_users.urls")),

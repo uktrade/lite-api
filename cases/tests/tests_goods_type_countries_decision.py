@@ -9,8 +9,8 @@ from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from api.conf.constants import GovPermissions
 from api.goodstype.tests.factories import GoodsTypeFactory
 from lite_content.lite_api.strings import Cases
-from static.control_list_entries.models import ControlListEntry
-from static.countries.models import Country
+from api.static.control_list_entries.models import ControlListEntry
+from api.static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 

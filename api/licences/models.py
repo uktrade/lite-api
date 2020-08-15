@@ -9,7 +9,7 @@ from api.conf.helpers import add_months
 from api.conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 from api.licences.managers import LicenceManager
-from static.decisions.models import Decision
+from api.static.decisions.models import Decision
 
 
 class HMRCIntegrationUsageUpdate(TimestampableModel):

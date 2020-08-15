@@ -19,8 +19,8 @@ from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.tests.factories import OrganisationFactory
 from api.organisations.models import Organisation
 from api.organisations.tests.providers import OrganisationProvider
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import generate_key_value_pair
 from api.users.libraries.get_user import get_users_from_organisation

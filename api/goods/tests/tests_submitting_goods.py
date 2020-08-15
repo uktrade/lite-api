@@ -6,8 +6,8 @@ from rest_framework import status
 from api.applications.models import GoodOnApplication
 from api.goods.enums import GoodStatus
 from api.goods.models import Good
-from static.statuses.enums import CaseStatusEnum
-from static.units.enums import Units
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
 

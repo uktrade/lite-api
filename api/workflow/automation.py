@@ -1,6 +1,6 @@
 from api.audit_trail.enums import AuditType
 from cases.models import Case, CaseAssignment
-from static.statuses.enums import CaseStatusEnum
+from api.static.statuses.enums import CaseStatusEnum
 from api.teams.models import Team
 from api.users.enums import SystemUser, UserStatuses
 from api.users.models import BaseUser

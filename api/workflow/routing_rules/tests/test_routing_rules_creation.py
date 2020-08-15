@@ -3,8 +3,8 @@ from rest_framework import status
 
 from cases.models import CaseType
 from api.flags.enums import FlagLevels
-from static.countries.models import Country
-from static.statuses.models import CaseStatus
+from api.static.countries.models import Country
+from api.static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 

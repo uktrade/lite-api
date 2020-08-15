@@ -9,10 +9,10 @@ from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from api.conf import constants
 from api.goods.enums import PvGrading
 from api.goodstype.tests.factories import GoodsTypeFactory
-from static.countries.models import Country
-from static.decisions.models import Decision
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.countries.models import Country
+from api.static.decisions.models import Decision
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.models import Team
 from test_helpers.clients import DataTestClient
 from api.users.models import GovUser, Role

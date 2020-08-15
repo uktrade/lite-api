@@ -11,8 +11,8 @@ from api.licences.models import Licence
 from api.licences.serializers.view_licence import LicenceSerializer, NLRdocumentSerializer, LicenceListSerializer
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from api.parties.enums import PartyType
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.models import CaseStatus
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.models import CaseStatus
 
 
 class LicenceType:

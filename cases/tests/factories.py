@@ -3,7 +3,7 @@ import factory
 from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice, GoodCountryDecision
 from api.goodstype.tests.factories import GoodsTypeFactory
-from static.countries.factories import CountryFactory
+from api.static.countries.factories import CountryFactory
 
 
 class UserAdviceFactory(factory.django.DjangoModelFactory):

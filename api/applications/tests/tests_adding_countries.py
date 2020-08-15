@@ -4,10 +4,10 @@ from rest_framework import status
 
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.models import CountryOnApplication
-from static.countries.helpers import get_country
-from static.countries.models import Country
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.static.countries.helpers import get_country
+from api.static.countries.models import Country
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

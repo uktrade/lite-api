@@ -16,7 +16,7 @@ from api.conf.permissions import assert_user_has_permission
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from lite_content.lite_api import strings
-from static.statuses.enums import CaseStatusEnum
+from api.static.statuses.enums import CaseStatusEnum
 
 
 def check_if_user_cannot_manage_team_advice(case, user):

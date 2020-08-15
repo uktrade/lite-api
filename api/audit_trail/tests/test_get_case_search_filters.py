@@ -4,8 +4,8 @@ from api.audit_trail.service import get_objects_activity_filters
 
 from api.audit_trail.tests.factories import AuditFactory
 from cases.models import Case
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.models import CaseStatus
+from api.static.statuses.enums import CaseStatusEnum
+from api.static.statuses.models import CaseStatus
 from api.teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserType
