@@ -5,11 +5,11 @@ from django.utils import timezone
 from api.conf.exceptions import NotFoundError
 from licences.helpers import get_licence_reference_code
 from licences.models import Licence
-from open_general_licences.models import OpenGeneralLicenceCase
+from api.open_general_licences.models import OpenGeneralLicenceCase
 
 
 def get_open_general_licence(pk):
-    from open_general_licences.models import OpenGeneralLicence
+    from api.open_general_licences.models import OpenGeneralLicence
 
     try:
         return OpenGeneralLicence.objects.get(pk=pk)

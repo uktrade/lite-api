@@ -8,8 +8,8 @@ from api.conf.serializers import ControlListEntryField, KeyValueChoiceField, Pri
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from lite_content.lite_api.strings import OpenGeneralLicences
-from open_general_licences.enums import OpenGeneralLicenceStatus
-from open_general_licences.models import OpenGeneralLicence
+from api.open_general_licences.enums import OpenGeneralLicenceStatus
+from api.open_general_licences.models import OpenGeneralLicence
 from api.organisations.serializers import SiteListSerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer

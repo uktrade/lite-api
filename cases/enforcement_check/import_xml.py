@@ -15,7 +15,7 @@ from api.flags.enums import SystemFlags
 from lite_content.lite_api.strings import Cases
 from api.users.enums import SystemUser
 from api.users.models import BaseUser
-from workflow.user_queue_assignment import user_queue_assignment_workflow
+from api.workflow.user_queue_assignment import user_queue_assignment_workflow
 
 APPLICATION_ID_TAG = "CODE1"
 ENTITY_ID_TAG = "CODE2"

@@ -8,8 +8,8 @@ from static.countries.models import Country
 from static.statuses.models import CaseStatus
 from api.teams.models import Team
 from test_helpers.clients import DataTestClient
-from workflow.automation import run_routing_rules
-from workflow.routing_rules.enum import RoutingRulesAdditionalFields
+from api.workflow.automation import run_routing_rules
+from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
 class ParameterSetRoutingRuleModelMethodTests(DataTestClient):

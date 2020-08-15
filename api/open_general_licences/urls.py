@@ -1,6 +1,6 @@
 from django.urls import path
 
-from open_general_licences import views
+from api.open_general_licences import views
 
 app_name = "open_general_licences"
 

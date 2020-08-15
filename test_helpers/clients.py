@@ -77,9 +77,9 @@ from test_helpers import colours
 from api.users.enums import UserStatuses, SystemUser
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
-from workflow.flagging_rules_automation import apply_flagging_rules_to_case
-from workflow.routing_rules.enum import RoutingRulesAdditionalFields
-from workflow.routing_rules.models import RoutingRule
+from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
+from api.workflow.routing_rules.models import RoutingRule
 
 
 class Static:

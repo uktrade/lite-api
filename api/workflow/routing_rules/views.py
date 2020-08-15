@@ -7,10 +7,10 @@ from rest_framework.views import APIView
 from api.conf.authentication import GovAuthentication
 from api.conf.constants import GovPermissions
 from lite_content.lite_api.strings import RoutingRules
-from workflow.routing_rules.enum import StatusAction
-from workflow.routing_rules.helpers import get_routing_rule
-from workflow.routing_rules.models import RoutingRule
-from workflow.routing_rules.serializers import RoutingRuleSerializer, SmallRoutingRuleSerializer
+from api.workflow.routing_rules.enum import StatusAction
+from api.workflow.routing_rules.helpers import get_routing_rule
+from api.workflow.routing_rules.models import RoutingRule
+from api.workflow.routing_rules.serializers import RoutingRuleSerializer, SmallRoutingRuleSerializer
 
 
 class RoutingRulesList(ListCreateAPIView):

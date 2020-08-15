@@ -4,7 +4,7 @@ from django.db import models
 
 from cases.models import CaseType, Case
 from api.common.models import TimestampableModel
-from open_general_licences.enums import OpenGeneralLicenceStatus
+from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.organisations.models import Site
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
@@ -47,7 +47,7 @@ class OpenGeneralLicenceCase(Case):
         db_table = "open_general_licence_case"
 
     def save(self, *args, **kwargs):
-        from open_general_licences.helpers import issue_open_general_licence
+        from api.open_general_licences.helpers import issue_open_general_licence
 
         creating = self._state.adding
         super(OpenGeneralLicenceCase, self).save(*args, **kwargs)

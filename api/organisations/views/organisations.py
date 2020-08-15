@@ -30,7 +30,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from api.users.enums import UserType
-from workflow.flagging_rules_automation import apply_flagging_rules_to_case
+from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
 class OrganisationsList(generics.ListCreateAPIView):

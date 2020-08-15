@@ -30,8 +30,8 @@ from licences.tasks import (
     HMRC_INTEGRATION_QUEUE,
 )
 from licences.tests.factories import GoodOnLicenceFactory
-from open_general_licences.helpers import issue_open_general_licence
-from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
+from api.open_general_licences.helpers import issue_open_general_licence
+from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum

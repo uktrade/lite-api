@@ -6,7 +6,7 @@ from cases.enums import CaseTypeEnum
 
 
 def add_ogl_licence(apps, schema_editor):
-    from open_general_licences.helpers import issue_open_general_licence
+    from api.open_general_licences.helpers import issue_open_general_licence
 
     Licence = apps.get_model("licences", "Licence")
     OpenGeneralLicenceCase = apps.get_model("open_general_licences", "OpenGeneralLicenceCase")

@@ -9,7 +9,7 @@ from static.control_list_entries.helpers import get_control_list_entry
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-from workflow.flagging_rules_automation import (
+from api.workflow.flagging_rules_automation import (
     apply_flagging_rules_to_case,
     get_active_flagging_rules_for_level,
     apply_flagging_rule_to_all_open_cases,

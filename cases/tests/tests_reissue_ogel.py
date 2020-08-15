@@ -9,7 +9,7 @@ from api.conf.constants import GovPermissions
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from lite_content.lite_api.strings import Cases
-from open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
+from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 

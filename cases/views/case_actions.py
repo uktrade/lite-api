@@ -14,14 +14,14 @@ from api.conf.authentication import GovAuthentication
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from lite_content.lite_api.strings import Cases
-from open_general_licences.helpers import issue_open_general_licence
-from open_general_licences.models import OpenGeneralLicenceCase
+from api.open_general_licences.helpers import issue_open_general_licence
+from api.open_general_licences.models import OpenGeneralLicenceCase
 from api.queues.models import Queue
 from api.queues.serializers import TinyQueueSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from workflow.automation import run_routing_rules
-from workflow.user_queue_assignment import user_queue_assignment_workflow
+from api.workflow.automation import run_routing_rules
+from api.workflow.user_queue_assignment import user_queue_assignment_workflow
 
 
 class AssignedQueues(APIView):

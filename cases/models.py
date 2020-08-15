@@ -127,8 +127,8 @@ class Case(TimestampableModel):
         from cases.helpers import can_set_status
         from api.audit_trail import service as audit_trail_service
         from api.applications.libraries.application_helpers import can_status_be_set_by_gov_user
-        from workflow.automation import run_routing_rules
-        from workflow.flagging_rules_automation import apply_flagging_rules_to_case
+        from api.workflow.automation import run_routing_rules
+        from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
         from licences.helpers import update_licence_status
 
         old_status = self.status.status

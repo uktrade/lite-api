@@ -1,6 +1,6 @@
 from django.urls import path
 
-from workflow.routing_rules import views
+from api.workflow.routing_rules import views
 
 app_name = "routing_rules"
 
