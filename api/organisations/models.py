@@ -9,7 +9,7 @@ from api.common.models import TimestampableModel
 from api.conf.constants import ExporterPermissions
 from api.conf.exceptions import NotFoundError
 from api.flags.models import Flag
-from open_general_licences.enums import OpenGeneralLicenceStatus
+from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
@@ -53,7 +53,7 @@ class Organisation(TimestampableModel):
         return self.status == OrganisationStatus.ACTIVE
 
     def register_open_general_licence(self, open_general_licence, user):
-        from open_general_licences.models import OpenGeneralLicenceCase
+        from api.open_general_licences.models import OpenGeneralLicenceCase
         from api.compliance.helpers import generate_compliance_site_case
 
         if open_general_licence.status == OpenGeneralLicenceStatus.DEACTIVATED:

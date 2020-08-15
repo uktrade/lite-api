@@ -14,7 +14,7 @@ from api.goodstype.models import GoodsType
 from licences.enums import LicenceStatus, HMRCIntegrationActionEnum
 from licences.models import HMRCIntegrationUsageUpdate, Licence
 from licences.tests.factories import GoodOnLicenceFactory
-from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
+from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 

@@ -7,9 +7,9 @@ from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from licences.enums import LicenceStatus
 from licences.models import Licence
-from open_general_licences.enums import OpenGeneralLicenceStatus
-from open_general_licences.models import OpenGeneralLicenceCase
-from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
+from api.open_general_licences.enums import OpenGeneralLicenceStatus
+from api.open_general_licences.models import OpenGeneralLicenceCase
+from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from test_helpers.clients import DataTestClient
 
 

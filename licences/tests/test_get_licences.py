@@ -9,7 +9,7 @@ from licences.enums import LicenceStatus
 from licences.models import Licence
 from licences.tests.factories import GoodOnLicenceFactory
 from licences.views.main import LicenceType
-from open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
+from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus

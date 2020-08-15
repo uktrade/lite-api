@@ -15,7 +15,7 @@ from static.statuses.enums import CaseStatusEnum
 
 
 def get_open_general_export_licence_case(pk):
-    from open_general_licences.models import OpenGeneralLicenceCase
+    from api.open_general_licences.models import OpenGeneralLicenceCase
 
     try:
         return OpenGeneralLicenceCase.objects.get(pk=pk)

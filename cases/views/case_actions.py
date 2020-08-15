@@ -14,8 +14,8 @@ from api.conf.authentication import GovAuthentication
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from lite_content.lite_api.strings import Cases
-from open_general_licences.helpers import issue_open_general_licence
-from open_general_licences.models import OpenGeneralLicenceCase
+from api.open_general_licences.helpers import issue_open_general_licence
+from api.open_general_licences.models import OpenGeneralLicenceCase
 from api.queues.models import Queue
 from api.queues.serializers import TinyQueueSerializer
 from static.statuses.enums import CaseStatusEnum

@@ -4,7 +4,7 @@ from rest_framework import status
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from licences.enums import LicenceStatus
-from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
+from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from api.organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

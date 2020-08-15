@@ -6,7 +6,7 @@ from rest_framework.reverse import reverse
 
 from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
-from open_general_licences.models import OpenGeneralLicence
+from api.open_general_licences.models import OpenGeneralLicence
 from test_helpers.clients import DataTestClient
 
 URL = reverse("open_general_licences:list")
