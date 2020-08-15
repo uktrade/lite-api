@@ -7,7 +7,7 @@ from rest_framework import status
 
 from cases.models import CaseAssignment
 from gov_notify.enums import TemplateType
-from licences.enums import LicenceStatus
+from api.licences.enums import LicenceStatus
 from lite_content.lite_api import strings
 from api.users.models import UserOrganisationRelationship
 from static.statuses.enums import CaseStatusEnum

@@ -8,7 +8,7 @@ from cases.enums import CaseTypeEnum
 from cases.models import Case
 from api.common.models import CreatedAt, TimestampableModel
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
-from licences.models import Licence
+from api.licences.models import Licence
 from api.organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

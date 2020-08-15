@@ -5,8 +5,8 @@ from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
 from api.conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
-from licences.enums import LicenceStatus
-from licences.models import Licence
+from api.licences.enums import LicenceStatus
+from api.licences.models import Licence
 from lite_content.lite_api.strings import OpenGeneralLicences
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.open_general_licences.models import OpenGeneralLicence

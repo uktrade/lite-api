@@ -10,8 +10,8 @@ from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.conf.constants import GovPermissions
 from api.flags.enums import FlagLevels
 from api.flags.tests.factories import FlagFactory
-from licences.enums import LicenceStatus
-from licences.models import Licence, GoodOnLicence
+from api.licences.enums import LicenceStatus
+from api.licences.models import Licence, GoodOnLicence
 from lite_content.lite_api import strings
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient

@@ -20,7 +20,7 @@ from api.conf.authentication import GovAuthentication, SharedAuthentication
 from api.conf.decorators import authorised_to_view_application
 from api.conf.helpers import str_to_bool
 from api.documents.libraries import s3_operations
-from licences.models import Licence
+from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.users.enums import UserType

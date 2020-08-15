@@ -7,7 +7,7 @@ from rest_framework.reverse import reverse
 from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from licences.enums import LicenceStatus
+from api.licences.enums import LicenceStatus
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 from api.users.models import ExporterNotification

@@ -4,8 +4,8 @@ from django.urls import reverse
 from rest_framework import status
 
 from gov_notify.enums import TemplateType
-from licences.enums import LicenceStatus
-from licences.models import Licence
+from api.licences.enums import LicenceStatus
+from api.licences.models import Licence
 from api.audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument

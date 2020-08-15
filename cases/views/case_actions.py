@@ -11,8 +11,8 @@ from cases.helpers import remove_next_review_date
 from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment
 from api.conf.authentication import GovAuthentication
-from licences.enums import LicenceStatus
-from licences.models import Licence
+from api.licences.enums import LicenceStatus
+from api.licences.models import Licence
 from lite_content.lite_api.strings import Cases
 from api.open_general_licences.helpers import issue_open_general_licence
 from api.open_general_licences.models import OpenGeneralLicenceCase

@@ -9,7 +9,7 @@ from api.conf.serializers import KeyValueChoiceField
 from api.goods.enums import ItemType
 from api.goods.models import Good
 from api.goods.serializers import GoodSerializerInternal
-from licences.models import GoodOnLicence
+from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from static.units.enums import Units
 

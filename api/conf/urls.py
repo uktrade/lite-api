@@ -39,7 +39,7 @@ urlpatterns = [
     path("documents/", include("api.documents.urls")),
     path("queries/", include("api.queries.urls")),
     path("routing-rules/", include("api.workflow.routing_rules.urls")),
-    path("licences/", include("licences.urls")),
+    path("licences/", include("api.licences.urls")),
     path("open-general-licences/", include("api.open_general_licences.urls")),
     path("search/", include("search.urls")),
     re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json",),

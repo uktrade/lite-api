@@ -6,8 +6,8 @@ from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from api.conf.constants import GovPermissions
-from licences.enums import LicenceStatus
-from licences.models import Licence
+from api.licences.enums import LicenceStatus
+from api.licences.models import Licence
 from lite_content.lite_api.strings import Cases
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from static.statuses.enums import CaseStatusEnum

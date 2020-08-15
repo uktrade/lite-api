@@ -6,7 +6,7 @@ from django.db.models import F
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from api.compliance.helpers import generate_compliance_site_case
-from licences.enums import LicenceStatus
+from api.licences.enums import LicenceStatus
 
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus

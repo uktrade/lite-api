@@ -7,8 +7,8 @@ from cases.models import Case
 from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
 from api.compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
-from licences.enums import LicenceStatus
-from licences.models import Licence
+from api.licences.enums import LicenceStatus
+from api.licences.models import Licence
 from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer
 
