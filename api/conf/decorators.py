@@ -6,7 +6,7 @@ from rest_framework import status
 from api.applications.enums import GoodsTypeCategory
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import BaseApplication, HmrcQuery
-from cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.parties.enums import PartyType

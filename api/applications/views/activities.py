@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.serializers import AuditSerializer
-from cases.libraries.get_case import get_case
+from api.cases.libraries.get_case import get_case
 from api.conf.authentication import ExporterAuthentication
 
 

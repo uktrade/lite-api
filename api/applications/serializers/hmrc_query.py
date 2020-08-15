@@ -6,7 +6,7 @@ from api.applications.mixins.serializers import PartiesSerializerMixin
 from api.applications.models import HmrcQuery, ApplicationDocument
 from api.applications.serializers.document import ApplicationDocumentSerializer
 from api.applications.serializers.generic_application import GenericApplicationViewSerializer
-from cases.models import CaseType
+from api.cases.models import CaseType
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import GoodsTypeViewSerializer
 from lite_content.lite_api import strings

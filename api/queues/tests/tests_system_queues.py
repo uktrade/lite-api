@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.models import CaseAssignment
+from api.cases.models import CaseAssignment
 from api.queues.constants import OPEN_CASES_QUEUE_ID
 from api.static.statuses.enums import CaseStatusEnum
 from api.static.statuses.libraries.get_case_status import get_case_status_by_status

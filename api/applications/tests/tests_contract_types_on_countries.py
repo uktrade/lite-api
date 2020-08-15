@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.applications.models import CountryOnApplication
-from cases.libraries.get_flags import get_ordered_flags
+from api.cases.libraries.get_flags import get_ordered_flags
 from api.flags.tests.factories import FlagFactory
 from lite_content.lite_api import strings
 from api.static.countries.models import Country

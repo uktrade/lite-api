@@ -1,5 +1,5 @@
 from api.applications.enums import ApplicationExportType, DefaultDuration
-from cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.static.countries.models import Country
 
 

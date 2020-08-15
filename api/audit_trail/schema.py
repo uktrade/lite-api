@@ -2,7 +2,7 @@ from collections import namedtuple
 from functools import wraps
 
 from api.audit_trail.enums import AuditType
-from cases.models import Case, CaseNote
+from api.cases.models import Case, CaseNote
 from api.users.models import GovUser
 
 

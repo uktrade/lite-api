@@ -4,7 +4,7 @@ import django
 import factory
 from django.utils import timezone
 
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.compliance.models import OpenLicenceReturns, ComplianceSiteCase, CompliancePerson, ComplianceVisitCase
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory

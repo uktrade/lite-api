@@ -2,9 +2,9 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.status import HTTP_200_OK
 
-from cases.enums import CaseTypeEnum
-from cases.models import CaseType
-from cases.serializers import CaseTypeSerializer
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
+from api.cases.serializers import CaseTypeSerializer
 from api.conf.authentication import SharedAuthentication
 from api.conf.helpers import str_to_bool
 

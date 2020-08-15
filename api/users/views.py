@@ -7,7 +7,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, ListAPIView
 from rest_framework.views import APIView
 
-from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from api.conf.authentication import (
     ExporterAuthentication,
     GovAuthentication,

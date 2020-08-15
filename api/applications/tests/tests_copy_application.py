@@ -15,7 +15,7 @@ from api.applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from api.goodstype.models import GoodsType
 from api.parties.models import Party, PartyDocument
 from api.static.statuses.enums import CaseStatusEnum

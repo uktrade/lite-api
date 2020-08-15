@@ -27,7 +27,7 @@ class AuditManager(GFKManager):
         ignore_case_status: draft cases become audited, default is False
         """
         # TODO: decouple notifications and audit (signals?)
-        from cases.models import Case
+        from api.cases.models import Case
 
         target = kwargs.get("target")
         actor = kwargs.get("actor")

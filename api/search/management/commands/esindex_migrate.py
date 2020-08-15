@@ -4,7 +4,7 @@ from django.utils.crypto import get_random_string
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl.connections import connections
 
-from api.cases.models import Case
+from api.api.cases.models import Case
 from api.search.case import documents
 
 

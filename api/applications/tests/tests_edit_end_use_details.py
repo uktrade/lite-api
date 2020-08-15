@@ -4,7 +4,7 @@ from rest_framework import status
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 from api.static.statuses.enums import CaseStatusEnum
 from api.static.statuses.libraries.get_case_status import get_case_status_by_status

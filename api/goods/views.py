@@ -10,9 +10,9 @@ from rest_framework.views import APIView
 from api.applications.models import GoodOnApplication, BaseApplication
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum
-from cases.libraries.delete_notifications import delete_exporter_notifications
-from cases.libraries.get_case import get_case
+from api.cases.enums import CaseTypeSubTypeEnum
+from api.cases.libraries.delete_notifications import delete_exporter_notifications
+from api.cases.libraries.get_case import get_case
 from api.conf import constants
 from api.conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from api.conf.exceptions import BadRequestError

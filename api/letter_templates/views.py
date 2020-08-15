@@ -5,8 +5,8 @@ from rest_framework import generics, status
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.serializers import AuditSerializer
-from cases.enums import CaseTypeEnum
-from cases.libraries.get_case import get_case
+from api.cases.enums import CaseTypeEnum
+from api.cases.libraries.get_case import get_case
 from api.conf import constants
 from api.conf.authentication import GovAuthentication
 from api.conf.helpers import str_to_bool, friendly_boolean
@@ -16,7 +16,7 @@ from api.letter_templates.models import LetterTemplate
 from api.letter_templates.serializers import LetterTemplateSerializer, LetterTemplateListSerializer
 from api.picklists.enums import PicklistType
 from api.picklists.models import PicklistItem
-from cases.enums import AdviceType
+from api.cases.enums import AdviceType
 from api.static.decisions.models import Decision
 from api.static.letter_layouts.models import LetterLayout
 

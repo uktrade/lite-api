@@ -5,8 +5,8 @@ from rest_framework import status
 
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
-from cases.enums import CaseTypeEnum
-from cases.models import CaseAssignment
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseAssignment
 from api.conf import constants
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag

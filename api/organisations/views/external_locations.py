@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from cases.enums import CaseTypeReferenceEnum
+from api.cases.enums import CaseTypeReferenceEnum
 from api.conf.authentication import ExporterAuthentication
 from api.organisations.enums import LocationType
 from api.organisations.models import ExternalLocation

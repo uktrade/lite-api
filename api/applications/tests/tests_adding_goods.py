@@ -6,7 +6,7 @@ from rest_framework import status
 
 from api.applications.models import GoodOnApplication
 from api.audit_trail.models import Audit
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.goods.enums import ItemType
 from lite_content.lite_api import strings
 from api.static.missing_document_reasons.enums import GoodMissingDocumentReasons

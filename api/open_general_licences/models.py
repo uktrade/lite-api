@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from cases.models import CaseType, Case
+from api.cases.models import CaseType, Case
 from api.common.models import TimestampableModel
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.organisations.models import Site

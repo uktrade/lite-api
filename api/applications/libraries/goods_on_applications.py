@@ -1,7 +1,7 @@
 from django.http import Http404
 
 from api.applications.models import GoodOnApplication, BaseApplication
-from cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goodstype.models import GoodsType

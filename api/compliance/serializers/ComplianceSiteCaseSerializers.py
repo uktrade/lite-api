@@ -2,8 +2,8 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.addresses.serializers import AddressSerializer
-from cases.enums import CaseTypeEnum
-from cases.models import Case
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import Case
 from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
 from api.compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
@@ -12,7 +12,7 @@ from api.licences.models import Licence
 from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer
 
-from cases.libraries.get_flags import get_ordered_flags
+from api.cases.libraries.get_flags import get_ordered_flags
 from api.static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.teams.helpers import get_team_by_pk
 from api.users.libraries.notifications import (
@@ -131,7 +131,7 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
         }
 
     def get_case_type(self, instance):
-        from cases.serializers import CaseTypeSerializer
+        from api.cases.serializers import CaseTypeSerializer
 
         return CaseTypeSerializer(instance.case_type).data
 
@@ -167,10 +167,10 @@ class ExporterComplianceSiteDetailSerializer(serializers.Serializer):
         # if review date exists get one in the future (nearest)
         # else determine most recent
         visit_cases = ComplianceVisitCase.objects.filter(site_case_id=instance.id).order_by("visit_date")
-        if visit_cases.filter(visit_date__gte=timezone.now().date()).exists():
-            return visit_cases.filter(visit_date__gte=timezone.now().date()).first().visit_date
+        if visit_api.cases.filter(visit_date__gte=timezone.now().date()).exists():
+            return visit_api.cases.filter(visit_date__gte=timezone.now().date()).first().visit_date
 
-        visit_case = visit_cases.last()
+        visit_case = visit_api.cases.last()
 
         if visit_case:
             return visit_case.visit_date

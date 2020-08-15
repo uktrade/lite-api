@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from rest_framework import serializers
 
-from cases.enums import CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.parties.enums import PartyType
 from api.parties.serializers import PartySerializer
 from django.db.models import Min, Case, When, BinaryField

@@ -2,7 +2,7 @@ import datetime
 import csv
 
 from django.test import SimpleTestCase, tag
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.conf.settings import env
 from test_helpers.test_endpoints.client import get
 from test_helpers.test_endpoints.user_setup import login_exporter, login_internal

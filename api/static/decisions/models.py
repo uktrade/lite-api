@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from cases.enums import AdviceType
+from api.cases.enums import AdviceType
 
 
 class Decision(models.Model):

@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.models import CaseType
+from api.cases.models import CaseType
 from api.flags.enums import FlagLevels
 from api.static.countries.models import Country
 from api.static.statuses.models import CaseStatus

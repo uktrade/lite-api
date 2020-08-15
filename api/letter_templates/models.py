@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 from sortedm2m.fields import SortedManyToManyField
 
-from cases.models import CaseType
+from api.cases.models import CaseType
 from api.common.models import TimestampableModel
 from api.picklists.models import PicklistItem
 from api.static.decisions.models import Decision

@@ -1,5 +1,5 @@
 from api.applications.models import GoodOnApplication, PartyOnApplication
-from cases.libraries.get_flags import get_ordered_flags
+from api.cases.libraries.get_flags import get_ordered_flags
 from api.flags.enums import FlagLevels
 from api.flags.tests.factories import FlagFactory
 from api.parties.enums import PartyType

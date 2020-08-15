@@ -23,7 +23,7 @@ schema_view = get_schema_view(api_info, public=True, permission_classes=(permiss
 urlpatterns = [
     path("applications/", include("api.applications.urls")),
     path("audit-trail/", include("api.audit_trail.urls")),
-    path("cases/", include("cases.urls")),
+    path("cases/", include("api.cases.urls")),
     path("compliance/", include("api.compliance.urls")),
     path("goods/", include("api.goods.urls")),
     path("goods-types/", include("api.goodstype.urls")),

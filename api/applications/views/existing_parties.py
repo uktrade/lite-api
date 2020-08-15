@@ -3,7 +3,7 @@ from django.db.models.functions import FirstValue
 from rest_framework import generics
 
 from api.applications.libraries.get_applications import get_application
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.conf.authentication import ExporterAuthentication
 from api.parties.models import Party
 from api.parties.serializers import PartySerializer

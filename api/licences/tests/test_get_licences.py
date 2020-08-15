@@ -2,9 +2,9 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.applications.models import CountryOnApplication
-from cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
-from cases.models import CaseType
-from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
+from api.cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
+from api.cases.models import CaseType
+from api.cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.licences.tests.factories import GoodOnLicenceFactory

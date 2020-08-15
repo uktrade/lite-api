@@ -1,7 +1,7 @@
 from django.urls import reverse
 from datetime import datetime
 
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
 from api.licences.enums import LicenceStatus
 from api.static.statuses.enums import CaseStatusEnum

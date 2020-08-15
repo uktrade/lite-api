@@ -11,8 +11,8 @@ from api.applications.models import (
     HmrcQuery,
     CountryOnApplication,
 )
-from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryType
-from cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryType
+from api.cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from api.conf.helpers import (

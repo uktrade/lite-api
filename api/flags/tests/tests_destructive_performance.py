@@ -2,7 +2,7 @@ from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import CaseTypeReferenceEnum
+from api.cases.enums import CaseTypeReferenceEnum
 from test_helpers.clients import PerformanceTestClient
 from parameterized import parameterized
 

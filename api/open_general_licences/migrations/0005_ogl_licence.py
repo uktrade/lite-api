@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 
 
 def add_ogl_licence(apps, schema_editor):

@@ -17,8 +17,8 @@ from rest_framework.views import APIView
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from cases.libraries.get_case import get_case
-from cases.models import Case
+from api.cases.libraries.get_case import get_case
+from api.cases.models import Case
 from api.compliance.helpers import (
     get_record_holding_sites_for_case,
     get_compliance_site_case,
@@ -115,7 +115,7 @@ class LicenceList(ListAPIView):
         cases = Case.objects.filter_for_cases_related_to_compliance_case(self.kwargs["pk"])
 
         if reference_code:
-            cases = cases.filter(reference_code__contains=reference_code)
+            cases = api.cases.filter(reference_code__contains=reference_code)
 
         return cases
 
@@ -244,7 +244,7 @@ class ComplianceCaseId(APIView):
         ).distinct()
 
         return JsonResponse(
-            data={"ids": list(existing_compliance_cases.values_list("id", flat=True))}, status=status.HTTP_200_OK
+            data={"ids": list(existing_compliance_api.cases.values_list("id", flat=True))}, status=status.HTTP_200_OK
         )
 
 

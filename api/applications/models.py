@@ -14,8 +14,8 @@ from api.applications.enums import (
     ContractType,
 )
 from api.applications.managers import BaseApplicationManager, HmrcQueryManager
-from cases.enums import CaseTypeEnum
-from cases.models import Case
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.documents.models import Document
 from api.flags.models import Flag

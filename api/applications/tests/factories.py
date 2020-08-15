@@ -9,7 +9,7 @@ from api.applications.models import (
     GoodOnApplication,
     StandardApplication,
 )
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.static.countries.factories import CountryFactory
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory

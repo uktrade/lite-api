@@ -4,8 +4,8 @@ from django.db import models
 from django.db.models import deletion
 from django.utils import timezone
 
-from cases.enums import CaseTypeEnum
-from cases.models import Case
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import Case
 from api.common.models import CreatedAt, TimestampableModel
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.licences.models import Licence

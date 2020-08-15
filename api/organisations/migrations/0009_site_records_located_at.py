@@ -3,8 +3,8 @@ from django.core.management import call_command
 from django.db import migrations
 from django.db.models import F
 
-from cases.enums import CaseTypeEnum
-from cases.models import CaseType
+from api.cases.enums import CaseTypeEnum
+from api.cases.models import CaseType
 from api.compliance.helpers import generate_compliance_site_case
 from api.licences.enums import LicenceStatus
 

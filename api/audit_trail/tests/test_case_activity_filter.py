@@ -6,7 +6,7 @@ from django.utils import timezone
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.tests.factories import AuditFactory
-from cases.models import Case
+from api.cases.models import Case
 from api.teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserType

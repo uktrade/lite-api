@@ -2,7 +2,7 @@ from django_elasticsearch_dsl import Document
 from django_elasticsearch_dsl.registries import registry
 from django_elasticsearch_dsl.fields import TextField
 
-from api.cases.models import Case
+from api.api.cases.models import Case
 
 
 @registry.register_document

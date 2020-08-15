@@ -5,8 +5,8 @@ from rest_framework.exceptions import ParseError
 
 from api.applications.models import GoodOnApplication
 from api.applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeSubTypeEnum
-from cases.models import GoodCountryDecision
+from api.cases.enums import CaseTypeSubTypeEnum
+from api.cases.models import GoodCountryDecision
 from api.conf.exceptions import NotFoundError
 from api.licences.models import Licence
 from lite_content.lite_api import strings

@@ -14,8 +14,8 @@ from api.applications.serializers.good import (
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum
-from cases.models import Case
+from api.cases.enums import CaseTypeSubTypeEnum
+from api.cases.models import Case
 from api.conf.authentication import ExporterAuthentication
 from api.conf.decorators import (
     authorised_to_view_application,

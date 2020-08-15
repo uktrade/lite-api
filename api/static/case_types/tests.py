@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from cases.enums import CaseTypeEnum
+from api.cases.enums import CaseTypeEnum
 from test_helpers.clients import DataTestClient
 from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 

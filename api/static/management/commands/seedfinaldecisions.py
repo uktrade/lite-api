@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from cases.enums import AdviceType
+from api.cases.enums import AdviceType
 from api.static.decisions.models import Decision
 from api.static.management.SeedCommand import SeedCommand
 
