@@ -2,7 +2,7 @@ from faker import Faker
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from audit_trail.models import Audit
+from api.audit_trail.models import Audit
 from lite_content.lite_api import strings
 from api.organisations.models import Site
 from api.organisations.tests.factories import OrganisationFactory

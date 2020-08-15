@@ -1,5 +1,5 @@
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 
 from cases.enums import CaseTypeEnum
 from cases.models import Case

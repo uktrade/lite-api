@@ -8,8 +8,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from api.applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from cases.libraries.get_case import get_case
 from cases.libraries.get_flags import get_flags
 from cases.models import Case

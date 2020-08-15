@@ -4,8 +4,8 @@ from rest_framework import status
 
 from api.applications.enums import LicenceDuration
 from api.applications.libraries.licence import get_default_duration
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.conf.constants import GovPermissions
 from api.flags.enums import FlagLevels

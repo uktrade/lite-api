@@ -8,8 +8,8 @@ from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import SiteOnApplication, ExternalLocationOnApplication
 from api.applications.serializers.location import ExternalLocationOnApplicationSerializer
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from api.conf.authentication import ExporterAuthentication
 from api.conf.decorators import authorised_to_view_application, application_in_state

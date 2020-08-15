@@ -1,8 +1,8 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from audit_trail.enums import AuditType
-from audit_trail.payload import audit_type_format
+from api.audit_trail.enums import AuditType
+from api.audit_trail.payload import audit_type_format
 from api.conf.constants import GovPermissions
 from api.picklists.enums import PickListStatus, PicklistType
 from test_helpers.clients import DataTestClient

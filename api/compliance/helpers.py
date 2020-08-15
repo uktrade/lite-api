@@ -5,8 +5,8 @@ from typing import Optional
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from api.compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES

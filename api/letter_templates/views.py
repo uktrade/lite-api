@@ -2,9 +2,9 @@ from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import generics, status
 
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
-from audit_trail.serializers import AuditSerializer
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
+from api.audit_trail.serializers import AuditSerializer
 from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from api.conf import constants

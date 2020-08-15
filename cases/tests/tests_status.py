@@ -4,8 +4,8 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.tests.factories import StandardApplicationFactory
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from cases.models import CaseAssignment
 from licences.enums import LicenceStatus
 from static.statuses.enums import CaseStatusEnum

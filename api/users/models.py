@@ -155,7 +155,7 @@ class GovUser(BaseUser):
         self.case_assignments.filter(user=self).delete()
 
     def send_notification(self, content_object, case):
-        from audit_trail.models import Audit
+        from api.audit_trail.models import Audit
 
         if isinstance(content_object, Audit):
             # There can only be one notification per gov user's case

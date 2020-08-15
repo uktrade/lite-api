@@ -5,8 +5,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from cases.enforcement_check.export_xml import get_enforcement_id
 from api.conf.constants import GovPermissions
 from api.flags.enums import SystemFlags

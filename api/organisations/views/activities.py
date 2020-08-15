@@ -3,9 +3,9 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from audit_trail import service as audit_trail_service
-from audit_trail.models import Audit
-from audit_trail.serializers import AuditSerializer
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.models import Audit
+from api.audit_trail.serializers import AuditSerializer
 from api.conf.authentication import GovAuthentication
 from api.organisations.models import Organisation, Site
 

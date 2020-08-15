@@ -7,7 +7,7 @@ from django.db import models
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from audit_trail.enums import AuditType
+from api.audit_trail.enums import AuditType
 from cases.enums import (
     AdviceType,
     CaseDocumentState,
@@ -125,7 +125,7 @@ class Case(TimestampableModel):
         creates audit entries and also runs flagging and automation rules
         """
         from cases.helpers import can_set_status
-        from audit_trail import service as audit_trail_service
+        from api.audit_trail import service as audit_trail_service
         from api.applications.libraries.application_helpers import can_status_be_set_by_gov_user
         from workflow.automation import run_routing_rules
         from workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -198,7 +198,7 @@ class Case(TimestampableModel):
         """
         Removes all queue and user assignments, and also audits the removal of said assignments against the case
         """
-        from audit_trail import service as audit_trail_service
+        from api.audit_trail import service as audit_trail_service
 
         case = self.get_case()
         assigned_cases = CaseAssignment.objects.filter(case=case)
@@ -267,7 +267,7 @@ class CaseAssignment(TimestampableModel):
         unique_together = [["case", "user", "queue"]]
 
     def save(self, *args, **kwargs):
-        from audit_trail import service as audit_trail_service
+        from api.audit_trail import service as audit_trail_service
 
         audit_user = None
         user = None

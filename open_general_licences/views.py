@@ -5,9 +5,9 @@ from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.views import APIView
 
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
-from audit_trail.serializers import AuditSerializer
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
+from api.audit_trail.serializers import AuditSerializer
 from api.conf import constants
 from api.conf.authentication import SharedAuthentication, GovAuthentication
 from api.conf.helpers import str_to_bool

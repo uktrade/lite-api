@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
 from api.applications.serializers.advice import AdviceViewSerializer
-from audit_trail.models import Audit
+from api.audit_trail.models import Audit
 from cases.enums import (
     CaseTypeTypeEnum,
     AdviceType,

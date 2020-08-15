@@ -5,8 +5,8 @@ from rest_framework import status, generics
 from rest_framework.exceptions import ParseError
 from rest_framework.views import APIView
 
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from cases.enums import CaseDocumentState, AdviceType
 from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument

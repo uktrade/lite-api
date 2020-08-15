@@ -5,8 +5,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_207_MULTI_STATUS, HTTP_208_ALREADY_REPORTED
 
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
 from cases.models import CaseType
 from cases.tests.factories import GoodCountryDecisionFactory

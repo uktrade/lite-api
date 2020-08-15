@@ -2,8 +2,8 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from audit_trail import service as audit_trail_service
-from audit_trail.serializers import AuditSerializer
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.serializers import AuditSerializer
 from cases.libraries.get_case import get_case
 from api.conf.authentication import ExporterAuthentication
 

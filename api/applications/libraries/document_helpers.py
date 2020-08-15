@@ -3,8 +3,8 @@ from rest_framework import status
 
 from api.applications.models import ApplicationDocument
 from api.applications.serializers.document import ApplicationDocumentSerializer
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.document.serializers import GoodsTypeDocumentSerializer
 from api.parties.models import PartyDocument

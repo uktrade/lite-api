@@ -5,7 +5,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from api.applications.models import BaseApplication
-from audit_trail.enums import AuditType
+from api.audit_trail.enums import AuditType
 from api.conf.authentication import (
     SharedAuthentication,
     OrganisationAuthentication,
@@ -25,7 +25,7 @@ from api.organisations.serializers import (
     OrganisationListSerializer,
     OrganisationStatusUpdateSerializer,
 )
-from audit_trail import service as audit_trail_service
+from api.audit_trail import service as audit_trail_service
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus

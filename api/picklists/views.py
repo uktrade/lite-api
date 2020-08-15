@@ -4,9 +4,9 @@ from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
-from audit_trail.serializers import AuditSerializer
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
+from api.audit_trail.serializers import AuditSerializer
 from api.conf.authentication import GovAuthentication
 from api.conf.constants import GovPermissions
 from api.conf.custom_views import OptionalPaginationView

@@ -14,9 +14,9 @@ from rest_framework.generics import (
 )
 from rest_framework.views import APIView
 
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
-from audit_trail.models import Audit
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from api.compliance.helpers import (
