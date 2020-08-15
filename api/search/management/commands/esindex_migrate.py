@@ -4,8 +4,8 @@ from django.utils.crypto import get_random_string
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl.connections import connections
 
-from cases.models import Case
-from search.case import documents
+from api.cases.models import Case
+from api.search.case import documents
 
 
 ALIAS = settings.ELASTICSEARCH_CASES_INDEX_ALIAS if settings.LITE_API_ENABLE_ES else ""
