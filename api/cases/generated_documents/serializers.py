@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from api.cases.enums import AdviceType
 from api.cases.generated_documents.models import GeneratedCaseDocument
-from api.conf.serializers import KeyValueChoiceField
+from api.core.serializers import KeyValueChoiceField
 from api.gov_users.serializers import GovUserViewSerializer
 
 

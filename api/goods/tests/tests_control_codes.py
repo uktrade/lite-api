@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication
-from api.conf import constants
+from api.core import constants
 from api.flags.enums import FlagLevels
 from api.flags.tests.factories import FlagFactory
 from api.goods.enums import GoodControlled

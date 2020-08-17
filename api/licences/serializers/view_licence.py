@@ -8,7 +8,7 @@ from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import CaseType
 from api.cases.serializers import SimpleAdviceSerializer
-from api.conf.serializers import KeyValueChoiceField, CountrySerializerField, ControlListEntryField
+from api.core.serializers import KeyValueChoiceField, CountrySerializerField, ControlListEntryField
 from api.goods.models import Good
 from api.goodstype.models import GoodsType
 from api.licences.enums import LicenceStatus

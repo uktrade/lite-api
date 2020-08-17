@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum, AdviceType
-from api.conf import constants
+from api.core import constants
 from lite_content.lite_api import strings
 from api.picklists.enums import PicklistType, PickListStatus
 from api.static.decisions.models import Decision

@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from rest_framework.views import APIView
 
-from api.conf.authentication import SharedAuthentication
+from api.core.authentication import SharedAuthentication
 from api.static.units.enums import Units
 
 

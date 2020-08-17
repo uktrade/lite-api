@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from api.conf.helpers import add_months
+from api.core.helpers import add_months
 
 
 def migrate(apps, schema_editor):

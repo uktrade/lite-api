@@ -6,14 +6,14 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 from api.applications.models import BaseApplication
 from api.audit_trail.enums import AuditType
-from api.conf.authentication import (
+from api.core.authentication import (
     SharedAuthentication,
     OrganisationAuthentication,
     GovAuthentication,
 )
-from api.conf.constants import GovPermissions
-from api.conf.helpers import str_to_bool
-from api.conf.permissions import check_user_has_permission, assert_user_has_permission
+from api.core.constants import GovPermissions
+from api.core.helpers import str_to_bool
+from api.core.permissions import check_user_has_permission, assert_user_has_permission
 from lite_content.lite_api.strings import Organisations
 from api.organisations.enums import OrganisationStatus, OrganisationType
 from api.organisations.helpers import audit_edited_organisation_fields, audit_reviewed_organisation

@@ -36,6 +36,6 @@ class Migration(migrations.Migration):
                 ("site", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="organisations.Site")),
             ],
             options={"db_table": "open_general_licence_case",},
-            bases=("api.cases.case",),
+            bases=("cases.case",),
         ),
     ]

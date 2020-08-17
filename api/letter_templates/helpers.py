@@ -5,7 +5,7 @@ from django.utils.html import escape
 from markdown import markdown
 
 from django.conf import settings
-from api.conf.exceptions import NotFoundError
+from api.core.exceptions import NotFoundError
 from api.conf.settings import CSS_ROOT
 from api.letter_templates.context_generator import get_document_context
 from api.letter_templates.exceptions import InvalidVarException

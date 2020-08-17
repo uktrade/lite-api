@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 
 from api.applications.libraries.sites_helpers import add_sites_to_application
 from api.applications.libraries.get_applications import get_application
-from api.conf.authentication import ExporterAuthentication
-from api.conf.decorators import authorised_to_view_application
+from api.core.authentication import ExporterAuthentication
+from api.core.decorators import authorised_to_view_application
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.organisations.models import Site
 from api.organisations.serializers import SiteListSerializer

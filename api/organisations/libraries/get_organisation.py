@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from api.conf.authentication import ORGANISATION_ID
-from api.conf.exceptions import NotFoundError
+from api.core.authentication import ORGANISATION_ID
+from api.core.exceptions import NotFoundError
 from api.organisations.models import Organisation
 
 

@@ -5,8 +5,8 @@ from rest_framework import status
 from api.cases.enums import AdviceType, AdviceLevel
 from api.cases.models import Advice
 from api.cases.tests.factories import TeamAdviceFactory
-from api.conf import constants
-from api.conf.helpers import convert_queryset_to_str
+from api.core import constants
+from api.core.helpers import convert_queryset_to_str
 from api.goods.enums import PvGrading
 from api.static.statuses.enums import CaseStatusEnum
 from api.static.statuses.libraries.get_case_status import get_case_status_by_status

@@ -37,6 +37,6 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={"abstract": False,},
-            bases=("api.cases.case",),
+            bases=("cases.case",),
         ),
     ]

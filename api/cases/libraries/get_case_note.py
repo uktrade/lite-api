@@ -1,5 +1,5 @@
 from api.cases.models import CaseNote
-from api.conf.exceptions import NotFoundError
+from api.core.exceptions import NotFoundError
 
 
 def get_case_note(pk):

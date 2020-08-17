@@ -138,7 +138,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "api.conf.pagination.MaxPageNumberPagination",
     "PAGE_SIZE": 25,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
-    "EXCEPTION_HANDLER": "api.conf.handlers.lite_exception_handler",
+    "EXCEPTION_HANDLER": "api.core.handlers.lite_exception_handler",
 }
 
 AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]

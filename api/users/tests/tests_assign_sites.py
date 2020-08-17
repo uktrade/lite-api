@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
-from api.conf.constants import ExporterPermissions
+from api.core.constants import ExporterPermissions
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from test_helpers.clients import DataTestClient
 from api.users.libraries.get_user import get_user_organisation_relationship

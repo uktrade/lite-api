@@ -7,8 +7,8 @@ from api.cases.libraries.dates import make_date_from_params
 from api.cases.models import Case, EcjuQuery
 from api.cases.serializers import CaseListSerializer
 from api.cases.views.search import service
-from api.conf.authentication import GovAuthentication
-from api.conf.helpers import str_to_bool
+from api.core.authentication import GovAuthentication
+from api.core.helpers import str_to_bool
 from api.queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, NON_WORK_QUEUES
 from api.queues.models import Queue
 from api.queues.service import get_system_queues, get_team_queues

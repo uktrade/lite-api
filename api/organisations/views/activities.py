@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
-from api.conf.authentication import GovAuthentication
+from api.core.authentication import GovAuthentication
 from api.organisations.models import Organisation, Site
 
 

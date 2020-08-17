@@ -1,7 +1,7 @@
 from json import loads as serialize
 from django.db import transaction
 
-from api.conf.constants import Teams, Roles
+from api.core.constants import Teams, Roles
 from api.conf.settings import env
 from api.static.management.SeedCommand import SeedCommand
 from api.users.enums import UserType

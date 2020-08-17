@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from api.conf import constants
+from api.core import constants
 from lite_content.lite_api import strings
 from api.teams.models import Team
 from test_helpers.clients import DataTestClient

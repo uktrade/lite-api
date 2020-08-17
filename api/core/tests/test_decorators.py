@@ -3,8 +3,8 @@ from django.test import RequestFactory
 from rest_framework import status
 
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.conf.authentication import ORGANISATION_ID
-from api.conf.decorators import allowed_application_types, application_in_state, authorised_to_view_application
+from api.core.authentication import ORGANISATION_ID
+from api.core.decorators import allowed_application_types, application_in_state, authorised_to_view_application
 from lite_content.lite_api import strings
 from api.organisations.tests.factories import OrganisationFactory
 from api.static.statuses.enums import CaseStatusEnum

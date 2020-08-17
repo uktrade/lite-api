@@ -1,6 +1,6 @@
 from django.http import Http404
 
-from api.conf.exceptions import NotFoundError
+from api.core.exceptions import NotFoundError
 from api.flags.models import Flag, FlaggingRule
 
 

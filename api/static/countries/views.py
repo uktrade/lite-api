@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.views import APIView
 
-from api.conf.authentication import HawkOnlyAuthentication
+from api.core.authentication import HawkOnlyAuthentication
 from api.static.countries.models import Country
 from api.static.countries.serializers import CountrySerializer
 

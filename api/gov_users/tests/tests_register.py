@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from api.conf.constants import Roles
+from api.core.constants import Roles
 from api.gov_users.enums import GovUserStatuses
 from lite_content.lite_api import strings
 from api.queues.constants import MY_TEAMS_QUEUES_CASES_ID

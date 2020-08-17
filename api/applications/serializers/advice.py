@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from api.cases.enums import AdviceType
 from api.cases.models import Advice
-from api.conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
+from api.core.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from api.flags.enums import FlagStatuses
 from api.goods.models import Good
 from api.goodstype.models import GoodsType

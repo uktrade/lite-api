@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.status import HTTP_200_OK
 
-from api.conf.authentication import SharedAuthentication
+from api.core.authentication import SharedAuthentication
 from api.static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 

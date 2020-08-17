@@ -10,7 +10,7 @@ from api.applications.models import (
     ExternalLocationOnApplication,
 )
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.conf.helpers import str_to_bool
+from api.core.helpers import str_to_bool
 from api.documents.models import Document
 from api.goods.models import GoodDocument
 from api.goodstype.models import GoodsType

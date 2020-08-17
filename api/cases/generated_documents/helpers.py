@@ -7,7 +7,7 @@ from weasyprint.fonts import FontConfiguration
 from api.cases.enums import CaseDocumentState
 from api.cases.libraries.get_case import get_case
 from api.cases.models import CaseDocument
-from api.conf.exceptions import NotFoundError
+from api.core.exceptions import NotFoundError
 from api.documents.libraries import s3_operations
 from api.letter_templates.helpers import get_css_location, generate_preview
 from api.letter_templates.models import LetterTemplate

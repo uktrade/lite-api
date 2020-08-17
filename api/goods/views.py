@@ -13,11 +13,11 @@ from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.cases.libraries.get_case import get_case
-from api.conf import constants
-from api.conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
-from api.conf.exceptions import BadRequestError
-from api.conf.helpers import str_to_bool
-from api.conf.permissions import assert_user_has_permission
+from api.core import constants
+from api.core.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from api.core.exceptions import BadRequestError
+from api.core.helpers import str_to_bool
+from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
 from api.goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemCategory

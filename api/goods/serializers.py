@@ -6,8 +6,8 @@ from api.common.libraries import (
     initialize_good_or_goods_type_control_list_entries_serializer,
     update_good_or_goods_type_control_list_entries_details,
 )
-from api.conf.helpers import str_to_bool
-from api.conf.serializers import KeyValueChoiceField, ControlListEntryField
+from api.core.helpers import str_to_bool
+from api.core.serializers import KeyValueChoiceField, ControlListEntryField
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import (
     GoodStatus,

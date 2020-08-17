@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 from api.cases.enums import AdviceType, AdviceLevel
 from api.cases.libraries.post_advice import case_advice_contains_refusal
 from api.cases.models import Case
-from api.conf import constants
+from api.core import constants
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from test_helpers.clients import DataTestClient

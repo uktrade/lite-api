@@ -3,7 +3,7 @@ from rest_framework import status
 
 from api.cases.enums import AdviceType
 from api.cases.tests.factories import GoodCountryDecisionFactory
-from api.conf.constants import GovPermissions
+from api.core.constants import GovPermissions
 from test_helpers.clients import DataTestClient
 
 

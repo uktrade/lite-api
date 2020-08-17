@@ -7,10 +7,10 @@ from rest_framework.views import APIView
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.conf.authentication import SharedAuthentication
-from api.conf.constants import ExporterPermissions
-from api.conf.helpers import str_to_bool
-from api.conf.permissions import assert_user_has_permission
+from api.core.authentication import SharedAuthentication
+from api.core.constants import ExporterPermissions
+from api.core.helpers import str_to_bool
+from api.core.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_organisation_by_pk
 from api.organisations.models import Site

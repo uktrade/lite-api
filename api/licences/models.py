@@ -5,7 +5,7 @@ from django.db import models
 from api.applications.models import GoodOnApplication
 from api.cases.models import Case
 from api.common.models import TimestampableModel
-from api.conf.helpers import add_months
+from api.core.helpers import add_months
 from api.conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 from api.licences.managers import LicenceManager

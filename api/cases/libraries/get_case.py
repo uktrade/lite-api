@@ -1,5 +1,5 @@
 from api.cases.models import Case, CaseDocument
-from api.conf.exceptions import NotFoundError
+from api.core.exceptions import NotFoundError
 from lite_content.lite_api import strings
 
 

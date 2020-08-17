@@ -12,9 +12,9 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import Case
-from api.conf.authentication import ExporterAuthentication
-from api.conf.decorators import allowed_application_types, authorised_to_view_application, application_in_state
-from api.conf.exceptions import BadRequestError
+from api.core.authentication import ExporterAuthentication
+from api.core.decorators import allowed_application_types, authorised_to_view_application, application_in_state
+from api.core.exceptions import BadRequestError
 from api.flags.models import Flag
 from api.static.countries.helpers import get_country
 from api.static.countries.serializers import CountrySerializer

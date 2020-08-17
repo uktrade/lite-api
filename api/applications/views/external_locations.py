@@ -11,8 +11,8 @@ from api.applications.serializers.location import ExternalLocationOnApplicationS
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
-from api.conf.authentication import ExporterAuthentication
-from api.conf.decorators import authorised_to_view_application, application_in_state
+from api.core.authentication import ExporterAuthentication
+from api.core.decorators import authorised_to_view_application, application_in_state
 from lite_content.lite_api.strings import ExternalLocations
 from api.organisations.enums import LocationType
 from api.organisations.libraries.get_external_location import get_location

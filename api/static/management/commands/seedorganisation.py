@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from api.conf.constants import Roles
+from api.core.constants import Roles
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory

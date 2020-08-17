@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from rest_framework.generics import ListAPIView
 
-from api.conf.helpers import str_to_bool
+from api.core.helpers import str_to_bool
 
 
 class OptionalPaginationView(ListAPIView):

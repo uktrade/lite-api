@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.cases.enums import CaseTypeEnum
-from api.conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
+from api.core.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer
 from api.parties.enums import SubType

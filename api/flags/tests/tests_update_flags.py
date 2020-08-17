@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from api.conf.constants import GovPermissions
+from api.core.constants import GovPermissions
 from api.flags.enums import FlagStatuses, FlagColours, FlagLevels
 from api.flags.tests.factories import FlagFactory
 from lite_content.lite_api import strings

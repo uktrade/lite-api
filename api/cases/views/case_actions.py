@@ -10,7 +10,7 @@ from api.audit_trail.enums import AuditType
 from api.cases.helpers import remove_next_review_date
 from api.cases.libraries.get_case import get_case
 from api.cases.models import CaseAssignment
-from api.conf.authentication import GovAuthentication
+from api.core.authentication import GovAuthentication
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from lite_content.lite_api.strings import Cases

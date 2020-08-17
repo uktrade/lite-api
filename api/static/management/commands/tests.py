@@ -4,7 +4,7 @@ from django.test import tag
 
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
-from api.conf.constants import GovPermissions, ExporterPermissions
+from api.core.constants import GovPermissions, ExporterPermissions
 from api.conf.settings import BASE_DIR
 from api.flags.models import Flag
 from api.queues.models import Queue
