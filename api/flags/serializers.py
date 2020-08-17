@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
-from api.conf.serializers import PrimaryKeyRelatedSerializerField
+from api.core.serializers import PrimaryKeyRelatedSerializerField
 from api.flags.enums import FlagLevels, FlagStatuses, FlagColours
 from api.flags.models import Flag, FlaggingRule
 from lite_content.lite_api import strings

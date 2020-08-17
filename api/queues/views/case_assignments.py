@@ -6,8 +6,8 @@ from rest_framework import views
 from api.cases.libraries.get_case import get_case
 from api.cases.models import CaseAssignment
 from api.cases.serializers import CaseAssignmentSerializer
-from api.conf.authentication import GovAuthentication
-from api.conf.helpers import str_to_bool
+from api.core.authentication import GovAuthentication
+from api.core.helpers import str_to_bool
 from api.queues.constants import ALL_CASES_QUEUE_ID, OPEN_CASES_QUEUE_ID
 from api.queues.helpers import get_queue
 from api.users.libraries.get_user import get_user_by_pk

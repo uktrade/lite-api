@@ -8,7 +8,7 @@ from api.cases.libraries.get_case import get_case
 from api.cases.libraries.get_case_note import get_case_notes_from_case
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.cases.serializers import CaseNoteSerializer
-from api.conf.authentication import SharedAuthentication
+from api.core.authentication import SharedAuthentication
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.staticdata.statuses.enums import CaseStatusEnum

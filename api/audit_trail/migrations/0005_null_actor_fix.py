@@ -1,7 +1,7 @@
 from django.db import migrations
 
 from api.audit_trail.enums import AuditType
-from api.conf.constants import Roles
+from api.core.constants import Roles
 
 
 def fill_in_missing_actor(apps, schema_editor):

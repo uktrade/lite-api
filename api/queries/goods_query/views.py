@@ -7,10 +7,10 @@ from rest_framework.views import APIView
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
-from api.conf import constants
-from api.conf.authentication import ExporterAuthentication, GovAuthentication
-from api.conf.helpers import str_to_bool
-from api.conf.permissions import assert_user_has_permission
+from api.core import constants
+from api.core.authentication import ExporterAuthentication, GovAuthentication
+from api.core.helpers import str_to_bool
+from api.core.permissions import assert_user_has_permission
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from api.goods.enums import GoodStatus, GoodControlled, GoodPvGraded

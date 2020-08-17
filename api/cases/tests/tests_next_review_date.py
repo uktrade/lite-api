@@ -4,7 +4,7 @@ from rest_framework import status
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.conf.helpers import convert_date_to_string
+from api.core.helpers import convert_date_to_string
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 

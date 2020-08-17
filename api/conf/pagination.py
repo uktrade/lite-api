@@ -1,7 +1,7 @@
 from rest_framework import pagination
 from rest_framework.response import Response
 
-from api.conf.helpers import str_to_bool
+from api.core.helpers import str_to_bool
 
 
 class MaxPageNumberPagination(pagination.PageNumberPagination):

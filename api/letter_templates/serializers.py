@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueValidator
 from api.cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseTypeReferenceEnum
 from api.cases.models import CaseType
 from api.cases.serializers import CaseTypeSerializer, CaseTypeReferenceListSerializer
-from api.conf.serializers import PrimaryKeyRelatedSerializerField
+from api.core.serializers import PrimaryKeyRelatedSerializerField
 from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from api.picklists.models import PicklistItem

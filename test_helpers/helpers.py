@@ -1,7 +1,7 @@
 from django.db import IntegrityError
 from faker import Faker
 
-from api.conf.constants import Roles
+from api.core.constants import Roles
 from api.flags.enums import SystemFlags
 from api.staticdata.countries.models import Country
 from api.users.models import ExporterUser, UserOrganisationRelationship

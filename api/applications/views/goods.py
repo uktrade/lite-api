@@ -16,13 +16,13 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import Case
-from api.conf.authentication import ExporterAuthentication
-from api.conf.decorators import (
+from api.core.authentication import ExporterAuthentication
+from api.core.decorators import (
     authorised_to_view_application,
     allowed_application_types,
     application_in_state,
 )
-from api.conf.exceptions import BadRequestError
+from api.core.exceptions import BadRequestError
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.libraries.get_goods import get_good_with_organisation

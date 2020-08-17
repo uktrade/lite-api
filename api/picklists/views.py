@@ -7,11 +7,11 @@ from rest_framework.views import APIView
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.serializers import AuditSerializer
-from api.conf.authentication import GovAuthentication
-from api.conf.constants import GovPermissions
-from api.conf.custom_views import OptionalPaginationView
-from api.conf.helpers import str_to_bool
-from api.conf.permissions import assert_user_has_permission
+from api.core.authentication import GovAuthentication
+from api.core.constants import GovPermissions
+from api.core.custom_views import OptionalPaginationView
+from api.core.helpers import str_to_bool
+from api.core.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
 from api.picklists.enums import PickListStatus
 from api.picklists.helpers import get_picklist_item

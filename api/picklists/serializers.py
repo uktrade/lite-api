@@ -3,7 +3,7 @@ from rest_framework.fields import CharField, SerializerMethodField, UUIDField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
 
-from api.conf.serializers import KeyValueChoiceField
+from api.core.serializers import KeyValueChoiceField
 from api.picklists.enums import PicklistType, PickListStatus
 from api.picklists.models import PicklistItem
 from api.teams.models import Team

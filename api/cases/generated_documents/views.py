@@ -16,9 +16,9 @@ from api.cases.generated_documents.serializers import (
 )
 from api.cases.generated_documents.signing import sign_pdf
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
-from api.conf.authentication import GovAuthentication, SharedAuthentication
-from api.conf.decorators import authorised_to_view_application
-from api.conf.helpers import str_to_bool
+from api.core.authentication import GovAuthentication, SharedAuthentication
+from api.core.decorators import authorised_to_view_application
+from api.core.helpers import str_to_bool
 from api.documents.libraries import s3_operations
 from api.licences.models import Licence
 from lite_content.lite_api import strings

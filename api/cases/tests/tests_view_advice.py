@@ -3,7 +3,7 @@ from rest_framework import status
 
 from api.cases.enums import AdviceLevel
 from api.cases.tests.factories import UserAdviceFactory, TeamAdviceFactory, FinalAdviceFactory
-from api.conf.helpers import date_to_drf_date
+from api.core.helpers import date_to_drf_date
 from test_helpers.clients import DataTestClient
 
 

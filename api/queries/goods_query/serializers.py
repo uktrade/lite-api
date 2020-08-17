@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
+from api.core.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from api.goods.enums import PvGrading
 from api.goods.models import PvGradingDetails
 from lite_content.lite_api import strings

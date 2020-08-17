@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.fields import UUIDField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from api.conf.serializers import PrimaryKeyRelatedSerializerField
+from api.core.serializers import PrimaryKeyRelatedSerializerField
 from api.gov_users.enums import GovUserStatuses
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation

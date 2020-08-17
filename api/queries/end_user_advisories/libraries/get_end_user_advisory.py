@@ -1,4 +1,4 @@
-from api.conf.exceptions import NotFoundError
+from api.core.exceptions import NotFoundError
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 
 

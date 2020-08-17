@@ -7,7 +7,7 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.libraries.delete_notifications import delete_gov_user_notifications
 from api.cases.models import Case
-from api.conf.authentication import GovAuthentication
+from api.core.authentication import GovAuthentication
 from api.users.models import GovUser
 
 

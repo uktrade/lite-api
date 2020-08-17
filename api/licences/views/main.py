@@ -5,7 +5,7 @@ from api.applications.models import CountryOnApplication
 from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import CaseType
-from api.conf.authentication import ExporterAuthentication
+from api.core.authentication import ExporterAuthentication
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.licences.serializers.view_licence import LicenceSerializer, NLRdocumentSerializer, LicenceListSerializer

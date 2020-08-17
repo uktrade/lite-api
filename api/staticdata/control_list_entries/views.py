@@ -3,7 +3,7 @@ from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
-from api.conf.authentication import SharedAuthentication
+from api.core.authentication import SharedAuthentication
 from api.staticdata.control_list_entries.helpers import get_control_list_entry, convert_control_list_entries_to_tree
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializerWithLinks

@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from api.conf.authentication import ExporterAuthentication
+from api.core.authentication import ExporterAuthentication
 from api.open_general_licences.helpers import get_open_general_licence
 from api.organisations.libraries.get_organisation import get_request_user_organisation
 

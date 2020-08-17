@@ -10,9 +10,9 @@ from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.libraries.get_case import get_case
 from api.cases.models import Advice, GoodCountryDecision
-from api.conf import constants
-from api.conf.constants import GovPermissions
-from api.conf.permissions import assert_user_has_permission
+from api.core import constants
+from api.core.constants import GovPermissions
+from api.core.permissions import assert_user_has_permission
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from lite_content.lite_api import strings

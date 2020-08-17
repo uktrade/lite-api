@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory, PeoplePresentFactory
-from api.conf.constants import GovPermissions
+from api.core.constants import GovPermissions
 from lite_content.lite_api import strings
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status

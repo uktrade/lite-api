@@ -9,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from api.common.models import TimestampableModel
-from api.conf.constants import Roles
+from api.core.constants import Roles
 from api.queues.constants import ALL_CASES_QUEUE_ID
 from api.staticdata.statuses.models import CaseStatus
 from api.teams.models import Team

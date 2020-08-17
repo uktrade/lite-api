@@ -6,8 +6,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from api.conf.authentication import GovAuthentication
-from api.conf.constants import Teams
+from api.core.authentication import GovAuthentication
+from api.core.constants import Teams
 from api.queues.models import Queue
 from api.queues.serializers import TinyQueueSerializer
 from api.gov_users.serializers import GovUserListSerializer

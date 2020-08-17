@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from api.addresses.models import Address
-from api.conf.serializers import CountrySerializerField
+from api.core.serializers import CountrySerializerField
 from lite_content.lite_api.strings import Addresses
 from api.staticdata.countries.helpers import get_country
 

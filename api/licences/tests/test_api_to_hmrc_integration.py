@@ -9,8 +9,8 @@ from rest_framework import status
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
 from api.cases.models import CaseType
 from api.cases.tests.factories import GoodCountryDecisionFactory
-from api.conf.constants import GovPermissions
-from api.conf.helpers import add_months
+from api.core.constants import GovPermissions
+from api.core.helpers import add_months
 from api.conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
 from api.licences.apps import LicencesConfig
 from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action

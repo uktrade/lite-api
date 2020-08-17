@@ -11,9 +11,9 @@ from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
 from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
-from api.conf.constants import ExporterPermissions
-from api.conf.exceptions import NotFoundError
-from api.conf.permissions import check_user_has_permission
+from api.core.constants import ExporterPermissions
+from api.core.exceptions import NotFoundError
+from api.core.permissions import check_user_has_permission
 from api.goods.models import Good
 from api.licences.models import Licence
 from lite_content.lite_api import strings

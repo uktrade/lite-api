@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from api.conf.authentication import SharedAuthentication
+from api.core.authentication import SharedAuthentication
 from api.conf.settings import env, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 

@@ -2,8 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from api.conf import constants
-from api.conf.constants import ExporterPermissions
+from api.core import constants
+from api.core.constants import ExporterPermissions
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserType
 from api.users.models import Role, Permission, ExporterUser

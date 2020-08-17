@@ -1,6 +1,6 @@
 from unittest import mock
 
-from api.conf.requests import get, post, put, delete, make_request, send_request
+from api.core.requests import get, post, put, delete, make_request, send_request
 from test_helpers.clients import DataTestClient
 
 

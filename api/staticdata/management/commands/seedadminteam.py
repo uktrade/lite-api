@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from api.conf.constants import Teams
+from api.core.constants import Teams
 from api.staticdata.management.SeedCommand import SeedCommand
 from api.teams.models import Team
 

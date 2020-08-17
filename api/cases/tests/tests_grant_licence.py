@@ -9,8 +9,8 @@ from api.licences.models import Licence
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.cases.generated_documents.models import GeneratedCaseDocument
-from api.conf.constants import GovPermissions
-from api.conf.exceptions import PermissionDeniedError
+from api.core.constants import GovPermissions
+from api.core.exceptions import PermissionDeniedError
 from lite_content.lite_api.strings import Cases
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum

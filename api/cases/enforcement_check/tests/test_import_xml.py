@@ -8,7 +8,7 @@ from rest_framework import status
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.enforcement_check.export_xml import get_enforcement_id
-from api.conf.constants import GovPermissions
+from api.core.constants import GovPermissions
 from api.flags.enums import SystemFlags
 from lite_content.lite_api.strings import Cases
 from test_helpers.clients import DataTestClient

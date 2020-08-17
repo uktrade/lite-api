@@ -1,7 +1,7 @@
 from lite_content.lite_api import strings
 from django.http import Http404
 
-from api.conf.exceptions import NotFoundError
+from api.core.exceptions import NotFoundError
 from api.goods.models import Good, GoodDocument
 from api.queries.goods_query.models import GoodsQuery
 from api.users.models import ExporterUser

@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
-from api.conf import constants
+from api.core import constants
 from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from api.picklists.enums import PickListStatus, PicklistType

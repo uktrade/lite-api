@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.conf.serializers import KeyValueChoiceField
+from api.core.serializers import KeyValueChoiceField
 from api.cases.enums import AdviceType
 from api.staticdata.decisions.models import Decision
 
