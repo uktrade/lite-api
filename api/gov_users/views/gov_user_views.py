@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from api.conf.authentication import GovAuthentication, HawkOnlyAuthentication
 from api.conf.constants import Roles, GovPermissions
 from api.conf.custom_views import OptionalPaginationView
-from gov_users.enums import GovUserStatuses
-from gov_users.serializers import GovUserCreateOrUpdateSerializer, GovUserViewSerializer, GovUserListSerializer
+from api.gov_users.enums import GovUserStatuses
+from api.gov_users.serializers import GovUserCreateOrUpdateSerializer, GovUserViewSerializer, GovUserListSerializer
 from api.organisations.enums import OrganisationStatus
 from api.organisations.models import Organisation
 from api.users.enums import UserStatuses

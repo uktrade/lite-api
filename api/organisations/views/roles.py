@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from api.conf.authentication import ExporterAuthentication
 from api.conf.constants import Roles, ExporterPermissions
 from api.conf.permissions import assert_user_has_permission
-from gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
+from api.gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.users.enums import UserType
 from api.users.libraries.get_role import get_role_by_pk

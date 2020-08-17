@@ -3,7 +3,7 @@ from rest_framework import serializers
 from api.conf.constants import Roles
 from api.conf.exceptions import NotFoundError
 from api.conf.serializers import KeyValueChoiceField
-from gov_users.serializers import RoleSerializer, GovUserViewSerializer
+from api.gov_users.serializers import RoleSerializer, GovUserViewSerializer
 from api.organisations.libraries.get_organisation import get_organisation_by_pk
 from api.organisations.models import Organisation, Site
 from api.users.enums import UserStatuses, UserType

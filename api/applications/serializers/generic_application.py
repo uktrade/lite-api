@@ -14,7 +14,7 @@ from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import CaseType
 from api.conf.helpers import get_value_from_enum
 from api.conf.serializers import KeyValueChoiceField
-from gov_users.serializers import GovUserSimpleSerializer
+from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.organisations.serializers import OrganisationDetailSerializer, ExternalLocationSerializer, SiteListSerializer

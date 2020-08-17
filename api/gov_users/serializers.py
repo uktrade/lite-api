@@ -3,7 +3,7 @@ from rest_framework.fields import UUIDField
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.conf.serializers import PrimaryKeyRelatedSerializerField
-from gov_users.enums import GovUserStatuses
+from api.gov_users.enums import GovUserStatuses
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queues.constants import SYSTEM_QUEUES

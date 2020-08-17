@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     "api.flags",
     "api.goods",
     "api.goodstype",
-    "gov_users",
+    "api.gov_users",
     "api.letter_templates",
     "api.licences",
     "api.organisations",

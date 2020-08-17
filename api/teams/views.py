@@ -10,7 +10,7 @@ from api.conf.authentication import GovAuthentication
 from api.conf.constants import Teams
 from api.queues.models import Queue
 from api.queues.serializers import TinyQueueSerializer
-from gov_users.serializers import GovUserListSerializer
+from api.gov_users.serializers import GovUserListSerializer
 from api.teams.helpers import get_team_by_pk
 from api.teams.models import Team
 from api.teams.serializers import TeamSerializer

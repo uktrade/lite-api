@@ -26,7 +26,7 @@ from api.goods.helpers import (
     validate_section_certificate_number_and_expiry_date,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
-from gov_users.serializers import GovUserSimpleSerializer
+from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queries.goods_query.models import GoodsQuery

@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from api.conf.authentication import SharedAuthentication
 from api.conf.constants import Roles, ExporterPermissions
 from api.conf.permissions import assert_user_has_permission
-from gov_users.serializers import RoleListSerializer
+from api.gov_users.serializers import RoleListSerializer
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_organisation_by_pk
 from api.organisations.models import Site
