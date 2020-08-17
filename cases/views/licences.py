@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication
+from api.conf.authentication import GovAuthentication
 from licences.models import Licence
 from licences.serializers.view_licence import LicenceWithGoodsViewSerializer
 from lite_content.lite_api import strings

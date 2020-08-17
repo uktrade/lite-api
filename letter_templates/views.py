@@ -7,10 +7,10 @@ from audit_trail.enums import AuditType
 from audit_trail.serializers import AuditSerializer
 from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
-from conf import constants
-from conf.authentication import GovAuthentication
-from conf.helpers import str_to_bool, friendly_boolean
-from conf.permissions import assert_user_has_permission
+from api.conf import constants
+from api.conf.authentication import GovAuthentication
+from api.conf.helpers import str_to_bool, friendly_boolean
+from api.conf.permissions import assert_user_has_permission
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer, LetterTemplateListSerializer

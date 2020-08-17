@@ -7,7 +7,7 @@ from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ReadTimeoutError
 from django.http import StreamingHttpResponse
 
-from conf.settings import (
+from api.conf.settings import (
     STREAMING_CHUNK_SIZE,
     S3_CONNECT_TIMEOUT,
     S3_REQUEST_TIMEOUT,

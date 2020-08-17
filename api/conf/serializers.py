@@ -12,7 +12,7 @@ from rest_framework.fields import (
 )
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 from lite_content.lite_api import strings
 from static.control_list_entries.helpers import get_control_list_entry
 from static.control_list_entries.models import ControlListEntry

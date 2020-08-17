@@ -6,8 +6,8 @@ from rest_framework.exceptions import ValidationError
 
 from addresses.models import Address
 from common.models import TimestampableModel
-from conf.constants import ExporterPermissions
-from conf.exceptions import NotFoundError
+from api.conf.constants import ExporterPermissions
+from api.conf.exceptions import NotFoundError
 from flags.models import Flag
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from organisations.enums import OrganisationType, OrganisationStatus, LocationType

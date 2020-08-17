@@ -15,7 +15,7 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
-from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, get_value_from_enum
+from api.conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, get_value_from_enum
 from goods.enums import (
     PvGrading,
     ItemType,

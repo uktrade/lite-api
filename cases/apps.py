@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 
-from conf.settings import BACKGROUND_TASK_ENABLED
+from api.conf.settings import BACKGROUND_TASK_ENABLED
 
 
 class CasesConfig(AppConfig):

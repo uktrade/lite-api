@@ -1,4 +1,4 @@
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 

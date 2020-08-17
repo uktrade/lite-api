@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from django.conf import settings
-from conf.constants import ExporterPermissions
+from api.conf.constants import ExporterPermissions
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 from users.libraries.get_user import get_users_from_organisation, get_user_organisation_relationship

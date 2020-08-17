@@ -3,8 +3,8 @@ from django.http import JsonResponse
 from rest_framework import status, generics
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication
-from conf.helpers import str_to_bool
+from api.conf.authentication import GovAuthentication
+from api.conf.helpers import str_to_bool
 from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer, QueueListSerializer
 from queues.service import get_queue, get_queues_qs, get_system_queues

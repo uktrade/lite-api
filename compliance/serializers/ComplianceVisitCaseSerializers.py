@@ -3,11 +3,11 @@ from rest_framework.fields import empty
 
 from lite_content.lite_api import strings
 
-from conf.serializers import KeyValueChoiceField
+from api.conf.serializers import KeyValueChoiceField
 from addresses.serializers import AddressSerializer
 from compliance.enums import ComplianceRiskValues, ComplianceVisitTypes
 from compliance.models import ComplianceVisitCase, CompliancePerson
-from conf.serializers import PrimaryKeyRelatedSerializerField
+from api.conf.serializers import PrimaryKeyRelatedSerializerField
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 

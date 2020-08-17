@@ -8,7 +8,7 @@ from applications.models import (
     ExhibitionClearanceApplication,
 )
 from cases.enums import CaseTypeSubTypeEnum
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 
 
 def get_application(pk, organisation_id=None):

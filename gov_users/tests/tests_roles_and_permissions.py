@@ -2,8 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from conf import constants
-from conf.constants import Roles
+from api.conf import constants
+from api.conf.constants import Roles
 from test_helpers.clients import DataTestClient
 from users.enums import UserType
 from users.models import Role, Permission

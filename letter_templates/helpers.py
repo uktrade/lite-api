@@ -5,8 +5,8 @@ from django.utils.html import escape
 from markdown import markdown
 
 from django.conf import settings
-from conf.exceptions import NotFoundError
-from conf.settings import CSS_ROOT
+from api.conf.exceptions import NotFoundError
+from api.conf.settings import CSS_ROOT
 from letter_templates.context_generator import get_document_context
 from letter_templates.exceptions import InvalidVarException
 from letter_templates.models import LetterTemplate

@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from conf.constants import Teams
+from api.conf.constants import Teams
 from teams.helpers import get_team_by_pk
 from teams.models import Team
 from test_helpers.clients import DataTestClient

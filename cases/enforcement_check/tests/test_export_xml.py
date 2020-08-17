@@ -8,7 +8,7 @@ from cases.enforcement_check.export_xml import _get_address_line_2, get_enforcem
 from cases.enforcement_check.import_xml import enforcement_id_to_uuid
 from cases.enums import EnforcementXMLEntityTypes
 from cases.models import EnforcementCheckID
-from conf.constants import GovPermissions
+from api.conf.constants import GovPermissions
 from flags.enums import SystemFlags
 from parties.enums import PartyType, PartyRole
 from test_helpers.clients import DataTestClient

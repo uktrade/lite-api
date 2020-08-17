@@ -1,6 +1,6 @@
 from rest_framework.generics import RetrieveAPIView
 
-from conf.authentication import GovAuthentication
+from api.conf.authentication import GovAuthentication
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeViewSerializer
 

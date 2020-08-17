@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from conf.settings import AV_REQUEST_TIMEOUT
+from api.conf.settings import AV_REQUEST_TIMEOUT
 
 
 class VirusScanException(Exception):

@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from cases.enums import CaseTypeReferenceEnum
-from conf.authentication import ExporterAuthentication
+from api.conf.authentication import ExporterAuthentication
 from organisations.enums import LocationType
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer, SiclExternalLocationSerializer

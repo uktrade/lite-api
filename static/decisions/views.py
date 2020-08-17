@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.status import HTTP_200_OK
 
 from cases.enums import AdviceType
-from conf.authentication import SharedAuthentication
+from api.conf.authentication import SharedAuthentication
 
 
 class Decisions(APIView):

@@ -5,7 +5,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.models import BaseApplication, GoodOnApplication
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from conf.serializers import KeyValueChoiceField
+from api.conf.serializers import KeyValueChoiceField
 from goods.enums import ItemType
 from goods.models import Good
 from goods.serializers import GoodSerializerInternal

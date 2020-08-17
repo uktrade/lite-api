@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from conf.helpers import str_to_bool
-from conf.serializers import ControlListEntryField
+from api.conf.helpers import str_to_bool
+from api.conf.serializers import ControlListEntryField
 from flags.enums import SystemFlags
 from lite_content.lite_api import strings
 

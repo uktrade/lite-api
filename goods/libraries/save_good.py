@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from rest_framework import status
 
-from conf.helpers import str_to_bool
+from api.conf.helpers import str_to_bool
 
 
 def create_or_update_good(serializer, validate_only, is_created):

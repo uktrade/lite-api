@@ -1,4 +1,4 @@
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 from queries.goods_query.models import GoodsQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 

@@ -8,16 +8,16 @@ from rest_framework.generics import UpdateAPIView, ListAPIView
 from rest_framework.views import APIView
 
 from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
-from conf.authentication import (
+from api.conf.authentication import (
     ExporterAuthentication,
     GovAuthentication,
     ExporterOnlyAuthentication,
     HawkOnlyAuthentication,
 )
-from conf.constants import ExporterPermissions
-from conf.exceptions import NotFoundError
-from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date, str_to_bool
-from conf.permissions import assert_user_has_permission, check_user_has_permission
+from api.conf.constants import ExporterPermissions
+from api.conf.exceptions import NotFoundError
+from api.conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date, str_to_bool
+from api.conf.permissions import assert_user_has_permission, check_user_has_permission
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Users
 from organisations.enums import OrganisationStatus

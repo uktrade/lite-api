@@ -1,5 +1,5 @@
 from applications.models import BaseApplication, SiteOnApplication
-from conf.exceptions import NotFoundError
+from api.conf.exceptions import NotFoundError
 from organisations.models import Site
 
 

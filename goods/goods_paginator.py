@@ -1,4 +1,4 @@
-from conf.pagination import MaxPageNumberPagination
+from api.conf.pagination import MaxPageNumberPagination
 
 
 class GoodListPaginator(MaxPageNumberPagination):

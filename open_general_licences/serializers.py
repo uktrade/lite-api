@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueValidator
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
-from conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
+from api.conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from lite_content.lite_api.strings import OpenGeneralLicences

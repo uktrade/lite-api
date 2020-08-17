@@ -4,8 +4,8 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication
-from conf.constants import GovPermissions
+from api.conf.authentication import GovAuthentication
+from api.conf.constants import GovPermissions
 from lite_content.lite_api.strings import RoutingRules
 from workflow.routing_rules.enum import StatusAction
 from workflow.routing_rules.helpers import get_routing_rule

@@ -3,7 +3,7 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
 from cases.views.search.service import get_case_status_list
-from conf.authentication import SharedAuthentication
+from api.conf.authentication import SharedAuthentication
 from static.statuses.models import CaseStatus
 
 

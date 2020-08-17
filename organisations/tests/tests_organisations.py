@@ -9,9 +9,9 @@ from rest_framework.reverse import reverse
 from addresses.tests.factories import ForeignAddressFactory
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
-from conf.authentication import EXPORTER_USER_TOKEN_HEADER
-from conf.constants import Roles, GovPermissions
-from conf.helpers import date_to_drf_date
+from api.conf.authentication import EXPORTER_USER_TOKEN_HEADER
+from api.conf.constants import Roles, GovPermissions
+from api.conf.helpers import date_to_drf_date
 from gov_notify.enums import TemplateType
 from lite_content.lite_api.strings import Organisations
 from organisations.constants import UK_VAT_VALIDATION_REGEX

@@ -9,9 +9,9 @@ from audit_trail.enums import AuditType
 from cases.enforcement_check.export_xml import export_cases_xml
 from cases.enforcement_check.import_xml import import_cases_xml
 from cases.models import Case
-from conf.authentication import GovAuthentication
-from conf.constants import GovPermissions
-from conf.permissions import assert_user_has_permission
+from api.conf.authentication import GovAuthentication
+from api.conf.constants import GovPermissions
+from api.conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
 from lite_content.lite_api.strings import Cases

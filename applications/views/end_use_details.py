@@ -5,8 +5,8 @@ from rest_framework.generics import UpdateAPIView
 from applications.helpers import get_application_end_use_details_update_serializer
 from applications.libraries.edit_applications import save_and_audit_end_use_details
 from applications.libraries.get_applications import get_application
-from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_to_view_application, application_in_state
+from api.conf.authentication import ExporterAuthentication
+from api.conf.decorators import authorised_to_view_application, application_in_state
 from users.models import ExporterUser
 
 

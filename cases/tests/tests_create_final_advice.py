@@ -6,7 +6,7 @@ from cases.enums import AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import Advice, GoodCountryDecision
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
-from conf import constants
+from api.conf import constants
 from goods.enums import PvGrading
 from goodstype.tests.factories import GoodsTypeFactory
 from static.countries.models import Country

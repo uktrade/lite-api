@@ -104,12 +104,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "conf.middleware.LoggingMiddleware",
-    "conf.middleware.DBLoggingMiddleware",
-    "conf.middleware.HawkSigningMiddleware",
+    "api.conf.middleware.LoggingMiddleware",
+    "api.conf.middleware.DBLoggingMiddleware",
+    "api.conf.middleware.HawkSigningMiddleware",
 ]
 
-ROOT_URLCONF = "conf.urls"
+ROOT_URLCONF = "api.conf.urls"
 
 TEMPLATES = [
     {
@@ -135,10 +135,10 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (),
     "DEFAULT_PERMISSION_CLASSES": (),
     "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser", "rest_framework.parsers.FormParser"),
-    "DEFAULT_PAGINATION_CLASS": "conf.pagination.MaxPageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "api.conf.pagination.MaxPageNumberPagination",
     "PAGE_SIZE": 25,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
-    "EXCEPTION_HANDLER": "conf.handlers.lite_exception_handler",
+    "EXCEPTION_HANDLER": "api.conf.handlers.lite_exception_handler",
 }
 
 AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
@@ -175,9 +175,9 @@ HAWK_CREDENTIALS = {
     },
 }
 
-WSGI_APPLICATION = "conf.wsgi.application"
+WSGI_APPLICATION = "api.conf.wsgi.application"
 
-SWAGGER_SETTINGS = {"DEFAULT_INFO": "conf.urls.api_info"}
+SWAGGER_SETTINGS = {"DEFAULT_INFO": "api.conf.urls.api_info"}
 
 TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
 TEST_OUTPUT_DIR = "test-results/unittest/"
