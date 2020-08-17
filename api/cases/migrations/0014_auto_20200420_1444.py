@@ -9,7 +9,7 @@ def forward_step(apps, schema_editor):
     Function to remove the duplicate CaseAssignment's that would break the new unique together field
     """
 
-    CaseAssignment = apps.get_model("api.cases.CaseAssignment")
+    CaseAssignment = apps.get_model("cases.CaseAssignment")
 
     dups = (
         CaseAssignment.objects.values("case_id", "user_id", "queue_id")
