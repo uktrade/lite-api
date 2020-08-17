@@ -107,7 +107,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(GoodsType.objects.all().count(), initial_goods_types_count - 1)
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_post_goods_type_document_success(self, scan_document_for_viruses_function):
         """
         Given a draft HMRC query has been created
@@ -124,7 +124,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(count + 1, GoodsTypeDocument.objects.count())
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_get_goods_type_document_success(self, scan_document_for_viruses_function):
         """
         Given a draft HMRC query has been created
@@ -140,8 +140,8 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEqual(response_data["s3_key"], self.new_document_data["s3_key"])
         self.assertEqual(response_data["size"], self.new_document_data["size"])
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
-    @mock.patch("documents.models.Document.delete_s3")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.models.Document.delete_s3")
     def test_delete_goods_type_document_success(self, delete_s3_function, scan_document_for_viruses_function):
         """
         Given a draft HMRC query has been created
@@ -155,8 +155,8 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
-    @mock.patch("documents.models.Document.delete_s3")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.models.Document.delete_s3")
     def test_delete_goods_type_success(self, delete_s3_function, scan_document_for_viruses_function):
         """
         Given a draft HMRC query has been created

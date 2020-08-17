@@ -7,7 +7,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 class DenialReasonsTests(DataTestClient):
 
-    url = reverse("static:denial-reasons:denial-reasons")
+    url = reverse("staticdata:denial-reasons:denial-reasons")
 
     def test_get_denial_reasons(self):
         response = self.client.get(self.url, **self.exporter_headers)

@@ -8,7 +8,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 class CaseTypesTests(DataTestClient):
     def test_get_case_types_success(self):
-        url = reverse("static:case_types:case_types")
+        url = reverse("staticdata:case_types:case_types")
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["case_types"]

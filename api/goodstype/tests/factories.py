@@ -1,6 +1,6 @@
 import factory
 
-from goodstype import models
+from api.goodstype import models
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 
 

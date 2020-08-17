@@ -7,7 +7,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 class StatusesTests(DataTestClient):
 
-    url = reverse("static:statuses:case_statuses")
+    url = reverse("staticdata:statuses:case_statuses")
 
     def test_get_statuses(self):
         response = self.client.get(self.url, **self.exporter_headers)

@@ -8,7 +8,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 class F680ClearanceTypesTests(DataTestClient):
     def test_get_f680_clearance_types_success(self):
-        url = reverse("static:f680_clearance_types:f680_clearance_types")
+        url = reverse("staticdata:f680_clearance_types:f680_clearance_types")
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["types"]

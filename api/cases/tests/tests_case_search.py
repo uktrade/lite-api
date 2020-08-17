@@ -33,18 +33,18 @@ class FilterAndSortTests(DataTestClient):
             case = self.create_standard_application_case(self.organisation, "Example Application")
             case.status = get_case_status_by_status(app_status)
             case.save()
-            self.queue.api.cases.add(case)
+            self.queue.cases.add(case)
             self.queue.save()
-            self.application_api.cases.append(case)
+            self.application_cases.append(case)
 
         self.clc_cases = []
         for clc_status in statuses:
             clc_query = self.create_clc_query("Example CLC Query", self.organisation)
             clc_query.status = get_case_status_by_status(clc_status)
             clc_query.save()
-            self.queue.api.cases.add(clc_query)
+            self.queue.cases.add(clc_query)
             self.queue.save()
-            self.clc_api.cases.append(clc_query)
+            self.clc_cases.append(clc_query)
 
     def test_get_cases_returns_only_system_and_users_team_queues(self):
         system_and_team_queue_ids = sorted([*SYSTEM_QUEUES.keys(), str(self.queue.id)])

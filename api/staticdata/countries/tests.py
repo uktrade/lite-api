@@ -7,7 +7,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class CountriesTests(DataTestClient):
-    url = reverse("static:countries:countries")
+    url = reverse("staticdata:countries:countries")
 
     def test_get_countries(self):
         response = self.client.get(self.url, **self.exporter_headers)
@@ -34,7 +34,7 @@ class CountriesTests(DataTestClient):
         self.assertNotIn(country_two.name, country_names)
 
     def test_get_country(self):
-        response = self.client.get(reverse("static:countries:country", kwargs={"pk": "GB"}), **self.exporter_headers)
+        response = self.client.get(reverse("staticdata:countries:country", kwargs={"pk": "GB"}), **self.exporter_headers)
         response_data = response.json()
         country = Country.objects.get(pk="GB")
 

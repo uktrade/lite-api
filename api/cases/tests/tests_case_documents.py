@@ -35,7 +35,7 @@ class CaseDocumentDownloadTests(DataTestClient):
         self.file = self.create_case_document(self.case, self.gov_user, "Test")
         self.path = "cases:document_download"
 
-    @mock.patch("documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
     def test_download_case_document_success(self, get_object_function):
         url = reverse(self.path, kwargs={"case_pk": self.case.id, "document_pk": self.file.id})
 

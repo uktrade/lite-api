@@ -542,7 +542,7 @@ class HMRCIntegrationTests(DataTestClient):
         super().setUp()
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
 
-    @mock.patch("conf.requests.requests.request")
+    @mock.patch("api.core.requests.requests.request")
     def test_approve_standard_application_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         standard_application, standard_licence = self._create_licence_for_submission(
@@ -563,7 +563,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @mock.patch("conf.requests.requests.request")
+    @mock.patch("api.core.requests.requests.request")
     def test_approve_open_application_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         open_application, open_licence = self._create_licence_for_submission(self.create_open_application_case)
@@ -582,7 +582,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @mock.patch("conf.requests.requests.request")
+    @mock.patch("api.core.requests.requests.request")
     def test_surrender_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         standard_application, standard_licence = self._create_licence_for_submission(
@@ -608,7 +608,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @mock.patch("conf.requests.requests.request")
+    @mock.patch("api.core.requests.requests.request")
     def test_revoke_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         standard_application, standard_licence = self._create_licence_for_submission(
@@ -636,7 +636,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @mock.patch("conf.requests.requests.request")
+    @mock.patch("api.core.requests.requests.request")
     def test_create_ogel_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
@@ -657,7 +657,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @mock.patch("conf.requests.requests.request")
+    @mock.patch("api.core.requests.requests.request")
     def test_reinstate_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         # Create Case with Licence

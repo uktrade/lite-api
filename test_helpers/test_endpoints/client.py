@@ -1,4 +1,4 @@
-from api.conf import requests
+from api.core import requests
 
 from api.conf.settings import env, HAWK_LITE_PERFORMANCE_CREDENTIALS
 

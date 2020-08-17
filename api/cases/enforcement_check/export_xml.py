@@ -13,7 +13,7 @@ def export_cases_xml(cases):
     Takes a list of cases and converts into XML for the enforcement unit.
     XML includes party details, sites & the organisation for each application.
     """
-    case_ids = api.cases.values_list("pk", flat=True)
+    case_ids = cases.values_list("pk", flat=True)
 
     # Build XML structure
     base = ElementTree.Element("ENFORCEMENT_CHECK")
@@ -175,7 +175,7 @@ def _export_sites_on_applications(case_ids, xml_base):
 
 
 def _export_organisations_on_applications(cases, xml_base):
-    organisations_on_applications = api.cases.prefetch_related(
+    organisations_on_applications = cases.prefetch_related(
         "organisation", "organisation__primary_site__address"
     ).values(
         "id",

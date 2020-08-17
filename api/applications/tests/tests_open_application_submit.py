@@ -95,7 +95,7 @@ class OpenApplicationTests(DataTestClient):
             response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_submit_open_application_declaration_submit_success(self, upload_bytes_file_func, html_to_pdf_func):
         upload_bytes_file_func.return_value = None
@@ -198,7 +198,7 @@ class OpenApplicationTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_submit_open_trade_control_application_maritime_activity_adds_flag(
         self, upload_bytes_file_func, html_to_pdf_func

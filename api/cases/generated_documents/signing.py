@@ -20,8 +20,8 @@ from api.conf.settings import (
 )
 
 SIGNATURE_TITLE = "Digital Signature"
-FONT = os.path.join(BASE_DIR, "assets", "fonts", "light.ttf")
-BACKGROUND_IMAGE = os.path.join(BASE_DIR, "assets", "images", "dit_emblem.png")
+FONT = os.path.join(os.path.dirname(BASE_DIR), "assets", "fonts", "light.ttf")
+BACKGROUND_IMAGE = os.path.join(os.path.dirname(BASE_DIR), "assets", "images", "dit_emblem.png")
 TITLE_FONT_SIZE = 80
 FONT_SIZE = 50
 SIGNATURE_POSITIONING = (50, 675, 450, 775)

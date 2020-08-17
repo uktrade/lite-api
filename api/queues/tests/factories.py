@@ -4,7 +4,7 @@ from api.queues.models import Queue
 
 class QueueFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("word")
-    team = factory.SubFactory("teams.tests.factories.TeamFactory")
+    team = factory.SubFactory("api.teams.tests.factories.TeamFactory")
     countersigning_queue = None
 
     class Meta:
@@ -15,4 +15,4 @@ class QueueFactory(factory.django.DjangoModelFactory):
         if not create or not extracted:
             # Simple build, do nothing.
             return
-        self.api.cases.set(extracted)
+        self.cases.set(extracted)

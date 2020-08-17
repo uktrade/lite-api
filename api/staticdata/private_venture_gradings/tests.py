@@ -8,7 +8,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 class PrivateVentureGradingsTests(DataTestClient):
     def test_get_all_private_venture_gradings(self):
-        url = reverse("static:private_venture_gradings:private_venture_gradings")
+        url = reverse("staticdata:private_venture_gradings:private_venture_gradings")
         response = self.client.get(url, **self.exporter_headers)
         gradings = response.json()["pv_gradings"]
 
@@ -17,7 +17,7 @@ class PrivateVentureGradingsTests(DataTestClient):
             self.assertIn({choice[0]: choice[1]}, gradings)
 
     def test_get_gov_private_venture_gradings(self):
-        url = reverse("static:private_venture_gradings:gov_private_venture_gradings")
+        url = reverse("staticdata:private_venture_gradings:gov_private_venture_gradings")
         response = self.client.get(url, **self.exporter_headers)
         gradings = response.json()["pv_gradings"]
 

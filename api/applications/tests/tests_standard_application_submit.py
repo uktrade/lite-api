@@ -232,7 +232,7 @@ class StandardApplicationTests(DataTestClient):
             {"supporting-documents": [strings.Applications.Standard.ADDITIONAL_DOCUMENTS_INFECTED]},
         )
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(
         self, upload_bytes_file_func, html_to_pdf_func
@@ -320,7 +320,7 @@ class StandardApplicationTests(DataTestClient):
             response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_standard_application_declaration_submit_success(self, upload_bytes_file_func, html_to_pdf_func):
         upload_bytes_file_func.return_value = None
@@ -385,7 +385,7 @@ class StandardApplicationTests(DataTestClient):
         errors = response.json()["errors"]
         self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_submit_standard_application_adds_system_case_flags_success(self, upload_bytes_file_func, html_to_pdf_func):
         upload_bytes_file_func.return_value = None
@@ -415,7 +415,7 @@ class StandardApplicationTests(DataTestClient):
         html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_resubmit_edited_standard_application_removes_system_case_flags_success(
         self, upload_bytes_file_func, html_to_pdf_func
@@ -538,7 +538,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_submit_standard_trade_control_application_maritime_activity_adds_flag(
         self, upload_bytes_file_func, html_to_pdf_func

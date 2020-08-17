@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-app_name = "api.queries"
+app_name = "queries"
 
 urlpatterns = [
     path("goods-queries/", include("api.queries.goods_query.urls"),),

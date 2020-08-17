@@ -43,7 +43,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
             )
 
             if str_to_bool(self.request.GET.get("active_only")):
-                cases = api.cases.filter(
+                cases = cases.filter(
                     status__status__in=[
                         CaseStatusEnum.FINALISED,
                         CaseStatusEnum.REGISTERED,

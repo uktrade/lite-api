@@ -35,7 +35,7 @@ class DraftDocumentTests(DataTestClient):
             "description": "banana cake 2",
         }
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_upload_document_on_unsubmitted_application(self, mock_prepare_doc):
         """ Test success in adding a document to an unsubmitted application. """
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
@@ -54,7 +54,7 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(len(response_data), 2)
         self.assertTrue(self.data in response_data)
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_upload_multiple_documents_on_unsubmitted_application(self, mock_prepare_doc):
         """ Test success in adding multiple documents to an unsubmitted application. """
         data = [self.data, self.data2]
@@ -76,8 +76,8 @@ class DraftDocumentTests(DataTestClient):
         for document in data:
             self.assertTrue(document in response_data)
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
-    @mock.patch("documents.models.Document.delete_s3")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.models.Document.delete_s3")
     def test_delete_individual_draft_document(self, mock_delete_s3, mock_prepare_doc):
         """ Test success in deleting a document from an unsubmitted application. """
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
@@ -107,7 +107,7 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response.json()["document"]["size"], application_document.size)
 
     @parameterized.expand(get_case_statuses(read_only=False))
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_add_document_when_application_in_editable_state_success(self, editable_status, mock_prepare_doc):
         application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
@@ -120,8 +120,8 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(application.applicationdocument_set.count(), 2)
 
     @parameterized.expand(get_case_statuses(read_only=False))
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
-    @mock.patch("documents.models.Document.delete_s3")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.models.Document.delete_s3")
     def test_delete_document_when_application_in_editable_state_success(
         self, editable_status, mock_delete_s3, mock_prepare_doc
     ):
@@ -152,8 +152,8 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(application.applicationdocument_set.count(), 1)
 
     @parameterized.expand(get_case_statuses(read_only=True))
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
-    @mock.patch("documents.models.Document.delete_s3")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.models.Document.delete_s3")
     def test_delete_document_when_application_in_read_only_state_failure(
         self, read_only_status, mock_delete_s3, mock_prepare_doc
     ):

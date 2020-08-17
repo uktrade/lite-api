@@ -8,7 +8,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 class DecisionsTests(DataTestClient):
     def test_get_decisions_success(self):
-        url = reverse("static:decisions:decisions")
+        url = reverse("staticdata:decisions:decisions")
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["decisions"]

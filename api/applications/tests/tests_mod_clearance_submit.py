@@ -98,7 +98,7 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["goods"], [strings.Applications.Standard.NO_GOODS_SET])
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_exhibition_clearance_declaration_submit_success(self, upload_bytes_file_func, html_to_pdf_func):
         upload_bytes_file_func.return_value = None
@@ -214,7 +214,7 @@ class GiftingClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["location"], [strings.Applications.Gifting.LOCATIONS])
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_gifting_clearance_declaration_submit_success(self, upload_bytes_file_func, html_to_pdf_func):
         upload_bytes_file_func.return_value = None
@@ -369,7 +369,7 @@ class F680ClearanceTests(DataTestClient):
             response.json()["errors"]["end_use_details"], [strings.Applications.Generic.NO_END_USE_DETAILS]
         )
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_f680_clearance_declaration_submit_success(self, upload_bytes_file_func, html_to_pdf_func):
         upload_bytes_file_func.return_value = None

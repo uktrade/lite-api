@@ -185,7 +185,7 @@ TEST_OUTPUT_DIR = "test-results/unittest/"
 STATIC_URL = "/assets/"
 
 # CSS
-STATIC_ROOT = os.path.join(BASE_DIR, "assets")
+STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "assets")
 CSS_ROOT = os.path.join(STATIC_ROOT, "css")
 
 LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts")

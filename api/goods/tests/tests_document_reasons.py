@@ -41,7 +41,7 @@ class GoodDocumentMissingReasonsTests(DataTestClient):
         good = response.json()["good"]
         self.assertEquals(good["missing_document_reason"]["key"], GoodMissingDocumentReasons.OFFICIAL_SENSITIVE)
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_uploading_document_clears_missing_document_reason(self, scan_document_for_viruses_function):
         # Give a missing document reason
         data = {

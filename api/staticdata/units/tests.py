@@ -7,7 +7,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 class UnitsTests(DataTestClient):
 
-    url = reverse("static:units:units")
+    url = reverse("staticdata:units:units")
 
     def test_get_units(self):
         response = self.client.get(self.url, **self.exporter_headers)
@@ -18,7 +18,7 @@ class UnitsTests(DataTestClient):
 
 
 class UnitsResponseTests(EndPointTests):
-    url = "/static/units/"
+    url = "/staticdata/units/"
 
     def test_units(self):
         self.call_endpoint(self.get_exporter_headers(), self.url)

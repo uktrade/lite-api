@@ -8,7 +8,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 class ItemTypeTests(DataTestClient):
 
-    url = reverse("static:item-types:item_types")
+    url = reverse("staticdata:item-types:item_types")
 
     def test_get_good_item_types(self):
         response = self.client.get(self.url, **self.exporter_headers)
@@ -20,7 +20,7 @@ class ItemTypeTests(DataTestClient):
 
 
 class GoodItemTypesResponseTests(EndPointTests):
-    url = "/static/item-types/"
+    url = "/staticdata/item-types/"
 
     def test_item_types(self):
         self.call_endpoint(self.get_exporter_headers(), self.url)

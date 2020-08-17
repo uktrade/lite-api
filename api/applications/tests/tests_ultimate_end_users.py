@@ -132,7 +132,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_post_ultimate_end_user_document_success(self, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
@@ -147,7 +147,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_get_ultimate_end_user_document_success(self, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
@@ -164,8 +164,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response_data["s3_key"], expected["s3_key"])
         self.assertEqual(response_data["size"], expected["size"])
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
-    @mock.patch("documents.models.Document.delete_s3")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.models.Document.delete_s3")
     def test_delete_ultimate_end_user_document_success(self, delete_s3_function, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
@@ -179,8 +179,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
-    @mock.patch("documents.models.Document.delete_s3")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.models.Document.delete_s3")
     def test_delete_ultimate_end_user_success(self, delete_s3_function, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
@@ -205,8 +205,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
         )
         delete_s3_function.assert_not_called()
 
-    @mock.patch("documents.tasks.scan_document_for_viruses.now")
-    @mock.patch("documents.models.Document.delete_s3")
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.models.Document.delete_s3")
     def test_delete_ultimate_end_user_success(self, delete_s3_function, scan_document_for_viruses_function):
         self.assertEqual(self.draft.ultimate_end_users.count(), 1)
 

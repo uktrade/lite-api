@@ -131,11 +131,11 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
         # Apply the flagging rule to different entities depending on the rule's level
         if flagging_rule.level == FlagLevels.CASE:
             # Add flag to all open Cases
-            open_cases = open_api.cases.filter(case_type__reference=flagging_rule.matching_value).values_list(
+            open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value).values_list(
                 "id", flat=True
             )
 
-            flagging_rule.flag.api.cases.add(*open_cases)
+            flagging_rule.flag.cases.add(*open_cases)
 
         elif flagging_rule.level == FlagLevels.GOOD:
             # Add flag to all Goods on open Goods Queries

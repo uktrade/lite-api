@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 
 class ActivityTests(DataTestClient):
     def test_get_activities_success(self):
-        url = reverse("static:trade_control:activities")
+        url = reverse("staticdata:trade_control:activities")
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["activities"]
@@ -20,7 +20,7 @@ class ActivityTests(DataTestClient):
 
 class ProductCategoryTests(DataTestClient):
     def test_get_product_categories_success(self):
-        url = reverse("static:trade_control:product_categories")
+        url = reverse("staticdata:trade_control:product_categories")
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["product_categories"]

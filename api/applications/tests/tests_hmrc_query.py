@@ -22,7 +22,7 @@ class HmrcQueryTests(DataTestClient):
         self.hmrc_query = self.create_hmrc_query(self.organisation)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.hmrc_query.id})
 
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
     def test_submit_hmrc_query_success(self, upload_bytes_file_func, html_to_pdf_func):
         upload_bytes_file_func.return_value = None

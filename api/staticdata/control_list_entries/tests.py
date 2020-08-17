@@ -11,7 +11,7 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 class CLCListTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.url = reverse("static:control_list_entries:control_list_entries")
+        self.url = reverse("staticdata:control_list_entries:control_list_entries")
 
     def _validate_returned_clc(self, item, full_detail: bool):
         self.assertIsNotNone(item.get("rating"))
@@ -44,7 +44,7 @@ class CLCTests(DataTestClient):
         super().setUp()
         self.parent_rating = ControlListEntriesFactory(rating="Xyz123", text="Parent rating")
         self.child_rating = ControlListEntriesFactory(rating="Xyz123b", text="Child 1", parent=self.parent_rating,)
-        self.url = "static:control_list_entries:control_list_entry"
+        self.url = "staticdata:control_list_entries:control_list_entry"
 
     def _validate_clc(self, response_data, object):
         self.assertEqual(response_data["rating"], object.rating)

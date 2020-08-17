@@ -160,9 +160,9 @@ class AssignFlags(APIView):
         if isinstance(obj, Good):
             cases = []
 
-            api.cases.extend(Case.objects.filter(id__in=GoodsQuery.objects.filter(good=obj).values_list("id", flat=True)))
+            cases.extend(Case.objects.filter(id__in=GoodsQuery.objects.filter(good=obj).values_list("id", flat=True)))
 
-            api.cases.extend(
+            cases.extend(
                 Case.objects.filter(id__in=GoodOnApplication.objects.filter(good=obj).values_list("id", flat=True))
             )
 
