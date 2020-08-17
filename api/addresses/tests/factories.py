@@ -1,7 +1,7 @@
 import factory
 
 from api.addresses.models import Address
-from api.static.countries.models import Country
+from api.staticdata.countries.models import Country
 
 
 class AddressFactory(factory.django.DjangoModelFactory):

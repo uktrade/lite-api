@@ -14,10 +14,10 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.core.exceptions import NotFoundError
 from lite_content.lite_api import strings
-from api.static.control_list_entries.helpers import get_control_list_entry
-from api.static.control_list_entries.models import ControlListEntry
-from api.static.countries.models import Country
-from api.static.countries.serializers import CountrySerializer
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
+from api.staticdata.control_list_entries.models import ControlListEntry
+from api.staticdata.countries.models import Country
+from api.staticdata.countries.serializers import CountrySerializer
 
 
 class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
@@ -138,7 +138,7 @@ class KeyValueChoiceField(Field):
 
 class ControlListEntryField(PrimaryKeyRelatedSerializerField):
     def __init__(self, **kwargs):
-        from api.static.control_list_entries.serializers import ControlListEntrySerializer
+        from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 
         super().__init__(
             queryset=ControlListEntry.objects.all(),

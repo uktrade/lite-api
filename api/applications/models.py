@@ -26,13 +26,13 @@ from lite_content.lite_api.strings import PartyErrors
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.parties.enums import PartyType
 from api.parties.models import Party
-from api.static.countries.models import Country
-from api.static.denial_reasons.models import DenialReason
-from api.static.f680_clearance_types.models import F680ClearanceType
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.case_status_validate import is_case_status_draft
-from api.static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
-from api.static.units.enums import Units
+from api.staticdata.countries.models import Country
+from api.staticdata.denial_reasons.models import DenialReason
+from api.staticdata.f680_clearance_types.models import F680ClearanceType
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
+from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
+from api.staticdata.units.enums import Units
 
 
 class ApplicationException(APIException):

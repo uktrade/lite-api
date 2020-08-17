@@ -2,7 +2,7 @@ import csv
 
 from api.applications.models import CountryOnApplication
 from api.goodstype.serializers import GoodsTypeSerializer
-from api.static.countries.models import Country
+from api.staticdata.countries.models import Country
 
 
 def set_destinations_for_uk_continental_shelf_application(application):

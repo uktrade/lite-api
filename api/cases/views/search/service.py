@@ -16,7 +16,7 @@ from api.cases.models import Case
 from api.common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
 from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
-from api.static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
 

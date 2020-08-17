@@ -12,9 +12,9 @@ from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.core.constants import GovPermissions
 from api.core.exceptions import PermissionDeniedError
 from lite_content.lite_api.strings import Cases
-from api.static.decisions.models import Decision
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.models import CaseStatus
+from api.staticdata.decisions.models import Decision
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 
 

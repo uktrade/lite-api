@@ -1,6 +1,6 @@
 from actstream.gfk import GFKQuerySet, GFKManager
 
-from api.static.statuses.libraries.case_status_validate import is_case_status_draft
+from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.users.models import ExporterUser
 from api.users.models import GovUser
 

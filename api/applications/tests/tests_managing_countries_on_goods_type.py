@@ -3,9 +3,9 @@ from rest_framework import status
 
 from api.applications.models import CountryOnApplication
 from api.goodstype.models import GoodsType
-from api.static.countries.helpers import get_country
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.countries.helpers import get_country
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

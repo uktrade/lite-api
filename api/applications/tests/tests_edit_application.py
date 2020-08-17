@@ -9,9 +9,9 @@ from api.cases.enums import CaseTypeEnum
 from api.goods.enums import PvGrading
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType, SubType
-from api.static.f680_clearance_types.enums import F680ClearanceTypeEnum
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

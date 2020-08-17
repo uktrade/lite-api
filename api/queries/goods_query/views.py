@@ -24,7 +24,7 @@ from api.queries.goods_query.helpers import get_starting_status
 from api.queries.goods_query.models import GoodsQuery
 from api.queries.goods_query.serializers import PVGradingResponseSerializer
 from api.queries.helpers import get_exporter_query
-from api.static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import UserOrganisationRelationship
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 

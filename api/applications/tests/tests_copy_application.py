@@ -18,9 +18,9 @@ from api.applications.models import (
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from api.goodstype.models import GoodsType
 from api.parties.models import Party, PartyDocument
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
-from api.static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from test_helpers.clients import DataTestClient
 
 

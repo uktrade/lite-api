@@ -8,8 +8,8 @@ from api.cases.enums import CaseTypeReferenceEnum
 from api.goodstype.models import GoodsType
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.parties.enums import PartyType
-from api.static.countries.helpers import get_country
-from api.static.countries.models import Country
+from api.staticdata.countries.helpers import get_country
+from api.staticdata.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 

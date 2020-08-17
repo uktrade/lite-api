@@ -17,7 +17,7 @@ from api.open_general_licences.models import OpenGeneralLicence, OpenGeneralLice
 from api.open_general_licences.serializers import OpenGeneralLicenceSerializer
 from api.organisations.libraries.get_organisation import get_request_user_organisation
 from api.organisations.models import Site
-from api.static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserType
 from api.users.models import GovUser, GovNotification
 

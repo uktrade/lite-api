@@ -17,8 +17,8 @@ from api.goods.enums import (
 )
 
 from api.organisations.models import Organisation
-from api.static.control_list_entries.models import ControlListEntry
-from api.static.missing_document_reasons.enums import GoodMissingDocumentReasons
+from api.staticdata.control_list_entries.models import ControlListEntry
+from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
 from api.users.models import ExporterUser
 
 

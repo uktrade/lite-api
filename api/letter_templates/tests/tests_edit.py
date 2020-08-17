@@ -7,7 +7,7 @@ from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum, AdviceType
 from api.core import constants
 from lite_content.lite_api import strings
 from api.picklists.enums import PicklistType, PickListStatus
-from api.static.decisions.models import Decision
+from api.staticdata.decisions.models import Decision
 from test_helpers.clients import DataTestClient
 
 

@@ -8,10 +8,10 @@ from api.core.serializers import PrimaryKeyRelatedSerializerField
 from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from api.picklists.models import PicklistItem
-from api.static.decisions.models import Decision
-from api.static.decisions.serializers import DecisionSerializer
-from api.static.letter_layouts.models import LetterLayout
-from api.static.letter_layouts.serializers import LetterLayoutSerializer, LetterLayoutReadOnlySerializer
+from api.staticdata.decisions.models import Decision
+from api.staticdata.decisions.serializers import DecisionSerializer
+from api.staticdata.letter_layouts.models import LetterLayout
+from api.staticdata.letter_layouts.serializers import LetterLayoutSerializer, LetterLayoutReadOnlySerializer
 
 
 class LetterTemplateSerializer(serializers.ModelSerializer):

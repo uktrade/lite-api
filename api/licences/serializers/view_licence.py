@@ -16,8 +16,8 @@ from api.licences.helpers import serialize_goods_on_licence, get_approved_countr
 from api.licences.models import Licence
 from api.parties.enums import PartyRole
 from api.parties.models import Party, PartyDocument
-from api.static.control_list_entries.serializers import ControlListEntrySerializer
-from api.static.units.enums import Units
+from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.staticdata.units.enums import Units
 
 
 # Case View

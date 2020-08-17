@@ -1,7 +1,7 @@
 from django.http import Http404
 
 from api.parties.models import Party
-from api.static.countries.models import Country
+from api.staticdata.countries.models import Country
 
 
 def get_destination(pk):

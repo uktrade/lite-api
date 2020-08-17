@@ -1,6 +1,6 @@
 import factory
 
-from api.static.countries.factories import CountryFactory
+from api.staticdata.countries.factories import CountryFactory
 from api.parties.enums import SubType, PartyType
 from api.parties.models import Party
 

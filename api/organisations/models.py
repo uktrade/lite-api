@@ -11,9 +11,9 @@ from api.core.exceptions import NotFoundError
 from api.flags.models import Flag
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.organisations.enums import OrganisationType, OrganisationStatus, LocationType
-from api.static.countries.models import Country
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.countries.models import Country
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_organisation_relationship
 from api.users.models import UserOrganisationRelationship
 

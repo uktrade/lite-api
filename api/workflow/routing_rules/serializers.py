@@ -8,8 +8,8 @@ from api.flags.serializers import FlagSerializer
 from lite_content.lite_api import strings
 from api.queues.models import Queue
 from api.queues.serializers import TinyQueueSerializer
-from api.static.statuses.models import CaseStatus
-from api.static.statuses.serializers import CaseStatusSerializer
+from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.statuses.serializers import CaseStatusSerializer
 from api.teams.models import Team
 from api.teams.serializers import TeamSerializer
 from api.users.models import GovUser

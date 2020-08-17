@@ -17,8 +17,8 @@ from api.letter_templates.serializers import LetterTemplateSerializer, LetterTem
 from api.picklists.enums import PicklistType
 from api.picklists.models import PicklistItem
 from api.cases.enums import AdviceType
-from api.static.decisions.models import Decision
-from api.static.letter_layouts.models import LetterLayout
+from api.staticdata.decisions.models import Decision
+from api.staticdata.letter_layouts.models import LetterLayout
 
 
 class LetterTemplatesList(generics.ListCreateAPIView):

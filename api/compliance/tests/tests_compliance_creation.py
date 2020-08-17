@@ -11,7 +11,7 @@ from api.goods.tests.factories import GoodFactory
 from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from api.organisations.tests.factories import SiteFactory
-from api.static.control_list_entries.factories import ControlListEntriesFactory
+from api.staticdata.control_list_entries.factories import ControlListEntriesFactory
 from test_helpers.clients import DataTestClient
 
 

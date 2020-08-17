@@ -6,8 +6,8 @@ from sortedm2m.fields import SortedManyToManyField
 from api.cases.models import CaseType
 from api.common.models import TimestampableModel
 from api.picklists.models import PicklistItem
-from api.static.decisions.models import Decision
-from api.static.letter_layouts.models import LetterLayout
+from api.staticdata.decisions.models import Decision
+from api.staticdata.letter_layouts.models import LetterLayout
 
 
 class LetterTemplate(TimestampableModel):

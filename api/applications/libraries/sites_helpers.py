@@ -11,7 +11,7 @@ from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations, Applications
 from api.organisations.models import Site
-from api.static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterUser
 
 TRADING = "Trading"

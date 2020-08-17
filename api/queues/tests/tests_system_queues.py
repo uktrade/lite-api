@@ -3,8 +3,8 @@ from rest_framework import status
 
 from api.cases.models import CaseAssignment
 from api.queues.constants import OPEN_CASES_QUEUE_ID
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

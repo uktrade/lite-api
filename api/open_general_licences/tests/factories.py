@@ -4,9 +4,9 @@ from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
 from api.open_general_licences import models
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
-from api.static.control_list_entries.helpers import get_control_list_entry
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.models import CaseStatus
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 
 
 class OpenGeneralLicenceFactory(factory.django.DjangoModelFactory):

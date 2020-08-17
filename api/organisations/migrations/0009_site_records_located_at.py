@@ -8,8 +8,8 @@ from api.cases.models import CaseType
 from api.compliance.helpers import generate_compliance_site_case
 from api.licences.enums import LicenceStatus
 
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.models import CaseStatus
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 
 
 def forward_migration(apps, schema_editor):

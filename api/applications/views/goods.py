@@ -32,7 +32,7 @@ from api.goodstype.models import GoodsType
 from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
-from api.static.countries.models import Country
+from api.staticdata.countries.models import Country
 from api.users.models import ExporterUser
 
 

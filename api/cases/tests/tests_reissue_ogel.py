@@ -10,7 +10,7 @@ from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from lite_content.lite_api.strings import Cases
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
-from api.static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 

@@ -6,8 +6,8 @@ from api.cases.models import Case
 from api.compliance.helpers import compliance_visit_case_complete
 from api.compliance.models import ComplianceVisitCase
 from api.queues.models import Queue
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.models import CaseStatus
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 from api.users.enums import SystemUser
 from api.users.models import BaseUser
 

@@ -7,7 +7,7 @@ from django.utils import timezone
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.audit_trail.streams.service import date_to_local_tz
-from api.static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 

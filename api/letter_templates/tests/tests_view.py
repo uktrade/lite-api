@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 
 from api.cases.enums import AdviceType, CaseTypeReferenceEnum
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
-from api.static.decisions.models import Decision
+from api.staticdata.decisions.models import Decision
 from test_helpers.clients import DataTestClient
 
 

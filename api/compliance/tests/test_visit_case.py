@@ -9,8 +9,8 @@ from api.cases.enums import CaseTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.compliance.models import ComplianceVisitCase
 from api.compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

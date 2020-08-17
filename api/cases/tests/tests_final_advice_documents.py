@@ -5,7 +5,7 @@ from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.licences.tests.factories import LicenceFactory
-from api.static.countries.models import Country
+from api.staticdata.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 

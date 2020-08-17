@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from django.conf import settings
-from api.static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 

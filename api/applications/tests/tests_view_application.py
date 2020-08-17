@@ -12,8 +12,8 @@ from api.applications.models import (
 from api.cases.enums import CaseTypeEnum
 from api.goodstype.models import GoodsType
 from api.organisations.tests.factories import SiteFactory
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 from api.users.libraries.get_user import get_user_organisation_relationship
 

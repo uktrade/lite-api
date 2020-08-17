@@ -30,9 +30,9 @@ from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queries.goods_query.models import GoodsQuery
-from api.static.control_list_entries.serializers import ControlListEntrySerializer
-from api.static.missing_document_reasons.enums import GoodMissingDocumentReasons
-from api.static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
+from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.users.models import ExporterUser
 from api.users.serializers import ExporterUserSimpleSerializer
 

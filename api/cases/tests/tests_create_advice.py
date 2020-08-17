@@ -7,8 +7,8 @@ from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType
 from api.cases.models import Advice
 from api.core.constants import GovPermissions
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

@@ -6,8 +6,8 @@ from api.cases.models import CaseType, Case
 from api.common.models import TimestampableModel
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.organisations.models import Site
-from api.static.control_list_entries.models import ControlListEntry
-from api.static.countries.models import Country
+from api.staticdata.control_list_entries.models import ControlListEntry
+from api.staticdata.countries.models import Country
 
 
 class OpenGeneralLicence(TimestampableModel):

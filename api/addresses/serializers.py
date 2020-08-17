@@ -3,7 +3,7 @@ from rest_framework import serializers
 from api.addresses.models import Address
 from api.core.serializers import CountrySerializerField
 from lite_content.lite_api.strings import Addresses
-from api.static.countries.helpers import get_country
+from api.staticdata.countries.helpers import get_country
 
 
 class AddressSerializer(serializers.ModelSerializer):

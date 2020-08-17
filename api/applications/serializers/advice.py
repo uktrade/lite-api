@@ -11,8 +11,8 @@ from api.gov_users.serializers import GovUserListSerializer
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
 from api.parties.models import Party
-from api.static.countries.models import Country
-from api.static.denial_reasons.models import DenialReason
+from api.staticdata.countries.models import Country
+from api.staticdata.denial_reasons.models import DenialReason
 from api.teams.models import Team
 from api.teams.serializers import TeamReadOnlySerializer
 from api.users.models import GovUser

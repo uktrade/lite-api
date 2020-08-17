@@ -6,8 +6,8 @@ from api.applications.enums import ApplicationExportType, GoodsTypeCategory
 from api.applications.models import OpenApplication, CountryOnApplication
 from api.cases.enums import CaseTypeReferenceEnum
 from api.goodstype.models import GoodsType
-from api.static.countries.helpers import get_country
-from api.static.countries.models import Country
+from api.staticdata.countries.helpers import get_country
+from api.staticdata.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 

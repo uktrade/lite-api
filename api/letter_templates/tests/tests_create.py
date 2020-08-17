@@ -8,7 +8,7 @@ from api.core import constants
 from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from api.picklists.enums import PickListStatus, PicklistType
-from api.static.letter_layouts.models import LetterLayout
+from api.staticdata.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 
 

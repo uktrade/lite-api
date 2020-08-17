@@ -17,7 +17,7 @@ from lite_content.lite_api.strings import Organisations
 from api.organisations.constants import UK_VAT_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from api.organisations.models import Organisation, Site, ExternalLocation
-from api.static.countries.helpers import get_country
+from api.staticdata.countries.helpers import get_country
 from api.users.libraries.get_user import get_user_organisation_relationship
 from api.users.models import GovUser, UserOrganisationRelationship, ExporterUser
 from api.users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer

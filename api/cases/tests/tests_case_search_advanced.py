@@ -7,7 +7,7 @@ from api.cases.enums import AdviceType
 from api.cases.models import Case
 from api.cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
-from api.static.countries.factories import CountryFactory
+from api.staticdata.countries.factories import CountryFactory
 from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     CountryOnApplicationFactory,
@@ -20,8 +20,8 @@ from api.parties.tests.factories import PartyFactory
 from api.flags.tests.factories import FlagFactory
 from api.goods.enums import GoodControlled
 from api.goods.tests.factories import GoodFactory
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 

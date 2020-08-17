@@ -31,9 +31,9 @@ from api.organisations.models import Site, ExternalLocation
 from api.parties.enums import PartyRole, PartyType, SubType
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
-from api.static.f680_clearance_types.enums import F680ClearanceTypeEnum
-from api.static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
-from api.static.units.enums import Units
+from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
+from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+from api.staticdata.units.enums import Units
 
 
 def get_document_context(case, addressee=None):

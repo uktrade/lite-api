@@ -9,8 +9,8 @@ from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.models import Good, FirearmGoodDetails
 from api.users.models import UserOrganisationRelationship
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
-from api.static.units.enums import Units
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.units.enums import Units
 from test_helpers.clients import DataTestClient
 from api.users.libraries.user_to_token import user_to_token
 

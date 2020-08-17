@@ -13,7 +13,7 @@ from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.cases.models import Case
 from api.common.models import prefetch_generic_relations
-from api.static.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 STREAMED_AUDITS = [
     AuditType.CREATED,

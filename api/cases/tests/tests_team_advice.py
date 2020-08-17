@@ -8,8 +8,8 @@ from api.cases.tests.factories import TeamAdviceFactory
 from api.core import constants
 from api.core.helpers import convert_queryset_to_str
 from api.goods.enums import PvGrading
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from api.users.models import GovUser, Role

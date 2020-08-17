@@ -1,8 +1,8 @@
 from parameterized import parameterized
 
 from api.queues.tests.factories import QueueFactory
-from api.static.statuses.enums import CaseStatusEnum
-from api.static.statuses.models import CaseStatus
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from api.workflow.user_queue_assignment import user_queue_assignment_workflow, get_next_status_in_workflow_sequence
 
