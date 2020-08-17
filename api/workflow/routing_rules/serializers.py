@@ -14,8 +14,8 @@ from api.teams.models import Team
 from api.teams.serializers import TeamSerializer
 from api.users.models import GovUser
 from gov_users.serializers import GovUserViewSerializer
-from workflow.routing_rules.enum import RoutingRulesAdditionalFields
-from workflow.routing_rules.models import RoutingRule
+from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
+from api.workflow.routing_rules.models import RoutingRule
 
 
 class RoutingRuleSerializer(serializers.ModelSerializer):

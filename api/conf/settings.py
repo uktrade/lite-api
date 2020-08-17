@@ -92,7 +92,7 @@ INSTALLED_APPS = [
     "static.upload_document_for_tests",
     "api.teams",
     "api.users",
-    "workflow.routing_rules",
+    "api.workflow.routing_rules",
     "search",
     "search.case",
 ]

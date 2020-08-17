@@ -12,7 +12,7 @@ from static.countries.models import Country
 from static.statuses.models import CaseStatus
 from api.teams.models import Team
 from api.users.models import GovUser
-from workflow.routing_rules.enum import RoutingRulesAdditionalFields
+from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
 class RoutingRule(TimestampableModel):

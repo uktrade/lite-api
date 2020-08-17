@@ -38,7 +38,7 @@ urlpatterns = [
     path("picklist/", include("api.picklists.urls")),
     path("documents/", include("api.documents.urls")),
     path("queries/", include("api.queries.urls")),
-    path("routing-rules/", include("workflow.routing_rules.urls")),
+    path("routing-rules/", include("api.workflow.routing_rules.urls")),
     path("licences/", include("api.licences.urls")),
     path("open-general-licences/", include("api.open_general_licences.urls")),
     path("search/", include("search.urls")),

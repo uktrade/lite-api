@@ -4,7 +4,7 @@ from api.queues.tests.factories import QueueFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
-from workflow.user_queue_assignment import user_queue_assignment_workflow, get_next_status_in_workflow_sequence
+from api.workflow.user_queue_assignment import user_queue_assignment_workflow, get_next_status_in_workflow_sequence
 
 
 class UserQueueAssignmentTests(DataTestClient):

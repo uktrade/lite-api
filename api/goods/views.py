@@ -48,7 +48,7 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterUser, ExporterNotification
-from workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
+from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
 
 class GoodsListControlCode(APIView):

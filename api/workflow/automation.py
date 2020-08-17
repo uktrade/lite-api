@@ -4,8 +4,8 @@ from static.statuses.enums import CaseStatusEnum
 from api.teams.models import Team
 from api.users.enums import SystemUser, UserStatuses
 from api.users.models import BaseUser
-from workflow.routing_rules.models import RoutingRule
-from workflow.user_queue_assignment import get_next_status_in_workflow_sequence
+from api.workflow.routing_rules.models import RoutingRule
+from api.workflow.user_queue_assignment import get_next_status_in_workflow_sequence
 from api.audit_trail import service as audit_trail_service
 
 

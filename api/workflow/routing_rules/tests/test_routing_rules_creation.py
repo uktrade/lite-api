@@ -6,7 +6,7 @@ from api.flags.enums import FlagLevels
 from static.countries.models import Country
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
-from workflow.routing_rules.enum import RoutingRulesAdditionalFields
+from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
 class RoutingRuleCreationTests(DataTestClient):
