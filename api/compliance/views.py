@@ -115,7 +115,7 @@ class LicenceList(ListAPIView):
         cases = Case.objects.filter_for_cases_related_to_compliance_case(self.kwargs["pk"])
 
         if reference_code:
-            cases = api.cases.filter(reference_code__contains=reference_code)
+            cases = cases.filter(reference_code__contains=reference_code)
 
         return cases
 
@@ -244,7 +244,7 @@ class ComplianceCaseId(APIView):
         ).distinct()
 
         return JsonResponse(
-            data={"ids": list(existing_compliance_api.cases.values_list("id", flat=True))}, status=status.HTTP_200_OK
+            data={"ids": list(existing_compliance_cases.values_list("id", flat=True))}, status=status.HTTP_200_OK
         )
 
 

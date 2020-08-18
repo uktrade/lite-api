@@ -198,7 +198,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "is_shipped_waybill_or_lading",
             strings.Applications.Generic.RouteOfGoods.IS_SHIPPED_AIR_WAY_BILL_OR_LADING,
         )
-        if data.get("is_shipped_waybill_or_lading") == False:
+        if data.get("is_shipped_waybill_or_lading") is False:
             validate_field(
                 data,
                 "non_waybill_or_lading_route_details",
