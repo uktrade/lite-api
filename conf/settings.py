@@ -104,8 +104,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "conf.middleware.LoggingMiddleware",
-    "conf.middleware.DBLoggingMiddleware",
     "conf.middleware.HawkSigningMiddleware",
 ]
 

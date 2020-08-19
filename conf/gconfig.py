@@ -2,7 +2,7 @@ import os
 
 PORT = os.environ.get("PORT", 8080)
 bind = "0.0.0.0:{PORT}".format(PORT=PORT)
-workers = 16
+workers = 1
 worker_connections = 1000
 keep_alive = 5
 # timeout affect document uploads
