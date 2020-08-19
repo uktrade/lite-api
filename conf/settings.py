@@ -327,6 +327,12 @@ EXPORTER_BASE_URL = (
     env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
 )
 
+# Demo flags
+LITE_API_DEMO_FLAGS_CSV = env.str("LITE_API_DEMO_FLAGS_CSV", default="field\nteam1\nteam2", multiline=True)
+LITE_API_DEMO_QUEUES_CSV = env.str("LITE_API_DEMO_QUEUES_CSV", default="field\nteam1\nteam2", multiline=True)
+LITE_API_DEMO_TEAMS_CSV = env.str("LITE_API_DEMO_TEAMS_CSV", default="field\nteam1\nteam2", multiline=True)
+
+
 # Document signing
 DOCUMENT_SIGNING_ENABLED = env("DOCUMENT_SIGNING_ENABLED")
 P12_CERTIFICATE = env("P12_CERTIFICATE")
