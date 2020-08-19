@@ -214,8 +214,7 @@ def _authenticate(request, lookup_credentials):
         return Receiver(
             lookup_credentials,
             request.META["HTTP_HAWK_AUTHENTICATION"],
-            # build_absolute_uri() returns 'http' which is incorrect since our clients communicate via https
-            request.build_absolute_uri().replace("http", "https"),
+            request.build_absolute_uri(),
             request.method,
             content=request.body,
             content_type=request.content_type,
