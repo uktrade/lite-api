@@ -252,11 +252,16 @@ USE_L10N = True
 USE_TZ = True
 
 # Elasticsearch configuration
-LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
+LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", True)
 if LITE_API_ENABLE_ES:
+    if 'elasticsearch' in VCAP_SERVICES:
+        ELASTICSEARCH_HOST = VCAP_SERVICES['elasticsearch'][0]['credentials']['uri']
+    else:
+        ELASTICSEARCH_HOST = env.str("ELASTICSEARCH_HOST", "http://localhost:9200/")
+
     ELASTICSEARCH_DSL = {
         'default': {
-            'hosts': env.str("ELASTICSEARCH_HOST", "http://localhost:9200/")
+            'hosts': ELASTICSEARCH_HOST
         },
     }
 
