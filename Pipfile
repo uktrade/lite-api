@@ -46,7 +46,7 @@ sentry-sdk = "~=0.16"
 elastic-apm = "~=5.8"
 django-staff-sso-client = "~=1.0.0"
 django-elasticsearch-dsl-drf = "~=0.20"
-django-elasticsearch-dsl = "~=7.1"
+django-elasticsearch-dsl = "==6.4.2"
 gunicorn = "~=20.0"
 gevent = "~=20.6"
 
