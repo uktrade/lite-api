@@ -1,6 +1,6 @@
 from django_elasticsearch_dsl import Document
 from django_elasticsearch_dsl.registries import registry
-from django_elasticsearch_dsl.fields import TextField
+from django_elasticsearch_dsl.fields import ListField, TextField
 
 from cases.models import Case
 
@@ -12,6 +12,14 @@ class CaseDocumentType(Document):
     case_type = TextField(attr="case_type.type")
     organisation = TextField(attr="organisation.name")
     status = TextField(attr="status.status")
+    flags = ListField(TextField())
+    part_numbers = ListField(TextField())
+
+    def prepare_flags(self, instance):
+        return [f.name for f in instance.flags.all()]
+
+    def prepare_part_numbers(self, instance):
+        return [a.good.part_number for a in instance.advice.all() if a.good]
 
     class Index:
         name = "cases-alias"
