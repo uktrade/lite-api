@@ -328,9 +328,9 @@ EXPORTER_BASE_URL = (
 )
 
 # Demo flags
-LITE_API_DEMO_FLAGS_CSV = env.str("LITE_API_DEMO_FLAGS_CSV", default="field\nteam1\nteam2", multiline=True)
-LITE_API_DEMO_QUEUES_CSV = env.str("LITE_API_DEMO_QUEUES_CSV", default="field\nteam1\nteam2", multiline=True)
-LITE_API_DEMO_TEAMS_CSV = env.str("LITE_API_DEMO_TEAMS_CSV", default="field\nteam1\nteam2", multiline=True)
+LITE_API_DEMO_FLAGS_CSV = env.str("LITE_API_DEMO_FLAGS_CSV", default="team_name,level,name\nteam1,level1,name1\n", multiline=True)
+LITE_API_DEMO_QUEUES_CSV = env.str("LITE_API_DEMO_QUEUES_CSV", default="team_name,name\nteam1,name1\n", multiline=True)
+LITE_API_DEMO_TEAMS_CSV = env.str("LITE_API_DEMO_TEAMS_CSV", default="name\nteam1\nteam2", multiline=True)
 
 
 # Document signing

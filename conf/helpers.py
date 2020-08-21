@@ -5,7 +5,6 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.templatetags.tz import do_timezone
 from django.utils import timezone
-from pytz import timezone as get_timezone
 
 DATE_FORMAT = "%d %B %Y"
 TIME_FORMAT = "%H:%M"
