@@ -1,2 +1,2 @@
 [bandit]
-exclude: /.venv,/static/management
+exclude: /.venv,/staticdata/management

@@ -10,11 +10,11 @@ from django.test import tag, override_settings
 from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
-from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
-from applications.libraries.licence import get_default_duration
-from applications.models import (
+from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
+from api.applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
+from api.applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
+from api.applications.libraries.licence import get_default_duration
+from api.applications.models import (
     BaseApplication,
     GoodOnApplication,
     SiteOnApplication,
@@ -27,59 +27,59 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
-from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
-from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
-from cases.tasks import get_application_target_sla
-from conf import settings
-from conf.constants import Roles
-from conf.urls import urlpatterns
-from flags.enums import SystemFlags, FlagStatuses, FlagLevels
-from flags.models import Flag, FlaggingRule
-from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
-from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
-from goods.tests.factories import GoodFactory
-from goodstype.document.models import GoodsTypeDocument
-from goodstype.models import GoodsType
-from goodstype.tests.factories import GoodsTypeFactory
-from letter_templates.models import LetterTemplate
-from licences.enums import LicenceStatus
-from licences.helpers import get_licence_reference_code
-from licences.models import Licence
-from organisations.enums import OrganisationType
-from organisations.models import Organisation, ExternalLocation
-from organisations.tests.factories import OrganisationFactory, SiteFactory
-from parties.enums import SubType, PartyType, PartyRole
-from parties.models import Party
-from parties.models import PartyDocument
-from picklists.enums import PickListStatus, PicklistType
-from picklists.models import PicklistItem
-from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from queries.goods_query.models import GoodsQuery
-from queues.models import Queue
-from static.control_list_entries.models import ControlListEntry
-from static.countries.helpers import get_country
-from static.countries.models import Country
-from static.decisions.models import Decision
-from static.f680_clearance_types.models import F680ClearanceType
-from static.letter_layouts.models import LetterLayout
-from static.management.commands import seedall
-from static.management.commands.seedall import SEED_COMMANDS
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from static.units.enums import Units
-from static.urls import urlpatterns as static_urlpatterns
-from teams.models import Team
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
+from api.cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
+from api.cases.generated_documents.models import GeneratedCaseDocument
+from api.cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
+from api.cases.tasks import get_application_target_sla
+from api.conf import settings
+from api.core.constants import Roles
+from api.conf.urls import urlpatterns
+from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
+from api.flags.models import Flag, FlaggingRule
+from api.flags.tests.factories import FlagFactory
+from api.goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
+from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
+from api.goods.tests.factories import GoodFactory
+from api.goodstype.document.models import GoodsTypeDocument
+from api.goodstype.models import GoodsType
+from api.goodstype.tests.factories import GoodsTypeFactory
+from api.letter_templates.models import LetterTemplate
+from api.licences.enums import LicenceStatus
+from api.licences.helpers import get_licence_reference_code
+from api.licences.models import Licence
+from api.organisations.enums import OrganisationType
+from api.organisations.models import Organisation, ExternalLocation
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory
+from api.parties.enums import SubType, PartyType, PartyRole
+from api.parties.models import Party
+from api.parties.models import PartyDocument
+from api.picklists.enums import PickListStatus, PicklistType
+from api.picklists.models import PicklistItem
+from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
+from api.queries.goods_query.models import GoodsQuery
+from api.queues.models import Queue
+from api.staticdata.control_list_entries.models import ControlListEntry
+from api.staticdata.countries.helpers import get_country
+from api.staticdata.countries.models import Country
+from api.staticdata.decisions.models import Decision
+from api.staticdata.f680_clearance_types.models import F680ClearanceType
+from api.staticdata.letter_layouts.models import LetterLayout
+from api.staticdata.management.commands import seedall
+from api.staticdata.management.commands.seedall import SEED_COMMANDS
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.units.enums import Units
+from api.staticdata.urls import urlpatterns as static_urlpatterns
+from api.teams.models import Team
 from test_helpers import colours
-from users.enums import UserStatuses, SystemUser
-from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
-from workflow.flagging_rules_automation import apply_flagging_rules_to_case
-from workflow.routing_rules.enum import RoutingRulesAdditionalFields
-from workflow.routing_rules.models import RoutingRule
+from api.users.enums import UserStatuses, SystemUser
+from api.users.libraries.user_to_token import user_to_token
+from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
+from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
+from api.workflow.routing_rules.models import RoutingRule
 
 
 class Static:
@@ -1111,11 +1111,11 @@ class PerformanceTestClient(DataTestClient):
         hmrc_query_count_goods_gone: int = 1,
         hmrc_query_count_goods_in_uk: int = 1,
     ):
-        print(f"Creating {standard_app_case_count} standard cases...")
+        print(f"Creating {standard_app_case_count} standard api.cases...")
         for i in range(standard_app_case_count):
             self.create_standard_application_case(self.organisation)
 
-        print(f"Creating {open_app_case_count} open cases...")
+        print(f"Creating {open_app_case_count} open api.cases...")
         for i in range(open_app_case_count):
             self.create_open_application_case(self.organisation)
 

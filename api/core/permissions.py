@@ -1,0 +1,23 @@
+from api.core.exceptions import PermissionDeniedError
+from api.organisations.models import Organisation
+from api.users.models import GovUser
+
+
+def assert_user_has_permission(user, permission, organisation: Organisation = None):
+    if isinstance(user, GovUser):
+        if user.has_permission(permission):
+            return True
+        else:
+            raise PermissionDeniedError()
+    else:
+        if user.has_permission(permission, organisation):
+            return True
+        else:
+            raise PermissionDeniedError()
+
+
+def check_user_has_permission(user, permission, organisation: Organisation = None):
+    if isinstance(user, GovUser):
+        return user.has_permission(permission)
+    else:
+        return user.has_permission(permission, organisation)

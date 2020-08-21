@@ -1,10 +1,10 @@
 from django.db import IntegrityError
 from faker import Faker
 
-from conf.constants import Roles
-from flags.enums import SystemFlags
-from static.countries.models import Country
-from users.models import ExporterUser, UserOrganisationRelationship
+from api.core.constants import Roles
+from api.flags.enums import SystemFlags
+from api.staticdata.countries.models import Country
+from api.users.models import ExporterUser, UserOrganisationRelationship
 
 faker = Faker()
 
