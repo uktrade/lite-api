@@ -1,5 +1,6 @@
 import os
 
+from django.conf import settings
 from django.test import tag
 
 from api.cases.enums import CaseTypeEnum
@@ -28,6 +29,7 @@ from api.staticdata.management.commands import (
     seedinternaldemodata,
     seedfinaldecisions,
 )
+from api.staticdata.management.commands.seedinternaldemodata import deserialize_csv_from_string
 from api.staticdata.statuses.models import CaseStatus, CaseStatusCaseType
 from api.teams.models import Team
 from api.users.models import Permission
@@ -94,11 +96,11 @@ class SeedingTests(SeedCommandTest):
     def test_seed_demo_data(self):
         self.seed_command(seedadminteam.Command)
         self.seed_command(seedinternaldemodata.Command)
-        for team in seedinternaldemodata.Command.read_csv(seedinternaldemodata.TEAMS_FILE):
+        for team in deserialize_csv_from_string(settings.LITE_API_DEMO_TEAMS_CSV):
             self.assertTrue(Team.objects.filter(name=team["name"]).exists(), f"Team {team['name']} does not exist")
-        for queue in seedinternaldemodata.Command.read_csv(seedinternaldemodata.QUEUES_FILE):
+        for queue in deserialize_csv_from_string(settings.LITE_API_DEMO_QUEUES_CSV):
             self.assertTrue(Queue.objects.filter(name=queue["name"]).exists(), f"Queue {queue['name']} does not exist")
-        for flag in seedinternaldemodata.Command.read_csv(seedinternaldemodata.FLAGS_FILE):
+        for flag in deserialize_csv_from_string(settings.LITE_API_DEMO_FLAGS_CSV):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
 
     def test_seed_decisions(self):
