@@ -1,3 +1,8 @@
+import csv
+
+from io import StringIO
+
+from django.conf import settings
 from django.db import transaction, models
 
 from flags.models import Flag
@@ -5,9 +10,10 @@ from queues.models import Queue
 from static.management.SeedCommand import SeedCommand
 from teams.models import Team
 
-FLAGS_FILE = "lite_content/lite_api/demo_flags.csv"
-QUEUES_FILE = "lite_content/lite_api/demo_queues.csv"
-TEAMS_FILE = "lite_content/lite_api/demo_teams.csv"
+
+def deserialize_csv_from_string(csv_string):
+    with StringIO(csv_string) as fobj:
+        return list(csv.DictReader(fobj))
 
 
 class Command(SeedCommand):
@@ -27,7 +33,7 @@ class Command(SeedCommand):
 
     @classmethod
     def seed_teams(cls) -> dict:
-        rows = cls.read_csv(TEAMS_FILE)
+        rows = deserialize_csv_from_string(settings.LITE_API_DEMO_TEAMS_CSV)
         teams = {}
 
         for row in rows:
@@ -43,12 +49,12 @@ class Command(SeedCommand):
 
     @classmethod
     def seed_queues(cls, team_ids):
-        queues_csv = cls.read_csv(QUEUES_FILE)
+        queues_csv = deserialize_csv_from_string(settings.LITE_API_DEMO_QUEUES_CSV)
         cls._create_queues_or_flags(Queue, queues_csv, team_ids, include_team_in_filter=True)
 
     @classmethod
     def seed_flags(cls, team_ids):
-        flags_csv = cls.read_csv(FLAGS_FILE)
+        flags_csv = deserialize_csv_from_string(settings.LITE_API_DEMO_FLAGS_CSV)
         cls._create_queues_or_flags(Flag, flags_csv, team_ids, include_team_in_filter=False)
 
     @classmethod
