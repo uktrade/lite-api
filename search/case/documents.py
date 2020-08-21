@@ -14,12 +14,16 @@ class CaseDocumentType(Document):
     status = TextField(attr="status.status")
     flags = ListField(TextField())
     part_numbers = ListField(TextField())
+    goods_description = ListField(TextField())
 
     def prepare_flags(self, instance):
         return [f.name for f in instance.flags.all()]
 
     def prepare_part_numbers(self, instance):
         return [a.good.part_number for a in instance.advice.all() if a.good]
+
+    def prepare_goods_description(self, instance):
+        return [a.good.description for a in instance.advice.all() if a.good]
 
     class Index:
         name = "cases-alias"
