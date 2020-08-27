@@ -1,14 +1,17 @@
-version: '3'
+version: '3.4'
 
 services:
   db:
     image: "postgres"
     environment:
       - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=lite-api
     expose:
       - 5432
     ports:
-      - 5432:5432
+      - 5462:5432
+    networks:
+      - lite
 
   api:
     env_file:
@@ -17,9 +20,15 @@ services:
     volumes:
       - .:/app
     ports:
-      - 8100:8080
-    depends_on:
+      - 8100:8100
+    links:
       - db
     expose:
-      - 8080
-    command: pipenv run ./manage.py runserver 0.0.0.0:8080
+      - 8100
+    command: ./manage.py runserver 0.0.0.0:${PORT:-8100}
+    networks:
+      - lite
+
+networks:
+  lite:
+    external: true
