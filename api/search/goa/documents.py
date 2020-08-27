@@ -10,7 +10,7 @@ from api.applications.models import GoodOnApplication
 class GoodOnApplicationDocumentType(Document):
     id = TextField()
     quantity = FloatField()
-    value = DecimalField(max_digits=15, decimal_places=2)
+    value = FloatField()
     unit = TextField()
     item_type = TextField()
     incorporated = BooleanField(attr="is_good_incorporated")

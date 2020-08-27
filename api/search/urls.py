@@ -1,3 +1,5 @@
+from django.urls import path, include
 
-
-urlpatterns = []
+urlpatterns = [
+    path("goa/", include("api.search.goa.urls")),
+]
