@@ -1,2 +1,2 @@
 #!/bin/bash
-docker-compose run api pipenv run ./manage.py test
+docker-compose run api ./manage.py test
