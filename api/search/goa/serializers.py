@@ -1,11 +1,11 @@
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 
-from api.search.goa.documents import GoodOnApplicationDocumentType
+from api.search.goa.documents import ApplicationDocumentType
 
 
-class GoodOnApplicationDocumentSerializer(DocumentSerializer):
+class ApplicationDocumentSerializer(DocumentSerializer):
     class Meta:
-        document = GoodOnApplicationDocumentType
+        document = ApplicationDocumentType
         fields = (
             "id",
             "quantity",

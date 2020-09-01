@@ -6,7 +6,7 @@ from api.search.goa import views
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
-router.register(r"goa_search", views.GoodOnApplicationDocumentView, basename="goa_search")
+router.register(r"goa_search", views.ApplicationDocumentView, basename="goa_search")
 
 urlpatterns = [
     path("", include(router.urls))

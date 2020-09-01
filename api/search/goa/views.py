@@ -6,13 +6,13 @@ from django_elasticsearch_dsl_drf.filter_backends import (
 from django_elasticsearch_dsl_drf.viewsets import BaseDocumentViewSet
 
 # Example app models
-from api.search.goa.documents import GoodOnApplicationDocumentType
-from api.search.goa.serializers import GoodOnApplicationDocumentSerializer
+from api.search.goa.documents import ApplicationDocumentType
+from api.search.goa.serializers import ApplicationDocumentSerializer
 
 
-class GoodOnApplicationDocumentView(BaseDocumentViewSet):
-    document = GoodOnApplicationDocumentType
-    serializer_class = GoodOnApplicationDocumentSerializer
+class ApplicationDocumentView(BaseDocumentViewSet):
+    document = ApplicationDocumentType
+    serializer_class = ApplicationDocumentSerializer
     lookup_field = "id"
     filter_backends = [
         OrderingFilterBackend,

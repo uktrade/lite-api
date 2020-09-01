@@ -7,7 +7,7 @@ from api.applications.models import GoodOnApplication
 
 
 @registry.register_document
-class GoodOnApplicationDocumentType(Document):
+class ApplicationDocumentType(Document):
     id = TextField()
     quantity = FloatField()
     value = FloatField()
