@@ -6,8 +6,8 @@ from django_elasticsearch_dsl_drf.filter_backends import (
 from django_elasticsearch_dsl_drf.viewsets import BaseDocumentViewSet
 
 # Example app models
-from api.search.goa.documents import ApplicationDocumentType
-from api.search.goa.serializers import ApplicationDocumentSerializer
+from api.search.application.documents import ApplicationDocumentType
+from api.search.application.serializers import ApplicationDocumentSerializer
 
 
 class ApplicationDocumentView(BaseDocumentViewSet):

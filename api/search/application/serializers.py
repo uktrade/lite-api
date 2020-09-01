@@ -1,6 +1,6 @@
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 
-from api.search.goa.documents import ApplicationDocumentType
+from api.search.application.documents import ApplicationDocumentType
 
 
 class ApplicationDocumentSerializer(DocumentSerializer):
