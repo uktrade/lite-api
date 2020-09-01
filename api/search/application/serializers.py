@@ -15,4 +15,5 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "incorporated",
             "good",
             "application",
+            "parties"
         )
