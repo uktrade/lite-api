@@ -3,14 +3,11 @@ from django_elasticsearch_dsl.registries import registry
 from django_elasticsearch_dsl.fields import (
     BooleanField,
     FloatField,
-    ListField,
     ObjectField,
     TextField,
     KeywordField,
     NestedField,
-    Nested,
 )
-from rest_framework.fields import DecimalField
 
 from api.applications.models import BaseApplication
 
