@@ -11,18 +11,32 @@ from django_elasticsearch_dsl.fields import (
 
 from api.applications.models import BaseApplication
 
-from elasticsearch_dsl import InnerDoc
+from elasticsearch_dsl import analysis, InnerDoc
 
+
+address_analyzer = analysis.analyzer(
+    'address_analyzer',
+    tokenizer='whitespace',
+    filter=[
+        'lowercase',
+        'asciifolding',
+        'trim',
+    ],
+)
 
 class Parties(InnerDoc):
     name = TextField(attr="party.name", copy_to="wildcard")
-    address = KeywordField(attr="party.address", copy_to="wildcard")
+    address = TextField(
+        attr="party.address",
+        copy_to="wildcard",
+        analyzer=address_analyzer,
+    )
 
 
 class CLCEntry(InnerDoc):
-    rating = TextField(copy_to="wildcard")
-    text = TextField()
-    category = TextField()
+    rating = KeywordField(copy_to="wildcard")
+    text = TextField(copy_to="wildcard")
+    category = TextField(copy_to="wildcard")
     parent = TextField(attr="parent.text")
 
 
@@ -31,7 +45,7 @@ class Good(InnerDoc):
     description = TextField(copy_to="wildcard")
     part_number = TextField(copy_to="wildcard")
     organisation = TextField(attr="organisation.name")
-    status = TextField()
+    status = KeywordField()
     comment = TextField(copy_to="wildcard")
     grading_comment = TextField()
     report_summary = TextField(copy_to="wildcard")
@@ -44,9 +58,9 @@ class Good(InnerDoc):
 
 class Products(InnerDoc):
     quantity = FloatField()
-    value = FloatField()
-    unit = TextField()
-    item_type = TextField()
+    value = KeywordField()
+    unit = KeywordField()
+    item_type = KeywordField()
     incorporated = BooleanField(attr="is_good_incorporated")
     good = NestedField(doc_class=Good)
 

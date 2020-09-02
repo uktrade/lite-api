@@ -2,7 +2,9 @@
 from django_elasticsearch_dsl_drf.filter_backends import (
     OrderingFilterBackend,
     SearchFilterBackend,
+    NestedFilteringFilterBackend,
 )
+
 from django_elasticsearch_dsl_drf.viewsets import BaseDocumentViewSet
 
 # Example app models
@@ -17,19 +19,24 @@ class ApplicationDocumentView(BaseDocumentViewSet):
     filter_backends = [
         OrderingFilterBackend,
         SearchFilterBackend,
+        NestedFilteringFilterBackend,
     ]
-    # Define search fieldssearch
-    search_fields = (
-        "reference_code",
-        "case_type",
-        "organisation",
-        "status",
-        "goods.good.part_number",
-        "goods.good.description",
-        "parties.party.name",
-        "wildcard",
-    )
 
+    # Define search fieldssearch
+    search_fields = {
+        "reference_code": None,
+        "case_type": None,
+        "organisation": None,
+        "status": None,
+        "wildcard": None,
+    }
+
+    nested_filter_fields = {
+        'clc_rating': {
+            'field': 'goods.good.control_list_entries.rating',
+            'path': 'goods.good.control_list_entries',
+        }
+    }
 
     # Define ordering fields
     ordering_fields = {
