@@ -1,11 +1,18 @@
 from django_elasticsearch_dsl import Document
 from django_elasticsearch_dsl.registries import registry
 from django_elasticsearch_dsl.fields import (
-    BooleanField, FloatField, ListField, ObjectField, TextField, KeywordField, NestedField
+    BooleanField, FloatField, ListField, ObjectField, TextField, KeywordField, NestedField, Nested
 )
 from rest_framework.fields import DecimalField
 
 from api.applications.models import BaseApplication
+
+from elasticsearch_dsl import InnerDoc
+
+
+class Parties(InnerDoc):
+    name = TextField(attr='party.name')
+    address = KeywordField(attr='party.address')
 
 
 @registry.register_document
@@ -65,12 +72,7 @@ class ApplicationDocumentType(Document):
             )
         }
     )
-    parties = NestedField(
-        properties={
-            'name': TextField(attr='party.name'),
-            'address': KeywordField(attr='party.address'),
-        },
-    )
+    parties = Nested(Parties)
 
     class Index:
         name = "application-alias"
