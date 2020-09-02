@@ -24,7 +24,14 @@ def update_application_document(sender, **kwargs):
         if model_name == "good":
             instances = instance.goods_on_application.all()
             for _instance in instances:
-                registry.update(_instance)
+
+        if model_name == "partyonapplication":
+            registry.update(instance.application)
+
+    if app_label == "parties":
+        if model_name == "party":
+            for _instance in instance.parties_on_application:
+                registry.update(_instance.application)
 
     if app_label == "organisations":
         if model_name == "organisation":

@@ -65,6 +65,12 @@ class ApplicationDocumentType(Document):
             )
         }
     )
+    parties = NestedField(
+        properties={
+            'name': TextField(attr='party.name'),
+            'address': KeywordField(attr='party.address'),
+        },
+    )
 
     class Index:
         name = "application-alias"
