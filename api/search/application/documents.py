@@ -24,6 +24,17 @@ address_analyzer = analysis.analyzer(
     ],
 )
 
+
+part_number_analyzer = analysis.analyzer(
+    'part_number_analyzer',
+    tokenizer=analysis.tokenizer('part_number_path_hierarchy', 'path_hierarchy', delimiter='-'),
+    filter=[
+        'lowercase',
+        'trim',
+    ],
+)
+
+
 class Parties(InnerDoc):
     name = TextField(attr="party.name", copy_to="wildcard")
     address = TextField(
@@ -43,7 +54,7 @@ class CLCEntry(InnerDoc):
 class Good(InnerDoc):
     id = TextField()
     description = TextField(copy_to="wildcard")
-    part_number = TextField(copy_to="wildcard")
+    part_number = TextField(copy_to="wildcard", analyzer=part_number_analyzer)
     organisation = TextField(attr="organisation.name")
     status = KeywordField()
     comment = TextField(copy_to="wildcard")
@@ -72,7 +83,7 @@ class ApplicationDocumentType(Document):
     id = TextField()
     reference_code = TextField(copy_to="wildcard")
     case_type = TextField(attr="case_type.type")
-    organisation = TextField(attr="organisation.name")
+    organisation = TextField(attr="organisation.name", copy_to="wildcard")
     status = TextField(attr="status.status")
     submitted_by = ObjectField(properties={"username": TextField(attr="username"), "email": TextField(attr="email"),})
     case_officer = ObjectField(properties={"username": TextField(attr="username"), "email": TextField(attr="email"),})

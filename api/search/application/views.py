@@ -24,10 +24,6 @@ class ApplicationDocumentView(BaseDocumentViewSet):
 
     # Define search fieldssearch
     search_fields = {
-        "reference_code": None,
-        "case_type": None,
-        "organisation": None,
-        "status": None,
         "wildcard": None,
     }
 
@@ -35,7 +31,7 @@ class ApplicationDocumentView(BaseDocumentViewSet):
         'clc_rating': {
             'field': 'goods.good.control_list_entries.rating',
             'path': 'goods.good.control_list_entries',
-        }
+        },
     }
 
     # Define ordering fields
