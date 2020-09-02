@@ -24,8 +24,8 @@ class ApplicationDocumentView(BaseDocumentViewSet):
         "case_type",
         "organisation",
         "status",
-        "products.good.part_number",
-        "products.good.description",
+        "goods.good.part_number",
+        "goods.good.description",
         "parties.party.name",
         "wildcard",
     )

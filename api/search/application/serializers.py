@@ -12,6 +12,6 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "case_type",
             "organisation",
             "status",
-            "products",
+            "goods",
             "parties",
         )
