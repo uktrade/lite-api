@@ -72,7 +72,7 @@ class ApplicationDocumentType(Document):
             )
         }
     )
-    parties = Nested(Parties)
+    parties = NestedField(doc_class=Parties)
 
     class Index:
         name = "application-alias"

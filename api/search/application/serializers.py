@@ -8,12 +8,10 @@ class ApplicationDocumentSerializer(DocumentSerializer):
         document = ApplicationDocumentType
         fields = (
             "id",
-            "quantity",
-            "value",
-            "unit",
-            "item_type",
-            "incorporated",
-            "good",
-            "application",
-            "parties"
+            "reference_code",
+            "case_type",
+            "organisation",
+            "status",
+            "products",
+            "parties",
         )
