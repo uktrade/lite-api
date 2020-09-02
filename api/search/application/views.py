@@ -20,13 +20,14 @@ class ApplicationDocumentView(BaseDocumentViewSet):
     ]
     # Define search fieldssearch
     search_fields = (
-        "good.part_number",
-        "good.description",
-        "good.organisation",
-        "good.clc_entries.rating",
-        "good.clc_entries.text",
-        "application.organisation",
-   )
+        "reference_code",
+        "case_type",
+        "organisation",
+        "status",
+        "products.good.part_number",
+        "products.good.description",
+        "parties.party.name",
+    )
 
     # Define ordering fields
     ordering_fields = {
