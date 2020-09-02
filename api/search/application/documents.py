@@ -11,15 +11,16 @@ from elasticsearch_dsl import InnerDoc
 
 
 class Parties(InnerDoc):
-    name = TextField(attr='party.name')
-    address = KeywordField(attr='party.address')
+    name = TextField(attr='party.name', copy_to='wildcard')
+    address = KeywordField(attr='party.address', copy_to='wildcard')
 
 
 @registry.register_document
 class ApplicationDocumentType(Document):
+    wildcard = TextField(attr='id')
 
     id = TextField()
-    reference_code = TextField()
+    reference_code = TextField(copy_to='wildcard')
     case_type = TextField(attr="case_type.type")
     organisation = TextField(attr="organisation.name")
     status = TextField(attr="status.status")
@@ -46,7 +47,7 @@ class ApplicationDocumentType(Document):
             "good": ObjectField(
                 properties={
                     "id": TextField(),
-                    "description": TextField(),
+                    "description": TextField(copy_to='wildcard'),
                     "part_number": TextField(),
                     "organisation": TextField(attr="organisation.name"),
                     "status": TextField(),

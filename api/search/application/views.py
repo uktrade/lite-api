@@ -27,7 +27,9 @@ class ApplicationDocumentView(BaseDocumentViewSet):
         "products.good.part_number",
         "products.good.description",
         "parties.party.name",
+        "wildcard",
     )
+
 
     # Define ordering fields
     ordering_fields = {
