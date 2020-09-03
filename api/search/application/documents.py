@@ -48,7 +48,7 @@ class CLCEntry(InnerDoc):
     rating = KeywordField(copy_to="wildcard")
     text = TextField(copy_to="wildcard")
     category = TextField(copy_to="wildcard")
-    parent = TextField(attr="parent.text")
+    parent = KeywordField(attr="parent.rating", copy_to="wildcard")
 
 
 class Good(InnerDoc):
