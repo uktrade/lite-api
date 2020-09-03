@@ -7,6 +7,7 @@ from django_elasticsearch_dsl.fields import (
     TextField,
     KeywordField,
     NestedField,
+    CompletionField
 )
 
 from api.applications import models
@@ -104,7 +105,13 @@ class User(InnerDoc):
 
 @registry.register_document
 class ApplicationDocumentType(Document):
-    wildcard = TextField(attr="id")
+    wildcard = TextField(
+        attr="id",
+        fields={
+            'raw': TextField(),
+            'suggest': CompletionField(),
+        }
+    )
 
     id = KeywordField(copy_to="wildcard")
     name = TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
