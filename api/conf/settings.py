@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     "api.workflow.routing_rules",
     "api.search",
     "api.search.case",
+    "api.search.application",
 ]
 
 MIDDLEWARE = [
@@ -254,7 +255,7 @@ LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
 if LITE_API_ENABLE_ES:
     ELASTICSEARCH_DSL = {
         'default': {
-            'hosts': env.str("ELASTICSEARCH_HOST", "http://localhost:9200/")
+            'hosts': env.str("ELASTICSEARCH_HOST")
         },
     }
 
