@@ -1,11 +1,12 @@
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
+from django_elasticsearch_dsl_drf.fields import NestedField
 
-from api.search.application.documents import ApplicationDocumentType
+from api.search.application import documents
 
 
 class ApplicationDocumentSerializer(DocumentSerializer):
     class Meta:
-        document = ApplicationDocumentType
+        document = documents.ApplicationDocumentType
         fields = (
             "id",
             "reference_code",
@@ -14,4 +15,10 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "status",
             "goods",
             "parties",
+            "destinations",
         )
+
+    _field_mapping = {
+        **DocumentSerializer._field_mapping,
+        documents.OpenApplicationNestedField: NestedField,
+    }

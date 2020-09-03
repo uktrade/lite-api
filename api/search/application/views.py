@@ -28,9 +28,13 @@ class ApplicationDocumentView(BaseDocumentViewSet):
     }
 
     nested_filter_fields = {
-        'clc_rating': {
+        'clc': {
             'field': 'goods.good.control_list_entries.rating',
             'path': 'goods.good.control_list_entries',
+        },
+        'destination': {
+            'field': 'destinations.name',
+            'path': 'destinations',
         },
     }
 
