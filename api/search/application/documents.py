@@ -15,40 +15,32 @@ from elasticsearch_dsl import analysis, InnerDoc
 
 
 address_analyzer = analysis.analyzer(
-    'address_analyzer',
-    tokenizer='whitespace',
-    filter=[
-        'lowercase',
-        'asciifolding',
-        'trim',
-    ],
+    "address_analyzer", tokenizer="whitespace", filter=["lowercase", "asciifolding", "trim",],
 )
 
 
 part_number_analyzer = analysis.analyzer(
-    'part_number_analyzer',
-    tokenizer=analysis.tokenizer('part_number_path_hierarchy', 'path_hierarchy', delimiter='-'),
-    filter=[
-        'lowercase',
-        'trim',
-    ],
+    "part_number_analyzer",
+    tokenizer=analysis.tokenizer("part_number_path_hierarchy", "path_hierarchy", delimiter="-"),
+    filter=["lowercase", "trim",],
 )
 
 
 class Parties(InnerDoc):
     name = TextField(attr="party.name", copy_to="wildcard")
-    address = TextField(
-        attr="party.address",
-        copy_to="wildcard",
-        analyzer=address_analyzer,
-    )
+    address = TextField(attr="party.address", copy_to="wildcard", analyzer=address_analyzer,)
 
 
 class CLCEntry(InnerDoc):
     rating = KeywordField(copy_to="wildcard")
     text = TextField(copy_to="wildcard")
     category = TextField(copy_to="wildcard")
-    parent = KeywordField(attr="parent.rating", copy_to="wildcard")
+    parent = ObjectField(
+        properties={
+            "rating": KeywordField(attr="rating", copy_to="wildcard"),
+            "text": TextField(attr="text", copy_to="wildcard"),
+        }
+    )
 
 
 class Good(InnerDoc):
