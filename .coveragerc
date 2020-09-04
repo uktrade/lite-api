@@ -12,3 +12,6 @@ omit =
     *test*
     .venv/*
 branch = True
+
+plugins =
+    django_coverage_plugin

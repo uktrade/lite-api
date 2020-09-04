@@ -2,7 +2,7 @@ from django import template
 from django.template.defaultfilters import linebreaksbr
 from django.utils.safestring import mark_safe
 
-from lite_content.lite_exporter_frontend import strings as exporter_strings
+from lite_content.lite_api import strings
 
 register = template.Library()
 
@@ -58,7 +58,7 @@ def remove_underscores(value):
     return value.replace("_", " ").title()
 
 
-@register.simple_tag(name="exporter_lcs")
+@register.simple_tag(name="lcs")
 @mark_safe
 def get_exporter_lite_content_string(value):
     """
@@ -87,7 +87,7 @@ def get_exporter_lite_content_string(value):
     path = value.split(".")
     try:
         # Get initial object from strings.py (may return AttributeError)
-        path_object = getattr(exporter_strings, path[0])
+        path_object = getattr(strings, path[0])
         return get(path_object, path[1:]) if len(path) > 1 else path_object
     except AttributeError:
         return STRING_NOT_FOUND_ERROR
