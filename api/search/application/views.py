@@ -41,6 +41,7 @@ class ApplicationDocumentView(BaseDocumentViewSet):
 
     nested_filter_fields = {
         "clc_rating": {"field": "goods.good.control_list_entries.rating", "path": "goods.good.control_list_entries",},
+        "incorporated": {"field": "goods.incorporated", "path": "goods"},
     }
 
     # Define ordering fields
