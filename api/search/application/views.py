@@ -1,12 +1,17 @@
+from django_elasticsearch_dsl_drf.constants import (
+    LOOKUP_FILTER_TERMS,
+    LOOKUP_FILTER_PREFIX,
+    LOOKUP_FILTER_WILDCARD,
+)
 from django_elasticsearch_dsl_drf.filter_backends import (
+    FilteringFilterBackend,
     OrderingFilterBackend,
     NestedFilteringFilterBackend,
 )
 
 from django_elasticsearch_dsl_drf.viewsets import BaseDocumentViewSet
 
-# Example app models
-from api.search.application.backends import LiteCustomSearchFilterBackend
+from api.search.application.backends import LiteCustomSearchFilterBackend, LiteCustomFilteringFilterBackend
 from api.search.application.documents import ApplicationDocumentType
 from api.search.application.serializers import ApplicationDocumentSerializer
 
@@ -16,14 +21,22 @@ class ApplicationDocumentView(BaseDocumentViewSet):
     serializer_class = ApplicationDocumentSerializer
     lookup_field = "id"
     filter_backends = [
-        OrderingFilterBackend,
         LiteCustomSearchFilterBackend,
+        LiteCustomFilteringFilterBackend,
+        OrderingFilterBackend,
         NestedFilteringFilterBackend,
     ]
 
     # Define search fieldssearch
     search_fields = {
         "wildcard": None,
+    }
+
+    filter_fields = {
+        "wildcard": {
+            "field": "wildcard",
+            "lookups": [LOOKUP_FILTER_TERMS, LOOKUP_FILTER_PREFIX, LOOKUP_FILTER_WILDCARD,],
+        }
     }
 
     nested_filter_fields = {
