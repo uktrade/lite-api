@@ -14,7 +14,11 @@ from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
-from api.compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
+from api.compliance.tests.factories import (
+    ComplianceVisitCaseFactory,
+    ComplianceSiteCaseFactory,
+    OpenLicenceReturnsFactory,
+)
 from api.core.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, get_value_from_enum
 from api.goods.enums import (
     PvGrading,

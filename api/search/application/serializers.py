@@ -20,7 +20,7 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "parties",
             "name",
             "destinations",
-            "highlight"
+            "highlight",
         )
 
     _field_mapping = {
@@ -29,6 +29,6 @@ class ApplicationDocumentSerializer(DocumentSerializer):
     }
 
     def get_highlight(self, obj):
-        if hasattr(obj.meta, 'highlight'):
-            return {key.replace('.', '_'): value for key, value in obj.meta.highlight.to_dict().items()}
+        if hasattr(obj.meta, "highlight"):
+            return {key.replace(".", "_"): value for key, value in obj.meta.highlight.to_dict().items()}
         return {}

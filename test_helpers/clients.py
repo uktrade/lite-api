@@ -31,7 +31,16 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
-from api.cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
+from api.cases.models import (
+    CaseNote,
+    Case,
+    CaseDocument,
+    CaseAssignment,
+    GoodCountryDecision,
+    EcjuQuery,
+    CaseType,
+    Advice,
+)
 from api.cases.tasks import get_application_target_sla
 from api.conf import settings
 from api.core.constants import Roles
@@ -39,7 +48,15 @@ from api.conf.urls import urlpatterns
 from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
-from api.goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
+from api.goods.enums import (
+    GoodControlled,
+    GoodPvGraded,
+    PvGrading,
+    ItemCategory,
+    MilitaryUse,
+    Component,
+    FirearmGoodType,
+)
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from api.goods.tests.factories import GoodFactory
 from api.goodstype.document.models import GoodsTypeDocument

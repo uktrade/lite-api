@@ -11,6 +11,6 @@ class BaseApplicationAdmin(admin.ModelAdmin):
         "is_eu",
     )
     list_filter = (
-    	"type",
-    	"is_eu",
+        "type",
+        "is_eu",
     )

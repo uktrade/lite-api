@@ -34,7 +34,9 @@ class CountriesTests(DataTestClient):
         self.assertNotIn(country_two.name, country_names)
 
     def test_get_country(self):
-        response = self.client.get(reverse("staticdata:countries:country", kwargs={"pk": "GB"}), **self.exporter_headers)
+        response = self.client.get(
+            reverse("staticdata:countries:country", kwargs={"pk": "GB"}), **self.exporter_headers
+        )
         response_data = response.json()
         country = Country.objects.get(pk="GB")
 

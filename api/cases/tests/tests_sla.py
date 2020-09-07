@@ -262,7 +262,8 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "api.cases.tasks.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+            "api.cases.tasks.today",
+            return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
             results = update_cases_sla.now()
         case.refresh_from_db()
@@ -287,7 +288,8 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "api.cases.tasks.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+            "api.cases.tasks.today",
+            return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
             results = update_cases_sla.now()
         case.refresh_from_db()
@@ -312,7 +314,8 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "api.cases.tasks.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+            "api.cases.tasks.today",
+            return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
             results = update_cases_sla.now()
         case.refresh_from_db()
@@ -337,7 +340,8 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "api.cases.tasks.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+            "api.cases.tasks.today",
+            return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
             results = update_cases_sla.now()
         case.refresh_from_db()
