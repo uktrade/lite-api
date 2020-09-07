@@ -20,6 +20,7 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "parties",
             "name",
             "destinations",
+            "queues",
             "highlight",
         )
 

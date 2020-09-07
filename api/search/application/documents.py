@@ -51,7 +51,6 @@ class Country(InnerDoc):
     name = fields.KeywordField(
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
         attr="country.name",
-        copy_to="wildcard",
         normalizer=lowercase_normalizer,
     )
 
@@ -62,28 +61,24 @@ class Party(InnerDoc):
     country = fields.KeywordField(
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
         attr="party.country.name",
-        copy_to="wildcard",
     )
 
 
 class CLCEntryParent(InnerDoc):
-    rating = fields.KeywordField(copy_to="wildcard")
-    text = fields.TextField(copy_to="wildcard")
+    rating = fields.KeywordField()
+    text = fields.TextField()
 
 
 class CLCEntry(InnerDoc):
     rating = fields.KeywordField(
-        copy_to="wildcard",
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        copy_to="wildcard",
     )
     text = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
-    category = fields.KeywordField(copy_to="wildcard")
+    category = fields.KeywordField(
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+    )
     parent = fields.ObjectField(doc_class=CLCEntryParent)
-
-
-class Parties(InnerDoc):
-    name = fields.TextField(attr="party.name", copy_to="wildcard")
-    address = fields.TextField(attr="party.address", copy_to="wildcard", analyzer=address_analyzer,)
 
 
 class Product(InnerDoc):
@@ -96,12 +91,10 @@ class Product(InnerDoc):
     part_number = fields.TextField(
         attr="good.part_number",
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
-        copy_to="wildcard",
         analyzer=part_number_analyzer,
+        copy_to="wildcard",
     )
-    organisation = fields.TextField(
-        attr="good.organisation.name", copy_to="wildcard", analyzer=descriptive_text_analyzer
-    )
+    organisation = fields.TextField(attr="good.organisation.name", analyzer=descriptive_text_analyzer)
     status = fields.KeywordField(attr="good.status")
     comment = fields.TextField(attr="good.comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
     grading_comment = fields.TextField(
@@ -122,25 +115,32 @@ class User(InnerDoc):
     email = fields.KeywordField(attr="email")
 
 
+class Queue(InnerDoc):
+    id = fields.KeywordField()
+
+
 @registry.register_document
 class ApplicationDocumentType(Document):
     # purposefully not DED field - this is just for collecting other field values for wilcard search
     wildcard = Text(analyzer=ngram_analyzer, search_analyzer=whitespace_analyzer, store=True)
-    id = fields.KeywordField(copy_to="wildcard")
+    id = fields.KeywordField()
+    queues = fields.NestedField(doc_class=Queue)
     name = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
     reference_code = fields.TextField(
         copy_to="wildcard",
         analyzer=reference_code_analyzer,
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
     )
-    case_type = fields.KeywordField(attr="case_type.type")
     organisation = fields.TextField(
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
-        attr="organisation.name",
         copy_to="wildcard",
+        attr="organisation.name",
         analyzer=descriptive_text_analyzer,
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
     )
-    status = fields.KeywordField(attr="status.status")
+    status = fields.KeywordField(
+        attr="status.status",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+    )
     submitted_by = fields.ObjectField(doc_class=User)
     case_officer = fields.ObjectField(doc_class=User)
     goods = fields.NestedField(doc_class=Product)
@@ -156,3 +156,7 @@ class ApplicationDocumentType(Document):
 
     class Django:
         model = models.BaseApplication
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.exclude(status__status="draft")
