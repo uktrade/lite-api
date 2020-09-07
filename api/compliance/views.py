@@ -33,7 +33,10 @@ from api.compliance.serializers.ComplianceSiteCaseSerializers import (
     ExporterComplianceSiteListSerializer,
     ExporterComplianceSiteDetailSerializer,
 )
-from api.compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer, CompliancePersonSerializer
+from api.compliance.serializers.ComplianceVisitCaseSerializers import (
+    ComplianceVisitSerializer,
+    CompliancePersonSerializer,
+)
 from api.compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsCreateSerializer,
     OpenLicenceReturnsListSerializer,

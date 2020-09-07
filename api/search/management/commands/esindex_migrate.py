@@ -37,9 +37,7 @@ class Command(BaseCommand):
         bulk(self.client, data)
 
     def update_aliases(self):
-        current_indices = [
-            index for index in self.client.indices.get(PATTERN).keys() if index != self.new_index_name
-        ]
+        current_indices = [index for index in self.client.indices.get(PATTERN).keys() if index != self.new_index_name]
         actions = [
             {"remove": {"alias": ALIAS, "index": PATTERN}},
             {"add": {"alias": ALIAS, "index": self.new_index_name}},
@@ -52,7 +50,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not settings.LITE_API_ENABLE_ES:
-            self.stdout.write(self.style.ERROR(f"Elasticsearch indexing is currently disabled, please enable to continue"))
+            self.stdout.write(
+                self.style.ERROR(f"Elasticsearch indexing is currently disabled, please enable to continue")
+            )
             return
 
         self.create_index_template()

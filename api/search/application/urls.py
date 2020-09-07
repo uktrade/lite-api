@@ -8,6 +8,8 @@ from api.search.application import views
 router = DefaultRouter()
 router.register(r"application_search", views.ApplicationDocumentView, basename="application_search")
 
+
 urlpatterns = [
-    path("", include(router.urls))
+    path("", include(router.urls)),
+    path("suggest/", views.ApplicationSuggestDocumentView.as_view(), name="application_suggest"),
 ]

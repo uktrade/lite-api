@@ -15,4 +15,3 @@ class PartyAdmin(admin.ModelAdmin):
         "type",
         "sub_type",
     )
-

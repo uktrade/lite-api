@@ -254,16 +254,14 @@ USE_TZ = True
 LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
 if LITE_API_ENABLE_ES:
     ELASTICSEARCH_DSL = {
-        'default': {
-            'hosts': env.str("ELASTICSEARCH_HOST")
-        },
+        "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
     }
 
     ELASTICSEARCH_CASES_INDEX_ALIAS = env.str("ELASTICSEARCH_CASES_INDEX_ALIAS", "cases-alias")
 
     INSTALLED_APPS += [
-        'django_elasticsearch_dsl',
-        'django_elasticsearch_dsl_drf',
+        "django_elasticsearch_dsl",
+        "django_elasticsearch_dsl_drf",
     ]
 
 
@@ -327,7 +325,9 @@ EXPORTER_BASE_URL = (
 )
 
 # Demo flags
-LITE_API_DEMO_FLAGS_CSV = env.str("LITE_API_DEMO_FLAGS_CSV", default="team_name,level,name\nteam1,level1,name1\n", multiline=True)
+LITE_API_DEMO_FLAGS_CSV = env.str(
+    "LITE_API_DEMO_FLAGS_CSV", default="team_name,level,name\nteam1,level1,name1\n", multiline=True
+)
 LITE_API_DEMO_QUEUES_CSV = env.str("LITE_API_DEMO_QUEUES_CSV", default="team_name,name\nteam1,name1\n", multiline=True)
 LITE_API_DEMO_TEAMS_CSV = env.str("LITE_API_DEMO_TEAMS_CSV", default="name\nteam1\nteam2", multiline=True)
 
@@ -366,4 +366,4 @@ if FEATURE_STAFF_SSO_ENABLED:
     ALLOWED_ADMIN_EMAILS = env.list("ALLOWED_ADMIN_EMAILS")
 
 
-PERMISSIONS_FINDER_URL = env.str('PERMISSIONS_FINDER_URL')
+PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")

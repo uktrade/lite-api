@@ -1,17 +1,9 @@
-from django_elasticsearch_dsl import Document
+from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
-from django_elasticsearch_dsl.fields import (
-    BooleanField,
-    FloatField,
-    ObjectField,
-    TextField,
-    KeywordField,
-    NestedField,
-)
-
-from api.applications.models import BaseApplication
-
 from elasticsearch_dsl import analysis, InnerDoc
+from elasticsearch_dsl.field import Text
+
+from api.applications import models
 
 
 address_analyzer = analysis.analyzer(
@@ -22,72 +14,145 @@ address_analyzer = analysis.analyzer(
 part_number_analyzer = analysis.analyzer(
     "part_number_analyzer",
     tokenizer=analysis.tokenizer("part_number_path_hierarchy", "path_hierarchy", delimiter="-"),
-    filter=["lowercase", "trim",],
+    filter=["lowercase", "trim"],
 )
 
+reference_code_analyzer = analysis.analyzer(
+    "reference_code_analyzer", tokenizer="path_hierarchy", filter=["lowercase", "trim"]
+)
 
-class Parties(InnerDoc):
-    name = TextField(attr="party.name", copy_to="wildcard")
-    address = TextField(attr="party.address", copy_to="wildcard", analyzer=address_analyzer,)
+descriptive_text_analyzer = analysis.analyzer(
+    "descriptive_text_analyzer", tokenizer="classic", filter=["lowercase", "trim", "stemmer"]
+)
+
+ngram_filter = analysis.token_filter("ngram_filter", type="ngram", min_gram=2, max_gram=20)
+
+ngram_analyzer = analysis.analyzer(
+    "ngram_completion", tokenizer="whitespace", filter=["lowercase", "asciifolding", ngram_filter]
+)
+
+whitespace_analyzer = analysis.analyzer(
+    "whitespace_analyzer", tokenizer="whitespace", filter=["lowercase", "asciifolding"]
+)
+
+lowercase_normalizer = analysis.normalizer("lowercase_normalizer", filter=["lowercase"])
 
 
-class CLCEntry(InnerDoc):
-    rating = KeywordField(copy_to="wildcard")
-    text = TextField(copy_to="wildcard")
-    category = TextField(copy_to="wildcard")
-    parent = ObjectField(
-        properties={
-            "rating": KeywordField(attr="rating", copy_to="wildcard"),
-            "text": TextField(attr="text", copy_to="wildcard"),
-        }
+class OpenApplicationNestedField(fields.NestedField):
+    def get_value_from_instance(self, instance, field_value_to_ignore=None):
+        # get the value from the concrete OpenApplication subclass of the BaseApplication
+        try:
+            return super().get_value_from_instance(instance.openapplication, field_value_to_ignore)
+        except models.OpenApplication.DoesNotExist:
+            return []
+
+
+class Country(InnerDoc):
+    name = fields.KeywordField(
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        attr="country.name",
+        copy_to="wildcard",
+        normalizer=lowercase_normalizer,
     )
 
 
-class Good(InnerDoc):
-    id = TextField()
-    description = TextField(copy_to="wildcard")
-    part_number = TextField(copy_to="wildcard", analyzer=part_number_analyzer)
-    organisation = TextField(attr="organisation.name")
-    status = KeywordField()
-    comment = TextField(copy_to="wildcard")
-    grading_comment = TextField()
-    report_summary = TextField(copy_to="wildcard")
-    is_military_use = TextField()
-    is_pv_graded = TextField()
-    is_good_controlled = TextField()
-    item_category = TextField()
-    control_list_entries = NestedField(doc_class=CLCEntry)
+class Party(InnerDoc):
+    name = fields.TextField(attr="party.name", copy_to="wildcard", analyzer=descriptive_text_analyzer)
+    address = fields.TextField(attr="party.address", copy_to="wildcard", analyzer=address_analyzer,)
+    country = fields.KeywordField(
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        attr="party.country.name",
+        copy_to="wildcard",
+    )
 
 
-class Products(InnerDoc):
-    quantity = FloatField()
-    value = KeywordField()
-    unit = KeywordField()
-    item_type = KeywordField()
-    incorporated = BooleanField(attr="is_good_incorporated")
-    good = NestedField(doc_class=Good)
+class CLCEntryParent(InnerDoc):
+    rating = fields.KeywordField(copy_to="wildcard")
+    text = fields.TextField(copy_to="wildcard")
+
+
+class CLCEntry(InnerDoc):
+    rating = fields.KeywordField(
+        copy_to="wildcard",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+    )
+    text = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
+    category = fields.KeywordField(copy_to="wildcard")
+    parent = fields.ObjectField(doc_class=CLCEntryParent)
+
+
+class Parties(InnerDoc):
+    name = fields.TextField(attr="party.name", copy_to="wildcard")
+    address = fields.TextField(attr="party.address", copy_to="wildcard", analyzer=address_analyzer,)
+
+
+class Product(InnerDoc):
+    quantity = fields.FloatField()
+    value = fields.KeywordField()
+    unit = fields.KeywordField()
+    item_type = fields.KeywordField()
+    incorporated = fields.BooleanField(attr="is_good_incorporated")
+    description = fields.TextField(attr="good.description", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
+    part_number = fields.TextField(
+        attr="good.part_number",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        copy_to="wildcard",
+        analyzer=part_number_analyzer,
+    )
+    organisation = fields.TextField(
+        attr="good.organisation.name", copy_to="wildcard", analyzer=descriptive_text_analyzer
+    )
+    status = fields.KeywordField(attr="good.status")
+    comment = fields.TextField(attr="good.comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
+    grading_comment = fields.TextField(
+        attr="good.grading_comment", copy_to="wildcard", analyzer=descriptive_text_analyzer
+    )
+    report_summary = fields.TextField(
+        attr="good.report_summary", copy_to="wildcard", analyzer=descriptive_text_analyzer
+    )
+    is_military_use = fields.TextField(attr="good.is_military_use")
+    is_pv_graded = fields.TextField(attr="good.is_pv_graded")
+    is_good_controlled = fields.TextField(attr="good.is_good_controlled")
+    item_category = fields.TextField(attr="good.item_category")
+    control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=CLCEntry)
+
+
+class User(InnerDoc):
+    username = fields.KeywordField(attr="username")
+    email = fields.KeywordField(attr="email")
 
 
 @registry.register_document
 class ApplicationDocumentType(Document):
-    wildcard = TextField(attr="id")
-
-    id = TextField()
-    reference_code = TextField(copy_to="wildcard")
-    case_type = TextField(attr="case_type.type")
-    organisation = TextField(attr="organisation.name", copy_to="wildcard")
-    status = TextField(attr="status.status")
-    submitted_by = ObjectField(properties={"username": TextField(attr="username"), "email": TextField(attr="email"),})
-    case_officer = ObjectField(properties={"username": TextField(attr="username"), "email": TextField(attr="email"),})
-    goods = NestedField(doc_class=Products)
-    parties = NestedField(doc_class=Parties)
+    # purposefully not DED field - this is just for collecting other field values for wilcard search
+    wildcard = Text(analyzer=ngram_analyzer, search_analyzer=whitespace_analyzer, store=True)
+    id = fields.KeywordField(copy_to="wildcard")
+    name = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
+    reference_code = fields.TextField(
+        copy_to="wildcard",
+        analyzer=reference_code_analyzer,
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+    )
+    case_type = fields.KeywordField(attr="case_type.type")
+    organisation = fields.TextField(
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        attr="organisation.name",
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer,
+    )
+    status = fields.KeywordField(attr="status.status")
+    submitted_by = fields.ObjectField(doc_class=User)
+    case_officer = fields.ObjectField(doc_class=User)
+    goods = fields.NestedField(doc_class=Product)
+    parties = fields.NestedField(doc_class=Party)
+    destinations = OpenApplicationNestedField(doc_class=Country, attr="application_countries",)
 
     class Index:
         name = "application-alias"
-        settings = {"number_of_shards": 1, "number_of_replicas": 0}
+        settings = {"number_of_shards": 1, "number_of_replicas": 0, "max_ngram_diff": 18}
 
     class Meta:
-        model = BaseApplication
+        model = models.BaseApplication
 
     class Django:
-        model = BaseApplication
+        model = models.BaseApplication
