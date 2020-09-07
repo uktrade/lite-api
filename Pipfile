@@ -10,6 +10,7 @@ coverage = "~=5.0"
 parameterized = "~=0.7"
 prospector = "==1.1.6.2" #  Our project only works with version 1.1.6.2
 django-extensions = "*"
+django-coverage-plugin = "*"
 
 [packages]
 factory-boy = "~=2.12.0"

@@ -7,9 +7,7 @@ from api.applications import models
 
 
 address_analyzer = analysis.analyzer(
-    'address_analyzer',
-    tokenizer='whitespace',
-    filter=['lowercase', 'asciifolding', 'trim'],
+    "address_analyzer", tokenizer="whitespace", filter=["lowercase", "asciifolding", "trim",],
 )
 
 
@@ -30,7 +28,6 @@ descriptive_text_analyzer = analysis.analyzer(
     tokenizer='classic',
     filter=['lowercase', 'trim', 'stemmer']
 )
-
 
 ngram_filter = analysis.token_filter(
     'ngram_filter',
@@ -66,7 +63,7 @@ class OpenApplicationNestedField(fields.NestedField):
 class Country(InnerDoc):
     name = fields.KeywordField(
         fields={
-            'raw': fields.KeywordField(),
+            'raw': fields.KeywordField(normalizer=lowercase_normalizer),
             'suggest': fields.CompletionField(),
         },
         attr='country.name',
@@ -92,52 +89,28 @@ class Party(InnerDoc):
     )
 
 
+class CLCEntryParent(InnerDoc):
+    rating = fields.KeywordField(copy_to="wildcard")
+    text = fields.TextField(copy_to="wildcard")
+
+
+
 class CLCEntry(InnerDoc):
     rating = fields.KeywordField(
         copy_to="wildcard",
-        normalizer=lowercase_normalizer,
         fields={
-            'raw': fields.KeywordField(),
+            'raw': fields.KeywordField(normalizer=lowercase_normalizer),
             'suggest': fields.CompletionField(),
         },
     )
     text = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
     category = fields.KeywordField(copy_to="wildcard")
-    parent = fields.TextField(
-        attr="parent.text",
-        copy_to="wildcard",
-        analyzer=descriptive_text_analyzer,
-    )
+    parent = fields.ObjectField(doc_class=CLCEntryParent)
 
 
-class Good(InnerDoc):
-    id = fields.KeywordField(copy_to="wildcard")
-    description = fields.TextField(
-        copy_to="wildcard",
-        analyzer=descriptive_text_analyzer,
-    )
-    part_number = fields.TextField(
-        fields={
-            'raw': fields.KeywordField(),
-            'suggest': fields.CompletionField(),
-        },
-        copy_to="wildcard",
-        analyzer=part_number_analyzer
-    )
-    organisation = fields.TextField(
-        attr="organisation.name",
-        copy_to="wildcard",
-        analyzer=descriptive_text_analyzer
-    )
-    status = fields.KeywordField()
-    comment = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
-    grading_comment = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
-    report_summary = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
-    is_military_use = fields.TextField()
-    is_pv_graded = fields.TextField()
-    is_good_controlled = fields.TextField()
-    item_category = fields.TextField()
-    control_list_entries = fields.NestedField(doc_class=CLCEntry)
+class Parties(InnerDoc):
+    name = fields.TextField(attr="party.name", copy_to="wildcard")
+    address = fields.TextField(attr="party.address", copy_to="wildcard", analyzer=address_analyzer,)
 
 
 class Product(InnerDoc):
@@ -146,7 +119,42 @@ class Product(InnerDoc):
     unit = fields.KeywordField()
     item_type = fields.KeywordField()
     incorporated = fields.BooleanField(attr="is_good_incorporated")
-    good = fields.NestedField(doc_class=Good)
+    description = fields.TextField(
+        attr='good.description',
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer,
+    )
+    part_number = fields.TextField(
+        attr='good.part_number',
+        fields={
+            'raw': fields.KeywordField(normalizer=lowercase_normalizer),
+            'suggest': fields.CompletionField(),
+        },
+        copy_to="wildcard",
+        analyzer=part_number_analyzer
+    )
+    organisation = fields.TextField(
+        attr="good.organisation.name",
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer
+    )
+    status = fields.KeywordField(attr='good.status')
+    comment = fields.TextField(attr='good.comment', copy_to="wildcard", analyzer=descriptive_text_analyzer)
+    grading_comment = fields.TextField(
+        attr='good.grading_comment',
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer
+    )
+    report_summary = fields.TextField(
+        attr='good.report_summary',
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer
+    )
+    is_military_use = fields.TextField(attr='good.is_military_use')
+    is_pv_graded = fields.TextField(attr='good.is_pv_graded')
+    is_good_controlled = fields.TextField(attr='good.is_good_controlled')
+    item_category = fields.TextField(attr='good.item_category')
+    control_list_entries = fields.NestedField(attr='good.control_list_entries', doc_class=CLCEntry)
 
 
 class User(InnerDoc):
@@ -162,21 +170,20 @@ class ApplicationDocumentType(Document):
         search_analyzer=whitespace_analyzer,
         store=True
     )
-
     id = fields.KeywordField(copy_to="wildcard")
     name = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
     reference_code = fields.TextField(
         copy_to="wildcard",
         analyzer=reference_code_analyzer,
         fields={
-            'raw': fields.KeywordField(),
+            'raw': fields.KeywordField(normalizer=lowercase_normalizer),
             'suggest': fields.CompletionField(),
         },
     )
     case_type = fields.KeywordField(attr="case_type.type")
     organisation = fields.TextField(
         fields={
-            'raw': fields.KeywordField(),
+            'raw': fields.KeywordField(normalizer=lowercase_normalizer),
             'suggest': fields.CompletionField(),
         },
         attr="organisation.name",

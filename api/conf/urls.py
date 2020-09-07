@@ -41,9 +41,11 @@ urlpatterns = [
     path("routing-rules/", include("api.workflow.routing_rules.urls")),
     path("licences/", include("api.licences.urls")),
     path("open-general-licences/", include("api.open_general_licences.urls")),
-    path("search/", include("api.search.urls")),
     re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json",),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+if settings.LITE_API_ENABLE_ES:
+    urlpatterns += (path("search/", include("api.search.urls")),)
 
 if settings.ADMIN_ENABLED:
     urlpatterns += (path("admin/", admin.site.urls),)
