@@ -1,7 +1,3 @@
-from django_elasticsearch_dsl_drf.filter_backends import search
-from django_elasticsearch_dsl_drf.filter_backends.filtering.common import FilteringFilterBackend
-from elasticsearch_dsl.query import Wildcard
-from rest_framework.filters import BaseFilterBackend
 from rest_framework.settings import api_settings
 
 from django_elasticsearch_dsl_drf.constants import SEPARATOR_LOOKUP_FILTER
@@ -32,7 +28,7 @@ class WildcardAwareSearchFilterBackend(SearchFilterBackend):
 class WildcardAwareFilteringFilterBackend(FilteringFilterBackend):
     def get_filter_query_params(self, request, view):
         filter_params = super().get_filter_query_params(request, view)
-        Wildcard_param_key = f"wildcard{SEPARATOR_LOOKUP_FILTER}wildcard"
+        wildcard_param_key = f"wildcard{SEPARATOR_LOOKUP_FILTER}wildcard"
 
         """
         In the search box if wildcards (?, *) are entered by default they
@@ -47,7 +43,7 @@ class WildcardAwareFilteringFilterBackend(FilteringFilterBackend):
             filter_params = {}
             if wildcard_present(expanded_params):
                 filter_params = {
-                    Wildcard_param_key: {
+                    wildcard_param_key: {
                         "lookup": "wildcard",
                         "values": expanded_params,
                         "field": "wildcard",
