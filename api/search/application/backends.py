@@ -32,7 +32,7 @@ class WildcardAwareSearchFilterBackend(SearchFilterBackend):
 class WildcardAwareFilteringFilterBackend(FilteringFilterBackend):
     def get_filter_query_params(self, request, view):
         filter_params = super().get_filter_query_params(request, view)
-        Wildcard_param_key = f"wildcard{SEPARATOR_LOOKUP_FILTER}wildcard"
+        wildcard_param_key = f"wildcard{SEPARATOR_LOOKUP_FILTER}wildcard"
 
         """
         In the search box if wildcards (?, *) are entered by default they
@@ -47,7 +47,7 @@ class WildcardAwareFilteringFilterBackend(FilteringFilterBackend):
             filter_params = {}
             if wildcard_present(expanded_params):
                 filter_params = {
-                    Wildcard_param_key: {
+                    wildcard_param_key: {
                         "lookup": "wildcard",
                         "values": expanded_params,
                         "field": "wildcard",
