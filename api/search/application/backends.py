@@ -38,17 +38,12 @@ class WildcardAwareFilteringFilterBackend(FilteringFilterBackend):
         query_params = request.query_params.copy()
         search_params = query_params.getlist(api_settings.SEARCH_PARAM, [])
         expanded_params = expand_search_params(search_params)
-
-        if expanded_params:
-            filter_params = {}
-            if wildcard_present(expanded_params):
-                filter_params = {
-                    wildcard_param_key: {
-                        "lookup": "wildcard",
-                        "values": expanded_params,
-                        "field": "wildcard",
-                        "type": "properties",
-                    }
-                }
+        if expanded_params and wildcard_present(expanded_params):
+            filter_params[wildcard_param_key] = {
+                "lookup": "wildcard",
+                "values": expanded_params,
+                "field": "wildcard",
+                "type": "properties",
+            }
 
         return filter_params
