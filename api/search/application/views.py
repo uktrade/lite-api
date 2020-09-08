@@ -56,7 +56,8 @@ class ApplicationDocumentView(DocumentViewSet):
     nested_filter_fields = {
         "clc_rating": {"field": "goods.control_list_entries.rating.raw", "path": "goods.control_list_entries",},
         "clc_category": {"field": "goods.control_list_entries.category.raw", "path": "goods.control_list_entries",},
-        "destination": {"field": "parties.country.raw", "path": "parties",},
+        "party_country": {"field": "parties.country.raw", "path": "parties",},
+        "party_type": {"field": "parties.type.raw", "path": "parties"},
         "part": {"field": "goods.part_number.raw", "path": "goods",},
         "incorporated": {"field": "goods.incorporated", "path": "goods",},
     }
@@ -80,15 +81,16 @@ class ApplicationSuggestDocumentView(APIView):
             "size": 5,
             "query": {"match_bool_prefix": {"wildcard": {"query": q}}},
             "suggest": {
-                "destination": {
+                "party_country": {
                     "prefix": q,
                     "completion": {"field": "parties.country.suggest", "skip_duplicates": True},
                 },
+                "party_type": {"prefix": q, "completion": {"field": "parties.type.suggest", "skip_duplicates": True},},
                 "clc_rating": {
                     "prefix": q,
                     "completion": {"field": "goods.control_list_entries.rating.suggest", "skip_duplicates": True},
                 },
-                "clc_category":{
+                "clc_category": {
                     "prefix": q,
                     "completion": {"field": "goods.control_list_entries.category.suggest", "skip_duplicates": True},
                 },

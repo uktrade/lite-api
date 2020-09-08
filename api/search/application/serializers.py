@@ -1,5 +1,4 @@
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
-from django_elasticsearch_dsl_drf.fields import NestedField
 from rest_framework import serializers
 
 from api.search.application import documents
@@ -23,11 +22,6 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "queues",
             "highlight",
         )
-
-    _field_mapping = {
-        **DocumentSerializer._field_mapping,
-        documents.OpenApplicationNestedField: NestedField,
-    }
 
     def get_highlight(self, obj):
         if hasattr(obj.meta, "highlight"):

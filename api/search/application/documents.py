@@ -3,6 +3,8 @@ from django_elasticsearch_dsl.registries import registry
 from elasticsearch_dsl import analysis, InnerDoc
 from elasticsearch_dsl.field import Text
 
+from django.db.models import Prefetch
+
 from api.applications import models
 
 
@@ -38,15 +40,6 @@ whitespace_analyzer = analysis.analyzer(
 lowercase_normalizer = analysis.normalizer("lowercase_normalizer", filter=["lowercase"])
 
 
-class OpenApplicationNestedField(fields.NestedField):
-    def get_value_from_instance(self, instance, field_value_to_ignore=None):
-        # get the value from the concrete OpenApplication subclass of the BaseApplication
-        try:
-            return super().get_value_from_instance(instance.openapplication, field_value_to_ignore)
-        except models.OpenApplication.DoesNotExist:
-            return []
-
-
 class Country(InnerDoc):
     name = fields.KeywordField(
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
@@ -58,6 +51,10 @@ class Country(InnerDoc):
 class Party(InnerDoc):
     name = fields.TextField(attr="party.name", copy_to="wildcard", analyzer=descriptive_text_analyzer)
     address = fields.TextField(attr="party.address", copy_to="wildcard", analyzer=address_analyzer,)
+    type = fields.KeywordField(
+        attr="party.type",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+    )
     country = fields.KeywordField(
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
         attr="party.country.name",
@@ -145,7 +142,6 @@ class ApplicationDocumentType(Document):
     case_officer = fields.ObjectField(doc_class=User)
     goods = fields.NestedField(doc_class=Product)
     parties = fields.NestedField(doc_class=Party)
-    destinations = OpenApplicationNestedField(doc_class=Country, attr="application_countries",)
 
     class Index:
         name = "application-alias"
@@ -157,6 +153,44 @@ class ApplicationDocumentType(Document):
     class Django:
         model = models.BaseApplication
 
+    def get_indexing_queryset(self):
+        # hack to make `parties` use the prefetch cache. party manager .all() calls .exclude, which clears cache,
+        # so work around that here: read from the instance's prefetched_parties attr, which was set in prefetch
+        # looks small, but is a huge performance improvement. Helps take db reads down to 7 in total.
+        self._fields["parties"]._path = ["prefetched_parties"]
+
+        return (
+            self.get_queryset()
+            .select_related("organisation")
+            .select_related("status")
+            .select_related("submitted_by")
+            .select_related("case_officer")
+            .prefetch_related("queues")
+            .prefetch_related(
+                Prefetch(
+                    "goods",
+                    queryset=(
+                        models.GoodOnApplication.objects.all()
+                        .select_related("good")
+                        .select_related("good__organisation")
+                        .prefetch_related("good__control_list_entries")
+                        .prefetch_related("good__control_list_entries__parent")
+                    ),
+                )
+            )
+            .prefetch_related(
+                Prefetch(
+                    "parties",
+                    to_attr="prefetched_parties",
+                    queryset=(
+                        models.PartyOnApplication.objects.all()
+                        .select_related("party")
+                        .select_related("party__country")
+                        .select_related("party__organisation")
+                    ),
+                )
+            )
+        )
+
     def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.exclude(status__status="draft")
+        return super().get_queryset().exclude(status__status="draft")
