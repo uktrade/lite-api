@@ -45,6 +45,8 @@ class ApplicationDocumentView(DocumentViewSet):
 
     filter_fields = {
         "organisation": {"enabled": True, "field": "organisation.raw",},
+        "case_reference": {"enabled": True, "field": "reference_code.raw",},
+        "case_status": {"enabled": True, "field": "status.raw",},
         "wildcard": {
             "field": "wildcard",
             "lookups": [LOOKUP_FILTER_TERMS, LOOKUP_FILTER_PREFIX, LOOKUP_FILTER_WILDCARD,],
@@ -52,8 +54,10 @@ class ApplicationDocumentView(DocumentViewSet):
     }
 
     nested_filter_fields = {
-        "rating": {"field": "goods.control_list_entries.rating.raw", "path": "goods.control_list_entries",},
-        "destination": {"field": "parties.country.raw", "path": "parties",},
+        "clc_rating": {"field": "goods.control_list_entries.rating.raw", "path": "goods.control_list_entries",},
+        "clc_category": {"field": "goods.control_list_entries.category.raw", "path": "goods.control_list_entries",},
+        "party_country": {"field": "parties.country.raw", "path": "parties",},
+        "party_type": {"field": "parties.type.raw", "path": "parties"},
         "part": {"field": "goods.part_number.raw", "path": "goods",},
         "incorporated": {"field": "goods.incorporated", "path": "goods",},
     }
@@ -73,38 +77,44 @@ class ApplicationSuggestDocumentView(APIView):
 
     def get(self, request):
         q = self.request.GET.get("q", "")
-        search = ApplicationDocumentType.search().from_dict(
-            {
-                "size": 5,
-                "query": {"match_bool_prefix": {"wildcard": {"query": q}}},
-                "suggest": {
-                    "destination": {
-                        "prefix": q,
-                        "completion": {"field": "parties.country.suggest", "skip_duplicates": True},
-                    },
-                    "rating": {
-                        "prefix": q,
-                        "completion": {"field": "goods.control_list_entries.rating.suggest", "skip_duplicates": True},
-                    },
-                    "part": {
-                        "prefix": q,
-                        "completion": {"field": "goods.part_number.suggest", "skip_duplicates": True},
-                    },
-                    "organisation": {
-                        "prefix": q,
-                        "completion": {"field": "organisation.suggest", "skip_duplicates": True},
-                    },
+        query = {
+            "size": 5,
+            "query": {"match_bool_prefix": {"wildcard": {"query": q}}},
+            "suggest": {
+                "party_country": {
+                    "prefix": q,
+                    "completion": {"field": "parties.country.suggest", "skip_duplicates": True},
                 },
-                "_source": False,
-                "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},
-            }
-        )
+                "party_type": {"prefix": q, "completion": {"field": "parties.type.suggest", "skip_duplicates": True},},
+                "clc_rating": {
+                    "prefix": q,
+                    "completion": {"field": "goods.control_list_entries.rating.suggest", "skip_duplicates": True},
+                },
+                "clc_category": {
+                    "prefix": q,
+                    "completion": {"field": "goods.control_list_entries.category.suggest", "skip_duplicates": True},
+                },
+                "part": {"prefix": q, "completion": {"field": "goods.part_number.suggest", "skip_duplicates": True},},
+                "organisation": {
+                    "prefix": q,
+                    "completion": {"field": "organisation.suggest", "skip_duplicates": True},
+                },
+                "case_status": {"prefix": q, "completion": {"field": "status.suggest", "skip_duplicates": True},},
+                "case_reference": {
+                    "prefix": q,
+                    "completion": {"field": "reference_code.suggest", "skip_duplicates": True},
+                },
+            },
+            "_source": False,
+            "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},
+        }
+        search = ApplicationDocumentType.search().from_dict(query)
 
         suggests = []
         executed = search.execute()
         flat_suggestions = set()
 
-        for key in ["destination", "rating", "part", "organisation"]:
+        for key in query["suggest"].keys():
             for suggest in getattr(executed.suggest, key):
                 for option in suggest.options:
                     suggests.append({"field": key, "value": option.text})
