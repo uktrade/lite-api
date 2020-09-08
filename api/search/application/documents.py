@@ -113,6 +113,17 @@ class User(InnerDoc):
 
 class Queue(InnerDoc):
     id = fields.KeywordField()
+    name = fields.TextField(
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        analyzer=descriptive_text_analyzer,
+        copy_to="wildcard",
+    )
+    team = fields.TextField(
+        attr="team.name",
+        copy_to="wildcard",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        analyzer=descriptive_text_analyzer,
+    )
 
 
 @registry.register_document

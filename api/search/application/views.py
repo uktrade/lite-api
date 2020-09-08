@@ -60,6 +60,8 @@ class ApplicationDocumentView(DocumentViewSet):
         "party_type": {"field": "parties.type.raw", "path": "parties"},
         "part": {"field": "goods.part_number.raw", "path": "goods",},
         "incorporated": {"field": "goods.incorporated", "path": "goods",},
+        "queue": {"field": "queues.name.raw", "path": "queues",},
+        "team": {"field": "queues.team.raw", "path": "queues",},
     }
 
     highlight_fields = {"*": {"enabled": True, "options": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}}}
@@ -104,6 +106,8 @@ class ApplicationSuggestDocumentView(APIView):
                     "prefix": q,
                     "completion": {"field": "reference_code.suggest", "skip_duplicates": True},
                 },
+                "queue": {"prefix": q, "completion": {"field": "queues.name.suggest", "skip_duplicates": True},},
+                "team": {"prefix": q, "completion": {"field": "queues.team.suggest", "skip_duplicates": True},},
             },
             "_source": False,
             "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},
