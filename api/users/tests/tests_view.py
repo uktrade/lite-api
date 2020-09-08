@@ -22,7 +22,7 @@ class UserTests(DataTestClient):
         self.assertEqual(
             response_data,
             {
-                "id": str(self.exporter_user.id),
+                "id": str(self.exporter_user.pk),
                 "first_name": self.exporter_user.first_name,
                 "last_name": self.exporter_user.last_name,
                 "organisations": [

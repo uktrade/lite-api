@@ -35,21 +35,21 @@ class AuthenticateGovUser(APIView):
         last_name = data.get("last_name")
 
         try:
-            user = GovUser.objects.get(email=email)
+            user = GovUser.objects.get(baseuser_ptr__email=email)
 
             # Update the user's first and last names
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
+            user.baseuser_ptr.first_name = first_name
+            user.baseuser_ptr.last_name = last_name
+            user.baseuser_ptr.save()
         except GovUser.DoesNotExist:
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
         if user.status == GovUserStatuses.DEACTIVATED:
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
-        token = user_to_token(user)
+        token = user_to_token(user.baseuser_ptr)
         return JsonResponse(
-            data={"default_queue": str(user.default_queue), "token": token, "lite_api_user_id": str(user.id)}
+            data={"default_queue": str(user.default_queue), "token": token, "lite_api_user_id": str(user.pk)}
         )
 
 
@@ -63,7 +63,7 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
             return GovUserViewSerializer
 
     def get_queryset(self):
-        gov_users_qs = GovUser.objects.all().order_by("email").prefetch_related("team", "role")
+        gov_users_qs = GovUser.objects.all().order_by("baseuser_ptr__email").prefetch_related("team", "role")
         teams = self.request.GET.get("teams")
         status = self.request.GET.get("status")
         email = self.request.GET.get("email")
@@ -73,7 +73,7 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
         if teams:
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
         if email:
-            gov_users_qs = gov_users_qs.filter(email__icontains=email)
+            gov_users_qs = gov_users_qs.filter(baseuser_ptr__email__icontains=email)
 
         return gov_users_qs
 
@@ -126,7 +126,7 @@ class GovUserDetail(APIView):
             raise PermissionDenied()
 
         if "status" in data.keys():
-            if gov_user.id == request.user.id:
+            if gov_user.pk == request.user.pk:
                 return JsonResponse(
                     data={"errors": "A user cannot change their own status"}, status=status.HTTP_400_BAD_REQUEST,
                 )
@@ -135,7 +135,7 @@ class GovUserDetail(APIView):
 
         # Cannot deactivate a super user
         if "role" in data.keys():
-            if gov_user.id == request.user.id and request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID:
+            if gov_user.pk == request.user.pk and request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID:
                 return JsonResponse(
                     data={"errors": "A user cannot remove super user from themselves"},
                     status=status.HTTP_400_BAD_REQUEST,

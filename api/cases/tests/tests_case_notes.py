@@ -98,10 +98,10 @@ class CaseNotesViewTests(DataTestClient):
         self.url = reverse("cases:case_notes", kwargs={"pk": self.case.id})
 
     def test_view_case_notes_successful(self):
-        self.create_case_note(self.case, "Hairpin Turns", self.gov_user)
-        self.create_case_note(self.case, "Not in Kansas", self.gov_user)
-        self.create_case_note(self.case, "Dust Swirls In Strange Light", self.gov_user)
-        self.create_case_note(self.case, "Rylan", self.exporter_user)
+        self.create_case_note(self.case, "Hairpin Turns", self.gov_user.baseuser_ptr)
+        self.create_case_note(self.case, "Not in Kansas", self.gov_user.baseuser_ptr)
+        self.create_case_note(self.case, "Dust Swirls In Strange Light", self.gov_user.baseuser_ptr)
+        self.create_case_note(self.case, "Rylan", self.exporter_user.baseuser_ptr)
 
         response = self.client.get(self.url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -113,7 +113,7 @@ class CaseNotesViewTests(DataTestClient):
 
     def test_view_case_notes_from_a_draft_application(self):
         case = self.create_draft_standard_application(self.organisation)
-        case_note = self.create_case_note(case, "This is cool text", self.exporter_user, True)
+        case_note = self.create_case_note(case, "This is cool text", self.exporter_user.baseuser_ptr, True)
         url = reverse("cases:case_notes", kwargs={"pk": case.id})
 
         response = self.client.get(url, **self.exporter_headers)

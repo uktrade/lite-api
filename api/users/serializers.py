@@ -1,3 +1,5 @@
+from typing import Dict
+
 from rest_framework import serializers
 
 from api.core.constants import Roles
@@ -29,15 +31,23 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
         else:
             return GovUserViewSerializer(instance=instance).data
 
-
 class ExporterUserViewSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     status = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
     sites = serializers.SerializerMethodField()
 
     class Meta:
         model = ExporterUser
-        fields = "__all__"
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "role",
+            "status",
+            "sites"
+        )
 
     def get_status(self, instance):
         if hasattr(instance, "status"):
@@ -59,6 +69,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
 
 class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     email = serializers.EmailField(
         error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
     )
@@ -108,12 +119,18 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     def clean_email(self, email):
         return email.lower() if email else None
 
-    def create(self, validated_data):
+    def create(self, validated_data: Dict):
+
+        base_user_defaults = {
+            "email": validated_data.pop("email"),
+        }
+
         organisation = validated_data.pop("organisation")
         sites = validated_data.pop("sites")
         role = validated_data.pop("role", Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
 
-        exporter, _ = ExporterUser.objects.get_or_create(email__iexact=validated_data["email"], defaults=validated_data)
+        base_user, _ = BaseUser.objects.get_or_create(email__iexact=base_user_defaults["email"], type=UserType.EXPORTER, defaults=base_user_defaults)
+        exporter, _ = ExporterUser.objects.get_or_create(baseuser_ptr=base_user, defaults=validated_data)
 
         if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
             relationship = UserOrganisationRelationship(user=exporter, organisation=organisation, role=role)
@@ -134,14 +151,17 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         """
         email = validated_data.get("email")
         if email:
-            exporter_user = ExporterUser.objects.filter(email__iexact=email)
+            # CODESMELL: this should really be handled with a unique constraint
+            exporter_user = ExporterUser.objects.filter(baseuser_ptr__email__iexact=email)
             if not exporter_user.exists():
-                instance.email = email
+                instance.baseuser_ptr.email = email
+                instance.baseuser_ptr.save()
                 instance.save()
         return instance
 
 
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     class Meta:
         model = ExporterUser
         fields = (

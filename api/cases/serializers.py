@@ -108,7 +108,7 @@ class CaseListSerializer(serializers.Serializer):
         return_value = {}
 
         for assignment in instance.case_assignments.all():
-            user_id = str(assignment.user.id)
+            user_id = str(assignment.user.pk)
             if user_id not in return_value:
                 return_value[user_id] = {}
             return_value[user_id]["first_name"] = assignment.user.first_name
@@ -241,7 +241,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
     def get_audit_notification(self, instance):
         content_type = ContentType.objects.get_for_model(Audit)
-        queryset = GovNotification.objects.filter(user=self.user, content_type=content_type, case=instance)
+        queryset = GovNotification.objects.filter(user_id=self.user.pk, content_type=content_type, case=instance)
 
         if queryset.exists():
             return {"audit_id": queryset.first().object_id}
@@ -359,11 +359,11 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
         )
 
     def get_raised_by_user_name(self, instance):
-        return instance.raised_by_user.get_full_name()
+        return instance.raised_by_user.baseuser_ptr.get_full_name()
 
     def get_responded_by_user_name(self, instance):
         if instance.responded_by_user:
-            return instance.responded_by_user.get_full_name()
+            return instance.responded_by_user.baseuser_ptr.get_full_name()
 
 
 class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
@@ -391,7 +391,7 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
 
     def get_responded_by_user(self, instance):
         if instance.responded_by_user:
-            return {"id": instance.responded_by_user.id, "name": instance.responded_by_user.get_full_name()}
+            return {"id": instance.responded_by_user.pk, "name": instance.responded_by_user.baseuser_ptr.get_full_name()}
 
 
 class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):

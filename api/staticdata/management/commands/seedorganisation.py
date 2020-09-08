@@ -91,6 +91,6 @@ class Command(SeedCommand):
             id=str(organisation.id),
             name=str(organisation.name),
             primary_site_id=str(organisation.primary_site.id),
-            primary_user_id=str(primary_user.id),
+            primary_user_id=str(primary_user.pk),
         )
         cls.print_created_or_updated(Organisation, organisation_representation, is_created=True)

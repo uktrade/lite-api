@@ -36,7 +36,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(GeneratedCaseDocument.objects.count(), 1)
         self.assertEqual(
             ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+                user_id=self.exporter_user.pk, content_type=self.content_type, organisation=self.exporter_user.organisation
             ).count(),
             1,
         )
@@ -61,7 +61,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
         self.assertTrue(
             ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+                user_id=self.exporter_user.pk, content_type=self.content_type, organisation=self.exporter_user.organisation
             ).count()
             == 1
         )
@@ -82,7 +82,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(GeneratedCaseDocument.objects.count(), 1)
         self.assertEqual(
             ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+                user_id=self.exporter_user.pk, content_type=self.content_type, organisation=self.exporter_user.organisation
             ).count(),
             0,
         )
@@ -104,7 +104,7 @@ class GenerateDocumentTests(DataTestClient):
         # Ensure decision documents are hidden until complete
         self.assertEqual(
             ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+                user_id=self.exporter_user.pk, content_type=self.content_type, organisation=self.exporter_user.organisation
             ).count(),
             0,
         )
@@ -129,7 +129,7 @@ class GenerateDocumentTests(DataTestClient):
         # Ensure decision documents are hidden until complete
         self.assertEqual(
             ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+                user_id=self.exporter_user.pk, content_type=self.content_type, organisation=self.exporter_user.organisation
             ).count(),
             0,
         )
@@ -173,7 +173,7 @@ class GenerateDocumentTests(DataTestClient):
         # Ensure decision documents are hidden until complete
         self.assertEqual(
             ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+                user_id=self.exporter_user.pk, content_type=self.content_type, organisation=self.exporter_user.organisation
             ).count(),
             0,
         )
@@ -191,7 +191,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(Audit.objects.count(), 1)
         self.assertEqual(
             ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+                user_id=self.exporter_user.pk, content_type=self.content_type, organisation=self.exporter_user.organisation
             ).count(),
             0,
         )
@@ -211,7 +211,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(Audit.objects.count(), 1)
         self.assertEqual(
             ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+                user_id=self.exporter_user.pk, content_type=self.content_type, organisation=self.exporter_user.organisation
             ).count(),
             0,
         )

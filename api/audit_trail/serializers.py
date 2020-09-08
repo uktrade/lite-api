@@ -23,10 +23,10 @@ class AuditSerializer(serializers.ModelSerializer):
             "additional_text",
         )
 
-    def get_user(self, instance):
+    def get_user(self, instance: Audit):
         if instance.actor:
             return {
-                "id": instance.actor.id,
+                "id": instance.actor.pk,
                 "first_name": instance.actor.first_name,
                 "last_name": instance.actor.last_name,
                 "type": instance.actor.type,

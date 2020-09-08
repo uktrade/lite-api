@@ -15,6 +15,7 @@ from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.units.enums import Units
+from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
 from api.users.models import Role, GovUser
@@ -170,8 +171,11 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         # create a second user to adopt the super user role as it will
         # overwritten otherwise if we try and remove the role from the first
-        valid_user = GovUser(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role
+        valid_user = GovUserFactory(
+            baseuser_ptr__email="test2@mail.com",
+            baseuser_ptr__first_name="John",
+            baseuser_ptr__last_name="Smith",
+            team=self.team, role=self.super_user_role
         )
         valid_user.save()
 
@@ -295,8 +299,12 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         """
         # create a second user to adopt the super user role as it will
         # overwritten otherwise if we try and remove the role from the first
-        valid_user = GovUser(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role
+        valid_user = GovUserFactory(
+            baseuser_ptr__email="test2@mail.com",
+            baseuser_ptr__first_name="John",
+            baseuser_ptr__last_name="Smith",
+            team=self.team,
+            role=self.super_user_role
         )
         valid_user.save()
 

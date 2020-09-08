@@ -110,7 +110,7 @@ class Case(TimestampableModel):
         for assignment in case_assignments:
             return_value[assignment.queue.name].append(
                 {
-                    "id": assignment.user.id,
+                    "id": assignment.user.pk,
                     "first_name": assignment.user.first_name,
                     "last_name": assignment.user.last_name,
                     "email": assignment.user.email,
@@ -241,7 +241,7 @@ class CaseNote(TimestampableModel):
 
     def save(self, *args, **kwargs):
         exporter_user = False
-        if isinstance(self.user, ExporterUser) or ExporterUser.objects.filter(id=self.user.id).exists():
+        if isinstance(self.user, ExporterUser) or ExporterUser.objects.filter(pk=self.user.pk).exists():
             self.is_visible_to_exporter = True
             exporter_user = True
 

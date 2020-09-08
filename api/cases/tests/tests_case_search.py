@@ -16,6 +16,7 @@ from api.queues.constants import (
 from api.queues.tests.factories import QueueFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
 from api.users.libraries.user_to_token import user_to_token
@@ -71,7 +72,7 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(all_cases), len(response_data["cases"]))
         self.assertEqual(
             [
-                {"id": str(user.id), "full_name": f"{user.first_name} {user.last_name}"}
+                {"id": str(user.pk), "full_name": f"{user.first_name} {user.last_name}"}
                 for user in GovUser.objects.filter(status=UserStatuses.ACTIVE)
             ],
             response_data["filters"]["gov_users"],
@@ -160,7 +161,7 @@ class FilterAndSortTests(DataTestClient):
         """
         self.application_cases[0].case_officer = self.gov_user
         self.application_cases[0].save()
-        url = f'{reverse("cases:search")}?case_officer={self.gov_user.id}'
+        url = f'{reverse("cases:search")}?case_officer={self.gov_user.pk}'
 
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
@@ -198,7 +199,7 @@ class FilterAndSortTests(DataTestClient):
         case_assignment = CaseAssignment.objects.create(
             queue=self.queue, case=self.application_cases[0], user=self.gov_user
         )
-        url = f'{reverse("cases:search")}?assigned_user={self.gov_user.id}'
+        url = f'{reverse("cases:search")}?assigned_user={self.gov_user.pk}'
 
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
@@ -294,10 +295,13 @@ class UpdatedCasesQueueTests(DataTestClient):
         self.assertEqual(response_data[0]["id"], str(self.case.id))
 
     def test_get_cases_on_updated_cases_queue_when_user_is_not_assigned_to_a_case_returns_no_cases(self):
-        other_user = GovUser.objects.create(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team
+        other_user = GovUserFactory(
+            baseuser_ptr__email="test2@mail.com",
+            baseuser_ptr__first_name="John",
+            baseuser_ptr__last_name="Smith",
+            team=self.team
         )
-        gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user)}
+        gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user.baseuser_ptr)}
 
         response = self.client.get(self.url, **gov_headers)
 

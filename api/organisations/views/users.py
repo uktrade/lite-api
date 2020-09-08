@@ -49,10 +49,10 @@ class UsersList(generics.ListCreateAPIView):
             .exclude(relationship__role__permissions__in=[exclude_permission])
             .select_related("relationship__role")
             .values(
-                "id",
-                "first_name",
-                "last_name",
-                "email",
+                "baseuser_ptr_id",
+                first_name=F("baseuser_ptr__first_name"),
+                last_name=F("baseuser_ptr__last_name"),
+                email=F("baseuser_ptr__email"),
                 status=F("relationship__status"),
                 role_name=F("relationship__role__name"),
             )
@@ -83,7 +83,7 @@ class UserDetail(APIView):
         """
         Return a user from the specified organisation
         """
-        is_self = str(request.user.id) == str(user_pk)
+        is_self = str(request.user.pk) == str(user_pk)
         if not is_self and isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
 
@@ -92,7 +92,7 @@ class UserDetail(APIView):
 
         return JsonResponse(
             data={
-                "id": relationship.user.id,
+                "id": relationship.user.pk,
                 "first_name": relationship.user.first_name,
                 "last_name": relationship.user.last_name,
                 "email": relationship.user.email,
@@ -126,7 +126,7 @@ class UserDetail(APIView):
 
         # Don't allow a user to update their own status or that of a super user
         if "status" in data.keys():
-            if user.id == request.user.id:
+            if user.pk == request.user.pk:
                 return JsonResponse(
                     data={"errors": "A user cannot change their own status"}, status=status.HTTP_400_BAD_REQUEST
                 )
@@ -135,12 +135,12 @@ class UserDetail(APIView):
 
         # Cannot remove super user from yourself
         if "role" in data.keys():
-            if user.id == request.user.id:
+            if user.pk == request.user.pk:
                 return JsonResponse(
                     data={"errors": strings.Users.ORGANISATIONS_VIEWS_USER_CANNOT_CHANGE_OWN_ROLE},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            elif user.id == request.user.id and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+            elif user.pk == request.user.pk and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
                 return JsonResponse(
                     data={"errors": "A user cannot remove super user from themselves"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -151,6 +151,7 @@ class UserDetail(APIView):
                 str(role.id)
                 for role in filter_roles_by_user_role(request.user, Role.objects.filter(organisation=org_pk), org_pk)
             ]
+
             if data["role"] not in exporter_roles + user_roles:
                 raise PermissionDenied()
 

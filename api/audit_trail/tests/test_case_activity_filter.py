@@ -28,19 +28,19 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         AuditFactory(actor=self.gov_user, target=self.case.get_case())
 
         res = filter_object_activity(
-            object_id=self.case.id, object_content_type=self.content_type, user_id=self.gov_user.id
+            object_id=self.case.id, object_content_type=self.content_type, user_id=self.gov_user.pk
         )
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.gov_user.id))
+        self.assertEqual(res.first().actor_object_id, str(self.gov_user.pk))
 
     def test_filter_by_exporter_user(self):
         AuditFactory(actor=self.exporter_user, target=self.case.get_case())
 
         res = filter_object_activity(
-            object_id=self.case.id, object_content_type=self.content_type, user_id=self.exporter_user.id
+            object_id=self.case.id, object_content_type=self.content_type, user_id=self.exporter_user.pk
         )
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
+        self.assertEqual(res.first().actor_object_id, str(self.exporter_user.pk))
 
     def test_filter_by_team(self):
         AuditFactory(actor=self.gov_user, target=self.case.get_case())
@@ -48,7 +48,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         res = filter_object_activity(object_id=self.case.id, object_content_type=self.content_type, team=self.team)
 
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.gov_user.id))
+        self.assertEqual(res.first().actor_object_id, str(self.gov_user.pk))
 
         # Create new gov user on another team and test again
         fake_team = TeamFactory()
@@ -56,12 +56,12 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         AuditFactory(actor=fake_user, target=self.case.get_case())
 
         self.assertNotEqual(fake_team.id, self.team.id)
-        self.assertNotEqual(fake_user.id, self.gov_user.id)
+        self.assertNotEqual(fake_user.pk, self.gov_user.pk)
 
         res = filter_object_activity(object_id=self.case.id, object_content_type=self.content_type, team=self.team)
 
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.gov_user.id))
+        self.assertEqual(res.first().actor_object_id, str(self.gov_user.pk))
 
     def test_filter_by_audit_type(self):
         audit_type = AuditType.UPDATED_STATUS
@@ -74,7 +74,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         )
 
         self.assertEqual(res.count(), 2)
-        self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
+        self.assertEqual(res.first().actor_object_id, str(self.exporter_user.pk))
         self.assertEqual(res.first().verb, audit_type)
 
     def test_filter_by_user_type(self):
@@ -87,7 +87,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         )
 
         self.assertEqual(res.count(), 1)
-        self.assertEqual(res.first().actor_object_id, str(self.gov_user.id))
+        self.assertEqual(res.first().actor_object_id, str(self.gov_user.pk))
 
         # check exporter filter
         res = filter_object_activity(
@@ -95,7 +95,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         )
 
         self.assertEqual(res.count(), 2)
-        self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
+        self.assertEqual(res.first().actor_object_id, str(self.exporter_user.pk))
 
     def test_filter_by_dates(self):
         start_date = timezone.now()

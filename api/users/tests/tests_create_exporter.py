@@ -40,7 +40,7 @@ class CreateExporterUser(DataTestClient):
         # Create another request user before attempting to re-add the new exporter user
         other_org, other_exporter_user = self.create_organisation_with_exporter_user()
         other_exporter_user_headers = {
-            "HTTP_EXPORTER_USER_TOKEN": user_to_token(other_exporter_user),
+            "HTTP_EXPORTER_USER_TOKEN": user_to_token(other_exporter_user.baseuser_ptr),
             "HTTP_ORGANISATION_ID": str(other_org.id),
         }
         previous_user_count = ExporterUser.objects.count()

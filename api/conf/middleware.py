@@ -21,7 +21,7 @@ class LoggingMiddleware:
         response = self.get_response(request)
         logging.info(
             {
-                "user": request.user.id if request.user else None,
+                "user": request.user.pk if request.user else None,
                 "message": "liteolog api",
                 "corrID": request.correlation,
                 "type": "http response",

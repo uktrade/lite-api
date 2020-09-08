@@ -2,7 +2,7 @@ import timeit
 import uuid
 import warnings
 from django.utils import timezone
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import django.utils.timezone
 from django.db import connection
@@ -90,8 +90,9 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 from api.staticdata.units.enums import Units
 from api.staticdata.urls import urlpatterns as static_urlpatterns
 from api.teams.models import Team
+from api.users.tests.factories import GovUserFactory
 from test_helpers import colours
-from api.users.enums import UserStatuses, SystemUser
+from api.users.enums import UserStatuses, SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -129,9 +130,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Gov User Setup
         self.team = Team.objects.get(name="Admin")
-        self.gov_user = GovUser(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
+        self.base_user = BaseUser(email="test@mail.com", first_name="John", last_name="Smith", type=UserType.INTERNAL)
+        self.base_user.save()
+        self.gov_user = GovUser(baseuser_ptr=self.base_user, team=self.team)
         self.gov_user.save()
-        self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.gov_user)}
+        self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.base_user)}
 
         # Exporter User Setup
         (self.organisation, self.exporter_user) = self.create_organisation_with_exporter_user()
@@ -140,7 +143,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
         self.exporter_headers = {
-            "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.exporter_user),
+            "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.exporter_user.baseuser_ptr),
             "HTTP_ORGANISATION_ID": str(self.organisation.id),
         }
 
@@ -150,7 +153,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.exporter_super_user_role = Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
 
         self.hmrc_exporter_headers = {
-            "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.hmrc_exporter_user),
+            "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.hmrc_exporter_user.baseuser_ptr),
             "HTTP_ORGANISATION_ID": str(self.hmrc_organisation.id),
         }
 
@@ -234,8 +237,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
-
-        exporter_user = ExporterUser(first_name=first_name, last_name=last_name, email=self.faker.email(),)
+        base_user = BaseUser(first_name=first_name, last_name=last_name, email=self.faker.email(),)
+        base_user.save()
+        exporter_user = ExporterUser(baseuser_ptr=base_user)
         exporter_user.organisation = organisation
         exporter_user.save()
 
@@ -243,7 +247,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             if not role:
                 role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
             UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
-            exporter_user.status = UserStatuses.ACTIVE
+            # exporter_user.status = UserStatuses.ACTIVE
 
         return exporter_user
 
@@ -308,13 +312,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return queue
 
     @staticmethod
-    def create_gov_user(email: str, team: Team):
-        gov_user = GovUser(email=email, team=team)
+    def create_gov_user(email: str, team: Team) -> GovUser:
+        gov_user = GovUserFactory(baseuser_ptr__email=email, team=team)
         gov_user.save()
         return gov_user
 
     @staticmethod
-    def create_team(name: str):
+    def create_team(name: str) -> Team:
         team = Team(name=name)
         team.save()
         return team
@@ -366,7 +370,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_doc
 
     @staticmethod
-    def create_application_document(application, safe=True):
+    def create_application_document(application, safe=True) -> ApplicationDocument:
         application_doc = ApplicationDocument(
             application=application,
             description="document description",
@@ -664,7 +668,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_organisation_with_exporter_user(
         self, name="Organisation", org_type=OrganisationType.COMMERCIAL, exporter_user=None
-    ):
+    ) -> Tuple[Organisation, ExporterUser]:
         organisation = OrganisationFactory(name=name, type=org_type)
 
         if not exporter_user:
@@ -1057,7 +1061,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return licence
 
     def create_routing_rule(self, team_id, queue_id, tier, status_id, additional_rules: list):
-        user = self.gov_user.id if RoutingRulesAdditionalFields.USERS in additional_rules else None
+        user = self.gov_user.pk if RoutingRulesAdditionalFields.USERS in additional_rules else None
         flags = (
             [self.create_flag("routing_flag", FlagLevels.CASE, self.team).id]
             if RoutingRulesAdditionalFields.FLAGS in additional_rules

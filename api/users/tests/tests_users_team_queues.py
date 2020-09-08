@@ -7,7 +7,7 @@ class TestUserTeamQueue(DataTestClient):
     def setUp(self):
         super().setUp()
         self.second_queue = self.create_queue("second queue", self.team)
-        self.url = reverse("users:team_queues", kwargs={"pk": self.gov_user.id})
+        self.url = reverse("users:team_queues", kwargs={"pk": self.gov_user.pk})
 
     def test_get_all_users_team_queues(self):
         response = self.client.get(self.url, **self.gov_headers)

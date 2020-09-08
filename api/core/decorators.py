@@ -1,3 +1,5 @@
+from typing import Callable, Dict, Type, Union, List
+
 from functools import wraps
 
 from django.http import JsonResponse, Http404
@@ -7,14 +9,18 @@ from api.applications.enums import GoodsTypeCategory
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import BaseApplication, HmrcQuery
 from api.cases.enums import CaseTypeSubTypeEnum
+from api.users.enums import UserType
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.users.models import ExporterUser
+from api.users.models import GovUser, ExporterUser
+from model_utils.managers import InheritanceQuerySet
+from rest_framework.views import APIView
+from uuid import UUID
 
 
-def _get_application_id(request, kwargs):
+def _get_application_id(request: APIView, kwargs):
     if "pk" in kwargs:
         return kwargs.get("pk")
     elif "application" in request.request.data:
@@ -23,7 +29,7 @@ def _get_application_id(request, kwargs):
         return JsonResponse(data={"errors": ["Application was not found"]}, status=status.HTTP_404_NOT_FOUND,)
 
 
-def _get_application(request, kwargs):
+def _get_application(request: APIView, kwargs):
     pk = _get_application_id(request, kwargs)
     result = BaseApplication.objects.filter(pk=pk)
     if not result.exists():
@@ -32,7 +38,7 @@ def _get_application(request, kwargs):
         return result
 
 
-def allowed_application_types(application_types: [str]):
+def allowed_application_types(application_types: List[str]) -> Callable:
     """
     Checks if application is the correct type for the request
     """
@@ -60,7 +66,7 @@ def allowed_application_types(application_types: [str]):
     return decorator
 
 
-def application_in_state(is_editable=False, is_major_editable=False):
+def application_in_state(is_editable: bool=False, is_major_editable: bool=False) -> Callable:
     """
     Checks if application is in an editable or major-editable state
     """
@@ -101,7 +107,7 @@ def application_in_state(is_editable=False, is_major_editable=False):
     return decorator
 
 
-def authorised_to_view_application(user_type):
+def authorised_to_view_application(user_type: Union[Type[GovUser], Type[ExporterUser]]) -> Callable:
     """
     Checks if the user is the correct type and if they have access to the application being requested
     """
@@ -145,7 +151,7 @@ def authorised_to_view_application(user_type):
     return decorator
 
 
-def allowed_party_type_for_open_application_goodstype_category():
+def allowed_party_type_for_open_application_goodstype_category() -> Callable:
     """
     Will restrict any parties being created on open applications based on goodstype category
     """
