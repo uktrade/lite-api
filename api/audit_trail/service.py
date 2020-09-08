@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Dict, List, Union, Optional
+from typing import Dict, Union, Optional
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -15,16 +15,19 @@ from api.users.enums import SystemUser
 from api.users.models import ExporterUser, GovUser, BaseUser
 from api.audit_trail.managers import AuditQuerySet
 from api.cases.models import Case
-from api.goods.models import Good
-from api.goodstype.models import GoodsType
-from api.parties.models import PartyDocument
 from django.http.request import QueryDict
 from uuid import UUID
 
 
 @validate_kwargs
 def create(
-    actor: Union[ExporterUser, GovUser, BaseUser], verb: AuditType, action_object=None, target: Optional[Case]=None, payload=None, ignore_case_status: bool=False, send_notification: bool=True
+    actor: Union[ExporterUser, GovUser, BaseUser],
+    verb: AuditType,
+    action_object=None,
+    target: Optional[Case] = None,
+    payload=None,
+    ignore_case_status: bool = False,
+    send_notification: bool = True,
 ) -> Optional[Audit]:
     if not payload:
         payload = {}
@@ -87,7 +90,7 @@ def get_activity_for_user_and_model(user, object_type):
 def filter_object_activity(
     object_id: UUID,
     object_content_type: ContentType,
-    user_id: None=None,
+    user_id: None = None,
     team: Optional[Team] = None,
     user_type: Optional[UserType] = None,
     audit_type: Optional[AuditType] = None,

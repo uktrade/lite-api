@@ -70,7 +70,8 @@ class GovUserEditTests(DataTestClient):
             baseuser_ptr__email="test2@mail.com",
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
-            team=self.team)
+            team=self.team,
+        )
         valid_user.save()
 
         role = Role(name="some role")

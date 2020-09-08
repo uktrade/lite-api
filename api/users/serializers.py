@@ -129,7 +129,9 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         sites = validated_data.pop("sites")
         role = validated_data.pop("role", Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
 
-        base_user, _ = BaseUser.objects.get_or_create(email__iexact=base_user_defaults["email"], type=UserType.EXPORTER, defaults=base_user_defaults)
+        base_user, _ = BaseUser.objects.get_or_create(
+            email__iexact=base_user_defaults["email"], type=UserType.EXPORTER, defaults=base_user_defaults
+        )
         exporter, _ = ExporterUser.objects.get_or_create(baseuser_ptr=base_user, defaults=validated_data)
 
         if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
@@ -162,6 +164,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="baseuser_ptr_id")
+
     class Meta:
         model = ExporterUser
         fields = (

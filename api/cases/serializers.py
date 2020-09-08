@@ -391,7 +391,10 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
 
     def get_responded_by_user(self, instance):
         if instance.responded_by_user:
-            return {"id": instance.responded_by_user.pk, "name": instance.responded_by_user.baseuser_ptr.get_full_name()}
+            return {
+                "id": instance.responded_by_user.pk,
+                "name": instance.responded_by_user.baseuser_ptr.get_full_name(),
+            }
 
 
 class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):

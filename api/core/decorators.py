@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Type, Union, List
+from typing import Callable, Type, Union, List
 
 from functools import wraps
 
@@ -9,15 +9,12 @@ from api.applications.enums import GoodsTypeCategory
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import BaseApplication, HmrcQuery
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.users.enums import UserType
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import GovUser, ExporterUser
-from model_utils.managers import InheritanceQuerySet
 from rest_framework.views import APIView
-from uuid import UUID
 
 
 def _get_application_id(request: APIView, kwargs):
@@ -66,7 +63,7 @@ def allowed_application_types(application_types: List[str]) -> Callable:
     return decorator
 
 
-def application_in_state(is_editable: bool=False, is_major_editable: bool=False) -> Callable:
+def application_in_state(is_editable: bool = False, is_major_editable: bool = False) -> Callable:
     """
     Checks if application is in an editable or major-editable state
     """

@@ -54,8 +54,8 @@ class SiteViewSerializer(SiteListSerializer):
     def get_users(self, instance):
         users = (
             UserOrganisationRelationship.objects.filter(sites__id=instance.id)
-                .select_related("user")
-                .order_by("user__baseuser_ptr__email")
+            .select_related("user")
+            .order_by("user__baseuser_ptr__email")
         )
         return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
 
@@ -64,8 +64,8 @@ class SiteViewSerializer(SiteListSerializer):
             UserOrganisationRelationship.objects.filter(
                 organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name
             )
-                .select_related("user")
-                .order_by("user__baseuser_ptr__email")
+            .select_related("user")
+            .order_by("user__baseuser_ptr__email")
         )
         return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
 

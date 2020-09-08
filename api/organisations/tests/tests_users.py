@@ -127,7 +127,7 @@ class OrganisationUsersCreateTests(DataTestClient):
         ExporterUserFactory(
             baseuser_ptr__first_name=data["first_name"],
             baseuser_ptr__last_name=data["last_name"],
-            baseuser_ptr__email=data["email"]
+            baseuser_ptr__email=data["email"],
         )
 
         response = self.client.post(self.url, data, **self.exporter_headers)

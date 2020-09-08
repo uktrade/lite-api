@@ -50,7 +50,6 @@ class CreateCaseAdviceTests(DataTestClient):
         self.gov_user_2 = GovUserFactory(baseuser_ptr__email="user@email.com", team=team_2, role=role)
         self.gov_user_3 = GovUserFactory(baseuser_ptr__email="users@email.com", team=team_3, role=role)
 
-
         self.standard_case_url = reverse("cases:case_final_advice", kwargs={"pk": self.standard_case.id})
 
     def test_advice_is_concatenated_when_final_advice_first_created(self):

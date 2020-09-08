@@ -6,26 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0012_auto_20200907_1229'),
+        ("users", "0012_auto_20200907_1229"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='exporteruser',
-            options={},
-        ),
-        migrations.AlterModelOptions(
-            name='govuser',
-            options={},
-        ),
-        migrations.AlterModelManagers(
-            name='exporteruser',
-            managers=[
-            ],
-        ),
-        migrations.AlterModelManagers(
-            name='govuser',
-            managers=[
-            ],
-        ),
+        migrations.AlterModelOptions(name="exporteruser", options={},),
+        migrations.AlterModelOptions(name="govuser", options={},),
+        migrations.AlterModelManagers(name="exporteruser", managers=[],),
+        migrations.AlterModelManagers(name="govuser", managers=[],),
     ]

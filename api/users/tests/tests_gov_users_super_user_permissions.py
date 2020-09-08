@@ -46,7 +46,7 @@ class SuperUserTests(DataTestClient):
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
             team=self.team,
-            role=self.super_user_role
+            role=self.super_user_role,
         )
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
@@ -63,7 +63,7 @@ class SuperUserTests(DataTestClient):
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
             team=self.team,
-            role=self.super_user_role
+            role=self.super_user_role,
         )
         data = {"role": self.default_role.id}
         url = reverse("gov_users:gov_user", kwargs={"pk": valid_user.pk})
@@ -78,7 +78,7 @@ class SuperUserTests(DataTestClient):
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
             team=self.team,
-            role=self.super_user_role
+            role=self.super_user_role,
         )
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
@@ -95,7 +95,7 @@ class SuperUserTests(DataTestClient):
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
             team=self.team,
-            role=self.super_user_role
+            role=self.super_user_role,
         )
         data = {"role": self.super_user_role.id}
         url = reverse("gov_users:gov_user", kwargs={"pk": valid_user.pk})

@@ -5,6 +5,7 @@ from api.users import models
 from api.users.enums import UserType, UserStatuses
 from api.users.models import Role, UserOrganisationRelationship
 
+
 class BaseUserFactory(factory.django.DjangoModelFactory):
     first_name = factory.Faker("first_name")
     last_name = factory.Faker("last_name")
@@ -12,6 +13,7 @@ class BaseUserFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.BaseUser
+
 
 class GovUserFactory(factory.django.DjangoModelFactory):
     baseuser_ptr = factory.SubFactory(BaseUserFactory, type=UserType.INTERNAL)

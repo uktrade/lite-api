@@ -15,7 +15,7 @@ class GovUserDeactivateTests(DataTestClient):
             baseuser_ptr__email="test2@mail.com",
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
-            team=self.team
+            team=self.team,
         )
         self.valid_user.save()
 

@@ -172,7 +172,9 @@ class CreateOrganisationTests(DataTestClient):
             "user": {"email": "trinity@bsg.com"},
         }
 
-        response = self.client.post(self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)})
+        response = self.client.post(
+            self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
+        )
         organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site

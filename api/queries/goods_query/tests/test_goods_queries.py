@@ -196,7 +196,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
             team=self.team,
-            role=self.super_user_role
+            role=self.super_user_role,
         )
         valid_user.save()
 

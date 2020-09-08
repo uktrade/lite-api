@@ -299,7 +299,7 @@ class UpdatedCasesQueueTests(DataTestClient):
             baseuser_ptr__email="test2@mail.com",
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
-            team=self.team
+            team=self.team,
         )
         gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user.baseuser_ptr)}
 

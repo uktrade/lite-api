@@ -20,7 +20,6 @@ from api.staticdata.countries.helpers import get_country
 from api.staticdata.countries.serializers import CountrySerializer
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
-from api.users.enums import UserType
 from api.users.models import ExporterUser
 
 

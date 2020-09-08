@@ -112,6 +112,7 @@ class ExporterNotification(BaseNotification):
 class GovNotification(BaseNotification):
     pass
 
+
 class BaseUserCompatMixin:
 
     baseuser_ptr: BaseUser
@@ -136,12 +137,10 @@ class BaseUserCompatMixin:
     def is_anonymous(self):
         return self.baseuser_ptr.is_anonymous
 
+
 class ExporterUser(models.Model, BaseUserCompatMixin):
 
-    baseuser_ptr = models.OneToOneField(
-        BaseUser, on_delete=models.CASCADE,
-        primary_key=True,
-    )
+    baseuser_ptr = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True,)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -167,10 +166,7 @@ class ExporterUser(models.Model, BaseUserCompatMixin):
 
 class GovUser(models.Model, BaseUserCompatMixin):
 
-    baseuser_ptr = models.OneToOneField(
-        BaseUser, on_delete=models.CASCADE,
-        primary_key=True,
-    )
+    baseuser_ptr = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True,)
 
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
     team = models.ForeignKey(Team, related_name="users", on_delete=models.PROTECT)

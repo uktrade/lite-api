@@ -24,13 +24,13 @@ class UserByTeamListTests(DataTestClient):
             baseuser_ptr__email="test2@mail.com",
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
-            team=self.team
+            team=self.team,
         )
         GovUserFactory(
             baseuser_ptr__email="test3@mail.com",
             baseuser_ptr__first_name="John",
             baseuser_ptr__last_name="Smith",
-            team=team2
+            team=team2,
         )
 
         url = reverse("teams:team_users", kwargs={"pk": self.team.id})

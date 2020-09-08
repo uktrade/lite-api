@@ -112,7 +112,6 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
 
-
     # from model
     status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     team = PrimaryKeyRelatedField(
@@ -172,7 +171,9 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
             "last_name": validated_data.pop("last_name", None),
             "first_name": validated_data.pop("first_name", None),
         }
-        base_user, _ = BaseUser.objects.get_or_create(email__iexact=base_user_defaults["email"], type=UserType.INTERNAL, defaults=base_user_defaults)
+        base_user, _ = BaseUser.objects.get_or_create(
+            email__iexact=base_user_defaults["email"], type=UserType.INTERNAL, defaults=base_user_defaults
+        )
         instance = GovUser.objects.create(baseuser_ptr=base_user, **validated_data)
         return instance
 
@@ -209,8 +210,9 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
 
         return instance
 
+
 class GovUserSimpleSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='baseuser_ptr_id')
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     team = serializers.SerializerMethodField()
 
     class Meta:

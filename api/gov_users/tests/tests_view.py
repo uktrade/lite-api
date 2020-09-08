@@ -17,7 +17,7 @@ class GovUserViewTests(DataTestClient):
             baseuser_ptr__first_name="Jane",
             baseuser_ptr__last_name="Smith",
             team=self.team_1,
-            status=UserStatuses.DEACTIVATED
+            status=UserStatuses.DEACTIVATED,
         )
 
         self.team_2 = self.create_team("Team 2")
