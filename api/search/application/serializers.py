@@ -6,6 +6,7 @@ from api.search.application import documents
 
 class ApplicationDocumentSerializer(DocumentSerializer):
     highlight = serializers.SerializerMethodField()
+    score = serializers.SerializerMethodField()
 
     class Meta:
         document = documents.ApplicationDocumentType
@@ -27,3 +28,6 @@ class ApplicationDocumentSerializer(DocumentSerializer):
         if hasattr(obj.meta, "highlight"):
             return {key.replace(".", "_"): value for key, value in obj.meta.highlight.to_dict().items()}
         return {}
+
+    def get_score(self, obj):
+        return obj.meta.score
