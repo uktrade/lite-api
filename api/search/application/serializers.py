@@ -12,15 +12,15 @@ class ApplicationDocumentSerializer(DocumentSerializer):
         document = documents.ApplicationDocumentType
         fields = (
             "id",
+            "queues",
+            "name",
             "reference_code",
-            "case_type",
             "organisation",
             "status",
+            "submitted_by",
+            "case_officer",
             "goods",
             "parties",
-            "name",
-            "destinations",
-            "queues",
             "highlight",
         )
 
