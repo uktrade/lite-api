@@ -25,9 +25,7 @@ class ApplicationDocumentSerializer(DocumentSerializer):
         )
 
     def get_highlight(self, obj):
-        if hasattr(obj.meta, "highlight"):
-            return {key.replace(".", "_"): value for key, value in obj.meta.highlight.to_dict().items()}
-        return {}
+        return obj.meta.highlight.to_dict()
 
     def get_score(self, obj):
         return obj.meta.score
