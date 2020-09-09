@@ -38,6 +38,15 @@ whitespace_analyzer = analysis.analyzer(
 
 lowercase_normalizer = analysis.normalizer("lowercase_normalizer", filter=["lowercase"])
 
+email_analyzer = analysis.analyzer(
+    "email_analyzer",
+    type="custom",
+    tokenizer=analysis.tokenizer(
+        "case_officer_email", "pattern", pattern="([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\\.[a-zA-Z]{2,})", group=1,
+    ),
+    filter=["lowercase"],
+)
+
 
 class Country(InnerDoc):
     name = fields.KeywordField(
@@ -107,8 +116,18 @@ class Product(InnerDoc):
 
 
 class User(InnerDoc):
-    username = fields.KeywordField(attr="username")
-    email = fields.KeywordField(attr="email")
+    username = fields.TextField(
+        attr="username",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        analyzer=descriptive_text_analyzer,
+        copy_to="wildcard",
+    )
+    email = fields.TextField(
+        attr="email",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        analyzer=email_analyzer,
+        copy_to="wildcard",
+    )
 
 
 class Queue(InnerDoc):
@@ -149,7 +168,7 @@ class ApplicationDocumentType(Document):
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
     )
     submitted_by = fields.ObjectField(doc_class=User)
-    case_officer = fields.ObjectField(doc_class=User)
+    case_officer = fields.NestedField(doc_class=User)
     goods = fields.NestedField(doc_class=Product)
     parties = fields.NestedField(doc_class=Party)
 
