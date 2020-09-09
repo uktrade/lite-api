@@ -62,6 +62,8 @@ class ApplicationDocumentView(DocumentViewSet):
         "incorporated": {"field": "goods.incorporated", "path": "goods",},
         "queue": {"field": "queues.name.raw", "path": "queues",},
         "team": {"field": "queues.team.raw", "path": "queues",},
+        "case_officer_username": {"field": "case_officer.username.raw", "path": "case_officer",},
+        "case_officer_email": {"field": "case_officer.email.raw", "path": "case_officer",},
     }
 
     highlight_fields = {"*": {"enabled": True, "options": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}}}
@@ -108,6 +110,8 @@ class ApplicationSuggestDocumentView(APIView):
                 },
                 "queue": {"prefix": q, "completion": {"field": "queues.name.suggest", "skip_duplicates": True},},
                 "team": {"prefix": q, "completion": {"field": "queues.team.suggest", "skip_duplicates": True},},
+                "case_officer_username": {"prefix": q, "completion": {"field": "case_officer.username.suggest", "skip_duplicates": True},},
+                "case_officer_email": {"prefix": q, "completion": {"field": "case_officer.email.suggest", "skip_duplicates": True},},
             },
             "_source": False,
             "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},
