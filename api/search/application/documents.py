@@ -195,6 +195,7 @@ class ApplicationDocumentType(Document):
             .select_related("submitted_by")
             .select_related("case_officer")
             .prefetch_related("queues")
+            .prefetch_related("queues__team")
             .prefetch_related(
                 Prefetch(
                     "goods",
