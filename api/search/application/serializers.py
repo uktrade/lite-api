@@ -25,7 +25,7 @@ class ApplicationDocumentSerializer(DocumentSerializer):
         )
 
     def get_highlight(self, obj):
-        if hasattr(obj.meta, 'highlight'):
+        if hasattr(obj.meta, "highlight"):
             return obj.meta.highlight.to_dict()
         return {}
 
