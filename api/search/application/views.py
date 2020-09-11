@@ -12,6 +12,7 @@ from django_elasticsearch_dsl_drf.constants import (
 from api.search.application.backends import WildcardAwareSearchFilterBackend, WildcardAwareFilteringFilterBackend
 from api.search.application.documents import ApplicationDocumentType
 from api.search.application.serializers import ApplicationDocumentSerializer
+from api.core.authentication import GovAuthentication
 
 
 class MatchBoolPrefix(Query):
@@ -21,6 +22,7 @@ class MatchBoolPrefix(Query):
 class ApplicationDocumentView(DocumentViewSet):
     document = ApplicationDocumentType
     serializer_class = ApplicationDocumentSerializer
+    authentication_classes = (GovAuthentication,)
     lookup_field = "id"
     filter_backends = [
         filter_backends.OrderingFilterBackend,
@@ -78,6 +80,7 @@ class ApplicationDocumentView(DocumentViewSet):
 
 class ApplicationSuggestDocumentView(APIView):
     allowed_http_methods = ["get"]
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         q = self.request.GET.get("q", "")
@@ -110,8 +113,14 @@ class ApplicationSuggestDocumentView(APIView):
                 },
                 "queue": {"prefix": q, "completion": {"field": "queues.name.suggest", "skip_duplicates": True},},
                 "team": {"prefix": q, "completion": {"field": "queues.team.suggest", "skip_duplicates": True},},
-                "case_officer_username": {"prefix": q, "completion": {"field": "case_officer.username.suggest", "skip_duplicates": True},},
-                "case_officer_email": {"prefix": q, "completion": {"field": "case_officer.email.suggest", "skip_duplicates": True},},
+                "case_officer_username": {
+                    "prefix": q,
+                    "completion": {"field": "case_officer.username.suggest", "skip_duplicates": True},
+                },
+                "case_officer_email": {
+                    "prefix": q,
+                    "completion": {"field": "case_officer.email.suggest", "skip_duplicates": True},
+                },
             },
             "_source": False,
             "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},

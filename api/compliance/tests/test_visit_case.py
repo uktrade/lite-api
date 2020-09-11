@@ -77,7 +77,7 @@ class ComplianceVisitCaseTests(DataTestClient):
         compliance_case = ComplianceSiteCaseFactory(
             organisation=self.organisation,
             site=self.organisation.primary_site,
-            case_officer_id=self.gov_user.id,
+            case_officer_id=self.gov_user.pk,
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 

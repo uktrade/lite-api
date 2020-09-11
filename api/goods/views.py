@@ -162,7 +162,7 @@ class GoodList(ListCreateAPIView):
 
         goods_query_notifications = (
             ExporterNotification.objects.filter(
-                user=self.request.user,
+                user_id=self.request.user.pk,
                 organisation_id=get_request_user_organisation_id(self.request),
                 case_id__in=goods_queries.keys(),
             )
@@ -401,7 +401,7 @@ class GoodDocuments(APIView):
 
         for document in data:
             document["good"] = good_id
-            document["user"] = request.user.id
+            document["user"] = request.user.pk
             document["organisation"] = get_request_user_organisation_id(request)
 
         serializer = GoodDocumentCreateSerializer(data=data, many=True)

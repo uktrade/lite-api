@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import UUIDField
 from rest_framework.relations import PrimaryKeyRelatedField
+from rest_framework.utils import model_meta
 
 from api.core.serializers import PrimaryKeyRelatedSerializerField
 from api.gov_users.enums import GovUserStatuses
@@ -14,7 +15,7 @@ from api.staticdata.statuses.serializers import CaseStatusSerializer
 from api.teams.models import Team
 from api.teams.serializers import TeamSerializer, TeamReadOnlySerializer
 from api.users.enums import UserType
-from api.users.models import GovUser
+from api.users.models import GovUser, BaseUser
 from api.users.models import Role, Permission
 
 
@@ -61,7 +62,7 @@ class RoleListStatusesSerializer(RoleListSerializer):
 
 
 class GovUserListSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     email = serializers.CharField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
@@ -71,6 +72,9 @@ class GovUserListSerializer(serializers.Serializer):
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
+    first_name = serializers.ReadOnlyField()
+    last_name = serializers.ReadOnlyField()
     team = TeamSerializer()
     role = RoleListStatusesSerializer()
     default_queue = serializers.SerializerMethodField()
@@ -98,10 +102,18 @@ class GovUserViewSerializer(serializers.ModelSerializer):
 
 
 class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
-    status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
+
+    # from baseuser
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
+
     email = serializers.EmailField(
         error_messages={"blank": strings.Users.INVALID_EMAIL, "invalid": strings.Users.INVALID_EMAIL},
     )
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
+
+    # from model
+    status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     team = PrimaryKeyRelatedField(
         queryset=Team.objects.all(),
         error_messages={"null": strings.Users.NULL_TEAM, "invalid": strings.Users.NULL_TEAM},
@@ -136,7 +148,7 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
         email = data.get("email")
 
         if email and (self.is_creating or email.lower() != self.instance.email.lower()):
-            if GovUser.objects.filter(email__iexact=data.get("email")).exists():
+            if GovUser.objects.filter(baseuser_ptr__email__iexact=data.get("email")).exists():
                 raise serializers.ValidationError({"email": [strings.Users.UNIQUE_EMAIL]})
 
         default_queue = str(validated_data.get("default_queue") or self.instance.default_queue)
@@ -153,8 +165,54 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
 
         return validated_data
 
+    def create(self, validated_data):
+        base_user_defaults = {
+            "email": validated_data.pop("email"),
+            "last_name": validated_data.pop("last_name", None),
+            "first_name": validated_data.pop("first_name", None),
+        }
+        base_user, _ = BaseUser.objects.get_or_create(
+            email__iexact=base_user_defaults["email"], type=UserType.INTERNAL, defaults=base_user_defaults
+        )
+        instance = GovUser.objects.create(baseuser_ptr=base_user, **validated_data)
+        return instance
+
+    def update(self, instance, validated_data):
+        info = model_meta.get_field_info(instance)
+        baseuser_info = model_meta.get_field_info(instance.baseuser_ptr)
+
+        baseuser_dirty = False
+        # Simply set each attribute on the instance, and then save it.
+        # Note that unlike `.create()` we don't need to treat many-to-many
+        # relationships as being a special case. During updates we already
+        # have an instance pk for the relationships to be associated with.
+
+        m2m_fields = []
+        for attr, value in validated_data.items():
+            if attr in info.relations and info.relations[attr].to_many:
+                m2m_fields.append((attr, value))
+            elif attr in baseuser_info.fields:
+                setattr(instance.baseuser_ptr, attr, value)
+                baseuser_dirty = True
+            else:
+                setattr(instance, attr, value)
+
+        if baseuser_dirty:
+            instance.baseuser_ptr.save()
+        instance.save()
+
+        # Note that many-to-many fields are set after updating instance.
+        # Setting m2m fields triggers signals which could potentially change
+        # updated instance and we do not want it to collide with .update()
+        for attr, value in m2m_fields:
+            field = getattr(instance, attr)
+            field.set(value)
+
+        return instance
+
 
 class GovUserSimpleSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     team = serializers.SerializerMethodField()
 
     class Meta:

@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 class UserTests(DataTestClient):
     def test_edit_a_user(self):
         data = {"email": "hamster@gmail.com"}
-        url = reverse("users:user", kwargs={"pk": self.exporter_user.id})
+        url = reverse("users:user", kwargs={"pk": self.exporter_user.pk})
 
         response = self.client.put(url, data, **self.exporter_headers)
         response_data = response.json()

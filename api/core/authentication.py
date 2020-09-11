@@ -36,7 +36,7 @@ class ExporterAuthentication(authentication.BaseAuthentication):
 
         from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 
-        _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
+        hawk_receiver = _authenticate(request, _lookup_credentials)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
@@ -54,7 +54,7 @@ class ExporterAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
         try:
-            exporter_user = ExporterUser.objects.get(id=user_id)
+            exporter_user = ExporterUser.objects.get(pk=user_id)
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
@@ -67,9 +67,10 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         When given an exporter user token and an HMRC organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation
         """
+
         from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 
-        _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
+        hawk_receiver = _authenticate(request, _lookup_credentials)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
@@ -79,7 +80,7 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
-            exporter_user = ExporterUser.objects.get(id=user_id)
+            exporter_user = ExporterUser.objects.get(pk=user_id)
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
@@ -102,7 +103,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         When given an exporter user token, validate that the user exists
         """
 
-        _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
+        hawk_receiver = _authenticate(request, _lookup_credentials)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
@@ -111,7 +112,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
-            exporter_user = ExporterUser.objects.get(id=user_id)
+            exporter_user = ExporterUser.objects.get(pk=user_id)
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
@@ -125,13 +126,7 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
         by checking that the request is correctly Hawk signed
         """
 
-        try:
-            hawk_receiver = _authenticate(request, _lookup_credentials)
-        except HawkFail as e:
-            logging.error(f"Failed HAWK authentication {e}")
-            raise e
-
-        return AnonymousUser, hawk_receiver
+        return AnonymousUser, _authenticate(request, _lookup_credentials)
 
 
 class HMRCIntegrationOnlyAuthentication(authentication.BaseAuthentication):
@@ -152,10 +147,10 @@ class HMRCIntegrationOnlyAuthentication(authentication.BaseAuthentication):
 class GovAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         """
-        When given an exporter user token, validate that the user exists and that their account is active
+        When given a gov user token, validate that the user exists and that their account is active
         """
 
-        _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
+        hawk_receiver = _authenticate(request, _lookup_credentials)
 
         if request.META.get(GOV_USER_TOKEN_HEADER):
             gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
@@ -164,8 +159,8 @@ class GovAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
-            gov_user = GovUser.objects.get(id=user_id)
-        except ExporterUser.DoesNotExist:
+            gov_user = GovUser.objects.get(pk=user_id)
+        except GovUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
         if gov_user.status == GovUserStatuses.DEACTIVATED:
@@ -202,7 +197,7 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
         elif organisation is not None and organisation != "None":
             return HmrcExporterAuthentication().authenticate(request)
         else:
-            return HawkOnlyAuthentication().authenticate(request)
+            return _authenticate(request, _lookup_credentials)
 
 
 def _authenticate(request, lookup_credentials):

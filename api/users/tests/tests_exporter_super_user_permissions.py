@@ -38,7 +38,7 @@ class SuperUserTests(DataTestClient):
     def test_cannot_remove_super_user_role_from_yourself(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         data = {"role": self.default_role.id}
-        url = reverse("organisations:user", kwargs={"user_pk": self.exporter_user.id, "org_pk": self.organisation.id})
+        url = reverse("organisations:user", kwargs={"user_pk": self.exporter_user.pk, "org_pk": self.organisation.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -51,7 +51,7 @@ class SuperUserTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self.exporter_user.save()
         data = {"role": self.exporter_default_role.id}
-        url = reverse("organisations:user", kwargs={"user_pk": valid_user.id, "org_pk": self.organisation.id})
+        url = reverse("organisations:user", kwargs={"user_pk": valid_user.pk, "org_pk": self.organisation.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -62,7 +62,7 @@ class SuperUserTests(DataTestClient):
         valid_user = self.create_exporter_user(self.organisation, role=self.exporter_super_user_role)
         valid_user.save()
         data = {"role": self.default_role.id}
-        url = reverse("organisations:user", kwargs={"user_pk": valid_user.id, "org_pk": self.organisation.id})
+        url = reverse("organisations:user", kwargs={"user_pk": valid_user.pk, "org_pk": self.organisation.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -75,7 +75,7 @@ class SuperUserTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self.exporter_user.save()
         data = {"role": self.exporter_super_user_role.id}
-        url = reverse("organisations:user", kwargs={"user_pk": valid_user.id, "org_pk": self.organisation.id})
+        url = reverse("organisations:user", kwargs={"user_pk": valid_user.pk, "org_pk": self.organisation.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -86,7 +86,7 @@ class SuperUserTests(DataTestClient):
         valid_user = self.create_exporter_user(self.organisation, role=self.exporter_default_role)
         valid_user.save()
         data = {"role": self.exporter_super_user_role.id}
-        url = reverse("organisations:user", kwargs={"user_pk": valid_user.id, "org_pk": self.organisation.id})
+        url = reverse("organisations:user", kwargs={"user_pk": valid_user.pk, "org_pk": self.organisation.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
 

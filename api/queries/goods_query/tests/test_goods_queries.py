@@ -12,6 +12,7 @@ from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from api.goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
 from api.goods.models import Good
+from api.users.tests.factories import GovUserFactory
 from lite_content.lite_api import strings
 from api.picklists.enums import PicklistType, PickListStatus
 from api.queries.goods_query.helpers import get_starting_status
@@ -190,8 +191,12 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         team advice.
         """
         # Make sure at least one user maintains the super user role
-        valid_user = GovUser(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role
+        valid_user = GovUserFactory(
+            baseuser_ptr__email="test2@mail.com",
+            baseuser_ptr__first_name="John",
+            baseuser_ptr__last_name="Smith",
+            team=self.team,
+            role=self.super_user_role,
         )
         valid_user.save()
 

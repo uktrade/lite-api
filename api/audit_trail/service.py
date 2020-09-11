@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+from typing import Dict, Union, Optional
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -13,12 +13,22 @@ from api.teams.models import Team
 from api.users.enums import UserType
 from api.users.enums import SystemUser
 from api.users.models import ExporterUser, GovUser, BaseUser
+from api.audit_trail.managers import AuditQuerySet
+from api.cases.models import Case
+from django.http.request import QueryDict
+from uuid import UUID
 
 
 @validate_kwargs
 def create(
-    actor, verb, action_object=None, target=None, payload=None, ignore_case_status=False, send_notification=True
-):
+    actor: Union[ExporterUser, GovUser, BaseUser],
+    verb: AuditType,
+    action_object=None,
+    target: Optional[Case] = None,
+    payload=None,
+    ignore_case_status: bool = False,
+    send_notification: bool = True,
+) -> Optional[Audit]:
     if not payload:
         payload = {}
 
@@ -78,15 +88,15 @@ def get_activity_for_user_and_model(user, object_type):
 
 
 def filter_object_activity(
-    object_id,
-    object_content_type,
-    user_id=None,
+    object_id: UUID,
+    object_content_type: ContentType,
+    user_id: None = None,
     team: Optional[Team] = None,
     user_type: Optional[UserType] = None,
     audit_type: Optional[AuditType] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
-):
+) -> AuditQuerySet:
     """
     Returns filtered activity data for a specific object, identified by the object_id and object_content_type params
     """
@@ -101,7 +111,7 @@ def filter_object_activity(
     if team:
         gov_content_type = ContentType.objects.get_for_model(GovUser)
         user_ids = audit_qs.filter(actor_content_type=gov_content_type).values_list("actor_object_id", flat=True)
-        team_user_ids = GovUser.objects.filter(id__in=list(user_ids), team=team).values_list("id", flat=True)
+        team_user_ids = GovUser.objects.filter(pk__in=list(user_ids), team=team).values_list("pk", flat=True)
         audit_qs = audit_qs.filter(actor_object_id__in=list(team_user_ids))
 
     if user_type:
@@ -140,7 +150,7 @@ def get_objects_activity_filters(object_id, object_content_type):
         activity_types = sorted(activity_types)
     user_ids = audit_qs.order_by("actor_object_id").values_list("actor_object_id", flat=True).distinct()
     users = BaseUser.objects.filter(id__in=list(user_ids)).values("id", "first_name", "last_name")
-    teams = Team.objects.filter(users__id__in=list(user_ids)).order_by("id").values("name", "id").distinct()
+    teams = Team.objects.filter(users__pk__in=list(user_ids)).order_by("id").values("name", "id").distinct()
 
     filters = {
         "activity_types": [{"key": verb, "value": AuditType(verb).human_readable()} for verb in activity_types],
@@ -154,7 +164,7 @@ def get_objects_activity_filters(object_id, object_content_type):
     return filters
 
 
-def get_filters(data):
+def get_filters(data: QueryDict) -> Dict:
     return {
         "user_id": data.get("user_id"),
         "team": data.get("team_id"),

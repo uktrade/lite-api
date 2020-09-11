@@ -81,7 +81,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         ultimate_end_users = response.json()["ultimate_end_users"]
 
         self.assertEqual(len(ultimate_end_users), 1)
-        self.assertEqual(ultimate_end_users[0]["id"], str(ultimate_end_user.id))
+        self.assertEqual(ultimate_end_users[0]["id"], str(ultimate_end_user.pk))
         self.assertEqual(ultimate_end_users[0]["name"], str(ultimate_end_user.name))
         self.assertEqual(
             ultimate_end_users[0]["country"]["name"], str(ultimate_end_user.country.name),
@@ -126,7 +126,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         """
         ultimate_end_user = self.draft.ultimate_end_users.first().party
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
-        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.id},)
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.pk},)
 
         response = self.client.delete(url, **self.exporter_headers)
 

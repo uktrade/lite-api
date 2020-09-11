@@ -264,7 +264,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, user_role)
 
         response = self.client.put(
-            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},),
+            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.pk},),
             data={"role": str(constants.Roles.EXPORTER_DEFAULT_ROLE_ID)},
             **self.exporter_headers,
         )
@@ -288,7 +288,7 @@ class RolesAndPermissionsTests(DataTestClient):
         second_user = self.create_exporter_user(self.organisation)
 
         response = self.client.put(
-            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": second_user.id},),
+            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": second_user.pk},),
             data={"role": str(second_user_role.id)},
             **self.exporter_headers,
         )
@@ -308,7 +308,7 @@ class RolesAndPermissionsTests(DataTestClient):
         second_user = self.create_exporter_user(self.organisation)
 
         response = self.client.put(
-            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": second_user.id},),
+            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": second_user.pk},),
             data={"role": second_user_role.id},
             **self.exporter_headers,
         )

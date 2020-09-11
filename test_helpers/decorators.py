@@ -1,7 +1,8 @@
 from functools import wraps
+from typing import Callable
 
 
-def none_param_tester(*params):
+def none_param_tester(*params) -> Callable:
     """
     Runs the decorated test n times depending on how many params are given
     Each run it sets one of the params to None
