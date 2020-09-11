@@ -557,7 +557,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def test_generate_context_with_case_note(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        note = self.create_case_note(case, "text", self.gov_user)
+        note = self.create_case_note(case, "text", self.gov_user.baseuser_ptr)
 
         context = get_document_context(case)
 

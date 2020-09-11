@@ -44,7 +44,7 @@ class CaseNoteList(APIView):
 
         data = request.data
         data["case"] = str(case.id)
-        data["user"] = str(request.user.id)
+        data["user"] = str(request.user.pk)
 
         serializer = self.serializer(data=data)
 

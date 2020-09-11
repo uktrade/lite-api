@@ -66,23 +66,23 @@ class AuthenticateExporterUser(APIView):
             )
 
         try:
-            user = ExporterUser.objects.get(email=data.get("email"))
+            user = ExporterUser.objects.get(baseuser_ptr__email=data.get("email"))
             # Update the user's first and last names
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
+            user.baseuser_ptr.first_name = first_name
+            user.baseuser_ptr.last_name = last_name
+            user.baseuser_ptr.save()
         except ExporterUser.DoesNotExist:
             return JsonResponse(
                 data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_401_UNAUTHORIZED
             )
 
-        token = user_to_token(user)
+        token = user_to_token(user.baseuser_ptr)
         return JsonResponse(
             data={
                 "token": token,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "lite_api_user_id": str(user.id),
+                "lite_api_user_id": str(user.pk),
             }
         )
 
@@ -117,7 +117,7 @@ class UserDetail(APIView):
         """
         user = get_user_by_pk(pk)
         organisation = get_request_user_organisation(request)
-        if request.user.id != pk:
+        if request.user.pk != pk:
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, organisation)
         relationship = get_user_organisation_relationship(user, organisation)
 
@@ -161,7 +161,7 @@ class UserMeDetail(APIView):
         # Returning a dict over a serializer for performance reasons
         # This endpoint is called often, so it needs to be as fast as possible
         data = {
-            "id": request.user.id,
+            "id": request.user.pk,
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
             "organisations": [
@@ -204,7 +204,7 @@ class NotificationViewSet(APIView):
         """
         organisation = get_request_user_organisation(request)
         notifications_list = list(
-            self.queryset.filter(user=request.user, organisation_id=organisation.id)
+            self.queryset.filter(user_id=request.user.pk, organisation_id=organisation.id)
             .prefetch_related("case__case_type", "case__compliancesitecase")
             .values(
                 "case__case_type__sub_type",
@@ -251,7 +251,7 @@ class AssignSites(UpdateAPIView):
 
     def put(self, request, *args, **kwargs):
         # Ensure that the request user isn't the same as the user being acted upon
-        if str(request.user.id) == str(kwargs["pk"]):
+        if str(request.user.pk) == str(kwargs["pk"]):
             raise PermissionDenied()
 
         sites = request.data.get("sites", [])
@@ -285,6 +285,6 @@ class UserTeamQueues(ListAPIView):
 
     def get(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
-        gov_user_team = GovUser.objects.filter(id=pk).values("team_id")
+        gov_user_team = GovUser.objects.filter(pk=pk).values("team_id")
         queues = Queue.objects.filter(team_id__in=gov_user_team).values_list("id", "name")
         return JsonResponse(data={"queues": list(queues)}, status=status.HTTP_200_OK)

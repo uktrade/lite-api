@@ -84,7 +84,7 @@ def post_advice(request, case, level, team=False):
     for advice in data:
         advice["level"] = level
         advice["case"] = str(case.id)
-        advice["user"] = str(request.user.id)
+        advice["user"] = str(request.user.pk)
         if team:
             advice["team"] = str(request.user.team.id)
         if not refusal_error:

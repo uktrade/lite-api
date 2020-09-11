@@ -23,7 +23,7 @@ def get_updated_case_ids(user: GovUser):
     assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
     cases = assigned_to_user_case_ids.union(assigned_as_case_officer_case_ids)
 
-    return GovNotification.objects.filter(user=user, case__id__in=cases).values_list("case__id", flat=True)
+    return GovNotification.objects.filter(user_id=user.pk, case__id__in=cases).values_list("case__id", flat=True)
 
 
 def remove_next_review_date(case, request, pk):

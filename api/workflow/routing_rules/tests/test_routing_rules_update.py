@@ -29,7 +29,7 @@ class RoutingRuleUpdateTests(DataTestClient):
             "queue": self.queue.id,
             "tier": 1,
             "additional_rules": [*[k for k, v in RoutingRulesAdditionalFields.choices]],
-            "user": self.gov_user.id,
+            "user": self.gov_user.pk,
             "flags": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
@@ -48,7 +48,7 @@ class RoutingRuleUpdateTests(DataTestClient):
         self.assertEqual(routing_rule["queue"]["id"], str(self.queue.id))
         self.assertEqual(routing_rule["tier"], data["tier"])
         self.assertEqual(routing_rule["status"]["id"], str(data["status"]))
-        self.assertEqual(routing_rule["user"]["id"], str(self.gov_user.id))
+        self.assertEqual(routing_rule["user"]["id"], str(self.gov_user.pk))
         self.assertEqual(routing_rule["flags"][0]["id"], str(flag.id))
         self.assertEqual(routing_rule["case_types"][0]["id"], str(data["case_types"][0]))
         self.assertEqual(routing_rule["country"]["id"], str(data["country"]))
@@ -72,7 +72,7 @@ class RoutingRuleUpdateTests(DataTestClient):
             "queue": self.queue.id,
             "tier": 1,
             "additional_rules": [],
-            "user": self.gov_user.id,
+            "user": self.gov_user.pk,
             "flags": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],

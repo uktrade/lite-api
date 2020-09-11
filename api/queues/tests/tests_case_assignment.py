@@ -28,7 +28,7 @@ class CaseAssignmentTests(DataTestClient):
         self.url = reverse("queues:case_assignments", kwargs={"pk": self.queue.id})
 
     def test_can_assign_a_single_user_to_case_on_a_queue(self):
-        data = {"case_assignments": [{"case_id": self.case.id, "users": [self.gov_user.id]}], "note": faker.word()}
+        data = {"case_assignments": [{"case_id": self.case.id, "users": [self.gov_user.pk]}], "note": faker.word()}
 
         response = self.client.put(self.url, data, **self.gov_headers)
 
@@ -36,14 +36,14 @@ class CaseAssignmentTests(DataTestClient):
         case_assignment = CaseAssignment.objects.get()
         self.assertEqual(case_assignment.case.id, self.case.id)
         self.assertEqual(case_assignment.queue.id, self.queue.id)
-        self.assertEqual(case_assignment.user.id, self.gov_user.id)
+        self.assertEqual(case_assignment.user.pk, self.gov_user.pk)
         self.assertEqual(Audit.objects.get(verb=AuditType.ASSIGN_USER_TO_CASE).payload["additional_text"], data["note"])
 
     def test_can_assign_many_users_to_many_cases(self):
         data = {
             "case_assignments": [
-                {"case_id": self.case.id, "users": [self.gov_user.id, self.gov_user_2.id, self.gov_user_3.id],},
-                {"case_id": self.case_2.id, "users": [self.gov_user.id, self.gov_user_2.id, self.gov_user_3.id],},
+                {"case_id": self.case.id, "users": [self.gov_user.pk, self.gov_user_2.pk, self.gov_user_3.pk],},
+                {"case_id": self.case_2.id, "users": [self.gov_user.pk, self.gov_user_2.pk, self.gov_user_3.pk],},
             ]
         }
 
@@ -101,7 +101,7 @@ class CaseAssignmentTests(DataTestClient):
 
         # Deactivate initial gov user
         data = {"status": "Deactivated"}
-        url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.id})
+        url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.pk})
         self.client.put(url, data, **self.gov_headers)
 
         # Ensure that the deactivated user has been removed from all cases

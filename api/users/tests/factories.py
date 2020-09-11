@@ -6,19 +6,24 @@ from api.users.enums import UserType, UserStatuses
 from api.users.models import Role, UserOrganisationRelationship
 
 
-class GovUserFactory(factory.django.DjangoModelFactory):
+class BaseUserFactory(factory.django.DjangoModelFactory):
     first_name = factory.Faker("first_name")
     last_name = factory.Faker("last_name")
     email = factory.Faker("email")
+
+    class Meta:
+        model = models.BaseUser
+
+
+class GovUserFactory(factory.django.DjangoModelFactory):
+    baseuser_ptr = factory.SubFactory(BaseUserFactory, type=UserType.INTERNAL)
 
     class Meta:
         model = models.GovUser
 
 
 class ExporterUserFactory(factory.django.DjangoModelFactory):
-    first_name = factory.Faker("first_name")
-    last_name = factory.Faker("last_name")
-    email = factory.Faker("email")
+    baseuser_ptr = factory.SubFactory(BaseUserFactory, type=UserType.EXPORTER)
 
     class Meta:
         model = models.ExporterUser

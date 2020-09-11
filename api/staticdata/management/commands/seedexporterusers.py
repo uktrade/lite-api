@@ -10,7 +10,7 @@ from api.organisations.models import Organisation, Site
 from api.staticdata.countries.helpers import get_country
 from api.staticdata.management.SeedCommand import SeedCommand
 from api.users.enums import UserType
-from api.users.models import ExporterUser, UserOrganisationRelationship, Role
+from api.users.models import ExporterUser, UserOrganisationRelationship, Role, BaseUser
 
 DEFAULT_DEMO_ORG_NAME = "Archway Communications"
 DEFAULT_DEMO_HMRC_ORG_NAME = "HMRC office at Battersea heliport"
@@ -80,7 +80,10 @@ class Command(SeedCommand):
         for exporter_user_data in cls._get_exporter_users():
             email = exporter_user_data["email"]
 
-            exporter_user, created = ExporterUser.objects.get_or_create(email__iexact=email, defaults={"email": email})
+            base_user, _ = BaseUser.objects.get_or_create(
+                email__iexact=email, defaults={"email": email}, type=UserType.EXPORTER
+            )
+            exporter_user, created = ExporterUser.objects.get_or_create(baseuser_ptr=base_user)
 
             if created:
                 cls.print_created_or_updated(ExporterUser, {"email": email}, is_created=True)

@@ -8,7 +8,7 @@ from api.users.models import ExporterNotification, ExporterUser
 def get_exporter_user_notification_total_count(exporter_user: ExporterUser, organisation_id, case: Case) -> dict:
     return {
         "total": ExporterNotification.objects.filter(
-            user=exporter_user, organisation_id=organisation_id, case=case
+            user_id=exporter_user.pk, organisation_id=organisation_id, case=case
         ).count()
     }
 
@@ -17,7 +17,7 @@ def get_case_notifications(data, request):
     ids = [item["id"] for item in data]
     notifications = (
         ExporterNotification.objects.filter(
-            user=request.user, organisation_id=get_request_user_organisation_id(request), case__id__in=ids
+            user_id=request.user.pk, organisation_id=get_request_user_organisation_id(request), case__id__in=ids
         )
         .values("case")
         .annotate(count=Count("case"))
@@ -41,7 +41,7 @@ def get_compliance_site_case_notifications(data, request):
 
     notifications = (
         ExporterNotification.objects.filter(
-            user=request.user, organisation_id=get_request_user_organisation_id(request), case_id__in=ids
+            user_id=request.user.pk, organisation_id=get_request_user_organisation_id(request), case_id__in=ids
         )
         .values("case")
         .annotate(count=Count("case"))
@@ -50,7 +50,7 @@ def get_compliance_site_case_notifications(data, request):
 
     visit_notifications = list(
         ExporterNotification.objects.filter(
-            user=request.user,
+            user_id=request.user.pk,
             organisation_id=get_request_user_organisation_id(request),
             case__compliancevisitcase__site_case__id__in=ids,
         )
@@ -78,7 +78,7 @@ def get_exporter_user_notification_individual_count(exporter_user: ExporterUser,
     # Group by content_type (casenote, ecjuquery, generatedcasedocument).
     # Get the total number of notifications for each type
     queryset = (
-        ExporterNotification.objects.filter(user=exporter_user, organisation_id=organisation_id, case=case)
+        ExporterNotification.objects.filter(user_id=exporter_user.pk, organisation_id=organisation_id, case=case)
         .values("content_type__model")
         .annotate(count=Count("content_type__model"))
     )
@@ -94,6 +94,6 @@ def get_exporter_user_notification_individual_count_with_compliance_visit(
     # Get the total number of notifications for each type
     data = get_exporter_user_notification_individual_count(exporter_user, organisation_id, case)
     data["visitreport"] = ExporterNotification.objects.filter(
-        user=exporter_user, organisation_id=organisation_id, case__compliancevisitcase__site_case=case
+        user_id=exporter_user.pk, organisation_id=organisation_id, case__compliancevisitcase__site_case=case
     ).count()
     return data

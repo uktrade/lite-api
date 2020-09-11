@@ -87,7 +87,7 @@ def audit_reviewed_organisation(user, organisation, decision):
             payload={"organisation_name": organisation.name,},
         )
 
-    for email in organisation.users.annotate(email=F("user__email")).values_list("email", flat=True):
+    for email in organisation.users.annotate(email=F("user__baseuser_ptr__email")).values_list("email", flat=True):
         gov_notify_service.send_email(
             email_address=email,
             template_type=TemplateType.ORGANISATION_STATUS,

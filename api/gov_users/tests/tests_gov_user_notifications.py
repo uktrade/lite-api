@@ -23,7 +23,7 @@ class GovUserNotificationTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
         self.case.refresh_from_db()
         case_audit_notification_count = GovNotification.objects.filter(
-            user=self.gov_user, content_type=self.audit_content_type, case=self.case
+            user=self.gov_user.baseuser_ptr, content_type=self.audit_content_type, case=self.case
         ).count()
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -41,7 +41,7 @@ class GovUserNotificationTests(DataTestClient):
 
         self.gov_user.send_notification(content_object=audit, case=self.case)
         prev_case_audit_notification_count = GovNotification.objects.filter(
-            user=self.gov_user, content_type=self.audit_content_type, case=self.case
+            user=self.gov_user.baseuser_ptr, content_type=self.audit_content_type, case=self.case
         ).count()
 
         url = reverse("applications:application", kwargs={"pk": self.case.id})
@@ -50,7 +50,7 @@ class GovUserNotificationTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
         self.case.refresh_from_db()
         case_audit_notification = GovNotification.objects.filter(
-            user=self.gov_user, content_type=self.audit_content_type, case=self.case
+            user=self.gov_user.baseuser_ptr, content_type=self.audit_content_type, case=self.case
         )
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -60,7 +60,7 @@ class GovUserNotificationTests(DataTestClient):
 
     def test_edit_application_as_gov_user_does_not_create_an_audit_notification_success(self):
         prev_case_audit_notification_count = GovNotification.objects.filter(
-            user=self.gov_user, content_type=self.audit_content_type, case=self.case
+            user=self.gov_user.baseuser_ptr, content_type=self.audit_content_type, case=self.case
         ).count()
         url = reverse("applications:manage_status", kwargs={"pk": self.case.id})
         data = {"status": "under_review"}
@@ -68,7 +68,7 @@ class GovUserNotificationTests(DataTestClient):
         response = self.client.put(url, data, **self.gov_headers)
         self.case.refresh_from_db()
         case_audit_notification_count = GovNotification.objects.filter(
-            user=self.gov_user, content_type=self.audit_content_type, case=self.case
+            user=self.gov_user.baseuser_ptr, content_type=self.audit_content_type, case=self.case
         ).count()
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -91,7 +91,7 @@ class GovUserNotificationTests(DataTestClient):
 
         response = self.client.get(url, **self.gov_headers)
         case_audit_notification_count = GovNotification.objects.filter(
-            user=self.gov_user, content_type=self.audit_content_type, case=self.case
+            user=self.gov_user.baseuser_ptr, content_type=self.audit_content_type, case=self.case
         ).count()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

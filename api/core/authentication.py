@@ -54,7 +54,7 @@ class ExporterAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
         try:
-            exporter_user = ExporterUser.objects.get(id=user_id)
+            exporter_user = ExporterUser.objects.get(pk=user_id)
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
@@ -80,7 +80,7 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
-            exporter_user = ExporterUser.objects.get(id=user_id)
+            exporter_user = ExporterUser.objects.get(pk=user_id)
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
@@ -112,7 +112,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
-            exporter_user = ExporterUser.objects.get(id=user_id)
+            exporter_user = ExporterUser.objects.get(pk=user_id)
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
@@ -159,8 +159,8 @@ class GovAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
-            gov_user = GovUser.objects.get(id=user_id)
-        except ExporterUser.DoesNotExist:
+            gov_user = GovUser.objects.get(pk=user_id)
+        except GovUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
         if gov_user.status == GovUserStatuses.DEACTIVATED:

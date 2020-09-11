@@ -31,7 +31,7 @@ class GoodViewTests(DataTestClient):
         response = self.client.get(
             url,
             **{
-                "HTTP_EXPORTER_USER_TOKEN": user_to_token(organisation_2_admin),
+                "HTTP_EXPORTER_USER_TOKEN": user_to_token(organisation_2_admin.baseuser_ptr),
                 "HTTP_ORGANISATION_ID": str(organisation_2.id),
             },
         )

@@ -113,14 +113,42 @@ class GovNotification(BaseNotification):
     pass
 
 
-class ExporterUser(BaseUser):
+class BaseUserCompatMixin:
+
+    baseuser_ptr: BaseUser
+
+    @property
+    def type(self):
+        return self.baseuser_ptr.type
+
+    @property
+    def first_name(self):
+        return self.baseuser_ptr.first_name
+
+    @property
+    def last_name(self):
+        return self.baseuser_ptr.last_name
+
+    @property
+    def email(self):
+        return self.baseuser_ptr.email
+
+    @property
+    def is_anonymous(self):
+        return self.baseuser_ptr.is_anonymous
+
+
+class ExporterUser(models.Model, BaseUserCompatMixin):
+
+    baseuser_ptr = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True,)
+
     def __init__(self, *args, **kwargs):
-        super(ExporterUser, self).__init__(*args, **kwargs)
-        self.type = UserType.EXPORTER
+        super().__init__(*args, **kwargs)
+        self.baseuser_ptr.type = UserType.EXPORTER
 
     def send_notification(self, organisation, content_object, case):
         ExporterNotification.objects.create(
-            user=self, organisation=organisation, content_object=content_object, case=case
+            user=self.baseuser_ptr, organisation=organisation, content_object=content_object, case=case
         )
 
     def get_role(self, organisation_id):
@@ -136,7 +164,10 @@ class ExporterUser(BaseUser):
         return permission.name in user_permissions
 
 
-class GovUser(BaseUser):
+class GovUser(models.Model, BaseUserCompatMixin):
+
+    baseuser_ptr = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True,)
+
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
     team = models.ForeignKey(Team, related_name="users", on_delete=models.PROTECT)
     role = models.ForeignKey(
@@ -146,7 +177,7 @@ class GovUser(BaseUser):
 
     def __init__(self, *args, **kwargs):
         super(GovUser, self).__init__(*args, **kwargs)
-        self.type = UserType.INTERNAL
+        self.baseuser_ptr.type = UserType.INTERNAL
 
     def unassign_from_cases(self):
         """
@@ -162,11 +193,11 @@ class GovUser(BaseUser):
             # If a notification for that gov user's case already exists, update the case activity it points to
             try:
                 content_type = ContentType.objects.get_for_model(Audit)
-                notification = GovNotification.objects.get(user=self, content_type=content_type, case=case)
+                notification = GovNotification.objects.get(user=self.baseuser_ptr, content_type=content_type, case=case)
                 notification.content_object = content_object
                 notification.save()
             except GovNotification.DoesNotExist:
-                GovNotification.objects.create(user=self, content_object=content_object, case=case)
+                GovNotification.objects.create(user=self.baseuser_ptr, content_object=content_object, case=case)
 
     def has_permission(self, permission):
         user_permissions = self.role.permissions.values_list("id", flat=True)

@@ -14,6 +14,7 @@ from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.models import Team
+from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from api.users.models import GovUser, Role
 
@@ -46,11 +47,8 @@ class CreateCaseAdviceTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        self.gov_user_2 = GovUser(email="user@email.com", team=team_2, role=role)
-        self.gov_user_3 = GovUser(email="users@email.com", team=team_3, role=role)
-
-        self.gov_user_2.save()
-        self.gov_user_3.save()
+        self.gov_user_2 = GovUserFactory(baseuser_ptr__email="user@email.com", team=team_2, role=role)
+        self.gov_user_3 = GovUserFactory(baseuser_ptr__email="users@email.com", team=team_3, role=role)
 
         self.standard_case_url = reverse("cases:case_final_advice", kwargs={"pk": self.standard_case.id})
 

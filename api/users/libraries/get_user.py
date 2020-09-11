@@ -1,3 +1,5 @@
+from typing import List
+
 from api.core.exceptions import NotFoundError
 from api.users.enums import UserStatuses
 from api.users.models import ExporterUser, GovUser, UserOrganisationRelationship
@@ -21,7 +23,7 @@ def get_exporter_user_by_email(email):
     Returns an ExporterUser depending on the email given
     """
     try:
-        return ExporterUser.objects.get(email__iexact=email)
+        return ExporterUser.objects.get(baseuser_ptr__email__iexact=email)
     except ExporterUser.DoesNotExist:
         raise NotFoundError({"user": "User not found - " + email})
 
@@ -44,10 +46,10 @@ def get_user_organisations(pk):
         raise NotFoundError({"user": "User not found - " + str(pk)})
 
 
-def get_users_from_organisation(pk):
+def get_users_from_organisation(pk) -> List[ExporterUser]:
     try:
         user_organisation_relationships = UserOrganisationRelationship.objects.filter(organisation=pk).order_by(
-            "user__first_name"
+            "user__baseuser_ptr__first_name"
         )
 
         for relationship in user_organisation_relationships:
