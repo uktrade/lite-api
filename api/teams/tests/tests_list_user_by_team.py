@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.teams.models import Team
+from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from api.users.models import GovUser
 
@@ -19,8 +20,18 @@ class UserByTeamListTests(DataTestClient):
         team2 = Team(name="Second")
         team2.save()
 
-        GovUser(email="test2@mail.com", first_name="John", last_name="Smith", team=self.team).save()
-        GovUser(email="test3@mail.com", first_name="John", last_name="Smith", team=team2).save()
+        GovUserFactory(
+            baseuser_ptr__email="test2@mail.com",
+            baseuser_ptr__first_name="John",
+            baseuser_ptr__last_name="Smith",
+            team=self.team,
+        )
+        GovUserFactory(
+            baseuser_ptr__email="test3@mail.com",
+            baseuser_ptr__first_name="John",
+            baseuser_ptr__last_name="Smith",
+            team=team2,
+        )
 
         url = reverse("teams:team_users", kwargs={"pk": self.team.id})
 

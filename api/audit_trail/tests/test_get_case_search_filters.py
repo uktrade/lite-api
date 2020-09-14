@@ -30,7 +30,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
 
         actions = [{"key": audit.verb.value, "value": audit.verb.human_readable()}]
         teams = [{"value": self.team.name, "key": str(self.team.id)}]
-        users = [{"value": f"{self.gov_user.first_name} {self.gov_user.last_name}", "key": str(self.gov_user.id)}]
+        users = [{"value": f"{self.gov_user.first_name} {self.gov_user.last_name}", "key": str(self.gov_user.pk)}]
         user_types = [
             {"key": UserType.INTERNAL.value, "value": UserType.INTERNAL.human_readable()},
             {"key": UserType.EXPORTER.value, "value": UserType.EXPORTER.human_readable()},

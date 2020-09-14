@@ -50,12 +50,12 @@ class SitesList(APIView):
         if str_to_bool(request.GET.get("get_total_users")):
             admin_users = UserOrganisationRelationship.objects.filter(
                 organisation=organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name
-            ).values_list("user__id", flat=True)
+            ).values_list("user__pk", flat=True)
             total_admin_users = len(admin_users)
 
             relationships = (
                 UserOrganisationRelationship.objects.filter(sites__id__in=[site["id"] for site in serializer_data])
-                .exclude(user__id__in=admin_users)
+                .exclude(user__pk__in=admin_users)
                 .values("sites__id")
                 .annotate(count=Count("sites__id"))
                 .values("sites__id", "count")

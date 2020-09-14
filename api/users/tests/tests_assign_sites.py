@@ -21,7 +21,7 @@ class AssignSitesTest(DataTestClient):
         user_organisation_relationship.sites.set([self.site_1, self.site_2, self.site_3])
 
         self.exporter_user_2 = self.create_exporter_user(self.organisation)
-        self.url = reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user_2.id})
+        self.url = reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user_2.pk})
 
     def test_assign_sites(self):
         data = {"sites": [self.site_1.id, self.site_2.id]}
@@ -67,7 +67,7 @@ class AssignSitesTest(DataTestClient):
         data = {"sites": [self.site_1.id]}
 
         response = self.client.put(
-            reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user.id}), data, **self.exporter_headers
+            reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user.pk}), data, **self.exporter_headers
         )
         user_organisation_relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
 
@@ -80,7 +80,7 @@ class AssignSitesTest(DataTestClient):
         data = {"sites": [self.site_1.id]}
 
         response = self.client.put(
-            reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user.id}), data, **self.exporter_headers
+            reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user.pk}), data, **self.exporter_headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

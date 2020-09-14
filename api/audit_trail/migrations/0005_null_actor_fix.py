@@ -26,7 +26,7 @@ def fill_in_missing_actor(apps, schema_editor):
         print("Actor: ", user)
         content_type = ContentType.objects.get(model="exporteruser")
         audit.actor_content_type = content_type
-        audit.actor_object_id = user.id
+        audit.actor_object_id = user.pk
         print(audit, content_type)
         audit.save()
 

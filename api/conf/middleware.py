@@ -1,8 +1,3 @@
-import logging
-import time
-import uuid
-
-from django.db import connection
 from django.http import StreamingHttpResponse
 from mohawk import Receiver
 from mohawk.util import prepare_header_val, utc_now

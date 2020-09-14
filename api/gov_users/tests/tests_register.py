@@ -25,7 +25,7 @@ class GovUserAuthenticateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        new_user = GovUser.objects.get(email="jsmith@name.com")
+        new_user = GovUser.objects.get(baseuser_ptr__email="jsmith@name.com")
         self.assertEqual(new_user.status, GovUserStatuses.ACTIVE)
         self.assertEqual(new_user.email, "jsmith@name.com")
 

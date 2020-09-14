@@ -3,6 +3,9 @@ from api.audit_trail.enums import AuditType
 from api.core.constants import GovPermissions
 from api.core.permissions import assert_user_has_permission
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.applications.models import HmrcQuery
+from api.users.models import GovUser
+from rest_framework.request import Request
 
 
 def optional_str_to_bool(optional_string: str):
@@ -33,7 +36,7 @@ def can_status_be_set_by_exporter_user(original_status: str, new_status: str) ->
     return True
 
 
-def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, is_mod: bool) -> bool:
+def can_status_be_set_by_gov_user(user: GovUser, original_status: str, new_status: str, is_mod: bool) -> bool:
     """
     Check that a status can be set by a gov user. Gov users can not set a case's status to
     `Applicant editing`. They also cannot set a case's status to `Finalised` or open a closed case
@@ -57,7 +60,7 @@ def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, i
     return True
 
 
-def create_submitted_audit(request, application, old_status):
+def create_submitted_audit(request: Request, application: HmrcQuery, old_status: str) -> None:
     audit_trail_service.create(
         actor=request.user,
         verb=AuditType.UPDATED_STATUS,

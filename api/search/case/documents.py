@@ -23,6 +23,9 @@ class CaseDocumentType(Document):
     class Django:
         model = Case
 
+    def get_indexing_queryset(self):
+        return self.get_queryset().select_related("case_type").select_related("organisation").select_related("status")
+
 
 def case_model_to_document(case, index_name):
     document = CaseDocumentType(

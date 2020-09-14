@@ -55,7 +55,7 @@ class SiteViewSerializer(SiteListSerializer):
         users = (
             UserOrganisationRelationship.objects.filter(sites__id=instance.id)
             .select_related("user")
-            .order_by("user__email")
+            .order_by("user__baseuser_ptr__email")
         )
         return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
 
@@ -65,7 +65,7 @@ class SiteViewSerializer(SiteListSerializer):
                 organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name
             )
             .select_related("user")
-            .order_by("user__email")
+            .order_by("user__baseuser_ptr__email")
         )
         return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
 
@@ -358,6 +358,7 @@ class SiclExternalLocationSerializer(serializers.ModelSerializer):
 
 
 class OrganisationUserListView(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     role_name = serializers.CharField(read_only=True)
     status = serializers.CharField(read_only=True)
 

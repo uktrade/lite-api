@@ -59,13 +59,13 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(response_data["name"], self.organisation.primary_site.name)
         self.assertEqual(
             response_data["users"],
-            [{"id": str(user.id), "first_name": user.first_name, "last_name": user.last_name, "email": user.email,}],
+            [{"id": str(user.pk), "first_name": user.first_name, "last_name": user.last_name, "email": user.email,}],
         )
         self.assertEqual(
             response_data["admin_users"],
             [
                 {
-                    "id": str(self.exporter_user.id),
+                    "id": str(self.exporter_user.pk),
                     "first_name": self.exporter_user.first_name,
                     "last_name": self.exporter_user.last_name,
                     "email": self.exporter_user.email,
@@ -191,7 +191,7 @@ class OrganisationSitesTests(DataTestClient):
                 "postcode": "E14GH",
                 "region": "Hertfordshire",
             },
-            "users": [exporter_user.id, exporter_user_2.id],
+            "users": [exporter_user.pk, exporter_user_2.pk],
         }
 
         response = self.client.post(url, data, **self.gov_headers)

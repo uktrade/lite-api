@@ -26,8 +26,8 @@ class ExporterUserNotificationTests(DataTestClient):
 
     def _create_clc_query_with_notifications(self):
         clc_query = self.create_clc_query(description="this is a clc query", organisation=self.organisation)
-        self.create_case_note(clc_query, "This is a test note 1", self.gov_user, True)
-        self.create_case_note(clc_query, "This is a test note 2", self.gov_user, False)
+        self.create_case_note(clc_query, "This is a test note 1", self.gov_user.baseuser_ptr, True)
+        self.create_case_note(clc_query, "This is a test note 2", self.gov_user.baseuser_ptr, False)
         self.create_ecju_query(clc_query, "This is an ecju query")
         self.create_generated_case_document(
             clc_query, template=self.create_letter_template(case_types=[CaseTypeEnum.GOODS.id])
@@ -36,8 +36,8 @@ class ExporterUserNotificationTests(DataTestClient):
 
     def _create_application_with_notifications(self):
         application = self.create_standard_application_case(self.organisation)
-        self.create_case_note(application, "This is a test note 1", self.gov_user, True)
-        self.create_case_note(application, "This is a test note 2", self.gov_user, False)
+        self.create_case_note(application, "This is a test note 1", self.gov_user.baseuser_ptr, True)
+        self.create_case_note(application, "This is a test note 2", self.gov_user.baseuser_ptr, False)
         self.create_ecju_query(application, "This is an ecju query")
         self.create_generated_case_document(
             application, template=self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id])
@@ -46,8 +46,8 @@ class ExporterUserNotificationTests(DataTestClient):
 
     def _create_end_user_advisory_query_with_notifications(self):
         eua_query = self.create_end_user_advisory_case("note", "reasoning", self.organisation)
-        self.create_case_note(eua_query, "This is a test note 1", self.gov_user, True)
-        self.create_case_note(eua_query, "This is a test note 2", self.gov_user, False)
+        self.create_case_note(eua_query, "This is a test note 1", self.gov_user.baseuser_ptr, True)
+        self.create_case_note(eua_query, "This is a test note 2", self.gov_user.baseuser_ptr, False)
         self.create_ecju_query(eua_query, "This is an ecju query")
         self.create_generated_case_document(
             eua_query, template=self.create_letter_template(case_types=[CaseTypeEnum.EUA.id])
@@ -65,22 +65,22 @@ class ExporterUserNotificationTests(DataTestClient):
         case = create_case_func(self)
 
         case_notification_count = ExporterNotification.objects.filter(
-            user=self.exporter_user, organisation=self.exporter_user.organisation, case=case,
+            user_id=self.exporter_user.pk, organisation=self.exporter_user.organisation, case=case,
         ).count()
         case_case_note_notification_count = ExporterNotification.objects.filter(
-            user=self.exporter_user,
+            user_id=self.exporter_user.pk,
             organisation=self.exporter_user.organisation,
             content_type=self.case_note_content_type,
             case=case,
         ).count()
         case_ecju_query_notification_count = ExporterNotification.objects.filter(
-            user=self.exporter_user,
+            user_id=self.exporter_user.pk,
             organisation=self.exporter_user.organisation,
             content_type=self.ecju_query_content_type,
             case=case,
         ).count()
         case_generated_case_document_notification_count = ExporterNotification.objects.filter(
-            user=self.exporter_user,
+            user_id=self.exporter_user.pk,
             organisation=self.exporter_user.organisation,
             content_type=self.generated_case_doc_content_type,
             case=case,
@@ -116,11 +116,11 @@ class ExporterUserNotificationTests(DataTestClient):
         org_2, _ = self.create_organisation_with_exporter_user("Org 2")
         self.add_exporter_user_to_org(org_2, self.exporter_user)
         self.exporter_headers = {
-            "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.exporter_user),
+            "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.exporter_user.baseuser_ptr),
             "HTTP_ORGANISATION_ID": str(org_2.id),
         }
         application = self.create_standard_application_case(org_2)
-        self.create_case_note(application, "This is a test note 3", self.gov_user, True)
+        self.create_case_note(application, "This is a test note 3", self.gov_user.baseuser_ptr, True)
         self.create_ecju_query(application, "This is an ecju query")
 
         response = self.client.get(self.url, **self.exporter_headers)
@@ -131,11 +131,11 @@ class ExporterUserNotificationTests(DataTestClient):
         # Check that the 2 notifications we got are only for ones created while org_2 is the currently selected org
         self.assertEqual(
             response_data["notifications"]["application"],
-            ExporterNotification.objects.filter(user=self.exporter_user, organisation=org_2).count(),
+            ExporterNotification.objects.filter(user_id=self.exporter_user.pk, organisation=org_2).count(),
         )
         self.assertNotEqual(
-            ExporterNotification.objects.filter(user=self.exporter_user).count(),
-            ExporterNotification.objects.filter(user=self.exporter_user, organisation=org_2).count(),
+            ExporterNotification.objects.filter(user_id=self.exporter_user.pk).count(),
+            ExporterNotification.objects.filter(user_id=self.exporter_user.pk, organisation=org_2).count(),
         )
 
     def test_get_applications_with_notifications_success(self):

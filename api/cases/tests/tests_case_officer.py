@@ -13,7 +13,7 @@ class CaseOfficerTests(DataTestClient):
         self.url = reverse("cases:case_officer", kwargs={"pk": self.case.id})
 
     def test_assign_gov_user(self):
-        request = self.client.put(self.url, data={"gov_user_pk": self.user.id}, **self.gov_headers)
+        request = self.client.put(self.url, data={"gov_user_pk": self.user.pk}, **self.gov_headers)
 
         self.assertEqual(request.status_code, status.HTTP_200_OK)
         self.case.refresh_from_db()

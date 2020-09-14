@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 
 from django.conf import settings
 from api.core.constants import ExporterPermissions
+from api.users.tests.factories import ExporterUserFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
 from api.users.libraries.get_user import get_users_from_organisation, get_user_organisation_relationship
@@ -35,7 +36,7 @@ class OrganisationUsersViewTests(DataTestClient):
         Ensure that a user can see an individual user belonging
         to an organisation
         """
-        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id})
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.pk})
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
@@ -59,7 +60,7 @@ class OrganisationUsersViewTests(DataTestClient):
 
     def test_can_see_own_user_details(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
-        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id})
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.pk})
 
         response = self.client.get(url, **self.exporter_headers)
 
@@ -67,7 +68,7 @@ class OrganisationUsersViewTests(DataTestClient):
 
     def test_cannot_see_user_details_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
-        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.gov_user.id})
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.gov_user.pk})
 
         response = self.client.get(url, **self.exporter_headers)
 
@@ -92,7 +93,7 @@ class OrganisationUsersViewTests(DataTestClient):
         user_organisation_relationship.sites.set([self.organisation.primary_site])
 
         response = self.client.get(
-            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id}),
+            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.pk}),
             **self.exporter_headers,
         )
 
@@ -123,7 +124,11 @@ class OrganisationUsersCreateTests(DataTestClient):
             "sites": [self.organisation.primary_site.id],
         }
 
-        ExporterUser(first_name=data["first_name"], last_name=data["last_name"], email=data["email"]).save()
+        ExporterUserFactory(
+            baseuser_ptr__first_name=data["first_name"],
+            baseuser_ptr__last_name=data["last_name"],
+            baseuser_ptr__email=data["email"],
+        )
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
@@ -186,7 +191,7 @@ class OrganisationUsersUpdateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.url = reverse(
-            "organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},
+            "organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.pk},
         )
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -195,7 +200,7 @@ class OrganisationUsersUpdateTests(DataTestClient):
         Ensure that a user can be deactivated
         """
         exporter_user_2 = self.create_exporter_user(self.organisation)
-        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": exporter_user_2.id})
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": exporter_user_2.pk})
 
         data = {"status": UserStatuses.DEACTIVATED}
 
