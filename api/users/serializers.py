@@ -31,6 +31,7 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
         else:
             return GovUserViewSerializer(instance=instance).data
 
+
 class ExporterUserViewSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     status = serializers.SerializerMethodField()
@@ -39,15 +40,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExporterUser
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-            "role",
-            "status",
-            "sites"
-        )
+        fields = ("id", "first_name", "last_name", "email", "role", "status", "sites")
 
     def get_status(self, instance):
         if hasattr(instance, "status"):
