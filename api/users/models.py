@@ -118,6 +118,10 @@ class BaseUserCompatMixin:
     baseuser_ptr: BaseUser
 
     @property
+    def username(self):
+        return self.baseuser_ptr.username
+
+    @property
     def first_name(self):
         return self.baseuser_ptr.first_name
 
