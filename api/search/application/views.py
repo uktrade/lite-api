@@ -9,9 +9,12 @@ from django_elasticsearch_dsl_drf.constants import (
     LOOKUP_FILTER_WILDCARD,
 )
 
+from django.conf import settings
+
 from api.search.application.backends import WildcardAwareSearchFilterBackend, WildcardAwareFilteringFilterBackend
 from api.search.application.documents import ApplicationDocumentType
 from api.search.application.serializers import ApplicationDocumentSerializer
+from api.core.authentication import GovAuthentication
 
 
 class MatchBoolPrefix(Query):
@@ -21,6 +24,7 @@ class MatchBoolPrefix(Query):
 class ApplicationDocumentView(DocumentViewSet):
     document = ApplicationDocumentType
     serializer_class = ApplicationDocumentSerializer
+    authentication_classes = (GovAuthentication,)
     lookup_field = "id"
     filter_backends = [
         filter_backends.OrderingFilterBackend,
@@ -75,9 +79,14 @@ class ApplicationDocumentView(DocumentViewSet):
     # Specify default ordering
     ordering = ("id",)
 
+    def get_queryset(self):
+        self.search._index = [ApplicationDocumentType.Index.name, settings.SPIRE_APPLICATION_INDEX_NAME]
+        return super().get_queryset()
+
 
 class ApplicationSuggestDocumentView(APIView):
     allowed_http_methods = ["get"]
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         q = self.request.GET.get("q", "")
@@ -110,14 +119,21 @@ class ApplicationSuggestDocumentView(APIView):
                 },
                 "queue": {"prefix": q, "completion": {"field": "queues.name.suggest", "skip_duplicates": True},},
                 "team": {"prefix": q, "completion": {"field": "queues.team.suggest", "skip_duplicates": True},},
-                "case_officer_username": {"prefix": q, "completion": {"field": "case_officer.username.suggest", "skip_duplicates": True},},
-                "case_officer_email": {"prefix": q, "completion": {"field": "case_officer.email.suggest", "skip_duplicates": True},},
+                "case_officer_username": {
+                    "prefix": q,
+                    "completion": {"field": "case_officer.username.suggest", "skip_duplicates": True},
+                },
+                "case_officer_email": {
+                    "prefix": q,
+                    "completion": {"field": "case_officer.email.suggest", "skip_duplicates": True},
+                },
             },
             "_source": False,
             "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},
         }
-        search = ApplicationDocumentType.search().from_dict(query)
 
+        search = ApplicationDocumentType.search().from_dict(query)
+        search._index = [ApplicationDocumentType.Index.name, settings.SPIRE_APPLICATION_INDEX_NAME]
         suggests = []
         executed = search.execute()
         flat_suggestions = set()
@@ -125,13 +141,21 @@ class ApplicationSuggestDocumentView(APIView):
         for key in query["suggest"].keys():
             for suggest in getattr(executed.suggest, key):
                 for option in suggest.options:
-                    suggests.append({"field": key, "value": option.text})
+                    suggests.append(
+                        {"field": key, "value": option.text, "index": "spire" if "spire" in option._index else "lite"}
+                    )
                     flat_suggestions.add(option.text)
 
         for hit in executed:
-            for option in hit.meta["highlight"]["wildcard"]:
+            for option in hit.meta.highlight.wildcard:
                 if option not in flat_suggestions:
-                    suggests.append({"field": "wildcard", "value": option})
+                    suggests.append(
+                        {
+                            "field": "wildcard",
+                            "value": option,
+                            "index": "spire" if "spire" in hit.meta.index else "lite",
+                        }
+                    )
                     flat_suggestions.add(option)
 
         return Response(suggests)
