@@ -90,6 +90,7 @@ class Product(InnerDoc):
     quantity = fields.FloatField()
     value = fields.KeywordField()
     unit = fields.KeywordField()
+    incorporated = fields.BooleanField(attr="is_good_incorporated")
     description = fields.TextField(attr="good.description", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
     part_number = fields.TextField(
         attr="good.part_number",
