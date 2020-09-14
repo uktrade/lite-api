@@ -20,15 +20,8 @@ def update_application_document(sender, **kwargs):
     The registry update code requires model corresponding to the index which is BaseApplication
     in our case. We intercept the signals and update the index.
     """
-    if app_label == "applications":
-        if model_name in [
-            "standardapplication",
-            "baseapplication",
-            "openapplication",
-            "exhibitionclearanceapplication",
-        ]:
-            application = BaseApplication.objects.get(id=instance.id)
-            registry.update(application)
+    if issubclass(instance.__class__, BaseApplication):
+        registry.update(instance.baseapplication)
 
     if app_label == "cases":
         if model_name == "case":
@@ -53,7 +46,7 @@ def update_application_document(sender, **kwargs):
         if model_name == "organisation":
             for case in instance.cases.all():
                 try:
-                    base_application_id = BaseApplication.objects.get(id=case.id)
-                    registry.update(base_application_id)
+                    base_application = BaseApplication.objects.get(id=case.id)
+                    registry.update(base_application)
                 except ObjectDoesNotExist:
                     pass
