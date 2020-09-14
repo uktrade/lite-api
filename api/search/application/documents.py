@@ -117,13 +117,13 @@ class Product(InnerDoc):
 
 class User(InnerDoc):
     username = fields.TextField(
-        attr="username",
+        attr="baseuser_ptr.username",
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
         analyzer=descriptive_text_analyzer,
         copy_to="wildcard",
     )
     email = fields.TextField(
-        attr="email",
+        attr="baseuser_ptr.email",
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
         analyzer=email_analyzer,
         copy_to="wildcard",
@@ -191,9 +191,9 @@ class ApplicationDocumentType(Document):
         return (
             self.get_queryset()
             .select_related("organisation")
+            .select_related("submitted_by__baseuser_ptr")
+            .select_related("case_officer__baseuser_ptr")
             .select_related("status")
-            .select_related("submitted_by")
-            .select_related("case_officer")
             .prefetch_related("queues")
             .prefetch_related("queues__team")
             .prefetch_related(

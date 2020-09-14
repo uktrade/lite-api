@@ -118,10 +118,6 @@ class BaseUserCompatMixin:
     baseuser_ptr: BaseUser
 
     @property
-    def type(self):
-        return self.baseuser_ptr.type
-
-    @property
     def username(self):
         return self.baseuser_ptr.username
 
@@ -141,14 +137,17 @@ class BaseUserCompatMixin:
     def is_anonymous(self):
         return self.baseuser_ptr.is_anonymous
 
+    def save(self, *args, **kwargs):
+        if not self.baseuser_ptr.type:
+            self.baseuser_ptr.type = self.type
+            self.baseuser_ptr.save()
+        super().save(*args, **kwargs)
+
 
 class ExporterUser(models.Model, BaseUserCompatMixin):
 
     baseuser_ptr = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True,)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.baseuser_ptr.type = UserType.EXPORTER
+    type = UserType.EXPORTER
 
     def send_notification(self, organisation, content_object, case):
         ExporterNotification.objects.create(
@@ -178,10 +177,7 @@ class GovUser(models.Model, BaseUserCompatMixin):
         Role, related_name="role", default=Roles.INTERNAL_DEFAULT_ROLE_ID, on_delete=models.PROTECT
     )
     default_queue = models.UUIDField(default=uuid.UUID(ALL_CASES_QUEUE_ID), null=False)
-
-    def __init__(self, *args, **kwargs):
-        super(GovUser, self).__init__(*args, **kwargs)
-        self.baseuser_ptr.type = UserType.INTERNAL
+    type = UserType.INTERNAL
 
     def unassign_from_cases(self):
         """
