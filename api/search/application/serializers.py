@@ -1,3 +1,4 @@
+from dateutil import parser
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
@@ -7,6 +8,8 @@ from api.search.application import documents
 class ApplicationDocumentSerializer(DocumentSerializer):
     highlight = serializers.SerializerMethodField()
     score = serializers.SerializerMethodField()
+    created = serializers.SerializerMethodField()
+    updated = serializers.SerializerMethodField()
 
     class Meta:
         document = documents.ApplicationDocumentType
@@ -18,6 +21,8 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "organisation",
             "status",
             "submitted_by",
+            "created",
+            "updated",
             "case_officer",
             "goods",
             "parties",
@@ -31,3 +36,11 @@ class ApplicationDocumentSerializer(DocumentSerializer):
 
     def get_score(self, obj):
         return obj.meta.score
+
+    def get_created(self, obj):
+        created = parser.parse(obj.created)
+        return created.astimezone().strftime("%H:%M %d %B %Y")
+
+    def get_updated(self, obj):
+        updated = parser.parse(obj.updated)
+        return updated.astimezone().strftime("%H:%M %d %B %Y")

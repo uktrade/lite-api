@@ -7,6 +7,11 @@ from django_elasticsearch_dsl_drf.constants import (
     LOOKUP_FILTER_TERMS,
     LOOKUP_FILTER_PREFIX,
     LOOKUP_FILTER_WILDCARD,
+    LOOKUP_FILTER_RANGE,
+    LOOKUP_QUERY_GT,
+    LOOKUP_QUERY_GTE,
+    LOOKUP_QUERY_LT,
+    LOOKUP_QUERY_LTE,
 )
 
 from api.search.application.backends import WildcardAwareSearchFilterBackend, WildcardAwareFilteringFilterBackend
@@ -49,6 +54,16 @@ class ApplicationDocumentView(DocumentViewSet):
         "organisation": {"enabled": True, "field": "organisation.raw",},
         "case_reference": {"enabled": True, "field": "reference_code.raw",},
         "case_status": {"enabled": True, "field": "status.raw",},
+        "created": {
+            "enabled": True,
+            "field": "created",
+            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_GT, LOOKUP_QUERY_GTE, LOOKUP_QUERY_LT, LOOKUP_QUERY_LTE,],
+        },
+        "updated": {
+            "enabled": True,
+            "field": "updated",
+            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_GT, LOOKUP_QUERY_GTE, LOOKUP_QUERY_LT, LOOKUP_QUERY_LTE,],
+        },
         "wildcard": {
             "field": "wildcard",
             "lookups": [LOOKUP_FILTER_TERMS, LOOKUP_FILTER_PREFIX, LOOKUP_FILTER_WILDCARD,],

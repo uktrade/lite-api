@@ -172,6 +172,9 @@ class ApplicationDocumentType(Document):
     goods = fields.NestedField(doc_class=Product)
     parties = fields.NestedField(doc_class=Party)
 
+    created = fields.DateField(attr="created_at")
+    updated = fields.DateField(attr="updated_at")
+
     class Index:
         name = "application-alias"
         settings = {"number_of_shards": 1, "number_of_replicas": 0, "max_ngram_diff": 18}
