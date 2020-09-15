@@ -94,8 +94,13 @@ class ApplicationDocumentView(DocumentViewSet):
     # Specify default ordering
     ordering = ("id",)
 
+    def get_search_indexes(self):
+        if self.request.GET.get('database') in settings.LITE_ELASTICSEARCH_INDEXES:
+            return settings.LITE_ELASTICSEARCH_INDEXES[self.request.GET['database']]
+        return list(settings.LITE_ELASTICSEARCH_INDEXES.values())
+
     def get_queryset(self):
-        self.search._index = settings.LITE_ELASTICSEARCH_INDEXES
+        self.search._index = self.get_search_indexes()
         return super().get_queryset()
 
 
