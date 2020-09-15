@@ -56,9 +56,11 @@ class ApplicationDocumentSerializer(DocumentSerializer):
         return "spire" if "spire" in obj.meta.index else "lite"
 
     def get_created(self, obj):
-        created = parser.parse(obj.created)
-        return created.astimezone().strftime("%H:%M %d %B %Y")
+        if hasattr(obj, 'created'):
+            created = parser.parse(obj.created)
+            return created.astimezone().strftime("%H:%M %d %B %Y")
 
     def get_updated(self, obj):
-        updated = parser.parse(obj.updated)
-        return updated.astimezone().strftime("%H:%M %d %B %Y")
+        if hasattr(obj, 'updated'):
+            updated = parser.parse(obj.updated)
+            return updated.astimezone().strftime("%H:%M %d %B %Y")
