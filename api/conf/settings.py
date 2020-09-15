@@ -103,8 +103,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "api.conf.middleware.LoggingMiddleware",
-    "api.conf.middleware.DBLoggingMiddleware",
     "api.conf.middleware.HawkSigningMiddleware",
 ]
 
@@ -367,3 +365,5 @@ if FEATURE_STAFF_SSO_ENABLED:
 
 
 PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
+
+SPIRE_APPLICATION_INDEX_NAME = env.str("SPIRE_APPLICATION_INDEX_NAME", "spire-application-alias")

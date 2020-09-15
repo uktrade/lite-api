@@ -90,28 +90,16 @@ class Product(InnerDoc):
     quantity = fields.FloatField()
     value = fields.KeywordField()
     unit = fields.KeywordField()
-    item_type = fields.KeywordField()
     incorporated = fields.BooleanField(attr="is_good_incorporated")
     description = fields.TextField(attr="good.description", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
+    comment = fields.TextField(attr="good.comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
     part_number = fields.TextField(
         attr="good.part_number",
         fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
         analyzer=part_number_analyzer,
         copy_to="wildcard",
     )
-    organisation = fields.TextField(attr="good.organisation.name", analyzer=descriptive_text_analyzer)
-    status = fields.KeywordField(attr="good.status")
-    comment = fields.TextField(attr="good.comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
-    grading_comment = fields.TextField(
-        attr="good.grading_comment", copy_to="wildcard", analyzer=descriptive_text_analyzer
-    )
-    report_summary = fields.TextField(
-        attr="good.report_summary", copy_to="wildcard", analyzer=descriptive_text_analyzer
-    )
-    is_military_use = fields.TextField(attr="good.is_military_use")
-    is_pv_graded = fields.TextField(attr="good.is_pv_graded")
     is_good_controlled = fields.TextField(attr="good.is_good_controlled")
-    item_category = fields.TextField(attr="good.item_category")
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=CLCEntry)
 
 
