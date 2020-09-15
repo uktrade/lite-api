@@ -92,7 +92,6 @@ INSTALLED_APPS = [
     "api.users",
     "api.workflow.routing_rules",
     "api.search",
-    "api.search.case",
     "api.search.application",
 ]
 
@@ -255,7 +254,6 @@ if LITE_API_ENABLE_ES:
         "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
     }
 
-    ELASTICSEARCH_CASES_INDEX_ALIAS = env.str("ELASTICSEARCH_CASES_INDEX_ALIAS", "cases-alias")
     ELASTICSEARCH_APPLICATION_INDEX_ALIAS = env.str("ELASTICSEARCH_APPLICATION_INDEX_ALIAS", "application-alias")
     LITE_ELASTICSEARCH_INDEXES = env.list("LITE_ELASTICSEARCH_INDEXES", default=[ELASTICSEARCH_APPLICATION_INDEX_ALIAS])
 
