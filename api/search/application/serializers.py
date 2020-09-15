@@ -34,6 +34,8 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "queues": {"required": False},
             "submitted_by": {"required": False},
             "case_officer": {"required": False},
+            "created": {"required": False},
+            "updated": {"required": False},
         }
 
     def _get_default_field_kwargs(self, model, field_name, field_type):
