@@ -95,7 +95,7 @@ class ApplicationDocumentView(DocumentViewSet):
     ordering = ("id",)
 
     def get_queryset(self):
-        self.search._index = [ApplicationDocumentType.Index.name, settings.SPIRE_APPLICATION_INDEX_NAME]
+        self.search._index = settings.LITE_ELASTICSEARCH_INDEXES
         return super().get_queryset()
 
 

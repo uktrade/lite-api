@@ -1,3 +1,4 @@
+from django.conf import settings
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 from elasticsearch_dsl import analysis, InnerDoc
@@ -164,7 +165,7 @@ class ApplicationDocumentType(Document):
     updated = fields.DateField(attr="updated_at")
 
     class Index:
-        name = "application-alias"
+        name = settings.ELASTICSEARCH_APPLICATION_INDEX_ALIAS
         settings = {"number_of_shards": 1, "number_of_replicas": 0, "max_ngram_diff": 18}
 
     class Meta:
