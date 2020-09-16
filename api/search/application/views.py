@@ -153,7 +153,7 @@ class ApplicationSuggestDocumentView(APIView):
         }
 
         search = ApplicationDocumentType.search().from_dict(query)
-        search._index = [ApplicationDocumentType.Index.name, settings.SPIRE_APPLICATION_INDEX_NAME]
+        search._index = list(settings.LITE_ELASTICSEARCH_INDEXES.values())
         suggests = []
         executed = search.execute()
         flat_suggestions = set()
