@@ -3,7 +3,6 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import F
 from django.http.response import JsonResponse, HttpResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
@@ -166,7 +165,6 @@ class CaseDocuments(APIView):
 
         return JsonResponse(data={"documents": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseDocumentCreateSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     def post(self, request, pk):
         """

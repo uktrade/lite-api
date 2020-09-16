@@ -3,7 +3,6 @@ from functools import reduce
 
 from django.db.models import Q, F
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import JSONParser
@@ -58,7 +57,6 @@ class UsersList(generics.ListCreateAPIView):
             )
         )
 
-    @swagger_auto_schema(responses={400: "JSON parse error"})
     def post(self, request, org_pk):
         """
         Create an exporter user within the specified organisation

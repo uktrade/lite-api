@@ -1,5 +1,4 @@
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.generics import ListCreateAPIView
@@ -24,7 +23,6 @@ class RolesViews(ListCreateAPIView):
     def get_queryset(self):
         return get_exporter_roles_by_organisation(self.request, self.kwargs.get("org_pk"))
 
-    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def post(self, request, org_pk):
         """
         Create a role
@@ -62,7 +60,6 @@ class RoleDetail(APIView):
 
         return JsonResponse(data={"role": serializer.data})
 
-    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def put(self, request, org_pk, pk):
         """
         update a role
