@@ -95,8 +95,8 @@ class ApplicationDocumentView(DocumentViewSet):
     ordering = ("id",)
 
     def get_search_indexes(self):
-        if self.request.GET.get('database') in settings.LITE_ELASTICSEARCH_INDEXES:
-            return settings.LITE_ELASTICSEARCH_INDEXES[self.request.GET['database']]
+        if self.request.GET.get("database") in settings.LITE_ELASTICSEARCH_INDEXES:
+            return settings.LITE_ELASTICSEARCH_INDEXES[self.request.GET["database"]]
         return list(settings.LITE_ELASTICSEARCH_INDEXES.values())
 
     def get_queryset(self):

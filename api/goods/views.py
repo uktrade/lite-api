@@ -2,7 +2,6 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
@@ -379,7 +378,6 @@ class GoodDocuments(APIView):
 
         return JsonResponse({"documents": serializer.data})
 
-    @swagger_auto_schema(request_body=GoodDocumentCreateSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     def post(self, request, pk):
         """

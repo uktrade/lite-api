@@ -1,6 +1,4 @@
 from django.http import JsonResponse
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser
@@ -24,9 +22,6 @@ class TeamList(APIView):
 
     authentication_classes = (GovAuthentication,)
 
-    @swagger_auto_schema(
-        responses={200: openapi.Response("OK", TeamSerializer),}
-    )
     def get(self, request):
         """
         List all teams
@@ -36,7 +31,6 @@ class TeamList(APIView):
         serializer = TeamSerializer(teams, many=True)
         return JsonResponse(data={"teams": serializer.data})
 
-    @swagger_auto_schema(request_body=TeamSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """
         Create a new team
@@ -60,9 +54,6 @@ class TeamDetail(APIView):
     def get_object(self, pk):
         return get_team_by_pk(pk)
 
-    @swagger_auto_schema(
-        responses={200: openapi.Response("OK", TeamSerializer),}
-    )
     def get(self, request, pk):
         """
         Retrieve a team instance
@@ -72,7 +63,6 @@ class TeamDetail(APIView):
         serializer = TeamSerializer(team)
         return JsonResponse(data={"team": serializer.data})
 
-    @swagger_auto_schema(request_body=TeamSerializer, responses={400: "JSON parse error"})
     def put(self, request, pk):
         """
         Update a team instance

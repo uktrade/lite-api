@@ -1,6 +1,5 @@
 from django.db import transaction
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -22,7 +21,6 @@ from api.core.decorators import (
     allowed_application_types,
     application_in_state,
 )
-from api.goodstype.document.serializers import GoodsTypeDocumentSerializer
 from api.goodstype.helpers import get_goods_type
 from api.users.models import ExporterUser
 
@@ -44,7 +42,6 @@ class ApplicationDocumentView(APIView):
 
         return JsonResponse({"documents": documents, "editable": application.is_major_editable()})
 
-    @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
     @application_in_state(is_editable=True)
@@ -70,7 +67,6 @@ class ApplicationDocumentDetailView(APIView):
         """
         return get_application_document(doc_pk)
 
-    @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
     @application_in_state(is_editable=True)
@@ -95,7 +91,6 @@ class GoodsTypeDocumentView(APIView):
         goods_type = get_goods_type(goods_type_pk)
         return get_goods_type_document(goods_type)
 
-    @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @application_in_state(is_major_editable=True)
@@ -104,7 +99,6 @@ class GoodsTypeDocumentView(APIView):
         goods_type = get_goods_type(goods_type_pk)
         return upload_goods_type_document(goods_type, request.data)
 
-    @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @authorised_to_view_application(ExporterUser)

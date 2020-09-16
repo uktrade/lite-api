@@ -3,3 +3,4 @@ applications:
       - https://github.com/cloudfoundry/apt-buildpack.git
       - python_buildpack
     timeout: 360
+    memory: 1G

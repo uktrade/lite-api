@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from django.http.response import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, ListAPIView
@@ -44,7 +43,6 @@ class AuthenticateExporterUser(APIView):
 
     authentication_classes = (HawkOnlyAuthentication,)
 
-    @swagger_auto_schema(responses={403: "Forbidden"})
     def post(self, request, *args, **kwargs):
         """
         Takes user details from sso and checks them against our whitelisted users
@@ -90,7 +88,6 @@ class AuthenticateExporterUser(APIView):
 class CreateUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @swagger_auto_schema(responses={400: "JSON parse error"})
     def post(self, request):
         """
         Create Exporter within the same organisation that current user is logged into
@@ -124,7 +121,6 @@ class UserDetail(APIView):
         serializer = ExporterUserViewSerializer(user, context=relationship)
         return JsonResponse(data={"user": serializer.data})
 
-    @swagger_auto_schema(responses={400: "JSON parse error"})
     def put(self, request, pk):
         """
         Update Exporter user

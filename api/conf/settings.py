@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "drf_yasg",
     "api.core",
     "api.documents",
     "api.flags",
@@ -173,8 +172,6 @@ HAWK_CREDENTIALS = {
 
 WSGI_APPLICATION = "api.conf.wsgi.application"
 
-SWAGGER_SETTINGS = {"DEFAULT_INFO": "api.conf.urls.api_info"}
-
 TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
 TEST_OUTPUT_DIR = "test-results/unittest/"
 
@@ -256,8 +253,8 @@ if LITE_API_ENABLE_ES:
 
     ELASTICSEARCH_APPLICATION_INDEX_ALIAS = env.str("ELASTICSEARCH_APPLICATION_INDEX_ALIAS", "application-alias")
     LITE_ELASTICSEARCH_INDEXES = {
-        'LITE': ELASTICSEARCH_APPLICATION_INDEX_ALIAS,
-        'SPIRE': env.str("SPIRE_ELASTICSEARCH_INDEXES", 'spire-application-alias')
+        "LITE": ELASTICSEARCH_APPLICATION_INDEX_ALIAS,
+        "SPIRE": env.str("SPIRE_ELASTICSEARCH_INDEXES", "spire-application-alias"),
     }
 
     INSTALLED_APPS += [

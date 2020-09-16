@@ -1,5 +1,4 @@
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.parsers import JSONParser
@@ -34,7 +33,6 @@ class RolesViews(APIView):
         serializer = RoleListSerializer(roles, many=True)
         return JsonResponse(data={"roles": serializer.data})
 
-    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """ Create a role """
         assert_user_has_permission(request.user, constants.GovPermissions.ADMINISTER_ROLES)
@@ -70,7 +68,6 @@ class RoleDetail(APIView):
 
         return JsonResponse(data={"role": serializer.data})
 
-    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def put(self, request, pk):
         """
         update a role

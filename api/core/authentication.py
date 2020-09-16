@@ -197,7 +197,7 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
         elif organisation is not None and organisation != "None":
             return HmrcExporterAuthentication().authenticate(request)
         else:
-            return _authenticate(request, _lookup_credentials)
+            return AnonymousUser, _authenticate(request, _lookup_credentials)
 
 
 def _authenticate(request, lookup_credentials):

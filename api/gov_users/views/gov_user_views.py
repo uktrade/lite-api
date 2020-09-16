@@ -1,5 +1,4 @@
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
@@ -20,7 +19,6 @@ from api.users.models import GovUser
 class AuthenticateGovUser(APIView):
     authentication_classes = (HawkOnlyAuthentication,)
 
-    @swagger_auto_schema(responses={403: "Forbidden"})
     def post(self, request, *args, **kwargs):
         """
         Takes user details from sso and checks them against our whitelisted users
@@ -77,7 +75,6 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
 
         return gov_users_qs
 
-    @swagger_auto_schema(request_body=GovUserCreateOrUpdateSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """
         Add a new gov user
@@ -110,7 +107,6 @@ class GovUserDetail(APIView):
         serializer = GovUserViewSerializer(gov_user)
         return JsonResponse(data={"user": serializer.data})
 
-    @swagger_auto_schema(request_body=GovUserCreateOrUpdateSerializer, responses={400: "Bad Request"})
     def put(self, request, pk):
         """
         Edit user from pk

@@ -1,6 +1,5 @@
 from django.db import transaction
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import views
 
 from api.cases.libraries.get_case import get_case
@@ -35,7 +34,6 @@ class CaseAssignments(views.APIView):
         serializer = CaseAssignmentSerializer(case_assignments, many=True)
         return JsonResponse(data={"case_assignments": serializer.data})
 
-    @swagger_auto_schema(request_body=CaseAssignmentSerializer)
     @transaction.atomic
     def put(self, request, pk):
         """

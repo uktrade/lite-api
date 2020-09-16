@@ -1,7 +1,6 @@
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
@@ -304,7 +303,6 @@ class FlaggingRules(ListCreateAPIView):
         return rules
 
     @transaction.atomic
-    @swagger_auto_schema(request_body=FlaggingRuleSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
         json = request.data
