@@ -5,7 +5,6 @@ from api.applications.libraries.get_applications import get_application
 from api.applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
 from api.core.authentication import ExporterAuthentication
 from api.core.decorators import authorised_to_view_application
-from api.parties.serializers import PartyDocumentSerializer
 from api.users.models import ExporterUser
 
 
