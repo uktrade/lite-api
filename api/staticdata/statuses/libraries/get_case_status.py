@@ -10,10 +10,11 @@ def get_status_value_from_case_status_enum(case_status):
 
 
 def get_case_status_by_status(status):
-    try:
-        return CaseStatus.objects.get(status=status)
-    except CaseStatus.DoesNotExist:
+    instance = CaseStatus.objects.filter(status=status).order_by("id").first()
+    if not instance:
         raise NotFoundError({"status": [f"{status} isn't a valid status"]})
+
+    return instance
 
 
 def get_case_status_by_pk(pk):

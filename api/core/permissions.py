@@ -4,7 +4,7 @@ from api.users.models import GovUser
 
 
 def assert_user_has_permission(user, permission, organisation: Organisation = None):
-    if isinstance(user, GovUser):
+    if isinstance(user.govuser, GovUser):
         if user.has_permission(permission):
             return True
         else:

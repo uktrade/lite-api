@@ -166,7 +166,7 @@ class GovAuthentication(authentication.BaseAuthentication):
         if gov_user.status == GovUserStatuses.DEACTIVATED:
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
-        return gov_user, hawk_receiver
+        return gov_user.baseuser_ptr, hawk_receiver
 
 
 class SharedAuthentication(authentication.BaseAuthentication):

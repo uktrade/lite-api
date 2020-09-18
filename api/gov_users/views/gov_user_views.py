@@ -158,7 +158,7 @@ class UserMeDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
-        serializer = GovUserViewSerializer(request.user)
+        serializer = GovUserViewSerializer(request.user.govuser)
         return JsonResponse(data={"user": serializer.data}, status=status.HTTP_200_OK)
 
 
@@ -172,7 +172,7 @@ class Notifications(APIView):
     def get(self, request):
         notifications = {
             "organisations": Organisation.objects.filter(status=OrganisationStatus.IN_REVIEW).count()
-            if request.user.has_permission(GovPermissions.MANAGE_ORGANISATIONS)
+            if request.user.govuser.has_permission(GovPermissions.MANAGE_ORGANISATIONS)
             else 0
         }
         return JsonResponse(

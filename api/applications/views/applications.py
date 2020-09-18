@@ -438,7 +438,7 @@ class ApplicationManageStatus(APIView):
                 )
         else:
             if not can_status_be_set_by_gov_user(
-                request.user, application.status.status, data["status"], is_licence_application
+                request.user.govuser, application.status.status, data["status"], is_licence_application
             ):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS]},

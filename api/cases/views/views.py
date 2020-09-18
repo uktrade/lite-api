@@ -89,8 +89,9 @@ class CaseDetail(APIView):
         """
         Retrieve a case instance
         """
+        gov_user = request.user.govuser
         case = get_case(pk)
-        data = CaseDetailSerializer(case, user=request.user, team=request.user.team).data
+        data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data
 
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             data["data"]["destinations"] = get_destinations(case.id)  # noqa

@@ -24,8 +24,10 @@ def update_application_document(sender, **kwargs):
         registry.update(instance.baseapplication)
 
     if app_label == "cases":
-        if model_name == "case" or model_name == "caseassignment":
+        if model_name == "case":
             registry.update(instance.baseapplication)
+        if model_name == "caseassignment":
+            registry.update(instance.case.baseapplication)
 
     if app_label == "goods":
         if model_name == "good":
