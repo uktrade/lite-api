@@ -102,6 +102,15 @@ class Product(InnerDoc):
     )
     is_good_controlled = fields.TextField(attr="good.is_good_controlled")
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=CLCEntry)
+    report_summary = fields.TextField(
+        attr="good.report_summary",
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
+        analyzer=descriptive_text_analyzer,
+        copy_to='wildcard',
+    )
 
 
 class User(InnerDoc):

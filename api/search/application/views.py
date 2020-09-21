@@ -79,6 +79,7 @@ class ApplicationDocumentView(DocumentViewSet):
         "party_type": {"field": "parties.type.raw", "path": "parties"},
         "part": {"field": "goods.part_number.raw", "path": "goods",},
         "incorporated": {"field": "goods.incorporated", "path": "goods",},
+        "report_summary": {"field": "goods.report_summary.raw", "path": "goods",},
         "queue": {"field": "queues.name.raw", "path": "queues",},
         "team": {"field": "queues.team.raw", "path": "queues",},
         "case_officer_username": {"field": "case_officer.username.raw", "path": "case_officer",},
@@ -126,6 +127,10 @@ class ApplicationSuggestDocumentView(APIView):
                 "clc_category": {
                     "prefix": q,
                     "completion": {"field": "goods.control_list_entries.category.suggest", "skip_duplicates": True},
+                },
+                "report_summary": {
+                    "prefix": q,
+                    "completion": {"field": "goods.report_summary.suggest", "skip_duplicates": True},
                 },
                 "part": {"prefix": q, "completion": {"field": "goods.part_number.suggest", "skip_duplicates": True},},
                 "organisation": {
