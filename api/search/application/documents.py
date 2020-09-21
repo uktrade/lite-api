@@ -172,6 +172,14 @@ class ApplicationDocumentType(Document):
 
     created = fields.DateField(attr="created_at")
     updated = fields.DateField(attr="updated_at")
+    case_type = fields.KeywordField(
+        attr="case_type.type",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+    )
+    case_subtype = fields.KeywordField(
+        attr="case_type.sub_type",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+    )
 
     class Index:
         name = settings.ELASTICSEARCH_APPLICATION_INDEX_ALIAS
@@ -195,6 +203,7 @@ class ApplicationDocumentType(Document):
             .select_related("submitted_by__baseuser_ptr")
             .select_related("case_officer__baseuser_ptr")
             .select_related("status")
+            .select_related("case_type")
             .prefetch_related("queues")
             .prefetch_related("queues__team")
             .prefetch_related(

@@ -56,6 +56,8 @@ class ApplicationDocumentView(DocumentViewSet):
         "organisation": {"enabled": True, "field": "organisation.raw",},
         "case_reference": {"enabled": True, "field": "reference_code.raw",},
         "case_status": {"enabled": True, "field": "status.raw",},
+        "case_type": {"enabled": True, "field": "case_type.raw",},
+        "case_subtype": {"enabled": True, "field": "case_subtype.raw",},
         "created": {
             "enabled": True,
             "field": "created",
@@ -152,6 +154,8 @@ class ApplicationSuggestDocumentView(APIView):
                     "prefix": q,
                     "completion": {"field": "case_officer.email.suggest", "skip_duplicates": True},
                 },
+                "case_type": {"prefix": q, "completion": {"field": "case_type.suggest", "skip_duplicates": True},},
+                "case_subtype": {"prefix": q, "completion": {"field": "case_subtype.suggest", "skip_duplicates": True},},
             },
             "_source": False,
             "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},
