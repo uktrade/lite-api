@@ -939,17 +939,6 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         self.assertTrue({"rating": "ML1b", "text": get_control_list_entry("ML1b").text} in response_data)
         self.assertEquals(Good.objects.all().count(), 1)
 
-    def test_when_creating_a_good_with_a_null_control_list_entries_then_bad_request_response_is_returned(self):
-        self.request_data["is_good_controlled"] = GoodControlled.YES
-
-        response = self.client.post(URL, self.request_data, **self.exporter_headers)
-
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
-            response.json()["errors"], {"control_list_entries": [strings.Goods.CONTROL_LIST_ENTRY_IF_CONTROLLED_ERROR]},
-        )
-        self.assertEquals(Good.objects.all().count(), 0)
-
     def test_when_creating_a_good_with_an_invalid_control_list_entries_then_bad_request_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
         self.request_data["control_list_entries"] = ["invalid"]

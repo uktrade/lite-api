@@ -155,7 +155,10 @@ class ApplicationSuggestDocumentView(APIView):
                     "completion": {"field": "case_officer.email.suggest", "skip_duplicates": True},
                 },
                 "case_type": {"prefix": q, "completion": {"field": "case_type.suggest", "skip_duplicates": True},},
-                "case_subtype": {"prefix": q, "completion": {"field": "case_subtype.suggest", "skip_duplicates": True},},
+                "case_subtype": {
+                    "prefix": q,
+                    "completion": {"field": "case_subtype.suggest", "skip_duplicates": True},
+                },
             },
             "_source": False,
             "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},

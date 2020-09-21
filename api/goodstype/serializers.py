@@ -3,12 +3,9 @@ from rest_framework.fields import empty
 
 from api.applications.models import BaseApplication
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.common.libraries import (
-    update_good_or_goods_type_control_list_entries_details,
-    initialize_good_or_goods_type_control_list_entries_serializer,
-)
 from api.core.helpers import str_to_bool
 from api.core.serializers import ControlListEntryField
+from api.flags.enums import SystemFlags
 from api.goods.enums import GoodControlled
 from api.goodstype.constants import DESCRIPTION_MAX_LENGTH
 from api.goodstype.document.models import GoodsTypeDocument
@@ -59,14 +56,6 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                 self.initial_data["is_good_incorporated"] = None
                 self.initial_data["control_list_entries"] = []
 
-        # Only validate the control list entries if the good is controlled
-        if str_to_bool(self.get_initial().get("is_good_controlled")) is True:
-            self.fields["control_list_entries"] = ControlListEntryField(many=True, required=True)
-        else:
-            if hasattr(self, "initial_data"):
-                # Remove control list entries if the good is no longer controlled
-                self.initial_data["control_list_entries"] = []
-
     def get_document(self, instance):
         docs = GoodsTypeDocument.objects.filter(goods_type=instance).values()
         return docs[0] if docs else None
@@ -114,9 +103,10 @@ class GoodsTypeViewSerializer(serializers.Serializer):
 
 
 class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
-    control_list_entries = ControlListEntryField(many=True)
-    is_good_controlled = serializers.BooleanField
+    control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
+    is_good_controlled = serializers.BooleanField()
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
+    report_summary = serializers.CharField(required=False)
 
     class Meta:
         model = GoodsType
@@ -127,12 +117,14 @@ class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
             "report_summary",
         )
 
-    def __init__(self, *args, **kwargs):
-        super(ClcControlGoodTypeSerializer, self).__init__(*args, **kwargs)
-        initialize_good_or_goods_type_control_list_entries_serializer(self)
-
     def update(self, instance, validated_data):
         instance.is_good_controlled = str_to_bool(validated_data.get("is_good_controlled"))
-        instance = update_good_or_goods_type_control_list_entries_details(instance, validated_data)
+        instance.comment = validated_data.get("comment")
+        instance.report_summary = validated_data.get("report_summary")
+        instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
+
+        if "control_list_entries" in validated_data:
+            instance.control_list_entries.set(validated_data["control_list_entries"])
+
         instance.save()
         return instance
