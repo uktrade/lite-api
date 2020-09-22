@@ -149,9 +149,11 @@ class CreateGoodTests(DataTestClient):
         self.request_data["control_list_entries"] = ["ML1a", "ML1b"]
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
-
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(response.json()["good"]["control_list_entries"], [])
+
+        control_list_entries = response.json()["good"]["control_list_entries"]
+        self.assertIn({"rating": "ML1a", "text": "Description"}, control_list_entries)
+        self.assertIn({"rating": "ML1b", "text": "Info here"}, control_list_entries)
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_add_good_no_item_category_selected_failure(self):

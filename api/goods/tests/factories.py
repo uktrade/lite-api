@@ -29,7 +29,8 @@ class GoodFactory(factory.django.DjangoModelFactory):
             # Simple build, do nothing.
             return
 
-        for control_list_entry in extracted:
+        control_list_entries = extracted or ["ML1a"]
+        for control_list_entry in control_list_entries:
             self.control_list_entries.add(get_control_list_entry(control_list_entry))
 
     @factory.post_generation

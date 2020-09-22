@@ -153,15 +153,13 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         """
         Ensure that a gov user can respond to a control list classification query with no licence required.
         """
-        previous_query_control_list_entries = self.query.good.control_list_entries.set([get_control_list_entry("ML1a")])
+        control_list_entries = self.query.good.control_list_entries.set([get_control_list_entry("ML1a")])
         data = {"comment": "I Am Easy to Find", "report_summary": self.report_summary.pk, "is_good_controlled": "no"}
-
         response = self.client.put(self.url, data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.good.control_list_entries.count(), 0)
-        self.assertNotEqual(self.query.good.control_list_entries, previous_query_control_list_entries)
+        self.assertEqual(list(self.query.good.control_list_entries.values_list("rating", flat=True)), ["ML1a"])
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 

@@ -271,7 +271,11 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         )
 
     def __init__(self, *args, **kwargs):
-        super(GoodCreateSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
+        if hasattr(self, "initial_data"):
+            if not self.initial_data.get("control_list_entries"):
+                self.initial_data["control_list_entries"] = []
 
         if self.get_initial().get("is_military_use"):
             is_military_use = self.get_initial().get("is_military_use")
@@ -561,7 +565,7 @@ class GoodSerializerInternal(serializers.Serializer):
     control_list_entries = ControlListEntrySerializer(many=True)
     comment = serializers.CharField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
-    report_summary = serializers.CharField()
+    report_summary = serializers.CharField(allow_blank=True, required=False)
     flags = GoodsFlagSerializer(many=True)
     documents = serializers.SerializerMethodField()
     grading_comment = serializers.CharField()
@@ -673,7 +677,7 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
     )
     control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
-    report_summary = serializers.CharField(required=False)
+    report_summary = serializers.CharField(allow_blank=True, required=False)
 
     class Meta:
         model = Good

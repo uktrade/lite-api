@@ -593,6 +593,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def test_generate_context_with_application_details(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+
         case.intended_end_use = "abc"
         case.is_military_end_use_controls = True
         case.military_end_use_controls_ref = "123"
@@ -605,8 +606,9 @@ class DocumentContextGenerationTests(DataTestClient):
         case.compliant_limitations_eu_ref = "012"
         case.save()
 
-        context = get_document_context(case)
+        case.baseapplication.refresh_from_db()
 
+        context = get_document_context(case)
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_base_application_details(context["details"], case)
 
