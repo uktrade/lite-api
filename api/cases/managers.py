@@ -212,7 +212,7 @@ class CaseManager(models.Manager):
         self,
         queue_id=None,
         is_work_queue=None,
-        user=None,
+        base_user=None,
         status=None,
         case_type=None,
         assigned_user=None,
@@ -244,6 +244,7 @@ class CaseManager(models.Manager):
         """
         Search for a user's available cases given a set of search parameters.
         """
+        user = base_user.govuser if base_user else None
         case_qs = (
             self.submitted()
             .select_related("status", "case_type")

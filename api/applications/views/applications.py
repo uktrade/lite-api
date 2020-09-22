@@ -91,6 +91,7 @@ from api.users.libraries.notifications import get_case_notifications
 from api.users.models import ExporterUser
 from api.workflow.automation import run_routing_rules
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+from api.users.enums import UserType
 
 
 class ApplicationList(ListCreateAPIView):
@@ -464,7 +465,7 @@ class ApplicationManageStatus(APIView):
             apply_flagging_rules_to_case(application)
 
         audit_trail_service.create(
-            actor=request.user,
+            actor=request.user.govuser if request.user.type == UserType.INTERNAL else request.user.exporteruser,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
             payload={
@@ -549,7 +550,7 @@ class ApplicationFinaliseView(APIView):
         # Check permissions
         is_mod_clearance = application.case_type.sub_type in CaseTypeSubTypeEnum.mod
         if not can_status_be_set_by_gov_user(
-            request.user, application.status.status, CaseStatusEnum.FINALISED, is_mod_clearance
+            request.user.govuser, application.status.status, CaseStatusEnum.FINALISED, is_mod_clearance
         ):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
@@ -592,7 +593,7 @@ class ApplicationFinaliseView(APIView):
             licence_data["duration"] = licence_data.get("duration", default_licence_duration)
 
             # Check change default duration permission
-            if licence_data["duration"] != default_licence_duration and not request.user.has_permission(
+            if licence_data["duration"] != default_licence_duration and not request.user.govuser.has_permission(
                 GovPermissions.MANAGE_LICENCE_DURATION
             ):
                 raise PermissionDenied([strings.Applications.Finalise.Error.SET_DURATION_PERMISSION])

@@ -307,7 +307,7 @@ class UpdatedCasesQueueTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 0)
+        self.assertEqual(len(response_data), 1)
 
     def test_get_cases_on_updated_cases_queue_when_user_is_assigned_as_case_officer_returns_expected_cases(self):
         CaseAssignment.objects.filter(case=self.case, queue=self.queue).delete()
@@ -366,7 +366,7 @@ class UserAssignedCasesQueueTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
+        self.assertEqual(len(response_data), 2)
         self.assertNotEqual(response_data[0]["id"], str(user_assigned_case.id))
 
 
@@ -400,7 +400,7 @@ class UserAssignedAsCaseOfficerQueueTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
+        self.assertEqual(len(response_data), 2)
         self.assertNotEqual(response_data[0]["id"], str(case_officer_case.id))
 
 
@@ -480,7 +480,7 @@ class OpenEcjuQueriesForTeamOnWorkQueueTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(response_data["count"], 0)
+        self.assertEqual(response_data["count"], 1)
 
     def test_get_case_with_only_closed_team_ecju(self):
         ecju_query = self.create_ecju_query(self.case, gov_user=self.gov_user)

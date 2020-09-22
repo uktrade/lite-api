@@ -41,7 +41,7 @@ class QueuesList(generics.ListAPIView):
 
     def post(self, request):
         data = request.data.copy()
-        data["team"] = request.user.team.id
+        data["team"] = request.user.govuser.team.id
         serializer = QueueCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):

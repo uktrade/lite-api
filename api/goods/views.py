@@ -58,7 +58,7 @@ class GoodsListControlCode(APIView):
         """
         Set control list codes on multiple goods.
         """
-        assert_user_has_permission(request.user, constants.GovPermissions.REVIEW_GOODS)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.REVIEW_GOODS)
 
         case = get_case(case_pk)
         application = BaseApplication.objects.get(id=case_pk)

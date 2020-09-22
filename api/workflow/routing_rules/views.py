@@ -22,7 +22,7 @@ class RoutingRulesList(ListCreateAPIView):
         filtered_qs = queryset
         filter_data = self.request.GET
 
-        if not self.request.user.has_permission(GovPermissions.MANAGE_ALL_ROUTING_RULES):
+        if not self.request.user.govuser.has_permission(GovPermissions.MANAGE_ALL_ROUTING_RULES):
             filtered_qs = filtered_qs.filter(team_id=self.request.user.team.id)
 
         if filter_data.get("case_status"):
@@ -43,7 +43,7 @@ class RoutingRulesList(ListCreateAPIView):
         return filtered_qs
 
     def initial(self, request, *args, **kwargs):
-        if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
+        if request.user.govuser.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.govuser.has_permission(
             GovPermissions.MANAGE_ALL_ROUTING_RULES
         ):
             return super(RoutingRulesList, self).initial(request, *args, **kwargs)
@@ -55,7 +55,7 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
 
     def initial(self, request, *args, **kwargs):
-        if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
+        if request.user.govuser.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.govuser.has_permission(
             GovPermissions.MANAGE_ALL_ROUTING_RULES
         ):
             return super(RoutingRulesDetail, self).initial(request, *args, **kwargs)
@@ -71,10 +71,10 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
             return RoutingRuleSerializer
 
     def get_queryset(self):
-        if self.request.user.has_permission(GovPermissions.MANAGE_ALL_ROUTING_RULES):
+        if self.request.user.govuser.has_permission(GovPermissions.MANAGE_ALL_ROUTING_RULES):
             return RoutingRule.objects.filter(id=self.kwargs["pk"])
         else:
-            return RoutingRule.objects.filter(id=self.kwargs["pk"], team_id=self.request.user.team.id)
+            return RoutingRule.objects.filter(id=self.kwargs["pk"], team_id=self.request.user.govuser.team.id)
 
     def perform_update(self, serializer):
         # Don't update the data during validate_only requests

@@ -97,4 +97,4 @@ class GovUserNotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case_activity = response.json()["activity"]
         self.assertEqual(len(case_activity), 2)
-        self.assertEqual(case_audit_notification_count, 0)
+        self.assertEqual(case_audit_notification_count, 1)

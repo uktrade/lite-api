@@ -13,9 +13,9 @@ def role_should_be_added(role, permissions):
 
 
 def filter_roles_by_user_role(user: BaseUser, roles: QuerySet, organisation=None):
-    if isinstance(user, GovUser):
-        permissions = user.role.permissions.values_list("id", flat=True)
-    elif isinstance(user, ExporterUser):
+    if hasattr(user, "govuser"):
+        permissions = user.govuser.role.permissions.values_list("id", flat=True)
+    elif hasattr(user, "exporteruser"):
         permissions = user.get_role(organisation).permissions.values_list("id", flat=True)
     else:
         return []

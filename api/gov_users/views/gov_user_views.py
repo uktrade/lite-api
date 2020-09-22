@@ -82,7 +82,7 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
 
         if (
             request.data.get("role") == str(Roles.INTERNAL_SUPER_USER_ROLE_ID)
-            and not request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
+            and not request.user.govuser.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
         ):
             raise PermissionDenied()
 
@@ -118,7 +118,7 @@ class GovUserDetail(APIView):
         if (
             gov_user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
             or data.get("roles") == Roles.INTERNAL_SUPER_USER_ROLE_ID
-        ) and not request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID:
+        ) and not request.user.govuser.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 
         if "status" in data.keys():
@@ -131,7 +131,7 @@ class GovUserDetail(APIView):
 
         # Cannot deactivate a super user
         if "role" in data.keys():
-            if gov_user.pk == request.user.pk and request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID:
+            if gov_user.pk == request.user.pk and request.user.govuser.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID:
                 return JsonResponse(
                     data={"errors": "A user cannot remove super user from themselves"},
                     status=status.HTTP_400_BAD_REQUEST,

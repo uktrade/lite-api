@@ -56,7 +56,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         return queryset
 
     def post(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.CONFIGURE_TEMPLATES)
         data = request.data
         data["case_types"] = CaseTypeEnum.references_to_ids(data.get("case_types"))
         data["decisions"] = [AdviceType.ids[decision] for decision in data.get("decisions", [])]
@@ -111,7 +111,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.CONFIGURE_TEMPLATES)
         template_object = self.get_object()
 
         old_template_name = template_object.name
