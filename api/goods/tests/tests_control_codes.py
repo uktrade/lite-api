@@ -84,10 +84,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries.count(), 0)
-
-        # determine that flags have been removed when good verified
-        self.assertEqual(self.good_1.flags.count(), 0)
+        self.assertEqual(self.good_1.control_list_entries.count(), 1)
+        self.assertEqual(self.good_1.flags.count(), 1)
 
     def test_verify_multiple_goods_NLR(self):
         """
@@ -106,8 +104,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         self.good_1.refresh_from_db()
         self.good_2.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries.count(), 0)
-        self.assertEqual(self.good_2.control_list_entries.count(), 0)
+        self.assertEqual(self.good_1.control_list_entries.count(), 1)
+        self.assertEqual(self.good_2.control_list_entries.count(), 1)
 
     def test_invalid_good_pk(self):
         """
@@ -125,7 +123,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_list_entries.count(), 0)
+        self.assertEqual(verified_good.control_list_entries.count(), 1)
 
     def test_standard_invalid_control_list_entries(self):
         """
@@ -159,11 +157,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        # since it has an empty control code, flags should not be removed
-        verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertTrue(is_not_verified_flag_set_on_good(verified_good))
+        self.assertEquals(response.status_code, 200)
 
     def test_user_cannot_review_good_without_permissions(self):
         """
