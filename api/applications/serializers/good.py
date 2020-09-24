@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from api.applications.models import BaseApplication, GoodOnApplication
+from api.applications.models import BaseApplication, GoodControlReview, GoodOnApplication
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
@@ -12,6 +12,19 @@ from api.goods.serializers import GoodSerializerInternal
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from api.staticdata.units.enums import Units
+from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+
+
+class GoodControlReviewSerializer(serializers.ModelSerializer):
+    control_list_entries = ControlListEntrySerializer(many=True)
+
+    class Meta:
+        fields = (
+            'is_controlled',
+            'control_list_entries',
+            'comment',
+        )
+        model = GoodControlReview
 
 
 class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
@@ -53,6 +66,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializerInternal(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
     flags = serializers.SerializerMethodField()
+    control_review = GoodControlReviewSerializer()
 
     class Meta:
         model = GoodOnApplication
@@ -67,6 +81,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "flags",
             "item_type",
             "other_item_type",
+            "control_review",
         )
 
     def get_flags(self, instance):

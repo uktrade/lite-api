@@ -141,6 +141,17 @@ class ApplicationPartyMixin:
         return self.active_parties.filter(party__type=PartyType.THIRD_PARTY)
 
 
+
+from api.goods.enums import GoodControlled
+from api.staticdata.control_list_entries.models import ControlListEntry
+
+
+class GoodControlReview(TimestampableModel):
+    is_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
+    control_list_entries = models.ManyToManyField(ControlListEntry, related_name="good_control_reviews")
+    comment = models.TextField(default=None, blank=True, null=True, max_length=2000)
+
+
 class BaseApplication(ApplicationPartyMixin, Case):
     name = models.TextField(default=None, blank=False, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
@@ -301,6 +312,8 @@ class GoodOnApplication(TimestampableModel):
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
     other_item_type = models.CharField(max_length=100, null=True, blank=True, default=None)
+
+    control_review = models.OneToOneField(GoodControlReview, on_delete=models.CASCADE, null=True)
 
     class Meta:
         ordering = ["created_at"]

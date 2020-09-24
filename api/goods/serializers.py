@@ -667,6 +667,9 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
             return GovUserSimpleSerializer(self.goods_query.case_officer).data
 
 
+from api.applications.models import GoodControlReview, GoodOnApplication
+
+
 class ClcControlGoodSerializer(serializers.ModelSerializer):
     is_good_controlled = serializers.ChoiceField(
         choices=GoodControlled.choices,
@@ -676,7 +679,9 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
         error_messages={"null": "This field is required."},
     )
     control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
-    comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
+    comment = serializers.CharField(allow_blank=True, max_length=500, required=True)
+    application_comment = serializers.CharField(allow_blank=True, max_length=500, required=False, write_only=True)
+
     report_summary = serializers.CharField(allow_blank=True, required=False)
 
     class Meta:
@@ -686,15 +691,25 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
             "control_list_entries",
             "comment",
             "report_summary",
+            "application_comment",
         )
 
     def update(self, instance, validated_data):
-        instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
-        instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
-        instance.comment = validated_data.get("comment")
-        instance.report_summary = validated_data.get("report_summary")
-        instance.status = GoodStatus.VERIFIED
-        if "control_list_entries" in validated_data:
-            instance.control_list_entries.set(validated_data["control_list_entries"])
+        good_on_application = GoodOnApplication.objects.get(
+            good=instance,
+            application_id=self.context['application_id']
+        )
+        good_control_review = getattr(good_on_application, 'good_control_review', GoodControlReview())
+
+        good_control_review.comment = validated_data.get("application_comment", "")
+        good_control_review.is_controlled = validated_data["is_good_controlled"]
+        good_control_review.save()
+        good_control_review.control_list_entries.set(validated_data["control_list_entries"])
+
+        good_on_application.control_review = good_control_review
+        good_on_application.save()
+
+        instance.comment = validated_data["comment"]
         instance.save()
+        instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
         return instance

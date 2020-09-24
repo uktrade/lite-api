@@ -52,7 +52,7 @@ class Good(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.TextField(max_length=280)
 
-    # CLC
+    # CLC. used as base values that can be overridden at application level
     is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
     control_list_entries = models.ManyToManyField(ControlListEntry, related_name="goods")
 
@@ -80,7 +80,7 @@ class Good(TimestampableModel):
     software_or_technology_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
     # Gov
-    # comment about reviewing good, or responding to CLC query
+    # comment responding to CLC query
     comment = models.TextField(default=None, blank=True, null=True, max_length=2000)
     # comment about the PV grading response set by gov user
     grading_comment = models.TextField(default=None, blank=True, null=True, max_length=2000)

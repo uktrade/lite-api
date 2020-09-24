@@ -106,7 +106,7 @@ class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
     control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
     is_good_controlled = serializers.BooleanField()
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
-    report_summary = serializers.CharField(required=False)
+    report_summary = serializers.CharField(allow_blank=True, required=False)
 
     class Meta:
         model = GoodsType
