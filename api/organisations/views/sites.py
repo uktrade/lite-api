@@ -33,8 +33,8 @@ class SitesList(APIView):
         organisation = get_organisation_by_pk(org_pk)
         primary_site_id = organisation.primary_site_id
 
-        if isinstance(request.user, ExporterUser):
-            sites = Site.objects.get_by_user_and_organisation(request.user, organisation).exclude(
+        if hasattr(request.user, "exporteruser"):
+            sites = Site.objects.get_by_user_and_organisation(request.user.exporteruser, organisation).exclude(
                 address__country__id__in=request.GET.getlist("exclude")
             )
         else:
@@ -70,8 +70,8 @@ class SitesList(APIView):
 
     @transaction.atomic
     def post(self, request, org_pk):
-        if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, org_pk)
+        if hasattr(request.user, "exporteruser"):
+            assert_user_has_permission(request.user.exporteruser, ExporterPermissions.ADMINISTER_SITES, org_pk)
 
         data = request.data
 
@@ -108,8 +108,8 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
         return Site.objects.filter(organisation=get_organisation_by_pk(self.kwargs["org_pk"]))
 
     def get_serializer_class(self):
-        if isinstance(self.request.user, ExporterUser):
-            assert_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_SITES, self.kwargs["org_pk"])
+        if hasattr(self.request.user, "exporteruser"):
+            assert_user_has_permission(self.request.user.exporteruser, ExporterPermissions.ADMINISTER_SITES, self.kwargs["org_pk"])
 
         if self.request.method.lower() == "get":
             return SiteViewSerializer

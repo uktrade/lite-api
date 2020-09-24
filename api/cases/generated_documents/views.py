@@ -43,10 +43,10 @@ class GeneratedDocuments(generics.ListAPIView):
         pk = self.kwargs["pk"]
         user = self.request.user
 
-        if user.type == UserType.EXPORTER:
+        if hasattr(user, "exporteruser"):
             documents = GeneratedCaseDocument.objects.filter(case_id=pk, visible_to_exporter=True)
             delete_exporter_notifications(
-                user=user, organisation_id=get_request_user_organisation_id(self.request), objects=documents
+                user=user.exporteruser, organisation_id=get_request_user_organisation_id(self.request), objects=documents
             )
         else:
             documents = GeneratedCaseDocument.objects.filter(case_id=pk)

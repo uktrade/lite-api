@@ -14,7 +14,7 @@ class Create(APIView):
         organisation = get_request_user_organisation(request)
         open_general_licence = get_open_general_licence(request.data.get("open_general_licence"))
         open_general_licence_id, registrations = organisation.register_open_general_licence(
-            open_general_licence, request.user
+            open_general_licence, request.user.exporteruser
         )
         return JsonResponse(
             data={"open_general_licence": open_general_licence_id, "registrations": registrations},

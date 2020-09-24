@@ -115,8 +115,8 @@ class UserDetail(APIView):
         user = get_user_by_pk(pk)
         organisation = get_request_user_organisation(request)
         if request.user.pk != pk:
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, organisation)
-        relationship = get_user_organisation_relationship(user, organisation)
+            assert_user_has_permission(request.user.exporteruser, ExporterPermissions.ADMINISTER_USERS, organisation)
+        relationship = get_user_organisation_relationship(user.exporteruser, organisation)
 
         serializer = ExporterUserViewSerializer(user, context=relationship)
         return JsonResponse(data={"user": serializer.data})
@@ -146,7 +146,7 @@ class UserMeDetail(APIView):
 
     def get(self, request):
         org_pk = request.headers["ORGANISATION-ID"]
-        user = request.user
+        user = request.user.exporteruser
         relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(user=user)
 
         if str_to_bool(request.GET.get("in_review", False)):
@@ -157,9 +157,9 @@ class UserMeDetail(APIView):
         # Returning a dict over a serializer for performance reasons
         # This endpoint is called often, so it needs to be as fast as possible
         data = {
-            "id": request.user.pk,
-            "first_name": request.user.first_name,
-            "last_name": request.user.last_name,
+            "id": user.pk,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
             "organisations": [
                 {
                     "id": relationship.organisation.id,
@@ -219,11 +219,11 @@ class NotificationViewSet(APIView):
 
         # Compliance
         can_administer_sites = check_user_has_permission(
-            self.request.user, ExporterPermissions.ADMINISTER_SITES, organisation
+            self.request.user.exporteruser, ExporterPermissions.ADMINISTER_SITES, organisation
         )
 
         request_user_sites = (
-            list(Site.objects.get_by_user_and_organisation(request.user, organisation).values_list("id", flat=True))
+            list(Site.objects.get_by_user_and_organisation(request.user.exporteruser, organisation).values_list("id", flat=True))
             if not can_administer_sites
             else []
         )
@@ -252,7 +252,7 @@ class AssignSites(UpdateAPIView):
 
         sites = request.data.get("sites", [])
         organisation = get_request_user_organisation(request)
-        request_user_relationship = get_user_organisation_relationship(request.user, organisation)
+        request_user_relationship = get_user_organisation_relationship(request.user.exporteruser, organisation)
         user_organisation_relationship = get_user_organisation_relationship(kwargs["pk"], organisation)
 
         # Get a list of all the sites that the request user has access to!

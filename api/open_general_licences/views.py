@@ -33,9 +33,9 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
     def get_serializer_context(self):
         user = self.request.user
-        if user.type == UserType.EXPORTER:
+        if hasattr(user, "exporteruser"):
             organisation = get_request_user_organisation(self.request)
-            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+            sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
             cases = (
                 OpenGeneralLicenceCase.objects.filter(site__in=sites)
                 .select_related("status", "site", "site__address")
@@ -73,7 +73,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
             if str_to_bool(filter_data.get("registered")):
                 organisation = get_request_user_organisation(self.request)
-                sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+                sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
                 queryset = queryset.filter(cases__site__in=sites).distinct()
 
         if filter_data.get("name"):
@@ -117,7 +117,7 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
         user = self.request.user
         if user.type == UserType.EXPORTER:
             organisation = get_request_user_organisation(self.request)
-            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+            sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
             cases = (
                 OpenGeneralLicenceCase.objects.filter(site__in=sites)
                 .select_related("status", "site", "site__address")

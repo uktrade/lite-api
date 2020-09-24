@@ -124,7 +124,7 @@ class ApplicationList(ListCreateAPIView):
             else:
                 applications = BaseApplication.objects.drafts(organisation)
 
-            users_sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+            users_sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
             disallowed_applications = SiteOnApplication.objects.exclude(site__id__in=users_sites).values_list(
                 "application", flat=True
             )
@@ -190,7 +190,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             application,
             context={
                 "user_type": request.user.type,
-                "exporter_user": request.user,
+                "exporter_user": request.user.exporteruser,
                 "organisation_id": get_request_user_organisation_id(request),
             },
         ).data
@@ -249,7 +249,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             serializer.save()
 
             audit_trail_service.create(
-                actor=request.user,
+                actor=request.user.exporteruser,
                 verb=AuditType.UPDATED_APPLICATION_NAME,
                 target=case,
                 payload={"old_name": old_name, "new_name": serializer.data.get("name")},
@@ -319,7 +319,7 @@ class ApplicationSubmission(APIView):
 
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
             assert_user_has_permission(
-                request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
+                request.user.exporteruser, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
             )
 
         errors = validate_application_ready_for_submission(application)
@@ -333,7 +333,7 @@ class ApplicationSubmission(APIView):
         if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS] or (
             CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
         ):
-            application.submitted_by = request.user
+            application.submitted_by = request.user.exporteruser
             create_submitted_audit(request, application, old_status)
             submit_application(application)
             if request.data.get("submit_hmrc"):
@@ -352,7 +352,7 @@ class ApplicationSubmission(APIView):
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
                 # If a valid declaration is provided, save the application
-                application.submitted_by = request.user
+                application.submitted_by = request.user.exporteruser
                 application.agreed_to_foi = request.data.get("agreed_to_foi")
                 submit_application(application)
 
@@ -428,7 +428,7 @@ class ApplicationManageStatus(APIView):
         if not can_set_status(application, data["status"]):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
-        if isinstance(request.user, ExporterUser):
+        if hasattr(request.user, "exporteruser"):
             if get_request_user_organisation_id(request) != application.organisation.id:
                 raise PermissionDenied()
 

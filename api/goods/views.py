@@ -296,7 +296,7 @@ class GoodOverview(APIView):
     def get(self, request, pk):
         good = get_good(pk)
 
-        if isinstance(request.user, ExporterUser):
+        if hasattr(request.user, "exporteruser"):
             if good.organisation.id != get_request_user_organisation_id(request):
                 raise PermissionDenied()
 
@@ -304,7 +304,7 @@ class GoodOverview(APIView):
                 serializer = GoodSerializerExporterFullDetail(
                     good,
                     context={
-                        "exporter_user": request.user,
+                        "exporter_user": request.user.exporteruser,
                         "organisation_id": get_request_user_organisation_id(request),
                     },
                 )

@@ -113,7 +113,19 @@ def authorised_to_view_application(user_type: Union[Type[GovUser], Type[Exporter
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            user = request.request.user
+            base_user = request.request.user
+            user = base_user
+            if hasattr(base_user, "govuser"):
+                user = base_user.govuser
+            elif hasattr(base_user, "exporteruser"):
+                user = base_user.exporteruser
+
+            if not isinstance(user, user_type):
+                return JsonResponse(
+                    data={"errors": ["You are not authorised to perform this operation"]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
             if user.type != UserType.INTERNAL and user.type != UserType.EXPORTER:
                 return JsonResponse(
                     data={"errors": ["You are not authorised to perform this operation"]},

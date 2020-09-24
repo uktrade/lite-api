@@ -16,7 +16,7 @@ def filter_roles_by_user_role(user: BaseUser, roles: QuerySet, organisation=None
     if hasattr(user, "govuser"):
         permissions = user.govuser.role.permissions.values_list("id", flat=True)
     elif hasattr(user, "exporteruser"):
-        permissions = user.get_role(organisation).permissions.values_list("id", flat=True)
+        permissions = user.exporteruser.get_role(organisation).permissions.values_list("id", flat=True)
     else:
         return []
 
@@ -25,7 +25,7 @@ def filter_roles_by_user_role(user: BaseUser, roles: QuerySet, organisation=None
 
 def get_exporter_roles_by_organisation(request, org_pk, filter_by_user_role=True):
     system_ids = [Roles.EXPORTER_DEFAULT_ROLE_ID]
-    if request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+    if request.user.exporteruser.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
         system_ids.append(Roles.EXPORTER_SUPER_USER_ROLE_ID)
     elif filter_by_user_role:
         return filter_roles_by_user_role(
