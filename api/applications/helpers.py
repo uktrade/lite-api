@@ -44,8 +44,6 @@ from lite_content.lite_api import strings
 
 
 def get_application_view_serializer(application: BaseApplication):
-    # import pdb
-    # pdb.set_trace()
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationViewSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:

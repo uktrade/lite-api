@@ -7,7 +7,6 @@ from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import (
     GoodStatus,
-    GoodControlled,
     PvGrading,
     GoodPvGraded,
     ItemCategory,
@@ -53,7 +52,7 @@ class Good(TimestampableModel):
     description = models.TextField(max_length=280)
 
     # CLC. used as base values that can be overridden at application level
-    is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
+    is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
     control_list_entries = models.ManyToManyField(ControlListEntry, related_name="goods")
 
     # PV

@@ -7,7 +7,6 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from api.goods.enums import (
-    GoodControlled,
     GoodPvGraded,
     PvGrading,
     GoodStatus,
@@ -26,7 +25,7 @@ URL = reverse("goods:goods")
 
 REQUEST_DATA = {
     "description": f"Plastic bag {uuid.uuid4()}",
-    "is_good_controlled": GoodControlled.NO,
+    "is_good_controlled": False,
     "control_list_entries": [],
     "part_number": "1337",
     "validate_only": False,
@@ -58,8 +57,8 @@ def _assert_response_data(self, response_data, request_data):
     self.assertEquals(response_data["item_category"]["key"], request_data["item_category"])
     self.assertEquals(response_data["is_military_use"]["key"], request_data["is_military_use"])
 
-    if request_data["is_good_controlled"] == GoodControlled.YES:
-        self.assertEquals(response_data["is_good_controlled"]["key"], GoodControlled.YES)
+    if request_data["is_good_controlled"] == True:
+        self.assertEquals(response_data["is_good_controlled"]["key"], "True")
         self.assertEquals(
             response_data["control_list_entries"], [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}]
         )
@@ -94,7 +93,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_pv_graded_and_controlled_then_created_response_is_returned(self):
-        self.request_data["is_good_controlled"] = GoodControlled.YES
+        self.request_data["is_good_controlled"] = True
         self.request_data["control_list_entries"] = ["ML1a"]
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
 
@@ -127,7 +126,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_validate_only_then_ok_response_is_returned_and_good_is_not_created(self,):
-        self.request_data["is_good_controlled"] = GoodControlled.NO
+        self.request_data["is_good_controlled"] = False
         self.request_data["is_pv_graded"] = GoodPvGraded.NO
         self.request_data["validate_only"] = True
 
@@ -137,7 +136,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_that_is_not_controlled_success(self,):
-        self.request_data["is_good_controlled"] = GoodControlled.NO
+        self.request_data["is_good_controlled"] = False
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
@@ -145,7 +144,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_that_is_not_controlled_multiple_clcs_then_created_response_is_returned(self):
-        self.request_data["is_good_controlled"] = GoodControlled.NO
+        self.request_data["is_good_controlled"] = False
         self.request_data["control_list_entries"] = ["ML1a", "ML1b"]
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -159,7 +158,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_good_no_item_category_selected_failure(self):
         data = {
             "description": f"Plastic bag {uuid.uuid4()}",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "is_military_use": MilitaryUse.NO,
@@ -174,7 +173,7 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_good_no_description_provided_failure(self):
         data = {
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "is_military_use": MilitaryUse.NO,
@@ -191,7 +190,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_good_empty_description_provided_failure(self):
         data = {
             "description": "",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "is_military_use": MilitaryUse.NO,
@@ -208,7 +207,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_good_no_military_use_answer_selected_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
@@ -226,7 +225,7 @@ class CreateGoodTests(DataTestClient):
         """ Test failure when modified for military use is selected but no modification details are provided."""
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
@@ -244,7 +243,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_good_component_answer_not_selected_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
@@ -272,7 +271,7 @@ class CreateGoodTests(DataTestClient):
         """Test failure 'yes' component answer selected but no component details provided. """
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
@@ -294,7 +293,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_good_information_security_not_selected_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
@@ -318,7 +317,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_good_information_security_no_details_provided_success(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
@@ -344,7 +343,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_good_information_security_details_provided_success(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
@@ -375,7 +374,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_three_good_success(self, category, details):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": category,
             "software_or_technology_details": details,
@@ -409,7 +408,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_three_good_no_details_failure(self, category, details, error):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": category,
             "is_software_or_technology_step": True,
@@ -426,7 +425,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_three_good_details_too_long_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP3_TECHNOLOGY,
             "is_software_or_technology_step": True,
@@ -445,7 +444,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_no_type_selected_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -461,7 +460,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_no_year_of_manufacture_or_calibre_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -478,7 +477,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_no_year_of_manufacture_not_in_the_past_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -499,7 +498,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_no_year_of_manufacture_in_the_past_success(self, year):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -515,7 +514,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_no_section_certificate_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -540,7 +539,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_no_certificate_number_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -563,7 +562,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_no_certificate_expiry_date_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -586,7 +585,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_certificate_number_in_past_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -609,7 +608,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_invalid_format_certificate_number_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -632,7 +631,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_certificate_details_not_set_on_no_success(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -657,7 +656,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_no_markings_answer_selected_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -683,7 +682,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_no_markings_selected_but_no_details_provided_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -711,7 +710,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_yes_markings_selected_but_no_details_provided_failure(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -737,7 +736,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_yes_markings_selected_success(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -768,7 +767,7 @@ class CreateGoodTests(DataTestClient):
         """ If details are provided for both answers, ensure that only the details for the given answer are stored. """
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -799,7 +798,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_success(self):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -823,7 +822,7 @@ class CreateGoodTests(DataTestClient):
 
         # good details
         self.assertEquals(good["description"], data["description"])
-        self.assertEquals(good["is_good_controlled"]["key"], data["is_good_controlled"])
+        self.assertEquals(good["is_good_controlled"]["key"], str(data["is_good_controlled"]))
         self.assertEquals(good["is_pv_graded"]["key"], data["is_pv_graded"])
         self.assertEquals(good["item_category"]["key"], data["item_category"])
 
@@ -859,7 +858,7 @@ class CreateGoodTests(DataTestClient):
     ):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -898,7 +897,7 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_adding_invalid_attributes_failure(self, field, value):
         data = {
             "description": "coffee",
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
@@ -920,7 +919,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         ControlListEntry.create("ML1b", "Info here", None)
 
     def test_when_creating_a_good_with_all_fields_then_created_response_is_returned(self):
-        self.request_data["is_good_controlled"] = GoodControlled.YES
+        self.request_data["is_good_controlled"] = True
         self.request_data["control_list_entries"] = ["ML1a"]
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -930,7 +929,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_multiple_clcs_then_created_response_is_returned(self):
-        self.request_data["is_good_controlled"] = GoodControlled.YES
+        self.request_data["is_good_controlled"] = True
         self.request_data["control_list_entries"] = ["ML1a", "ML1b"]
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -942,7 +941,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_an_invalid_control_list_entries_then_bad_request_response_is_returned(self):
-        self.request_data["is_good_controlled"] = GoodControlled.YES
+        self.request_data["is_good_controlled"] = True
         self.request_data["control_list_entries"] = ["invalid"]
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -954,7 +953,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_not_controlled_then_no_control_list_entry_needed_success(self):
-        self.request_data["is_good_controlled"] = GoodControlled.NO
+        self.request_data["is_good_controlled"] = False
         self.request_data["control_list_entries"] = []
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)

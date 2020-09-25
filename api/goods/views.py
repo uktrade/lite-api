@@ -2,7 +2,6 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
@@ -21,7 +20,7 @@ from api.core.helpers import str_to_bool
 from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
-from api.goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemCategory
+from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
 from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (
     check_if_firearm_details_edited_on_unsupported_good,
@@ -34,7 +33,7 @@ from api.goods.serializers import (
     GoodCreateSerializer,
     GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
-    ClcControlGoodSerializer,
+    ControlGoodOnApplicationSerializer,
     GoodListSerializer,
     GoodSerializerInternal,
     GoodSerializerExporter,
@@ -42,7 +41,7 @@ from api.goods.serializers import (
     GoodMissingDocumentSerializer,
     TinyGoodDetailsSerializer,
 )
-from api.goodstype.helpers import get_goods_type
+from api.goodstype.models import GoodsType
 from api.goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -57,21 +56,24 @@ class GoodsListControlCode(APIView):
 
     @cached_property
     def application(self):
-        return BaseApplication.objects.select_related('status').get(id=self.kwargs['case_pk'])
+        return BaseApplication.objects.select_related("status").get(id=self.kwargs["case_pk"])
 
-    def get_good_serializer_class(self):
+    def get_serializer_class(self):
         if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
             return ClcControlGoodTypeSerializer
-        else:
-            return ClcControlGoodSerializer
+        return ControlGoodOnApplicationSerializer
 
-    def get_good_serializer(self, *args, **kwargs):
-        serializer_class = self.get_good_serializer_class()
-        return serializer_class(
-            *args, **kwargs,
-            data=self.request.data,
-            context={'application_id': self.kwargs['case_pk']}
-        )
+    def get_queryset(self):
+        pks = self.request.data["objects"]
+        if not isinstance(pks, list):
+            pks = [pks]
+        if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
+            return GoodsType.objects.filter(pk__in=pks)
+        return GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        return serializer_class(*args, **kwargs, data=self.request.data)
 
     def check_permissions(self, request):
         assert_user_has_permission(request.user, constants.GovPermissions.REVIEW_GOODS)
@@ -85,21 +87,21 @@ class GoodsListControlCode(APIView):
             )
 
         case = get_case(case_pk)
-        serializer_class = self.get_good_serializer_class()
 
-        for good in serializer_class.Meta.model.objects.filter(pk__in=request.data["objects"]):
-            serializer = self.get_good_serializer(good)
+        for good in self.get_queryset():
+            serializer = self.get_serializer(good)
             serializer.is_valid(raise_exception=True)
-            old_control_list_entries = list(good.control_list_entries.values_list('rating', flat=True))
-            is_control_list_dirty = old_control_list_entries != serializer.validated_data['control_list_entries']
+            old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
             serializer.save()
-
-            if not serializer.validated_data['control_list_entries'] or is_control_list_dirty:
-                good.flags.clear()
+            if "control_list_entries" in serializer.data:
+                is_control_list_dirty = old_control_list_entries != serializer.validated_data["control_list_entries"]
+            else:
+                is_control_list_dirty = False
 
             if is_control_list_dirty:
+                good.flags.clear()
                 default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
-                new_control_list_entry = [item.rating for item in serializer.validated_data['control_list_entries']]
+                new_control_list_entry = [item.rating for item in serializer.validated_data["control_list_entries"]]
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.GOOD_REVIEWED,
@@ -109,7 +111,7 @@ class GoodsListControlCode(APIView):
                         "good_name": good.description,
                         "new_control_list_entry": new_control_list_entry or default_control,
                         "old_control_list_entry": old_control_list_entries or default_control,
-                        "additional_text": serializer.validated_data['comment'],
+                        "additional_text": serializer.validated_data["comment"],
                     },
                 )
 
@@ -333,10 +335,7 @@ class GoodOverview(APIView):
 
         data = request.data.copy()
 
-        if (
-            data.get("is_good_controlled") == GoodControlled.UNSURE
-            or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED
-        ):
+        if data.get("is_good_controlled") is None or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED:
             for good_on_application in GoodOnApplication.objects.filter(good=good):
                 good_on_application.delete()
 

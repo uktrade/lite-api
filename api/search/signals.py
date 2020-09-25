@@ -23,26 +23,19 @@ def update_application_document(sender, **kwargs):
     if issubclass(sender, BaseApplication):
         registry.update(instance.baseapplication)
     try:
-        if app_label == "cases":
-            if model_name == "caseassignment":
-                registry.update(instance.case.baseapplication)
-            elif model_name == "case":
-                registry.update(instance.baseapplication)
-
-        if app_label == "goods":
-            if model_name == "good":
-                for goa in instance.goods_on_application.all():
-                    registry.update(goa.application)
-
-        if app_label == "parties":
-            if model_name == "party":
-                for poa in instance.parties_on_application.all():
-                    registry.update(poa.application)
-
-        if app_label == "organisations":
-            if model_name == "organisation":
-                for case in instance.cases.all():
-                    registry.update(case.baseapplication)
+        if app_label == "cases" and model_name == "caseassignment":
+            registry.update(instance.case.baseapplication)
+        elif app_label == "cases" and model_name == "case":
+            registry.update(instance.baseapplication)
+        elif app_label == "goods" and model_name == "good":
+            for good in instance.goods_on_application.all():
+                registry.update(good.application)
+        elif app_label == "parties" and model_name == "party":
+            for party in instance.parties_on_application.all():
+                registry.update(party.application)
+        elif app_label == "organisations" and model_name == "organisation":
+            for case in instance.cases.all():
+                registry.update(case.baseapplication)
 
     except ObjectDoesNotExist:
         pass

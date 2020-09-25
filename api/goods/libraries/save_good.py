@@ -22,6 +22,7 @@ def create_or_update_good(serializer, validate_only, is_created):
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
     serializer.save()
+
     return JsonResponse(
         data={"good": serializer.data}, status=status.HTTP_201_CREATED if is_created else status.HTTP_200_OK
     )

@@ -10,7 +10,7 @@ from api.cases.models import CaseAssignment
 from api.core import constants
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
-from api.goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
+from api.goods.enums import GoodStatus, GoodPvGraded, PvGrading
 from api.goods.models import Good
 from api.users.tests.factories import GovUserFactory
 from lite_content.lite_api import strings
@@ -31,7 +31,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
 
         self.good = Good(
             description="Good description",
-            is_good_controlled=GoodControlled.UNSURE,
+            is_good_controlled=None,
             is_pv_graded=GoodPvGraded.NO,
             pv_grading_details=None,
             part_number="123456",
@@ -113,7 +113,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
             [clc.rating for clc in self.query.good.control_list_entries.all()], self.data["control_list_entries"]
         )
         self.assertEqual(self.query.good.control_list_entries, previous_query_control_list_entries)
-        self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
+        self.assertEqual(self.query.good.is_good_controlled, True)
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         case = self.query.get_case()
@@ -133,7 +133,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
             [clc.rating for clc in self.query.good.control_list_entries.all()], self.data["control_list_entries"]
         )
         self.assertNotEqual(self.query.good.control_list_entries, previous_query_control_list_entries)
-        self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
+        self.assertEqual(self.query.good.is_good_controlled, True)
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         audit_qs = Audit.objects.all()
@@ -160,7 +160,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(list(self.query.good.control_list_entries.values_list("rating", flat=True)), ["ML1a"])
-        self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
+        self.assertEqual(self.query.good.is_good_controlled, False)
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that an activity item has been added
@@ -170,18 +170,6 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         for audit in qs:
             verb = AuditType.GOOD_REVIEWED if audit.payload else AuditType.CLC_RESPONSE
             self.assertEqual(AuditType(audit.verb), verb)
-
-    def test_respond_to_control_list_classification_query_failure(self):
-        """
-        Ensure that a gov user cannot respond to a control list classification query without providing data.
-        """
-        data = {}
-
-        response = self.client.put(self.url, data, **self.gov_headers)
-        self.query.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(self.query.good.status, GoodStatus.DRAFT)
 
     def test_user_cannot_respond_to_clc_without_permissions(self):
         """
@@ -220,7 +208,7 @@ class PvGradingQueryCreateTests(DataTestClient):
         pv_graded_good = self.create_good(
             description="This is a good",
             organisation=self.organisation,
-            is_good_controlled=GoodControlled.NO,
+            is_good_controlled=False,
             is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
         )
         pv_grading_raised_reasons = "This is the reason why I'm unsure..."
@@ -247,7 +235,7 @@ class PvGradingQueryCreateTests(DataTestClient):
         pv_graded_good = self.create_good(
             description="This is a good",
             organisation=self.organisation,
-            is_good_controlled=GoodControlled.NO,
+            is_good_controlled=False,
             is_pv_graded=GoodPvGraded.YES,
         )
         pv_grading_raised_reasons = "This is the reason why I'm unsure..."
@@ -269,7 +257,7 @@ class PvGradingQueryCreateTests(DataTestClient):
         pv_graded_good = self.create_good(
             description="This is a good",
             organisation=self.organisation,
-            is_good_controlled=GoodControlled.NO,
+            is_good_controlled=False,
             is_pv_graded=GoodPvGraded.NO,
         )
         pv_grading_raised_reasons = "This is the reason why I'm unsure..."
@@ -307,7 +295,7 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
         self.pv_graded_and_controlled_good = self.create_good(
             description="This is a good",
             organisation=self.organisation,
-            is_good_controlled=GoodControlled.UNSURE,
+            is_good_controlled=None,
             is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
         )
 

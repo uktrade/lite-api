@@ -471,7 +471,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_good(
         description: str,
         organisation: Organisation,
-        is_good_controlled: str = GoodControlled.NO,
+        is_good_controlled: str = False,
         control_list_entries: Optional[List[str]] = None,
         is_pv_graded: str = GoodPvGraded.YES,
         pv_grading_details: PvGradingDetails = None,
@@ -535,7 +535,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         good.save()
 
-        if good.is_good_controlled == GoodControlled.YES:
+        if good.is_good_controlled == True:
             if not control_list_entries:
                 raise Exception("You need to set control list entries if the good is controlled")
 
@@ -727,7 +727,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if add_a_good:
             # Add a good to the standard application
             self.good_on_application = GoodOnApplication.objects.create(
-                good=good if good else GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
+                good=good if good else GoodFactory(organisation=organisation, is_good_controlled=True),
                 application=application,
                 quantity=10,
                 unit=Units.NAR,
@@ -804,7 +804,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication.objects.create(
-            good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
+            good=GoodFactory(organisation=organisation, is_good_controlled=True),
             application=application,
             quantity=10,
             unit=Units.NAR,
@@ -847,7 +847,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application = self.create_draft_standard_application(organisation, reference_name, safe_document)
 
         GoodOnApplication(
-            good=GoodFactory(is_good_controlled=GoodControlled.YES, organisation=self.organisation,),
+            good=GoodFactory(is_good_controlled=True, organisation=self.organisation,),
             application=application,
             quantity=17,
             value=18,

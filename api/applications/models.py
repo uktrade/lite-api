@@ -13,19 +13,19 @@ from api.applications.enums import (
     GoodsTypeCategory,
     ContractType,
 )
+
 from api.applications.managers import BaseApplicationManager, HmrcQueryManager
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.documents.models import Document
 from api.flags.models import Flag
-from api.goods.enums import ItemType
-from api.goods.enums import PvGrading
+from api.goods.enums import GoodStatus, ItemType, PvGrading
 from api.goods.models import Good
-from lite_content.lite_api.strings import PartyErrors
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.parties.enums import PartyType
 from api.parties.models import Party
+from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.f680_clearance_types.models import F680ClearanceType
@@ -33,6 +33,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
+from lite_content.lite_api.strings import PartyErrors
 
 
 class ApplicationException(APIException):
@@ -139,17 +140,6 @@ class ApplicationPartyMixin:
         Standard and HMRC Query applications
         """
         return self.active_parties.filter(party__type=PartyType.THIRD_PARTY)
-
-
-
-from api.goods.enums import GoodControlled
-from api.staticdata.control_list_entries.models import ControlListEntry
-
-
-class GoodControlReview(TimestampableModel):
-    is_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
-    control_list_entries = models.ManyToManyField(ControlListEntry, related_name="good_control_reviews")
-    comment = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
 
 class BaseApplication(ApplicationPartyMixin, Case):
@@ -298,25 +288,41 @@ class ExternalLocationOnApplication(models.Model):
     )
 
 
-class GoodOnApplication(TimestampableModel):
+class AbstractGoodOnApplication(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
+    is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
+    comment = models.TextField(help_text="control review comment", default=None, blank=True, null=True)
+    report_summary = models.TextField(default=None, blank=True, null=True)
+
+    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, null=False)
+    control_list_entries = models.ManyToManyField(ControlListEntry)
+
+    class Meta:
+        abstract = True
+
+
+class GoodOnApplication(AbstractGoodOnApplication):
+
+    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods", null=False)
+
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
-    application = models.ForeignKey(BaseApplication, related_name="goods", on_delete=models.CASCADE)
 
     # Every application except Exhibition applications contains the following data, as a result these can be null
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
-    is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
 
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
     other_item_type = models.CharField(max_length=100, null=True, blank=True, default=None)
 
-    control_review = models.OneToOneField(GoodControlReview, on_delete=models.CASCADE, null=True)
-
     class Meta:
         ordering = ["created_at"]
+
+    @property
+    def description(self):
+        return self.good.description
 
 
 class CountryOnApplication(models.Model):

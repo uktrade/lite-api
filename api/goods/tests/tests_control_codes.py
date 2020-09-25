@@ -6,7 +6,6 @@ from api.applications.models import GoodOnApplication
 from api.core import constants
 from api.flags.enums import FlagLevels
 from api.flags.tests.factories import FlagFactory
-from api.goods.enums import GoodControlled
 from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
@@ -56,7 +55,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["ML1a"],
-            "is_good_controlled": GoodControlled.YES,
+            "is_good_controlled": True,
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -76,8 +76,9 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "control_list_entries": ["ML1a"],
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -96,7 +97,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["ML1a"],
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -108,20 +110,21 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEqual(self.good_2.control_list_entries.count(), 1)
 
     def test_invalid_good_pk(self):
-        """
-        Post multiple goods to the endpoint, and test that 404 response, and that other good is updated
-        """
+        # given one of the good pk is invalid
         data = {
-            "objects": [self.team.pk, self.good_1.pk],  # first value is invalid
+            "objects": [self.team.pk, self.good_1.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "is_good_controlled": GoodControlled.NO,
+            "is_good_controlled": False,
             "control_list_entries": [],
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
+        # when I review the goods
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEquals(response.status_code, 200)
 
+        # then the valid good is updated
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.control_list_entries.count(), 1)
 
@@ -133,8 +136,9 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "is_good_controlled": GoodControlled.YES,
+            "is_good_controlled": True,
             "control_list_entries": ["invalid"],
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -152,8 +156,9 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "is_good_controlled": GoodControlled.YES,
+            "is_good_controlled": True,
             "control_list_entries": [],
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -192,6 +197,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "control_list_entries": "ML1a",
             "is_good_controlled": "yes",
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -229,8 +235,9 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "is_good_controlled": GoodControlled.YES,
+            "is_good_controlled": True,
             "control_list_entries": ["ML1a"],
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -255,6 +262,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["ML1a"],
             "is_good_controlled": "True",
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -277,6 +285,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["invalid"],
             "is_good_controlled": "True",
+            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)

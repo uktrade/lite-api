@@ -31,14 +31,10 @@ class ItemType:
 
 
 class GoodControlled:
-    YES = "yes"
-    NO = "no"
-    UNSURE = "unsure"
-
     choices = [
-        (YES, "Yes"),
-        (NO, "No"),
-        (UNSURE, "I don't know"),
+        (True, "Yes"),
+        (False, "No"),
+        (None, "I don't know"),
     ]
 
     @classmethod

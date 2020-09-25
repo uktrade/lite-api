@@ -6,7 +6,6 @@ from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
 from api.compliance.helpers import generate_compliance_site_case
 from api.compliance.models import ComplianceSiteCase
-from api.goods.enums import GoodControlled
 from api.goods.tests.factories import GoodFactory
 from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
@@ -69,7 +68,7 @@ class ComplianceCreateTests(DataTestClient):
 
         ControlListEntriesFactory(rating=control_code)
         good = GoodFactory(
-            organisation=self.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=[control_code],
+            organisation=self.organisation, is_good_controlled=True, control_list_entries=[control_code],
         )
         GoodOnLicenceFactory(
             good=GoodOnApplicationFactory(application=case, good=good),

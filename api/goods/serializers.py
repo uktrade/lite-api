@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.core.helpers import str_to_bool
-from api.core.serializers import KeyValueChoiceField, ControlListEntryField
+from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import (
     GoodStatus,
@@ -15,6 +15,7 @@ from api.goods.enums import (
     Component,
     FirearmGoodType,
 )
+from api.applications.models import GoodOnApplication
 from api.flags.enums import SystemFlags
 from api.goods.helpers import (
     validate_military_use,
@@ -213,9 +214,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     description = serializers.CharField(
         max_length=280, error_messages={"blank": strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK}
     )
-    is_good_controlled = KeyValueChoiceField(
-        choices=GoodControlled.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
-    )
+    is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
     control_list_entries = ControlListEntryField(required=False, many=True, allow_null=True, allow_empty=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(read_only=True, choices=GoodStatus.choices)
@@ -667,49 +666,29 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
             return GovUserSimpleSerializer(self.goods_query.case_officer).data
 
 
-from api.applications.models import GoodControlReview, GoodOnApplication
-
-
-class ClcControlGoodSerializer(serializers.ModelSerializer):
-    is_good_controlled = serializers.ChoiceField(
-        choices=GoodControlled.choices,
-        allow_null=False,
-        required=True,
-        write_only=True,
-        error_messages={"null": "This field is required."},
-    )
-    control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
-    comment = serializers.CharField(allow_blank=True, max_length=500, required=True)
-    application_comment = serializers.CharField(allow_blank=True, max_length=500, required=False, write_only=True)
-
-    report_summary = serializers.CharField(allow_blank=True, required=False)
+class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
+    canonical_good_comment = serializers.CharField(allow_blank=True, max_length=500, required=False, write_only=True)
 
     class Meta:
-        model = Good
-        fields = (
-            "is_good_controlled",
-            "control_list_entries",
-            "comment",
-            "report_summary",
-            "application_comment",
-        )
+        model = GoodOnApplication
+        fields = GoodControlReviewSerializer.Meta.fields + ("canonical_good_comment",)
 
     def update(self, instance, validated_data):
-        good_on_application = GoodOnApplication.objects.get(
-            good=instance,
-            application_id=self.context['application_id']
-        )
-        good_control_review = getattr(good_on_application, 'good_control_review', GoodControlReview())
+        super().update(instance, validated_data)
+        instance.good.status = GoodStatus.VERIFIED
+        instance.good.report_summary = validated_data["report_summary"]
+        instance.good.comment = validated_data["canonical_good_comment"]
+        instance.good.save()
+        instance.good.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
+        return instance
 
-        good_control_review.comment = validated_data.get("application_comment", "")
-        good_control_review.is_controlled = validated_data["is_good_controlled"]
-        good_control_review.save()
-        good_control_review.control_list_entries.set(validated_data["control_list_entries"])
 
-        good_on_application.control_review = good_control_review
-        good_on_application.save()
+class ClcControlGoodSerializer(GoodControlReviewSerializer):
+    class Meta(GoodControlReviewSerializer.Meta):
+        model = Good
 
-        instance.comment = validated_data["comment"]
-        instance.save()
+    def update(self, instance, validated_data):
+        validated_data = {"status": GoodStatus.VERIFIED, **validated_data}
+        super().update(instance, validated_data)
         instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
         return instance

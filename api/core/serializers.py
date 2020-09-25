@@ -157,3 +157,15 @@ class ControlListEntryField(PrimaryKeyRelatedSerializerField):
             return get_control_list_entry(data)
         except NotFoundError:
             raise serializers.ValidationError(strings.Goods.CONTROL_LIST_ENTRY_IVALID)
+
+
+class GoodControlReviewSerializer(serializers.ModelSerializer):
+    control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
+
+    class Meta:
+        fields = (
+            "control_list_entries",
+            "is_good_controlled",
+            "comment",
+            "report_summary",
+        )
