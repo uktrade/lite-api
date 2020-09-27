@@ -69,12 +69,12 @@ def get_activity_for_user_and_model(user, object_type):
     :param object_type: models.Model
     :return: QuerySet
     """
-    if not isinstance(user, (ExporterUser, GovUser)):
+    if not hasattr(user, "exporteruser") and not hasattr(user, "govuser"):
         raise PermissionDenied(f"Invalid user object: {type(user)}")
 
     audit_trail_qs = Audit.objects.all()
 
-    if isinstance(user, ExporterUser):
+    if hasattr(user, "exporteruser"):
         # Show exporter-only audit trail.
         audit_trail_qs = audit_trail_qs.filter(actor_content_type=ContentType.objects.get_for_model(ExporterUser))
     obj_content_type = ContentType.objects.get_for_model(object_type)

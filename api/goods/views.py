@@ -127,7 +127,7 @@ class GoodList(ListCreateAPIView):
     pagination_class = GoodListPaginator
 
     def get_serializer_context(self):
-        return {"exporter_user": self.request.user, "organisation_id": get_request_user_organisation_id(self.request)}
+        return {"exporter_user": self.request.user.exporteruser, "organisation_id": get_request_user_organisation_id(self.request)}
 
     def get_queryset(self):
         description = self.request.GET.get("description", "")
@@ -254,7 +254,7 @@ class GoodTAUDetails(APIView):
     def get(self, request, pk):
         good = get_good(pk)
 
-        if isinstance(request.user, ExporterUser):
+        if hasattr(request.user, "exporteruser"):
             if good.organisation.id != get_request_user_organisation_id(request):
                 raise PermissionDenied()
             else:
@@ -315,7 +315,7 @@ class GoodOverview(APIView):
             query = GoodsQuery.objects.filter(good=good)
             if query:
                 delete_exporter_notifications(
-                    user=request.user, organisation_id=get_request_user_organisation_id(request), objects=query
+                    user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=query
                 )
         else:
             serializer = GoodSerializerInternal(good)
