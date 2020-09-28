@@ -137,15 +137,11 @@ class GoodQueryCLCResponse(APIView):
                 query.clc_responded = True
                 query.save()
 
-                new_control_list_entries = [strings.Goods.GOOD_NO_CONTROL_CODE]
-
-                if str_to_bool(clc_good_serializer.validated_data.get("is_good_controlled")):
-                    new_control_list_entries = clc_good_serializer.validated_data.get(
-                        "control_list_entries", [strings.Goods.GOOD_NO_CONTROL_CODE]
-                    )
-
-                    if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
-                        new_control_list_entries = [clc.rating for clc in new_control_list_entries]
+                if clc_good_serializer.validated_data.get("control_list_entries"):
+                    values = clc_good_serializer.validated_data["control_list_entries"]
+                    new_control_list_entries = [clc.rating for clc in values]
+                else:
+                    new_control_list_entries = [strings.Goods.GOOD_NO_CONTROL_CODE]
 
                 if new_control_list_entries != previous_control_list_entries:
                     audit_trail_service.create(

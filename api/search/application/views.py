@@ -56,6 +56,8 @@ class ApplicationDocumentView(DocumentViewSet):
         "organisation": {"enabled": True, "field": "organisation.raw",},
         "case_reference": {"enabled": True, "field": "reference_code.raw",},
         "case_status": {"enabled": True, "field": "status.raw",},
+        "case_type": {"enabled": True, "field": "case_type.raw",},
+        "case_subtype": {"enabled": True, "field": "case_subtype.raw",},
         "created": {
             "enabled": True,
             "field": "created",
@@ -79,6 +81,7 @@ class ApplicationDocumentView(DocumentViewSet):
         "party_type": {"field": "parties.type.raw", "path": "parties"},
         "part": {"field": "goods.part_number.raw", "path": "goods",},
         "incorporated": {"field": "goods.incorporated", "path": "goods",},
+        "report_summary": {"field": "goods.report_summary.raw", "path": "goods",},
         "queue": {"field": "queues.name.raw", "path": "queues",},
         "team": {"field": "queues.team.raw", "path": "queues",},
         "case_officer_username": {"field": "case_officer.username.raw", "path": "case_officer",},
@@ -127,6 +130,10 @@ class ApplicationSuggestDocumentView(APIView):
                     "prefix": q,
                     "completion": {"field": "goods.control_list_entries.category.suggest", "skip_duplicates": True},
                 },
+                "report_summary": {
+                    "prefix": q,
+                    "completion": {"field": "goods.report_summary.suggest", "skip_duplicates": True},
+                },
                 "part": {"prefix": q, "completion": {"field": "goods.part_number.suggest", "skip_duplicates": True},},
                 "organisation": {
                     "prefix": q,
@@ -147,13 +154,18 @@ class ApplicationSuggestDocumentView(APIView):
                     "prefix": q,
                     "completion": {"field": "case_officer.email.suggest", "skip_duplicates": True},
                 },
+                "case_type": {"prefix": q, "completion": {"field": "case_type.suggest", "skip_duplicates": True},},
+                "case_subtype": {
+                    "prefix": q,
+                    "completion": {"field": "case_subtype.suggest", "skip_duplicates": True},
+                },
             },
             "_source": False,
             "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},
         }
 
         search = ApplicationDocumentType.search().from_dict(query)
-        search._index = [ApplicationDocumentType.Index.name, settings.SPIRE_APPLICATION_INDEX_NAME]
+        search._index = list(settings.LITE_ELASTICSEARCH_INDEXES.values())
         suggests = []
         executed = search.execute()
         flat_suggestions = set()

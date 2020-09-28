@@ -21,6 +21,8 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "reference_code",
             "organisation",
             "status",
+            "case_type",
+            "case_subtype",
             "submitted_by",
             "created",
             "updated",
@@ -36,6 +38,8 @@ class ApplicationDocumentSerializer(DocumentSerializer):
             "case_officer": {"required": False},
             "created": {"required": False},
             "updated": {"required": False},
+            "case_type": {"required": False},
+            "case_subtype": {"required": False},
         }
 
     def _get_default_field_kwargs(self, model, field_name, field_type):

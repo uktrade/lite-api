@@ -282,7 +282,7 @@ class CaseAssignment(TimestampableModel):
         if "audit_note" in kwargs:
             audit_note = kwargs.pop("audit_note")
 
-        super(CaseAssignment, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         if audit_user and user:
             audit_trail_service.create(
                 actor=audit_user,
