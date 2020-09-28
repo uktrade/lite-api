@@ -20,7 +20,7 @@ from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.documents.models import Document
 from api.flags.models import Flag
-from api.goods.enums import GoodStatus, ItemType, PvGrading
+from api.goods.enums import ItemType, PvGrading
 from api.goods.models import Good
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.parties.enums import PartyType

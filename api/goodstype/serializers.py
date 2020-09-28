@@ -3,7 +3,6 @@ from rest_framework.fields import empty
 
 from api.applications.models import BaseApplication
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.core.helpers import str_to_bool
 from api.core.serializers import ControlListEntryField, GoodControlReviewSerializer
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodControlled

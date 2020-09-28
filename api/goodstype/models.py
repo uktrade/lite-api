@@ -1,12 +1,8 @@
-import uuid
-
 from django.db import models
 
-from api.applications.models import AbstractGoodOnApplication, BaseApplication
-from api.common.models import TimestampableModel
+from api.applications.models import AbstractGoodOnApplication
 from api.flags.models import Flag
 from api.goodstype.constants import DESCRIPTION_MAX_LENGTH
-from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 
 
