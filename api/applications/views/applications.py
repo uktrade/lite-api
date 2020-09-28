@@ -527,6 +527,10 @@ class ApplicationFinaliseView(APIView):
                 "good": GoodCreateSerializer(goa.good).data,
                 "unit": goa.unit,
                 "quantity": goa.quantity,
+                "control_list_entries": [
+                    {"rating": item.rating, "text": item.text} for item in goa.control_list_entries.all()
+                ],
+                "is_good_controlled": goa.is_good_controlled,
                 "value": goa.value,
                 "advice": {
                     "type": AdviceType.as_representation(goa.advice_type),
