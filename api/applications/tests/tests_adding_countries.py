@@ -12,6 +12,7 @@ from test_helpers.clients import DataTestClient
 
 
 class CountriesOnDraftApplicationTests(DataTestClient):
+
     COUNTRIES_COUNT = 10
 
     def setUp(self):
