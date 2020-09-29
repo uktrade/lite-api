@@ -196,7 +196,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 class GoodListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     description = serializers.CharField()
-    control_list_entries = ControlListEntrySerializer(many=True)
+    control_list_entries = ControlListEntrySerializer(many=True, allow_null=True)
     part_number = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
 
@@ -214,7 +214,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     description = serializers.CharField(
         max_length=280, error_messages={"blank": strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK}
     )
-    is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
+    is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices, allow_null=True)
     control_list_entries = ControlListEntryField(required=False, many=True, allow_null=True, allow_empty=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(read_only=True, choices=GoodStatus.choices)

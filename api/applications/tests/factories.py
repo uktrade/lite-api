@@ -14,6 +14,7 @@ from api.staticdata.countries.factories import CountryFactory
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from api.parties.tests.factories import PartyFactory
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -104,6 +105,18 @@ class SiteOnApplicationFactory(factory.django.DjangoModelFactory):
 class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
     application = factory.SubFactory(StandardApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
     good = factory.SubFactory(GoodFactory, organisation=factory.SelfAttribute("..organisation"))
+    is_good_controlled = None
+
+    @factory.post_generation
+    def control_list_entries(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        codes = extracted or []
+
+        for code in codes:
+            self.control_list_entries.add(get_control_list_entry(code))
 
     class Meta:
         model = GoodOnApplication
