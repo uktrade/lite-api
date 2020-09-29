@@ -340,7 +340,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         apply_flagging_rules_to_case(application)
 
         audit_trail_service.create(
-            actor=user,
+            actor=user.baseuser_ptr,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
             payload={

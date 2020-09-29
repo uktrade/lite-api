@@ -72,7 +72,7 @@ class PickListsView(OptionalPaginationView):
         if serializer.is_valid():
             serializer.save()
             audit_trail_service.create(
-                actor=request.user.govuser, verb=AuditType.CREATED_PICKLIST, target=serializer.instance,
+                actor=request.user, verb=AuditType.CREATED_PICKLIST, target=serializer.instance,
             )
             return JsonResponse(data={"picklist_item": serializer.data}, status=status.HTTP_201_CREATED)
 

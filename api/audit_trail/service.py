@@ -35,8 +35,15 @@ def create(
     if "additional_text" in payload and not payload["additional_text"]:
         del payload["additional_text"]
 
+    user = actor
+    if not isinstance(actor, GovUser) and not isinstance(actor, ExporterUser):
+        if actor.type == UserType.INTERNAL:
+            user = actor.govuser
+        elif actor.type == UserType.EXPORTER:
+            user = actor.exporteruser
+
     return Audit.objects.create(
-        actor=actor,
+        actor=user,
         verb=verb.value,
         action_object=action_object,
         target=target,

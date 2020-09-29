@@ -449,7 +449,7 @@ class ECJUQueries(APIView):
 
             # Audit the creation of the query
             audit_trail_service.create(
-                actor=request.user.govuser,
+                actor=request.user,
                 verb=AuditType.ECJU_QUERY,
                 action_object=serializer.instance,
                 target=serializer.instance.case,
@@ -846,14 +846,14 @@ class NextReviewDate(APIView):
             team = request.user.govuser.team.name
             if old_next_review_date is None and next_review_date:
                 audit_trail_service.create(
-                    actor=request.user.govuser,
+                    actor=request.user,
                     verb=AuditType.ADDED_NEXT_REVIEW_DATE,
                     target=case,
                     payload={"next_review_date": convert_date_to_string(next_review_date), "team_name": team},
                 )
             elif old_next_review_date and next_review_date and str(old_next_review_date) != next_review_date:
                 audit_trail_service.create(
-                    actor=request.user.govuser,
+                    actor=request.user,
                     verb=AuditType.EDITED_NEXT_REVIEW_DATE,
                     target=case,
                     payload={
@@ -864,7 +864,7 @@ class NextReviewDate(APIView):
                 )
             elif old_next_review_date and next_review_date is None:
                 audit_trail_service.create(
-                    actor=request.user.govuser,
+                    actor=request.user,
                     verb=AuditType.REMOVED_NEXT_REVIEW_DATE,
                     target=case,
                     payload={"team_name": team},

@@ -465,7 +465,7 @@ class ApplicationManageStatus(APIView):
             apply_flagging_rules_to_case(application)
 
         audit_trail_service.create(
-            actor=request.user.govuser if request.user.type == UserType.INTERNAL else request.user.exporteruser,
+            actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
             payload={
