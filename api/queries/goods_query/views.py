@@ -13,7 +13,7 @@ from api.core.helpers import str_to_bool
 from api.core.permissions import assert_user_has_permission
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
-from api.goods.enums import GoodStatus, GoodControlled, GoodPvGraded
+from api.goods.enums import GoodStatus, GoodPvGraded
 from api.goods.libraries.get_goods import get_good
 from api.goods.libraries.get_pv_grading import get_pv_grading_value_from_key
 from api.goods.models import Good
@@ -59,7 +59,7 @@ class GoodsQueriesCreate(APIView):
 
         data["organisation"] = get_request_user_organisation_id(request)
 
-        is_clc_required = good.is_good_controlled == GoodControlled.UNSURE
+        is_clc_required = good.is_good_controlled is None
         is_pv_grading_required = good.is_pv_graded == GoodPvGraded.GRADING_REQUIRED
 
         errors = self._check_request_for_errors(good, is_clc_required, is_pv_grading_required)

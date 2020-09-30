@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from api.applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
 from api.goods.tests.factories import GoodFactory
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.licences.enums import LicenceStatus
 from api.licences.service import get_case_licences
 from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
@@ -42,3 +43,15 @@ class GetCaseLicenceTests(DataTestClient):
         self.assertEqual(data["goods"][0]["description"], self.good.description)
         self.assertEqual(data["goods"][0]["quantity"], self.good_on_licence.quantity)
         self.assertEqual(data["goods"][0]["usage"], self.good_on_licence.usage)
+
+    def test_get_application_licences_application_level_control_list_entry(self):
+        self.good_on_application.is_good_controlled = False
+        self.good_on_application.save()
+        self.good_on_application.control_list_entries.add(get_control_list_entry("ML1a"))
+        self.good_on_application.control_list_entries.add(get_control_list_entry("ML13d1"))
+
+        data = get_case_licences(self.application)[0]
+
+        self.assertEqual(data["goods"][0]["is_good_controlled"], False)
+        self.assertEqual(data["goods"][0]["control_list_entries"][1]["rating"], "ML1a")
+        self.assertEqual(data["goods"][0]["control_list_entries"][0]["rating"], "ML13d1")

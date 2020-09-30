@@ -2,13 +2,13 @@ import factory
 from django.utils import timezone
 
 from api.goods import models
-from api.goods.enums import GoodControlled, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
+from api.goods.enums import ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 
 
 class GoodFactory(factory.django.DjangoModelFactory):
     description = factory.Faker("word")
-    is_good_controlled = GoodControlled.NO
+    is_good_controlled = False
     part_number = factory.Faker("ean13")
     organisation = None
     item_category = ItemCategory.GROUP1_COMPONENTS

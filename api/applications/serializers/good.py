@@ -12,6 +12,7 @@ from api.goods.serializers import GoodSerializerInternal
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from api.staticdata.units.enums import Units
+from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 
 
 class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
@@ -53,6 +54,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializerInternal(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
     flags = serializers.SerializerMethodField()
+    control_list_entries = ControlListEntrySerializer(many=True)
 
     class Meta:
         model = GoodOnApplication
@@ -67,6 +69,10 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "flags",
             "item_type",
             "other_item_type",
+            "is_good_controlled",
+            "control_list_entries",
+            "comment",
+            "report_summary",
         )
 
     def get_flags(self, instance):

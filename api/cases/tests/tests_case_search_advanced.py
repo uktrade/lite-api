@@ -18,7 +18,6 @@ from api.applications.tests.factories import (
 )
 from api.parties.tests.factories import PartyFactory
 from api.flags.tests.factories import FlagFactory
-from api.goods.enums import GoodControlled
 from api.goods.tests.factories import GoodFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -105,9 +104,7 @@ class FilterAndSortTests(DataTestClient):
     def test_filter_by_good_control_list_entry(self):
         application_1 = StandardApplicationFactory()
         good = GoodFactory(
-            organisation=application_1.organisation,
-            is_good_controlled=GoodControlled.YES,
-            control_list_entries=["ML1a"],
+            organisation=application_1.organisation, is_good_controlled=True, control_list_entries=["ML1a"],
         )
         GoodOnApplicationFactory(application=application_1, good=good)
 

@@ -2,6 +2,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse
+from django.utils.functional import cached_property
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
@@ -19,7 +20,7 @@ from api.core.helpers import str_to_bool
 from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
-from api.goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemCategory
+from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
 from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (
     check_if_firearm_details_edited_on_unsupported_good,
@@ -32,7 +33,7 @@ from api.goods.serializers import (
     GoodCreateSerializer,
     GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
-    ClcControlGoodSerializer,
+    ControlGoodOnApplicationSerializer,
     GoodListSerializer,
     GoodSerializerInternal,
     GoodSerializerExporter,
@@ -40,7 +41,7 @@ from api.goods.serializers import (
     GoodMissingDocumentSerializer,
     TinyGoodDetailsSerializer,
 )
-from api.goodstype.helpers import get_goods_type
+from api.goodstype.models import GoodsType
 from api.goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -53,68 +54,66 @@ from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for
 class GoodsListControlCode(APIView):
     authentication_classes = (GovAuthentication,)
 
-    @transaction.atomic
-    def post(self, request, case_pk):
-        """
-        Set control list codes on multiple goods.
-        """
+    @cached_property
+    def application(self):
+        return BaseApplication.objects.select_related("status").get(id=self.kwargs["case_pk"])
+
+    def get_queryset(self):
+        pks = self.request.data["objects"]
+        if not isinstance(pks, list):
+            pks = [pks]
+        if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
+            return GoodsType.objects.filter(pk__in=pks)
+        return GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
+
+    def get_serializer_class(self):
+        if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
+            return ClcControlGoodTypeSerializer
+        return ControlGoodOnApplicationSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        return serializer_class(*args, **kwargs, data=self.request.data)
+
+    def check_permissions(self, request):
         assert_user_has_permission(request.user.govuser, constants.GovPermissions.REVIEW_GOODS)
 
-        case = get_case(case_pk)
-        application = BaseApplication.objects.get(id=case_pk)
-
-        if CaseStatusEnum.is_terminal(application.status.status):
+    @transaction.atomic
+    def post(self, request, case_pk):
+        if CaseStatusEnum.is_terminal(self.application.status.status):
             return JsonResponse(
                 data={"errors": {"error": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = request.data
-        objects = data.get("objects")
+        case = get_case(case_pk)
 
-        if application.case_type.sub_type not in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
-            serializer_class = ClcControlGoodSerializer
-            get_good_func = get_good
-        else:
-            serializer_class = ClcControlGoodTypeSerializer
-            get_good_func = get_goods_type
+        for good in self.get_queryset():
+            serializer = self.get_serializer(good)
+            serializer.is_valid(raise_exception=True)
+            old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
+            serializer.save()
+            if "control_list_entries" in serializer.data:
+                is_control_list_dirty = old_control_list_entries != serializer.validated_data["control_list_entries"]
+            else:
+                is_control_list_dirty = False
 
-        if not isinstance(objects, list):
-            objects = [objects]
-
-        for good_id in objects:
-            good = get_good_func(good_id)
-            serializer = serializer_class(good, data=data)
-            if serializer.is_valid(raise_exception=True):
-                # Get the old control list entries if any and retrieve their ratings for display in the audit trail
-                old_control_list_entries = list(good.control_list_entries.all()) or [strings.Goods.GOOD_NO_CONTROL_CODE]
-                if strings.Goods.GOOD_NO_CONTROL_CODE not in old_control_list_entries:
-                    old_control_list_entries = [clc.rating for clc in old_control_list_entries]
-
-                serializer.save()
-
-                new_control_list_entries = list(good.control_list_entries.all()) or [strings.Goods.GOOD_NO_CONTROL_CODE]
-
-                if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
-                    new_control_list_entries = [clc.rating for clc in new_control_list_entries]
-                else:
-                    # Clear flags if control list entries no longer present
-                    good.flags.clear()
-
-                if new_control_list_entries != old_control_list_entries:
-                    good.flags.clear()
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.GOOD_REVIEWED,
-                        action_object=good,
-                        target=case,
-                        payload={
-                            "good_name": good.description,
-                            "new_control_list_entry": new_control_list_entries,
-                            "old_control_list_entry": old_control_list_entries,
-                            "additional_text": data.get("comment"),
-                        },
-                    )
+            if is_control_list_dirty:
+                good.flags.clear()
+                default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
+                new_control_list_entry = [item.rating for item in serializer.validated_data["control_list_entries"]]
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.GOOD_REVIEWED,
+                    action_object=good,
+                    target=case,
+                    payload={
+                        "good_name": good.description,
+                        "new_control_list_entry": new_control_list_entry or default_control,
+                        "old_control_list_entry": old_control_list_entries or default_control,
+                        "additional_text": serializer.validated_data["comment"],
+                    },
+                )
 
         apply_good_flagging_rules_for_case(case)
 
@@ -336,10 +335,7 @@ class GoodOverview(APIView):
 
         data = request.data.copy()
 
-        if (
-            data.get("is_good_controlled") == GoodControlled.UNSURE
-            or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED
-        ):
+        if data.get("is_good_controlled") is None or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED:
             for good_on_application in GoodOnApplication.objects.filter(good=good):
                 good_on_application.delete()
 

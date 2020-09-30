@@ -2,7 +2,6 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from api.goods.enums import GoodControlled
 from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
@@ -12,7 +11,7 @@ from api.users.libraries.user_to_token import user_to_token
 
 class GoodViewTests(DataTestClient):
     def test_view_good_details(self):
-        good = Good(description="thing", is_good_controlled=GoodControlled.NO, organisation=self.organisation)
+        good = Good(description="thing", is_good_controlled=False, organisation=self.organisation)
         good.save()
 
         url = reverse("goods:good", kwargs={"pk": good.id})
@@ -24,7 +23,7 @@ class GoodViewTests(DataTestClient):
         organisation_2, _ = self.create_organisation_with_exporter_user()
         organisation_2_admin = get_users_from_organisation(organisation_2)[0]
 
-        good = Good(description="thing", is_good_controlled=GoodControlled.NO, organisation=self.organisation)
+        good = Good(description="thing", is_good_controlled=False, organisation=self.organisation)
         good.save()
 
         url = reverse("goods:good", kwargs={"pk": good.id})
@@ -102,8 +101,8 @@ class GoodViewTests(DataTestClient):
     def test_view_good__query_filter_by_control_list_entry(self, control_list_entry, count):
         org = self.organisation
 
-        GoodFactory(organisation=org, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
-        GoodFactory(organisation=org, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
+        GoodFactory(organisation=org, is_good_controlled=True, control_list_entries=["ML1a"])
+        GoodFactory(organisation=org, is_good_controlled=True, control_list_entries=["ML1a"])
 
         url = reverse("goods:goods") + "?control_list_entry=" + control_list_entry
 

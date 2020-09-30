@@ -1,6 +1,56 @@
 from api.licences.enums import LicenceStatus
-from api.licences.models import Licence
+from api.licences.models import GoodOnLicence, Licence
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+
+from rest_framework import serializers
+
+
+class GoodOnLicenceSerializer(serializers.ModelSerializer):
+    control_list_entries = serializers.SerializerMethodField()
+    is_good_controlled = serializers.SerializerMethodField()
+    description = serializers.CharField(source="good.good.description")
+
+    # instance.good is good_on_application
+    # instance.good.good is canonical good
+    def get_is_good_controlled(self, instance):
+        if instance.good.is_good_controlled is None:
+            return instance.good.good.is_good_controlled
+        return instance.good.is_good_controlled
+
+    def get_control_list_entries(self, instance):
+        if instance.good.is_good_controlled is None:
+            control_list_entries = instance.good.good.control_list_entries
+        else:
+            control_list_entries = instance.good.control_list_entries
+        return ControlListEntrySerializer(control_list_entries, many=True).data
+
+    class Meta:
+        model = GoodOnLicence
+        fields = (
+            "control_list_entries",
+            "is_good_controlled",
+            "description",
+            "quantity",
+            "usage",
+        )
+
+
+class LicenceSerializer(serializers.ModelSerializer):
+
+    goods = GoodOnLicenceSerializer(many=True)
+    status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Licence
+        fields = (
+            "id",
+            "reference_code",
+            "status",
+            "goods",
+        )
+
+    def get_status(self, instance):
+        return LicenceStatus.to_str(instance.status)
 
 
 def get_case_licences(case):
@@ -11,22 +61,4 @@ def get_case_licences(case):
         .filter(case=case)
         .order_by("created_at")
     )
-    return [
-        {
-            "id": str(licence.id),
-            "reference_code": licence.reference_code,
-            "status": LicenceStatus.to_str(licence.status),
-            "goods": [
-                {
-                    "description": licence_good.good.good.description,
-                    "control_list_entries": ControlListEntrySerializer(
-                        licence_good.good.good.control_list_entries.all(), many=True
-                    ).data,
-                    "quantity": licence_good.quantity,
-                    "usage": licence_good.usage,
-                }
-                for licence_good in licence.goods.all()
-            ],
-        }
-        for licence in licences
-    ]
+    return LicenceSerializer(licences, many=True).data

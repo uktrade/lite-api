@@ -3,8 +3,7 @@ from rest_framework.fields import empty
 
 from api.applications.models import BaseApplication
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.core.helpers import str_to_bool
-from api.core.serializers import ControlListEntryField
+from api.core.serializers import ControlListEntryField, GoodControlReviewSerializer
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodControlled
 from api.goodstype.constants import DESCRIPTION_MAX_LENGTH
@@ -102,29 +101,10 @@ class GoodsTypeViewSerializer(serializers.Serializer):
         return docs[0] if docs else None
 
 
-class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
-    control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
-    is_good_controlled = serializers.BooleanField()
-    comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
-    report_summary = serializers.CharField(required=False)
-
-    class Meta:
+class ClcControlGoodTypeSerializer(GoodControlReviewSerializer):
+    class Meta(GoodControlReviewSerializer.Meta):
         model = GoodsType
-        fields = (
-            "control_list_entries",
-            "is_good_controlled",
-            "comment",
-            "report_summary",
-        )
 
     def update(self, instance, validated_data):
-        instance.is_good_controlled = str_to_bool(validated_data.get("is_good_controlled"))
-        instance.comment = validated_data.get("comment")
-        instance.report_summary = validated_data.get("report_summary")
         instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
-
-        if "control_list_entries" in validated_data:
-            instance.control_list_entries.set(validated_data["control_list_entries"])
-
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
