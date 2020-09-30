@@ -57,7 +57,7 @@ class CaseAssignmentTests(DataTestClient):
 
     def test_all_assignments_are_cleared_when_a_case_leaves_a_queue(self):
         self.queue.cases.add(self.case)
-        CaseAssignment.objects.create(queue=self.queue, case=self.case, user=self.gov_user)
+        CaseAssignment.objects.create(queue=self.queue, case=self.case.case_ptr, user=self.gov_user)
 
         self.url = reverse("cases:queues", kwargs={"pk": self.case.id})
 

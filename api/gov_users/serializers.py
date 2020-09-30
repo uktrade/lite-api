@@ -168,8 +168,8 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
     def create(self, validated_data):
         base_user_defaults = {
             "email": validated_data.pop("email"),
-            "last_name": validated_data.pop("last_name", None),
-            "first_name": validated_data.pop("first_name", None),
+            "last_name": validated_data.pop("last_name", ""),
+            "first_name": validated_data.pop("first_name", ""),
         }
         base_user, _ = BaseUser.objects.get_or_create(
             email__iexact=base_user_defaults["email"], type=UserType.INTERNAL, defaults=base_user_defaults

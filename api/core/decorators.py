@@ -15,6 +15,7 @@ from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import GovUser, ExporterUser
 from rest_framework.views import APIView
+from api.users.enums import UserType
 
 
 def _get_application_id(request: APIView, kwargs):
@@ -112,13 +113,26 @@ def authorised_to_view_application(user_type: Union[Type[GovUser], Type[Exporter
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            if not isinstance(request.request.user, user_type):
+            base_user = request.request.user
+            user = base_user
+            if hasattr(base_user, "govuser"):
+                user = base_user.govuser
+            elif hasattr(base_user, "exporteruser"):
+                user = base_user.exporteruser
+
+            if not isinstance(user, user_type):
                 return JsonResponse(
                     data={"errors": ["You are not authorised to perform this operation"]},
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            if isinstance(request.request.user, ExporterUser):
+            if user.type != UserType.INTERNAL and user.type != UserType.EXPORTER:
+                return JsonResponse(
+                    data={"errors": ["You are not authorised to perform this operation"]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            if user.type == UserType.EXPORTER:
                 pk = _get_application_id(request, kwargs)
                 organisation_id = get_request_user_organisation_id(request.request)
                 required_application_details = _get_application(request, kwargs).values(

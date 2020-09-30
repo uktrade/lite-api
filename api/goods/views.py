@@ -58,11 +58,6 @@ class GoodsListControlCode(APIView):
     def application(self):
         return BaseApplication.objects.select_related("status").get(id=self.kwargs["case_pk"])
 
-    def get_serializer_class(self):
-        if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
-            return ClcControlGoodTypeSerializer
-        return ControlGoodOnApplicationSerializer
-
     def get_queryset(self):
         pks = self.request.data["objects"]
         if not isinstance(pks, list):
@@ -71,12 +66,17 @@ class GoodsListControlCode(APIView):
             return GoodsType.objects.filter(pk__in=pks)
         return GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
 
+    def get_serializer_class(self):
+        if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
+            return ClcControlGoodTypeSerializer
+        return ControlGoodOnApplicationSerializer
+
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         return serializer_class(*args, **kwargs, data=self.request.data)
 
     def check_permissions(self, request):
-        assert_user_has_permission(request.user, constants.GovPermissions.REVIEW_GOODS)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.REVIEW_GOODS)
 
     @transaction.atomic
     def post(self, request, case_pk):
@@ -126,7 +126,7 @@ class GoodList(ListCreateAPIView):
     pagination_class = GoodListPaginator
 
     def get_serializer_context(self):
-        return {"exporter_user": self.request.user, "organisation_id": get_request_user_organisation_id(self.request)}
+        return {"exporter_user": self.request.user.exporteruser, "organisation_id": get_request_user_organisation_id(self.request)}
 
     def get_queryset(self):
         description = self.request.GET.get("description", "")
@@ -253,7 +253,7 @@ class GoodTAUDetails(APIView):
     def get(self, request, pk):
         good = get_good(pk)
 
-        if isinstance(request.user, ExporterUser):
+        if hasattr(request.user, "exporteruser"):
             if good.organisation.id != get_request_user_organisation_id(request):
                 raise PermissionDenied()
             else:
@@ -295,7 +295,7 @@ class GoodOverview(APIView):
     def get(self, request, pk):
         good = get_good(pk)
 
-        if isinstance(request.user, ExporterUser):
+        if hasattr(request.user, "exporteruser"):
             if good.organisation.id != get_request_user_organisation_id(request):
                 raise PermissionDenied()
 
@@ -303,7 +303,7 @@ class GoodOverview(APIView):
                 serializer = GoodSerializerExporterFullDetail(
                     good,
                     context={
-                        "exporter_user": request.user,
+                        "exporter_user": request.user.exporteruser,
                         "organisation_id": get_request_user_organisation_id(request),
                     },
                 )
@@ -314,7 +314,7 @@ class GoodOverview(APIView):
             query = GoodsQuery.objects.filter(good=good)
             if query:
                 delete_exporter_notifications(
-                    user=request.user, organisation_id=get_request_user_organisation_id(request), objects=query
+                    user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=query
                 )
         else:
             serializer = GoodSerializerInternal(good)

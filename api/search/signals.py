@@ -22,6 +22,7 @@ def update_application_document(sender, **kwargs):
     """
     if issubclass(sender, BaseApplication):
         registry.update(instance.baseapplication)
+
     try:
         if app_label == "cases" and model_name == "caseassignment":
             registry.update(instance.case.baseapplication)
@@ -36,6 +37,5 @@ def update_application_document(sender, **kwargs):
         elif app_label == "organisations" and model_name == "organisation":
             for case in instance.cases.all():
                 registry.update(case.baseapplication)
-
     except ObjectDoesNotExist:
         pass

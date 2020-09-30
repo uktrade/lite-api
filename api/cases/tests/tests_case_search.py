@@ -276,6 +276,7 @@ class UpdatedCasesQueueTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation).get_case()
         case.queues.set([self.queue])
         case_assignment = CaseAssignment.objects.create(case=case, queue=self.queue, user=self.gov_user)
+        self.gov_user.send_notification(content_object=self.audit, case=case)
 
         response = self.client.get(self.url, **self.gov_headers)
 

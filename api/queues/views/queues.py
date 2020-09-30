@@ -34,14 +34,14 @@ class QueuesList(generics.ListAPIView):
             queryset = queryset.filter(name__icontains=name)
         if str_to_bool(users_team_first):
             queryset = queryset.annotate(
-                users_team=(Case(When(team=self.request.user.team, then=1), default=0, output_field=BinaryField()))
+                users_team=(Case(When(team=self.request.user.govuser.team, then=1), default=0, output_field=BinaryField()))
             ).order_by("-users_team")
 
         return queryset
 
     def post(self, request):
         data = request.data.copy()
-        data["team"] = request.user.team.id
+        data["team"] = request.user.govuser.team.id
         serializer = QueueCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):

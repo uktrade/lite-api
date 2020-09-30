@@ -77,7 +77,7 @@ class GoodsQueriesCreate(APIView):
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_starting_status(is_clc_required),
             submitted_at=django.utils.timezone.now(),
-            submitted_by=request.user,
+            submitted_by=request.user.exporteruser,
         )
 
         # attach flags based on what's required
@@ -114,7 +114,7 @@ class GoodQueryCLCResponse(APIView):
 
     def put(self, request, pk):
         """ Respond to a control list classification."""
-        assert_user_has_permission(request.user, constants.GovPermissions.REVIEW_GOODS)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.REVIEW_GOODS)
 
         query = get_exporter_query(pk)
         if CaseStatusEnum.is_terminal(query.status.status):
@@ -189,7 +189,7 @@ class GoodQueryPVGradingResponse(APIView):
     @transaction.atomic
     def put(self, request, pk):
         """ Respond to a control list classification."""
-        assert_user_has_permission(request.user, constants.GovPermissions.RESPOND_PV_GRADING)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.RESPOND_PV_GRADING)
 
         query = get_exporter_query(pk)
         if CaseStatusEnum.is_terminal(query.status.status):

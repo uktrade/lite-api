@@ -308,7 +308,7 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
     def get_flags(self, instance):
         # TODO remove try block when other end points adopt generics
         try:
-            if isinstance(self.context.get("request").user, GovUser):
+            if hasattr(self.context.get("request").user, "govuser"):
                 return list(instance.flags.values("id", "name", "colour", "label", "priority"))
         except AttributeError:
             return list(instance.flags.values("id", "name", "colour", "label", "priority"))

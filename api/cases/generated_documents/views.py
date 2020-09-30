@@ -43,10 +43,10 @@ class GeneratedDocuments(generics.ListAPIView):
         pk = self.kwargs["pk"]
         user = self.request.user
 
-        if user.type == UserType.EXPORTER:
+        if hasattr(user, "exporteruser"):
             documents = GeneratedCaseDocument.objects.filter(case_id=pk, visible_to_exporter=True)
             delete_exporter_notifications(
-                user=user, organisation_id=get_request_user_organisation_id(self.request), objects=documents
+                user=user.exporteruser, organisation_id=get_request_user_organisation_id(self.request), objects=documents
             )
         else:
             documents = GeneratedCaseDocument.objects.filter(case_id=pk)
@@ -104,7 +104,7 @@ class GeneratedDocuments(generics.ListAPIView):
 
                 generated_doc = GeneratedCaseDocument.objects.create(
                     name=document_name,
-                    user=request.user,
+                    user=request.user.govuser,
                     s3_key=s3_key,
                     virus_scanned_at=timezone.now(),
                     safe=True,
@@ -118,7 +118,7 @@ class GeneratedDocuments(generics.ListAPIView):
                 )
 
                 audit_trail_service.create(
-                    actor=request.user,
+                    actor=request.user.govuser,
                     verb=AuditType.GENERATE_CASE_DOCUMENT,
                     action_object=generated_doc,
                     target=document.case,

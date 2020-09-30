@@ -38,7 +38,7 @@ class PickListsView(OptionalPaginationView):
         """
         Returns a list of all picklist items, filtered by type and by show_deactivated
         """
-        picklist_items = PicklistItem.objects.filter(team=self.request.user.team,)
+        picklist_items = PicklistItem.objects.filter(team=self.request.user.govuser.team,)
 
         picklist_type = self.request.GET.get("type")
         name = self.request.GET.get("name")
@@ -64,9 +64,9 @@ class PickListsView(OptionalPaginationView):
         """
         Add a new picklist item
         """
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_PICKLISTS)
+        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_PICKLISTS)
         data = JSONParser().parse(request)
-        data["team"] = request.user.team.id
+        data["team"] = request.user.govuser.team.id
         serializer = PicklistUpdateCreateSerializer(data=data, partial=True)
 
         if serializer.is_valid():
@@ -99,10 +99,10 @@ class PicklistItemDetail(APIView):
         """
         Edit status of a new picklist item
         """
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_PICKLISTS)
+        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_PICKLISTS)
         picklist_item = get_picklist_item(pk)
 
-        if request.user.team != picklist_item.team:
+        if request.user.govuser.team != picklist_item.team:
             return JsonResponse(data={"errors": strings.Picklists.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN,)
 
         serializer = PicklistUpdateCreateSerializer(instance=picklist_item, data=request.data, partial=True)

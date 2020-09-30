@@ -22,6 +22,7 @@ class CasesSearchView(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, *args, **kwargs):
+        user = request.user.govuser
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
         is_system_queue = queue_id in SYSTEM_QUEUES.keys()
@@ -47,13 +48,13 @@ class CasesSearchView(generics.ListAPIView):
             Case.objects.search(
                 queue_id=queue_id,
                 is_work_queue=is_work_queue,
-                user=request.user,
+                user=user,
                 include_hidden=include_hidden,
                 **filters,
             ).annotate(
                 next_review_date=django.db.models.Case(
                     When(
-                        case_review_date__team_id=request.user.team.id,
+                        case_review_date__team_id=user.team.id,
                         case_review_date__next_review_date__gte=timezone.now().date(),
                         then=F("case_review_date__next_review_date"),
                     ),
@@ -62,18 +63,18 @@ class CasesSearchView(generics.ListAPIView):
                 ),
                 has_open_queries=Exists(
                     EcjuQuery.objects.filter(
-                        case=OuterRef("pk"), raised_by_user__team_id=request.user.team.id, responded_at__isnull=True
+                        case=OuterRef("pk"), raised_by_user__team_id=user.team.id, responded_at__isnull=True
                     )
                 ),
             )
         )
 
         queues = get_system_queues(
-            include_team_info=False, include_case_count=True, user=request.user
-        ) + get_team_queues(team_id=request.user.team_id, include_team_info=False, include_case_count=True)
+            include_team_info=False, include_case_count=True, user=user
+        ) + get_team_queues(team_id=user.team_id, include_team_info=False, include_case_count=True)
 
         cases = CaseListSerializer(
-            page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
+            page, context=context, team=user.team, include_hidden=include_hidden, many=True
         ).data
 
         # Populate certain fields outside of the serializer for performance improvements
