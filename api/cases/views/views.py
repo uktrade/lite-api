@@ -89,8 +89,9 @@ class CaseDetail(APIView):
         """
         Retrieve a case instance
         """
+        gov_user = request.user.govuser
         case = get_case(pk)
-        data = CaseDetailSerializer(case, user=request.user, team=request.user.team).data
+        data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data
 
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             data["data"]["destinations"] = get_destinations(case.id)  # noqa
@@ -266,12 +267,12 @@ class TeamAdviceView(APIView):
         """
         Concatenates all advice for a case
         """
-        if self.team_advice.filter(team=request.user.team).count() == 0:
-            user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user)
+        if self.team_advice.filter(team=request.user.govuser.team).count() == 0:
+            user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user.govuser)
             if user_cannot_manage_team_advice:
                 return user_cannot_manage_team_advice
 
-            team = self.request.user.team_id
+            team = self.request.user.govuser.team_id
             advice = self.advice.filter(user__team_id=team)
             group_advice(self.case, advice, request.user, AdviceLevel.TEAM)
             case_advice_contains_refusal(pk)
@@ -291,7 +292,7 @@ class TeamAdviceView(APIView):
         """
         Creates advice for a case
         """
-        user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user)
+        user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user.govuser)
         if user_cannot_manage_team_advice:
             return user_cannot_manage_team_advice
 
@@ -307,11 +308,11 @@ class TeamAdviceView(APIView):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user)
+        user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user.govuser)
         if user_cannot_manage_team_advice:
             return user_cannot_manage_team_advice
 
-        self.team_advice.filter(team=self.request.user.team).delete()
+        self.team_advice.filter(team=self.request.user.govuser.team).delete()
         case_advice_contains_refusal(pk)
         audit_trail_service.create(actor=request.user, verb=AuditType.CLEARED_TEAM_ADVICE, target=self.case)
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
@@ -378,7 +379,7 @@ class FinalAdvice(APIView):
         Concatenates all advice for a case and returns it or just returns if final advice already exists
         """
         if len(self.final_advice) == 0:
-            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+            assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
             group_advice(self.case, self.team_advice, request.user, AdviceLevel.FINAL)
 
@@ -396,14 +397,14 @@ class FinalAdvice(APIView):
         """
         Creates advice for a case
         """
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         return post_advice(request, self.case, AdviceLevel.FINAL, team=True)
 
     def delete(self, request, pk):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         self.final_advice.delete()
         # Delete GoodCountryDecisions as final advice is no longer applicable
         GoodCountryDecision.objects.filter(case_id=pk).delete()
@@ -426,10 +427,10 @@ class ECJUQueries(APIView):
             .order_by("created_at")
         )
 
-        if isinstance(request.user, ExporterUser):
+        if hasattr(request.user, "exporteruser"):
             serializer = EcjuQueryExporterViewSerializer(case_ecju_queries, many=True)
             delete_exporter_notifications(
-                user=request.user, organisation_id=get_request_user_organisation_id(request), objects=case_ecju_queries
+                user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=case_ecju_queries
             )
         else:
             serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
@@ -440,7 +441,7 @@ class ECJUQueries(APIView):
         """
         Add a new ECJU query
         """
-        data = {**request.data, "case": pk, "raised_by_user": request.user.pk, "team": request.user.team.id}
+        data = {**request.data, "case": pk, "raised_by_user": request.user.pk, "team": request.user.govuser.team.id}
         serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
@@ -545,13 +546,13 @@ class GoodsCountriesDecisions(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         approved, refused = good_type_to_country_decisions(pk)
         return JsonResponse({"approved": list(approved.values()), "refused": list(refused.values())})
 
     @transaction.atomic
     def post(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         data = {k: v for k, v in request.data.items() if v is not None}
 
@@ -597,7 +598,7 @@ class OpenLicenceDecision(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         return JsonResponse(
             data={
                 "decision": AdviceType.APPROVE
@@ -693,9 +694,9 @@ class FinaliseView(UpdateAPIView):
 
         # Check Permissions
         if CaseTypeSubTypeEnum.is_mod_clearance(case.case_type.sub_type):
-            assert_user_has_permission(request.user, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE)
+            assert_user_has_permission(request.user.govuser, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE)
         else:
-            assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+            assert_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         required_decisions = get_required_decision_document_types(case)
 
@@ -828,8 +829,8 @@ class NextReviewDate(APIView):
         case = get_case(pk)
         next_review_date = request.data.get("next_review_date")
 
-        current_review_date = CaseReviewDate.objects.filter(case_id=case.id, team_id=request.user.team.id)
-        data = {"next_review_date": next_review_date, "case": case.id, "team": request.user.team.id}
+        current_review_date = CaseReviewDate.objects.filter(case_id=case.id, team_id=request.user.govuser.team.id)
+        data = {"next_review_date": next_review_date, "case": case.id, "team": request.user.govuser.team.id}
 
         if current_review_date.exists():
             current_review_date = current_review_date.get()
@@ -842,7 +843,7 @@ class NextReviewDate(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
 
-            team = request.user.team.name
+            team = request.user.govuser.team.name
             if old_next_review_date is None and next_review_date:
                 audit_trail_service.create(
                     actor=request.user,

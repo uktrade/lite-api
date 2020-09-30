@@ -22,11 +22,12 @@ def update_application_document(sender, **kwargs):
     """
     if issubclass(sender, BaseApplication):
         registry.update(instance.baseapplication)
+
     try:
         if app_label == "cases":
-            if model_name == "caseassignment":
+            if model_name == "caseassignment" and hasattr(instance.case, "baseapplication"):
                 registry.update(instance.case.baseapplication)
-            elif model_name == "case":
+            elif model_name == "case" and hasattr(instance, "baseapplication"):
                 registry.update(instance.baseapplication)
 
         if app_label == "goods":

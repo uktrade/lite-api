@@ -91,12 +91,12 @@ class FlagsRetrieveUpdateView(RetrieveUpdateAPIView):
     serializer_class = FlagSerializer
 
     def get_queryset(self):
-        return Flag.objects.filter(team=self.request.user.team)
+        return Flag.objects.filter(team=self.request.user.govuser.team)
 
     def perform_update(self, serializer):
         # if status is being updated, ensure user has permission
         if self.request.data.get("status"):
-            assert_user_has_permission(self.request.user, GovPermissions.ACTIVATE_FLAGS)
+            assert_user_has_permission(self.request.user.govuser, GovPermissions.ACTIVATE_FLAGS)
         serializer.save()
         apply_flagging_rule_for_flag(self.kwargs["pk"])
 
@@ -120,7 +120,7 @@ class AssignFlags(APIView):
         for pk in objects:
             obj = get_object_of_level(level, pk)
             serializer = FlagAssignmentSerializer(
-                data=data, context={"team": request.user.team, "level": level.title()}
+                data=data, context={"team": request.user.govuser.team, "level": level.title()}
             )
 
             if serializer.is_valid():
@@ -129,7 +129,7 @@ class AssignFlags(APIView):
                     level=level.title(),
                     note=serializer.validated_data.get("note"),
                     obj=obj,
-                    user=request.user,
+                    user=request.user.govuser,
                 )
                 response_data.append({level.lower(): serializer.data})
             else:
@@ -285,7 +285,7 @@ class FlaggingRules(ListCreateAPIView):
             return FlaggingRuleSerializer
 
     def get_queryset(self):
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
+        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_FLAGGING_RULES)
         rules = FlaggingRule.objects.all().prefetch_related("flag", "team")
 
         include_deactivated = self.request.query_params.get("include_deactivated", "")
@@ -298,15 +298,15 @@ class FlaggingRules(ListCreateAPIView):
 
         only_my_team = self.request.query_params.get("only_my_team", "")
         if only_my_team:
-            rules = rules.filter(team=self.request.user.team)
+            rules = rules.filter(team=self.request.user.govuser.team)
 
         return rules
 
     @transaction.atomic
     def post(self, request):
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
+        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_FLAGGING_RULES)
         json = request.data
-        json["team"] = self.request.user.team.id
+        json["team"] = self.request.user.govuser.team.id
 
         serializer = FlaggingRuleSerializer(data=request.data)
 
@@ -328,10 +328,10 @@ class FlaggingRuleDetail(APIView):
         return JsonResponse(data={"flag": serializer.data})
 
     def put(self, request, pk):
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
+        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_FLAGGING_RULES)
         flagging_rule = get_flagging_rule(pk)
 
-        if request.user.team != flagging_rule.team:
+        if request.user.govuser.team != flagging_rule.team:
             return JsonResponse(data={"errors": strings.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = FlaggingRuleSerializer(instance=flagging_rule, data=request.data, partial=True)

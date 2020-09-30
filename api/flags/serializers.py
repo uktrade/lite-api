@@ -65,7 +65,7 @@ class FlagSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
         if self.context and not self.context.get("request").method == "GET":
-            self.initial_data["team"] = self.context.get("request").user.team_id
+            self.initial_data["team"] = self.context.get("request").user.govuser.team_id
 
         if hasattr(self, "initial_data"):
             if self.initial_data.get("colour") != FlagColours.DEFAULT:

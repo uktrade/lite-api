@@ -35,8 +35,8 @@ class UsersList(generics.ListCreateAPIView):
         exclude_permission = self.request.GET.get("exclude_permission")
         organisation_id = self.kwargs["org_pk"]
 
-        if isinstance(self.request.user, ExporterUser):
-            assert_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_USERS, organisation_id)
+        if hasattr(self.request.user, "exporteruser"):
+            assert_user_has_permission(self.request.user.exporteruser, ExporterPermissions.ADMINISTER_USERS, organisation_id)
 
         query = [Q(relationship__organisation__id=organisation_id)]
 
@@ -61,8 +61,8 @@ class UsersList(generics.ListCreateAPIView):
         """
         Create an exporter user within the specified organisation
         """
-        if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
+        if hasattr(request.user, "exporteruser"):
+            assert_user_has_permission(request.user.exporteruser, ExporterPermissions.ADMINISTER_USERS, org_pk)
         data = JSONParser().parse(request)
         data["organisation"] = str(org_pk)
         serializer = ExporterUserCreateUpdateSerializer(data=data)
@@ -82,8 +82,8 @@ class UserDetail(APIView):
         Return a user from the specified organisation
         """
         is_self = str(request.user.pk) == str(user_pk)
-        if not is_self and isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
+        if not is_self and hasattr(request.user, "exporteruser"):
+            assert_user_has_permission(request.user.exporteruser, ExporterPermissions.ADMINISTER_USERS, org_pk)
 
         relationship = get_user_organisation_relationship(user_pk, org_pk)
         sites = Site.objects.get_by_user_organisation_relationship(relationship)
@@ -104,8 +104,8 @@ class UserDetail(APIView):
         """
         Update the status of a user
         """
-        if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
+        if hasattr(request.user, "exporteruser"):
+            assert_user_has_permission(request.user.exporteruser, ExporterPermissions.ADMINISTER_USERS, org_pk)
 
         data = JSONParser().parse(request)
         user = get_user_by_pk(user_pk)
@@ -119,7 +119,7 @@ class UserDetail(APIView):
         if (
             data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
             or user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
-        ) and not request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+        ) and not request.user.exporteruser.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 
         # Don't allow a user to update their own status or that of a super user

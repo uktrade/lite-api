@@ -135,12 +135,12 @@ class Case(TimestampableModel):
 
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         if status.status == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+            assert_user_has_permission(user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         if not can_set_status(self, status.status):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
-        if not can_status_be_set_by_gov_user(user, old_status, status.status, is_mod=False):
+        if not can_status_be_set_by_gov_user(user.govuser, old_status, status.status, is_mod=False):
             raise ValidationError({"status": ["Status cannot be set by user"]})
 
         self.status = status

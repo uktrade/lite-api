@@ -21,12 +21,12 @@ class CaseNoteList(APIView):
 
     def get(self, request, pk):
         """ Gets all case notes. """
-        is_user_exporter = isinstance(request.user, ExporterUser)
+        is_user_exporter = hasattr(request.user, "exporteruser")
         case_notes = get_case_notes_from_case(pk, only_show_notes_visible_to_exporter=is_user_exporter)
 
         if is_user_exporter:
             delete_exporter_notifications(
-                user=request.user, organisation_id=get_request_user_organisation_id(request), objects=case_notes
+                user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=case_notes
             )
 
         serializer = self.serializer(case_notes, many=True)
@@ -34,9 +34,9 @@ class CaseNoteList(APIView):
 
     def post(self, request, pk):
         """ Create a case note on a case. """
-        case = get_case(pk, isinstance(request.user, ExporterUser))
+        case = get_case(pk, hasattr(request.user, "exporteruser"))
 
-        if CaseStatusEnum.is_terminal(case.status.status) and isinstance(request.user, ExporterUser):
+        if CaseStatusEnum.is_terminal(case.status.status) and hasattr(request.user, "exporteruser"):
             return JsonResponse(
                 data={"errors": {"text": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
                 status=status.HTTP_400_BAD_REQUEST,

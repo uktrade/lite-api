@@ -104,7 +104,7 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(ComplianceLicenceListSerializer, self).__init__(*args, **kwargs)
 
-        self.team = get_team_by_pk(self.context.get("request").user.team_id)
+        self.team = get_team_by_pk(self.context.get("request").user.govuser.team_id)
 
     def get_flags(self, instance):
         return get_ordered_flags(case=instance, team=self.team, limit=3)

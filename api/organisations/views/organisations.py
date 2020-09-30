@@ -39,7 +39,7 @@ class OrganisationsList(generics.ListCreateAPIView):
     def get_queryset(self):
         """ List all organisations. """
         if (
-            getattr(self.request.user, "type", None) != UserType.INTERNAL
+            hasattr(self.request.user, "exporteruser")
             and get_request_user_organisation(self.request).type != OrganisationType.HMRC
         ):
             raise PermissionError("Exporters aren't allowed to view other organisations")
@@ -107,12 +107,12 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
         organisation = get_organisation_by_pk(pk)
         org_name_changed = False
 
-        if not check_user_has_permission(request.user, GovPermissions.MANAGE_ORGANISATIONS):
+        if not check_user_has_permission(request.user.govuser, GovPermissions.MANAGE_ORGANISATIONS):
             return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST,)
 
         if request.data.get("name", organisation.name) != organisation.name:
             org_name_changed = True
-            if not check_user_has_permission(request.user, GovPermissions.REOPEN_CLOSED_CASES):
+            if not check_user_has_permission(request.user.govuser, GovPermissions.REOPEN_CLOSED_CASES):
                 return JsonResponse(
                     data={"errors": Organisations.NO_PERM_TO_EDIT_NAME}, status=status.HTTP_400_BAD_REQUEST,
                 )
@@ -207,7 +207,7 @@ class OrganisationStatusView(generics.UpdateAPIView):
     serializer_class = OrganisationStatusUpdateSerializer
 
     def get_object(self):
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_ORGANISATIONS)
+        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_ORGANISATIONS)
         return get_organisation_by_pk(self.kwargs["pk"])
 
     def update(self, request, *args, **kwargs):

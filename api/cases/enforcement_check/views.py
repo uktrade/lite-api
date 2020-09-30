@@ -25,7 +25,7 @@ class EnforcementCheckView(APIView):
         """
         Fetch enforcement check XML for cases on queue
         """
-        assert_user_has_permission(request.user, GovPermissions.ENFORCEMENT_CHECK)
+        assert_user_has_permission(request.user.govuser, GovPermissions.ENFORCEMENT_CHECK)
         cases = Case.objects.filter(queues=queue_pk, flags=Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED))
 
         if not cases:
@@ -41,7 +41,7 @@ class EnforcementCheckView(APIView):
         return HttpResponse(xml, content_type="text/xml")
 
     def post(self, request, queue_pk):
-        assert_user_has_permission(request.user, GovPermissions.ENFORCEMENT_CHECK)
+        assert_user_has_permission(request.user.govuser, GovPermissions.ENFORCEMENT_CHECK)
         file = request.data.get("file")
         if not file:
             raise ValidationError({"file": [Cases.EnforcementUnit.NO_FILE_ERROR]})

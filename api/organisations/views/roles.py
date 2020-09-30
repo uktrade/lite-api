@@ -27,7 +27,7 @@ class RolesViews(ListCreateAPIView):
         """
         Create a role
         """
-        assert_user_has_permission(request.user, ExporterPermissions.EXPORTER_ADMINISTER_ROLES, org_pk)
+        assert_user_has_permission(request.user.exporteruser, ExporterPermissions.EXPORTER_ADMINISTER_ROLES, org_pk)
         data = JSONParser().parse(request)
         data["organisation"] = str(org_pk)
         data["type"] = UserType.EXPORTER
@@ -69,7 +69,7 @@ class RoleDetail(APIView):
                 data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        assert_user_has_permission(request.user, ExporterPermissions.EXPORTER_ADMINISTER_ROLES, org_pk)
+        assert_user_has_permission(request.user.exporteruser, ExporterPermissions.EXPORTER_ADMINISTER_ROLES, org_pk)
 
         data = JSONParser().parse(request)
         role = get_role_by_pk(pk, org_pk)
@@ -93,6 +93,6 @@ class PermissionsView(APIView):
         """
         Return list of all permissions
         """
-        permissions = request.user.get_role(get_request_user_organisation_id(request)).permissions.values()
+        permissions = request.user.exporteruser.get_role(get_request_user_organisation_id(request)).permissions.values()
         serializer = PermissionSerializer(permissions, many=True)
         return JsonResponse(data={"permissions": serializer.data})

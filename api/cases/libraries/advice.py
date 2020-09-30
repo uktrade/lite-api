@@ -20,11 +20,11 @@ def collate_advice(entity_field, new_level, collection, case, user):
         denial_reasons = []
 
         advice = construct_coalesced_advice_values(
-            deduplicate_advice(advice_list), case, user, denial_reasons=denial_reasons
+            deduplicate_advice(advice_list), case, user.govuser, denial_reasons=denial_reasons
         )
 
         # Set outside the constructor so it can apply only when necessary
-        advice.team = user.team
+        advice.team = user.govuser.team
         advice.level = new_level
         setattr(advice, entity_field, key)
 

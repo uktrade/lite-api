@@ -27,7 +27,7 @@ class RolesViews(APIView):
         Return list of all roles
         """
         roles = Role.objects.filter(type=UserType.INTERNAL).order_by("name")
-        if request.user.role_id != Roles.INTERNAL_SUPER_USER_ROLE_ID:
+        if request.user.govuser.role_id != Roles.INTERNAL_SUPER_USER_ROLE_ID:
             roles = roles.exclude(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
         roles = filter_roles_by_user_role(request.user, roles)
         serializer = RoleListSerializer(roles, many=True)
@@ -35,7 +35,7 @@ class RolesViews(APIView):
 
     def post(self, request):
         """ Create a role """
-        assert_user_has_permission(request.user, constants.GovPermissions.ADMINISTER_ROLES)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.ADMINISTER_ROLES)
         data = JSONParser().parse(request)
         data["type"] = UserType.INTERNAL
 
@@ -77,10 +77,10 @@ class RoleDetail(APIView):
                 data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        if request.user.role_id == pk:
+        if request.user.govuser.role_id == pk:
             raise PermissionDenied
 
-        assert_user_has_permission(request.user, constants.GovPermissions.ADMINISTER_ROLES)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.ADMINISTER_ROLES)
 
         data = JSONParser().parse(request)
         role = get_role_by_pk(pk)
@@ -105,6 +105,6 @@ class PermissionsView(APIView):
         """
         Return list of all permissions
         """
-        permissions = request.user.role.permissions.values()
+        permissions = request.user.govuser.role.permissions.values()
         serializer = PermissionSerializer(permissions, many=True)
         return JsonResponse(data={"permissions": serializer.data})

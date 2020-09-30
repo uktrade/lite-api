@@ -91,6 +91,7 @@ from api.users.libraries.notifications import get_case_notifications
 from api.users.models import ExporterUser
 from api.workflow.automation import run_routing_rules
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+from api.users.enums import UserType
 
 
 class ApplicationList(ListCreateAPIView):
@@ -123,7 +124,7 @@ class ApplicationList(ListCreateAPIView):
             else:
                 applications = BaseApplication.objects.drafts(organisation)
 
-            users_sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+            users_sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
             disallowed_applications = SiteOnApplication.objects.exclude(site__id__in=users_sites).values_list(
                 "application", flat=True
             )
@@ -189,7 +190,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             application,
             context={
                 "user_type": request.user.type,
-                "exporter_user": request.user,
+                "exporter_user": request.user.exporteruser,
                 "organisation_id": get_request_user_organisation_id(request),
             },
         ).data
@@ -248,7 +249,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             serializer.save()
 
             audit_trail_service.create(
-                actor=request.user,
+                actor=request.user.exporteruser,
                 verb=AuditType.UPDATED_APPLICATION_NAME,
                 target=case,
                 payload={"old_name": old_name, "new_name": serializer.data.get("name")},
@@ -318,7 +319,7 @@ class ApplicationSubmission(APIView):
 
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
             assert_user_has_permission(
-                request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
+                request.user.exporteruser, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
             )
 
         errors = validate_application_ready_for_submission(application)
@@ -332,7 +333,7 @@ class ApplicationSubmission(APIView):
         if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS] or (
             CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
         ):
-            application.submitted_by = request.user
+            application.submitted_by = request.user.exporteruser
             create_submitted_audit(request, application, old_status)
             submit_application(application)
             if request.data.get("submit_hmrc"):
@@ -351,7 +352,7 @@ class ApplicationSubmission(APIView):
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
                 # If a valid declaration is provided, save the application
-                application.submitted_by = request.user
+                application.submitted_by = request.user.exporteruser
                 application.agreed_to_foi = request.data.get("agreed_to_foi")
                 submit_application(application)
 
@@ -427,7 +428,7 @@ class ApplicationManageStatus(APIView):
         if not can_set_status(application, data["status"]):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
-        if isinstance(request.user, ExporterUser):
+        if hasattr(request.user, "exporteruser"):
             if get_request_user_organisation_id(request) != application.organisation.id:
                 raise PermissionDenied()
 
@@ -438,7 +439,7 @@ class ApplicationManageStatus(APIView):
                 )
         else:
             if not can_status_be_set_by_gov_user(
-                request.user, application.status.status, data["status"], is_licence_application
+                request.user.govuser, application.status.status, data["status"], is_licence_application
             ):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS]},
@@ -549,7 +550,7 @@ class ApplicationFinaliseView(APIView):
         # Check permissions
         is_mod_clearance = application.case_type.sub_type in CaseTypeSubTypeEnum.mod
         if not can_status_be_set_by_gov_user(
-            request.user, application.status.status, CaseStatusEnum.FINALISED, is_mod_clearance
+            request.user.govuser, application.status.status, CaseStatusEnum.FINALISED, is_mod_clearance
         ):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
@@ -592,7 +593,7 @@ class ApplicationFinaliseView(APIView):
             licence_data["duration"] = licence_data.get("duration", default_licence_duration)
 
             # Check change default duration permission
-            if licence_data["duration"] != default_licence_duration and not request.user.has_permission(
+            if licence_data["duration"] != default_licence_duration and not request.user.govuser.has_permission(
                 GovPermissions.MANAGE_LICENCE_DURATION
             ):
                 raise PermissionDenied([strings.Applications.Finalise.Error.SET_DURATION_PERMISSION])

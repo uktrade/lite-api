@@ -33,9 +33,9 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
     def get_serializer_context(self):
         user = self.request.user
-        if user.type == UserType.EXPORTER:
+        if hasattr(user, "exporteruser"):
             organisation = get_request_user_organisation(self.request)
-            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+            sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
             cases = (
                 OpenGeneralLicenceCase.objects.filter(site__in=sites)
                 .select_related("status", "site", "site__address")
@@ -57,7 +57,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         filter_data = self.request.GET
 
         if self.request.user.type == UserType.INTERNAL:
-            assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
+            assert_user_has_permission(self.request.user.govuser, constants.GovPermissions.MAINTAIN_OGL)
         elif self.request.user.type == UserType.EXPORTER:
             if filter_data.get("site"):
                 queryset = queryset.filter(cases__site_id=filter_data.get("site"))
@@ -73,7 +73,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
             if str_to_bool(filter_data.get("registered")):
                 organisation = get_request_user_organisation(self.request)
-                sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+                sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
                 queryset = queryset.filter(cases__site__in=sites).distinct()
 
         if filter_data.get("name"):
@@ -94,7 +94,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         return queryset
 
     def perform_create(self, serializer):
-        assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
+        assert_user_has_permission(self.request.user.govuser, constants.GovPermissions.MAINTAIN_OGL)
 
         if not self.request.data.get("validate_only", False):
             instance = serializer.save()
@@ -117,7 +117,7 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
         user = self.request.user
         if user.type == UserType.EXPORTER:
             organisation = get_request_user_organisation(self.request)
-            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+            sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
             cases = (
                 OpenGeneralLicenceCase.objects.filter(site__in=sites)
                 .select_related("status", "site", "site__address")
@@ -127,7 +127,7 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
             return {"user": user, "organisation": organisation, "cases": cases}
 
     def perform_update(self, serializer):
-        assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
+        assert_user_has_permission(self.request.user.govuser, constants.GovPermissions.MAINTAIN_OGL)
 
         # Don't update the data during validate_only requests
         if not self.request.data.get("validate_only", False):
@@ -179,7 +179,7 @@ class OpenGeneralLicenceActivityView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MAINTAIN_OGL)
         filter_data = audit_trail_service.get_filters(request.GET)
         content_type = ContentType.objects.get_for_model(OpenGeneralLicence)
         audit_trail_qs = audit_trail_service.filter_object_activity(

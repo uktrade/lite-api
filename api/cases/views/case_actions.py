@@ -43,7 +43,7 @@ class AssignedQueues(APIView):
             queue_names = []
             assignments = (
                 CaseAssignment.objects.select_related("queue")
-                .filter(user=request.user, case__id=pk, queue__id__in=queues)
+                .filter(user=request.user.govuser, case__id=pk, queue__id__in=queues)
                 .order_by("queue__name")
             )
             case = get_case(pk)
@@ -69,7 +69,7 @@ class AssignedQueues(APIView):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 # Check queue belongs to that users team
-                queues = Queue.objects.filter(id=queues[0], team=request.user.team)
+                queues = Queue.objects.filter(id=queues[0], team=request.user.govuser.team)
                 if not queues.exists():
                     return JsonResponse(
                         data={"errors": {"queues": [Cases.UnassignQueues.INVALID_TEAM]}},

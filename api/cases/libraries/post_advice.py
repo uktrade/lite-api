@@ -38,7 +38,7 @@ def check_if_final_advice_exists(case):
 
 
 def check_if_team_advice_exists(case, user):
-    if Advice.objects.get_team_advice(case=case, team=user.team):
+    if Advice.objects.get_team_advice(case=case, team=user.govuser.team):
         return JsonResponse(
             {"errors": "Team advice from your team already exists for this case"}, status=status.HTTP_400_BAD_REQUEST
         )
@@ -86,12 +86,12 @@ def post_advice(request, case, level, team=False):
         advice["case"] = str(case.id)
         advice["user"] = str(request.user.pk)
         if team:
-            advice["team"] = str(request.user.team.id)
+            advice["team"] = str(request.user.govuser.team.id)
         if not refusal_error:
             refusal_error = check_refusal_errors(advice)
 
     # we only need to know if the user has the permission if not final advice
-    footnote_permission = request.user.has_permission(GovPermissions.MAINTAIN_FOOTNOTES) and level != AdviceLevel.FINAL
+    footnote_permission = request.user.govuser.has_permission(GovPermissions.MAINTAIN_FOOTNOTES) and level != AdviceLevel.FINAL
 
     serializer = AdviceCreateSerializer(data=data, many=True, context={"footnote_permission": footnote_permission})
 

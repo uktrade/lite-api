@@ -58,7 +58,7 @@ class ExporterAuthentication(authentication.BaseAuthentication):
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
-        return exporter_user, hawk_receiver
+        return exporter_user.baseuser_ptr, hawk_receiver
 
 
 class HmrcExporterAuthentication(authentication.BaseAuthentication):
@@ -94,7 +94,7 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         ).exists():
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
-        return exporter_user, hawk_receiver
+        return exporter_user.baseuser_ptr, hawk_receiver
 
 
 class ExporterOnlyAuthentication(authentication.BaseAuthentication):
@@ -116,7 +116,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
-        return exporter_user, hawk_receiver
+        return exporter_user.baseuser_ptr, hawk_receiver
 
 
 class HawkOnlyAuthentication(authentication.BaseAuthentication):
@@ -166,7 +166,7 @@ class GovAuthentication(authentication.BaseAuthentication):
         if gov_user.status == GovUserStatuses.DEACTIVATED:
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
-        return gov_user, hawk_receiver
+        return gov_user.baseuser_ptr, hawk_receiver
 
 
 class SharedAuthentication(authentication.BaseAuthentication):
