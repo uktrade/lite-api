@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     "api.workflow.routing_rules",
     "api.search",
     "api.search.application",
+    "api.reports",
 ]
 
 MIDDLEWARE = [
