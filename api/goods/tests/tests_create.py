@@ -103,17 +103,6 @@ class CreateGoodTests(DataTestClient):
         _assert_response_data(self, response.json()["good"], self.request_data)
         self.assertEquals(Good.objects.all().count(), 1)
 
-    def test_when_creating_a_good_with_good_controlled_set_to_null_then_bad_request_response_is_returned(self):
-        self.request_data["is_good_controlled"] = None
-
-        response = self.client.post(URL, self.request_data, **self.exporter_headers)
-
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
-            response.json()["errors"], {"is_good_controlled": ["This field may not be null."]},
-        )
-        self.assertEquals(Good.objects.all().count(), 0)
-
     def test_when_creating_a_good_with_pv_graded_set_to_null_then_bad_request_response_is_returned(self):
         self.request_data["is_pv_graded"] = None
 
