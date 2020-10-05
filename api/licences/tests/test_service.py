@@ -53,5 +53,8 @@ class GetCaseLicenceTests(DataTestClient):
         data = get_case_licences(self.application)[0]
 
         self.assertEqual(data["goods"][0]["is_good_controlled"], False)
-        self.assertEqual(data["goods"][0]["control_list_entries"][1]["rating"], "ML1a")
-        self.assertEqual(data["goods"][0]["control_list_entries"][0]["rating"], "ML13d1")
+        # ignore order of control list entries
+        self.assertEqual(
+            set([x["rating"] for x in data["goods"][0]["control_list_entries"]]),
+            {"ML1a", "ML13d1"}
+        )
