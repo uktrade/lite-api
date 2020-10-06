@@ -43,9 +43,9 @@ class RoutingRulesList(ListCreateAPIView):
         return filtered_qs
 
     def initial(self, request, *args, **kwargs):
-        if request.user.govuser.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.govuser.has_permission(
-            GovPermissions.MANAGE_ALL_ROUTING_RULES
-        ):
+        if request.user.govuser.has_permission(
+            GovPermissions.MANAGE_TEAM_ROUTING_RULES
+        ) or request.user.govuser.has_permission(GovPermissions.MANAGE_ALL_ROUTING_RULES):
             return super(RoutingRulesList, self).initial(request, *args, **kwargs)
         else:
             raise exceptions.PermissionDenied()
@@ -55,9 +55,9 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
 
     def initial(self, request, *args, **kwargs):
-        if request.user.govuser.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.govuser.has_permission(
-            GovPermissions.MANAGE_ALL_ROUTING_RULES
-        ):
+        if request.user.govuser.has_permission(
+            GovPermissions.MANAGE_TEAM_ROUTING_RULES
+        ) or request.user.govuser.has_permission(GovPermissions.MANAGE_ALL_ROUTING_RULES):
             return super(RoutingRulesDetail, self).initial(request, *args, **kwargs)
         else:
             raise exceptions.PermissionDenied()

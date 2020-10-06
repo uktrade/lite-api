@@ -27,7 +27,9 @@ class CasesAuditTrail(DataTestClient):
     def test_retrieve_audit_trail(self):
         service.create(actor=self.exporter_user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case)
 
-        audit_trail_qs = service.get_activity_for_user_and_model(user=self.exporter_user.baseuser_ptr, object_type=self.case)
+        audit_trail_qs = service.get_activity_for_user_and_model(
+            user=self.exporter_user.baseuser_ptr, object_type=self.case
+        )
 
         self.assertEqual(audit_trail_qs.count(), 1)
 
@@ -46,8 +48,12 @@ class CasesAuditTrail(DataTestClient):
             actor=self.gov_user, verb=AuditType.CREATED_CASE_NOTE, target=self.case, payload={"additional_text": "note"}
         )
 
-        gov_audit_trail_qs = service.get_activity_for_user_and_model(user=self.gov_user.baseuser_ptr, object_type=self.case)
-        exp_audit_trail_qs = service.get_activity_for_user_and_model(user=self.exporter_user.baseuser_ptr, object_type=self.case)
+        gov_audit_trail_qs = service.get_activity_for_user_and_model(
+            user=self.gov_user.baseuser_ptr, object_type=self.case
+        )
+        exp_audit_trail_qs = service.get_activity_for_user_and_model(
+            user=self.exporter_user.baseuser_ptr, object_type=self.case
+        )
 
         self.assertEqual(gov_audit_trail_qs.count(), 1)
         self.assertEqual(exp_audit_trail_qs.count(), 0)

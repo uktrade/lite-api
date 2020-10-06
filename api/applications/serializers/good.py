@@ -3,9 +3,11 @@ from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.applications.models import BaseApplication, GoodOnApplication
+from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
+from api.goods.enums import GoodControlled
 from api.goods.enums import ItemType
 from api.goods.models import Good
 from api.goods.serializers import GoodSerializerInternal
@@ -55,6 +57,8 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     unit = KeyValueChoiceField(choices=Units.choices)
     flags = serializers.SerializerMethodField()
     control_list_entries = ControlListEntrySerializer(many=True)
+    audit_trail = serializers.SerializerMethodField()
+    is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
 
     class Meta:
         model = GoodOnApplication
@@ -73,10 +77,16 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "control_list_entries",
             "comment",
             "report_summary",
+            "audit_trail",
         )
 
     def get_flags(self, instance):
         return list(instance.good.flags.values("id", "name", "colour", "label"))
+
+    def get_audit_trail(self, instance):
+        if not self.context.get("include_audit_trail"):
+            return []
+        return AuditSerializer(instance.audit_trail.all(), many=True).data
 
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):

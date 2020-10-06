@@ -109,7 +109,9 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
 
     def get_serializer_class(self):
         if hasattr(self.request.user, "exporteruser"):
-            assert_user_has_permission(self.request.user.exporteruser, ExporterPermissions.ADMINISTER_SITES, self.kwargs["org_pk"])
+            assert_user_has_permission(
+                self.request.user.exporteruser, ExporterPermissions.ADMINISTER_SITES, self.kwargs["org_pk"]
+            )
 
         if self.request.method.lower() == "get":
             return SiteViewSerializer

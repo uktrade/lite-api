@@ -92,14 +92,18 @@ class GoodsListControlCode(APIView):
             serializer = self.get_serializer(good)
             serializer.is_valid(raise_exception=True)
             old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
+            old_is_good_controlled = good.is_good_controlled
             serializer.save()
-            if "control_list_entries" in serializer.data:
-                is_control_list_dirty = old_control_list_entries != serializer.validated_data["control_list_entries"]
-            else:
-                is_control_list_dirty = False
-
-            if is_control_list_dirty:
-                good.flags.clear()
+            if "control_list_entries" in serializer.data or "is_good_controlled" in serializer.data:
+                is_dirty = (
+                    serializer.validated_data["control_list_entries"] != old_control_list_entries
+                    or serializer.validated_data["is_good_controlled"] != old_is_good_controlled
+                )
+            if is_dirty:
+                if isinstance(good, GoodsType):
+                    good.flags.clear()
+                else:
+                    good.good.flags.clear()
                 default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
                 new_control_list_entry = [item.rating for item in serializer.validated_data["control_list_entries"]]
                 audit_trail_service.create(
@@ -111,6 +115,8 @@ class GoodsListControlCode(APIView):
                         "good_name": good.description,
                         "new_control_list_entry": new_control_list_entry or default_control,
                         "old_control_list_entry": old_control_list_entries or default_control,
+                        "old_is_good_controlled": old_is_good_controlled,
+                        "new_is_good_controlled": serializer.validated_data["is_good_controlled"],
                         "additional_text": serializer.validated_data["comment"],
                     },
                 )
@@ -126,7 +132,10 @@ class GoodList(ListCreateAPIView):
     pagination_class = GoodListPaginator
 
     def get_serializer_context(self):
-        return {"exporter_user": self.request.user.exporteruser, "organisation_id": get_request_user_organisation_id(self.request)}
+        return {
+            "exporter_user": self.request.user.exporteruser,
+            "organisation_id": get_request_user_organisation_id(self.request),
+        }
 
     def get_queryset(self):
         description = self.request.GET.get("description", "")
@@ -314,7 +323,9 @@ class GoodOverview(APIView):
             query = GoodsQuery.objects.filter(good=good)
             if query:
                 delete_exporter_notifications(
-                    user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=query
+                    user=request.user.exporteruser,
+                    organisation_id=get_request_user_organisation_id(request),
+                    objects=query,
                 )
         else:
             serializer = GoodSerializerInternal(good)

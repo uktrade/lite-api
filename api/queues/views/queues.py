@@ -34,7 +34,9 @@ class QueuesList(generics.ListAPIView):
             queryset = queryset.filter(name__icontains=name)
         if str_to_bool(users_team_first):
             queryset = queryset.annotate(
-                users_team=(Case(When(team=self.request.user.govuser.team, then=1), default=0, output_field=BinaryField()))
+                users_team=(
+                    Case(When(team=self.request.user.govuser.team, then=1), default=0, output_field=BinaryField())
+                )
             ).order_by("-users_team")
 
         return queryset

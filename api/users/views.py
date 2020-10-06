@@ -223,7 +223,11 @@ class NotificationViewSet(APIView):
         )
 
         request_user_sites = (
-            list(Site.objects.get_by_user_and_organisation(request.user.exporteruser, organisation).values_list("id", flat=True))
+            list(
+                Site.objects.get_by_user_and_organisation(request.user.exporteruser, organisation).values_list(
+                    "id", flat=True
+                )
+            )
             if not can_administer_sites
             else []
         )

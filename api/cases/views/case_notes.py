@@ -26,7 +26,9 @@ class CaseNoteList(APIView):
 
         if is_user_exporter:
             delete_exporter_notifications(
-                user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=case_notes
+                user=request.user.exporteruser,
+                organisation_id=get_request_user_organisation_id(request),
+                objects=case_notes,
             )
 
         serializer = self.serializer(case_notes, many=True)

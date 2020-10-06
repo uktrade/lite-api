@@ -56,7 +56,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["ML1a"],
             "is_good_controlled": True,
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -78,7 +77,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "is_good_controlled": False,
             "control_list_entries": ["ML1a"],
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -98,7 +96,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["ML1a"],
             "is_good_controlled": False,
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -117,7 +114,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "is_good_controlled": False,
             "control_list_entries": [],
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         # when I review the goods
@@ -138,7 +134,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "is_good_controlled": True,
             "control_list_entries": ["invalid"],
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -158,7 +153,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "is_good_controlled": True,
             "control_list_entries": [],
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -197,7 +191,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "control_list_entries": "ML1a",
             "is_good_controlled": "yes",
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -237,7 +230,6 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "is_good_controlled": True,
             "control_list_entries": ["ML1a"],
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -262,7 +254,6 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["ML1a"],
             "is_good_controlled": "True",
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -285,7 +276,6 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["invalid"],
             "is_good_controlled": "True",
-            "canonical_good_comment": "I Am Easy to Find",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)

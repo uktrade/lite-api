@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 from api.applications.enums import GoodsTypeCategory
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.libraries.get_applications import get_application
-from api.applications.libraries.goods_on_applications import get_good_on_application
 from api.applications.models import GoodOnApplication
 from api.applications.serializers.good import (
     GoodOnApplicationViewSerializer,
@@ -16,7 +15,7 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import Case
-from api.core.authentication import ExporterAuthentication
+from api.core.authentication import ExporterAuthentication, SharedAuthentication
 from api.core.decorators import (
     authorised_to_view_application,
     allowed_application_types,
@@ -109,13 +108,25 @@ class ApplicationGoodsOnApplication(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+from django.shortcuts import get_object_or_404
+
+
 class ApplicationGoodOnApplication(APIView):
     """ Good on a standard application. """
 
-    authentication_classes = (ExporterAuthentication,)
+    authentication_classes = (SharedAuthentication,)
+    serializer_class = GoodOnApplicationViewSerializer
+
+    def get_object(self):
+        return get_object_or_404(GoodOnApplication.objects.all(), pk=self.kwargs["obj_pk"])
+
+    def get(self, request, **kwargs):
+        good_on_application = self.get_object()
+        serializer = self.serializer_class(good_on_application, context={"include_audit_trail": True})
+        return JsonResponse(serializer.data)
 
     def delete(self, request, obj_pk):
-        good_on_application = get_good_on_application(obj_pk)
+        good_on_application = self.get_object()
         application = good_on_application.application
 
         if application.status.status in get_case_statuses(read_only=True):

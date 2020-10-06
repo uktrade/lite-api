@@ -36,7 +36,9 @@ class UsersList(generics.ListCreateAPIView):
         organisation_id = self.kwargs["org_pk"]
 
         if hasattr(self.request.user, "exporteruser"):
-            assert_user_has_permission(self.request.user.exporteruser, ExporterPermissions.ADMINISTER_USERS, organisation_id)
+            assert_user_has_permission(
+                self.request.user.exporteruser, ExporterPermissions.ADMINISTER_USERS, organisation_id
+            )
 
         query = [Q(relationship__organisation__id=organisation_id)]
 

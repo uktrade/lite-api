@@ -429,7 +429,9 @@ class ECJUQueries(APIView):
         if hasattr(request.user, "exporteruser"):
             serializer = EcjuQueryExporterViewSerializer(case_ecju_queries, many=True)
             delete_exporter_notifications(
-                user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=case_ecju_queries
+                user=request.user.exporteruser,
+                organisation_id=get_request_user_organisation_id(request),
+                objects=case_ecju_queries,
             )
         else:
             serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
