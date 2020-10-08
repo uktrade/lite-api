@@ -15,7 +15,7 @@ from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_organisation_by_pk
 from api.organisations.models import Site
 from api.organisations.serializers import SiteViewSerializer, SiteCreateUpdateSerializer, SiteListSerializer
-from api.users.models import ExporterUser, UserOrganisationRelationship
+from api.users.models import UserOrganisationRelationship
 
 
 class SitesList(APIView):

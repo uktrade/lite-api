@@ -47,7 +47,7 @@ from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.users.models import ExporterUser, ExporterNotification
+from api.users.models import ExporterNotification
 from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
 
@@ -92,37 +92,32 @@ class GoodsListControlCode(APIView):
             serializer = self.get_serializer(good)
             serializer.is_valid(raise_exception=True)
             old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
-            old_is_good_controlled = good.is_good_controlled
+            old_is_controlled = good.is_good_controlled
             serializer.save()
             if "control_list_entries" in serializer.data or "is_good_controlled" in serializer.data:
-                is_dirty = (
-                    serializer.validated_data["control_list_entries"] != old_control_list_entries
-                    or serializer.validated_data["is_good_controlled"] != old_is_good_controlled
-                )
-            if is_dirty:
-                if isinstance(good, GoodsType):
-                    good.flags.clear()
-                else:
-                    good.good.flags.clear()
-                default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
-                new_control_list_entry = [item.rating for item in serializer.validated_data["control_list_entries"]]
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.GOOD_REVIEWED,
-                    action_object=good,
-                    target=case,
-                    payload={
-                        "good_name": good.description,
-                        "new_control_list_entry": new_control_list_entry or default_control,
-                        "old_control_list_entry": old_control_list_entries or default_control,
-                        "old_is_good_controlled": old_is_good_controlled,
-                        "new_is_good_controlled": serializer.validated_data["is_good_controlled"],
-                        "additional_text": serializer.validated_data["comment"],
-                    },
-                )
-
+                new_control_list_entries = [item.rating for item in serializer.validated_data["control_list_entries"]]
+                new_is_controlled = serializer.validated_data["is_good_controlled"]
+                if new_control_list_entries != old_control_list_entries or new_is_controlled != old_is_controlled:
+                    if isinstance(good, GoodsType):
+                        good.flags.clear()
+                    else:
+                        good.good.flags.clear()
+                    default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.GOOD_REVIEWED,
+                        action_object=good,
+                        target=case,
+                        payload={
+                            "good_name": good.description,
+                            "new_control_list_entry": new_control_list_entries or default_control,
+                            "old_control_list_entry": old_control_list_entries or default_control,
+                            "old_is_good_controlled": old_is_controlled,
+                            "new_is_good_controlled": new_is_controlled,
+                            "additional_text": serializer.validated_data["comment"],
+                        },
+                    )
         apply_good_flagging_rules_for_case(case)
-
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 

@@ -40,8 +40,12 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.gov_user.save()
 
         self.application = self.create_draft_standard_application(organisation=self.organisation)
-        GoodOnApplication(good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
-        GoodOnApplication(good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
+        self.good_on_application_1 = GoodOnApplication.objects.create(
+            good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500
+        )
+        self.good_on_application_2 = GoodOnApplication.objects.create(
+            good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500
+        )
         self.case = self.submit_application(self.application)
         self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": self.case.id})
 
@@ -66,25 +70,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         self.assertEqual(verified_good_1.control_list_entries.get().rating, "ML1a")
         self.assertEqual(verified_good_2.control_list_entries.get().rating, "ML1a")
-
-    def test_verify_single_good_NLR(self):
-        """
-        Post a singular good to the endpoint, and check that the control code is not set if good is not controlled
-        """
-        data = {
-            "objects": self.good_1.pk,
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
-            "is_good_controlled": False,
-            "control_list_entries": ["ML1a"],
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-
-        self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries.count(), 1)
-        self.assertEqual(self.good_1.flags.count(), 1)
 
     def test_verify_multiple_goods_NLR(self):
         """
@@ -245,7 +230,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         """
         Assert that not changing the control code does not remove the flags
         """
-        self.good_1.is_good_controlled = "True"
+        self.good_1.is_good_controlled = True
         self.good_1.control_list_entries.set([get_control_list_entry("ML1a")])
         self.good_1.save()
         data = {
@@ -253,7 +238,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["ML1a"],
-            "is_good_controlled": "True",
+            "is_good_controlled": True,
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)

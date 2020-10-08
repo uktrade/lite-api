@@ -1,7 +1,7 @@
 from django.db.models import QuerySet, Q
 
 from api.core.constants import Roles
-from api.users.models import BaseUser, GovUser, Role, ExporterUser
+from api.users.models import BaseUser, Role, ExporterUser
 
 
 def role_should_be_added(role, permissions):

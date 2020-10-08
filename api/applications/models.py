@@ -318,7 +318,6 @@ class GoodOnApplication(AbstractGoodOnApplication):
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
     other_item_type = models.CharField(max_length=100, null=True, blank=True, default=None)
-
     audit_trail = GenericRelation(
         Audit,
         related_query_name="good_on_application",

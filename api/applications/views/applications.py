@@ -91,7 +91,6 @@ from api.users.libraries.notifications import get_case_notifications
 from api.users.models import ExporterUser
 from api.workflow.automation import run_routing_rules
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
-from api.users.enums import UserType
 
 
 class ApplicationList(ListCreateAPIView):

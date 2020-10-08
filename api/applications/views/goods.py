@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -106,9 +107,6 @@ class ApplicationGoodsOnApplication(APIView):
                 return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-from django.shortcuts import get_object_or_404
 
 
 class ApplicationGoodOnApplication(APIView):

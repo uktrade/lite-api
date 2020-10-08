@@ -79,7 +79,6 @@ from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_by_pk
-from api.users.models import ExporterUser
 
 
 class CaseDetail(APIView):
