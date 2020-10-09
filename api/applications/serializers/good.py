@@ -84,6 +84,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
         return list(instance.good.flags.values("id", "name", "colour", "label"))
 
     def get_audit_trail(self, instance):
+        # this serializer is used by a few views. Most views do not need to know audit trail
         if not self.context.get("include_audit_trail"):
             return []
         return AuditSerializer(instance.audit_trail.all(), many=True).data
