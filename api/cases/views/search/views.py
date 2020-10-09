@@ -46,11 +46,7 @@ class CasesSearchView(generics.ListAPIView):
 
         page = self.paginate_queryset(
             Case.objects.search(
-                queue_id=queue_id,
-                is_work_queue=is_work_queue,
-                user=user,
-                include_hidden=include_hidden,
-                **filters,
+                queue_id=queue_id, is_work_queue=is_work_queue, user=user, include_hidden=include_hidden, **filters,
             ).annotate(
                 next_review_date=django.db.models.Case(
                     When(
@@ -69,13 +65,11 @@ class CasesSearchView(generics.ListAPIView):
             )
         )
 
-        queues = get_system_queues(
-            include_team_info=False, include_case_count=True, user=user
-        ) + get_team_queues(team_id=user.team_id, include_team_info=False, include_case_count=True)
+        queues = get_system_queues(include_team_info=False, include_case_count=True, user=user) + get_team_queues(
+            team_id=user.team_id, include_team_info=False, include_case_count=True
+        )
 
-        cases = CaseListSerializer(
-            page, context=context, team=user.team, include_hidden=include_hidden, many=True
-        ).data
+        cases = CaseListSerializer(page, context=context, team=user.team, include_hidden=include_hidden, many=True).data
 
         # Populate certain fields outside of the serializer for performance improvements
         service.populate_goods_flags(cases)

@@ -12,7 +12,6 @@ from api.core.authentication import SharedAuthentication
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.users.models import ExporterUser
 
 
 class CaseNoteList(APIView):
@@ -26,7 +25,9 @@ class CaseNoteList(APIView):
 
         if is_user_exporter:
             delete_exporter_notifications(
-                user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=case_notes
+                user=request.user.exporteruser,
+                organisation_id=get_request_user_organisation_id(request),
+                objects=case_notes,
             )
 
         serializer = self.serializer(case_notes, many=True)

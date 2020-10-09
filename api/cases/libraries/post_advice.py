@@ -91,7 +91,9 @@ def post_advice(request, case, level, team=False):
             refusal_error = check_refusal_errors(advice)
 
     # we only need to know if the user has the permission if not final advice
-    footnote_permission = request.user.govuser.has_permission(GovPermissions.MAINTAIN_FOOTNOTES) and level != AdviceLevel.FINAL
+    footnote_permission = (
+        request.user.govuser.has_permission(GovPermissions.MAINTAIN_FOOTNOTES) and level != AdviceLevel.FINAL
+    )
 
     serializer = AdviceCreateSerializer(data=data, many=True, context={"footnote_permission": footnote_permission})
 

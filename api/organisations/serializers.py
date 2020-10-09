@@ -19,7 +19,7 @@ from api.organisations.enums import OrganisationType, OrganisationStatus, Locati
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.staticdata.countries.helpers import get_country
 from api.users.libraries.get_user import get_user_organisation_relationship
-from api.users.models import GovUser, UserOrganisationRelationship, ExporterUser
+from api.users.models import UserOrganisationRelationship, ExporterUser
 from api.users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 

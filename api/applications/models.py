@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
 from rest_framework.exceptions import APIException
@@ -15,6 +16,7 @@ from api.applications.enums import (
 )
 
 from api.applications.managers import BaseApplicationManager, HmrcQueryManager
+from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.common.models import TimestampableModel
@@ -316,6 +318,12 @@ class GoodOnApplication(AbstractGoodOnApplication):
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
     other_item_type = models.CharField(max_length=100, null=True, blank=True, default=None)
+    audit_trail = GenericRelation(
+        Audit,
+        related_query_name="good_on_application",
+        content_type_field="action_object_content_type",
+        object_id_field="action_object_object_id",
+    )
 
     class Meta:
         ordering = ["created_at"]

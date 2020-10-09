@@ -1,17 +1,8 @@
-from django.http import Http404
-
 from api.applications.models import GoodOnApplication, BaseApplication
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goodstype.models import GoodsType
-
-
-def get_good_on_application(pk):
-    try:
-        return GoodOnApplication.objects.get(pk=pk)
-    except GoodOnApplication.DoesNotExist:
-        raise Http404
 
 
 def add_goods_flags_to_submitted_application(application: BaseApplication):

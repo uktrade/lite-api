@@ -567,6 +567,7 @@ class GoodSerializerInternal(serializers.Serializer):
     report_summary = serializers.CharField(allow_blank=True, required=False)
     flags = GoodsFlagSerializer(many=True)
     documents = serializers.SerializerMethodField()
+    is_pv_graded = serializers.CharField()
     grading_comment = serializers.CharField()
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
     status = KeyValueChoiceField(choices=GoodStatus.choices)
@@ -667,17 +668,13 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
 
 
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
-    canonical_good_comment = serializers.CharField(allow_blank=True, max_length=500, required=False, write_only=True)
-
-    class Meta:
+    class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
-        fields = GoodControlReviewSerializer.Meta.fields + ("canonical_good_comment",)
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
         instance.good.status = GoodStatus.VERIFIED
         instance.good.report_summary = validated_data["report_summary"]
-        instance.good.comment = validated_data["canonical_good_comment"]
         instance.good.save()
         instance.good.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
         return instance

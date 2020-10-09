@@ -79,7 +79,6 @@ from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_by_pk
-from api.users.models import ExporterUser
 
 
 class CaseDetail(APIView):
@@ -429,7 +428,9 @@ class ECJUQueries(APIView):
         if hasattr(request.user, "exporteruser"):
             serializer = EcjuQueryExporterViewSerializer(case_ecju_queries, many=True)
             delete_exporter_notifications(
-                user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=case_ecju_queries
+                user=request.user.exporteruser,
+                organisation_id=get_request_user_organisation_id(request),
+                objects=case_ecju_queries,
             )
         else:
             serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)

@@ -195,7 +195,9 @@ def get_exporter_visible_compliance_site_cases(request, organisation: Optional[O
 
     # if user does not have permission to manage all sites, filter by sites accessible
     if not check_user_has_permission(request.user.exporteruser, ExporterPermissions.ADMINISTER_SITES, organisation):
-        sites = Site.objects.get_by_user_and_organisation(request.user.exporteruser, organisation).values_list("id", flat=True)
+        sites = Site.objects.get_by_user_and_organisation(request.user.exporteruser, organisation).values_list(
+            "id", flat=True
+        )
         qs = qs.filter(site__in=sites)
 
     return qs

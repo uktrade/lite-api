@@ -110,7 +110,7 @@ jobs:
 
       - run:
           name: Prospector
-          command: pipenv run prospector
+          command: pipenv run prospector -W pylint -W pep257
 
       - run:
           name: Black

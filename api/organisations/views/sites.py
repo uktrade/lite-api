@@ -15,7 +15,7 @@ from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_organisation_by_pk
 from api.organisations.models import Site
 from api.organisations.serializers import SiteViewSerializer, SiteCreateUpdateSerializer, SiteListSerializer
-from api.users.models import ExporterUser, UserOrganisationRelationship
+from api.users.models import UserOrganisationRelationship
 
 
 class SitesList(APIView):
@@ -109,7 +109,9 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
 
     def get_serializer_class(self):
         if hasattr(self.request.user, "exporteruser"):
-            assert_user_has_permission(self.request.user.exporteruser, ExporterPermissions.ADMINISTER_SITES, self.kwargs["org_pk"])
+            assert_user_has_permission(
+                self.request.user.exporteruser, ExporterPermissions.ADMINISTER_SITES, self.kwargs["org_pk"]
+            )
 
         if self.request.method.lower() == "get":
             return SiteViewSerializer
