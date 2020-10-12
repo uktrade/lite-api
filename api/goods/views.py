@@ -112,8 +112,8 @@ class GoodsListControlCode(APIView):
                             "good_name": good.description,
                             "new_control_list_entry": new_control_list_entries or default_control,
                             "old_control_list_entry": old_control_list_entries or default_control,
-                            "old_is_good_controlled": old_is_controlled,
-                            "new_is_good_controlled": new_is_controlled,
+                            "old_is_good_controlled": "Yes" if old_is_controlled else "No",
+                            "new_is_good_controlled": "Yes" if new_is_controlled else "No",
                             "additional_text": serializer.validated_data["comment"],
                         },
                     )
