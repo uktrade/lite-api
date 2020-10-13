@@ -145,6 +145,7 @@ HAWK_ALGORITHM = "sha256"
 HAWK_LITE_API_CREDENTIALS = "lite-api"
 HAWK_LITE_PERFORMANCE_CREDENTIALS = "lite-performance"
 HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS = "hmrc-integration"
+HAWK_LITE_DATA_WORKSPACE_CREDENTIALS = "lite-data-workspace"
 HAWK_CREDENTIALS = {
     "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
     "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
@@ -167,6 +168,11 @@ HAWK_CREDENTIALS = {
     HAWK_LITE_API_CREDENTIALS: {
         "id": HAWK_LITE_API_CREDENTIALS,
         "key": env("LITE_API_HAWK_KEY"),
+        "algorithm": HAWK_ALGORITHM,
+    },
+    HAWK_LITE_DATA_WORKSPACE_CREDENTIALS: {
+        "id": HAWK_LITE_DATA_WORKSPACE_CREDENTIALS,
+        "key": env("HAWK_LITE_DATA_WORKSPACE_KEY"),
         "algorithm": HAWK_ALGORITHM,
     },
 }

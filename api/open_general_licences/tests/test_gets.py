@@ -123,3 +123,9 @@ class ExporterListTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.json()["results"]), 1)
         self.assertEquals(len(response.json()["results"][0]["registrations"]), 2)
+
+
+class DataWorkspaceTests(DataTestClient):
+    def test_dw_view_ogl_types(self):
+        response = self.client.get(reverse("open_general_licences:ogl-dw-list"))
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
