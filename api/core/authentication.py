@@ -1,14 +1,13 @@
 import logging
 
 from django.contrib.auth.models import AnonymousUser
+from django.conf import settings
 from django.core.cache import cache
 from mohawk import Receiver
 from mohawk.exc import HawkFail, AlreadyProcessed
 from rest_framework import authentication
 
-from django.conf import settings
 from api.core.exceptions import PermissionDeniedError
-from api.conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS
 from api.gov_users.enums import GovUserStatuses
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.models import Organisation
@@ -144,6 +143,21 @@ class HMRCIntegrationOnlyAuthentication(authentication.BaseAuthentication):
         return AnonymousUser, hawk_receiver
 
 
+class DataWorkspaceOnlyAuthentication(authentication.BaseAuthentication):
+    def authenticate(self, request):
+        """
+        Only approve HAWK Signed requests from the Data workspace
+        """
+
+        try:
+            hawk_receiver = _authenticate(request, _lookup_credentials_data_workspace_access)
+        except HawkFail as e:
+            logging.error(f"Failed HAWK authentication {e}")
+            raise e
+
+        return AnonymousUser, hawk_receiver
+
+
 class GovAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         """
@@ -205,7 +219,7 @@ def _authenticate(request, lookup_credentials):
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
 
-    if HAWK_AUTHENTICATION_ENABLED:
+    if settings.HAWK_AUTHENTICATION_ENABLED:
         return Receiver(
             lookup_credentials,
             request.META["HTTP_HAWK_AUTHENTICATION"],
@@ -255,7 +269,17 @@ def _lookup_credentials_hmrc_integration(access_key_id):
     """
     Raises HawkFail if the access key ID cannot be found.
     """
-    if access_key_id != HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS:
+    if access_key_id != settings.HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS:
         raise HawkFail(f"No Hawk ID of {access_key_id}")
+
+    return _lookup_credentials(access_key_id)
+
+
+def _lookup_credentials_data_workspace_access(access_key_id):
+    """
+    Raises HawkFail if the access key ID is not of Data workspace
+    """
+    if access_key_id != settings.HAWK_LITE_DATA_WORKSPACE_CREDENTIALS:
+        raise HawkFail(f"Incorrect Hawk ID ({access_key_id}) for Data workspace")
 
     return _lookup_credentials(access_key_id)

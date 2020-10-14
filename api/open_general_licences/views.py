@@ -9,7 +9,7 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.serializers import AuditSerializer
 from api.core import constants
-from api.core.authentication import SharedAuthentication, GovAuthentication, HawkOnlyAuthentication
+from api.core.authentication import SharedAuthentication, GovAuthentication, DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.core.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import OpenGeneralLicences
@@ -198,7 +198,7 @@ class OpenGeneralLicenceActivityView(APIView):
 
 
 class OpenGeneralLicenceListDW(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (HawkOnlyAuthentication,)
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
     queryset = (
         OpenGeneralLicence.objects.all()
