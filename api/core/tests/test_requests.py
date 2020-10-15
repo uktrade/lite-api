@@ -1,3 +1,4 @@
+from django.test import override_settings
 from unittest import mock
 
 from api.core.requests import get, post, put, delete, make_request, send_request
@@ -49,7 +50,7 @@ class RequestsTests(DataTestClient):
 
         make_request.assert_called_with("DELETE", "url", headers=None, hawk_credentials="fake-id", timeout=5)
 
-    @mock.patch("api.core.requests.HAWK_AUTHENTICATION_ENABLED", False)
+    @override_settings(HAWK_AUTHENTICATION_ENABLED=False)
     @mock.patch("api.core.requests.send_request")
     def test_make_request_calls_send_request(self, send_request):
         send_request.return_value = None
@@ -60,7 +61,7 @@ class RequestsTests(DataTestClient):
             "POST", "url", data={"data": "stuff"}, headers={"content-type": "application/json"}, timeout=5
         )
 
-    @mock.patch("api.core.requests.HAWK_AUTHENTICATION_ENABLED", True)
+    @override_settings(HAWK_AUTHENTICATION_ENABLED=True)
     @mock.patch("api.core.requests.verify_api_response")
     @mock.patch("api.core.requests.send_request")
     @mock.patch("api.core.requests.get_hawk_sender")
