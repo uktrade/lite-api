@@ -1,7 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import F
 from django.http import JsonResponse
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.views import APIView
 
@@ -9,7 +9,7 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.serializers import AuditSerializer
 from api.core import constants
-from api.core.authentication import SharedAuthentication, GovAuthentication, DataWorkspaceOnlyAuthentication
+from api.core.authentication import SharedAuthentication, GovAuthentication
 from api.core.helpers import str_to_bool
 from api.core.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import OpenGeneralLicences
@@ -195,13 +195,3 @@ class OpenGeneralLicenceActivityView(APIView):
         filters = audit_trail_service.get_objects_activity_filters(pk, content_type)
 
         return JsonResponse(data={"activity": data, "filters": filters}, status=status.HTTP_200_OK)
-
-
-class OpenGeneralLicenceListDW(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = OpenGeneralLicenceSerializer
-    queryset = (
-        OpenGeneralLicence.objects.all()
-        .select_related("case_type")
-        .prefetch_related("countries", "control_list_entries")
-    )
