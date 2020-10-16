@@ -11,11 +11,7 @@ from django.core.cache import cache
 from mohawk import Sender
 from mohawk.exc import AlreadyProcessed
 
-from api.conf.settings import (
-    HAWK_AUTHENTICATION_ENABLED,
-    HAWK_RECEIVER_NONCE_EXPIRY_SECONDS,
-    HAWK_CREDENTIALS,
-)
+from django.conf import settings
 
 
 class RequestException(Exception):
@@ -42,7 +38,7 @@ def make_request(method, url, data=None, headers=None, hawk_credentials=None, ti
     headers = headers or {}  # If no headers are supplied, default to an empty dictionary
     headers["content-type"] = "application/json"
 
-    if HAWK_AUTHENTICATION_ENABLED:
+    if settings.HAWK_AUTHENTICATION_ENABLED:
         if not hawk_credentials:
             raise RequestException("'hawk_credentials' must be specified when 'HAWK_AUTHENTICATION_ENABLED' is 'True'")
 
@@ -72,7 +68,7 @@ def send_request(method, url, data=None, headers=None, timeout=None):
 
 def get_hawk_sender(method, url, data, credentials):
     content = serialize(data) if data else data
-    credentials = HAWK_CREDENTIALS.get(credentials)
+    credentials = settings.HAWK_CREDENTIALS.get(credentials)
 
     return Sender(credentials, url, method, content=content, content_type="application/json", seen_nonce=_seen_nonce)
 
@@ -103,7 +99,7 @@ def _seen_nonce(access_key_id, nonce, timestamp):
     cache_key = f"hawk:{access_key_id}:{nonce}"
 
     # cache.add only adds key if it isn't present
-    seen_cache_key = not cache.add(cache_key, True, timeout=HAWK_RECEIVER_NONCE_EXPIRY_SECONDS)
+    seen_cache_key = not cache.add(cache_key, True, timeout=settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS)
 
     if seen_cache_key:
         raise AlreadyProcessed(f"Already seen nonce {nonce}")
