@@ -5,8 +5,13 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 
 from api.reports.queries.ogl import OGL_SUMMARY
+from api.reports.queries.standard import GOODS_AND_RATINGS, LICENCES_WITH_GOOD_AMENDMENTS
 
-REPORT_QUERY_LOOKUP = {"ogl_summary": OGL_SUMMARY}
+REPORT_QUERY_LOOKUP = {
+    "ogl_summary": OGL_SUMMARY,
+    "standard_applications_goods_and_ratings": GOODS_AND_RATINGS,
+    "good_amendments": LICENCES_WITH_GOOD_AMENDMENTS,
+}
 
 
 class Command(BaseCommand):
