@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     "api.search",
     "api.search.application",
     "api.reports",
+    "api.data_workspace",
 ]
 
 MIDDLEWARE = [
