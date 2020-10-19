@@ -28,6 +28,7 @@ urlpatterns = [
     path("routing-rules/", include("api.workflow.routing_rules.urls")),
     path("licences/", include("api.licences.urls")),
     path("open-general-licences/", include("api.open_general_licences.urls")),
+    path("data-workspace/", include("api.data_workspace.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.LITE_API_ENABLE_ES:
