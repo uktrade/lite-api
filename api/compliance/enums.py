@@ -37,4 +37,4 @@ class ComplianceRiskValues:
 
     @classmethod
     def to_str(cls, risk_value):
-        return next(choice[1] for choice in cls.choices if choice[0] == risk_value)
+        return next(choice[1] for choice in cls.choices if choice[0] == risk_value) if risk_value else ""
