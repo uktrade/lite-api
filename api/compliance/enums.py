@@ -27,14 +27,17 @@ class ComplianceRiskValues:
     HIGHER = "higher"
     HIGHEST = "highest"
 
-    choices = [
+    choices = (
         (VERY_LOW, "Very low risk"),
         (LOWER, "Lower risk"),
         (MEDIUM, "Medium risk"),
         (HIGHER, "Higher risk"),
         (HIGHEST, "Highest risk"),
-    ]
+    )
 
     @classmethod
     def to_str(cls, risk_value):
-        return next(choice[1] for choice in cls.choices if choice[0] == risk_value) if risk_value else ""
+        for value, label in cls.choices:
+            if value == risk_value:
+                return label
+        return ""
