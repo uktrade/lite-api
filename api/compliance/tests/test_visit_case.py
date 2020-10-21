@@ -94,3 +94,17 @@ class ComplianceVisitCaseTests(DataTestClient):
         visit_case = ComplianceVisitCase.objects.get(id=data["id"])
         self.assertEqual(compliance_case.case_officer_id, visit_case.case_officer_id)
         self.assertEqual(visit_case.case_type.id, CaseTypeEnum.COMPLIANCE_VISIT.id)
+
+    @parameterized.expand(
+        [
+            (ComplianceRiskValues.VERY_LOW, "Very low risk"),
+            (ComplianceRiskValues.LOWER, "Lower risk"),
+            (ComplianceRiskValues.MEDIUM, "Medium risk"),
+            (ComplianceRiskValues.HIGHER, "Higher risk"),
+            (ComplianceRiskValues.HIGHEST, "Highest risk"),
+            ("INVALID_RISK_CHOICE", ""),
+            ("", ""),
+        ]
+    )
+    def test_verify_compliance_risk_outcome(self, choice, expected):
+        self.assertEqual(ComplianceRiskValues.to_str(choice), expected)
