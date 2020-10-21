@@ -135,6 +135,7 @@ class LetterTemplatesListTests(DataTestClient):
                 "# Heading1\r\n**{{organisation.name}}** {{address}} <u>NOTE:</u>",
                 "<h1>Heading1</h1>\n<p><strong>{{organisation.name}}</strong> {{address}} <u>NOTE:</u></p>",
             ),
+            ("<script>malicious code</script>", "<p>&lt;script&gt;malicious code&lt;/script&gt;</p>"),
         ]
     )
     def test_format_user_text_in_preview(self, raw_text, formatted):
