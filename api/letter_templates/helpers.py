@@ -1,7 +1,7 @@
 import os
 
 from django.template import Context, Engine, TemplateDoesNotExist
-from django.utils.html import escape
+from django.utils.html import mark_safe
 from markdown import markdown
 
 from django.conf import settings
@@ -62,7 +62,7 @@ def load_css(filename):
 
 
 def format_user_text(user_text):
-    return markdown_to_html(escape(user_text))
+    return markdown_to_html(mark_safe(user_text))
 
 
 def generate_preview(layout: str, text: str, case=None, additional_contact=None, allow_missing_variables=True):
