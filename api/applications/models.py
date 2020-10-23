@@ -1,6 +1,7 @@
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 from rest_framework.exceptions import APIException
@@ -296,9 +297,13 @@ class AbstractGoodOnApplication(TimestampableModel):
     is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
     comment = models.TextField(help_text="control review comment", default=None, blank=True, null=True)
     report_summary = models.TextField(default=None, blank=True, null=True)
-
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, null=False)
     control_list_entries = models.ManyToManyField(ControlListEntry)
+    end_use_control = ArrayField(
+        models.TextField(),
+        default=[],
+        help_text='Control code given to good due to the end use e.g, a wood screw may be used in a Harrier jump jet.',
+    )
 
     class Meta:
         abstract = True
