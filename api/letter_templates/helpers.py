@@ -1,7 +1,8 @@
+import bleach
 import os
 
 from django.template import Context, Engine, TemplateDoesNotExist
-from django.utils.html import escape
+from django.utils.html import mark_safe
 from markdown import markdown
 
 from django.conf import settings
@@ -14,6 +15,7 @@ from lite_content.lite_api import strings
 
 
 CONTENT_PLACEHOLDER = "$USER_CONTENT$"
+ALLOWED_TAGS = ["b", "strong", "em", "u", "h1", "h2", "h3", "h4", "h5", "h6"]
 
 
 def get_letter_template(pk):
@@ -62,7 +64,8 @@ def load_css(filename):
 
 
 def format_user_text(user_text):
-    return markdown_to_html(escape(user_text))
+    cleaned_text = bleach.clean(user_text, tags=ALLOWED_TAGS)
+    return markdown_to_html(mark_safe(cleaned_text))
 
 
 def generate_preview(layout: str, text: str, case=None, additional_contact=None, allow_missing_variables=True):

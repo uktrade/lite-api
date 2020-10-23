@@ -1,9 +1,11 @@
+from api.letter_templates.helpers import format_user_text
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from api.cases.enums import AdviceType, CaseTypeReferenceEnum
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from api.staticdata.decisions.models import Decision
+from parameterized import parameterized
 from test_helpers.clients import DataTestClient
 
 
@@ -122,3 +124,19 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue("text" in response_data)
         self.assertTrue(self.letter_template.letter_paragraphs.first().text in response_data["text"])
+
+    @parameterized.expand(
+        [
+            ("**bold text**", "<p><strong>bold text</strong></p>"),
+            ("_italic text_", "<p><em>italic text</em></p>"),
+            ("<u>underlined text</u>", "<p><u>underlined text</u></p>"),
+            ("<u>**bold** _italic_</u>", "<p><u><strong>bold</strong> <em>italic</em></u></p>"),
+            (
+                "# Heading1\r\n**{{organisation.name}}** {{address}} <u>NOTE:</u>",
+                "<h1>Heading1</h1>\n<p><strong>{{organisation.name}}</strong> {{address}} <u>NOTE:</u></p>",
+            ),
+            ("<script>malicious code</script>", "<p>&lt;script&gt;malicious code&lt;/script&gt;</p>"),
+        ]
+    )
+    def test_format_user_text_in_preview(self, raw_text, formatted):
+        self.assertEqual(format_user_text(raw_text), formatted)
