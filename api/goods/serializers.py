@@ -670,6 +670,7 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
+        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control",)
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)

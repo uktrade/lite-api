@@ -168,5 +168,4 @@ class GoodControlReviewSerializer(serializers.ModelSerializer):
             "is_good_controlled",
             "comment",
             "report_summary",
-            "end_use_control",
         )
