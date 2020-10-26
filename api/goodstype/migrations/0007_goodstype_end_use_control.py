@@ -7,13 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goodstype', '0006_auto_20200925_1105'),
+        ("goodstype", "0006_auto_20200925_1105"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='goodstype',
-            name='end_use_control',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(), default=[], help_text='Control code given to good due to the end use e.g, a wood screw may be used in a Harrier jump jet.', size=None),
+            model_name="goodstype",
+            name="end_use_control",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.TextField(),
+                default=[],
+                help_text="Control code given to good due to the end use e.g, a wood screw may be used in a Harrier jump jet.",
+                size=None,
+            ),
         ),
     ]

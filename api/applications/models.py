@@ -302,7 +302,7 @@ class AbstractGoodOnApplication(TimestampableModel):
     end_use_control = ArrayField(
         models.TextField(),
         default=[],
-        help_text='Control code given to good due to the end use e.g, a wood screw may be used in a Harrier jump jet.',
+        help_text="Control code given to good due to the end use e.g, a wood screw may be used in a Harrier jump jet.",
     )
 
     class Meta:
