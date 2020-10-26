@@ -104,6 +104,7 @@ class GoodsTypeViewSerializer(serializers.Serializer):
 class ClcControlGoodTypeSerializer(GoodControlReviewSerializer):
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodsType
+        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control",)
 
     def update(self, instance, validated_data):
         instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)

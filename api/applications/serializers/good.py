@@ -75,6 +75,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "other_item_type",
             "is_good_controlled",
             "control_list_entries",
+            "end_use_control",
             "comment",
             "report_summary",
             "audit_trail",

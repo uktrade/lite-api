@@ -46,7 +46,7 @@ def date_to_drf_date(date):
     suitable for comparison to rest framework datetimes
     """
     date = timezone.localtime(date)
-    return date.isoformat()
+    return date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def friendly_boolean(boolean):

@@ -39,6 +39,15 @@ Service for handling backend calls in LITE.
 - At this point you might want to seed your database with some static
   - run `docker-compose run ./manage.py seedall`
 
+## Add a single user:
+
+Run the following command to add new users:
+
+```
+INTERNAL_USERS='[{"email"=>"foo@bar.gov.uk"}]' ./manage.py seedinternalusers
+EXPORTER_USERS='[{"email"=>"foo@bar.com"}]' ./manage.py seedexporterusers
+```
+
 ## Running Background tasks
 
 `pipenv run ./manage.py process_tasks` will run all background tasks
