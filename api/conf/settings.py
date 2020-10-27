@@ -94,6 +94,11 @@ INSTALLED_APPS = [
     "api.search.application",
     "api.reports",
     "api.data_workspace",
+    "health_check",
+    "health_check.db",
+    "health_check.cache",
+    "health_check.storage",
+    "health_check.contrib.migrations",
 ]
 
 MIDDLEWARE = [
