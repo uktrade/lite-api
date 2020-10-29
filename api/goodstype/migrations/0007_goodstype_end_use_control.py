@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name="end_use_control",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.TextField(),
-                default=[],
+                default=list,
                 help_text="Control code given to good due to the end use e.g, a wood screw may be used in a Harrier jump jet.",
                 size=None,
             ),

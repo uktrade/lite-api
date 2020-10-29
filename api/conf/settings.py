@@ -42,8 +42,11 @@ DEBUG = env("DEBUG")
 ADMIN_ENABLED = True
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
-# Application definition
 
+# django-allow-cidr
+ALLOWED_CIDR_NETS = ["10.0.0.0/8"]
+
+# Application definition
 INSTALLED_APPS = [
     "api.addresses",
     "api.applications.apps.ApplicationsConfig",
@@ -94,9 +97,15 @@ INSTALLED_APPS = [
     "api.search.application",
     "api.reports",
     "api.data_workspace",
+    "health_check",
+    "health_check.db",
+    "health_check.cache",
+    "health_check.storage",
+    "health_check.contrib.migrations",
 ]
 
 MIDDLEWARE = [
+    "allow_cidr.middleware.AllowCIDRMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
