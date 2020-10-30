@@ -38,6 +38,7 @@ from lite_content.lite_api import strings
 from api.queries.serializers import QueryViewSerializer
 from api.queues.models import Queue
 from api.staticdata.countries.models import Country
+from api.staticdata.missing_document_reasons import enums
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.models import Team
 from api.teams.serializers import TeamSerializer
@@ -442,6 +443,22 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "raised_by_user",
             "query_type",
             "team",
+        )
+
+
+class EcjuQueryMissingDocumentSerializer(serializers.ModelSerializer):
+    missing_document_reason = KeyValueChoiceField(
+        choices=enums.EcjuQueryMissingDocumentReasons.choices,
+        allow_blank=False,
+        required=True,
+        error_messages={"invalid_choice": strings.EcjuQuery.INVALID_MISSING_DOCUMENT_REASON},
+    )
+
+    class Meta:
+        model = EcjuQuery
+        fields = (
+            "id",
+            "missing_document_reason",
         )
 
 
