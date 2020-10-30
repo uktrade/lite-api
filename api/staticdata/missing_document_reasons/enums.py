@@ -1,7 +1,7 @@
 from lite_content.lite_api import strings
 
 
-class GoodMissingDocumentReasons:
+class DocumentMissingReasons:
     """
     Selection of possible reasons why an exporter may not be expected to upload
     a document for the good through LITE.
@@ -18,3 +18,9 @@ class GoodMissingDocumentReasons:
         (NO_DOCUMENT, strings.Static.MissingDocuments.NO_DOCUMENT),
         (OFFICIAL_SENSITIVE, strings.Static.MissingDocuments.OFFICIAL_SENSITIVE),
     ]
+
+class GoodMissingDocumentReasons(DocumentMissingReasons):
+    pass
+
+class EcjuQueryMissingDocumentReasons(DocumentMissingReasons):
+    pass
