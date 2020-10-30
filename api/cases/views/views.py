@@ -50,6 +50,7 @@ from api.cases.serializers import (
     ReviewDateUpdateSerializer,
     EcjuQueryExporterViewSerializer,
     EcjuQueryExporterRespondSerializer,
+    EcjuQueryMissingDocumentSerializer,
 )
 from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
@@ -58,7 +59,7 @@ from api.core import constants
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from api.core.constants import GovPermissions
 from api.core.exceptions import NotFoundError
-from api.core.helpers import convert_date_to_string
+from api.core.helpers import convert_date_to_string, str_to_bool
 from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.libraries.s3_operations import document_download_stream
@@ -69,6 +70,7 @@ from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
 from api.licences.models import Licence
 from api.licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
+from lite_content.lite_api.strings import EcjuQuery as EcjuQueryStrings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.organisations.models import Site
 from api.parties.models import Party
@@ -540,6 +542,35 @@ class EcjuQueryDetail(APIView):
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EcjuQueryDocumentCriteriaCheck(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def post(self, request, **kwargs):
+        ecju_query = get_ecju_query(kwargs["ecju_pk"])
+        data = request.data
+        if data.get("has_document_to_upload"):
+            document_to_upload = str_to_bool(data["has_document_to_upload"])
+            if not document_to_upload:
+                ecju_query.missing_document_reason = data["missing_document_reason"]
+                serializer = EcjuQueryMissingDocumentSerializer(instance=ecju_query, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    ecju_query_detail = EcjuQueryCreateSerializer(ecju_query).data
+                else:
+                    return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                ecju_query.missing_document_reason = None
+                ecju_query.save()
+                ecju_query_detail = EcjuQueryCreateSerializer(ecju_query).data
+        else:
+            return JsonResponse(
+                data={"errors": {"has_document_to_upload": [EcjuQueryStrings.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return JsonResponse(data={"ecju_query": ecju_query_detail}, status=status.HTTP_200_OK)
 
 
 class GoodsCountriesDecisions(APIView):

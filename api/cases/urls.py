@@ -40,6 +40,11 @@ urlpatterns = [
     path("<uuid:pk>/open-licence-decision/", views.OpenLicenceDecision.as_view(), name="open_licence_decision",),
     path("<uuid:pk>/ecju-queries/", views.ECJUQueries.as_view(), name="case_ecju_queries",),
     path("<uuid:pk>/ecju-queries/<uuid:ecju_pk>/", views.EcjuQueryDetail.as_view(), name="case_ecju_query",),
+    path(
+        "<uuid:pk>/ecju-queries/<uuid:ecju_pk>/document-sensitivity/",
+        views.EcjuQueryDocumentCriteriaCheck.as_view(),
+        name="case_ecju_query_document_sensitivity",
+    ),
     path("<uuid:pk>/generated-documents/", include("api.cases.generated_documents.urls")),
     path("<uuid:pk>/finalise/", views.FinaliseView.as_view(), name="finalise"),
     path("<uuid:pk>/licences/", licences.LicencesView.as_view(), name="licences"),
