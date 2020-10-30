@@ -25,7 +25,7 @@ from api.cases.libraries.delete_notifications import delete_exporter_notificatio
 from api.cases.libraries.finalise import get_required_decision_document_types
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
-from api.cases.libraries.get_ecju_queries import get_ecju_query
+from api.cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_query_document
 from api.cases.libraries.get_goods_type_countries_decisions import (
     good_type_to_country_decisions,
     get_required_good_type_to_country_combinations,
@@ -38,7 +38,16 @@ from api.cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from api.cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case, CaseReviewDate
+from api.cases.models import (
+    CaseDocument,
+    EcjuQuery,
+    EcjuQueryDocument,
+    Advice,
+    GoodCountryDecision,
+    CaseAssignment,
+    Case,
+    CaseReviewDate,
+)
 from api.cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -51,6 +60,9 @@ from api.cases.serializers import (
     EcjuQueryExporterViewSerializer,
     EcjuQueryExporterRespondSerializer,
     EcjuQueryMissingDocumentSerializer,
+    EcjuQueryDocumentCreateSerializer,
+    EcjuQueryDocumentViewSerializer,
+    SimpleEcjuQueryDocumentViewSerializer,
 )
 from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
@@ -548,7 +560,7 @@ class EcjuQueryDocumentCriteriaCheck(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def post(self, request, **kwargs):
-        ecju_query = get_ecju_query(kwargs["ecju_pk"])
+        ecju_query = get_ecju_query(kwargs["query_pk"])
         data = request.data
         if data.get("has_document_to_upload"):
             document_to_upload = str_to_bool(data["has_document_to_upload"])
@@ -571,6 +583,73 @@ class EcjuQueryDocumentCriteriaCheck(APIView):
             )
 
         return JsonResponse(data={"ecju_query": ecju_query_detail}, status=status.HTTP_200_OK)
+
+
+class EcjuQueryAddDocument(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Returns a list of documents on the specified good
+        """
+        query_documents = EcjuQueryDocument.objects.filter(query_id=pk).order_by("-created_at")
+        serializer = EcjuQueryDocumentViewSerializer(query_documents, many=True)
+
+        return JsonResponse({"documents": serializer.data})
+
+    @transaction.atomic
+    def post(self, request, **kwargs):
+        """
+        Adds a document to the specified good
+        """
+        import pdb; pdb.set_trace()
+        ecju_query = get_ecju_query(kwargs["query_pk"])
+        data = request.data
+
+        for document in data:
+            document["query"] = ecju_query.id
+            document["user"] = request.user.pk
+
+        serializer = EcjuQueryDocumentCreateSerializer(data=data, many=True)
+        if serializer.is_valid():
+            try:
+                serializer.save()
+            except Exception as e:  # noqa
+                return JsonResponse(
+                    {"errors": {"file": EcjuQueryStrings.UPLOAD_FAILURE}}, status=status.HTTP_400_BAD_REQUEST
+                )
+            # Delete missing document reason as a document has now been uploaded
+            ecju_query.missing_document_reason = None
+            ecju_query.save()
+            return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
+
+        delete_documents_on_bad_request(data)
+        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EcjuQueryDocumentDetail(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request, pk, doc_pk):
+        """
+        Returns a list of documents on the specified good
+        """
+        query = get_ecju_query(pk)
+        query_document = get_ecju_query_document(query, doc_pk)
+        serializer = EcjuQueryDocumentViewSerializer(query_document)
+        return JsonResponse({"document": serializer.data})
+
+    @transaction.atomic
+    def delete(self, request, pk, doc_pk):
+        """
+        Deletes good document
+        """
+        import pdb; pdb.set_trace()
+        query = get_ecju_query(pk)
+        query_document = EcjuQueryDocument.objects.get(id=doc_pk)
+        query_document.delete_s3()
+
+        return JsonResponse({"document": "deleted success"})
 
 
 class GoodsCountriesDecisions(APIView):

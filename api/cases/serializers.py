@@ -21,6 +21,7 @@ from api.cases.models import (
     CaseAssignment,
     CaseDocument,
     EcjuQuery,
+    EcjuQueryDocument,
     Advice,
     GoodCountryDecision,
     CaseType,
@@ -44,7 +45,7 @@ from api.teams.models import Team
 from api.teams.serializers import TeamSerializer
 from api.users.enums import UserStatuses
 from api.users.models import BaseUser, GovUser, GovNotification, ExporterUser
-from api.users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer
+from api.users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer, ExporterUserSimpleSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -443,6 +444,53 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "raised_by_user",
             "query_type",
             "team",
+        )
+
+
+class EcjuQueryDocumentCreateSerializer(serializers.ModelSerializer):
+    query = serializers.PrimaryKeyRelatedField(queryset=EcjuQuery.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
+
+    class Meta:
+        model = EcjuQueryDocument
+        fields = (
+            "name",
+            "s3_key",
+            "user",
+            "size",
+            "query",
+            "description",
+        )
+
+    def create(self, validated_data):
+        query_document = super().create(validated_data)
+        query_document.save()
+        process_document(query_document)
+        return query_document
+
+
+class EcjuQueryDocumentViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    created_at = serializers.DateTimeField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    user = ExporterUserSimpleSerializer()
+    s3_key = serializers.SerializerMethodField()
+    safe = serializers.BooleanField()
+
+    def get_s3_key(self, instance):
+        return instance.s3_key if instance.safe else "File not ready"
+
+
+class SimpleEcjuQueryDocumentViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EcjuQueryDocument
+        fields = (
+            "id",
+            "name",
+            "description",
+            "size",
+            "safe",
         )
 
 
