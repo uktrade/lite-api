@@ -17,8 +17,8 @@ def get_ecju_query(pk):
         raise NotFoundError({"ecju_query": "ECJU Query not found - " + str(pk)})
 
 
-def get_ecju_query_document(query, pk):
+def get_ecju_query_document(pk):
     try:
-        return models.EcjuQueryDocument.objects.get(query=query, pk=pk)
+        return models.EcjuQueryDocument.objects.get(pk=pk)
     except models.EcjuQueryDocument.DoesNotExist:
         raise NotFoundError({"document": strings.EcjuQuery.DOCUMENT_NOT_FOUND})

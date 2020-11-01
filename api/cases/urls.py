@@ -51,7 +51,7 @@ urlpatterns = [
         name="case_ecju_query_add_document",
     ),
     path(
-        "<uuid:pk>/ecju-queries/<uuid:query_pk>/document/<uuid:doc_pk>",
+        "<uuid:pk>/ecju-queries/<uuid:query_pk>/document/<uuid:doc_pk>/",
         views.EcjuQueryDocumentDetail.as_view(),
         name="case_ecju_query_document_detail",
     ),

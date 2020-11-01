@@ -588,13 +588,12 @@ class EcjuQueryDocumentCriteriaCheck(APIView):
 class EcjuQueryAddDocument(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
+    def get(self, request, **kwargs):
         """
         Returns a list of documents on the specified good
         """
-        query_documents = EcjuQueryDocument.objects.filter(query_id=pk).order_by("-created_at")
+        query_documents = EcjuQueryDocument.objects.filter(query_id=kwargs["query_pk"]).order_by("-created_at")
         serializer = EcjuQueryDocumentViewSerializer(query_documents, many=True)
-
         return JsonResponse({"documents": serializer.data})
 
     @transaction.atomic
@@ -602,7 +601,6 @@ class EcjuQueryAddDocument(APIView):
         """
         Adds a document to the specified good
         """
-        import pdb; pdb.set_trace()
         ecju_query = get_ecju_query(kwargs["query_pk"])
         data = request.data
 
@@ -630,25 +628,16 @@ class EcjuQueryAddDocument(APIView):
 class EcjuQueryDocumentDetail(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk, doc_pk):
-        """
-        Returns a list of documents on the specified good
-        """
-        query = get_ecju_query(pk)
-        query_document = get_ecju_query_document(query, doc_pk)
-        serializer = EcjuQueryDocumentViewSerializer(query_document)
+    def get(self, request, **kwargs):
+        document = EcjuQueryDocument.objects.get(id=kwargs["doc_pk"])
+        serializer = EcjuQueryDocumentViewSerializer(document)
         return JsonResponse({"document": serializer.data})
 
     @transaction.atomic
-    def delete(self, request, pk, doc_pk):
-        """
-        Deletes good document
-        """
-        import pdb; pdb.set_trace()
-        query = get_ecju_query(pk)
-        query_document = EcjuQueryDocument.objects.get(id=doc_pk)
-        query_document.delete_s3()
-
+    def delete(self, request, **kwargs):
+        document = EcjuQueryDocument.objects.get(id=kwargs["doc_pk"])
+        document.delete_s3()
+        document.delete()
         return JsonResponse({"document": "deleted success"})
 
 

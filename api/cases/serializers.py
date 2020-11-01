@@ -372,6 +372,7 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
     responded_by_user = serializers.SerializerMethodField()
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+    documents = serializers.SerializerMethodField()
 
     def get_team(self, instance):
         # If the team is not available, use the user's current team.
@@ -389,6 +390,7 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
             "team",
             "created_at",
             "responded_at",
+            "documents",
         )
 
     def get_responded_by_user(self, instance):
@@ -397,6 +399,10 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
                 "id": instance.responded_by_user.pk,
                 "name": instance.responded_by_user.baseuser_ptr.get_full_name(),
             }
+
+    def get_documents(self, instance):
+        documents = EcjuQueryDocument.objects.filter(query=instance)
+        return SimpleEcjuQueryDocumentViewSerializer(documents, many=True).data
 
 
 class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
