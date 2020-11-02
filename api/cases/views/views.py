@@ -603,12 +603,10 @@ class EcjuQueryAddDocument(APIView):
         """
         ecju_query = get_ecju_query(kwargs["query_pk"])
         data = request.data
+        data["query"] = ecju_query.id
+        data["user"] = request.user.pk
 
-        for document in data:
-            document["query"] = ecju_query.id
-            document["user"] = request.user.pk
-
-        serializer = EcjuQueryDocumentCreateSerializer(data=data, many=True)
+        serializer = EcjuQueryDocumentCreateSerializer(data=data)
         if serializer.is_valid():
             try:
                 serializer.save()

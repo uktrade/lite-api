@@ -345,6 +345,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
     raised_by_user_name = serializers.SerializerMethodField()
     responded_by_user_name = serializers.SerializerMethodField()
     query_type = KeyValueChoiceField(choices=ECJUQueryType.choices, required=False)
+    documents = serializers.SerializerMethodField()
 
     class Meta:
         model = EcjuQuery
@@ -358,6 +359,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
             "created_at",
             "responded_at",
             "query_type",
+            "documents",
         )
 
     def get_raised_by_user_name(self, instance):
@@ -366,6 +368,10 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
     def get_responded_by_user_name(self, instance):
         if instance.responded_by_user:
             return instance.responded_by_user.baseuser_ptr.get_full_name()
+
+    def get_documents(self, instance):
+        documents = EcjuQueryDocument.objects.filter(query=instance)
+        return SimpleEcjuQueryDocumentViewSerializer(documents, many=True).data
 
 
 class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
