@@ -372,6 +372,7 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
     responded_by_user = serializers.SerializerMethodField()
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+    missing_document_reason = KeyValueChoiceField(choices=enums.EcjuQueryMissingDocumentReasons.choices, read_only=True)
     documents = serializers.SerializerMethodField()
 
     def get_team(self, instance):
@@ -390,6 +391,7 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
             "team",
             "created_at",
             "responded_at",
+            "missing_document_reason",
             "documents",
         )
 
@@ -411,6 +413,8 @@ class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
         queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
     )
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+    missing_document_reason = KeyValueChoiceField(choices=enums.EcjuQueryMissingDocumentReasons.choices, read_only=True)
+    documents = serializers.SerializerMethodField()
 
     class Meta:
         model = EcjuQuery
@@ -423,12 +427,18 @@ class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
             "team",
             "created_at",
             "responded_at",
+            "missing_document_reason",
+            "documents",
         )
 
     def get_team(self, instance):
         # If the team is not available, use the user's current team.
         team = instance.team if instance.team else instance.raised_by_user.team
         return TeamSerializer(team).data
+
+    def get_documents(self, instance):
+        documents = EcjuQueryDocument.objects.filter(query=instance)
+        return SimpleEcjuQueryDocumentViewSerializer(documents, many=True).data
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
@@ -440,6 +450,7 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
     question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     query_type = KeyValueChoiceField(choices=ECJUQueryType.choices)
+    missing_document_reason = KeyValueChoiceField(choices=enums.EcjuQueryMissingDocumentReasons.choices, read_only=True)
 
     class Meta:
         model = EcjuQuery
@@ -450,6 +461,7 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "raised_by_user",
             "query_type",
             "team",
+            "missing_document_reason",
         )
 
 
