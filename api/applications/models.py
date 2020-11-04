@@ -303,6 +303,7 @@ class AbstractGoodOnApplication(TimestampableModel):
         models.TextField(),
         default=list,
         help_text="Control code given to good due to the end use e.g, a wood screw may be used in a Harrier jump jet.",
+        blank=True,
     )
 
     class Meta:
