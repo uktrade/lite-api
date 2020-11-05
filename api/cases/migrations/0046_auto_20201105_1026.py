@@ -7,28 +7,58 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('documents', '0001_initial'),
-        ('users', '0014_auto_20200907_1234'),
-        ('cases', '0045_auto_20200713_1402'),
+        ("documents", "0001_initial"),
+        ("users", "0014_auto_20200907_1234"),
+        ("cases", "0045_auto_20200713_1402"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='ecjuquery',
-            name='missing_document_reason',
-            field=models.CharField(blank=True, choices=[('NO_DOCUMENT', 'No document available'), ('OFFICIAL_SENSITIVE', 'Document is above OFFICIAL-SENSITIVE')], max_length=30, null=True),
+            model_name="ecjuquery",
+            name="missing_document_reason",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("NO_DOCUMENT", "No document available"),
+                    ("OFFICIAL_SENSITIVE", "Document is above OFFICIAL-SENSITIVE"),
+                ],
+                max_length=30,
+                null=True,
+            ),
         ),
         migrations.CreateModel(
-            name='EcjuQueryDocument',
+            name="EcjuQueryDocument",
             fields=[
-                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='documents.Document')),
-                ('description', models.TextField(default='', max_length=280, blank=True)),
-                ('query', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='ecjuquery_document', to='cases.EcjuQuery')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='ecjuquery_document', to='users.ExporterUser')),
+                (
+                    "document_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="documents.Document",
+                    ),
+                ),
+                ("description", models.TextField(default="", max_length=280, blank=True)),
+                (
+                    "query",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ecjuquery_document",
+                        to="cases.EcjuQuery",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="ecjuquery_document",
+                        to="users.ExporterUser",
+                    ),
+                ),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('documents.document',),
+            options={"abstract": False,},
+            bases=("documents.document",),
         ),
     ]

@@ -19,8 +19,10 @@ class DocumentMissingReasons:
         (OFFICIAL_SENSITIVE, strings.Static.MissingDocuments.OFFICIAL_SENSITIVE),
     ]
 
+
 class GoodMissingDocumentReasons(DocumentMissingReasons):
     pass
+
 
 class EcjuQueryMissingDocumentReasons(DocumentMissingReasons):
     pass

@@ -25,7 +25,7 @@ from api.cases.libraries.delete_notifications import delete_exporter_notificatio
 from api.cases.libraries.finalise import get_required_decision_document_types
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
-from api.cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_query_document
+from api.cases.libraries.get_ecju_queries import get_ecju_query
 from api.cases.libraries.get_goods_type_countries_decisions import (
     good_type_to_country_decisions,
     get_required_good_type_to_country_combinations,
@@ -62,7 +62,6 @@ from api.cases.serializers import (
     EcjuQueryMissingDocumentSerializer,
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
-    SimpleEcjuQueryDocumentViewSerializer,
 )
 from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
