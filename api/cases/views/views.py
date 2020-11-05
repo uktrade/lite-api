@@ -539,6 +539,11 @@ class EcjuQueryDetail(APIView):
         If validate only, this will return if the data is acceptable or not.
         """
         ecju_query = get_ecju_query(ecju_pk)
+        if ecju_query.response:
+            return JsonResponse(
+                data={"error": f"Responding to closed {ecju_query.get_query_type_display()} is not allowed"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         data = {"response": request.data["response"], "responded_by_user": str(request.user.pk)}
 
@@ -601,6 +606,11 @@ class EcjuQueryAddDocument(APIView):
         Adds a document to the specified good
         """
         ecju_query = get_ecju_query(kwargs["query_pk"])
+        if ecju_query.response:
+            return JsonResponse(
+                {"error": "Adding document for a closed query is not allowed"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         data = request.data
         data["query"] = ecju_query.id
         data["user"] = request.user.pk
@@ -633,6 +643,11 @@ class EcjuQueryDocumentDetail(APIView):
     @transaction.atomic
     def delete(self, request, **kwargs):
         document = EcjuQueryDocument.objects.get(id=kwargs["doc_pk"])
+        if document.query.response:
+            return JsonResponse(
+                {"error": "Deleting document for a closed query is not allowed"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         document.delete_s3()
         document.delete()
         return JsonResponse({"document": "deleted success"})
