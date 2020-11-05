@@ -447,7 +447,7 @@ class EcjuQuery(TimestampableModel):
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
     missing_document_reason = models.CharField(
-        choices=EcjuQueryMissingDocumentReasons.choices, null=True, max_length=30
+        choices=EcjuQueryMissingDocumentReasons.choices, blank=True, null=True, max_length=30
     )
 
     def save(self, *args, **kwargs):
@@ -464,9 +464,9 @@ class EcjuQuery(TimestampableModel):
 
 
 class EcjuQueryDocument(Document):
-    query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE)
-    user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING)
-    description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, related_name="ecjuquery_document")
+    user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING, related_name="ecjuquery_document")
+    description = models.TextField(default="", blank=True, max_length=280)
 
 
 class GoodCountryDecision(TimestampableModel):
