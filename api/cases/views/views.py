@@ -571,11 +571,10 @@ class EcjuQueryDocumentCriteriaCheck(APIView):
             if not document_to_upload:
                 ecju_query.missing_document_reason = data["missing_document_reason"]
                 serializer = EcjuQueryMissingDocumentSerializer(instance=ecju_query, data=data, partial=True)
-                if serializer.is_valid():
+                ecju_query_detail = {}
+                if serializer.is_valid(raise_exception=True):
                     serializer.save()
                     ecju_query_detail = EcjuQueryCreateSerializer(ecju_query).data
-                else:
-                    return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 ecju_query.missing_document_reason = None
                 ecju_query.save()
