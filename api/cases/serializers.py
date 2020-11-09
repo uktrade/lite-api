@@ -523,7 +523,7 @@ class EcjuQueryMissingDocumentSerializer(serializers.ModelSerializer):
         choices=enums.EcjuQueryMissingDocumentReasons.choices,
         allow_blank=False,
         required=True,
-        error_messages={"invalid_choice": strings.EcjuQuery.INVALID_MISSING_DOCUMENT_REASON},
+        error_messages={"invalid_choice": "Select the reason why you're not attaching a document"},
     )
 
     class Meta:

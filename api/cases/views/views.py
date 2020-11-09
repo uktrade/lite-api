@@ -81,7 +81,6 @@ from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
 from api.licences.models import Licence
 from api.licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
-from lite_content.lite_api.strings import EcjuQuery as EcjuQueryStrings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.organisations.models import Site
 from api.parties.models import Party
@@ -581,7 +580,9 @@ class EcjuQueryDocumentCriteriaCheck(APIView):
                 ecju_query_detail = EcjuQueryCreateSerializer(ecju_query).data
         else:
             return JsonResponse(
-                data={"errors": {"has_document_to_upload": [EcjuQueryStrings.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
+                data={
+                    "errors": {"has_document_to_upload": ["Select yes if the product documentation meets the criteria"]}
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -620,7 +621,8 @@ class EcjuQueryAddDocument(APIView):
                 serializer.save()
             except Exception as e:  # noqa
                 return JsonResponse(
-                    {"errors": {"file": EcjuQueryStrings.UPLOAD_FAILURE}}, status=status.HTTP_400_BAD_REQUEST
+                    {"errors": {"file": "We had an issue uploading your files. Try again later."}},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             # Delete missing document reason as a document has now been uploaded
             ecju_query.missing_document_reason = None
