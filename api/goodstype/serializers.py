@@ -82,6 +82,7 @@ class GoodsTypeViewSerializer(serializers.Serializer):
     flags = serializers.SerializerMethodField()
     comment = serializers.CharField()
     report_summary = serializers.CharField(allow_blank=True, required=False)
+    end_use_control = serializers.ListField(child=serializers.CharField(), required=False)
 
     def __init__(self, instance=None, data=empty, default_countries=None, **kwargs):
         super().__init__(instance, data, **kwargs)
