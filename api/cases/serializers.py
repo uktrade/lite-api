@@ -39,7 +39,6 @@ from lite_content.lite_api import strings
 from api.queries.serializers import QueryViewSerializer
 from api.queues.models import Queue
 from api.staticdata.countries.models import Country
-from api.staticdata.missing_document_reasons import enums
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.models import Team
 from api.teams.serializers import TeamSerializer
@@ -378,7 +377,6 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
     responded_by_user = serializers.SerializerMethodField()
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
-    missing_document_reason = KeyValueChoiceField(choices=enums.EcjuQueryMissingDocumentReasons.choices, read_only=True)
     documents = serializers.SerializerMethodField()
 
     def get_team(self, instance):
@@ -397,7 +395,6 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
             "team",
             "created_at",
             "responded_at",
-            "missing_document_reason",
             "documents",
         )
 
@@ -419,7 +416,6 @@ class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
         queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
     )
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
-    missing_document_reason = KeyValueChoiceField(choices=enums.EcjuQueryMissingDocumentReasons.choices, read_only=True)
     documents = serializers.SerializerMethodField()
 
     class Meta:
@@ -433,7 +429,6 @@ class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
             "team",
             "created_at",
             "responded_at",
-            "missing_document_reason",
             "documents",
         )
 
@@ -456,7 +451,6 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
     question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     query_type = KeyValueChoiceField(choices=ECJUQueryType.choices)
-    missing_document_reason = KeyValueChoiceField(choices=enums.EcjuQueryMissingDocumentReasons.choices, read_only=True)
 
     class Meta:
         model = EcjuQuery
@@ -467,7 +461,6 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "raised_by_user",
             "query_type",
             "team",
-            "missing_document_reason",
         )
 
 
@@ -515,22 +508,6 @@ class SimpleEcjuQueryDocumentViewSerializer(serializers.ModelSerializer):
             "description",
             "size",
             "safe",
-        )
-
-
-class EcjuQueryMissingDocumentSerializer(serializers.ModelSerializer):
-    missing_document_reason = KeyValueChoiceField(
-        choices=enums.EcjuQueryMissingDocumentReasons.choices,
-        allow_blank=False,
-        required=True,
-        error_messages={"invalid_choice": "Select the reason why you're not attaching a document"},
-    )
-
-    class Meta:
-        model = EcjuQuery
-        fields = (
-            "id",
-            "missing_document_reason",
         )
 
 

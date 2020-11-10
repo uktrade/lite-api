@@ -34,7 +34,6 @@ from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import CaseStatus
-from api.staticdata.missing_document_reasons.enums import EcjuQueryMissingDocumentReasons
 from api.teams.models import Team
 from api.users.models import (
     BaseUser,
@@ -446,9 +445,6 @@ class EcjuQuery(TimestampableModel):
     )
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
-    missing_document_reason = models.CharField(
-        choices=EcjuQueryMissingDocumentReasons.choices, blank=True, null=True, max_length=30
-    )
 
     def save(self, *args, **kwargs):
         existing_instance_count = EcjuQuery.objects.filter(id=self.id).count()

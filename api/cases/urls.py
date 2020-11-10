@@ -41,11 +41,6 @@ urlpatterns = [
     path("<uuid:pk>/ecju-queries/", views.ECJUQueries.as_view(), name="case_ecju_queries",),
     path("<uuid:pk>/ecju-queries/<uuid:ecju_pk>/", views.EcjuQueryDetail.as_view(), name="case_ecju_query",),
     path(
-        "<uuid:pk>/ecju-queries/<uuid:query_pk>/document-sensitivity/",
-        views.EcjuQueryDocumentCriteriaCheck.as_view(),
-        name="case_ecju_query_document_sensitivity",
-    ),
-    path(
         "<uuid:pk>/ecju-queries/<uuid:query_pk>/document/",
         views.EcjuQueryAddDocument.as_view(),
         name="case_ecju_query_add_document",

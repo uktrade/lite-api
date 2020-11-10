@@ -13,19 +13,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="ecjuquery",
-            name="missing_document_reason",
-            field=models.CharField(
-                blank=True,
-                choices=[
-                    ("NO_DOCUMENT", "No document available"),
-                    ("OFFICIAL_SENSITIVE", "Document is above OFFICIAL-SENSITIVE"),
-                ],
-                max_length=30,
-                null=True,
-            ),
-        ),
         migrations.CreateModel(
             name="EcjuQueryDocument",
             fields=[

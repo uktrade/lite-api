@@ -59,7 +59,6 @@ from api.cases.serializers import (
     ReviewDateUpdateSerializer,
     EcjuQueryExporterViewSerializer,
     EcjuQueryExporterRespondSerializer,
-    EcjuQueryMissingDocumentSerializer,
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
 )
@@ -70,7 +69,7 @@ from api.core import constants
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from api.core.constants import GovPermissions
 from api.core.exceptions import NotFoundError
-from api.core.helpers import convert_date_to_string, str_to_bool
+from api.core.helpers import convert_date_to_string
 from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.libraries.s3_operations import document_download_stream
@@ -559,36 +558,6 @@ class EcjuQueryDetail(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class EcjuQueryDocumentCriteriaCheck(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    def post(self, request, **kwargs):
-        ecju_query = get_ecju_query(kwargs["query_pk"])
-        data = request.data
-        if data.get("has_document_to_upload"):
-            document_to_upload = str_to_bool(data["has_document_to_upload"])
-            if not document_to_upload:
-                ecju_query.missing_document_reason = data["missing_document_reason"]
-                serializer = EcjuQueryMissingDocumentSerializer(instance=ecju_query, data=data, partial=True)
-                ecju_query_detail = {}
-                if serializer.is_valid(raise_exception=True):
-                    serializer.save()
-                    ecju_query_detail = EcjuQueryCreateSerializer(ecju_query).data
-            else:
-                ecju_query.missing_document_reason = None
-                ecju_query.save()
-                ecju_query_detail = EcjuQueryCreateSerializer(ecju_query).data
-        else:
-            return JsonResponse(
-                data={
-                    "errors": {"has_document_to_upload": ["Select yes if the product documentation meets the criteria"]}
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return JsonResponse(data={"ecju_query": ecju_query_detail}, status=status.HTTP_200_OK)
-
-
 class EcjuQueryAddDocument(APIView):
     authentication_classes = (ExporterAuthentication,)
 
@@ -624,8 +593,6 @@ class EcjuQueryAddDocument(APIView):
                     {"errors": {"file": "We had an issue uploading your files. Try again later."}},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            # Delete missing document reason as a document has now been uploaded
-            ecju_query.missing_document_reason = None
             ecju_query.save()
             return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
 
