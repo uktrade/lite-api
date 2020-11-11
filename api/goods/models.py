@@ -45,7 +45,7 @@ class FirearmGoodDetails(models.Model):
     has_identification_markings = models.BooleanField(null=False)
     identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
     no_identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
-    serial_number = models.TextField(default='')
+    serial_number = models.TextField(default="")
 
 
 class Good(TimestampableModel):

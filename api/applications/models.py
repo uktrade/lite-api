@@ -306,7 +306,7 @@ class AbstractGoodOnApplication(TimestampableModel):
         blank=True,
     )
     firearm_details = models.ForeignKey(
-        'goods.FirearmGoodDetails', on_delete=models.CASCADE, default=None, blank=True, null=True
+        "goods.FirearmGoodDetails", on_delete=models.CASCADE, default=None, blank=True, null=True
     )
 
     class Meta:
