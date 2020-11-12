@@ -38,7 +38,16 @@ from api.cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from api.cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case, CaseReviewDate
+from api.cases.models import (
+    CaseDocument,
+    EcjuQuery,
+    EcjuQueryDocument,
+    Advice,
+    GoodCountryDecision,
+    CaseAssignment,
+    Case,
+    CaseReviewDate,
+)
 from api.cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -50,6 +59,8 @@ from api.cases.serializers import (
     ReviewDateUpdateSerializer,
     EcjuQueryExporterViewSerializer,
     EcjuQueryExporterRespondSerializer,
+    EcjuQueryDocumentCreateSerializer,
+    EcjuQueryDocumentViewSerializer,
 )
 from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
@@ -526,6 +537,11 @@ class EcjuQueryDetail(APIView):
         If validate only, this will return if the data is acceptable or not.
         """
         ecju_query = get_ecju_query(ecju_pk)
+        if ecju_query.response:
+            return JsonResponse(
+                data={"error": f"Responding to closed {ecju_query.get_query_type_display()} is not allowed"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         data = {"response": request.data["response"], "responded_by_user": str(request.user.pk)}
 
@@ -540,6 +556,69 @@ class EcjuQueryDetail(APIView):
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EcjuQueryAddDocument(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request, **kwargs):
+        """
+        Returns a list of documents on the specified good
+        """
+        query_documents = EcjuQueryDocument.objects.filter(query_id=kwargs["query_pk"]).order_by("-created_at")
+        serializer = EcjuQueryDocumentViewSerializer(query_documents, many=True)
+        return JsonResponse({"documents": serializer.data})
+
+    @transaction.atomic
+    def post(self, request, **kwargs):
+        """
+        Adds a document to the specified good
+        """
+        ecju_query = get_ecju_query(kwargs["query_pk"])
+        if ecju_query.response:
+            return JsonResponse(
+                {"error": "Adding document for a closed query is not allowed"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        data = request.data
+        data["query"] = ecju_query.id
+        data["user"] = request.user.pk
+
+        serializer = EcjuQueryDocumentCreateSerializer(data=data)
+        if serializer.is_valid():
+            try:
+                serializer.save()
+            except Exception as e:  # noqa
+                return JsonResponse(
+                    {"errors": {"file": "We had an issue uploading your files. Try again later."}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            ecju_query.save()
+            return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
+
+        delete_documents_on_bad_request(data)
+        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EcjuQueryDocumentDetail(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request, **kwargs):
+        document = EcjuQueryDocument.objects.get(id=kwargs["doc_pk"])
+        serializer = EcjuQueryDocumentViewSerializer(document)
+        return JsonResponse({"document": serializer.data})
+
+    @transaction.atomic
+    def delete(self, request, **kwargs):
+        document = EcjuQueryDocument.objects.get(id=kwargs["doc_pk"])
+        if document.query.response:
+            return JsonResponse(
+                {"error": "Deleting document for a closed query is not allowed"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        document.delete_s3()
+        document.delete()
+        return JsonResponse({"document": "deleted success"})
 
 
 class GoodsCountriesDecisions(APIView):

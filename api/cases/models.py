@@ -459,6 +459,12 @@ class EcjuQuery(TimestampableModel):
             super(EcjuQuery, self).save(*args, **kwargs)
 
 
+class EcjuQueryDocument(Document):
+    query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, related_name="ecjuquery_document")
+    user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING, related_name="ecjuquery_document")
+    description = models.TextField(default="", blank=True, max_length=280)
+
+
 class GoodCountryDecision(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)

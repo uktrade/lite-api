@@ -21,6 +21,7 @@ from api.cases.models import (
     CaseAssignment,
     CaseDocument,
     EcjuQuery,
+    EcjuQueryDocument,
     Advice,
     GoodCountryDecision,
     CaseType,
@@ -43,7 +44,7 @@ from api.teams.models import Team
 from api.teams.serializers import TeamSerializer
 from api.users.enums import UserStatuses
 from api.users.models import BaseUser, GovUser, GovNotification, ExporterUser
-from api.users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer
+from api.users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer, ExporterUserSimpleSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -343,6 +344,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
     raised_by_user_name = serializers.SerializerMethodField()
     responded_by_user_name = serializers.SerializerMethodField()
     query_type = KeyValueChoiceField(choices=ECJUQueryType.choices, required=False)
+    documents = serializers.SerializerMethodField()
 
     class Meta:
         model = EcjuQuery
@@ -356,6 +358,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
             "created_at",
             "responded_at",
             "query_type",
+            "documents",
         )
 
     def get_raised_by_user_name(self, instance):
@@ -365,11 +368,16 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
         if instance.responded_by_user:
             return instance.responded_by_user.baseuser_ptr.get_full_name()
 
+    def get_documents(self, instance):
+        documents = EcjuQueryDocument.objects.filter(query=instance)
+        return SimpleEcjuQueryDocumentViewSerializer(documents, many=True).data
+
 
 class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
     responded_by_user = serializers.SerializerMethodField()
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+    documents = serializers.SerializerMethodField()
 
     def get_team(self, instance):
         # If the team is not available, use the user's current team.
@@ -387,6 +395,7 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
             "team",
             "created_at",
             "responded_at",
+            "documents",
         )
 
     def get_responded_by_user(self, instance):
@@ -396,6 +405,10 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
                 "name": instance.responded_by_user.baseuser_ptr.get_full_name(),
             }
 
+    def get_documents(self, instance):
+        documents = EcjuQueryDocument.objects.filter(query=instance)
+        return SimpleEcjuQueryDocumentViewSerializer(documents, many=True).data
+
 
 class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
@@ -403,6 +416,7 @@ class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
         queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
     )
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+    documents = serializers.SerializerMethodField()
 
     class Meta:
         model = EcjuQuery
@@ -415,12 +429,17 @@ class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
             "team",
             "created_at",
             "responded_at",
+            "documents",
         )
 
     def get_team(self, instance):
         # If the team is not available, use the user's current team.
         team = instance.team if instance.team else instance.raised_by_user.team
         return TeamSerializer(team).data
+
+    def get_documents(self, instance):
+        documents = EcjuQueryDocument.objects.filter(query=instance)
+        return SimpleEcjuQueryDocumentViewSerializer(documents, many=True).data
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
@@ -442,6 +461,53 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "raised_by_user",
             "query_type",
             "team",
+        )
+
+
+class EcjuQueryDocumentCreateSerializer(serializers.ModelSerializer):
+    query = serializers.PrimaryKeyRelatedField(queryset=EcjuQuery.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
+
+    class Meta:
+        model = EcjuQueryDocument
+        fields = (
+            "name",
+            "s3_key",
+            "user",
+            "size",
+            "query",
+            "description",
+        )
+
+    def create(self, validated_data):
+        query_document = super().create(validated_data)
+        query_document.save()
+        process_document(query_document)
+        return query_document
+
+
+class EcjuQueryDocumentViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    created_at = serializers.DateTimeField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    user = ExporterUserSimpleSerializer()
+    s3_key = serializers.SerializerMethodField()
+    safe = serializers.BooleanField()
+
+    def get_s3_key(self, instance):
+        return instance.s3_key if instance.safe else "File not ready"
+
+
+class SimpleEcjuQueryDocumentViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EcjuQueryDocument
+        fields = (
+            "id",
+            "name",
+            "description",
+            "size",
+            "safe",
         )
 
 
