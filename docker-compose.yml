@@ -36,7 +36,7 @@ services:
       - xpack.security.enabled=false
       - xpack.ml.enabled=false
       - discovery.type=single-node
-      - ES_JAVA_OPTS="-Xms128mb -Xmx1g"
+      - ES_JAVA_OPTS=-Xms128m -Xmx1g
     ulimits:
       memlock:
         soft: -1
