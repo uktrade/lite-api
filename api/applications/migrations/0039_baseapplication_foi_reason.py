@@ -6,13 +6,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0038_goodonapplication_end_use_control'),
+        ("applications", "0038_goodonapplication_end_use_control"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='baseapplication',
-            name='foi_reason',
-            field=models.TextField(blank=True, null=True),
+            model_name="baseapplication", name="foi_reason", field=models.TextField(blank=True, null=True),
         ),
     ]

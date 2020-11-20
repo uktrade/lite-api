@@ -330,7 +330,12 @@ class StandardApplicationTests(DataTestClient):
         self.draft.save()
         self.assertEqual(self.draft.status.status, CaseStatusEnum.DRAFT)
 
-        data = {"submit_declaration": "True", "agreed_to_declaration": "True", "agreed_to_foi": "False", "foi_reason": "Lorem ipsum"}
+        data = {
+            "submit_declaration": "True",
+            "agreed_to_declaration": "True",
+            "agreed_to_foi": "False",
+            "foi_reason": "Lorem ipsum",
+        }
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
