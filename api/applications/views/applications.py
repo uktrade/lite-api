@@ -353,6 +353,7 @@ class ApplicationSubmission(APIView):
                 # If a valid declaration is provided, save the application
                 application.submitted_by = request.user.exporteruser
                 application.agreed_to_foi = request.data.get("agreed_to_foi")
+                application.foi_reason = request.data.get("foi_reason")
                 submit_application(application)
 
                 if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:

@@ -167,6 +167,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
     intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
     agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
+    foi_reason = models.TextField(blank=True, null=True)
 
     objects = BaseApplicationManager()
 
