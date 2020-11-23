@@ -1,12 +1,9 @@
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
-from elasticsearch_dsl import Index
 from elasticsearch_dsl.query import Query
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_elasticsearch_dsl_drf.constants import (
-    LOOKUP_FILTER_TERMS,
-    LOOKUP_FILTER_PREFIX,
     LOOKUP_FILTER_WILDCARD,
     LOOKUP_FILTER_RANGE,
     LOOKUP_QUERY_GT,
@@ -137,9 +134,6 @@ class ProductSuggestDocumentView(APIView):
                     flat_suggestions.add(option)
 
         return Response(suggests)
-
-
-from elasticsearch_dsl.query import MoreLikeThis
 
 
 class AbstractRetrieveLiteProductView(APIView):

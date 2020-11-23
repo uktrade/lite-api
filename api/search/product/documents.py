@@ -4,12 +4,8 @@ from django_elasticsearch_dsl.registries import registry
 from elasticsearch_dsl import analysis, InnerDoc
 from elasticsearch_dsl.field import Text
 
-from django.db.models import Prefetch
-
 from api.applications import models
 
-
-from elasticsearch_dsl import analysis, InnerDoc
 
 address_analyzer = analysis.analyzer(
     "address_analyzer", tokenizer="whitespace", filter=["lowercase", "asciifolding", "trim",],
