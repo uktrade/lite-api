@@ -77,10 +77,8 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     type = KeyValueChoiceField(
         choices=FirearmGoodType.choices, allow_null=False, error_messages={"null": strings.Goods.FIREARM_GOOD_NO_TYPE},
     )
-    year_of_manufacture = serializers.IntegerField(
-        error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_YEAR_OF_MANUFACTURE},
-    )
-    calibre = serializers.CharField(error_messages={"blank": strings.Goods.FIREARM_GOOD_NO_CALIBRE}, max_length=15)
+    year_of_manufacture = serializers.IntegerField(allow_null=True, required=False)
+    calibre = serializers.CharField(allow_blank=True, required=False)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = serializers.BooleanField(allow_null=True, required=False)
     section_certificate_number = serializers.CharField(
@@ -113,6 +111,13 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         validated_data = super(FirearmDetailsSerializer, self).validate(data)
+
+        if validated_data["type"] in [
+            "firearms_accessory",
+            "software_related_to_firearms",
+            "technology_related_to_firearms",
+        ]:
+            return validated_data
 
         # Year of manufacture should be in the past and a valid year
         year_of_manufacture = validated_data.get("year_of_manufacture")
