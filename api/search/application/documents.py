@@ -144,6 +144,7 @@ class Queue(InnerDoc):
 class ApplicationDocumentType(Document):
     # purposefully not DED field - this is just for collecting other field values for wilcard search
     wildcard = Text(analyzer=ngram_analyzer, search_analyzer=whitespace_analyzer, store=True)
+
     id = fields.KeywordField()
     queues = fields.NestedField(doc_class=Queue)
     name = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
@@ -188,6 +189,9 @@ class ApplicationDocumentType(Document):
     class Django:
         model = models.BaseApplication
 
+    def get_queryset(self):
+        return super().get_queryset().exclude(status__status="draft")
+
     def get_indexing_queryset(self):
         # hack to make `parties` use the prefetch cache. party manager .all() calls .exclude, which clears cache,
         # so work around that here: read from the instance's prefetched_parties attr, which was set in prefetch
@@ -228,6 +232,3 @@ class ApplicationDocumentType(Document):
                 )
             )
         )
-
-    def get_queryset(self):
-        return super().get_queryset().exclude(status__status="draft")

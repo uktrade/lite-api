@@ -98,9 +98,9 @@ class ApplicationDocumentView(DocumentViewSet):
     ordering = ("id",)
 
     def get_search_indexes(self):
-        if self.request.GET.get("database") in settings.LITE_ELASTICSEARCH_INDEXES:
-            return settings.LITE_ELASTICSEARCH_INDEXES[self.request.GET["database"]]
-        return list(settings.LITE_ELASTICSEARCH_INDEXES.values())
+        if self.request.GET.get("database") in settings.ELASTICSEARCH_APPLICATION_INDEXES:
+            return settings.ELASTICSEARCH_APPLICATION_INDEXES[self.request.GET["database"]]
+        return list(settings.ELASTICSEARCH_APPLICATION_INDEXES.values())
 
     def get_queryset(self):
         self.search._index = self.get_search_indexes()
@@ -165,7 +165,7 @@ class ApplicationSuggestDocumentView(APIView):
         }
 
         search = ApplicationDocumentType.search().from_dict(query)
-        search._index = list(settings.LITE_ELASTICSEARCH_INDEXES.values())
+        search._index = list(settings.ELASTICSEARCH_APPLICATION_INDEXES.values())
         suggests = []
         executed = search.execute()
         flat_suggestions = set()
