@@ -32,6 +32,9 @@ urlpatterns = [
     path("data-workspace/", include("api.data_workspace.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+handler500 = "rest_framework.exceptions.server_error"
+handler400 = "rest_framework.exceptions.bad_request"
+
 if settings.LITE_API_ENABLE_ES:
     urlpatterns += (path("search/", include("api.search.urls")),)
 
