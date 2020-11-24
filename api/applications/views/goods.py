@@ -91,7 +91,6 @@ class ApplicationGoodsOnApplication(APIView):
 
             if not good.missing_document_reason and GoodDocument.objects.filter(good=good).count() == 0:
                 return JsonResponse(data={"error": strings.Goods.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
-
             serializer = GoodOnApplicationCreateSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()

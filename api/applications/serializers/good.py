@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from django.forms.models import model_to_dict
+
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import CaseTypeEnum
@@ -10,7 +12,7 @@ from api.core.serializers import KeyValueChoiceField
 from api.goods.enums import GoodControlled
 from api.goods.enums import ItemType
 from api.goods.models import Good
-from api.goods.serializers import GoodSerializerInternal
+from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializer
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from api.staticdata.units.enums import Units
@@ -106,6 +108,8 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         max_length=100,
         error_messages={"required": strings.Goods.OTHER_ITEM_TYPE, "blank": strings.Goods.OTHER_ITEM_TYPE},
     )
+    has_proof_mark = BooleanField(allow_null=True)
+    no_proof_mark_details = serializers.CharField(default="", allow_blank=True)
 
     class Meta:
         model = GoodOnApplication
@@ -119,6 +123,8 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             "is_good_incorporated",
             "item_type",
             "other_item_type",
+            "has_proof_mark",
+            "no_proof_mark_details",
         )
 
     def __init__(self, **kwargs):
@@ -150,3 +156,20 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
                     self.initial_data["quantity"] = 1
                 if not self.initial_data["value"]:
                     self.initial_data["value"] = 0
+            if self.initial_data["has_proof_mark"] == "False" and self.initial_data["no_proof_mark_details"] == "":
+                self.fields["no_proof_mark_details"].required = True
+                del self.initial_data["no_proof_mark_details"]
+
+    def create(self, validated_data):
+        if validated_data["has_proof_mark"] is not None:
+            # copy the data from the "firearm detail on good" level to "firearm detail on good-on-application" level
+            serializer = FirearmDetailsSerializer(
+                data={
+                    **model_to_dict(validated_data["good"].firearm_details),
+                    "has_proof_mark": validated_data.pop("has_proof_mark"),
+                    "no_proof_mark_details": validated_data.pop("no_proof_mark_details"),
+                },
+            )
+            serializer.is_valid(raise_exception=True)
+            validated_data["firearm_details"] = serializer.save()
+        return super().create(validated_data)
