@@ -112,7 +112,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     def validate(self, data):
         validated_data = super(FirearmDetailsSerializer, self).validate(data)
 
-        if validated_data["type"] in [
+        if validated_data.get("type") in [
             "firearms_accessory",
             "software_related_to_firearms",
             "technology_related_to_firearms",
