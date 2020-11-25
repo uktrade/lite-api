@@ -389,7 +389,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                 instance=instance.pv_grading_details,
             )
 
-        if instance.item_category not in ItemCategory.group_two:
+        if instance.item_category in ItemCategory.group_two:
             is_military_use = validated_data.get("is_military_use")
             # if military answer has changed, then set the new value and the details field
             if is_military_use is not None and is_military_use != instance.is_military_use:

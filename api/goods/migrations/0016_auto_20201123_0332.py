@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="firearmgooddetails",
             name="type",
-            field=models.CharField(
+            field=models.TextField(
                 choices=[
                     ("firearms", "Firearms"),
                     ("components_for_firearms", "Components for firearms"),
@@ -23,12 +23,9 @@ class Migration(migrations.Migration):
                     ("software_related_to_firearms", "Software relating to a firearm"),
                     ("technology_related_to_firearms", "Technology relating to a firearm"),
                 ],
-                max_length=50,
             ),
         ),
-        migrations.AlterField(
-            model_name="firearmgooddetails", name="calibre", field=models.TextField(blank=True, max_length=15),
-        ),
+        migrations.AlterField(model_name="firearmgooddetails", name="calibre", field=models.TextField(blank=True),),
         migrations.AlterField(
             model_name="firearmgooddetails",
             name="year_of_manufacture",
