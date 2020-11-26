@@ -50,7 +50,7 @@ class FirearmGoodDetails(models.Model):
         help_text="Has been proofed (by a proof house) indicating it is safe to be used.", null=True,
     )
     no_proof_mark_details = models.TextField(
-        help_text="The reason why `has_proof_mark` is False (which should normally be True).", default="", blank=True
+        help_text="The reason why `has_proof_mark` is False (which should normally be True).", blank=True, default=""
     )
 
 
