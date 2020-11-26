@@ -35,9 +35,9 @@ class PvGradingDetails(models.Model):
 
 
 class FirearmGoodDetails(models.Model):
-    type = models.CharField(choices=FirearmGoodType.choices, max_length=25, blank=False)
-    year_of_manufacture = models.PositiveSmallIntegerField()
-    calibre = models.TextField(blank=False, max_length=15)
+    type = models.TextField(choices=FirearmGoodType.choices, blank=False)
+    year_of_manufacture = models.PositiveSmallIntegerField(blank=True, null=True)
+    calibre = models.TextField(blank=True)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = models.BooleanField()
     section_certificate_number = models.CharField(blank=True, max_length=100, null=True)

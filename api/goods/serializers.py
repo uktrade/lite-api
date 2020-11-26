@@ -77,10 +77,8 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     type = KeyValueChoiceField(
         choices=FirearmGoodType.choices, allow_null=False, error_messages={"null": strings.Goods.FIREARM_GOOD_NO_TYPE},
     )
-    year_of_manufacture = serializers.IntegerField(
-        error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_YEAR_OF_MANUFACTURE},
-    )
-    calibre = serializers.CharField(error_messages={"blank": strings.Goods.FIREARM_GOOD_NO_CALIBRE}, max_length=15)
+    year_of_manufacture = serializers.IntegerField(allow_null=True, required=False)
+    calibre = serializers.CharField(allow_blank=True, required=False)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = serializers.BooleanField(allow_null=True, required=False)
     section_certificate_number = serializers.CharField(
@@ -115,6 +113,13 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         validated_data = super(FirearmDetailsSerializer, self).validate(data)
+
+        if validated_data.get("type") in [
+            "firearms_accessory",
+            "software_related_to_firearms",
+            "technology_related_to_firearms",
+        ]:
+            return validated_data
 
         # Year of manufacture should be in the past and a valid year
         year_of_manufacture = validated_data.get("year_of_manufacture")
@@ -389,54 +394,51 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                 instance=instance.pv_grading_details,
             )
 
-        if instance.item_category not in ItemCategory.group_two:
-            is_military_use = validated_data.get("is_military_use")
-            # if military answer has changed, then set the new value and the details field
-            if is_military_use is not None and is_military_use != instance.is_military_use:
-                instance.is_military_use = is_military_use
-                instance.modified_military_use_details = validated_data.get("modified_military_use_details")
-            instance.modified_military_use_details = validated_data.get(
-                "modified_military_use_details", instance.modified_military_use_details
-            )
-            # if military answer is not "yes_modified" then the details are set to None
-            if instance.is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO]:
-                instance.modified_military_use_details = None
+        is_military_use = validated_data.get("is_military_use")
+        # if military answer has changed, then set the new value and the details field
+        if is_military_use is not None and is_military_use != instance.is_military_use:
+            instance.is_military_use = is_military_use
+            instance.modified_military_use_details = validated_data.get("modified_military_use_details")
+        instance.modified_military_use_details = validated_data.get(
+            "modified_military_use_details", instance.modified_military_use_details
+        )
+        # if military answer is not "yes_modified" then the details are set to None
+        if instance.is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO]:
+            instance.modified_military_use_details = None
 
-            is_component = validated_data.get("is_component")
-            # if component answer has changed, then set the new value and the details field
-            if is_component is not None and is_component != instance.is_component:
-                instance.is_component = is_component
-                instance.component_details = validated_data.get("component_details")
-            instance.component_details = validated_data.get("component_details", instance.component_details)
+        is_component = validated_data.get("is_component")
+        # if component answer has changed, then set the new value and the details field
+        if is_component is not None and is_component != instance.is_component:
+            instance.is_component = is_component
+            instance.component_details = validated_data.get("component_details")
+        instance.component_details = validated_data.get("component_details", instance.component_details)
 
-            uses_information_security = validated_data.get("uses_information_security")
-            # if information security has changed, then set the new value and the details field
-            if (
-                uses_information_security is not None
-                and uses_information_security != instance.uses_information_security
-            ):
-                instance.uses_information_security = uses_information_security
-                instance.information_security_details = validated_data.get(
-                    "information_security_details", instance.information_security_details
-                )
-            instance.information_security_details = validated_data.get("information_security_details", "")
-
-            # When information security is No, then clear the details field and remove so it is not validated again
-            if uses_information_security is False:
-                instance.information_security_details = ""
-            else:
-                instance.information_security_details = validated_data.get(
-                    "information_security_details", instance.information_security_details
-                )
-            # If the information security details have changed
+        uses_information_security = validated_data.get("uses_information_security")
+        # if information security has changed, then set the new value and the details field
+        if uses_information_security is not None and uses_information_security != instance.uses_information_security:
+            instance.uses_information_security = uses_information_security
             instance.information_security_details = validated_data.get(
                 "information_security_details", instance.information_security_details
             )
+        instance.information_security_details = validated_data.get("information_security_details", "")
 
-            software_or_technology_details = validated_data.get("software_or_technology_details")
-            if software_or_technology_details:
-                instance.software_or_technology_details = software_or_technology_details
+        # When information security is No, then clear the details field and remove so it is not validated again
+        if uses_information_security is False:
+            instance.information_security_details = ""
         else:
+            instance.information_security_details = validated_data.get(
+                "information_security_details", instance.information_security_details
+            )
+        # If the information security details have changed
+        instance.information_security_details = validated_data.get(
+            "information_security_details", instance.information_security_details
+        )
+
+        software_or_technology_details = validated_data.get("software_or_technology_details")
+        if software_or_technology_details:
+            instance.software_or_technology_details = software_or_technology_details
+
+        if instance.item_category in ItemCategory.group_two:
             firearm_details = validated_data.get("firearm_details")
             if firearm_details:
                 instance.firearm_details = GoodCreateSerializer._update_firearm_details(
