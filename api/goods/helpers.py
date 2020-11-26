@@ -45,6 +45,17 @@ def validate_military_use(data):
         raise serializers.ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
 
 
+def get_sporting_shortgun_errormsg(firearm_type):
+    error = {
+        "firearms": "Select yes if the product is a sporting shotgun",
+        "ammunition": "Select yes if the product is sporting shotgun ammunition",
+        "components_for_firearms": "Select yes if the product is a component of a sporting shotgun",
+        "components_for_ammunition": "Select yes if the product is a component of sporting shotgun ammunition",
+    }
+
+    return error.get(firearm_type, "Invalid firearm product type")
+
+
 def validate_identification_markings(validated_data):
     """ Mandatory question for firearm goods (Group 2) with conditional details fields based on the answer """
     has_identification_markings = validated_data.get("has_identification_markings")

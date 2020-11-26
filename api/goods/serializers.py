@@ -22,6 +22,7 @@ from api.goods.helpers import (
     validate_component_details,
     validate_identification_markings,
     validate_section_certificate_number_and_expiry_date,
+    get_sporting_shortgun_errormsg,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from api.gov_users.serializers import GovUserSimpleSerializer
@@ -79,6 +80,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     )
     year_of_manufacture = serializers.IntegerField(allow_null=True, required=False)
     calibre = serializers.CharField(allow_blank=True, required=False)
+    is_sporting_shotgun = serializers.BooleanField(allow_null=True, required=False)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = serializers.BooleanField(allow_null=True, required=False)
     section_certificate_number = serializers.CharField(
@@ -101,6 +103,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "type",
             "year_of_manufacture",
             "calibre",
+            "is_sporting_shotgun",
             "is_covered_by_firearm_act_section_one_two_or_five",
             "section_certificate_number",
             "section_certificate_date_of_expiry",
@@ -148,6 +151,11 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         # Identification markings - mandatory question
         validate_identification_markings(validated_data)
 
+        if "is_sporting_shotgun" in validated_data and validated_data.get("is_sporting_shotgun") is None:
+            raise serializers.ValidationError(
+                {"is_sporting_shotgun": [get_sporting_shortgun_errormsg(validated_data.get("type"))]}
+            )
+
         return validated_data
 
     def update(self, instance, validated_data):
@@ -193,6 +201,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         instance.no_identification_markings_details = validated_data.get(
             "no_identification_markings_details", instance.no_identification_markings_details
         )
+        instance.is_sporting_shotgun = validated_data.get("is_sporting_shotgun", instance.is_sporting_shotgun)
 
         instance.save()
         return instance
