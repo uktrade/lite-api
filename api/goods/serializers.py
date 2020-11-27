@@ -150,7 +150,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         # Identification markings - mandatory question
         validate_identification_markings(validated_data)
 
-        if validated_data["has_proof_mark"] == False and validated_data["no_proof_mark_details"] == "":
+        if validated_data.get("has_proof_mark") is False and validated_data.get("no_proof_mark_details") == "":
             raise serializers.ValidationError({"no_proof_mark_details": ["This field is required"]})
 
         return validated_data
