@@ -333,6 +333,28 @@ class GoodsEditDraftGoodTests(DataTestClient):
         # 2 due to creating a new good for this test
         self.assertEquals(Good.objects.all().count(), 2)
 
+    def test_update_firearm_type_invalidates_notapplicable_fields(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+        self.assertTrue(good.firearm_details.is_sporting_shotgun)
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"firearm_details": {"type": FirearmGoodType.FIREARMS_ACCESSORY}}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["firearm_details"]["type"]["key"], FirearmGoodType.FIREARMS_ACCESSORY)
+        self.assertIsNone(good["firearm_details"]["is_sporting_shotgun"])
+        self.assertIsNone(good["firearm_details"]["year_of_manufacture"])
+        self.assertEqual(good["firearm_details"]["calibre"], "")
+        self.assertIsNone(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+        self.assertIsNone(good["firearm_details"]["has_identification_markings"])
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
     def test_edit_category_two_calibre_and_year_of_manufacture_success(self):
         good = self.create_good(
             "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
