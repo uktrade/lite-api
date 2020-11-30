@@ -53,6 +53,10 @@ class FirearmGoodDetails(models.Model):
     no_proof_mark_details = models.TextField(
         help_text="The reason why `has_proof_mark` is False (which should normally be True).", blank=True, default=""
     )
+    is_deactivated = models.BooleanField(help_text="Has the firearms been deactivated?", null=True)
+    date_of_deactivation = models.DateField(blank=True, null=True)
+    deactivation_standard = models.TextField(default="")
+    deactivation_standard_other = models.TextField(default="")
 
 
 class Good(TimestampableModel):
