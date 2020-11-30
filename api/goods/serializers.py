@@ -18,6 +18,7 @@ from api.goods.enums import (
 from api.applications.models import GoodOnApplication
 from api.flags.enums import SystemFlags
 from api.goods.helpers import (
+    FIREARMS_CORE_TYPES,
     validate_military_use,
     validate_component_details,
     validate_identification_markings,
@@ -117,13 +118,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     def validate(self, data):
         validated_data = super(FirearmDetailsSerializer, self).validate(data)
 
-        if validated_data.get("type") in [
-            "firearms_accessory",
-            "software_related_to_firearms",
-            "technology_related_to_firearms",
-        ]:
-            return validated_data
-
         # Year of manufacture should be in the past and a valid year
         year_of_manufacture = validated_data.get("year_of_manufacture")
         if year_of_manufacture:
@@ -207,6 +201,17 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "no_identification_markings_details", instance.no_identification_markings_details
         )
         instance.is_sporting_shotgun = validated_data.get("is_sporting_shotgun", instance.is_sporting_shotgun)
+
+        if instance.type not in FIREARMS_CORE_TYPES:
+            instance.is_covered_by_firearm_act_section_one_two_or_five = None
+            instance.has_identification_markings = None
+            instance.is_sporting_shotgun = None
+            instance.year_of_manufacture = None
+            instance.calibre = ""
+            instance.section_certificate_number = ""
+            instance.section_certificate_date_of_expiry = None
+            instance.identification_markings_details = ""
+            instance.no_identification_markings_details = ""
 
         instance.save()
         return instance

@@ -6,6 +6,8 @@ from api.core.exceptions import BadRequestError
 from api.goods.enums import Component, MilitaryUse
 from lite_content.lite_api import strings
 
+FIREARMS_CORE_TYPES = ["firearms", "ammunition", "components_for_firearms", "components_for_ammunition"]
+
 
 def validate_component_details(data):
     """ Validate the accompanying details for the chosen 'yes' component option. """
