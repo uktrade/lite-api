@@ -6,6 +6,8 @@ from api.core.exceptions import BadRequestError
 from api.goods.enums import Component, MilitaryUse
 from lite_content.lite_api import strings
 
+FIREARMS_CORE_TYPES = ["firearms", "ammunition", "components_for_firearms", "components_for_ammunition"]
+
 
 def validate_component_details(data):
     """ Validate the accompanying details for the chosen 'yes' component option. """
@@ -43,6 +45,17 @@ def validate_military_use(data):
     is_military_use = data.get("is_military_use")
     if is_military_use == MilitaryUse.YES_MODIFIED and not data.get("modified_military_use_details"):
         raise serializers.ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
+
+
+def get_sporting_shortgun_errormsg(firearm_type):
+    error = {
+        "firearms": "Select yes if the product is a sporting shotgun",
+        "ammunition": "Select yes if the product is sporting shotgun ammunition",
+        "components_for_firearms": "Select yes if the product is a component of a sporting shotgun",
+        "components_for_ammunition": "Select yes if the product is a component of sporting shotgun ammunition",
+    }
+
+    return error.get(firearm_type, "Invalid firearm product type")
 
 
 def validate_identification_markings(validated_data):
