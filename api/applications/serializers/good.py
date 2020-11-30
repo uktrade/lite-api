@@ -120,6 +120,10 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             "invalid": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_VALID,
         },
     )
+    is_deactivated = BooleanField(allow_null=True, required=False)
+    date_of_deactivation = serializers.DateField(allow_null=True, required=False)
+    deactivation_standard = serializers.CharField(allow_blank=True, required=False)
+    deactivation_standard_other = serializers.CharField(allow_blank=True, required=False, allow_null=True)
 
     class Meta:
         model = GoodOnApplication
@@ -127,6 +131,10 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             "has_proof_mark",
             "no_proof_mark_details",
             "year_of_manufacture",
+            "is_deactivated",
+            "date_of_deactivation",
+            "deactivation_standard",
+            "deactivation_standard_other",
         )
         fields = (
             "id",
@@ -170,10 +178,20 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
                     data["quantity"] = 1
                 if not data["value"]:
                     data["value"] = 0
-            if data.get("has_proof_mark") == "False":
+            if self.fields["has_proof_mark"].to_internal_value(data['has_proof_mark']) is False:
                 self.fields["no_proof_mark_details"].required = True
-                self.fields["no_proof_mark_details"].blank = False
-                del self.initial_data["no_proof_mark_details"]
+                self.fields["no_proof_mark_details"].allow_blank = False
+
+            if self.fields["is_deactivated"].to_internal_value(data['is_deactivated']):
+                self.fields["deactivation_standard"].required = True
+                self.fields["date_of_deactivation"].required = True
+                if self.fields["is_deactivated"].to_internal_value(data['is_deactivated_to_standard']):
+                    self.fields["deactivation_standard"].required = True
+                    self.fields["deactivation_standard"].allow_blank = False
+                else:
+                    self.fields["deactivation_standard_other"].required = True
+                    self.fields["deactivation_standard_other"].allow_blank = False
+
 
     def has_firearms_details(self, validated_data):
         for field_name in self.Meta.firearms_details_fields:

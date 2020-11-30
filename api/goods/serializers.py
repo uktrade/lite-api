@@ -97,6 +97,10 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     no_identification_markings_details = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2000
     )
+    is_deactivated = serializers.BooleanField(allow_null=True, required=False)
+    date_of_deactivation = serializers.DateField(allow_null=True, required=False)
+    deactivation_standard = serializers.CharField(allow_blank=True, required=False)
+    deactivation_standard_other = serializers.CharField(allow_blank=True, required=False, allow_null=True)
 
     class Meta:
         model = FirearmGoodDetails
@@ -113,6 +117,10 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "no_identification_markings_details",
             "has_proof_mark",
             "no_proof_mark_details",
+            "is_deactivated",
+            "date_of_deactivation",
+            "deactivation_standard",
+            "deactivation_standard_other",
         )
 
     def validate(self, data):
