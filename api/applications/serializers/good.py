@@ -178,20 +178,19 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
                     data["quantity"] = 1
                 if not data["value"]:
                     data["value"] = 0
-            if self.fields["has_proof_mark"].to_internal_value(data['has_proof_mark']) is False:
+            if self.fields["has_proof_mark"].to_internal_value(data.get("has_proof_mark")) is False:
                 self.fields["no_proof_mark_details"].required = True
                 self.fields["no_proof_mark_details"].allow_blank = False
 
-            if self.fields["is_deactivated"].to_internal_value(data['is_deactivated']):
+            if self.fields["is_deactivated"].to_internal_value(data.get("is_deactivated")):
                 self.fields["deactivation_standard"].required = True
                 self.fields["date_of_deactivation"].required = True
-                if self.fields["is_deactivated"].to_internal_value(data['is_deactivated_to_standard']):
+                if self.fields["is_deactivated"].to_internal_value(data["is_deactivated_to_standard"]):
                     self.fields["deactivation_standard"].required = True
                     self.fields["deactivation_standard"].allow_blank = False
                 else:
                     self.fields["deactivation_standard_other"].required = True
                     self.fields["deactivation_standard_other"].allow_blank = False
-
 
     def has_firearms_details(self, validated_data):
         for field_name in self.Meta.firearms_details_fields:

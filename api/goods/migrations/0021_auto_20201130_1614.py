@@ -6,28 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods', '0020_auto_20201130_0142'),
+        ("goods", "0020_auto_20201130_0142"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='firearmgooddetails',
-            name='date_of_deactivation',
-            field=models.DateField(blank=True, null=True),
+            model_name="firearmgooddetails", name="date_of_deactivation", field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='firearmgooddetails',
-            name='deactivation_standard',
-            field=models.TextField(default=''),
+            model_name="firearmgooddetails", name="deactivation_standard", field=models.TextField(default=""),
         ),
         migrations.AddField(
-            model_name='firearmgooddetails',
-            name='deactivation_standard_other',
-            field=models.TextField(default=''),
+            model_name="firearmgooddetails", name="deactivation_standard_other", field=models.TextField(default=""),
         ),
         migrations.AddField(
-            model_name='firearmgooddetails',
-            name='is_deactivated',
-            field=models.BooleanField(help_text='Has the firearms been deactivated?', null=True),
+            model_name="firearmgooddetails",
+            name="is_deactivated",
+            field=models.BooleanField(help_text="Has the firearms been deactivated?", null=True),
         ),
     ]
