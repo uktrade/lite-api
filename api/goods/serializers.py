@@ -110,6 +110,8 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "has_identification_markings",
             "identification_markings_details",
             "no_identification_markings_details",
+            "has_proof_mark",
+            "no_proof_mark_details",
         )
 
     def validate(self, data):
@@ -155,6 +157,9 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"is_sporting_shotgun": [get_sporting_shortgun_errormsg(validated_data.get("type"))]}
             )
+
+        if validated_data.get("has_proof_mark") is False and validated_data.get("no_proof_mark_details") == "":
+            raise serializers.ValidationError({"no_proof_mark_details": ["This field is required"]})
 
         return validated_data
 

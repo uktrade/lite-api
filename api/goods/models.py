@@ -46,6 +46,13 @@ class FirearmGoodDetails(models.Model):
     has_identification_markings = models.BooleanField(null=False)
     identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
     no_identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
+    serial_number = models.TextField(default="")
+    has_proof_mark = models.BooleanField(
+        help_text="Has been proofed (by a proof house) indicating it is safe to be used.", null=True,
+    )
+    no_proof_mark_details = models.TextField(
+        help_text="The reason why `has_proof_mark` is False (which should normally be True).", blank=True, default=""
+    )
 
 
 class Good(TimestampableModel):
