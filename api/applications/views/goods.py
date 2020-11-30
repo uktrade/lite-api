@@ -80,7 +80,7 @@ class ApplicationGoodsOnApplication(APIView):
             # note: Goods attached to applications also need documents. This is validated at a later stage.
             serializer = GoodOnApplicationCreateSerializer(data=data, partial=True)
             if serializer.is_valid():
-                return HttpResponse(status=status.HTTP_200_OK)
+                return JsonResponse(status=status.HTTP_200_OK, data={})
         else:
             if "good_id" not in data:
                 return JsonResponse(data={"error": strings.Goods.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
