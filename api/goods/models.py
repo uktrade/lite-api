@@ -35,16 +35,24 @@ class PvGradingDetails(models.Model):
 
 
 class FirearmGoodDetails(models.Model):
-    type = models.CharField(choices=FirearmGoodType.choices, max_length=25, blank=False)
-    year_of_manufacture = models.PositiveSmallIntegerField()
-    calibre = models.TextField(blank=False, max_length=15)
+    type = models.TextField(choices=FirearmGoodType.choices, blank=False)
+    year_of_manufacture = models.PositiveSmallIntegerField(blank=True, null=True)
+    calibre = models.TextField(blank=True)
+    is_sporting_shotgun = models.BooleanField(null=True)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
-    is_covered_by_firearm_act_section_one_two_or_five = models.BooleanField()
+    is_covered_by_firearm_act_section_one_two_or_five = models.BooleanField(null=True)
     section_certificate_number = models.CharField(blank=True, max_length=100, null=True)
     section_certificate_date_of_expiry = models.DateField(blank=True, null=True)
-    has_identification_markings = models.BooleanField(null=False)
+    has_identification_markings = models.BooleanField(null=True)
     identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
     no_identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
+    serial_number = models.TextField(default="")
+    has_proof_mark = models.BooleanField(
+        help_text="Has been proofed (by a proof house) indicating it is safe to be used.", null=True,
+    )
+    no_proof_mark_details = models.TextField(
+        help_text="The reason why `has_proof_mark` is False (which should normally be True).", blank=True, default=""
+    )
 
 
 class Good(TimestampableModel):

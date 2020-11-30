@@ -333,6 +333,28 @@ class GoodsEditDraftGoodTests(DataTestClient):
         # 2 due to creating a new good for this test
         self.assertEquals(Good.objects.all().count(), 2)
 
+    def test_update_firearm_type_invalidates_notapplicable_fields(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+        self.assertTrue(good.firearm_details.is_sporting_shotgun)
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"firearm_details": {"type": FirearmGoodType.FIREARMS_ACCESSORY}}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["firearm_details"]["type"]["key"], FirearmGoodType.FIREARMS_ACCESSORY)
+        self.assertIsNone(good["firearm_details"]["is_sporting_shotgun"])
+        self.assertIsNone(good["firearm_details"]["year_of_manufacture"])
+        self.assertEqual(good["firearm_details"]["calibre"], "")
+        self.assertIsNone(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+        self.assertIsNone(good["firearm_details"]["has_identification_markings"])
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
     def test_edit_category_two_calibre_and_year_of_manufacture_success(self):
         good = self.create_good(
             "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
@@ -513,38 +535,3 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors[details_field], ["Ensure this field has no more than 2000 characters."])
-
-    @parameterized.expand(
-        [
-            ["is_military_use", "True"],
-            ["modified_military_use_details", "some details"],
-            ["is_component", "True"],
-            ["designed_details", "some details"],
-            ["modified_details", "some details"],
-            ["general_details", "some details"],
-            ["uses_information_security", "True"],
-            ["information_security_details", "some details"],
-            ["software_or_technology_details", "some details"],
-        ]
-    )
-    def test_edit_category_two_adding_invalid_attributes_failure(self, field, value):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
-
-        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-
-        data = {
-            "description": "coffee",
-            "is_good_controlled": False,
-            "is_pv_graded": GoodPvGraded.NO,
-            "item_category": ItemCategory.GROUP2_FIREARMS,
-            "validate_only": True,
-            field: value,
-        }
-
-        response = self.client.put(url, data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])

@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from django.forms.models import model_to_dict
+
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import CaseTypeEnum
@@ -10,7 +12,7 @@ from api.core.serializers import KeyValueChoiceField
 from api.goods.enums import GoodControlled
 from api.goods.enums import ItemType
 from api.goods.models import Good
-from api.goods.serializers import GoodSerializerInternal
+from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializer
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from api.staticdata.units.enums import Units
@@ -59,6 +61,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     control_list_entries = ControlListEntrySerializer(many=True)
     audit_trail = serializers.SerializerMethodField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
+    firearm_details = FirearmDetailsSerializer()
 
     class Meta:
         model = GoodOnApplication
@@ -79,6 +82,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "comment",
             "report_summary",
             "audit_trail",
+            "firearm_details",
         )
 
     def get_flags(self, instance):
@@ -106,6 +110,8 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         max_length=100,
         error_messages={"required": strings.Goods.OTHER_ITEM_TYPE, "blank": strings.Goods.OTHER_ITEM_TYPE},
     )
+    has_proof_mark = BooleanField(allow_null=True, required=False)
+    no_proof_mark_details = serializers.CharField(default="", allow_blank=True)
 
     class Meta:
         model = GoodOnApplication
@@ -119,11 +125,14 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             "is_good_incorporated",
             "item_type",
             "other_item_type",
+            "has_proof_mark",
+            "no_proof_mark_details",
         )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        case_type = Case.objects.get(id=self.initial_data["application"]).case_type
+        data = self.initial_data
+        case_type = Case.objects.get(id=data["application"]).case_type
         # Exbition queries do not have the typical data for goods on applications that other goods do
         #  as a result, we have to set them as false when not required and vice versa for other applications
         if case_type.id == CaseTypeEnum.EXHIBITION.id:
@@ -132,21 +141,40 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             self.fields["unit"].required = False
             self.fields["is_good_incorporated"].required = False
             # If the user passes item_type forward as anything but other, we do not want to store "other_item_type"
-            if not self.initial_data.get("item_type") == ItemType.OTHER:
-                if isinstance(self.initial_data.get("other_item_type"), str):
-                    del self.initial_data["other_item_type"]
+            if not data.get("item_type") == ItemType.OTHER:
+                if isinstance(data.get("other_item_type"), str):
+                    del data["other_item_type"]
                 self.fields["other_item_type"].required = False
         else:
             self.fields["item_type"].required = False
             self.fields["other_item_type"].required = False
 
-            if self.initial_data.get("unit") == Units.ITG:
+            if data.get("unit") == Units.ITG:
                 # If the good is intangible, the value and quantity become optional
                 self.fields["value"].required = False
                 self.fields["quantity"].required = False
 
                 # If the quantity or value aren't set, they are defaulted to 1 and 0 respectively
-                if not self.initial_data["quantity"]:
-                    self.initial_data["quantity"] = 1
-                if not self.initial_data["value"]:
-                    self.initial_data["value"] = 0
+                if not data["quantity"]:
+                    data["quantity"] = 1
+                if not data["value"]:
+                    data["value"] = 0
+            if data.get("has_proof_mark") == "False" and data.get("no_proof_mark_details") == "":
+                self.fields["no_proof_mark_details"].required = True
+                del self.initial_data["no_proof_mark_details"]
+
+    def create(self, validated_data):
+        if validated_data.get("has_proof_mark") is not None:
+            # copy the data from the "firearm detail on good" level to "firearm detail on good-on-application" level
+            serializer = FirearmDetailsSerializer(
+                data={
+                    **model_to_dict(validated_data["good"].firearm_details),
+                    "has_proof_mark": validated_data.pop("has_proof_mark"),
+                    "no_proof_mark_details": validated_data.pop("no_proof_mark_details"),
+                },
+            )
+            serializer.is_valid(raise_exception=True)
+            validated_data["firearm_details"] = serializer.save()
+        else:
+            validated_data.pop("no_proof_mark_details", None)
+        return super().create(validated_data)
