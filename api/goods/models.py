@@ -39,6 +39,8 @@ class FirearmGoodDetails(models.Model):
     year_of_manufacture = models.PositiveSmallIntegerField(blank=True, null=True)
     calibre = models.TextField(blank=True)
     is_sporting_shotgun = models.BooleanField(null=True)
+    is_replica = models.BooleanField(blank=True, null=True)
+    replica_description = models.TextField(blank=True, default="")
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = models.BooleanField(null=True)
     section_certificate_number = models.CharField(blank=True, max_length=100, null=True)
