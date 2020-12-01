@@ -169,12 +169,10 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if validated_data.get("firearm_details"):
             # copy the data from the "firearm detail on good" level to "firearm detail on good-on-application" level
-            firearms_data_from_product = (
-                model_to_dict(validated_data["good"].firearm_details) if validated_data["good"].firearm_details else {}
-            )
-            serializer = FirearmDetailsSerializer(
-                data={**firearms_data_from_product, **validated_data["firearm_details"]}
-            )
+            firearm_data = model_to_dict(validated_data["good"].firearm_details)
+            if validated_data.get("firearm_details"):
+                firearm_data.update(validated_data["firearm_details"])
+            serializer = FirearmDetailsSerializer(data=firearm_data)
             serializer.is_valid(raise_exception=True)
             validated_data["firearm_details"] = serializer.save()
         return super().create(validated_data)
