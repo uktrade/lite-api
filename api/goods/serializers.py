@@ -82,6 +82,8 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     year_of_manufacture = serializers.IntegerField(allow_null=True, required=False)
     calibre = serializers.CharField(allow_blank=True, required=False)
     is_sporting_shotgun = serializers.BooleanField(allow_null=True, required=False)
+    is_replica = serializers.BooleanField(allow_null=True, required=False)
+    replica_description = serializers.CharField(allow_blank=True, required=False)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = serializers.BooleanField(allow_null=True, required=False)
     section_certificate_number = serializers.CharField(
@@ -105,6 +107,8 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "year_of_manufacture",
             "calibre",
             "is_sporting_shotgun",
+            "is_replica",
+            "replica_description",
             "is_covered_by_firearm_act_section_one_two_or_five",
             "section_certificate_number",
             "section_certificate_date_of_expiry",
@@ -130,6 +134,18 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"year_of_manufacture": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_VALID}
                 )
+
+        if "is_replica" in validated_data:
+            if "firearms" == validated_data.get("type"):
+                if validated_data.get("is_replica") is None:
+                    raise serializers.ValidationError({"is_replica": "Select yes if the product is a replica firearm"})
+
+                if validated_data.get("is_replica") is True:
+                    if "replica_description" not in validated_data or validated_data.get("replica_description") is "":
+                        raise serializers.ValidationError({"replica_description": "Enter description"})
+
+            if validated_data.get("is_replica") is not None and "firearms" != validated_data.get("type"):
+                raise serializers.ValidationError({"is_replica": "Invalid firearm product type"})
 
         # Firearms act validation - mandatory question
         if (
@@ -161,6 +177,9 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         instance.type = validated_data.get("type", instance.type)
         instance.year_of_manufacture = validated_data.get("year_of_manufacture", instance.year_of_manufacture)
         instance.calibre = validated_data.get("calibre", instance.calibre)
+
+        instance.is_replica = validated_data.get("is_replica", instance.is_replica)
+        instance.replica_description = validated_data.get("replica_description", instance.replica_description)
 
         is_covered_by_firearms_act = validated_data.get("is_covered_by_firearm_act_section_one_two_or_five")
         # if the answer to the firearms act has changed, then set the new value and the certificate and date fields
@@ -201,6 +220,10 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "no_identification_markings_details", instance.no_identification_markings_details
         )
         instance.is_sporting_shotgun = validated_data.get("is_sporting_shotgun", instance.is_sporting_shotgun)
+
+        if instance.type != "firearms":
+            instance.is_replica = None
+            instance.replica_description = ""
 
         if instance.type not in FIREARMS_CORE_TYPES:
             instance.is_covered_by_firearm_act_section_one_two_or_five = None
