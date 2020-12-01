@@ -110,32 +110,10 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         max_length=100,
         error_messages={"required": strings.Goods.OTHER_ITEM_TYPE, "blank": strings.Goods.OTHER_ITEM_TYPE},
     )
-    has_proof_mark = BooleanField(allow_null=True, required=False)
-    no_proof_mark_details = serializers.CharField(allow_blank=True, required=False)
-    year_of_manufacture = serializers.IntegerField(
-        allow_null=True,
-        required=False,
-        error_messages={
-            "required": strings.Goods.FIREARM_GOOD_NO_YEAR_OF_MANUFACTURE,
-            "invalid": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_VALID,
-        },
-    )
-    is_deactivated = BooleanField(allow_null=True, required=False)
-    date_of_deactivation = serializers.DateField(allow_null=True, required=False)
-    deactivation_standard = serializers.CharField(allow_blank=True, required=False)
-    deactivation_standard_other = serializers.CharField(allow_blank=True, required=False, allow_null=True)
+    firearm_details = FirearmDetailsSerializer(required=False)
 
     class Meta:
         model = GoodOnApplication
-        firearms_details_fields = (
-            "has_proof_mark",
-            "no_proof_mark_details",
-            "year_of_manufacture",
-            "is_deactivated",
-            "date_of_deactivation",
-            "deactivation_standard",
-            "deactivation_standard_other",
-        )
         fields = (
             "id",
             "good",
@@ -146,7 +124,8 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             "is_good_incorporated",
             "item_type",
             "other_item_type",
-        ) + firearms_details_fields
+            "firearm_details",
+        )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -178,41 +157,24 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
                     data["quantity"] = 1
                 if not data["value"]:
                     data["value"] = 0
-            if self.fields["has_proof_mark"].to_internal_value(data.get("has_proof_mark")) is False:
-                self.fields["no_proof_mark_details"].required = True
-                self.fields["no_proof_mark_details"].allow_blank = False
 
-            if self.fields["is_deactivated"].to_internal_value(data.get("is_deactivated")):
-                self.fields["deactivation_standard"].required = True
-                self.fields["date_of_deactivation"].required = True
-                if self.fields["is_deactivated"].to_internal_value(data["is_deactivated_to_standard"]):
-                    self.fields["deactivation_standard"].required = True
-                    self.fields["deactivation_standard"].allow_blank = False
-                else:
-                    self.fields["deactivation_standard_other"].required = True
-                    self.fields["deactivation_standard_other"].allow_blank = False
-
-    def has_firearms_details(self, validated_data):
-        for field_name in self.Meta.firearms_details_fields:
-            if validated_data.get(field_name) is not None:
-                return True
-        return False
+    def to_internal_value(self, data):
+        try:
+            return super().to_internal_value(data)
+        except serializers.ValidationError as error:
+            if "firearm_details" in error.detail:
+                raise serializers.ValidationError(error.detail["firearm_details"])
+            raise
 
     def create(self, validated_data):
-        if self.has_firearms_details(validated_data):
+        if validated_data.get("firearm_details"):
             # copy the data from the "firearm detail on good" level to "firearm detail on good-on-application" level
-            firearms_data = {}
-            for firearm_field_name in self.Meta.firearms_details_fields:
-                if firearm_field_name in validated_data.keys():
-                    firearms_data[firearm_field_name] = validated_data.pop(firearm_field_name)
-
             firearms_data_from_product = (
                 model_to_dict(validated_data["good"].firearm_details) if validated_data["good"].firearm_details else {}
             )
-
-            serializer = FirearmDetailsSerializer(data={**firearms_data_from_product, **firearms_data},)
+            serializer = FirearmDetailsSerializer(
+                data={**firearms_data_from_product, **validated_data["firearm_details"]}
+            )
             serializer.is_valid(raise_exception=True)
             validated_data["firearm_details"] = serializer.save()
-        else:
-            validated_data.pop("no_proof_mark_details", None)
         return super().create(validated_data)
