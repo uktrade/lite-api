@@ -82,8 +82,17 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         error_messages={"null": strings.Goods.FIREARM_GOOD_NO_TYPE},
         required=False,
     )
-    year_of_manufacture = serializers.IntegerField(allow_null=True, required=False)
-    calibre = serializers.CharField(allow_blank=True, required=False)
+    year_of_manufacture = serializers.IntegerField(
+        allow_null=False,
+        required=False,
+        error_messages={
+            "null": strings.Goods.FIREARM_GOOD_NO_YEAR_OF_MANUFACTURE,
+            "invalid": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_VALID,
+        },
+    )
+    calibre = serializers.CharField(
+        allow_blank=True, required=False, error_messages={"null": strings.Goods.FIREARM_GOOD_NO_CALIBRE,}
+    )
     is_sporting_shotgun = serializers.BooleanField(allow_null=True, required=False)
     is_replica = serializers.BooleanField(allow_null=True, required=False)
     replica_description = serializers.CharField(allow_blank=True, required=False)
