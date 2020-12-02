@@ -512,30 +512,21 @@ def _get_good_on_application_context(good_on_application, advice=None):
         if good_on_application.good.uses_information_security:
             good_context["information_security_details"] = good_on_application.good.information_security_details
     elif good_on_application.good.item_category in ItemCategory.group_two:
-        good_context["firearm_type"] = FirearmGoodType.to_str(good_on_application.good.firearm_details.type)
-        good_context["year_of_manufacture"] = good_on_application.good.firearm_details.year_of_manufacture
-        good_context["calibre"] = good_on_application.good.firearm_details.calibre
+        firearm_details = good_on_application.firearm_details or good_on_application.good.firearm_details
+        good_context["firearm_type"] = FirearmGoodType.to_str(firearm_details.type)
+        good_context["year_of_manufacture"] = firearm_details.year_of_manufacture
+        good_context["calibre"] = firearm_details.calibre
         good_context["is_covered_by_firearm_act_section_one_two_or_five"] = friendly_boolean(
-            good_on_application.good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five
+            firearm_details.is_covered_by_firearm_act_section_one_two_or_five
         )
-        if good_on_application.good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five:
-            good_context[
-                "section_certificate_number"
-            ] = good_on_application.good.firearm_details.section_certificate_number
-            good_context[
-                "section_certificate_date_of_expiry"
-            ] = good_on_application.good.firearm_details.section_certificate_date_of_expiry
-        good_context["has_identification_markings"] = friendly_boolean(
-            good_on_application.good.firearm_details.has_identification_markings
-        )
-        if good_on_application.good.firearm_details.has_identification_markings:
-            good_context[
-                "identification_markings_details"
-            ] = good_on_application.good.firearm_details.identification_markings_details
+        if firearm_details.is_covered_by_firearm_act_section_one_two_or_five:
+            good_context["section_certificate_number"] = firearm_details.section_certificate_number
+            good_context["section_certificate_date_of_expiry"] = firearm_details.section_certificate_date_of_expiry
+        good_context["has_identification_markings"] = friendly_boolean(firearm_details.has_identification_markings)
+        if firearm_details.has_identification_markings:
+            good_context["identification_markings_details"] = firearm_details.identification_markings_details
         else:
-            good_context[
-                "no_identification_markings_details"
-            ] = good_on_application.good.firearm_details.no_identification_markings_details
+            good_context["no_identification_markings_details"] = firearm_details.no_identification_markings_details
     elif good_on_application.good.item_category in ItemCategory.group_three:
         good_context["is_military_use"] = MilitaryUse.to_str(good_on_application.good.is_military_use)
         if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
