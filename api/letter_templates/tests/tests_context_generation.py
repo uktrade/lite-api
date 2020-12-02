@@ -9,7 +9,7 @@ from api.applications.enums import (
     MTCRAnswers,
     ServiceEquipmentType,
 )
-from api.applications.models import ExternalLocationOnApplication, CountryOnApplication
+from api.applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
@@ -137,35 +137,28 @@ class DocumentContextGenerationTests(DataTestClient):
                     context["information_security_details"], good_on_application.good.information_security_details
                 )
         elif good_on_application.good.item_category in ItemCategory.group_two:
-            self.assertEqual(
-                context["firearm_type"], FirearmGoodType.to_str(good_on_application.good.firearm_details.type)
-            )
-            self.assertEqual(
-                context["year_of_manufacture"], good_on_application.good.firearm_details.year_of_manufacture
-            )
+            self.assertEqual(context["firearm_type"], FirearmGoodType.to_str(good_on_application.firearm_details.type))
+            self.assertEqual(context["year_of_manufacture"], good_on_application.firearm_details.year_of_manufacture)
 
-            self.assertEqual(context["calibre"], good_on_application.good.firearm_details.calibre)
+            self.assertEqual(context["calibre"], good_on_application.firearm_details.calibre)
             self.assertEqual(
                 context["is_covered_by_firearm_act_section_one_two_or_five"],
-                friendly_boolean(
-                    good_on_application.good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five
-                ),
+                friendly_boolean(good_on_application.firearm_details.is_covered_by_firearm_act_section_one_two_or_five),
             )
             self.assertEqual(
-                context["section_certificate_number"],
-                good_on_application.good.firearm_details.section_certificate_number,
+                context["section_certificate_number"], good_on_application.firearm_details.section_certificate_number,
             )
             self.assertEqual(
                 context["section_certificate_date_of_expiry"],
-                good_on_application.good.firearm_details.section_certificate_date_of_expiry,
+                good_on_application.firearm_details.section_certificate_date_of_expiry,
             )
             self.assertEqual(
                 context["has_identification_markings"],
-                friendly_boolean(good_on_application.good.firearm_details.has_identification_markings),
+                friendly_boolean(good_on_application.firearm_details.has_identification_markings),
             )
             self.assertEqual(
                 context["identification_markings_details"],
-                good_on_application.good.firearm_details.identification_markings_details,
+                good_on_application.firearm_details.identification_markings_details,
             )
 
         elif good_on_application.good.item_category in ItemCategory.group_three:
@@ -838,7 +831,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], application.reference_code)
         self._assert_good(context["goods"]["all"][0], goa)
 
-    def test_generate_context_with_category_2_good_details(self):
+    def test_generate_context_with_category_2_good_details_legacy(self):
         application = self.create_standard_application_case(self.organisation)
         application.goods.all().delete()
         firearm_details = FirearmFactory()
@@ -846,8 +839,35 @@ class DocumentContextGenerationTests(DataTestClient):
             organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, firearm_details=firearm_details
         )
         application.goods.all().delete()
-        goa = GoodOnApplicationFactory(
+        goa: GoodOnApplication = GoodOnApplicationFactory(
             application=application, good=good, quantity=100.0, value=1500.00, unit=Units.NAR
+        )
+
+        context = get_document_context(application)
+
+        # in the case of a legacy case context should fall back to the firearms
+        # details on a good.
+        goa.firearm_details = goa.good.firearm_details
+
+        self.assertEqual(context["case_reference"], application.reference_code)
+        self._assert_good(context["goods"]["all"][0], goa)
+
+    def test_generate_context_with_category_2_good_details(self):
+        application = self.create_standard_application_case(self.organisation)
+        application.goods.all().delete()
+        firearm_details = FirearmFactory(year_of_manufacture=2020)
+        firearm_details_on_application = FirearmFactory(year_of_manufacture=1919)
+        good = GoodFactory(
+            organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, firearm_details=firearm_details
+        )
+        application.goods.all().delete()
+        goa: GoodOnApplication = GoodOnApplicationFactory(
+            application=application,
+            good=good,
+            quantity=100.0,
+            value=1500.00,
+            unit=Units.NAR,
+            firearm_details=firearm_details_on_application,
         )
 
         context = get_document_context(application)
