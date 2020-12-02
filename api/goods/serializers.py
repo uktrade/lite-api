@@ -77,7 +77,10 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
 
 class FirearmDetailsSerializer(serializers.ModelSerializer):
     type = KeyValueChoiceField(
-        choices=FirearmGoodType.choices, allow_null=False, error_messages={"null": strings.Goods.FIREARM_GOOD_NO_TYPE},
+        choices=FirearmGoodType.choices,
+        allow_null=False,
+        error_messages={"null": strings.Goods.FIREARM_GOOD_NO_TYPE},
+        required=False,
     )
     year_of_manufacture = serializers.IntegerField(allow_null=True, required=False)
     calibre = serializers.CharField(allow_blank=True, required=False)
@@ -99,6 +102,10 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     no_identification_markings_details = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2000
     )
+    is_deactivated = serializers.BooleanField(allow_null=True, required=False)
+    date_of_deactivation = serializers.DateField(allow_null=True, required=False)
+    deactivation_standard = serializers.CharField(allow_blank=True, required=False)
+    deactivation_standard_other = serializers.CharField(allow_blank=True, required=False, allow_null=True)
 
     class Meta:
         model = FirearmGoodDetails
@@ -117,6 +124,11 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "no_identification_markings_details",
             "has_proof_mark",
             "no_proof_mark_details",
+            "is_deactivated",
+            "is_deactivated_to_standard",
+            "date_of_deactivation",
+            "deactivation_standard",
+            "deactivation_standard_other",
         )
 
     def validate(self, data):
@@ -170,7 +182,18 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
         if validated_data.get("has_proof_mark") is False and validated_data.get("no_proof_mark_details") == "":
             raise serializers.ValidationError({"no_proof_mark_details": ["This field is required"]})
-
+        if validated_data.get("is_deactivated"):
+            if not validated_data.get("date_of_deactivation"):
+                raise serializers.ValidationError({"date_of_deactivation": ["This field is required"]})
+            is_deactivated_to_standard = validated_data.get("is_deactivated_to_standard")
+            if is_deactivated_to_standard is None:
+                raise serializers.ValidationError({"is_deactivated_to_standard": ["This field is required"]})
+            elif is_deactivated_to_standard is True:
+                if not validated_data.get("deactivation_standard"):
+                    raise serializers.ValidationError({"deactivation_standard": ["This field is required"]})
+            elif is_deactivated_to_standard is False:
+                if not validated_data.get("deactivation_standard_other"):
+                    raise serializers.ValidationError({"deactivation_standard_other": ["This field is required"]})
         return validated_data
 
     def update(self, instance, validated_data):

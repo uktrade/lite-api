@@ -288,11 +288,11 @@ class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
                     "unit": Units.NAR,
                     "value": 1,
                     "is_good_incorporated": True,
-                    "year_of_manufacture": 2020,
+                    "firearm_details": {"year_of_manufacture": 2020,},
                 },
                 True,
             ),
-            ({"quantity": 1, "unit": Units.NAR, "value": 1, "is_good_incorporated": True,}, False),
+            ({"quantity": 1, "unit": Units.NAR, "value": 1, "is_good_incorporated": True,}, False,),
         ]
     )
     def test_add_a_good_to_a_draft_with_firearms_details(self, data, firearm_details_created):
@@ -316,9 +316,11 @@ class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
         self.assertEqual(firearm_details_created, bool(new_good["firearm_details"]))
         if firearm_details_created:
             self.assertNotEqual(
-                int(self.good.firearm_details.year_of_manufacture), new_good["firearm_details"]["year_of_manufacture"]
+                self.good.firearm_details.year_of_manufacture, new_good["firearm_details"]["year_of_manufacture"]
             )
-            self.assertEqual(new_good["firearm_details"]["year_of_manufacture"], data["year_of_manufacture"])
+            self.assertEqual(
+                new_good["firearm_details"]["year_of_manufacture"], data["firearm_details"]["year_of_manufacture"]
+            )
 
 
 class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
