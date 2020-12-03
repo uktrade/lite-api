@@ -373,6 +373,32 @@ class GoodsEditDraftGoodTests(DataTestClient):
         # 2 due to creating a new good for this test
         self.assertEquals(Good.objects.all().count(), 2)
 
+    def test_edit_category_two_firearm_replica(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {
+            "firearm_details": {"type": "firearms", "is_replica": True, "replica_description": "Yes this is a replica"}
+        }
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["firearm_details"]["is_replica"], True)
+        self.assertEquals(good["firearm_details"]["replica_description"], "Yes this is a replica")
+
+        request_data = {"firearm_details": {"type": "firearms", "is_replica": False}}
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["firearm_details"]["is_replica"], False)
+        self.assertEquals(good["firearm_details"]["replica_description"], "")
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
     def test_edit_category_two_section_question_and_details_success(self):
         good = self.create_good(
             "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True

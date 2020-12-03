@@ -211,7 +211,9 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         instance.calibre = validated_data.get("calibre", instance.calibre)
 
         instance.is_replica = validated_data.get("is_replica", instance.is_replica)
-        instance.replica_description = validated_data.get("replica_description", instance.replica_description)
+        instance.replica_description = (
+            validated_data.get("replica_description", instance.replica_description) if instance.is_replica else ""
+        )
 
         is_covered_by_firearms_act = validated_data.get("is_covered_by_firearm_act_section_one_two_or_five")
         # if the answer to the firearms act has changed, then set the new value and the certificate and date fields
