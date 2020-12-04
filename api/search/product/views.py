@@ -33,7 +33,6 @@ class ProductDocumentView(DocumentViewSet):
     lookup_field = "id"
     filter_backends = [
         filter_backends.OrderingFilterBackend,
-        filter_backends.DefaultOrderingFilterBackend,
         filter_backends.SearchFilterBackend,
         filter_backends.FilteringFilterBackend,
         filter_backends.NestedFilteringFilterBackend,
@@ -43,13 +42,14 @@ class ProductDocumentView(DocumentViewSet):
 
     search_fields = [
         "description",
+        "rating_comment",
     ]
 
     ordering_fields = {
-        "date": "date",
+        "canonical_name": "canonical_name",
     }
 
-    ordering = ("date",)
+    ordering = ("canonical_name",)
 
     search_nested_fields = {
         # explicitly defined to make highlighting work
@@ -79,7 +79,7 @@ class ProductDocumentView(DocumentViewSet):
             {
                 "collapse": {
                     "field": "canonical_name",
-                    "inner_hits": {"size": 20, "name": "related", "collapse": {"field": "context",},},
+                    "inner_hits": {"size": 4, "name": "related", "collapse": {"field": "context",},},
                 }
             }
         )
