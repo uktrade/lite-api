@@ -67,6 +67,7 @@ class ProductDocumentSerializer(DocumentSerializer):
                     {
                         **item["_source"],
                         "date": self.format_date(item["_source"]["date"]),
+                        "highlight": item.get("highlight", {}),
                         "index": self.get_index_name(item["_index"]),
                     }
                     for item in inner_hits["hits"]["hits"]
