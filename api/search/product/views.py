@@ -3,14 +3,6 @@ from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from elasticsearch_dsl.query import Query
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django_elasticsearch_dsl_drf.constants import (
-    LOOKUP_FILTER_WILDCARD,
-    LOOKUP_FILTER_RANGE,
-    LOOKUP_QUERY_GT,
-    LOOKUP_QUERY_GTE,
-    LOOKUP_QUERY_LT,
-    LOOKUP_QUERY_LTE,
-)
 
 from django.conf import settings
 
@@ -76,7 +68,12 @@ class ProductDocumentView(DocumentViewSet):
             {
                 "collapse": {
                     "field": "canonical_name",
-                    "inner_hits": {"size": 4, "name": "related", "collapse": {"field": "context",},},
+                    "inner_hits": {
+                        "size": 4,
+                        "name": "related",
+                        "collapse": {"field": "context",},
+                        "highlight": {"fields": {"rating_comment": self.highlight_fields["*"]["options"],}},
+                    },
                 }
             }
         )
