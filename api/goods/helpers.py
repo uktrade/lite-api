@@ -76,11 +76,31 @@ def validate_identification_markings(validated_data):
 
 
 def validate_section_certificate_number_and_expiry_date(validated_data):
-    date_of_expiry = validated_data.get("section_certificate_date_of_expiry")
+    print(validated_data)
+    covered_by_firearms_act = validated_data.get("is_covered_by_firearm_act_section_one_two_or_five", "")
+    selected_section = validated_data.get("firearms_act_section", "")
+
+    if covered_by_firearms_act == "":
+        raise serializers.ValidationError(
+            {"is_covered_by_firearm_act_section_one_two_or_five": strings.Goods.FIREARM_GOOD_NO_SECTION}
+        )
+
+    if covered_by_firearms_act == "Yes" and selected_section == "":
+        raise serializers.ValidationError({"firearms_act_section": "Select which section the product is covered by"})
+
+    certificate_missing = (
+        "section_certificate_missing" in validated_data and validated_data.get("section_certificate_missing") == True
+    )
+    if certificate_missing and validated_data.get("section_certificate_missing_reason") == "":
+        raise serializers.ValidationError(
+            {"section_certificate_missing_reason": "Enter a reason why you do not have a section 1 certificate"}
+        )
 
     # Section certificate number and date of expiry are mandatory
-    if not validated_data.get("section_certificate_number"):
+    if validated_data.get("section_certificate_number") == "":
         raise serializers.ValidationError({"section_certificate_number": strings.Goods.FIREARM_GOOD_NO_CERT_NUM})
+
+    date_of_expiry = validated_data.get("section_certificate_date_of_expiry")
     if not date_of_expiry:
         raise serializers.ValidationError(
             {"section_certificate_date_of_expiry": strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE}

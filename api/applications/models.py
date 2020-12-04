@@ -36,6 +36,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
+from api.users.models import ExporterUser
 from lite_content.lite_api.strings import PartyErrors
 
 
@@ -340,6 +341,12 @@ class GoodOnApplication(AbstractGoodOnApplication):
     @property
     def description(self):
         return self.good.description
+
+
+class GoodOnApplicationDocument(Document):
+    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods_document", null=False)
+    good = models.ForeignKey(Good, related_name="goods_on_application_document", on_delete=models.CASCADE)
+    user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING)
 
 
 class CountryOnApplication(models.Model):
