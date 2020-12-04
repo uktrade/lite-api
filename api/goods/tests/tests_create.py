@@ -473,6 +473,55 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["type"], [strings.Goods.FIREARM_GOOD_NO_TYPE])
 
+    def test_add_firearms_type_replica_status_not_selected(self):
+        data = {
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": "firearms", "is_replica": None},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["is_replica"][0], "Select yes if the product is a replica firearm")
+
+    @parameterized.expand([["ammunition"], ["components_for_firearms"], ["components_for_ammunition"]])
+    def test_add_firearms_replica_status_selected_for_invalid_types(self, firearm_type):
+        data = {
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": firearm_type, "is_replica": True},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["is_replica"][0], "Invalid firearm product type")
+
+    def test_add_firearms_replica_description_required(self):
+        data = {
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": "firearms", "is_replica": True, "replica_description": ""},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["replica_description"], ["Enter description"])
+
     def test_add_category_two_good_no_year_of_manufacture_not_in_the_past_failure(self):
         data = {
             "description": "coffee",

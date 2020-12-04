@@ -274,6 +274,55 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.draft = self.create_draft_standard_application(self.organisation)
+        self.good = self.create_good("A good", self.organisation, create_firearm_details=True)
+
+    @parameterized.expand(
+        [
+            (
+                {
+                    "quantity": 1,
+                    "unit": Units.NAR,
+                    "value": 1,
+                    "is_good_incorporated": True,
+                    "firearm_details": {"year_of_manufacture": 2020,},
+                },
+                True,
+            ),
+            ({"quantity": 1, "unit": Units.NAR, "value": 1, "is_good_incorporated": True,}, False,),
+        ]
+    )
+    def test_add_a_good_to_a_draft_with_firearms_details(self, data, firearm_details_created):
+        self.create_good_document(
+            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+        )
+
+        data["good_id"] = self.good.id
+
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()
+        new_good = response_data["goods"][1]
+        # The standard draft good has a yom of 1992 make sure it has been
+        # updated to 2020 on firearms details on application
+        self.assertEqual(firearm_details_created, bool(new_good["firearm_details"]))
+        if firearm_details_created:
+            self.assertNotEqual(
+                self.good.firearm_details.year_of_manufacture, new_good["firearm_details"]["year_of_manufacture"]
+            )
+            self.assertEqual(
+                new_good["firearm_details"]["year_of_manufacture"], data["firearm_details"]["year_of_manufacture"]
+            )
+
+
 class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
     def setUp(self):
         super().setUp()
