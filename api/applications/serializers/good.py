@@ -4,11 +4,12 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from django.forms.models import model_to_dict
 
-from api.applications.models import BaseApplication, GoodOnApplication
+from api.applications.models import GoodOnApplicationDocument, BaseApplication, GoodOnApplication
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
+from api.documents.libraries.process_document import process_document
 from api.goods.enums import GoodControlled
 from api.goods.enums import ItemType
 from api.goods.models import Good
@@ -17,6 +18,8 @@ from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from api.staticdata.units.enums import Units
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.users.models import ExporterUser
+from api.users.serializers import ExporterUserSimpleSerializer
 
 
 class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
@@ -176,3 +179,38 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             serializer.is_valid(raise_exception=True)
             validated_data["firearm_details"] = serializer.save()
         return super().create(validated_data)
+
+
+class GoodOnApplicationDocumentCreateSerializer(serializers.ModelSerializer):
+    application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
+    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
+
+    class Meta:
+        model = GoodOnApplicationDocument
+        fields = (
+            "name",
+            "s3_key",
+            "user",
+            "size",
+            "application",
+            "good",
+        )
+
+    def create(self, validated_data):
+        document = super().create(validated_data)
+        document.save()
+        process_document(document)
+        return document
+
+
+class GoodOnApplicationDocumentViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    created_at = serializers.DateTimeField()
+    name = serializers.CharField()
+    user = ExporterUserSimpleSerializer()
+    s3_key = serializers.SerializerMethodField()
+    safe = serializers.BooleanField()
+
+    def get_s3_key(self, instance):
+        return instance.s3_key if instance.safe else "File not ready"

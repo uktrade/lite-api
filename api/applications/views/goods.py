@@ -1,16 +1,20 @@
 from django.db import transaction
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.views import APIView
 
 from api.applications.enums import GoodsTypeCategory
+from api.applications.helpers import delete_uploaded_document
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.libraries.get_applications import get_application
-from api.applications.models import GoodOnApplication
+from api.applications.models import BaseApplication, GoodOnApplication, GoodOnApplicationDocument
 from api.applications.serializers.good import (
     GoodOnApplicationViewSerializer,
     GoodOnApplicationCreateSerializer,
+    GoodOnApplicationDocumentViewSerializer,
+    GoodOnApplicationDocumentCreateSerializer,
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -26,14 +30,14 @@ from api.core.exceptions import BadRequestError
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.libraries.get_goods import get_good_with_organisation
-from api.goods.models import GoodDocument
+from api.goods.models import Good, GoodDocument
 from api.goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.staticdata.countries.models import Country
-from api.users.models import ExporterUser
+from api.users.models import ExporterUser, GovUser
 
 
 class ApplicationGoodsOnApplication(APIView):
@@ -161,6 +165,84 @@ class ApplicationGoodOnApplication(APIView):
         )
 
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
+
+
+class ApplicationGoodOnApplicationDocumentView(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def get_object(self):
+        return get_object_or_404(BaseApplication.objects.all(), pk=self.kwargs["pk"])
+
+    # @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk, good_pk):
+        documents = GoodOnApplicationDocument.objects.filter(application_id=pk, good_id=good_pk).order_by("-created_at")
+        serializer = GoodOnApplicationDocumentViewSerializer(documents, many=True)
+
+        return JsonResponse({"documents": serializer.data}, status=status.HTTP_200_OK)
+
+    @application_in_state(is_major_editable=True)
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk, good_pk):
+        data = request.data
+        application = self.get_object()
+
+        if application.status.status in get_case_statuses(read_only=True):
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data["good"] = good_pk
+        data["application"] = pk
+        data["user"] = request.user.pk
+
+        serializer = GoodOnApplicationDocumentCreateSerializer(data=data)
+        if serializer.is_valid():
+            try:
+                serializer.save()
+            except Exception:
+                return JsonResponse(
+                    {"errors": {"file": strings.Documents.UPLOAD_FAILURE}}, status=status.HTTP_400_BAD_REQUEST
+                )
+            return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
+
+        delete_uploaded_document(data)
+        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    @application_in_state(is_major_editable=True)
+    @authorised_to_view_application(ExporterUser)
+    def delete(self, request, pk, good_pk):
+        delete_uploaded_document(request.data)
+        return JsonResponse({}, status=status.HTTP_200_OK)
+
+
+class ApplicationGoodOnApplicationDocumentDetailView(APIView):
+    authentication_classes = (ExporterUser,)
+
+    @authorised_to_view_application(GovUser)
+    def get(self, request, **kwargs):
+        import pdb; pdb.set_trace()
+        document = get_object_or_404(GoodOnApplicationDocument.objects.all(), pk=self.kwargs["doc_pk"])
+        serializer = GoodOnApplicationDocumentViewSerializer(document)
+        return JsonResponse({"document": serializer.data})
+
+    @transaction.atomic
+    def delete(self, request, **kwargs):
+        import pdb; pdb.set_trace()
+        good = get_object_or_404(Good.objects.all(), pk=kwargs["good_pk"])
+
+        if good.organisation.id != get_request_user_organisation_id(request):
+            raise PermissionDenied()
+
+        if good.status != GoodStatus.DRAFT:
+            return JsonResponse(
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        document = get_object_or_404(GoodOnApplicationDocument.objects.all(), pk=self.kwargs["doc_pk"])
+        document.delete_s3()
+        document.delete()
+
+        return JsonResponse({"document": "deleted success"})
 
 
 class ApplicationGoodsTypes(APIView):
