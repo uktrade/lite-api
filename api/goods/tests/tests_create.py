@@ -808,8 +808,7 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            errors["section_certificate_date_of_expiry"],
-            ["Enter the expiry date and include a day, month and year"],
+            errors["section_certificate_date_of_expiry"], ["Enter the expiry date and include a day, month and year"],
         )
 
     def test_add_category_two_good_certificate_details_not_set_on_no_success(self):

@@ -220,14 +220,12 @@ class ApplicationGoodOnApplicationDocumentDetailView(APIView):
 
     @authorised_to_view_application(GovUser)
     def get(self, request, **kwargs):
-        import pdb; pdb.set_trace()
         document = get_object_or_404(GoodOnApplicationDocument.objects.all(), pk=self.kwargs["doc_pk"])
         serializer = GoodOnApplicationDocumentViewSerializer(document)
         return JsonResponse({"document": serializer.data})
 
     @transaction.atomic
     def delete(self, request, **kwargs):
-        import pdb; pdb.set_trace()
         good = get_object_or_404(Good.objects.all(), pk=kwargs["good_pk"])
 
         if good.organisation.id != get_request_user_organisation_id(request):

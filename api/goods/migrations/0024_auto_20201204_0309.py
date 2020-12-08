@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods', '0023_merge_20201202_1029'),
+        ("goods", "0023_merge_20201202_1029"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='firearmgooddetails',
-            name='firearms_act_section',
-            field=models.TextField(blank=True, default=''),
+            model_name="firearmgooddetails",
+            name="firearms_act_section",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name='firearmgooddetails',
-            name='section_certificate_missing',
+            model_name="firearmgooddetails",
+            name="section_certificate_missing",
             field=models.BooleanField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='firearmgooddetails',
-            name='section_certificate_missing_reason',
-            field=models.TextField(blank=True, default=''),
+            model_name="firearmgooddetails",
+            name="section_certificate_missing_reason",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AlterField(
-            model_name='firearmgooddetails',
-            name='is_covered_by_firearm_act_section_one_two_or_five',
-            field=models.TextField(blank=True, default=''),
+            model_name="firearmgooddetails",
+            name="is_covered_by_firearm_act_section_one_two_or_five",
+            field=models.TextField(blank=True, default=""),
         ),
     ]
