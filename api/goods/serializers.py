@@ -659,6 +659,7 @@ class GoodSerializerInternal(serializers.Serializer):
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    is_precedent = serializers.BooleanField(required=False, default=False)
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
@@ -746,9 +747,12 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
 
 
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
+
+    is_precedent = serializers.BooleanField(required=False, default=False)
+
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
-        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control",)
+        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control", "is_precedent")
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
