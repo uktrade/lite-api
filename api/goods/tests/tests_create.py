@@ -656,6 +656,36 @@ class CreateGoodTests(DataTestClient):
             "Enter the certificate expiry date and include a day, month and year",
         )
 
+    def test_add_firearms_certificate_missing_checks(self):
+        data = {
+            "description": "Rifle",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
+                "section_certificate_number": "1234",
+                "section_certificate_missing": True,
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(
+            response["section_certificate_missing_reason"][0],
+            "Enter a reason why you do not have a section 1 certificate",
+        )
+
+        data["firearm_details"]["section_certificate_missing_reason"] = "Certificate not required"
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
     def test_add_category_two_good_no_section_certificate_failure(self):
         data = {
             "description": "coffee",
@@ -692,7 +722,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": None,
             },
@@ -702,7 +733,7 @@ class CreateGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["section_certificate_number"], [strings.Goods.FIREARM_GOOD_NO_CERT_NUM])
+        self.assertEqual(errors["section_certificate_number"], ["Enter the certificate number"])
 
     def test_add_category_two_good_no_certificate_expiry_date_failure(self):
         data = {
@@ -715,7 +746,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": None,
             },
@@ -725,11 +757,14 @@ class CreateGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE])
+        self.assertEqual(
+            errors["section_certificate_date_of_expiry"],
+            ["Enter the certificate expiry date and include a day, month and year"],
+        )
 
     def test_add_category_two_good_certificate_number_in_past_failure(self):
         data = {
-            "description": "coffee",
+            "description": "Rifle",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -738,7 +773,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "2012-12-12",
             },
@@ -761,7 +797,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "20-12-12",
             },
@@ -771,7 +807,10 @@ class CreateGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE])
+        self.assertEqual(
+            errors["section_certificate_date_of_expiry"],
+            ["Enter the expiry date and include a day, month and year"],
+        )
 
     def test_add_category_two_good_certificate_details_not_set_on_no_success(self):
         data = {
@@ -784,7 +823,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "2012-12-12",
             },
@@ -796,7 +835,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertIsNone(good["firearm_details"]["section_certificate_date_of_expiry"])
         self.assertIsNone(good["firearm_details"]["section_certificate_number"])
-        self.assertFalse(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+        self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "No")
 
     def test_add_category_two_good_no_markings_answer_selected_failure(self):
         data = {
@@ -809,7 +848,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "",
@@ -835,7 +874,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "False",
@@ -863,7 +902,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "True",
@@ -889,7 +928,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
+                "firearms_act_section": "firearms_act_section2",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "True",
@@ -920,7 +960,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "True",
@@ -951,7 +992,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section2",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "2022-12-12",
                 "has_identification_markings": "True",
@@ -977,7 +1019,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(
             str(good["firearm_details"]["year_of_manufacture"]), data["firearm_details"]["year_of_manufacture"]
         )
-        self.assertTrue(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+        self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "Yes")
         self.assertEquals(
             good["firearm_details"]["section_certificate_number"], data["firearm_details"]["section_certificate_number"]
         )
@@ -1011,7 +1053,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
+                "firearms_act_section": "firearms_act_section2",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": has_identification_markings,
