@@ -2,7 +2,8 @@ from dateutil import parser
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
-from api.search.product import documents
+from api.gov_users.serializers import GovUserSimpleSerializer
+from api.search.product import documents, models
 
 
 class ProductDocumentSerializer(DocumentSerializer):
@@ -29,6 +30,7 @@ class ProductDocumentSerializer(DocumentSerializer):
             "rating_comment",
             "report_summary",
             "part_number",
+            "regime",
         )
         extra_kwargs = {
             "name": {"required": False, "allow_null": True},
@@ -73,7 +75,7 @@ class ProductDocumentSerializer(DocumentSerializer):
                     for item in inner_hits["hits"]["hits"]
                 ],
             }
-        return []
+        return {}
 
     @staticmethod
     def get_index_name(name):
@@ -85,3 +87,26 @@ class ProductDocumentSerializer(DocumentSerializer):
             return date
         value = parser.parse(date)
         return value.astimezone().strftime("%Y")
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = GovUserSimpleSerializer(read_only=True)
+
+    class Meta:
+        model = models.Comment
+        fields = (
+            "user",
+            "text",
+            "object_pk",
+            "source",
+            "updated_at",
+        )
+        extra_kwargs = {
+            "object_pk": {"required": False},
+            "updated_at": {"read_only": True, "format": "%d %B %Y"},
+        }
+
+    def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user.govuser
+        validated_data["object_pk"] = self.context["view"].kwargs["pk"]
+        return super().create(validated_data)

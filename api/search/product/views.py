@@ -3,11 +3,12 @@ from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from elasticsearch_dsl.query import Query
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.generics import CreateAPIView
 
 from django.conf import settings
 
 from api.search.product.documents import ProductDocumentType
-from api.search.product.serializers import ProductDocumentSerializer
+from api.search.product import models, serializers
 from api.core.authentication import GovAuthentication
 
 
@@ -17,7 +18,7 @@ class MatchBoolPrefix(Query):
 
 class ProductDocumentView(DocumentViewSet):
     document = ProductDocumentType
-    serializer_class = ProductDocumentSerializer
+    serializer_class = serializers.ProductDocumentSerializer
     authentication_classes = (GovAuthentication,)
     lookup_field = "id"
     filter_backends = [
@@ -46,13 +47,14 @@ class ProductDocumentView(DocumentViewSet):
     }
 
     filter_fields = {
-        "organisation": {"enabled": True, "field": "organisation.raw",},
-        "destination": {"enabled": True, "field": "destination.raw",},
+        "organisation": {"enabled": True, "field": "organisation.raw"},
+        "destination": {"enabled": True, "field": "destination.raw"},
+        "canonical_name": {"enabled": True, "field": "canonical_name"},
     }
 
     nested_filter_fields = {
-        "clc_rating": {"field": "control_list_entries.rating.raw", "path": "control_list_entries",},
-        "clc_category": {"field": "control_list_entries.category.raw", "path": "control_list_entries",},
+        "clc_rating": {"field": "control_list_entries.rating.raw", "path": "control_list_entries"},
+        "clc_category": {"field": "control_list_entries.category.raw", "path": "control_list_entries"},
     }
 
     highlight_fields = {"*": {"enabled": True, "options": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}}}
@@ -69,7 +71,7 @@ class ProductDocumentView(DocumentViewSet):
                 "collapse": {
                     "field": "canonical_name",
                     "inner_hits": {
-                        "size": 4,
+                        "size": 200,
                         "name": "related",
                         "collapse": {"field": "context",},
                         "highlight": {"fields": {"rating_comment": self.highlight_fields["*"]["options"],}},
@@ -148,9 +150,12 @@ class AbstractRetrieveLiteProductView(APIView):
         search = Document.search().filter("term", canonical_name=document.canonical_name)
         related_products = search.execute()
 
+        comments = models.Comment.objects.filter(object_pk=pk).order_by("-updated_at")
+
         return Response(
             {
                 "related_products": [item["_source"] for item in related_products.to_dict()["hits"]["hits"]],
+                "comments": serializers.CommentSerializer(comments, many=True).data,
                 **document.to_dict(),
             }
         )
@@ -162,3 +167,8 @@ class RetrieveLiteProductView(AbstractRetrieveLiteProductView, APIView):
 
 class RetrieveSpireProductView(AbstractRetrieveLiteProductView, APIView):
     index_name = settings.SPIRE_PRODUCT_INDEX_NAME
+
+
+class CommentView(CreateAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = serializers.CommentSerializer
