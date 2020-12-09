@@ -43,7 +43,7 @@ jobs:
       # Download and cache dependencies
       # ensure this step occurs *before* installing dependencies
       - restore_cache:
-          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
       - run:
           name: Install OS libraries
@@ -56,7 +56,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
       - run:
           name: Check migrations are made
