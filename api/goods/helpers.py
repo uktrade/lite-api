@@ -76,6 +76,7 @@ def validate_identification_markings(validated_data):
 
 
 def validate_firearms_act_section(validated_data):
+    errors = {}
 
     if "type" in validated_data and validated_data.get("type") not in FIREARMS_CORE_TYPES:
         return
@@ -84,19 +85,17 @@ def validate_firearms_act_section(validated_data):
     selected_section = validated_data.get("firearms_act_section", "")
 
     if covered_by_firearms_act == "":
-        raise serializers.ValidationError(
-            {"is_covered_by_firearm_act_section_one_two_or_five": strings.Goods.FIREARM_GOOD_NO_SECTION}
-        )
+        errors["is_covered_by_firearm_act_section_one_two_or_five"] = strings.Goods.FIREARM_GOOD_NO_SECTION
 
     if covered_by_firearms_act == "Yes" and selected_section == "":
-        raise serializers.ValidationError({"firearms_act_section": "Select which section the product is covered by"})
+        errors["firearms_act_section"] = "Select which section the product is covered by"
 
-    # not uploading certificate
-    if covered_by_firearms_act == "No" or covered_by_firearms_act == "Unsure":
-        return
+    if errors:
+        raise serializers.ValidationError(errors)
 
 
 def validate_firearms_act_certificate_expiry_date(validated_data):
+    errors = {}
 
     if "type" in validated_data and validated_data.get("type") not in FIREARMS_CORE_TYPES:
         return
@@ -104,27 +103,24 @@ def validate_firearms_act_certificate_expiry_date(validated_data):
     certificate_missing = validated_data.get("section_certificate_missing", False) == True
     if certificate_missing:
         if validated_data.get("section_certificate_missing_reason", "") == "":
-            raise serializers.ValidationError(
-                {"section_certificate_missing_reason": "Enter a reason why you do not have a section 1 certificate"}
-            )
+            errors["section_certificate_missing_reason"] = "Enter a reason why you do not have a section 1 certificate"
     else:
         # Section certificate number and date of expiry are mandatory
         if validated_data.get("section_certificate_number") == "":
-            raise serializers.ValidationError({"section_certificate_number": "Enter the certificate number"})
+            errors["section_certificate_number"] = "Enter the certificate number"
 
         date_of_expiry = validated_data.get("section_certificate_date_of_expiry")
         if not date_of_expiry:
-            raise serializers.ValidationError(
-                {
-                    "section_certificate_date_of_expiry": "Enter the certificate expiry date and include a day, month and year"
-                }
-            )
+            errors[
+                "section_certificate_date_of_expiry"
+            ] = "Enter the certificate expiry date and include a day, month and year"
 
         # Date of expiry has to be in the future
         if date_of_expiry and date_of_expiry < timezone.now().date():
-            raise serializers.ValidationError(
-                {"section_certificate_date_of_expiry": [strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE]}
-            )
+            errors["section_certificate_date_of_expiry"] = strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE
+
+    if errors:
+        raise serializers.ValidationError(errors)
 
 
 def check_if_firearm_details_edited_on_unsupported_good(data):

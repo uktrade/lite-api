@@ -179,7 +179,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         if "is_covered_by_firearm_act_section_one_two_or_five" in validated_data:
             validate_firearms_act_section(validated_data)
 
-        if "section_certificate_number" in validated_data:
+        if validated_data.get("is_covered_by_firearm_act_section_one_two_or_five") == "Yes":
             validate_firearms_act_certificate_expiry_date(validated_data)
 
         # Identification markings - mandatory question
@@ -237,8 +237,21 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
                 "section_certificate_missing_reason", instance.section_certificate_missing_reason
             )
         else:
+            instance.firearms_act_section = ""
             instance.section_certificate_number = ""
             instance.section_certificate_date_of_expiry = None
+            instance.section_certificate_missing = False
+            instance.section_certificate_missing_reason = ""
+
+        certificate_missing = validated_data.get("section_certificate_missing", False) is True
+        if certificate_missing:
+            instance.section_certificate_number = ""
+            instance.section_certificate_date_of_expiry = None
+            instance.section_certificate_missing = True
+            instance.section_certificate_missing_reason = validated_data.get(
+                "section_certificate_missing_reason", instance.section_certificate_missing_reason
+            )
+        else:
             instance.section_certificate_missing = False
             instance.section_certificate_missing_reason = ""
 
@@ -389,8 +402,10 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             if "is_covered_by_firearm_act_section_one_two_or_five" in firearm_details:
                 # Remove the certificate number and expiry date if the answer is a No
                 if firearm_details.get("is_covered_by_firearm_act_section_one_two_or_five") != "Yes":
-                    firearm_details.pop("section_certificate_number")
-                    firearm_details.pop("section_certificate_date_of_expiry")
+                    if "section_certificate_number" in firearm_details:
+                        firearm_details.pop("section_certificate_number")
+                    if "section_certificate_date_of_expiry" in firearm_details:
+                        firearm_details.pop("section_certificate_date_of_expiry")
 
             if "has_identification_markings" in firearm_details:
                 # Keep only the details relevant for the yes/no answer

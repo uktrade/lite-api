@@ -44,7 +44,12 @@ class Migration(migrations.Migration):
                         to="goods.Good",
                     ),
                 ),
-                ("user", models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="users.ExporterUser")),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING, related_name="user", to="users.ExporterUser"
+                    ),
+                ),
             ],
             options={"abstract": False,},
             bases=("documents.document",),

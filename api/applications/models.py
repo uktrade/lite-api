@@ -344,11 +344,9 @@ class GoodOnApplication(AbstractGoodOnApplication):
 
 
 class GoodOnApplicationDocument(Document):
-    application = models.ForeignKey(
-        BaseApplication, on_delete=models.CASCADE, related_name="goods_document", null=False
-    )
+    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods_document")
     good = models.ForeignKey(Good, related_name="goods_on_application_document", on_delete=models.CASCADE)
-    user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING, related_name="user")
 
 
 class CountryOnApplication(models.Model):

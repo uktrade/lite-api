@@ -59,6 +59,7 @@ class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializerInternal(read_only=True)
+    good_application_documents = serializers.SerializerMethodField()
     unit = KeyValueChoiceField(choices=Units.choices)
     flags = serializers.SerializerMethodField()
     control_list_entries = ControlListEntrySerializer(many=True)
@@ -86,10 +87,17 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "report_summary",
             "audit_trail",
             "firearm_details",
+            "good_application_documents",
         )
 
     def get_flags(self, instance):
         return list(instance.good.flags.values("id", "name", "colour", "label"))
+
+    def get_good_application_documents(self, instance):
+        documents = GoodOnApplicationDocument.objects.filter(
+            application=instance.application, good=instance.good, safe=True
+        )
+        return GoodOnApplicationDocumentViewSerializer(documents, many=True).data
 
     def get_audit_trail(self, instance):
         # this serializer is used by a few views. Most views do not need to know audit trail
