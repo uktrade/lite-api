@@ -132,7 +132,8 @@ class ProductDocumentType(Document):
         copy_to="wildcard",
     )
 
-    regime = fields.KeywordField()
+    # purposefully not DED field - this is just for collecting other field values for wilcard search
+    regime = fields.Keyword()
 
     # comments. iteration 4
     # comments = fields.NestedField(doc_class=Comment, attr=??)
