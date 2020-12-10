@@ -232,9 +232,9 @@ class CaseRoutingAutomationTests(DataTestClient):
         self.assertIn(self.queue, set(case.queues.all()))
 
     def test_case_routed_to_multiple_queues_with_multiple_team_rules_at_different_tiers_status_changed(self):
-        queue_2 = Queue(team=self.team)
+        queue_2 = Queue(team=self.team, name="Q2")
         queue_2.save()
-        queue_3 = Queue(team=self.team)
+        queue_3 = Queue(team=self.team, name="Q3")
         queue_3.save()
         team_2 = Team(name="team2")
         team_2.save()
