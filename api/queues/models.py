@@ -14,3 +14,4 @@ class Queue(models.Model):
     class Meta:
         ordering = ["name"]
         db_table = "queue"
+        unique_together = ["name", "team"]
