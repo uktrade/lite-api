@@ -83,6 +83,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "report_summary",
             "audit_trail",
             "firearm_details",
+            "is_precedent",
         )
 
     def get_flags(self, instance):

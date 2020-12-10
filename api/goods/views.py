@@ -112,6 +112,7 @@ class GoodsListControlCode(APIView):
                             "old_is_good_controlled": "Yes" if old_is_controlled else "No",
                             "new_is_good_controlled": "Yes" if new_is_controlled else "No",
                             "additional_text": serializer.validated_data["comment"],
+                            "is_precedent": serializer.validated_data.get("is_precedent", False),
                         },
                     )
         apply_good_flagging_rules_for_case(case)

@@ -308,6 +308,7 @@ class AbstractGoodOnApplication(TimestampableModel):
     firearm_details = models.ForeignKey(
         "goods.FirearmGoodDetails", on_delete=models.CASCADE, default=None, blank=True, null=True
     )
+    is_precedent = models.BooleanField(blank=False, default=False)
 
     class Meta:
         abstract = True
