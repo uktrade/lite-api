@@ -4,8 +4,13 @@ from api.flags.models import Flag
 
 
 class CountryManager(models.Manager):
+    def get_by_natural_key(self, pk):
+        return self.get(pk=pk)
+
+
+class ExcludeSpecialCountryManager(CountryManager):
     def get_queryset(self):
-        return super(CountryManager, self).get_queryset().exclude(id="UKCS")
+        return super(ExcludeSpecialCountryManager, self).get_queryset().exclude(id="UKCS")
 
 
 class Country(models.Model):
@@ -15,5 +20,8 @@ class Country(models.Model):
     flags = models.ManyToManyField(Flag, related_name="countries")
     is_eu = models.BooleanField()
 
-    objects = models.Manager()
-    exclude_special_countries = CountryManager()
+    objects = CountryManager()
+    exclude_special_countries = ExcludeSpecialCountryManager()
+
+    def natural_key(self):
+        return (self.pk,)
