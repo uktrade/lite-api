@@ -33,6 +33,18 @@ class Flag(TimestampableModel):
         return (self.name,)
 
 
+class FlaggingRuleManager(models.Manager):
+    def get_by_natural_key(self, team, level, status, flag, matching_value, is_for_verified_goods_only):
+        return self.get(
+            team=team,
+            level=level,
+            status=status,
+            flag=flag,
+            matching_value=matching_value,
+            is_for_verified_goods_only=is_for_verified_goods_only,
+        )
+
+
 class FlaggingRule(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
@@ -42,7 +54,12 @@ class FlaggingRule(TimestampableModel):
     matching_value = models.CharField(max_length=100)
     is_for_verified_goods_only = models.BooleanField(null=True, blank=True)
 
+    objects = FlaggingRuleManager()
+
     class Meta:
         db_table = "flagging_rule"
         indexes = [models.Index(fields=["created_at"])]
         ordering = ["team__name", "-created_at"]
+
+    def natural_key(self):
+        return (self.team, self.level, self.status, self.flag, self.matching_value, self.is_for_verified_goods_only)
