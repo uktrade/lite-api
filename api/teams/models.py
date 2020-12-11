@@ -19,4 +19,3 @@ class Team(models.Model):
 
     def natural_key(self):
         return (self.name,)
-
