@@ -25,3 +25,5 @@ class Queue(models.Model):
 
     def natural_key(self):
         return (self.name, self.team)
+
+    natural_key.dependencies = ["teams.Team"]
