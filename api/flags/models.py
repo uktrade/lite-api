@@ -7,6 +7,11 @@ from api.flags.enums import FlagLevels, FlagStatuses, FlagColours
 from api.teams.models import Team
 
 
+class FlagManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
 class Flag(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default="Untitled Flag", unique=True, max_length=25)
@@ -18,9 +23,14 @@ class Flag(TimestampableModel):
     priority = models.PositiveSmallIntegerField(default=0)
     blocks_approval = models.BooleanField(null=False, blank=False, default=False)
 
+    objects = FlagManager()
+
     class Meta:
         db_table = "flag"
         ordering = ["team"]
+
+    def natural_key(self):
+        return (self.name,)
 
 
 class FlaggingRule(TimestampableModel):
