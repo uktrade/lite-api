@@ -92,6 +92,7 @@ class Product(InnerDoc):
     value = fields.KeywordField()
     unit = fields.KeywordField()
     incorporated = fields.BooleanField(attr="is_good_incorporated")
+    name = fields.TextField(attr="good.name", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
     description = fields.TextField(attr="good.description", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
     comment = fields.TextField(attr="good.comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
     part_number = fields.TextField(
