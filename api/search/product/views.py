@@ -146,7 +146,12 @@ class MoreLikeThisView(APIView):
         document = ProductDocumentType.get(id=pk)
         search = ProductDocumentType.search()
         search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
-        search = search.filter("term", canonical_name=document.canonical_name)
+        search = (
+            search
+            .filter("term", canonical_name=document.canonical_name)
+            .exclude("match", id=pk)
+            .update_from_dict({"collapse": {"field": "application.id"}})
+        )
         serializer = serializers.ProductDocumentSerializer(search, many=True)
         return Response(serializer.data)
 
