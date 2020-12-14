@@ -69,6 +69,21 @@ class ApplicationOnProduct(InnerDoc):
     reference_code = fields.KeywordField()
 
 
+class Queue(InnerDoc):
+    id = fields.KeywordField()
+    name = fields.TextField(
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField()},
+        analyzer=descriptive_text_analyzer,
+        copy_to="wildcard",
+    )
+    team = fields.TextField(
+        attr="team.name",
+        copy_to="wildcard",
+        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField()},
+        analyzer=descriptive_text_analyzer,
+    )
+
+
 @registry.register_document
 class ProductDocumentType(Document):
     # purposefully not DED field - this is just for collecting other field values for wilcard search
@@ -83,6 +98,7 @@ class ProductDocumentType(Document):
     id = fields.KeywordField()
     description = fields.TextField(attr="good.description", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=Rating)
+    queues = fields.NestedField(doc_class=Queue, attr='application.queues')
 
     organisation = fields.TextField(
         copy_to="wildcard",

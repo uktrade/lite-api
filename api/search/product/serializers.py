@@ -1,3 +1,4 @@
+from datetime import datetime
 from dateutil import parser
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
@@ -31,12 +32,14 @@ class ProductDocumentSerializer(DocumentSerializer):
             "report_summary",
             "part_number",
             "regime",
+            "queues",
         )
         extra_kwargs = {
             "name": {"required": False, "allow_null": True},
             "canonical_name": {"required": False},
             "id": {"required": False},
             "regime": {"required": False},
+            "queues": {"required": False},
         }
 
     def _get_default_field_kwargs(self, model, field_name, field_type):
@@ -58,7 +61,7 @@ class ProductDocumentSerializer(DocumentSerializer):
 
     def get_date(self, obj):
         if hasattr(obj, "date"):
-            self.format_date(obj.date)
+            return self.format_date(obj.date)
 
     def get_inner_hits(self, obj):
         if hasattr(obj.meta, "inner_hits"):
@@ -85,8 +88,11 @@ class ProductDocumentSerializer(DocumentSerializer):
     def format_date(date):
         if not date:
             return date
-        value = parser.parse(date)
-        return value.astimezone().strftime("%Y")
+        if isinstance(date, datetime):
+            value = date
+        else:
+            value = parser.parse(date)
+        return value.astimezone().strftime("%d %B %Y")
 
 
 class CommentSerializer(serializers.ModelSerializer):
