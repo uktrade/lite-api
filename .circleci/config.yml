@@ -77,7 +77,6 @@ jobs:
       - run:
           name: Run Bandit tests
           command: |
-            pipenv install bandit
             pipenv run bandit -r .
 
   linting:
@@ -110,7 +109,7 @@ jobs:
 
       - run:
           name: Prospector
-          command: pipenv run prospector -W pylint -W pep257
+          command: pipenv run prospector -W pylint -W pep257 -W mccabe
 
       - run:
           name: Black

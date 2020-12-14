@@ -169,12 +169,18 @@ class FirearmGoodType:
     COMPONENTS_FOR_FIREARMS = "components_for_firearms"
     AMMUNITION = "ammunition"
     COMPONENTS_FOR_AMMUNITION = "components_for_ammunition"
+    FIREARMS_ACCESSORY = "firearms_accessory"
+    SOFTWARE_RELATED_TO_FIREARM = "software_related_to_firearms"
+    TECHNOLOGY_RELATED_TO_FIREARM = "technology_related_to_firearms"
 
     choices = [
         (FIREARMS, "Firearms"),
         (COMPONENTS_FOR_FIREARMS, "Components for firearms"),
         (AMMUNITION, "Ammunition"),
         (COMPONENTS_FOR_AMMUNITION, "Components for ammunition"),
+        (FIREARMS_ACCESSORY, "Accessory of a firearm"),
+        (SOFTWARE_RELATED_TO_FIREARM, "Software relating to a firearm"),
+        (TECHNOLOGY_RELATED_TO_FIREARM, "Technology relating to a firearm"),
     ]
 
     @classmethod

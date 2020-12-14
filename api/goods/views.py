@@ -22,10 +22,7 @@ from api.documents.libraries.delete_documents_on_bad_request import delete_docum
 from api.documents.models import Document
 from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
 from api.goods.goods_paginator import GoodListPaginator
-from api.goods.helpers import (
-    check_if_firearm_details_edited_on_unsupported_good,
-    check_if_unsupported_fields_edited_on_firearm_good,
-)
+from api.goods.helpers import check_if_firearm_details_edited_on_unsupported_good
 from api.goods.libraries.get_goods import get_good, get_good_document
 from api.goods.libraries.save_good import create_or_update_good
 from api.goods.models import Good, GoodDocument
@@ -115,6 +112,7 @@ class GoodsListControlCode(APIView):
                             "old_is_good_controlled": "Yes" if old_is_controlled else "No",
                             "new_is_good_controlled": "Yes" if new_is_controlled else "No",
                             "additional_text": serializer.validated_data["comment"],
+                            "is_precedent": serializer.validated_data.get("is_precedent", False),
                         },
                     )
         apply_good_flagging_rules_for_case(case)
@@ -198,20 +196,8 @@ class GoodList(ListCreateAPIView):
         item_category = data.get("item_category")
         if item_category:
             # return bad request if trying to edit software_or_technology details outside of category group 3
-            if (item_category in ItemCategory.group_one or item_category in ItemCategory.group_two) and data.get(
-                "software_or_technology_details"
-            ):
+            if (item_category in ItemCategory.group_one) and data.get("software_or_technology_details"):
                 raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
-
-            # return bad request if trying to edit component and component details outside of category group 1
-            if (item_category in ItemCategory.group_two or item_category in ItemCategory.group_three) and data.get(
-                "is_component_step"
-            ):
-                raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
-
-            # return bad request if trying to edit any details that are not applicable to category 2 goods
-            if item_category in ItemCategory.group_two:
-                check_if_unsupported_fields_edited_on_firearm_good(data)
 
             # return bad request if adding any of the firearm details on a good that is not in group 2 firearms
             if data.get("firearm_details") and item_category not in ItemCategory.group_two:
@@ -281,10 +267,6 @@ class GoodTAUDetails(APIView):
         # return bad request if editing any of the firearm details on a good that is not in group 2 firearms
         if good.item_category not in ItemCategory.group_two and data.get("firearm_details"):
             check_if_firearm_details_edited_on_unsupported_good(data)
-
-        # return bad request if trying to edit any details that are not applicable to category 2 firearm goods
-        if good.item_category in ItemCategory.group_two:
-            check_if_unsupported_fields_edited_on_firearm_good(data)
 
         if good.status == GoodStatus.SUBMITTED:
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]})

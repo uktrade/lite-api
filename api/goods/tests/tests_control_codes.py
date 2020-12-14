@@ -109,6 +109,50 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.control_list_entries.count(), 1)
 
+    @parameterized.expand(
+        [
+            (
+                # legacy where frontend doesn't send is_precedent
+                {"comment": "I Am Easy to Find", "is_good_controlled": False, "control_list_entries": [],},
+                False,
+            ),
+            (
+                # precedent = False
+                {
+                    "comment": "I Am Easy to Find",
+                    "is_good_controlled": False,
+                    "control_list_entries": [],
+                    "is_precedent": False,
+                },
+                False,
+            ),
+            (
+                # precedent = True
+                {
+                    "comment": "I Am Easy to Find",
+                    "is_good_controlled": False,
+                    "control_list_entries": [],
+                    "is_precedent": True,
+                },
+                True,
+            ),
+        ]
+    )
+    def test_is_precedent_is_set(self, input, expected_is_precedent):
+        defaults = {
+            "objects": [self.good_1.pk],
+            "report_summary": self.report_summary.pk,
+        }
+        data = {**defaults, **input}
+
+        # when I review the goods
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, 200)
+
+        # then the good_on_application is updated
+        verified_good_on_application = GoodOnApplication.objects.get(pk=self.good_on_application_1.pk)
+        self.assertEqual(verified_good_on_application.is_precedent, expected_is_precedent)
+
     def test_standard_invalid_control_list_entries(self):
         """
         Post multiple goods to the endpoint, and that a bad request is returned, and that flags is not updated

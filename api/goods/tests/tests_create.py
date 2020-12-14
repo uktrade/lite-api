@@ -430,6 +430,33 @@ class CreateGoodTests(DataTestClient):
             errors["software_or_technology_details"], ["Ensure this field has no more than 2000 characters."]
         )
 
+    @parameterized.expand(
+        [
+            ["firearms", "Select yes if the product is a sporting shotgun"],
+            ["ammunition", "Select yes if the product is sporting shotgun ammunition"],
+            ["components_for_firearms", "Select yes if the product is a component of a sporting shotgun"],
+            ["components_for_ammunition", "Select yes if the product is a component of sporting shotgun ammunition"],
+            ["firearms_accessory", "Invalid firearm product type"],
+            ["software_related_to_firearms", "Invalid firearm product type"],
+            ["technology_related_to_firearms", "Invalid firearm product type"],
+        ]
+    )
+    def test_add_firearms_type_sporting_shotgun_status_not_selected(self, firearm_type, error_msg):
+        data = {
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": firearm_type, "is_sporting_shotgun": None},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["is_sporting_shotgun"], [error_msg])
+
     def test_add_category_two_good_no_type_selected_failure(self):
         data = {
             "description": "coffee",
@@ -446,22 +473,54 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["type"], [strings.Goods.FIREARM_GOOD_NO_TYPE])
 
-    def test_add_category_two_good_no_year_of_manufacture_or_calibre_failure(self):
+    def test_add_firearms_type_replica_status_not_selected(self):
         data = {
-            "description": "coffee",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
-            "firearm_details": {"type": FirearmGoodType.AMMUNITION, "calibre": "", "year_of_manufacture": ""},
+            "firearm_details": {"type": "firearms", "is_replica": None},
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["calibre"], [strings.Goods.FIREARM_GOOD_NO_CALIBRE])
-        self.assertEqual(errors["year_of_manufacture"], [strings.Goods.FIREARM_GOOD_NO_YEAR_OF_MANUFACTURE])
+        self.assertEqual(errors["is_replica"][0], "Select yes if the product is a replica firearm")
+
+    @parameterized.expand([["ammunition"], ["components_for_firearms"], ["components_for_ammunition"]])
+    def test_add_firearms_replica_status_selected_for_invalid_types(self, firearm_type):
+        data = {
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": firearm_type, "is_replica": True},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["is_replica"][0], "Invalid firearm product type")
+
+    def test_add_firearms_replica_description_required(self):
+        data = {
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": "firearms", "is_replica": True, "replica_description": ""},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["replica_description"], ["Enter description"])
 
     def test_add_category_two_good_no_year_of_manufacture_not_in_the_past_failure(self):
         data = {
@@ -869,35 +928,6 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors[details_field], ["Ensure this field has no more than 2000 characters."])
-
-    @parameterized.expand(
-        [
-            ["is_military_use", "True"],
-            ["modified_military_use_details", "some details"],
-            ["is_component", "True"],
-            ["designed_details", "some details"],
-            ["modified_details", "some details"],
-            ["general_details", "some details"],
-            ["uses_information_security", "True"],
-            ["information_security_details", "some details"],
-            ["software_or_technology_details", "some details"],
-        ]
-    )
-    def test_add_category_two_adding_invalid_attributes_failure(self, field, value):
-        data = {
-            "description": "coffee",
-            "is_good_controlled": False,
-            "is_pv_graded": GoodPvGraded.NO,
-            "item_category": ItemCategory.GROUP2_FIREARMS,
-            "validate_only": True,
-            field: value,
-        }
-
-        response = self.client.post(URL, data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])
 
 
 class GoodsCreateControlledGoodTests(DataTestClient):

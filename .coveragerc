@@ -11,6 +11,7 @@ omit =
     ./static/management/*
     *test*
     .venv/*
+    vendor/*
 branch = True
 
 plugins =

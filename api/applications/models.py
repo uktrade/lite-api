@@ -305,6 +305,10 @@ class AbstractGoodOnApplication(TimestampableModel):
         help_text="Control code given to good due to the end use e.g, a wood screw may be used in a Harrier jump jet.",
         blank=True,
     )
+    firearm_details = models.ForeignKey(
+        "goods.FirearmGoodDetails", on_delete=models.CASCADE, default=None, blank=True, null=True
+    )
+    is_precedent = models.BooleanField(blank=False, default=False)
 
     class Meta:
         abstract = True
