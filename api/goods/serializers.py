@@ -179,7 +179,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         if "is_covered_by_firearm_act_section_one_two_or_five" in validated_data:
             validate_firearms_act_section(validated_data)
 
-        if validated_data.get("is_covered_by_firearm_act_section_one_two_or_five") == "Yes":
+        if "section_certificate_number" in validated_data:
             validate_firearms_act_certificate_expiry_date(validated_data)
 
         # Identification markings - mandatory question
