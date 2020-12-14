@@ -1,7 +1,8 @@
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from elasticsearch_dsl import Index
-from elasticsearch_dsl.query import Query
+from elasticsearch_dsl.query import Query, MoreLikeThis
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView
@@ -34,6 +35,7 @@ class ProductDocumentView(DocumentViewSet):
     search_fields = [
         "description",
         "rating_comment",
+        "name",
     ]
 
     ordering_fields = {
@@ -136,7 +138,17 @@ class ProductSuggestDocumentView(APIView):
         return Response(suggests)
 
 
-from elasticsearch_dsl.query import MoreLikeThis
+class MoreLikeThisView(APIView):
+    allowed_http_methods = ["get"]
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        document = ProductDocumentType.get(id=pk)
+        search = ProductDocumentType.search()
+        search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
+        search = search.filter("term", canonical_name=document.canonical_name)
+        serializer = serializers.ProductDocumentSerializer(search, many=True)
+        return Response(serializer.data)
 
 
 class AbstractRetrieveLiteProductView(APIView):
