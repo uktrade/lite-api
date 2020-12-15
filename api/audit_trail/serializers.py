@@ -35,7 +35,7 @@ class AuditSerializer(serializers.ModelSerializer):
             # When an anonymous user is registering for an org,
             # we pass their email in the payload to use it as the actor later
             return {
-                "first_name": instance.payload["email"],
+                "first_name": instance.payload.get("email"),
                 "last_name": "",
             }
 
