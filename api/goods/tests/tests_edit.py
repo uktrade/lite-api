@@ -353,7 +353,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertIsNone(good["firearm_details"]["is_sporting_shotgun"])
         self.assertIsNone(good["firearm_details"]["year_of_manufacture"])
         self.assertEqual(good["firearm_details"]["calibre"], "")
-        self.assertIsNone(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+        self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "")
         self.assertIsNone(good["firearm_details"]["has_identification_markings"])
         # 2 due to creating a new good for this test
         self.assertEquals(Good.objects.all().count(), 2)
@@ -411,7 +411,8 @@ class GoodsEditDraftGoodTests(DataTestClient):
         future_expiry_date = (now() + timedelta(days=365)).date().isoformat()
         request_data = {
             "firearm_details": {
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": future_expiry_date,
             }
@@ -436,7 +437,9 @@ class GoodsEditDraftGoodTests(DataTestClient):
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
             "firearm_details": {
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "type": FirearmGoodType.AMMUNITION,
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section2",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": None,
             }
@@ -446,7 +449,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(errors["section_certificate_number"], [strings.Goods.FIREARM_GOOD_NO_CERT_NUM])
+        self.assertTrue(errors["section_certificate_number"], ["Enter the certificate number"])
 
     def test_edit_category_two_section_question_and_invalid_expiry_date_failure(self):
         """Test editing section of firearms question failure by providing an expiry date not in the future. """
@@ -457,7 +460,9 @@ class GoodsEditDraftGoodTests(DataTestClient):
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
             "firearm_details": {
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "type": FirearmGoodType.AMMUNITION,
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "2019-12-12",
             }
@@ -471,7 +476,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # assert good didn't get edited
-        self.assertFalse(good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five)
+        self.assertEqual(good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five, "No")
         self.assertIsNone(good.firearm_details.section_certificate_number)
         self.assertIsNone(good.firearm_details.section_certificate_date_of_expiry)
         self.assertEquals(
@@ -551,7 +556,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": has_identification_markings,

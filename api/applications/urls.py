@@ -39,6 +39,16 @@ urlpatterns = [
     path(
         "good-on-application/<uuid:obj_pk>/", goods.ApplicationGoodOnApplication.as_view(), name="good_on_application",
     ),
+    path(
+        "<uuid:pk>/goods/<uuid:good_pk>/documents/",
+        goods.ApplicationGoodOnApplicationDocumentView.as_view(),
+        name="application-goods-documents",
+    ),
+    path(
+        "<uuid:pk>/goods/<uuid:good_pk>/documents/<uuid:doc_pk>/",
+        goods.ApplicationGoodOnApplicationDocumentDetailView.as_view(),
+        name="application-goods-document-detail",
+    ),
     # Goods types
     path("<uuid:pk>/goodstypes/", goods.ApplicationGoodsTypes.as_view(), name="application_goodstypes"),
     path(
