@@ -155,18 +155,20 @@ class AbstractRetrieveLiteProductView(APIView):
             class Index(ProductDocumentType.Index):
                 name = self.index_name
 
-        document = Document.get(id=pk)
+        product = Document.get(id=pk)
+        product_serializer = serializers.ProductDocumentSerializer(product)
 
-        search = Document.search().filter("term", canonical_name=document.canonical_name)
-        related_products = search.execute()
+        related_products = Document.search().filter("term", canonical_name=product.canonical_name)
+        related_products_serializer = serializers.ProductDocumentSerializer(related_products, many=True)
 
         comments = models.Comment.objects.filter(object_pk=pk).order_by("-updated_at")
+        comments_serializer = serializers.CommentSerializer(comments, many=True)
 
         return Response(
             {
-                "related_products": [item["_source"] for item in related_products.to_dict()["hits"]["hits"]],
-                "comments": serializers.CommentSerializer(comments, many=True).data,
-                **document.to_dict(),
+                "related_products": related_products_serializer.data,
+                "comments": comments_serializer.data,
+                **product_serializer.data,
             }
         )
 
