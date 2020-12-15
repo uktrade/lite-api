@@ -1,4 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
+
+from django.utils.timezone import now
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -406,13 +408,13 @@ class GoodsEditDraftGoodTests(DataTestClient):
         )
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-        future_date = (datetime.now() + timedelta(days=400)).date().isoformat()
+        future_expiry_date = (now() + timedelta(days=365)).date().isoformat()
         request_data = {
             "firearm_details": {
                 "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
                 "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "ABC123",
-                "section_certificate_date_of_expiry": future_date,
+                "section_certificate_date_of_expiry": future_expiry_date,
             }
         }
 
@@ -423,7 +425,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         # created good is set as 'ammunition' type
         self.assertTrue(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
         self.assertEquals(good["firearm_details"]["section_certificate_number"], "ABC123")
-        self.assertEquals(good["firearm_details"]["section_certificate_date_of_expiry"], future_date)
+        self.assertEquals(good["firearm_details"]["section_certificate_date_of_expiry"], future_expiry_date)
         # 2 due to creating a new good for this test
         self.assertEquals(Good.objects.all().count(), 2)
 

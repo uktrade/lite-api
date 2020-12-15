@@ -194,7 +194,7 @@
       <tr class="page-break-after">
         <td class="border-black" colspan="11">
           <span class="cell__heading">Digital Signature</span>
-          <span class="cell__uppercase">This document does not have a digital signature</span>
+          <span class="cell__uppercase">This document {{ include_digital_signature|yesno:"does,does not" }} have a digital signature</span>
         </td>
       </tr>
     </table>
