@@ -39,8 +39,10 @@ from api.applications.serializers.good import GoodOnStandardLicenceSerializer
 from api.applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType, AdviceLevel
 from api.core.exceptions import BadRequestError
+from api.documents.models import Document
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
+from api.documents.libraries import s3_operations
 
 
 def get_application_view_serializer(application: BaseApplication):
@@ -180,3 +182,12 @@ def validate_and_create_goods_on_licence(application_id, licence_id, data):
             serializer.save()
 
     return errors
+
+
+def delete_uploaded_document(data):
+    doc_key = data["s3_key"]
+    doc_exists = Document.objects.filter(s3_key=doc_key).exists()
+    if doc_exists:
+        Document(s3_key=doc_key, name="toDelete").delete_s3()
+    else:
+        s3_operations.delete_file(None, doc_key)

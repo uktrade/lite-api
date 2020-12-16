@@ -22,7 +22,8 @@ from api.goods.helpers import (
     validate_military_use,
     validate_component_details,
     validate_identification_markings,
-    validate_section_certificate_number_and_expiry_date,
+    validate_firearms_act_section,
+    validate_firearms_act_certificate_expiry_date,
     get_sporting_shortgun_errormsg,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
@@ -97,7 +98,10 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     is_replica = serializers.BooleanField(allow_null=True, required=False)
     replica_description = serializers.CharField(allow_blank=True, required=False)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
-    is_covered_by_firearm_act_section_one_two_or_five = serializers.BooleanField(allow_null=True, required=False)
+    is_covered_by_firearm_act_section_one_two_or_five = serializers.CharField(allow_blank=True, required=False)
+    firearms_act_section = serializers.CharField(allow_blank=True, required=False)
+    section_certificate_missing = serializers.BooleanField(allow_null=True, required=False)
+    section_certificate_missing_reason = serializers.CharField(allow_blank=True, required=False)
     section_certificate_number = serializers.CharField(
         allow_blank=True, allow_null=True, required=False, max_length=100
     )
@@ -126,6 +130,9 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "is_replica",
             "replica_description",
             "is_covered_by_firearm_act_section_one_two_or_five",
+            "firearms_act_section",
+            "section_certificate_missing",
+            "section_certificate_missing_reason",
             "section_certificate_number",
             "section_certificate_date_of_expiry",
             "has_identification_markings",
@@ -169,17 +176,11 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"is_replica": "Invalid firearm product type"})
 
         # Firearms act validation - mandatory question
-        if (
-            "is_covered_by_firearm_act_section_one_two_or_five" in data
-            and data.get("is_covered_by_firearm_act_section_one_two_or_five") is None
-        ):
-            raise serializers.ValidationError(
-                {"is_covered_by_firearm_act_section_one_two_or_five": [strings.Goods.FIREARM_GOOD_NO_SECTION]}
-            )
+        if "is_covered_by_firearm_act_section_one_two_or_five" in validated_data:
+            validate_firearms_act_section(validated_data)
 
-        # Section certificate number and date of expiry are mandatory if the answer to the firearms act question is True
-        if validated_data.get("is_covered_by_firearm_act_section_one_two_or_five"):
-            validate_section_certificate_number_and_expiry_date(validated_data)
+        if "section_certificate_number" in validated_data:
+            validate_firearms_act_certificate_expiry_date(validated_data)
 
         # Identification markings - mandatory question
         validate_identification_markings(validated_data)
@@ -215,17 +216,44 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             validated_data.get("replica_description", instance.replica_description) if instance.is_replica else ""
         )
 
-        is_covered_by_firearms_act = validated_data.get("is_covered_by_firearm_act_section_one_two_or_five")
-        # if the answer to the firearms act has changed, then set the new value and the certificate and date fields
-        if (
-            is_covered_by_firearms_act is not None
-            and is_covered_by_firearms_act != instance.is_covered_by_firearm_act_section_one_two_or_five
-        ):
-            instance.is_covered_by_firearm_act_section_one_two_or_five = is_covered_by_firearms_act
-            # Clear the date and certificate fields if the answer has changed to a No
-            if not instance.is_covered_by_firearm_act_section_one_two_or_five:
-                instance.section_certificate_number = ""
-                instance.section_certificate_date_of_expiry = None
+        is_covered_by_firearms_act = validated_data.get(
+            "is_covered_by_firearm_act_section_one_two_or_five",
+            instance.is_covered_by_firearm_act_section_one_two_or_five,
+        )
+        instance.is_covered_by_firearm_act_section_one_two_or_five = is_covered_by_firearms_act
+        instance.firearms_act_section = validated_data.get("firearms_act_section", instance.firearms_act_section)
+
+        if is_covered_by_firearms_act == "Yes" and instance.firearms_act_section:
+            instance.section_certificate_number = validated_data.get(
+                "section_certificate_number", instance.section_certificate_number
+            )
+            instance.section_certificate_date_of_expiry = validated_data.get(
+                "section_certificate_date_of_expiry", instance.section_certificate_date_of_expiry
+            )
+            instance.section_certificate_missing = validated_data.get(
+                "section_certificate_missing", instance.section_certificate_missing
+            )
+            instance.section_certificate_missing_reason = validated_data.get(
+                "section_certificate_missing_reason", instance.section_certificate_missing_reason
+            )
+        else:
+            instance.firearms_act_section = ""
+            instance.section_certificate_number = ""
+            instance.section_certificate_date_of_expiry = None
+            instance.section_certificate_missing = False
+            instance.section_certificate_missing_reason = ""
+
+        certificate_missing = validated_data.get("section_certificate_missing", False) is True
+        if certificate_missing:
+            instance.section_certificate_number = ""
+            instance.section_certificate_date_of_expiry = None
+            instance.section_certificate_missing = True
+            instance.section_certificate_missing_reason = validated_data.get(
+                "section_certificate_missing_reason", instance.section_certificate_missing_reason
+            )
+        else:
+            instance.section_certificate_missing = False
+            instance.section_certificate_missing_reason = ""
 
         # Update just the certificate and expiryy date fields if changed
         instance.section_certificate_number = validated_data.get(
@@ -260,7 +288,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             instance.replica_description = ""
 
         if instance.type not in FIREARMS_CORE_TYPES:
-            instance.is_covered_by_firearm_act_section_one_two_or_five = None
+            instance.is_covered_by_firearm_act_section_one_two_or_five = ""
             instance.has_identification_markings = None
             instance.is_sporting_shotgun = None
             instance.year_of_manufacture = None
@@ -276,6 +304,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
 class GoodListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
+    name = serializers.CharField()
     description = serializers.CharField()
     control_list_entries = ControlListEntrySerializer(many=True, allow_null=True)
     part_number = serializers.CharField()
@@ -292,9 +321,8 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     Because of this, each 'get' override must check the instance type before creating queries
     """
 
-    description = serializers.CharField(
-        max_length=280, error_messages={"blank": strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK}
-    )
+    name = serializers.CharField(error_messages={"blank": "Enter a product name"})
+    description = serializers.CharField(max_length=280, allow_blank=True, required=False)
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices, allow_null=True)
     control_list_entries = ControlListEntryField(required=False, many=True, allow_null=True, allow_empty=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -327,6 +355,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         model = Good
         fields = (
             "id",
+            "name",
             "description",
             "is_good_controlled",
             "control_list_entries",
@@ -373,9 +402,11 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             # Remove the dependent nested fields in the data if irrelevant based on the parent option selected
             if "is_covered_by_firearm_act_section_one_two_or_five" in firearm_details:
                 # Remove the certificate number and expiry date if the answer is a No
-                if not str_to_bool(firearm_details.get("is_covered_by_firearm_act_section_one_two_or_five")):
-                    firearm_details.pop("section_certificate_number")
-                    firearm_details.pop("section_certificate_date_of_expiry")
+                if firearm_details.get("is_covered_by_firearm_act_section_one_two_or_five") != "Yes":
+                    if "section_certificate_number" in firearm_details:
+                        firearm_details.pop("section_certificate_number")
+                    if "section_certificate_date_of_expiry" in firearm_details:
+                        firearm_details.pop("section_certificate_date_of_expiry")
 
             if "has_identification_markings" in firearm_details:
                 # Keep only the details relevant for the yes/no answer
@@ -449,6 +480,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         return super(GoodCreateSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
+        instance.name = validated_data.get("name", instance.name)
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
         instance.part_number = validated_data.get("part_number", instance.part_number)
@@ -637,6 +669,7 @@ class GoodsFlagSerializer(serializers.Serializer):
 
 class GoodSerializerInternal(serializers.Serializer):
     id = serializers.UUIDField()
+    name = serializers.CharField()
     description = serializers.CharField()
     part_number = serializers.CharField()
     control_list_entries = ControlListEntrySerializer(many=True)
@@ -659,6 +692,7 @@ class GoodSerializerInternal(serializers.Serializer):
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    is_precedent = serializers.BooleanField(required=False, default=False)
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
@@ -686,6 +720,7 @@ class TinyGoodDetailsSerializer(serializers.ModelSerializer):
 
 class GoodSerializerExporter(serializers.Serializer):
     id = serializers.UUIDField()
+    name = serializers.CharField()
     description = serializers.CharField()
     control_list_entries = ControlListEntryField(many=True)
     part_number = serializers.CharField()
@@ -746,9 +781,12 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
 
 
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
+
+    is_precedent = serializers.BooleanField(required=False, default=False)
+
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
-        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control",)
+        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control", "is_precedent")
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)

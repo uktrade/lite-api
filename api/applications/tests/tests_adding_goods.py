@@ -288,7 +288,10 @@ class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
                     "unit": Units.NAR,
                     "value": 1,
                     "is_good_incorporated": True,
-                    "firearm_details": {"year_of_manufacture": 2020,},
+                    "firearm_details": {
+                        "year_of_manufacture": 2020,
+                        "section_certificate_date_of_expiry": "2025-12-31",
+                    },
                 },
                 True,
             ),

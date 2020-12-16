@@ -507,7 +507,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 is_sporting_shotgun=True,
                 calibre="0.5",
                 year_of_manufacture="1991",
-                is_covered_by_firearm_act_section_one_two_or_five=False,
+                is_covered_by_firearm_act_section_one_two_or_five="No",
                 section_certificate_number=None,
                 section_certificate_date_of_expiry=None,
                 has_identification_markings=True,

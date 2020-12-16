@@ -24,7 +24,8 @@ from test_helpers.clients import DataTestClient
 URL = reverse("goods:goods")
 
 REQUEST_DATA = {
-    "description": f"Plastic bag {uuid.uuid4()}",
+    "name": f"Plastic bag {uuid.uuid4()}",
+    "description": "Plastic bag",
     "is_good_controlled": False,
     "control_list_entries": [],
     "part_number": "1337",
@@ -146,7 +147,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_good_no_item_category_selected_failure(self):
         data = {
-            "description": f"Plastic bag {uuid.uuid4()}",
+            "name": f"Plastic bag {uuid.uuid4()}",
+            "description": "good that doesn't belong to any category",
             "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
@@ -160,8 +162,23 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors["item_category"], [strings.Goods.FORM_NO_ITEM_CATEGORY_SELECTED])
 
-    def test_add_good_no_description_provided_failure(self):
+    def test_add_good_no_description_provided_success(self):
         data = {
+            "name": "Firearm",
+            "is_good_controlled": False,
+            "validate_only": True,
+            "is_pv_graded": GoodPvGraded.NO,
+            "is_military_use": MilitaryUse.NO,
+            "item_category": ItemCategory.GROUP1_DEVICE,
+            "uses_information_security": True,
+            "modified_military_use_details": "",
+        }
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+    def test_add_good_empty_name_provided_failure(self):
+        data = {
+            "name": "",
             "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
@@ -174,28 +191,12 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
-        self.assertEqual(errors["description"], ["This field is required."])
-
-    def test_add_good_empty_description_provided_failure(self):
-        data = {
-            "description": "",
-            "is_good_controlled": False,
-            "validate_only": True,
-            "is_pv_graded": GoodPvGraded.NO,
-            "is_military_use": MilitaryUse.NO,
-            "item_category": ItemCategory.GROUP1_DEVICE,
-            "modified_military_use_details": "",
-        }
-        response = self.client.post(URL, data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors["description"], [strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK])
+        self.assertEqual(errors["name"], ["Enter a product name"])
 
     def test_add_good_no_military_use_answer_selected_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Firearm",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
@@ -213,7 +214,8 @@ class CreateGoodTests(DataTestClient):
     def test_add_good_modified_military_use_answer_selected_no_details_provided_failure(self):
         """ Test failure when modified for military use is selected but no modification details are provided."""
         data = {
-            "description": "coffee",
+            "name": "Firearm",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
@@ -231,7 +233,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_good_component_answer_not_selected_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Firearm",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
@@ -259,7 +262,8 @@ class CreateGoodTests(DataTestClient):
     def test_add_good_component_not_details_provided_failure(self, component, details_field, details_error):
         """Test failure 'yes' component answer selected but no component details provided. """
         data = {
-            "description": "coffee",
+            "name": "Firearm",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
@@ -281,7 +285,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_good_information_security_not_selected_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Firearm",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
@@ -305,7 +310,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_good_information_security_no_details_provided_success(self):
         data = {
-            "description": "coffee",
+            "name": "Firearm",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
@@ -331,7 +337,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_good_information_security_details_provided_success(self):
         data = {
-            "description": "coffee",
+            "name": "Firearm",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
@@ -362,7 +369,8 @@ class CreateGoodTests(DataTestClient):
     )
     def test_add_category_three_good_success(self, category, details):
         data = {
-            "description": "coffee",
+            "name": "lite",
+            "description": "Application software",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": category,
@@ -396,7 +404,8 @@ class CreateGoodTests(DataTestClient):
     )
     def test_add_category_three_good_no_details_failure(self, category, details, error):
         data = {
-            "description": "coffee",
+            "name": "lite",
+            "description": "Software application",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": category,
@@ -413,7 +422,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_category_three_good_details_too_long_failure(self):
         data = {
-            "description": "coffee",
+            "name": "lite",
+            "description": "Software application",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP3_TECHNOLOGY,
@@ -443,6 +453,7 @@ class CreateGoodTests(DataTestClient):
     )
     def test_add_firearms_type_sporting_shotgun_status_not_selected(self, firearm_type, error_msg):
         data = {
+            "name": "Rifle",
             "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
@@ -459,7 +470,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_category_two_good_no_type_selected_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -475,6 +487,7 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_firearms_type_replica_status_not_selected(self):
         data = {
+            "name": "Rifle",
             "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
@@ -492,6 +505,7 @@ class CreateGoodTests(DataTestClient):
     @parameterized.expand([["ammunition"], ["components_for_firearms"], ["components_for_ammunition"]])
     def test_add_firearms_replica_status_selected_for_invalid_types(self, firearm_type):
         data = {
+            "name": "Rifle",
             "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
@@ -508,6 +522,7 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_firearms_replica_description_required(self):
         data = {
+            "name": "Rifle",
             "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
@@ -524,7 +539,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_category_two_good_no_year_of_manufacture_not_in_the_past_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -545,7 +561,8 @@ class CreateGoodTests(DataTestClient):
     @parameterized.expand([[timezone.now().date().year], [timezone.now().date().year - 1]])
     def test_add_category_two_good_no_year_of_manufacture_in_the_past_success(self, year):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -559,9 +576,141 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEqual(good["firearm_details"]["year_of_manufacture"], year)
 
+    def test_add_firearms_act_section_question_check_errors(self):
+        data = {
+            "name": "Rifle",
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.FIREARMS,
+                "calibre": "9mm",
+                "year_of_manufacture": "2010",
+                "is_covered_by_firearm_act_section_one_two_or_five": "",
+                "firearms_act_section": "firearms_act_section1",
+                "section_certificate_number": "ABC123",
+                "section_certificate_date_of_expiry": "2012-12-12",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(
+            response["is_covered_by_firearm_act_section_one_two_or_five"][0],
+            "Select yes if the product is covered by Section 1, Section 2 or Section 5 of the Firearms Act 1968",
+        )
+
+        data["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"] = "Yes"
+        data["firearm_details"]["firearms_act_section"] = ""
+        response = self.client.post(URL, data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(response["firearms_act_section"][0], "Select which section the product is covered by")
+
+    def test_add_firearms_certificate_missing_checks(self):
+        data = {
+            "name": "Rifle",
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
+                "section_certificate_missing": True,
+                "section_certificate_missing_reason": "",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "2012-12-12",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(
+            response["section_certificate_missing_reason"][0],
+            "Enter a reason why you do not have a section 1 certificate",
+        )
+
+    def test_add_firearms_certificate_question_check_errors(self):
+        data = {
+            "name": "Rifle",
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "2012-12-12",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(response["section_certificate_number"][0], "Enter the certificate number")
+
+        data["firearm_details"]["section_certificate_number"] = "FR8C1604"
+        data["firearm_details"]["section_certificate_date_of_expiry"] = None
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+
+        self.assertEqual(
+            response["section_certificate_date_of_expiry"][0],
+            "Enter the certificate expiry date and include a day, month and year",
+        )
+
+    def test_add_firearms_certificate_missing_checks(self):
+        data = {
+            "name": "Rifle",
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
+                "section_certificate_number": "1234",
+                "section_certificate_missing": True,
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(
+            response["section_certificate_missing_reason"][0],
+            "Enter a reason why you do not have a section 1 certificate",
+        )
+
+        data["firearm_details"]["section_certificate_missing_reason"] = "Certificate not required"
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
     def test_add_category_two_good_no_section_certificate_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -586,7 +735,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_category_two_good_no_certificate_number_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -595,7 +745,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": None,
             },
@@ -605,11 +756,12 @@ class CreateGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["section_certificate_number"], [strings.Goods.FIREARM_GOOD_NO_CERT_NUM])
+        self.assertEqual(errors["section_certificate_number"], ["Enter the certificate number"])
 
     def test_add_category_two_good_no_certificate_expiry_date_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -618,7 +770,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": None,
             },
@@ -628,11 +781,15 @@ class CreateGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE])
+        self.assertEqual(
+            errors["section_certificate_date_of_expiry"],
+            ["Enter the certificate expiry date and include a day, month and year"],
+        )
 
     def test_add_category_two_good_certificate_number_in_past_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -641,7 +798,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "2012-12-12",
             },
@@ -655,7 +813,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_category_two_good_invalid_format_certificate_number_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -664,7 +823,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "20-12-12",
             },
@@ -674,11 +833,14 @@ class CreateGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE])
+        self.assertEqual(
+            errors["section_certificate_date_of_expiry"], ["Enter the expiry date and include a day, month and year"],
+        )
 
     def test_add_category_two_good_certificate_details_not_set_on_no_success(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -687,7 +849,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "2012-12-12",
             },
@@ -699,11 +861,12 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertIsNone(good["firearm_details"]["section_certificate_date_of_expiry"])
         self.assertIsNone(good["firearm_details"]["section_certificate_number"])
-        self.assertFalse(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+        self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "No")
 
     def test_add_category_two_good_no_markings_answer_selected_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -712,7 +875,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "",
@@ -729,7 +892,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_category_two_good_no_markings_selected_but_no_details_provided_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -738,7 +902,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "False",
@@ -757,7 +921,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_category_two_good_yes_markings_selected_but_no_details_provided_failure(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -766,7 +931,7 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "True",
@@ -783,7 +948,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_category_two_good_yes_markings_selected_success(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -792,7 +958,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
+                "firearms_act_section": "firearms_act_section2",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "True",
@@ -814,7 +981,8 @@ class CreateGoodTests(DataTestClient):
     def test_add_category_two_good_only_correct_markings_details_set_success(self):
         """ If details are provided for both answers, ensure that only the details for the given answer are stored. """
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -823,7 +991,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
+                "firearms_act_section": "firearms_act_section1",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "True",
@@ -845,7 +1014,8 @@ class CreateGoodTests(DataTestClient):
 
     def test_add_category_two_success(self):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -854,7 +1024,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section2",
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "2022-12-12",
                 "has_identification_markings": "True",
@@ -880,7 +1051,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(
             str(good["firearm_details"]["year_of_manufacture"]), data["firearm_details"]["year_of_manufacture"]
         )
-        self.assertTrue(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+        self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "Yes")
         self.assertEquals(
             good["firearm_details"]["section_certificate_number"], data["firearm_details"]["section_certificate_number"]
         )
@@ -905,7 +1076,8 @@ class CreateGoodTests(DataTestClient):
         self, has_identification_markings, details_field, other_details_fields
     ):
         data = {
-            "description": "coffee",
+            "name": "Rifle",
+            "description": "Firearm product",
             "is_good_controlled": False,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
@@ -914,7 +1086,8 @@ class CreateGoodTests(DataTestClient):
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
                 "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "is_covered_by_firearm_act_section_one_two_or_five": "No",
+                "firearms_act_section": "firearms_act_section2",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": has_identification_markings,

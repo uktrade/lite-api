@@ -42,7 +42,10 @@ class FirearmGoodDetails(models.Model):
     is_replica = models.BooleanField(blank=True, null=True)
     replica_description = models.TextField(blank=True, default="")
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
-    is_covered_by_firearm_act_section_one_two_or_five = models.BooleanField(null=True)
+    is_covered_by_firearm_act_section_one_two_or_five = models.TextField(blank=True, default="")
+    firearms_act_section = models.TextField(blank=True, default="")
+    section_certificate_missing = models.BooleanField(blank=True, null=True)
+    section_certificate_missing_reason = models.TextField(blank=True, default="")
     section_certificate_number = models.CharField(blank=True, max_length=100, null=True)
     section_certificate_date_of_expiry = models.DateField(blank=True, null=True)
     has_identification_markings = models.BooleanField(null=True)
@@ -66,6 +69,7 @@ class FirearmGoodDetails(models.Model):
 
 class Good(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.TextField()
     description = models.TextField(max_length=280)
 
     # CLC. used as base values that can be overridden at application level

@@ -112,6 +112,7 @@ class GoodsListControlCode(APIView):
                             "old_is_good_controlled": "Yes" if old_is_controlled else "No",
                             "new_is_good_controlled": "Yes" if new_is_controlled else "No",
                             "additional_text": serializer.validated_data["comment"],
+                            "is_precedent": serializer.validated_data.get("is_precedent", False),
                         },
                     )
         apply_good_flagging_rules_for_case(case)
@@ -130,6 +131,7 @@ class GoodList(ListCreateAPIView):
         }
 
     def get_queryset(self):
+        name = self.request.GET.get("name", "")
         description = self.request.GET.get("description", "")
         part_number = self.request.GET.get("part_number", "")
         control_list_entry = self.request.GET.get("control_list_entry")
@@ -137,7 +139,10 @@ class GoodList(ListCreateAPIView):
         organisation = get_request_user_organisation_id(self.request)
 
         queryset = Good.objects.filter(
-            organisation_id=organisation, description__icontains=description, part_number__icontains=part_number,
+            organisation_id=organisation,
+            name__icontains=name,
+            description__icontains=description,
+            part_number__icontains=part_number,
         )
 
         if control_list_entry:
