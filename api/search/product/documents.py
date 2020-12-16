@@ -4,12 +4,8 @@ from django_elasticsearch_dsl.registries import registry
 from elasticsearch_dsl import analysis, InnerDoc
 from elasticsearch_dsl.field import Text
 
-from django.db.models import Prefetch
-
 from api.applications import models
 
-
-from elasticsearch_dsl import analysis, InnerDoc
 
 address_analyzer = analysis.analyzer(
     "address_analyzer", tokenizer="whitespace", filter=["lowercase", "asciifolding", "trim",],
@@ -57,15 +53,6 @@ class Rating(InnerDoc):
         copy_to="wildcard",
     )
     text = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer,)
-    # include in iteration 3
-    # officer = fields.TextField(attr=??, copy_to="wildcard", analyzer=analysis.descriptive_text_analyzer)
-    # date = fields.DateField(attr=??)
-
-
-# class Comment(InnerDoc):
-#     message = fields.TextField(attr=??, copy_to="wildcard", analyzer=analysis.descriptive_text_analyzer)
-#     officer = fields.TextField(attr=??, copy_to="wildcard", analyzer=analysis.descriptive_text_analyzer)
-#     date = fields.DateField(attr=??)
 
 
 class ApplicationOnProduct(InnerDoc):
@@ -102,7 +89,7 @@ class ProductDocumentType(Document):
     id = fields.KeywordField()
     description = fields.TextField(attr="good.description", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=Rating)
-    queues = fields.NestedField(doc_class=Queue, attr='application.queues')
+    queues = fields.NestedField(doc_class=Queue, attr="application.queues")
 
     organisation = fields.TextField(
         copy_to="wildcard",
@@ -148,11 +135,8 @@ class ProductDocumentType(Document):
         copy_to="wildcard",
     )
 
-    # purposefully not DED field - this is just for collecting other field values for wilcard search
     regime = fields.Keyword()
 
-    # comments. iteration 4
-    # comments = fields.NestedField(doc_class=Comment, attr=??)
     class Index:
         name = settings.ELASTICSEARCH_PRODUCT_INDEX_ALIAS
         settings = {

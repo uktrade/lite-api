@@ -54,7 +54,7 @@ class ProductDocumentSerializer(DocumentSerializer):
         return {}
 
     def get_score(self, obj):
-        if hasattr(obj.meta, 'score'):
+        if hasattr(obj.meta, "score"):
             return obj.meta.score
 
     def get_index(self, obj):

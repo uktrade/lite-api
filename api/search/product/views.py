@@ -1,7 +1,6 @@
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
-from elasticsearch_dsl import Index
-from elasticsearch_dsl.query import Query, MoreLikeThis
+from elasticsearch_dsl.query import Query
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -138,8 +137,7 @@ class MoreLikeThisView(APIView):
         search = ProductDocumentType.search()
         search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
         search = (
-            search
-            .filter("term", canonical_name=document.canonical_name)
+            search.filter("term", canonical_name=document.canonical_name)
             .exclude("match", id=pk)
             .update_from_dict({"collapse": {"field": "application.id"}})
         )
