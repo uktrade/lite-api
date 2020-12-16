@@ -317,6 +317,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
 class GoodListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
+    name = serializers.CharField()
     description = serializers.CharField()
     control_list_entries = ControlListEntrySerializer(many=True, allow_null=True)
     part_number = serializers.CharField()
@@ -333,9 +334,8 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     Because of this, each 'get' override must check the instance type before creating queries
     """
 
-    description = serializers.CharField(
-        max_length=280, error_messages={"blank": strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK}
-    )
+    name = serializers.CharField(error_messages={"blank": "Enter a product name"})
+    description = serializers.CharField(max_length=280, allow_blank=True, required=False)
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices, allow_null=True)
     control_list_entries = ControlListEntryField(required=False, many=True, allow_null=True, allow_empty=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -368,6 +368,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         model = Good
         fields = (
             "id",
+            "name",
             "description",
             "is_good_controlled",
             "control_list_entries",
@@ -492,6 +493,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         return super(GoodCreateSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
+        instance.name = validated_data.get("name", instance.name)
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
         instance.part_number = validated_data.get("part_number", instance.part_number)
@@ -680,6 +682,7 @@ class GoodsFlagSerializer(serializers.Serializer):
 
 class GoodSerializerInternal(serializers.Serializer):
     id = serializers.UUIDField()
+    name = serializers.CharField()
     description = serializers.CharField()
     part_number = serializers.CharField()
     control_list_entries = ControlListEntrySerializer(many=True)
@@ -730,6 +733,7 @@ class TinyGoodDetailsSerializer(serializers.ModelSerializer):
 
 class GoodSerializerExporter(serializers.Serializer):
     id = serializers.UUIDField()
+    name = serializers.CharField()
     description = serializers.CharField()
     control_list_entries = ControlListEntryField(many=True)
     part_number = serializers.CharField()
