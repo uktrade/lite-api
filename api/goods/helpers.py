@@ -100,6 +100,10 @@ def validate_firearms_act_certificate_expiry_date(validated_data):
     if "type" in validated_data and validated_data.get("type") not in FIREARMS_CORE_TYPES:
         return
 
+    covered_by_firearms_act = validated_data.get("is_covered_by_firearm_act_section_one_two_or_five", "")
+    if covered_by_firearms_act == "No" or covered_by_firearms_act == "Unsure":
+        return
+
     certificate_missing = validated_data.get("section_certificate_missing", False) == True
     if certificate_missing:
         if validated_data.get("section_certificate_missing_reason", "") == "":
