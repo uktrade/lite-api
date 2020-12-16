@@ -69,6 +69,7 @@ class FirearmGoodDetails(models.Model):
 
 class Good(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.TextField()
     description = models.TextField(max_length=280)
 
     # CLC. used as base values that can be overridden at application level
