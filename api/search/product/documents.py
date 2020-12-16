@@ -53,15 +53,6 @@ class Rating(InnerDoc):
         copy_to="wildcard",
     )
     text = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer,)
-    # include in iteration 3
-    # officer = fields.TextField(attr=??, copy_to="wildcard", analyzer=analysis.descriptive_text_analyzer)
-    # date = fields.DateField(attr=??)
-
-
-# class Comment(InnerDoc):
-#     message = fields.TextField(attr=??, copy_to="wildcard", analyzer=analysis.descriptive_text_analyzer)
-#     officer = fields.TextField(attr=??, copy_to="wildcard", analyzer=analysis.descriptive_text_analyzer)
-#     date = fields.DateField(attr=??)
 
 
 class ApplicationOnProduct(InnerDoc):
