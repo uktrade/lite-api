@@ -20,5 +20,4 @@ urlpatterns = [
     
     path("more-like-this/<str:pk>/", views.MoreLikeThisView.as_view(), name="more_like_this"),
     path("more-like-this/<uuid:pk>/", views.MoreLikeThisView.as_view(), name="more_like_this"),
-
 ]

@@ -1,10 +1,13 @@
 from datetime import datetime
+
 from dateutil import parser
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
+
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.search.product import documents, models
+
 
 
 class ProductDocumentSerializer(DocumentSerializer):
@@ -117,3 +120,4 @@ class CommentSerializer(serializers.ModelSerializer):
         validated_data["user"] = self.context["request"].user.govuser
         validated_data["object_pk"] = self.context["view"].kwargs["pk"]
         return super().create(validated_data)
+

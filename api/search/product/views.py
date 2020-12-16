@@ -9,7 +9,7 @@ from django.conf import settings
 
 from api.search.product.documents import ProductDocumentType
 from api.search.product import models, serializers
-from api.core.authentication import GovAuthentication
+from api.search.product.serializers import ProductDocumentSerializer
 
 
 class MatchBoolPrefix(Query):
@@ -47,6 +47,13 @@ class ProductDocumentView(DocumentViewSet):
     nested_filter_fields = {
         "clc_rating": {"field": "control_list_entries.rating.raw", "path": "control_list_entries"},
         "clc_category": {"field": "control_list_entries.category.raw", "path": "control_list_entries"},
+        "organisation": {"enabled": True, "field": "organisation.raw",},
+        "destination": {"enabled": True, "field": "destination.raw",},
+    }
+
+    nested_filter_fields = {
+        "clc_rating": {"field": "control_list_entries.rating.raw", "path": "control_list_entries",},
+        "clc_category": {"field": "control_list_entries.category.raw", "path": "control_list_entries",},
     }
 
     highlight_fields = {"*": {"enabled": True, "options": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}}}
@@ -127,7 +134,7 @@ class ProductSuggestDocumentView(APIView):
         return Response(suggests)
 
 
-class MoreLikeThisView(APIView):
+      class MoreLikeThisView(APIView):
     allowed_http_methods = ["get"]
     authentication_classes = (GovAuthentication,)
 
@@ -169,8 +176,6 @@ class AbstractRetrieveLiteProductView(APIView):
                 "related_products": related_products_serializer.data,
                 "comments": comments_serializer.data,
                 **product_serializer.data,
-            }
-        )
 
 
 class RetrieveLiteProductView(AbstractRetrieveLiteProductView, APIView):
@@ -184,3 +189,4 @@ class RetrieveSpireProductView(AbstractRetrieveLiteProductView, APIView):
 class CommentView(CreateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = serializers.CommentSerializer
+
