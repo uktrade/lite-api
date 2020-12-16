@@ -4,7 +4,8 @@ from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
 from api.gov_users.serializers import GovUserSimpleSerializer
-from api.search.product import documents, models
+from api.search.product import documents
+from api.search import models
 
 
 class ProductDocumentSerializer(DocumentSerializer):

@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     "api.workflow.routing_rules",
     "api.search",
     "api.search.application",
+    "api.search.product",
     "api.reports",
     "api.data_workspace",
     "health_check",

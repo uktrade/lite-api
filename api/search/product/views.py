@@ -9,7 +9,8 @@ from rest_framework.generics import CreateAPIView
 from django.conf import settings
 
 from api.search.product.documents import ProductDocumentType
-from api.search.product import models, serializers
+from api.search.product import serializers
+from api.search import models
 from api.core.authentication import GovAuthentication
 
 
