@@ -6,7 +6,7 @@ from api.search.application import views
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
-router.register(r"application_search", views.ApplicationDocumentView, basename="application_search")
+router.register(r"search", views.ApplicationDocumentView, basename="application_search")
 
 
 urlpatterns = [
