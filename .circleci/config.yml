@@ -11,11 +11,23 @@ jobs:
         environment:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+        environment:
+          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+          xpack.security.enabled: "false"
+          xpack.monitoring.enabled: "false"
+          xpack.graph.enabled: "false"
+          xpack.watcher.enabled: "false"
+          transport.host: "localhost"
 
     working_directory: ~/lite-api
 
-    steps:
+    environment:
+      LITE_API_ENABLE_ES: True
+      ELASTICSEARCH_HOST: http://localhost:9200
+      ENABLE_SPIRE_SEARCH: True
 
+    steps:
       - checkout
       - run:
           name: Git Submodule Checkout
@@ -70,7 +82,7 @@ jobs:
 
       - run:
           name: Run tests
-          command: pipenv run ./manage.py test --parallel 8 --exclude-tag=seeding --exclude-tag=performance --exclude-tag=elasticsearch
+          command: pipenv run ./manage.py test --parallel 8 --exclude-tag=seeding --exclude-tag=performance
       - store_test_results:
           path: test-results
 
