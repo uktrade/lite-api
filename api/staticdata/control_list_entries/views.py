@@ -1,3 +1,4 @@
+from api.staticdata import control_list_entries
 from django.http import JsonResponse
 from rest_framework import permissions
 from rest_framework.decorators import permission_classes
@@ -22,6 +23,10 @@ class ControlListEntriesList(APIView):
             return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree()})
 
         queryset = ControlListEntry.objects.all()
+
+        if request.GET.get("include_parent", False):
+            return JsonResponse(data={"control_list_entries": list(queryset.values("rating", "text", "parent"))})
+
         return JsonResponse(data={"control_list_entries": list(queryset.values("rating", "text"))})
 
 

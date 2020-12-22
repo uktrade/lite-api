@@ -127,9 +127,8 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     flag = PrimaryKeyRelatedField(queryset=Flag.objects.all(), error_messages={"null": strings.FlaggingRules.NO_FLAG})
-    matching_value = serializers.CharField(
-        max_length=100, error_messages={"blank": strings.FlaggingRules.NO_MATCHING_VALUE}
-    )
+    matching_values = serializers.ListField(child=serializers.CharField(), default=[], allow_empty=False)
+    matching_groups = serializers.ListField(child=serializers.CharField(), allow_empty=True, required=False)
     is_for_verified_goods_only = serializers.BooleanField(required=False)
 
     class Meta:
@@ -140,20 +139,31 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
             "level",
             "flag",
             "status",
-            "matching_value",
+            "matching_values",
+            "matching_groups",
             "is_for_verified_goods_only",
         )
         validators = [
             UniqueTogetherValidator(
                 queryset=FlaggingRule.objects.all(),
-                fields=["level", "flag", "matching_value"],
+                fields=["level", "flag", "matching_values"],
                 message=strings.FlaggingRules.DUPLICATE_RULE,
             )
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if hasattr(self, "initial_data"):
+            if not self.initial_data.get("matching_values"):
+                self.initial_data["matching_values"] = []
+            if not self.initial_data.get("matching_groups"):
+                self.initial_data["matching_groups"] = []
+
     def update(self, instance, validated_data):
         instance.status = validated_data.get("status", instance.status)
-        instance.matching_value = validated_data.get("matching_value", instance.matching_value)
+        instance.matching_values = validated_data.get("matching_values", instance.matching_values)
+        instance.matching_groups = validated_data.get("matching_groups", instance.matching_groups)
         instance.flag = validated_data.get("flag", instance.flag)
         instance.is_for_verified_goods_only = validated_data.get(
             "is_for_verified_goods_only", instance.is_for_verified_goods_only
@@ -162,21 +172,17 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, data):
-        if "level" in data and data["level"] == FlagLevels.GOOD and "is_for_verified_goods_only" not in data:
+        validated_data = super().validate(data)
+        if (
+            "level" in validated_data
+            and validated_data["level"] == FlagLevels.GOOD
+            and "is_for_verified_goods_only" not in validated_data
+        ):
             raise serializers.ValidationError(
                 {"is_for_verified_goods_only": strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY}
             )
 
-        if (
-            "level" in data
-            and data["level"] == FlagLevels.GOOD
-            or (self.instance and self.instance.level == FlagLevels.GOOD)
-        ):
-            if "matching_value" in data:
-                if not ControlListEntry.objects.filter(rating=data["matching_value"]).exists():
-                    raise serializers.ValidationError({"matching_value": strings.FlaggingRules.INVALID_CLC})
-
-        return super().validate(data)
+        return validated_data
 
 
 class FlaggingRuleListSerializer(serializers.Serializer):
@@ -186,4 +192,5 @@ class FlaggingRuleListSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=FlagStatuses.choices)
     flag = PrimaryKeyRelatedField(queryset=Flag.objects.all())
     flag_name = serializers.CharField(source="flag.name")
-    matching_value = serializers.CharField()
+    matching_values = serializers.ListField(child=serializers.CharField())
+    matching_groups = serializers.ListField(child=serializers.CharField())

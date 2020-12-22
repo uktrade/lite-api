@@ -322,7 +322,7 @@ class FlaggingRuleDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
+        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_FLAGGING_RULES)
         flagging_rule = get_flagging_rule(pk)
         serializer = FlaggingRuleSerializer(flagging_rule)
         return JsonResponse(data={"flag": serializer.data})

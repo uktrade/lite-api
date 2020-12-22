@@ -12,7 +12,7 @@ class FlaggingRulesUpdateTest(DataTestClient):
         self.gov_user.save()
 
         flag = self.create_flag("New Flag", "Case", self.team)
-        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=self.team, matching_value="SIEL")
+        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=self.team, matching_values=["SIEL"])
 
         data = {
             "status": FlagStatuses.DEACTIVATED,
@@ -30,7 +30,7 @@ class FlaggingRulesUpdateTest(DataTestClient):
         self.gov_user.save()
         team = self.create_team("Secondary team")
         flag = self.create_flag("New Flag", "Case", team)
-        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=team, matching_value="SIEL")
+        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=team, matching_values=["SIEL"])
 
         data = {
             "status": FlagStatuses.DEACTIVATED,
@@ -46,7 +46,7 @@ class FlaggingRulesUpdateTest(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
         flag = self.create_flag("New Flag", "Case", self.team)
-        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=self.team, matching_value="SIEL")
+        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=self.team, matching_values=["SIEL"])
 
         data = {
             "level": "Good",
@@ -62,7 +62,7 @@ class FlaggingRulesUpdateTest(DataTestClient):
         self.gov_user.save()
         flag = self.create_flag("New Flag", "Case", self.team)
         flag_2 = self.create_flag("other flag", "Case", self.team)
-        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=self.team, matching_value="SIEL")
+        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=self.team, matching_values=["SIEL"])
 
         data = {
             "flag": str(flag_2.id),
@@ -75,14 +75,14 @@ class FlaggingRulesUpdateTest(DataTestClient):
 
         self.assertEqual(flagging_rule.flag, flag_2)
 
-    def test_flagging_rule_can_change_matching_value(self):
+    def test_flagging_rule_can_change_matching_values(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
         flag = self.create_flag("New Flag", "Case", self.team)
-        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=self.team, matching_value="SIEL")
+        flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=self.team, matching_values=["SIEL"])
 
         data = {
-            "matching_value": "OIEL",
+            "matching_values": ["OIEL"],
         }
 
         url = reverse("flags:flagging_rule", kwargs={"pk": flagging_rule.id})
@@ -90,14 +90,14 @@ class FlaggingRulesUpdateTest(DataTestClient):
 
         flagging_rule.refresh_from_db()
 
-        self.assertEqual(flagging_rule.matching_value, "OIEL")
+        self.assertEqual(flagging_rule.matching_values, ["OIEL"])
 
     def test_flagging_rule_can_change_verified_answer(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
         flag = FlagFactory(level=FlagLevels.GOOD, team=self.team)
         flagging_rule = self.create_flagging_rule(
-            level="Good", flag=flag, team=self.team, matching_value="ML1", is_for_verified_goods_only="False"
+            level="Good", flag=flag, team=self.team, matching_values=["ML1"], is_for_verified_goods_only="False"
         )
 
         data = {

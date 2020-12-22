@@ -31,15 +31,15 @@ class FlaggingRulesListTests(DataTestClient):
         other_team_flag = self.create_flag("Flag3", "Case", other_team)
         good_level_flag = self.create_flag("Flag4", "Case", self.team)
 
-        flag1_rule = self.create_flagging_rule(flag=flag1, level="Case", team=self.team, matching_value="SIEL")
+        flag1_rule = self.create_flagging_rule(flag=flag1, level="Case", team=self.team, matching_values=["SIEL"])
         country_level_flag_rule = self.create_flagging_rule(
-            flag=country_level_flag, level="Destination", team=self.team, matching_value="FR"
+            flag=country_level_flag, level="Destination", team=self.team, matching_values=["FR"]
         )
         other_team_flag_rule = self.create_flagging_rule(
-            flag=other_team_flag, level="Case", team=other_team, matching_value="OIEL"
+            flag=other_team_flag, level="Case", team=other_team, matching_values=["OIEL"]
         )
         good_level_flag_rule = self.create_flagging_rule(
-            flag=good_level_flag, level="Good", team=self.team, matching_value="ML2a"
+            flag=good_level_flag, level="Good", team=self.team, matching_values=["ML2a"]
         )
 
         url = f"{self.url}?level=Case"
@@ -61,10 +61,10 @@ class FlaggingRulesListTests(DataTestClient):
         country_level_flag = self.create_flag("Flag2", "Organisation", self.team)
         other_team_flag = self.create_flag("Flag3", "Case", other_team)
         country_level_flag_rule = self.create_flagging_rule(
-            flag=country_level_flag, level="Destination", team=self.team, matching_value="FR"
+            flag=country_level_flag, level="Destination", team=self.team, matching_values=["FR"]
         )
         other_team_flag_rule = self.create_flagging_rule(
-            flag=other_team_flag, level="Case", team=other_team, matching_value="OIEL"
+            flag=other_team_flag, level="Case", team=other_team, matching_values=["OIEL"]
         )
 
         url = f"{self.url}?only_my_team=True"
@@ -82,9 +82,9 @@ class FlaggingRulesListTests(DataTestClient):
         self.gov_user.save()
         flag1 = self.create_flag("Flag1", "Case", self.team)
 
-        flag1_rule_1 = self.create_flagging_rule(flag=flag1, level="Case", team=self.team, matching_value="SIEL")
+        flag1_rule_1 = self.create_flagging_rule(flag=flag1, level="Case", team=self.team, matching_values=["SIEL"])
         flag1_rule_2 = self.create_flagging_rule(
-            flag=flag1, level="Case", team=self.team, matching_value="OIEL", status=FlagStatuses.DEACTIVATED
+            flag=flag1, level="Case", team=self.team, matching_values=["OIEL"], status=FlagStatuses.DEACTIVATED
         )
 
         url = f"{self.url}"
