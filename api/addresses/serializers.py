@@ -23,6 +23,10 @@ class AddressSerializer(serializers.ModelSerializer):
     country = CountrySerializerField(required=False)
 
     def validate_postcode(self, value):
+        """
+        Taken from django-localflavor
+        https://github.com/django/django-localflavor/blob/master/localflavor/gb/forms.py
+        """
         outcode_pattern = "[A-PR-UWYZ]([0-9]{1,2}|([A-HIK-Y][0-9](|[0-9]|[ABEHMNPRVWXY]))|[0-9][A-HJKSTUW])"
         incode_pattern = "[0-9][ABD-HJLNP-UW-Z]{2}"
         postcode_regex = re.compile(r"^(GIR 0AA|%s %s)$" % (outcode_pattern, incode_pattern))
