@@ -61,14 +61,21 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
         allow_empty=True,
         error_messages={"required": strings.RoutingRules.Errors.NO_CASE_TYPE},
     )
-    flags = PrimaryKeyRelatedSerializerField(
+    flags_to_include = PrimaryKeyRelatedSerializerField(
         queryset=Flag.objects.all(),
         serializer=FlagSerializer,
         many=True,
         required=False,
         allow_null=True,
         allow_empty=True,
-        error_messages={"required": strings.RoutingRules.Errors.NO_FLAGS},
+    )
+    flags_to_exclude = PrimaryKeyRelatedSerializerField(
+        queryset=Flag.objects.all(),
+        serializer=FlagSerializer,
+        many=True,
+        required=False,
+        allow_null=True,
+        allow_empty=True,
     )
     country = CountrySerializerField(
         required=False, allow_null=True, error_messages={"required": strings.RoutingRules.Errors.NO_COUNTRY},
@@ -85,7 +92,8 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
             "user",
             "case_types",
             "country",
-            "flags",
+            "flags_to_include",
+            "flags_to_exclude",
             "case_types",
             "additional_rules",
             "active",
@@ -96,7 +104,7 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         if kwargs.get("data"):
             if not kwargs["data"].get("team"):
-                self.initial_data["team"] = kwargs["context"]["request"].user.team_id
+                self.initial_data["team"] = kwargs["context"]["request"].user.govuser.team.id
 
             additional_rules = kwargs["data"].get("additional_rules")
             if not isinstance(additional_rules, list):
@@ -122,11 +130,13 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
                 self.initial_data["country"] = None
 
             if RoutingRulesAdditionalFields.FLAGS in additional_rules:
-                self.fields["flags"].required = True
-                self.fields["flags"].allow_null = False
-                self.fields["flags"].allow_empty = False
+                self.fields["flags_to_include"].required = False
+                self.fields["flags_to_include"].allow_empty = True
+                self.fields["flags_to_exclude"].required = False
+                self.fields["flags_to_exclude"].allow_empty = True
             else:
-                self.initial_data["flags"] = []
+                self.initial_data["flags_to_include"] = []
+                self.initial_data["flags_to_exclude"] = []
 
 
 # flattened serializer for editing purposes

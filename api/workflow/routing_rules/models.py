@@ -29,7 +29,8 @@ class RoutingRule(TimestampableModel):
     # optional fields that are required depending on values in additional_rules
     user = models.ForeignKey(GovUser, related_name="routing_rules", on_delete=models.DO_NOTHING, blank=True, null=True)
     case_types = models.ManyToManyField(CaseType, related_name="routing_rules", blank=True)
-    flags = models.ManyToManyField(Flag, related_name="routing_rules", blank=True)
+    flags_to_include = models.ManyToManyField(Flag, related_name="routing_rules", blank=True)
+    flags_to_exclude = models.ManyToManyField(Flag, related_name="exclude_routing_rules", blank=True)
     country = models.ForeignKey(
         Country, related_name="routing_rules", on_delete=models.DO_NOTHING, blank=True, null=True
     )
