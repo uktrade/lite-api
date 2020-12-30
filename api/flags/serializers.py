@@ -27,6 +27,17 @@ class FlagReadOnlySerializer(serializers.Serializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamReadOnlySerializer)
 
 
+class FlaggingRuleReadOnlySerializer(serializers.Serializer):
+    level = serializers.CharField(read_only=True)
+    status = serializers.CharField(read_only=True)
+    matching_values = serializers.ListField()
+    matching_groups = serializers.ListField()
+
+
+class FlagwithFlaggingRulesReadOnlySerializer(FlagReadOnlySerializer):
+    flagging_rules = FlaggingRuleReadOnlySerializer(many=True, read_only=True)
+
+
 class FlagSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         max_length=25,
@@ -127,8 +138,8 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     flag = PrimaryKeyRelatedField(queryset=Flag.objects.all(), error_messages={"null": strings.FlaggingRules.NO_FLAG})
-    matching_values = serializers.ListField(child=serializers.CharField(), default=[], allow_empty=False)
-    matching_groups = serializers.ListField(child=serializers.CharField(), allow_empty=True, required=False)
+    matching_values = serializers.ListField(child=serializers.CharField(), required=False)
+    matching_groups = serializers.ListField(child=serializers.CharField(), required=False)
     is_for_verified_goods_only = serializers.BooleanField(required=False)
 
     class Meta:
@@ -172,15 +183,22 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, data):
+        errors = {}
         validated_data = super().validate(data)
+
+        if "matching_values" not in validated_data or validated_data["matching_values"] == []:
+            if "status" not in validated_data:
+                errors["matching_values"] = "Select individual control list entries"
+
         if (
             "level" in validated_data
             and validated_data["level"] == FlagLevels.GOOD
             and "is_for_verified_goods_only" not in validated_data
         ):
-            raise serializers.ValidationError(
-                {"is_for_verified_goods_only": strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY}
-            )
+            errors["is_for_verified_goods_only"] = strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY
+
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return validated_data
 

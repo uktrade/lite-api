@@ -20,7 +20,7 @@ class RoutingRuleCreationTests(DataTestClient):
             "tier": 1,
             "additional_rules": [*[k for k, v in RoutingRulesAdditionalFields.choices]],
             "user": self.gov_user.pk,
-            "flags": [flag.id],
+            "flags_to_include": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
             "country": Country.objects.first().id,
@@ -39,7 +39,7 @@ class RoutingRuleCreationTests(DataTestClient):
         self.assertEqual(routing_rule["tier"], data["tier"])
         self.assertEqual(routing_rule["status"]["id"], str(data["status"]))
         self.assertEqual(routing_rule["user"]["id"], str(self.gov_user.pk))
-        self.assertEqual(routing_rule["flags"][0]["id"], str(flag.id))
+        self.assertEqual(routing_rule["flags_to_include"][0]["id"], str(flag.id))
         self.assertEqual(routing_rule["case_types"][0]["id"], str(data["case_types"][0]))
         self.assertEqual(routing_rule["country"]["id"], str(data["country"]))
 
@@ -53,7 +53,7 @@ class RoutingRuleCreationTests(DataTestClient):
             "tier": 1,
             "additional_rules": [RoutingRulesAdditionalFields.USERS],
             "user": self.gov_user.pk,
-            "flags": [flag.id],
+            "flags_to_include": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
             "country": Country.objects.first().id,
@@ -72,7 +72,7 @@ class RoutingRuleCreationTests(DataTestClient):
         self.assertEqual(routing_rule["tier"], data["tier"])
         self.assertEqual(routing_rule["status"]["id"], str(data["status"]))
         self.assertEqual(routing_rule["user"]["id"], str(self.gov_user.pk))
-        self.assertEqual(routing_rule["flags"], [])
+        self.assertEqual(routing_rule["flags_to_include"], [])
         self.assertEqual(routing_rule["case_types"], [])
         self.assertIsNone(routing_rule["country"])
 
@@ -86,7 +86,7 @@ class RoutingRuleCreationTests(DataTestClient):
             "tier": 1,
             "additional_rules": [RoutingRulesAdditionalFields.COUNTRY],
             "user": self.gov_user.pk,
-            "flags": [flag.id],
+            "flags_to_include": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
             "country": Country.objects.first().id,
@@ -105,7 +105,7 @@ class RoutingRuleCreationTests(DataTestClient):
         self.assertEqual(routing_rule["tier"], data["tier"])
         self.assertEqual(routing_rule["status"]["id"], str(data["status"]))
         self.assertIsNone(routing_rule["user"])
-        self.assertEqual(routing_rule["flags"], [])
+        self.assertEqual(routing_rule["flags_to_include"], [])
         self.assertEqual(routing_rule["case_types"], [])
         self.assertEqual(routing_rule["country"]["id"], str(data["country"]))
 
@@ -119,7 +119,7 @@ class RoutingRuleCreationTests(DataTestClient):
             "tier": 1,
             "additional_rules": [RoutingRulesAdditionalFields.CASE_TYPES],
             "user": self.gov_user.pk,
-            "flags": [flag.id],
+            "flags_to_include": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
             "country": Country.objects.first().id,
@@ -138,7 +138,7 @@ class RoutingRuleCreationTests(DataTestClient):
         self.assertEqual(routing_rule["tier"], data["tier"])
         self.assertEqual(routing_rule["status"]["id"], str(data["status"]))
         self.assertIsNone(routing_rule["user"])
-        self.assertEqual(routing_rule["flags"], [])
+        self.assertEqual(routing_rule["flags_to_include"], [])
         self.assertEqual(routing_rule["case_types"][0]["id"], str(data["case_types"][0]))
         self.assertIsNone(routing_rule["country"])
 
@@ -152,7 +152,7 @@ class RoutingRuleCreationTests(DataTestClient):
             "tier": 1,
             "additional_rules": [RoutingRulesAdditionalFields.FLAGS],
             "user": self.gov_user.pk,
-            "flags": [flag.id],
+            "flags_to_include": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
             "country": Country.objects.first().id,
@@ -171,7 +171,7 @@ class RoutingRuleCreationTests(DataTestClient):
         self.assertEqual(routing_rule["tier"], data["tier"])
         self.assertEqual(routing_rule["status"]["id"], str(data["status"]))
         self.assertIsNone(routing_rule["user"])
-        self.assertEqual(routing_rule["flags"][0]["id"], str(flag.id))
+        self.assertEqual(routing_rule["flags_to_include"][0]["id"], str(flag.id))
         self.assertEqual(routing_rule["case_types"], [])
         self.assertIsNone(routing_rule["country"])
 
@@ -185,7 +185,7 @@ class RoutingRuleCreationTests(DataTestClient):
             "tier": 1,
             "additional_rules": [],
             "user": self.gov_user.pk,
-            "flags": [flag.id],
+            "flags_to_include": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
             "country": Country.objects.first().id,
@@ -204,7 +204,7 @@ class RoutingRuleCreationTests(DataTestClient):
         self.assertEqual(routing_rule["tier"], data["tier"])
         self.assertEqual(routing_rule["status"]["id"], str(data["status"]))
         self.assertIsNone(routing_rule["user"])
-        self.assertEqual(routing_rule["flags"], [])
+        self.assertEqual(routing_rule["flags_to_include"], [])
         self.assertEqual(routing_rule["case_types"], [])
         self.assertIsNone(routing_rule["country"])
 
@@ -218,7 +218,7 @@ class RoutingRuleCreationTests(DataTestClient):
             "tier": 1,
             "additional_rules": ["blah"],
             "user": self.gov_user.pk,
-            "flags": [flag.id],
+            "flags_to_include": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
             "country": Country.objects.first().id,
@@ -240,7 +240,7 @@ class RoutingRuleCreationTests(DataTestClient):
             "tier": -1,
             "additional_rules": [],
             "user": self.gov_user.pk,
-            "flags": [flag.id],
+            "flags_to_include": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
             "country": Country.objects.first().id,
@@ -260,7 +260,7 @@ class RoutingRuleCreationTests(DataTestClient):
             "tier": 1,
             "additional_rules": [],
             "user": self.gov_user.pk,
-            "flags": [flag.id],
+            "flags_to_include": [flag.id],
             "status": CaseStatus.objects.first().id,
             "case_types": [CaseType.objects.first().id],
             "country": Country.objects.first().id,

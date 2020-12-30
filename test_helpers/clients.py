@@ -1086,7 +1086,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if case_types:
             rule.case_types.add(*case_types)
         if flags:
-            rule.flags.add(*flags)
+            rule.flags_to_include.add(*flags)
 
         rule.save()
         return rule
