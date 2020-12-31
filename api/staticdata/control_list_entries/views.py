@@ -1,4 +1,3 @@
-from api.staticdata import control_list_entries
 from django.http import JsonResponse
 from rest_framework import permissions
 from rest_framework.decorators import permission_classes

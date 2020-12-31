@@ -100,21 +100,6 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(rule.flag, flag)
         self.assertEqual(rule.matching_values, [country_id])
 
-    def test_create_flagging_rule_failure_duplicate(self):
-        self.gov_user.role = self.super_user_role
-        self.gov_user.save()
-        flag = FlagFactory(level=FlagLevels.CASE, team=self.team)
-        FlaggingRule(flag=flag, team=self.team, matching_values=[CaseTypeReferenceEnum.SIEL], level="Case").save()
-
-        response = self.client.post(
-            self.url,
-            {"level": FlagLevels.CASE, "flag": str(flag.id), "matching_values": [CaseTypeReferenceEnum.SIEL]},
-            **self.gov_headers,
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn(strings.FlaggingRules.DUPLICATE_RULE, response.json()["errors"]["non_field_errors"])
-
     def test_missing_data_create_good_rule_failure(self):
         application = self.create_standard_application_case(self.organisation)
         control_list_entry = (

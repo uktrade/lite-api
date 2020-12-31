@@ -132,9 +132,9 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
         # Apply the flagging rule to different entities depending on the rule's level
         if flagging_rule.level == FlagLevels.CASE:
             # Add flag to all open Cases
-            open_cases = open_cases.filter(
-                case_type__reference__in=flagging_rule.matching_values
-            ).values_list("id", flat=True)
+            open_cases = open_cases.filter(case_type__reference__in=flagging_rule.matching_values).values_list(
+                "id", flat=True
+            )
 
             flagging_rule.flag.cases.add(*open_cases)
 

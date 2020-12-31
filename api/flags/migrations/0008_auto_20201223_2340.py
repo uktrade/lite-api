@@ -7,23 +7,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flags', '0007_flag_blocks_approval'),
+        ("flags", "0007_flag_blocks_approval"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='flaggingrule',
-            name='matching_groups',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(default=''), default=list, size=None),
+            model_name="flaggingrule",
+            name="matching_groups",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.TextField(default=""), default=list, size=None
+            ),
         ),
         migrations.AddField(
-            model_name='flaggingrule',
-            name='matching_values',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(default=''), default=list, size=None),
+            model_name="flaggingrule",
+            name="matching_values",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.TextField(default=""), default=list, size=None
+            ),
         ),
-        migrations.AlterField(
-            model_name='flaggingrule',
-            name='matching_value',
-            field=models.TextField(default=''),
-        ),
+        migrations.AlterField(model_name="flaggingrule", name="matching_value", field=models.TextField(default=""),),
     ]

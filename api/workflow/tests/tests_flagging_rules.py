@@ -174,7 +174,9 @@ class FlaggingRulesAutomation(DataTestClient):
 
     def test_get_active_flagging_rules_destination(self):
         active_flag = self.create_flag(name="good flag", level=FlagLevels.DESTINATION, team=self.team)
-        self.create_flagging_rule(level=FlagLevels.DESTINATION, team=self.team, flag=active_flag, matching_values=["abc"])
+        self.create_flagging_rule(
+            level=FlagLevels.DESTINATION, team=self.team, flag=active_flag, matching_values=["abc"]
+        )
 
         deactivated_flag = self.create_flag(name="good flag 2", level=FlagLevels.DESTINATION, team=self.team)
         self.create_flagging_rule(
@@ -192,7 +194,9 @@ class FlaggingRulesAutomation(DataTestClient):
 
     def test_get_active_flag_flagging_rules_destination(self):
         active_flag = self.create_flag(name="good flag", level=FlagLevels.DESTINATION, team=self.team)
-        self.create_flagging_rule(level=FlagLevels.DESTINATION, team=self.team, flag=active_flag, matching_values=["abc"])
+        self.create_flagging_rule(
+            level=FlagLevels.DESTINATION, team=self.team, flag=active_flag, matching_values=["abc"]
+        )
 
         deactivated_flag = self.create_flag(name="good flag 2", level=FlagLevels.DESTINATION, team=self.team)
         self.create_flagging_rule(
@@ -453,7 +457,9 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
         query = self.create_clc_query("query", self.organisation)
 
         case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
-        self.create_flagging_rule(FlagLevels.CASE, self.team, flag=case_flag, matching_values=[query.case_type.reference])
+        self.create_flagging_rule(
+            FlagLevels.CASE, self.team, flag=case_flag, matching_values=[query.case_type.reference]
+        )
 
         good = query.good
         good.control_list_entries.set([get_control_list_entry("ML1a")])
@@ -474,7 +480,9 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
         query = self.create_end_user_advisory("a", "v", self.organisation)
 
         case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
-        self.create_flagging_rule(FlagLevels.CASE, self.team, flag=case_flag, matching_values=[query.case_type.reference])
+        self.create_flagging_rule(
+            FlagLevels.CASE, self.team, flag=case_flag, matching_values=[query.case_type.reference]
+        )
 
         party = query.end_user
         destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)

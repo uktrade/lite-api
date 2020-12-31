@@ -1,12 +1,11 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+from rest_framework.validators import UniqueValidator
 
 from api.core.serializers import PrimaryKeyRelatedSerializerField
 from api.flags.enums import FlagLevels, FlagStatuses, FlagColours
 from api.flags.models import Flag, FlaggingRule
 from lite_content.lite_api import strings
-from api.staticdata.control_list_entries.models import ControlListEntry
 from api.teams.models import Team
 from api.teams.serializers import TeamSerializer, TeamReadOnlySerializer
 
@@ -46,7 +45,7 @@ class FlagSerializer(serializers.ModelSerializer):
     )
     colour = serializers.ChoiceField(choices=FlagColours.choices, default=FlagColours.DEFAULT)
     level = serializers.ChoiceField(
-        choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.BLANK_LEVEL},
+        choices=FlagLevels.choices, error_messages={"invalid_choice": "Select a parameter"},
     )
     label = serializers.CharField(
         max_length=15,
@@ -134,13 +133,13 @@ class CaseListFlagSerializer(serializers.Serializer):
 class FlaggingRuleSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
     level = serializers.ChoiceField(
-        choices=FlagLevels.choices, error_messages={"required": strings.Flags.BLANK_LEVEL,},
+        choices=FlagLevels.choices, error_messages={"required": "Select a parameter", "null": "Select a parameter",},
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     flag = PrimaryKeyRelatedField(queryset=Flag.objects.all(), error_messages={"null": strings.FlaggingRules.NO_FLAG})
     matching_values = serializers.ListField(child=serializers.CharField(), required=False)
     matching_groups = serializers.ListField(child=serializers.CharField(), required=False)
-    is_for_verified_goods_only = serializers.BooleanField(required=False)
+    is_for_verified_goods_only = serializers.BooleanField(required=False, allow_null=True)
 
     class Meta:
         model = FlaggingRule
@@ -154,22 +153,21 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
             "matching_groups",
             "is_for_verified_goods_only",
         )
-        validators = [
-            UniqueTogetherValidator(
-                queryset=FlaggingRule.objects.all(),
-                fields=["level", "flag", "matching_values"],
-                message=strings.FlaggingRules.DUPLICATE_RULE,
-            )
-        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if hasattr(self, "initial_data"):
-            if not self.initial_data.get("matching_values"):
-                self.initial_data["matching_values"] = []
-            if not self.initial_data.get("matching_groups"):
-                self.initial_data["matching_groups"] = []
+            if "level" not in self.initial_data:
+                self.initial_data["level"] = self.instance.level if self.instance else None
+            if "matching_values" not in self.initial_data:
+                self.initial_data["matching_values"] = self.instance.matching_values if self.instance else []
+            if "matching_groups" not in self.initial_data:
+                self.initial_data["matching_groups"] = self.instance.matching_groups if self.instance else []
+            if "is_for_verified_goods_only" not in self.initial_data:
+                self.initial_data["is_for_verified_goods_only"] = (
+                    self.instance.is_for_verified_goods_only if self.instance else None
+                )
 
     def update(self, instance, validated_data):
         instance.status = validated_data.get("status", instance.status)
@@ -186,14 +184,24 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         errors = {}
         validated_data = super().validate(data)
 
-        if "matching_values" not in validated_data or validated_data["matching_values"] == []:
-            if "status" not in validated_data:
-                errors["matching_values"] = "Select individual control list entries"
+        matching_values = validated_data.get("matching_values")
+        matching_groups = validated_data.get("matching_groups")
+
+        if validated_data["level"] == FlagLevels.GOOD:
+            if not matching_values and not matching_groups:
+                errors["matching_values"] = "Enter a control list entry"
+                errors["matching_groups"] = "Enter a control list entry"
+        elif validated_data["level"] == FlagLevels.DESTINATION:
+            if not matching_values:
+                errors["matching_values"] = "Enter a destination"
+        elif validated_data["level"] == FlagLevels.CASE:
+            if not matching_values:
+                errors["matching_values"] = "Enter an application type"
 
         if (
             "level" in validated_data
             and validated_data["level"] == FlagLevels.GOOD
-            and "is_for_verified_goods_only" not in validated_data
+            and validated_data["is_for_verified_goods_only"] is None
         ):
             errors["is_for_verified_goods_only"] = strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY
 

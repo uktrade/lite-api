@@ -110,33 +110,39 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
             if not isinstance(additional_rules, list):
                 additional_rules = [additional_rules]
 
-            if RoutingRulesAdditionalFields.USERS in additional_rules:
-                self.fields["user"].required = True
-                self.fields["user"].allow_null = False
-            else:
+            if RoutingRulesAdditionalFields.USERS not in additional_rules:
                 self.initial_data["user"] = None
 
-            if RoutingRulesAdditionalFields.CASE_TYPES in additional_rules:
-                self.fields["case_types"].required = True
-                self.fields["case_types"].allow_null = False
-                self.fields["case_types"].allow_empty = False
-            else:
+            if RoutingRulesAdditionalFields.CASE_TYPES not in additional_rules:
                 self.initial_data["case_types"] = []
 
-            if RoutingRulesAdditionalFields.COUNTRY in additional_rules:
-                self.fields["country"].required = True
-                self.fields["country"].allow_null = False
-            else:
+            if RoutingRulesAdditionalFields.COUNTRY not in additional_rules:
                 self.initial_data["country"] = None
 
-            if RoutingRulesAdditionalFields.FLAGS in additional_rules:
-                self.fields["flags_to_include"].required = False
-                self.fields["flags_to_include"].allow_empty = True
-                self.fields["flags_to_exclude"].required = False
-                self.fields["flags_to_exclude"].allow_empty = True
-            else:
+            if RoutingRulesAdditionalFields.FLAGS not in additional_rules:
                 self.initial_data["flags_to_include"] = []
                 self.initial_data["flags_to_exclude"] = []
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+        additional_rules = validated_data.get("additional_rules")
+
+        if "case_types" in additional_rules and "case_types" not in validated_data:
+            raise serializers.ValidationError({"case_types[]": "Select a case type"})
+
+        if "flags" in additional_rules:
+            if not validated_data.get("flags_to_include") and not validated_data.get("flags_to_exclude"):
+                raise serializers.ValidationError({"routing_rules_flags_condition": "Select a flag and flag condition"})
+
+        if "country" in additional_rules:
+            if "country" not in validated_data or validated_data.get("country") is None:
+                raise serializers.ValidationError({"country": "Select a country"})
+
+        if "users" in additional_rules:
+            if "user" not in validated_data:
+                raise serializers.ValidationError({"user": "Select a user"})
+
+        return validated_data
 
 
 # flattened serializer for editing purposes
@@ -144,3 +150,17 @@ class SmallRoutingRuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoutingRule
         fields = "__all__"
+        read_only_fields = (
+            "id",
+            "team",
+            "status",
+            "queue",
+            "tier",
+            "additional_rules",
+            "active",
+            "case_types",
+            "user",
+            "country",
+            "flags_to_include",
+            "flags_to_exclude",
+        )
