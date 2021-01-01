@@ -23,7 +23,7 @@ class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
         )
 
         parameter_sets = routing_rule.parameter_sets()
-        parameter_set = parameter_sets[0]
+        parameter_set = parameter_sets[0]["flags_country_set"]
 
         self.assertTrue(set(routing_rule.flags_to_include.all()).issubset(parameter_set))
 

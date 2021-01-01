@@ -42,10 +42,15 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                 if team_rule_tier and team_rule_tier != rule.tier:
                     break
 
-                for parameter_set in rule.parameter_sets():
+                for item in rule.parameter_sets():
+                    parameter_set = item["flags_country_set"]
+                    flags_to_exclude_set = item.get("flags_to_exclude", None)
                     # If the rule set is a subset of the case's set we wish to assign the user and queue to the case,
                     #   and set the team rule tier for the future.
-                    if parameter_set.issubset(case_parameter_set):
+                    # Also if the rules contains flags that the case should not contain then add the case to the queue.
+                    if parameter_set.issubset(case_parameter_set) or (
+                        flags_to_exclude_set and not (flags_to_exclude_set.intersection(case_parameter_set))
+                    ):
                         case.queues.add(rule.queue)
                         audit_trail_service.create(
                             actor=system_user,

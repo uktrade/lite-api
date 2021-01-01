@@ -50,21 +50,26 @@ class RoutingRule(TimestampableModel):
         parameter_sets = []
 
         # Exclude the rule by returning and empty list if there are any inactive flags in the rule
-        if self.flags_to_include.exclude(status=FlagStatuses.ACTIVE).exists():
+        if (
+            self.flags_to_include.exclude(status=FlagStatuses.ACTIVE).exists()
+            or self.flags_to_exclude.exclude(status=FlagStatuses.ACTIVE).exists()
+        ):
             return parameter_sets
 
-        if self.country:
-            country_set = {self.country}
-        else:
-            country_set = set()
+        country_set = {self.country} if self.country else set()
 
         flag_and_country_set = set(self.flags_to_include.all()) | country_set
 
         for case_type in self.case_types.all():
-            parameter_set = flag_and_country_set | {case_type}
+            parameter_set = {"flags_country_set": flag_and_country_set | {case_type}}
+            if self.flags_to_exclude:
+                parameter_set["flags_to_exclude"] = set(self.flags_to_exclude.all())
+
             parameter_sets.append(parameter_set)
 
         if not parameter_sets:
-            parameter_sets = [flag_and_country_set]
+            parameter_sets = [
+                {"flags_country_set": flag_and_country_set, "flags_to_exclude": set(self.flags_to_exclude.all())},
+            ]
 
         return parameter_sets
