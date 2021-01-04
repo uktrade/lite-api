@@ -47,6 +47,24 @@ class FlaggingRulesAutomation(DataTestClient):
 
         self.assertTrue(flag in good_flags)
 
+    def test_adding_goods_type_flag_with_exclusion_entries(self):
+        flag = self.create_flag(name="good flag", level=FlagLevels.GOOD, team=self.team)
+        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
+        self.submit_application(case)
+        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
+        self.create_flagging_rule(
+            level=FlagLevels.GOOD,
+            team=self.team,
+            flag=flag,
+            matching_values=[good.control_list_entries.first().rating],
+            matching_groups=["ML5"],
+            excluded_values=[good.control_list_entries.first().rating],
+        )
+
+        apply_flagging_rules_to_case(case)
+
+        self.assertEqual(good.flags.count(), 0)
+
     def test_adding_goods_type_flag_from_case_with_verified_only_rule_failure(self):
         """ Test flag not applied to good when flagging rule is for verified goods only. """
         flag = self.create_flag(name="for verified good flag", level=FlagLevels.GOOD, team=self.team)

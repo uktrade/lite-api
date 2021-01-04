@@ -31,6 +31,7 @@ class FlaggingRuleReadOnlySerializer(serializers.Serializer):
     status = serializers.CharField(read_only=True)
     matching_values = serializers.ListField()
     matching_groups = serializers.ListField()
+    excluded_values = serializers.ListField()
 
 
 class FlagwithFlaggingRulesReadOnlySerializer(FlagReadOnlySerializer):
@@ -139,6 +140,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
     flag = PrimaryKeyRelatedField(queryset=Flag.objects.all(), error_messages={"null": strings.FlaggingRules.NO_FLAG})
     matching_values = serializers.ListField(child=serializers.CharField(), required=False)
     matching_groups = serializers.ListField(child=serializers.CharField(), required=False)
+    excluded_values = serializers.ListField(child=serializers.CharField(), required=False)
     is_for_verified_goods_only = serializers.BooleanField(required=False, allow_null=True)
 
     class Meta:
@@ -151,6 +153,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
             "status",
             "matching_values",
             "matching_groups",
+            "excluded_values",
             "is_for_verified_goods_only",
         )
 
@@ -164,6 +167,8 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
                 self.initial_data["matching_values"] = self.instance.matching_values if self.instance else []
             if "matching_groups" not in self.initial_data:
                 self.initial_data["matching_groups"] = self.instance.matching_groups if self.instance else []
+            if "excluded_values" not in self.initial_data:
+                self.initial_data["excluded_values"] = self.instance.excluded_values if self.instance else []
             if "is_for_verified_goods_only" not in self.initial_data:
                 self.initial_data["is_for_verified_goods_only"] = (
                     self.instance.is_for_verified_goods_only if self.instance else None
@@ -173,6 +178,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         instance.status = validated_data.get("status", instance.status)
         instance.matching_values = validated_data.get("matching_values", instance.matching_values)
         instance.matching_groups = validated_data.get("matching_groups", instance.matching_groups)
+        instance.excluded_values = validated_data.get("excluded_values", instance.excluded_values)
         instance.flag = validated_data.get("flag", instance.flag)
         instance.is_for_verified_goods_only = validated_data.get(
             "is_for_verified_goods_only", instance.is_for_verified_goods_only
@@ -186,11 +192,13 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
 
         matching_values = validated_data.get("matching_values")
         matching_groups = validated_data.get("matching_groups")
+        excluded_values = validated_data.get("excluded_values")
 
         if validated_data["level"] == FlagLevels.GOOD:
-            if not matching_values and not matching_groups:
+            if not matching_values and not matching_groups and not excluded_values:
                 errors["matching_values"] = "Enter a control list entry"
                 errors["matching_groups"] = "Enter a control list entry"
+                errors["excluded_values"] = "Enter a control list entry"
         elif validated_data["level"] == FlagLevels.DESTINATION:
             if not matching_values:
                 errors["matching_values"] = "Enter a destination"
@@ -220,3 +228,4 @@ class FlaggingRuleListSerializer(serializers.Serializer):
     flag_name = serializers.CharField(source="flag.name")
     matching_values = serializers.ListField(child=serializers.CharField())
     matching_groups = serializers.ListField(child=serializers.CharField())
+    excluded_values = serializers.ListField(child=serializers.CharField())

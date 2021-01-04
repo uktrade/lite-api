@@ -1,4 +1,4 @@
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 
 from api.applications.models import PartyOnApplication, GoodOnApplication
 from api.cases.enums import CaseTypeEnum
@@ -109,7 +109,11 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
 
     # get a list of flag_id's where the flagging rule matching value is equivalent to the good control code
     ratings = [r for r in good.control_list_entries.values_list("rating", flat=True)]
-    flagging_rules = flagging_rules.filter(matching_values__overlap=ratings)
+    group_ratings = [clc.parent.rating for clc in ControlListEntry.objects.filter(rating__in=ratings) if clc.parent]
+
+    flagging_rules = flagging_rules.filter(
+        Q(matching_values__overlap=ratings) | Q(matching_groups__overlap=group_ratings)
+    ).exclude(excluded_values__overlap=(ratings + group_ratings))
 
     if isinstance(good, Good) and good.status != GoodStatus.VERIFIED:
         flagging_rules = flagging_rules.exclude(is_for_verified_goods_only=True)
@@ -143,10 +147,27 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
                 clc.rating for clc in ControlListEntry.objects.filter(parent__rating__in=flagging_rule.matching_groups)
             ]
             matching_values = flagging_rule.matching_values + clc_group_entries
+
+            # excluded_values contain individual entries and groups
+            excluded_group_entries = [
+                clc.rating for clc in ControlListEntry.objects.filter(parent__rating__in=flagging_rule.excluded_values)
+            ]
+            excluded_individual_values = [
+                clc.rating
+                for clc in ControlListEntry.objects.filter(
+                    rating__in=flagging_rule.excluded_values, parent__isnull=False
+                )
+            ]
+            excluded_values = excluded_individual_values + excluded_group_entries
+
             # Add flag to all Goods on open Goods Queries
             goods_in_query = GoodsQuery.objects.filter(good__control_list_entries__rating__in=matching_values).exclude(
                 status__status__in=draft_and_terminal_statuses
             )
+
+            if excluded_values:
+                # exclusion entries - goods that doesn't contain given control list entries
+                goods_in_query = goods_in_query.exclude(good__control_list_entries__rating__in=excluded_values)
 
             if flagging_rule.is_for_verified_goods_only:
                 goods_in_query = goods_in_query.filter(good__status=GoodStatus.VERIFIED)
@@ -157,13 +178,26 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
             # Add flag to all Goods Types
             goods_types = GoodsType.objects.filter(
                 application_id__in=open_cases, control_list_entries__rating__in=matching_values
-            ).values_list("id", flat=True)
+            )
+
+            if excluded_values:
+                goods_types = goods_types.exclude(
+                    application_id__in=open_cases, control_list_entries__rating__in=excluded_values
+                )
+
+            goods_types = goods_types.values_list("id", flat=True)
+
             flagging_rule.flag.goods_type.add(*goods_types)
 
             # Add flag to all open Applications
             goods = GoodOnApplication.objects.filter(
                 application_id__in=open_cases, good__control_list_entries__rating__in=matching_values
             )
+
+            if excluded_values:
+                goods = goods.exclude(
+                    application_id__in=open_cases, good__control_list_entries__rating__in=excluded_values
+                )
 
             if flagging_rule.is_for_verified_goods_only:
                 goods = goods.filter(good__status=GoodStatus.VERIFIED)

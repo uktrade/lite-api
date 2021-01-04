@@ -431,6 +431,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         team: Team,
         flag: Flag,
         matching_values: list,
+        matching_groups: list = None,
+        excluded_values: list = None,
         status: str = FlagStatuses.ACTIVE,
         is_for_verified_goods_only=None,
     ):
@@ -439,6 +441,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             team=team,
             flag=flag,
             matching_values=matching_values,
+            matching_groups=matching_groups if matching_groups else [],
+            excluded_values=excluded_values if excluded_values else [],
             status=status,
             is_for_verified_goods_only=is_for_verified_goods_only,
         )
