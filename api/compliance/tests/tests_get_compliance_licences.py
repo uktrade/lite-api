@@ -1,5 +1,8 @@
-from django.urls import reverse
 from datetime import datetime
+
+from freezegun import freeze_time
+
+from django.urls import reverse
 
 from api.cases.enums import CaseTypeEnum
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
@@ -63,6 +66,7 @@ class GetComplianceLicencesTests(DataTestClient):
 
         _assert_response_data(self, response_data, licence)
 
+    @freeze_time("2020-06-14")
     def test_get_compliance_OIEL_licences_with_completed_olr(self):
         compliance_case = ComplianceSiteCaseFactory(
             organisation=self.organisation,
@@ -82,6 +86,7 @@ class GetComplianceLicencesTests(DataTestClient):
 
         _assert_response_data(self, response_data, licence, completed_olr=True)
 
+    @freeze_time("2020-06-14")
     def test_get_compliance_OIEL_licences_with_2_year_previous_olr(self):
         compliance_case = ComplianceSiteCaseFactory(
             organisation=self.organisation,
