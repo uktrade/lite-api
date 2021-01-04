@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from api.common.models import TimestampableModel
@@ -28,8 +29,9 @@ class FlaggingRule(TimestampableModel):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     level = models.CharField(choices=FlagLevels.choices, max_length=20)
     status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
-    flag = models.ForeignKey(Flag, on_delete=models.CASCADE)
-    matching_value = models.CharField(max_length=100)
+    flag = models.ForeignKey(Flag, on_delete=models.CASCADE, related_name="flagging_rules")
+    matching_values = ArrayField(models.TextField(default=""), default=list)
+    matching_groups = ArrayField(models.TextField(default=""), default=list)
     is_for_verified_goods_only = models.BooleanField(null=True, blank=True)
 
     class Meta:

@@ -23,9 +23,9 @@ class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
         )
 
         parameter_sets = routing_rule.parameter_sets()
-        parameter_set = parameter_sets[0]
+        parameter_set = parameter_sets[0]["flags_country_set"]
 
-        self.assertTrue(set(routing_rule.flags.all()).issubset(parameter_set))
+        self.assertTrue(set(routing_rule.flags_to_include.all()).issubset(parameter_set))
 
     def test_routing_rule_parameters_returned_in_multiple_sets_for_multiple_case_types(self):
         routing_rule = self.create_routing_rule(
@@ -64,7 +64,7 @@ class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
             status_id=CaseStatus.objects.last().id,
             additional_rules=[*[k for k, v in RoutingRulesAdditionalFields.choices]],
         )
-        routing_rule.flags.add(flag)
+        routing_rule.flags_to_include.add(flag)
 
         parameter_sets = routing_rule.parameter_sets()
 
@@ -278,7 +278,7 @@ class CaseRoutingAutomationTests(DataTestClient):
             status_id=CaseStatus.objects.get(status="submitted").id,
             additional_rules=[RoutingRulesAdditionalFields.FLAGS],
         )
-        rule.flags.add(flag)
+        rule.flags_to_include.add(flag)
         self.create_routing_rule(
             team_id=self.team.id,
             queue_id=queue_2.id,
@@ -319,7 +319,7 @@ class CaseRoutingAutomationTests(DataTestClient):
             status_id=CaseStatus.objects.get(status="submitted").id,
             additional_rules=[RoutingRulesAdditionalFields.FLAGS],
         )
-        rule.flags.set([flag_1, flag_2])
+        rule.flags_to_include.set([flag_1, flag_2])
 
         case = self.create_open_application_case(organisation=self.organisation)
         case.flags.set([flag_2, flag_3])
@@ -340,7 +340,7 @@ class CaseRoutingAutomationTests(DataTestClient):
             status_id=CaseStatus.objects.get(status="submitted").id,
             additional_rules=[RoutingRulesAdditionalFields.FLAGS],
         )
-        rule.flags.set([flag_1, flag_2])
+        rule.flags_to_include.set([flag_1, flag_2])
 
         case = self.create_open_application_case(organisation=self.organisation)
         case.flags.set([flag_1, flag_2])
@@ -362,7 +362,7 @@ class CaseRoutingAutomationTests(DataTestClient):
             status_id=CaseStatus.objects.get(status="submitted").id,
             additional_rules=[RoutingRulesAdditionalFields.FLAGS],
         )
-        rule.flags.set([flag_1, flag_2])
+        rule.flags_to_include.set([flag_1, flag_2])
 
         case = self.create_open_application_case(organisation=self.organisation)
         case.flags.set([flag_1, flag_2, flag_3])
