@@ -1,7 +1,9 @@
 from django.utils.datetime_safe import date, datetime
 from parameterized import parameterized
 
-from api.common.dates import is_weekend, is_bank_holiday, number_of_days_since, working_hours_in_range
+import requests_mock
+
+from api.common.dates import is_weekend, is_bank_holiday, number_of_days_since, working_hours_in_range, BANK_HOLIDAY_API
 from test_helpers.clients import DataTestClient
 
 
@@ -22,8 +24,19 @@ class DatesTests(DataTestClient):
         self.assertEqual(result, expected_result)
 
     def test_is_bank_holiday(self):
-        # Assumes Christmas is a bank holiday
-        test_date = date(date.today().year, 12, 25)
+        data = {
+            "england-and-wales": {
+                "division": "england-and-wales",
+                "events": [
+                    {"title": "New Year’s Day", "date": "2016-01-01", "notes": "", "bunting": True},
+                    {"title": "Good Friday", "date": "2016-03-25", "notes": "", "bunting": False},
+                ],
+            }
+        }
+        with requests_mock.Mocker() as m:
+            m.get(BANK_HOLIDAY_API, json=data)
+
+        test_date = date(2016, 1, 1)
         result = is_bank_holiday(test_date)
         self.assertTrue(result)
 
