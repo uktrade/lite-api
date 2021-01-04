@@ -3,12 +3,13 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
-from api.applications.models import SiteOnApplication
-from api.cases.models import Case
-from api.organisations.models import Site
-
 
 def set_site_used_on_application(apps, schema_editor):
+
+    SiteOnApplication = apps.get_model("applications", "SiteOnApplication")
+    Case = apps.get_model("cases", "Case")
+    Site = apps.get_model("organisations", "Site")
+
     draft_application_ids = Case.objects.filter(status__status="draft").values_list("id", flat=True)
 
     for site in Site.objects.all():
