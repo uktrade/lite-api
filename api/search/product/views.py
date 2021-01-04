@@ -134,7 +134,9 @@ class MoreLikeThisView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        document = ProductDocumentType.get(id=pk)
+        document = ProductDocumentType.get(id=pk, ignore=404)
+        if not document:
+            return Response([])
         search = ProductDocumentType.search()
         search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
         search = (
