@@ -6,13 +6,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0042_merge_20201213_0228'),
+        ("applications", "0042_merge_20201213_0228"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='baseapplication',
-            name='foi_reason',
-            field=models.TextField(blank=True, default=''),
+            model_name="baseapplication", name="foi_reason", field=models.TextField(blank=True, default=""),
         ),
     ]
