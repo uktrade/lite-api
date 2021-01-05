@@ -18,10 +18,7 @@ class GoodOnLicenceSerializer(serializers.ModelSerializer):
         return instance.good.is_good_controlled
 
     def get_control_list_entries(self, instance):
-        if instance.good.is_good_controlled is None:
-            control_list_entries = instance.good.good.control_list_entries
-        else:
-            control_list_entries = instance.good.control_list_entries
+        control_list_entries = instance.good.get_control_list_entries()
         return ControlListEntrySerializer(control_list_entries, many=True).data
 
     class Meta:
