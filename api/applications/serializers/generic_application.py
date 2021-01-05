@@ -101,6 +101,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
             "is_major_editable",
             "goods_locations",
             "case_officer",
+            "foi_reason",
         )
 
     def __init__(self, *args, **kwargs):

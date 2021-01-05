@@ -225,7 +225,7 @@ def _validate_agree_to_declaration(request, errors):
     if not str_to_bool(request.data.get("agreed_to_declaration")):
         errors["agreed_to_declaration"] = [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED]
 
-    if not request.data.get("agreed_to_foi"):
+    if "agreed_to_foi" not in request.data:
         errors["agreed_to_foi"] = [strings.Applications.Generic.AGREEMENT_TO_FOI_REQUIRED]
 
     return errors
