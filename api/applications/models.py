@@ -343,6 +343,15 @@ class GoodOnApplication(AbstractGoodOnApplication):
     def description(self):
         return self.good.description
 
+    def get_control_list_entries(self):
+        """
+        returns relevant control list entries, they can either exist at this level
+        or if not overridden then at the good level
+        """
+        if self.is_good_controlled is None:
+            return self.good.control_list_entries
+        return self.control_list_entries
+
 
 class GoodOnApplicationDocument(Document):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods_document")
