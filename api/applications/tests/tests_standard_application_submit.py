@@ -246,7 +246,7 @@ class StandardApplicationTests(DataTestClient):
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
 
         url = reverse("applications:application_submit", kwargs={"pk": standard_application.id})
 
@@ -407,7 +407,7 @@ class StandardApplicationTests(DataTestClient):
         draft.is_military_end_use_controls = True
         draft.is_informed_wmd = True
         draft.save()
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
         response = self.client.put(url, data=data, **self.exporter_headers)
@@ -447,7 +447,7 @@ class StandardApplicationTests(DataTestClient):
         self.draft.save()
 
         # Re-submit application
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
         response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()
         case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
@@ -557,7 +557,7 @@ class StandardApplicationTests(DataTestClient):
         self.draft.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
         self.draft.save()
 
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
 
         response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()

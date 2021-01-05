@@ -108,6 +108,7 @@ class ExhibitionClearanceTests(DataTestClient):
             "submit_declaration": True,
             "agreed_to_declaration": True,
             "agreed_to_foi": True,
+            "foi_reason": "",
         }
         application = ExhibitionClearanceApplication.objects.get()
         self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
@@ -141,6 +142,7 @@ class ExhibitionClearanceTests(DataTestClient):
             "submit_declaration": True,
             "agreed_to_declaration": False,
             "agreed_to_foi": True,
+            "foi_reason": "",
         }
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
@@ -224,6 +226,7 @@ class GiftingClearanceTests(DataTestClient):
             "submit_declaration": True,
             "agreed_to_declaration": True,
             "agreed_to_foi": True,
+            "foi_reason": "",
         }
         application = GiftingClearanceApplication.objects.get()
         self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
@@ -257,6 +260,7 @@ class GiftingClearanceTests(DataTestClient):
             "submit_declaration": True,
             "agreed_to_declaration": False,
             "agreed_to_foi": True,
+            "foi_reason": "",
         }
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
@@ -379,6 +383,7 @@ class F680ClearanceTests(DataTestClient):
             "submit_declaration": True,
             "agreed_to_declaration": True,
             "agreed_to_foi": True,
+            "foi_reason": "",
         }
         application = F680ClearanceApplication.objects.get()
         self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
@@ -412,6 +417,7 @@ class F680ClearanceTests(DataTestClient):
             "submit_declaration": True,
             "agreed_to_declaration": False,
             "agreed_to_foi": True,
+            "foi_reason": "",
         }
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
