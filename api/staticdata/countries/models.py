@@ -14,6 +14,7 @@ class Country(models.Model):
     type = models.CharField(max_length=100)
     flags = models.ManyToManyField(Flag, related_name="countries")
     is_eu = models.BooleanField()
+    report_name = models.TextField(help_text="Name to use in reports, to harmonize with SPIRE", default="")
 
     objects = models.Manager()
     exclude_special_countries = CountryManager()

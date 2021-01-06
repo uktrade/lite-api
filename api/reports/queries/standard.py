@@ -92,7 +92,7 @@ GOODS_AND_RATINGS = {
          , sub_type
          , role
          , country.id
-         , country.name
+         , country.report_name
          , country.type
          , is_eu
          , pp.copy_of_id
@@ -294,7 +294,7 @@ with changes as (
            role_other,
            sub_type_other,
            c.id,
-           c.name "country_name",
+           c.report_name "country_name",
            c.type,
            is_eu,
            good_ata.id "good_audit_id",
