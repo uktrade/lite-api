@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     "api.search.product",
     "api.reports",
     "api.data_workspace",
+    "api.external_data",
     "health_check",
     "health_check.db",
     "health_check.cache",
