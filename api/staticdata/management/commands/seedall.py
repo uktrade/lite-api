@@ -27,6 +27,7 @@ SEED_COMMANDS = {
         "seedsystemuser",
         "seedadminteam",
         "seedinternalusers",
+        "seedcontrollistentries",
         "seeddenialreasons",
         "seedcountries",
         "seedlayouts",

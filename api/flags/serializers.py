@@ -229,3 +229,4 @@ class FlaggingRuleListSerializer(serializers.Serializer):
     matching_values = serializers.ListField(child=serializers.CharField())
     matching_groups = serializers.ListField(child=serializers.CharField())
     excluded_values = serializers.ListField(child=serializers.CharField())
+    is_for_verified_goods_only = serializers.BooleanField()

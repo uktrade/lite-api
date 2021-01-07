@@ -98,7 +98,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
             "is_good_controlled": False,
-            "control_list_entries": [],
+            "control_list_entries": ["ML1b"],
         }
 
         # when I review the goods

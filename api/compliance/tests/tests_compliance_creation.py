@@ -53,20 +53,11 @@ class ComplianceCreateTests(DataTestClient):
         self.assertFalse(ComplianceSiteCase.objects.exists())
 
     @parameterized.expand(
-        [
-            ("ML21", True),
-            ("ML22", True),
-            ("ML2", False),
-            ("ML21abcde", True),
-            ("0D", True),
-            ("00D", False),
-            ("9E13", True),
-        ]
+        [("ML21", True), ("ML22", True), ("ML2", False), ("0D", True),]
     )
     def tests_siel_good_control_code(self, control_code, exists):
         case = self.create_standard_application_case(self.organisation)
 
-        ControlListEntriesFactory(rating=control_code)
         good = GoodFactory(
             organisation=self.organisation, is_good_controlled=True, control_list_entries=[control_code],
         )
