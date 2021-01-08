@@ -1,55 +1,182 @@
-GOODS_AND_RATINGS = """
+GOODS_AND_RATINGS = {
+    "applications": """
+    select 
+        cc.reference_code
+        , cc.id as "case_id"
+        , sa.export_type
+        , reference_number_on_information_form
+        , have_you_been_informed
+        , is_shipped_waybill_or_lading
+        , non_waybill_or_lading_route_details
+        , is_temp_direct_control
+        , proposed_return_date
+        , temp_direct_control_details
+        , temp_export_details
+        , trade_control_activity
+        , trade_control_activity_other
+        , trade_control_product_categories
+        , ab.name
+        , activity
+        , ab.usage
+        , clearance_level
+        , compliant_limitations_eu_ref
+        , informed_wmd_ref
+        , is_compliant_limitations_eu
+        , is_eu_military
+        , is_informed_wmd
+        , is_military_end_use_controls
+        , is_suspected_wmd
+        , military_end_use_controls_ref
+        , suspected_wmd_ref
+        , intended_end_use
+        , agreed_to_foi
+        , cc.created_at
+        , cc.updated_at
+        , submitted_at
+        , case_officer_id
+        , organisation_id
+        , o.name
+        , o.vat_number
+        , o.eori_number
+        , cs.status
+        , case_type_id
+        , copy_of_id
+        , last_closed_at
+        , sla_days
+        , sla_remaining_days
+        , sla_updated_at
+        , submitted_by_id
+    from applications_standardapplication sa 
+    join applications_baseapplication ab on sa.baseapplication_ptr_id = ab.case_ptr_id
+    join cases_case cc on ab.case_ptr_id = cc.id
+    join statuses_casestatus cs on cc.status_id = cs.id
+    join organisation o on cc.organisation_id = o.id
+    where
+         cc.created_at between %(start_date)s::date and %(end_date)s::date
+         and cs.status != 'draft'
+    """,
+    "licence": """
+    select
+        ll.reference_code "reference_code"
+        , ll.created_at "created_at"
+        , ll.updated_at "updated_at"
+        , ll.id "licence_id"
+        , start_date
+        , duration
+        , case_id
+        , hmrc_integration_sent_at
+        , status
+        , end_date 
+    from licences_licence ll
+    join cases_case cc on ll.case_id = cc.id
+    join applications_baseapplication ab on cc.id = ab.case_ptr_id
+    join applications_standardapplication "as" on ab.case_ptr_id = "as".baseapplication_ptr_id
+    WHERE 
+        ll.created_at between %(start_date)s::date and %(end_date)s::date
+        and status != 'draft'
+    """,
+    "parties": """
+    select reference_code         "licence_ref"
+         , ap.id
+         , ap.created_at
+         , ap.updated_at
+         , deleted_at
+         , application_id
+         , party_id
+         , pp.created_at
+         , pp.updated_at
+         , pp.name
+         , address
+         , website
+         , pp.type
+         , sub_type
+         , role
+         , country.id
+         , country.report_name
+         , country.type
+         , is_eu
+         , pp.copy_of_id
+         , pp.organisation_id
+         , pp.clearance_level
+         , descriptors
+         , details
+         , email
+         , phone_number
+         , role_other
+         , sub_type_other
+    from applications_standardapplication sa
+            join applications_baseapplication ab
+                  on sa.baseapplication_ptr_id = ab.case_ptr_id
+            join applications_partyonapplication ap
+                              on ab.case_ptr_id = ap.application_id
+            join cases_case cc on ab.case_ptr_id = cc.id
+            join statuses_casestatus cs on cc.status_id = cs.id
+            join parties_party pp on ap.party_id = pp.id
+            join countries_country country on pp.country_id = country.id
+    where cc.created_at between %(start_date)s::date and %(end_date)s::date
+    and cs.status != 'draft'
+    """,
+    "goods_control_list_entries": """
 WITH goods as (
-    select ll.reference_code         "licence_ref"
+    select cc.reference_code         "licence_ref"
          , sa.baseapplication_ptr_id "application_id"
-         , ll.id "licence_pk"
          , g.id                      "good_id"
          , cc.id                     "case_id"
-         , pp.id                     "party_id"
-         , cle.rating
          , g.part_number             "good_part_no"
          , g.description             "good_desc"
          , ct.reference              "case_type"
-         , c.name                    "country_name"
-         , ll.status                 "licence_status"
+         , cs.status
          , ag.is_good_incorporated
+         , COALESCE(ag.is_good_controlled, g.is_good_controlled) "is_good_controlled"
          , sa.export_type
          , g.is_military_use
-         , cle.category
-         , pp.type
          , ag.value
          , ag.quantity
+         , (
+                with 
+                _good as (
+                 select good_id
+                ),
+                application_rating as (
+                    select 
+                    ag.good_id
+                    , c.rating "rating"
+                    from control_list_entry c 
+                    join applications_goodonapplication_control_list_entries agcle  on agcle.controllistentry_id = c.id 
+                    where agcle.goodonapplication_id = ag.id
+                ), good_rating as (
+                    select 
+                    gcle.good_id
+                    , c.rating "rating"
+                    from good_control_list_entries gcle 
+                    join control_list_entry c on gcle.controllistentry_id = c.id 
+                    where gcle.good_id = g.id
+                    
+                ) select string_agg(coalesce(ar.rating, gr.rating), ',' order by coalesce(ar.rating, gr.rating))
+                    from _good
+                    left outer join good_rating gr 
+                        on _good.good_id = gr.good_id
+                    left outer join application_rating ar 
+                        on _good.good_id = gr.good_id
+           ) "ratings"
 
     from applications_standardapplication sa
              join applications_baseapplication ab
                   on sa.baseapplication_ptr_id = ab.case_ptr_id
              join cases_case cc on ab.case_ptr_id = cc.id
+             join statuses_casestatus cs on cc.status_id = cs.id
              join applications_goodonapplication ag
                   on ab.case_ptr_id = ag.application_id
              join good g on ag.good_id = g.id
-             left outer join good_control_list_entries gcle on g.id = gcle.good_id
-             left outer join control_list_entry cle on gcle.controllistentry_id = cle.id
-             left outer join applications_partyonapplication ap
-                             on ab.case_ptr_id = ap.application_id
-             left outer join parties_party pp on ap.party_id = pp.id
-             left outer join countries_country c on pp.country_id = c.id
              join cases_casetype ct on cc.case_type_id = ct.id
-             join licences_licence ll on cc.id = ll.case_id
-    where pp.type = 'end_user' 
-    and ll.created_at between %(start_date)s::date and %(end_date)s::date
+             left outer join licences_licence ll on cc.id = ll.case_id
+    where cc.created_at between %(start_date)s::date and %(end_date)s::date
+    and cs.status != 'draft'
 )
 select * from goods
 order by licence_ref;
--- select
---        case_type
---        , is_good_incorporated
---        ,  rating
---        , sum(value) "sum_value"
---        , sum(quantity) "sum_quantity"
--- from goods
--- group by
---     rollup(case_type, is_good_incorporated, rating);
-"""
+""",
+}
 
 LICENCES_WITH_GOOD_AMENDMENTS = """
 
@@ -132,7 +259,7 @@ with changes as (
            modified_military_use_details,
            uses_information_security,
            software_or_technology_details,
-           firearm_details_id,
+           coalesce(ag.firearm_details_id, g.firearm_details_id),
            gcle.id,
            gcle.good_id,
            controllistentry_id,
@@ -167,7 +294,7 @@ with changes as (
            role_other,
            sub_type_other,
            c.id,
-           c.name "country_name",
+           c.report_name "country_name",
            c.type,
            is_eu,
            good_ata.id "good_audit_id",

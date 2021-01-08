@@ -167,6 +167,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
     intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
     agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
+    foi_reason = models.TextField(blank=True, default="")
 
     objects = BaseApplicationManager()
 
@@ -342,6 +343,15 @@ class GoodOnApplication(AbstractGoodOnApplication):
     @property
     def description(self):
         return self.good.description
+
+    def get_control_list_entries(self):
+        """
+        returns relevant control list entries, they can either exist at this level
+        or if not overridden then at the good level
+        """
+        if self.is_good_controlled is None:
+            return self.good.control_list_entries
+        return self.control_list_entries
 
 
 class GoodOnApplicationDocument(Document):

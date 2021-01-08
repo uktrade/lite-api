@@ -27,7 +27,7 @@ class GoodTests(DataTestClient):
         self.assertEqual(draft.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(Good.objects.get().status, "draft")
 
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
 
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
