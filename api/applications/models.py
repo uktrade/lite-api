@@ -22,6 +22,8 @@ from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.documents.models import Document
+from api.external_data.models import Denial
+from api.external_data import enums as denial_enums
 from api.flags.models import Flag
 from api.goods.enums import ItemType, PvGrading
 from api.goods.models import Good
@@ -401,3 +403,10 @@ class PartyOnApplication(TimestampableModel):
     def delete(self, *args, **kwargs):
         self.deleted_at = timezone.now()
         self.save()
+
+
+class DenialMatchOnApplication(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="denial_matches")
+    denial = models.ForeignKey(Denial, related_name="denials_on_application", on_delete=models.CASCADE)
+    category = models.TextField(choices=denial_enums.DenialMatchCategory.choices)

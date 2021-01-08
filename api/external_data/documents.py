@@ -1,8 +1,6 @@
 from django.conf import settings
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
-from elasticsearch_dsl import analysis, InnerDoc
-from elasticsearch_dsl.field import Text
 
 from api.external_data import models
 
