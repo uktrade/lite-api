@@ -81,10 +81,25 @@ jobs:
           path: seed-test-results
 
       - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            # download test reporter as a static binary
+              curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+              chmod +x ./cc-test-reporter
+              ./cc-test-reporter before-build
+
+      - run:
           name: Run tests
-          command: pipenv run ./manage.py test --parallel 8 --exclude-tag=seeding --exclude-tag=performance
+          command: pipenv run coverage run --source="." ./manage.py test --parallel 8 --exclude-tag=seeding --exclude-tag=performance
+
       - store_test_results:
           path: test-results
+
+      - run:
+          name: Upload coverage
+          command: |
+            pipenv run coverage xml
+            ./cc-test-reporter after-build --coverage-input-type coverage.py
 
       - run:
           name: Run Bandit tests
