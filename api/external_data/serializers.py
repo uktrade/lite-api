@@ -1,11 +1,13 @@
 import csv
+import json
 import io
 
 from django.db import transaction
 
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
-from api.external_data import models
+from api.external_data import documents, models
 
 
 class ComplianceSerializer(serializers.ModelSerializer):
@@ -21,11 +23,11 @@ class ComplianceSerializer(serializers.ModelSerializer):
 
 class DenialFromCSVFileSerializer(serializers.Serializer):
 
-    csv_file = serializers.FileField()
+    csv_file = serializers.CharField()
 
     @transaction.atomic
-    def validate_csv_file(self, memory_file):
-        csv_file = io.TextIOWrapper(memory_file, encoding="utf-8")
+    def validate_csv_file(self, value):
+        csv_file = io.StringIO(value)
         dialect = csv.Sniffer().sniff(csv_file.read(1024))
         csv_file.seek(0)
         reader = csv.reader(csv_file, dialect=dialect)
@@ -49,8 +51,14 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
                 )
         if errors:
             raise serializers.ValidationError(errors)
-        return memory_file
+        return csv_file
 
     @staticmethod
     def add_bulk_errors(errors, row_number, line_errors):
         errors.append("[Row {number}] {errors}".format(errors=json.dumps(line_errors), number=row_number,))
+
+
+class DenialSearchSerializer(DocumentSerializer):
+    class Meta:
+        document = documents.DenialDocumentType
+        fields = ("denied_name",)
