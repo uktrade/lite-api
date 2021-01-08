@@ -84,8 +84,6 @@ class CreateGoodTests(DataTestClient):
         super().setUp()
         self.request_data = deepcopy(REQUEST_DATA)
 
-        ControlListEntry.create("ML1b", "Info here", None)
-
     def test_when_creating_a_good_with_not_controlled_and_not_pv_graded_then_created_response_is_returned(self):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
@@ -141,8 +139,8 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
 
         control_list_entries = response.json()["good"]["control_list_entries"]
-        self.assertIn({"rating": "ML1a", "text": "Description"}, control_list_entries)
-        self.assertIn({"rating": "ML1b", "text": "Info here"}, control_list_entries)
+        ratings = [item["rating"] for item in control_list_entries]
+        self.assertEqual(sorted(["ML1a", "ML1b"]), sorted(ratings))
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_add_good_no_item_category_selected_failure(self):
@@ -1107,8 +1105,6 @@ class GoodsCreateControlledGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.request_data = deepcopy(REQUEST_DATA)
-
-        ControlListEntry.create("ML1b", "Info here", None)
 
     def test_when_creating_a_good_with_all_fields_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = True

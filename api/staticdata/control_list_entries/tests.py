@@ -1,8 +1,13 @@
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from api.staticdata.control_list_entries.factories import ControlListEntriesFactory
-from api.staticdata.control_list_entries.helpers import convert_control_list_entries_to_tree
+from api.staticdata.control_list_entries.helpers import (
+    convert_control_list_entries_to_tree,
+    get_clc_parent_nodes,
+    get_clc_child_nodes,
+)
 from api.staticdata.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
@@ -37,6 +42,33 @@ class CLCListTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for item in response_data:
             self._validate_returned_clc(item, full_detail=False)
+
+    @parameterized.expand(
+        [
+            ["ML1", []],
+            ["ML1c", ["ML1"]],
+            ["ML1b1", ["ML1", "ML1b"]],
+            ["6E003a1", ["6", "6E", "6E003", "6E003a"]],
+            ["6A005d1d1a", ["6", "6A", "6A005", "6A005d", "6A005d1", "6A005d1d", "6A005d1d1"]],
+            ["INVALID_CLC", []],
+        ]
+    )
+    def test_clc_entry_parent_nodes(self, rating, expected_parent_nodes):
+        actual = get_clc_parent_nodes(rating)
+        self.assertEqual(sorted(expected_parent_nodes), sorted(actual))
+
+    @parameterized.expand(
+        [
+            ["ML1a", ["ML1a"]],
+            ["ML1b", ["ML1b", "ML1b1", "ML1b2"]],
+            ["ML1", ["ML1", "ML1a", "ML1b", "ML1b1", "ML1b2", "ML1c", "ML1d"]],
+            ["6A005b9", ["6A005b9", "6A005b9a", "6A005b9a1", "6A005b9a2", "6A005b9b", "6A005b9b1", "6A005b9b2"]],
+            ["INVALID_CLC", []],
+        ]
+    )
+    def test_clc_entry_child_nodes(self, group_rating, expected_child_nodes):
+        child_nodes = get_clc_child_nodes(group_rating)
+        self.assertEqual(sorted(expected_child_nodes), sorted(child_nodes))
 
 
 class CLCTests(DataTestClient):

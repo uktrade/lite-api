@@ -33,8 +33,6 @@ class GoodsTypeOnApplicationTests(DataTestClient):
             "size": 123456,
         }
 
-        ControlListEntry.create("ML1b", "Info here", None)
-
     def test_create_goodstype_on_open_application_as_exporter_user_success(self):
         response = self.client.post(self.url, self.data, **self.exporter_headers)
 

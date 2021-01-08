@@ -1,11 +1,19 @@
+from django.urls import reverse_lazy
 from parameterized import parameterized
+from rest_framework import status
 
 from api.applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
 from api.cases.enums import CaseTypeEnum
+from api.core import constants
 from api.flags.enums import FlagLevels, FlagStatuses
 from api.goods.enums import GoodStatus
 from api.goodstype.models import GoodsType
-from api.staticdata.control_list_entries.helpers import get_control_list_entry
+from api.staticdata.control_list_entries.models import ControlListEntry
+from api.staticdata.control_list_entries.helpers import (
+    get_clc_child_nodes,
+    get_clc_parent_nodes,
+    get_control_list_entry,
+)
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -14,6 +22,7 @@ from api.workflow.flagging_rules_automation import (
     get_active_flagging_rules_for_level,
     apply_flagging_rule_to_all_open_cases,
 )
+from api.users.models import Role
 
 
 class FlaggingRulesAutomation(DataTestClient):
@@ -46,6 +55,67 @@ class FlaggingRulesAutomation(DataTestClient):
         good_flags = list(good.flags.all())
 
         self.assertTrue(flag in good_flags)
+
+    def test_adding_goods_type_flag_with_exclusion_entries(self):
+        flag = self.create_flag(name="good flag", level=FlagLevels.GOOD, team=self.team)
+        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
+        self.submit_application(case)
+        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
+        self.create_flagging_rule(
+            level=FlagLevels.GOOD,
+            team=self.team,
+            flag=flag,
+            matching_values=[good.control_list_entries.first().rating],
+            matching_groups=["ML5"],
+            excluded_values=[good.control_list_entries.first().rating],
+        )
+
+        apply_flagging_rules_to_case(case)
+
+        self.assertEqual(good.flags.count(), 0)
+
+    def test_goods_flag_before_and_after_reviewing_good(self):
+        """Tests applying of flagging rule with a matching group and excluding entry.
+        Reviews the good and updates the entry to match with excluding entry and ensures that
+        the flag is now cleared after review.
+        """
+        flag = self.create_flag(name="good flag", level=FlagLevels.GOOD, team=self.team)
+        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
+        self.submit_application(case)
+        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
+
+        good.control_list_entries.set(ControlListEntry.objects.filter(rating="ML8a"))
+        good.save()
+        self.create_flagging_rule(
+            level=FlagLevels.GOOD,
+            team=self.team,
+            flag=flag,
+            matching_values=[],
+            matching_groups=["ML8"],
+            excluded_values=["ML8b"],
+        )
+
+        apply_flagging_rules_to_case(case)
+        self.assertEqual(good.flags.count(), 1)
+
+        role = Role(name="review_goods")
+        role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])
+        role.save()
+        self.gov_user.role = role
+        self.gov_user.save()
+
+        self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
+        data = {
+            "objects": [good.id],
+            "comment": "Update rating to match with flag excluded value",
+            "report_summary": "test report summary",
+            "control_list_entries": ["ML8b"],
+            "is_good_controlled": True,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(good.flags.count(), 0)
 
     def test_adding_goods_type_flag_from_case_with_verified_only_rule_failure(self):
         """ Test flag not applied to good when flagging rule is for verified goods only. """
