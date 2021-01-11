@@ -339,3 +339,33 @@ from changes where
                    or audit_created_at between %(start_date)s::date and %(end_date)s::date
 order by audit_created_at desc;
 """
+
+SLA_CASES = """
+select cases_case.reference_code
+     , cases_case.submitted_at
+     , sla_days
+     , sla_remaining_days
+     , sla_updated_at
+     , statuses_casestatus.status "case_status"
+     , ll.status                  "licence_status"
+     , advice.type                "advice_type"
+     , advice.created_at          "advice_created_at"
+     , string_agg(DISTINCT advice_denial_reasons.denialreason_id,
+                  ',')            "denial_reasons"
+from cases_case
+         join statuses_casestatus
+              on cases_case.status_id = statuses_casestatus.id
+         left outer join applications_baseapplication on cases_case.id =
+                                                         applications_baseapplication.case_ptr_id
+         left outer join advice on cases_case.id = advice.case_id
+         left outer join advice_denial_reasons
+                         on advice.id = advice_denial_reasons.advice_id
+         left outer join licences_licence ll on cases_case.id = ll.case_id
+where
+    statuses_casestatus.status != 'draft'
+    and advice.created_at between %(start_date)s::date and %(end_date)s::date
+group by cases_case.reference_code, cases_case.submitted_at, sla_days,
+         sla_remaining_days, sla_updated_at, statuses_casestatus.status,
+         ll.status, advice.type, advice.created_at
+;
+"""
