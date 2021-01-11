@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     "api.search.product",
     "api.reports",
     "api.data_workspace",
+    "api.external_data",
     "health_check",
     "health_check.db",
     "health_check.cache",
@@ -275,13 +276,14 @@ if LITE_API_ENABLE_ES:
 
     ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
 
+    ELASTICSEARCH_DENIALS_INDEX_ALIAS = env.str("ELASTICSEARCH_DENIALS_INDEX_ALIAS", "denials-alias")
     ELASTICSEARCH_PRODUCT_INDEX_ALIAS = env.str("ELASTICSEARCH_PRODUCT_INDEX_ALIAS", "products-alias")
+    ELASTICSEARCH_APPLICATION_INDEX_ALIAS = env.str("ELASTICSEARCH_APPLICATION_INDEX_ALIAS", "application-alias")
 
     ELASTICSEARCH_PRODUCT_INDEXES = {
         "LITE": ELASTICSEARCH_PRODUCT_INDEX_ALIAS,
     }
 
-    ELASTICSEARCH_APPLICATION_INDEX_ALIAS = env.str("ELASTICSEARCH_APPLICATION_INDEX_ALIAS", "application-alias")
     ELASTICSEARCH_APPLICATION_INDEXES = {
         "LITE": ELASTICSEARCH_APPLICATION_INDEX_ALIAS,
     }
