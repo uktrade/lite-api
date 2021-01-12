@@ -5,12 +5,12 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from api.applications.models import BaseApplication, DenialMatchOnApplication
 from api.external_data.enums import DenialMatchCategory
 from api.external_data.models import Denial
-from api.external_data.serializers import ComplianceSerializer
+from api.external_data.serializers import DenialSerializer
 
 
 class DenialMatchOnApplicationViewSerializer(serializers.ModelSerializer):
     category = ChoiceField(choices=DenialMatchCategory.choices)
-    denial = ComplianceSerializer(read_only=True)
+    denial = DenialSerializer(read_only=True)
 
     class Meta:
         model = DenialMatchOnApplication
