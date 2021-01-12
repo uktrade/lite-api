@@ -1,8 +1,6 @@
 from django.conf import settings
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
-from elasticsearch_dsl import analysis, InnerDoc
-from elasticsearch_dsl.field import Text
 
 from api.external_data import models
 
@@ -15,7 +13,10 @@ class DataField(fields.ObjectField):
 @registry.register_document
 class DenialDocumentType(Document):
 
-    denied_name = fields.TextField()
+    id = fields.KeywordField()
+    name = fields.TextField()
+    address = fields.TextField()
+    reference = fields.KeywordField()
     data = DataField()
 
     class Index:
@@ -31,3 +32,6 @@ class DenialDocumentType(Document):
 
     class Django:
         model = models.Denial
+
+    def get_indexing_queryset(self):
+        return self.get_queryset().exclude(is_revoked=True)

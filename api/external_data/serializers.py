@@ -10,13 +10,15 @@ from rest_framework import serializers
 from api.external_data import documents, models
 
 
-class ComplianceSerializer(serializers.ModelSerializer):
+class DenialSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Denial
         fields = (
+            "id",
             "created_by",
-            "denied_name",
-            "authority",
+            "name",
+            "address",
+            "reference",
             "data",
         )
 
@@ -34,11 +36,13 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         headers = next(reader, None)
         errors = []
         for i, row in enumerate(reader):
-            serializer = ComplianceSerializer(
+            data = dict(zip(headers, row))
+            serializer = DenialSerializer(
                 data={
-                    "authority": row[0],
-                    "denied_name": row[1],
-                    "data": dict(zip(headers, row[2:])),
+                    "reference": data.pop("reference", None),
+                    "name": data.pop("name", None),
+                    "address": data.pop("address", None),
+                    "data": data,
                     "created_by": self.context["request"].user,
                 }
             )
