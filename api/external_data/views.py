@@ -1,14 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
-from rest_framework.parsers import MultiPartParser
 
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
-from elasticsearch_dsl.query import Query
-
-from django.conf import settings
 
 from api.core.authentication import GovAuthentication
 from api.external_data import documents, models, serializers
@@ -36,7 +30,7 @@ class DenialSearchView(DocumentViewSet):
         filter_backends.SearchFilterBackend,
         filter_backends.SourceBackend,
     ]
-    search_fields = ["denied_name"]
+    search_fields = ["name", "address"]
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

@@ -13,41 +13,32 @@ class DenialViewSetTests(DataTestClient):
     def test_create_success(self):
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
-        response = self.client.post(url, {"csv_file": open(file_path, "rb")}, format="multipart", **self.gov_headers)
+        with open(file_path, "rb") as f:
+            content = f.read()
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+
         self.assertEqual(response.status_code, 201)
         self.assertEqual(models.Denial.objects.count(), 3)
         self.assertEqual(
-            list(models.Denial.objects.values("authority", "denied_name", "data")),
+            list(models.Denial.objects.values("reference", "name", "address", "data")),
             [
                 {
-                    "authority": "Foo Example",
-                    "denied_name": "org1",
-                    "data": {
-                        "authority": "commercial",
-                        "denial_type": "123 fake street",
-                        "denied_name": "end_user",
-                        "organisation_type": "https://www.example.com",
-                    },
+                    "address": "123 fake street",
+                    "data": {"field_one": "value_one", "field_two": "value_two", "field_n": "value_n"},
+                    "name": "Jim Example",
+                    "reference": "FOO123",
                 },
                 {
-                    "authority": "Bar Example",
-                    "denied_name": "org1",
-                    "data": {
-                        "authority": "commercial",
-                        "denial_type": "456 fake street",
-                        "denied_name": "end_user",
-                        "organisation_type": "",
-                    },
+                    "address": "123 fake street",
+                    "data": {"field_one": "value_one", "field_two": "value_two", "field_n": "value_n"},
+                    "name": "Jak Example",
+                    "reference": "BAR123",
                 },
                 {
-                    "authority": "Baz Example",
-                    "denied_name": "org1",
-                    "data": {
-                        "authority": "commercial",
-                        "denial_type": "789 fake street",
-                        "denied_name": "end_user",
-                        "organisation_type": "",
-                    },
+                    "address": "123 fake street",
+                    "data": {"field_one": "value_one", "field_two": "value_two", "field_n": "value_n"},
+                    "name": "Bob Example",
+                    "reference": "BAZ123",
                 },
             ],
         )
@@ -55,6 +46,20 @@ class DenialViewSetTests(DataTestClient):
     def test_create_validation_error(self):
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_invalid.csv")
-        response = self.client.post(url, {"csv_file": open(file_path, "rb")}, format="multipart", **self.gov_headers)
+        with open(file_path, "rb") as f:
+            content = f.read()
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json(),
+            {
+                "errors": {
+                    "csv_file": [
+                        '[Row 2] {"reference": ["This field may not be null."]}',
+                        '[Row 3] {"reference": ["This field may not be null."]}',
+                        '[Row 4] {"reference": ["This field may not be null."]}',
+                    ]
+                }
+            },
+        )
