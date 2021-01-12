@@ -32,6 +32,7 @@ class FlaggingRule(TimestampableModel):
     flag = models.ForeignKey(Flag, on_delete=models.CASCADE, related_name="flagging_rules")
     matching_values = ArrayField(models.TextField(default=""), default=list)
     matching_groups = ArrayField(models.TextField(default=""), default=list)
+    excluded_values = ArrayField(models.TextField(default=""), default=list)
     is_for_verified_goods_only = models.BooleanField(null=True, blank=True)
 
     class Meta:

@@ -64,22 +64,14 @@ def populate_goods_flags(cases: List[Dict]):
     from api.flags.models import Flag
 
     case_ids = [case["id"] for case in cases]
-    flags = Flag.objects.filter(
-        Q(goods__goods_on_application__application_id__in=case_ids)
-        | Q(goods_type__application_id__in=case_ids)
-        | Q(goods__good__id__in=case_ids)
-    ).annotate(
-        case_id=DjangoCase(
-            When(
-                goods__goods_on_application__application_id__in=case_ids,
-                then=F("goods__goods_on_application__application_id"),
-            ),
-            When(goods_type__application_id__in=case_ids, then=F("goods_type__application_id")),
-            When(goods__good__id__in=case_ids, then=F("goods__good__id")),
-            default=None,
-            output_field=UUIDField(),
-        )
+    qs1 = Flag.objects.filter(goods__goods_on_application__application_id__in=case_ids).annotate(
+        case_id=F("goods__goods_on_application__application_id"),
     )
+    qs2 = Flag.objects.filter(goods_type__application_id__in=case_ids).annotate(
+        case_id=F("goods_type__application_id"),
+    )
+    qs3 = Flag.objects.filter(goods__good__id__in=case_ids).annotate(case_id=F("goods__good__id"),)
+    flags = qs1.union(qs2, qs3)
 
     for case in cases:
         case["goods_flags"] = CaseListFlagSerializer(
