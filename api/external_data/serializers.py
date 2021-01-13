@@ -20,7 +20,19 @@ class DenialSerializer(serializers.ModelSerializer):
             "address",
             "reference",
             "data",
+            "is_revoked",
+            "is_revoked_comment",
         )
+        extra_kwargs = {
+            "is_revoked": {"required": False},
+            "is_revoked_comment": {"required": False},
+        }
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+        if validated_data.get("is_revoked") and not validated_data.get("is_revoked_comment"):
+            raise serializers.ValidationError({"is_revoked_comment": "This field is required"})
+        return validated_data
 
 
 class DenialFromCSVFileSerializer(serializers.Serializer):

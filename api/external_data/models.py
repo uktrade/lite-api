@@ -15,3 +15,4 @@ class Denial(TimestampableModel):
     reference = models.TextField(help_text="The reference code assigned by the authority that created the denial")
     data = JSONField()
     is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
+    is_revoked_comment = models.TextField(default="")
