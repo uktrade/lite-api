@@ -29,7 +29,8 @@ class RoutingRule(TimestampableModel):
     # optional fields that are required depending on values in additional_rules
     user = models.ForeignKey(GovUser, related_name="routing_rules", on_delete=models.DO_NOTHING, blank=True, null=True)
     case_types = models.ManyToManyField(CaseType, related_name="routing_rules", blank=True)
-    flags = models.ManyToManyField(Flag, related_name="routing_rules", blank=True)
+    flags_to_include = models.ManyToManyField(Flag, related_name="routing_rules", blank=True)
+    flags_to_exclude = models.ManyToManyField(Flag, related_name="exclude_routing_rules", blank=True)
     country = models.ForeignKey(
         Country, related_name="routing_rules", on_delete=models.DO_NOTHING, blank=True, null=True
     )
@@ -49,21 +50,26 @@ class RoutingRule(TimestampableModel):
         parameter_sets = []
 
         # Exclude the rule by returning and empty list if there are any inactive flags in the rule
-        if self.flags.exclude(status=FlagStatuses.ACTIVE).exists():
+        if (
+            self.flags_to_include.exclude(status=FlagStatuses.ACTIVE).exists()
+            or self.flags_to_exclude.exclude(status=FlagStatuses.ACTIVE).exists()
+        ):
             return parameter_sets
 
-        if self.country:
-            country_set = {self.country}
-        else:
-            country_set = set()
+        country_set = {self.country} if self.country else set()
 
-        flag_and_country_set = set(self.flags.all()) | country_set
+        flag_and_country_set = set(self.flags_to_include.all()) | country_set
 
         for case_type in self.case_types.all():
-            parameter_set = flag_and_country_set | {case_type}
+            parameter_set = {"flags_country_set": flag_and_country_set | {case_type}}
+            if self.flags_to_exclude:
+                parameter_set["flags_to_exclude"] = set(self.flags_to_exclude.all())
+
             parameter_sets.append(parameter_set)
 
         if not parameter_sets:
-            parameter_sets = [flag_and_country_set]
+            parameter_sets = [
+                {"flags_country_set": flag_and_country_set, "flags_to_exclude": set(self.flags_to_exclude.all())},
+            ]
 
         return parameter_sets

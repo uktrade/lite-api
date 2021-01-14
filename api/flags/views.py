@@ -26,6 +26,7 @@ from api.flags.serializers import (
     FlaggingRuleSerializer,
     FlagReadOnlySerializer,
     FlaggingRuleListSerializer,
+    FlagwithFlaggingRulesReadOnlySerializer,
 )
 from api.goods.models import Good
 from lite_content.lite_api import strings
@@ -42,6 +43,8 @@ class FlagsListCreateView(ListCreateAPIView):
 
     def get_serializer_class(self):
         if self.request.method == "GET":
+            if self.request.GET.get("include_flagging_rules"):
+                return FlagwithFlaggingRulesReadOnlySerializer
             return FlagReadOnlySerializer
         else:
             return FlagSerializer
@@ -322,7 +325,7 @@ class FlaggingRuleDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
+        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_FLAGGING_RULES)
         flagging_rule = get_flagging_rule(pk)
         serializer = FlaggingRuleSerializer(flagging_rule)
         return JsonResponse(data={"flag": serializer.data})

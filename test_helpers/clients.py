@@ -159,46 +159,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         self.queue = self.create_queue("Initial Queue", self.team)
 
-        # Create a hardcoded list of control list entries rather than loading in the
-        # spreadsheet each time
-        ControlListEntry.objects.bulk_create(
-            [
-                ControlListEntry(rating=clc, text="Description", parent=None)
-                for clc in [
-                    "ML6b2",
-                    "ML2a",
-                    "ML7f1",
-                    "5E002a",
-                    "PL9011c",
-                    "ML13c",
-                    "1A004b",
-                    "ML1d",
-                    "PL9011a",
-                    "5D002a1",
-                    "ML6b1",
-                    "ML13d1",
-                    "1A005b",
-                    "5A002e",
-                    "5D002b",
-                    "5A002a2",
-                    "5A002c",
-                    "ML13d2",
-                    "5A002b",
-                    "5A002a3",
-                    "PL9011b",
-                    "1A004a",
-                    "ML1b2",
-                    "5A002a1",
-                    "ML1a",
-                    "5A002a4",
-                    "5A002d",
-                    "1A005a",
-                    "5E002b",
-                    "ML3a",
-                    "5D002c1",
-                ]
-            ]
-        )
         if settings.TIME_TESTS:
             self.tick = timezone.localtime()
 
@@ -430,7 +390,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         level: str,
         team: Team,
         flag: Flag,
-        matching_value: str,
+        matching_values: list,
+        matching_groups: list = None,
+        excluded_values: list = None,
         status: str = FlagStatuses.ACTIVE,
         is_for_verified_goods_only=None,
     ):
@@ -438,7 +400,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             level=level,
             team=team,
             flag=flag,
-            matching_value=matching_value,
+            matching_values=matching_values,
+            matching_groups=matching_groups if matching_groups else [],
+            excluded_values=excluded_values if excluded_values else [],
             status=status,
             is_for_verified_goods_only=is_for_verified_goods_only,
         )
@@ -1086,7 +1050,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if case_types:
             rule.case_types.add(*case_types)
         if flags:
-            rule.flags.add(*flags)
+            rule.flags_to_include.add(*flags)
 
         rule.save()
         return rule

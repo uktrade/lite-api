@@ -64,16 +64,29 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         validated_data = super(PvGradingDetailsSerializer, self).validate(data)
+        self.valudate_custom_grading(data)
+        return validated_data
 
-        if not validated_data.get("grading") and not validated_data.get("custom_grading"):
-            raise serializers.ValidationError({"custom_grading": strings.Goods.NO_CUSTOM_GRADING_ERROR})
+    def valudate_custom_grading(self, data):
+        if not data.get("grading") and not data.get("custom_grading"):
+            raise serializers.ValidationError({"custom_grading": [strings.Goods.NO_CUSTOM_GRADING_ERROR]})
 
-        if validated_data.get("grading") and validated_data.get("custom_grading"):
+        if data.get("grading") and data.get("custom_grading"):
             raise serializers.ValidationError(
-                {"custom_grading": strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR}
+                {"custom_grading": [strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR]}
             )
 
-        return validated_data
+    def to_internal_value(self, data):
+        try:
+            return super().to_internal_value(data)
+        except serializers.ValidationError as error:
+            # vanilla behavior of DRF is when a field-level validation error (such as required) occurs then .validate
+            # is not called. Circumventing this here to benefit the frontend.
+            try:
+                self.valudate_custom_grading(data)
+            except serializers.ValidationError as inner_error:
+                error.detail.update(inner_error.detail)
+            raise error
 
 
 class FirearmDetailsSerializer(serializers.ModelSerializer):
@@ -791,6 +804,7 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
         instance.good.status = GoodStatus.VERIFIED
+        instance.good.control_list_entries.set(validated_data["control_list_entries"])
         instance.good.report_summary = validated_data["report_summary"]
         instance.good.save()
         instance.good.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)

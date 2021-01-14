@@ -23,7 +23,11 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.gov_user.save()
 
         flag = FlagFactory(level=FlagLevels.CASE, team=self.team)
-        data = {"level": FlagLevels.CASE, "flag": str(flag.id), "matching_value": CaseTypeReferenceEnum.SIEL}
+        data = {
+            "level": FlagLevels.CASE,
+            "flag": str(flag.id),
+            "matching_values": [CaseTypeReferenceEnum.SIEL, CaseTypeReferenceEnum.OGEL],
+        }
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()
@@ -31,17 +35,18 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["level"], FlagLevels.CASE)
         self.assertEqual(response_data["flag"], str(flag.id))
-        self.assertEqual(response_data["matching_value"], CaseTypeReferenceEnum.SIEL)
+        self.assertEqual(response_data["matching_values"], [CaseTypeReferenceEnum.SIEL, CaseTypeReferenceEnum.OGEL])
 
         rule = FlaggingRule.objects.get()
         self.assertEqual(rule.level, "Case")
         self.assertEqual(rule.flag, flag)
-        self.assertEqual(rule.matching_value, CaseTypeReferenceEnum.SIEL)
+        self.assertEqual(rule.matching_values, [CaseTypeReferenceEnum.SIEL, CaseTypeReferenceEnum.OGEL])
 
     def test_gov_user_can_create_flagging_rule_good(self):
         application = self.create_standard_application_case(self.organisation)
         goa = GoodOnApplication.objects.filter(application_id=application.id).first()
-        control_list_entry = goa.good.control_list_entries.first()
+        clc1 = goa.good.control_list_entries.first()
+        clc2 = goa.good.control_list_entries.last()
 
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
@@ -50,7 +55,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         data = {
             "level": FlagLevels.GOOD,
             "flag": str(flag.id),
-            "matching_value": control_list_entry.rating,
+            "matching_values": [clc1.rating, clc2.rating],
             "is_for_verified_goods_only": "True",
         }
 
@@ -60,13 +65,13 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["level"], FlagLevels.GOOD)
         self.assertEqual(response_data["flag"], str(flag.id))
-        self.assertEqual(response_data["matching_value"], control_list_entry.rating)
+        self.assertEqual(response_data["matching_values"], [clc1.rating, clc2.rating])
         self.assertTrue(response_data["is_for_verified_goods_only"])
 
         rule = FlaggingRule.objects.get()
         self.assertEqual(rule.level, FlagLevels.GOOD)
         self.assertEqual(rule.flag, flag)
-        self.assertEqual(rule.matching_value, control_list_entry.rating)
+        self.assertEqual(rule.matching_values, [clc1.rating, clc2.rating])
 
     def test_gov_user_can_create_flagging_rule_destination(self):
         application = self.create_standard_application_case(self.organisation)
@@ -80,7 +85,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.gov_user.save()
 
         flag = FlagFactory(level=FlagLevels.DESTINATION, team=self.team)
-        data = {"level": FlagLevels.DESTINATION, "flag": str(flag.id), "matching_value": country_id}
+        data = {"level": FlagLevels.DESTINATION, "flag": str(flag.id), "matching_values": [country_id]}
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()
@@ -88,27 +93,12 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["level"], FlagLevels.DESTINATION)
         self.assertEqual(response_data["flag"], str(flag.id))
-        self.assertEqual(response_data["matching_value"], country_id)
+        self.assertEqual(response_data["matching_values"], [country_id])
 
         rule = FlaggingRule.objects.get()
         self.assertEqual(rule.level, "Destination")
         self.assertEqual(rule.flag, flag)
-        self.assertEqual(rule.matching_value, country_id)
-
-    def test_create_flagging_rule_failure_duplicate(self):
-        self.gov_user.role = self.super_user_role
-        self.gov_user.save()
-        flag = FlagFactory(level=FlagLevels.CASE, team=self.team)
-        FlaggingRule(flag=flag, team=self.team, matching_value=CaseTypeReferenceEnum.SIEL, level="Case").save()
-
-        response = self.client.post(
-            self.url,
-            {"level": FlagLevels.CASE, "flag": str(flag.id), "matching_value": CaseTypeReferenceEnum.SIEL},
-            **self.gov_headers,
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn(strings.FlaggingRules.DUPLICATE_RULE, response.json()["errors"]["non_field_errors"])
+        self.assertEqual(rule.matching_values, [country_id])
 
     def test_missing_data_create_good_rule_failure(self):
         application = self.create_standard_application_case(self.organisation)
@@ -122,7 +112,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.gov_user.save()
 
         flag = FlagFactory(level=FlagLevels.GOOD, team=self.team)
-        data = {"level": FlagLevels.GOOD, "flag": str(flag.id), "matching_value": control_list_entry}
+        data = {"level": FlagLevels.GOOD, "flag": str(flag.id), "matching_values": [control_list_entry]}
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()

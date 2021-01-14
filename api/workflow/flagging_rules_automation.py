@@ -1,4 +1,4 @@
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 
 from api.applications.models import PartyOnApplication, GoodOnApplication
 from api.cases.enums import CaseTypeEnum
@@ -13,6 +13,7 @@ from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.control_list_entries.helpers import get_clc_child_nodes, get_clc_parent_nodes
 
 
 def get_active_flagging_rules_for_level(level):
@@ -39,7 +40,7 @@ def apply_case_flagging_rules(case):
     # get a list of flag_id's where the flagging rule matching value is equivalent to the case_type
     flags = (
         get_active_flagging_rules_for_level(FlagLevels.CASE)
-        .filter(matching_value=case.case_type.reference)
+        .filter(matching_values__overlap=[case.case_type.reference])
         .values_list("flag_id", flat=True)
     )
 
@@ -75,7 +76,7 @@ def apply_destination_rule_on_party(party: Party, flagging_rules: QuerySet = Non
     )
 
     # get a list of flag_id's where the flagging rule matching value is equivalent to the country id
-    flags = flagging_rules.filter(matching_value=party.country.id).values_list("flag_id", flat=True)
+    flags = flagging_rules.filter(matching_values__overlap=[party.country.id]).values_list("flag_id", flat=True)
 
     if flags:
         party.flags.add(*flags)
@@ -107,8 +108,14 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
     flagging_rules = get_active_flagging_rules_for_level(FlagLevels.GOOD) if not flagging_rules else flagging_rules
 
     # get a list of flag_id's where the flagging rule matching value is equivalent to the good control code
-    ratings = good.control_list_entries.values_list("rating", flat=True)
-    flagging_rules = flagging_rules.filter(matching_value__in=ratings)
+    ratings = [r for r in good.control_list_entries.values_list("rating", flat=True)]
+    group_ratings = []
+    for rating in ratings:
+        group_ratings.extend(get_clc_parent_nodes(rating))
+
+    flagging_rules = flagging_rules.filter(
+        Q(matching_values__overlap=ratings) | Q(matching_groups__overlap=group_ratings)
+    ).exclude(excluded_values__overlap=(ratings + group_ratings))
 
     if isinstance(good, Good) and good.status != GoodStatus.VERIFIED:
         flagging_rules = flagging_rules.exclude(is_for_verified_goods_only=True)
@@ -131,17 +138,34 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
         # Apply the flagging rule to different entities depending on the rule's level
         if flagging_rule.level == FlagLevels.CASE:
             # Add flag to all open Cases
-            open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value).values_list(
+            open_cases = open_cases.filter(case_type__reference__in=flagging_rule.matching_values).values_list(
                 "id", flat=True
             )
 
             flagging_rule.flag.cases.add(*open_cases)
 
         elif flagging_rule.level == FlagLevels.GOOD:
+            clc_entries_of_groups = []
+            for group in flagging_rule.matching_groups:
+                child_entries = get_clc_child_nodes(group)
+                clc_entries_of_groups.extend(child_entries)
+
+            matching_values = flagging_rule.matching_values + clc_entries_of_groups
+
+            # excluded_values contain individual entries and groups
+            excluded_values = []
+            for rating in flagging_rule.excluded_values:
+                entries = get_clc_child_nodes(rating)
+                excluded_values.extend(entries)
+
             # Add flag to all Goods on open Goods Queries
-            goods_in_query = GoodsQuery.objects.filter(
-                good__control_list_entries__rating__in=[flagging_rule.matching_value]
-            ).exclude(status__status__in=draft_and_terminal_statuses)
+            goods_in_query = GoodsQuery.objects.filter(good__control_list_entries__rating__in=matching_values).exclude(
+                status__status__in=draft_and_terminal_statuses
+            )
+
+            if excluded_values:
+                # exclusion entries - goods that doesn't contain given control list entries
+                goods_in_query = goods_in_query.exclude(good__control_list_entries__rating__in=excluded_values)
 
             if flagging_rule.is_for_verified_goods_only:
                 goods_in_query = goods_in_query.filter(good__status=GoodStatus.VERIFIED)
@@ -151,14 +175,27 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
 
             # Add flag to all Goods Types
             goods_types = GoodsType.objects.filter(
-                application_id__in=open_cases, control_list_entries__rating__in=[flagging_rule.matching_value]
-            ).values_list("id", flat=True)
+                application_id__in=open_cases, control_list_entries__rating__in=matching_values
+            )
+
+            if excluded_values:
+                goods_types = goods_types.exclude(
+                    application_id__in=open_cases, control_list_entries__rating__in=excluded_values
+                )
+
+            goods_types = goods_types.values_list("id", flat=True)
+
             flagging_rule.flag.goods_type.add(*goods_types)
 
             # Add flag to all open Applications
             goods = GoodOnApplication.objects.filter(
-                application_id__in=open_cases, good__control_list_entries__rating__in=[flagging_rule.matching_value]
+                application_id__in=open_cases, good__control_list_entries__rating__in=matching_values
             )
+
+            if excluded_values:
+                goods = goods.exclude(
+                    application_id__in=open_cases, good__control_list_entries__rating__in=excluded_values
+                )
 
             if flagging_rule.is_for_verified_goods_only:
                 goods = goods.filter(good__status=GoodStatus.VERIFIED)
@@ -169,7 +206,7 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
         elif flagging_rule.level == FlagLevels.DESTINATION:
             # Add flag to all End Users on open End User Advisory Queries
             end_users = (
-                EndUserAdvisoryQuery.objects.filter(end_user__country_id=flagging_rule.matching_value)
+                EndUserAdvisoryQuery.objects.filter(end_user__country_id__in=flagging_rule.matching_values)
                 .exclude(status__status__in=draft_and_terminal_statuses)
                 .values_list("end_user_id", flat=True)
             )
@@ -177,11 +214,12 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
 
             # Add flag to all Parties on open Applications
             parties = PartyOnApplication.objects.filter(
-                application_id__in=open_cases, party__country_id=flagging_rule.matching_value
+                application_id__in=open_cases, party__country_id__in=flagging_rule.matching_values
             ).values_list("party_id", flat=True)
             flagging_rule.flag.parties.add(*parties)
 
-            Country.objects.get(id=flagging_rule.matching_value).flags.add(flagging_rule.flag)
+            countries = Country.objects.filter(id__in=flagging_rule.matching_values).values_list("id", flat=True)
+            flagging_rule.flag.countries.add(*countries)
 
 
 def apply_flagging_rule_for_flag(flag: Flag):
