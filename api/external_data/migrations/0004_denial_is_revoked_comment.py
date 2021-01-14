@@ -6,13 +6,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('external_data', '0003_auto_20210112_1059'),
+        ("external_data", "0003_auto_20210112_1059"),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='denial',
-            name='is_revoked_comment',
-            field=models.TextField(default=''),
-        ),
+        migrations.AddField(model_name="denial", name="is_revoked_comment", field=models.TextField(default=""),),
     ]
