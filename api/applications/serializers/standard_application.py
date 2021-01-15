@@ -7,7 +7,7 @@ from api.applications.enums import (
     ApplicationExportType,
 )
 from api.applications.mixins.serializers import PartiesSerializerMixin
-from api.applications.models import StandardApplication
+from api.applications.models import DenialMatchOnApplication, StandardApplication
 from api.applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -27,7 +27,7 @@ from api.staticdata.trade_control.enums import TradeControlProductCategory, Trad
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
-    denial_matches = DenialMatchOnApplicationViewSerializer(many=True, read_only=True)
+    denial_matches = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
     proposed_return_date = serializers.DateField(required=False)
@@ -92,6 +92,10 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
             {"key": tc_product_category, "value": TradeControlProductCategory.get_text(tc_product_category)}
             for tc_product_category in trade_control_product_categories
         ]
+
+    def get_denial_matches(self, instance):
+        denial_matches = DenialMatchOnApplication.objects.filter(application=instance, denial__is_revoked=False)
+        return DenialMatchOnApplicationViewSerializer(denial_matches, many=True).data
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
