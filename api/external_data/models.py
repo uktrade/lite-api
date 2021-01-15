@@ -12,7 +12,9 @@ class Denial(TimestampableModel):
     created_by = models.ForeignKey(GovUser, related_name="denials_created", on_delete=models.CASCADE)
     name = models.TextField(help_text="The name of the individual/organization being denied")
     address = models.TextField(help_text="The address of the individual/organization being denied")
-    reference = models.TextField(help_text="The reference code assigned by the authority that created the denial")
+    reference = models.TextField(
+        help_text="The reference code assigned by the authority that created the denial", unique=True
+    )
     data = JSONField()
     is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
     is_revoked_comment = models.TextField(default="")
