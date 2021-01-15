@@ -56,9 +56,33 @@ class DenialViewSetTests(DataTestClient):
             {
                 "errors": {
                     "csv_file": [
-                        '[Row 2] {"reference": ["This field may not be null."]}',
-                        '[Row 3] {"reference": ["This field may not be null."]}',
-                        '[Row 4] {"reference": ["This field may not be null."]}',
+                        "[Row 2] reference: This field may not be null.",
+                        "[Row 3] reference: This field may not be null.",
+                        "[Row 4] reference: This field may not be null.",
+                    ]
+                }
+            },
+        )
+
+    def test_create_validation_error_diplicate(self):
+        url = reverse("external_data:denial-list")
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            content = f.read()
+
+        response_one = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        self.assertEqual(response_one.status_code, 201)
+
+        response_two = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        self.assertEqual(response_two.status_code, 400)
+        self.assertEqual(
+            response_two.json(),
+            {
+                "errors": {
+                    "csv_file": [
+                        "[Row 2] reference: denial with this reference already exists.",
+                        "[Row 3] reference: denial with this reference already exists.",
+                        "[Row 4] reference: denial with this reference already exists.",
                     ]
                 }
             },

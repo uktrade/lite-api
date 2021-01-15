@@ -1,5 +1,4 @@
 import csv
-import json
 import io
 
 from django.db import transaction
@@ -47,7 +46,8 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         reader = csv.reader(csv_file, dialect=dialect)
         headers = next(reader, None)
         errors = []
-        for i, row in enumerate(reader):
+        valid_serializers = []
+        for i, row in enumerate(reader, start=1):
             data = dict(zip(headers, row))
             serializer = DenialSerializer(
                 data={
@@ -60,18 +60,21 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
             )
 
             if serializer.is_valid():
-                serializer.save()
+                valid_serializers.append(serializer)
             else:
-                self.add_bulk_errors(
-                    errors=errors, row_number=i + 2, line_errors=serializer.errors,
-                )
+                self.add_bulk_errors(errors=errors, row_number=i + 1, line_errors=serializer.errors)
         if errors:
             raise serializers.ValidationError(errors)
+        else:
+            # only save if no errors
+            for serializer in valid_serializers:
+                serializer.save()
         return csv_file
 
     @staticmethod
     def add_bulk_errors(errors, row_number, line_errors):
-        errors.append("[Row {number}] {errors}".format(errors=json.dumps(line_errors), number=row_number,))
+        for key, values in line_errors.items():
+            errors.append(f"[Row {row_number}] {key}: {','.join(values)}")
 
 
 class DenialSearchSerializer(DocumentSerializer):
