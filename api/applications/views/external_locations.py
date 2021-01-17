@@ -122,13 +122,13 @@ class ApplicationExternalLocations(APIView):
         # Get sites to be removed if a site is being added
         removed_sites = SiteOnApplication.objects.filter(application=application)
 
-        if removed_sites:
-            audit_trail_service.create(
-                actor=user,
-                verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
-                target=application.get_case(),
-                payload={"sites": [site.site.name for site in removed_sites]},
-            )
+if removed_sites.exists():
+    audit_trail_service.create(
+        actor=user,
+        verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
+        target=application.get_case(),
+        payload={"sites": [site.site.name for site in removed_sites]},
+    )
 
         if removed_locations:
             audit_trail_service.create(
@@ -263,20 +263,20 @@ class ApplicationRemoveExternalLocation(APIView):
             application=application, external_location__pk=ext_loc_pk
         )
 
-        if removed_locations:
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
-                target=application.get_case(),
-                payload={
-                    "locations": [
-                        location.external_location.name + " " + location.external_location.country.name
-                        if location.external_location.country
-                        else location.external_location.name
-                        for location in removed_locations
-                    ]
-                },
-            )
+if removed_locations.exists():
+    audit_trail_service.create(
+        actor=request.user,
+        verb=AuditType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
+        target=application.get_case(),
+        payload={
+            "locations": [
+                location.external_location.name + " " + location.external_location.country.name
+                if location.external_location.country
+                else location.external_location.name
+                for location in removed_locations
+            ]
+        },
+    )
 
         removed_locations.delete()
 

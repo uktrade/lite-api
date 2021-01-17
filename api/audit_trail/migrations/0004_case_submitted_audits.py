@@ -42,6 +42,4 @@ class Migration(migrations.Migration):
         ("audit_trail", "0003_queries_created_audit"),
         ("cases", "0013_auto_20200325_1544"),
     ]
-    operations = [
-        migrations.RunPython(create_missing_case_create_audits),
-    ]
+    migrations.RunPython(create_missing_case_create_audits, migrations.RunPython.noop)

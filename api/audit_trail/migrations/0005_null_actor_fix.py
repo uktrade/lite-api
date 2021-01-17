@@ -38,6 +38,4 @@ class Migration(migrations.Migration):
         ("users", "0005_auto_20200322_1547"),
         ("cases", "0013_auto_20200325_1544"),
     ]
-    operations = [
-        migrations.RunPython(fill_in_missing_actor),
-    ]
+    migrations.RunPython(fill_in_missing_actor, migrations.RunPython.noop)

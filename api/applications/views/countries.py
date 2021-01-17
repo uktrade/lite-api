@@ -115,13 +115,13 @@ class ApplicationCountries(APIView):
                     payload={"countries": [country.name for country in new_countries]},
                 )
 
-            if removed_countries:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.REMOVED_COUNTRIES_FROM_APPLICATION,
-                    target=case,
-                    payload={"countries": [country.country.name for country in removed_countries]},
-                )
+if removed_countries.exists():
+    audit_trail_service.create(
+        actor=request.user,
+        verb=AuditType.REMOVED_COUNTRIES_FROM_APPLICATION,
+        target=case,
+        payload={"countries": [country.country.name for country in removed_countries]},
+    )
 
             removed_countries.delete()
             return JsonResponse(data={"countries": countries_data}, status=status.HTTP_201_CREATED)

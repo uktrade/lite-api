@@ -37,10 +37,9 @@ def get_good_query_with_notifications(
     from api.queries.goods_query.serializers import ExporterReadGoodQuerySerializer
 
     good_query = GoodsQuery.objects.filter(good__id=good.id)
-    if good_query:
-        serializer = ExporterReadGoodQuerySerializer(
-            instance=good_query.first(),
-            context={"exporter_user": exporter_user, "organisation_id": organisation_id, "total_count": total_count},
-        )
-
-        return serializer.data
+if good_query.exists():
+    serializer = ExporterReadGoodQuerySerializer(
+        instance=good_query.first(),
+        context={"exporter_user": exporter_user, "organisation_id": organisation_id, "total_count": total_count},
+    )
+    return serializer.data

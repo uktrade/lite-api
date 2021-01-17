@@ -39,9 +39,9 @@ class RolesViews(APIView):
         data = JSONParser().parse(request)
         data["type"] = UserType.INTERNAL
 
-        if Role.objects.filter(organisation=None, name__iexact=data["name"].strip()):
-            error = {"name": [ErrorDetail(string="Name is not unique.", code="invalid")]}
-            return JsonResponse(data={"errors": error}, status=status.HTTP_400_BAD_REQUEST)
+if Role.objects.filter(organisation=None, name__iexact=data["name"].strip()).exists():
+    error = {"name": [ErrorDetail(string="Name is not unique.", code="invalid")]}
+    return JsonResponse(data={"errors": error}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = RoleSerializer(data=data)
 

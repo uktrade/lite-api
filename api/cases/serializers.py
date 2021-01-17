@@ -253,8 +253,8 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
     def get_next_review_date(self, instance):
         next_review_date = CaseReviewDate.objects.filter(case_id=instance.id, team_id=self.team.id)
-        if next_review_date:
-            return next_review_date.get().next_review_date
+if next_review_date.exists():
+    return next_review_date.get().next_review_date
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):

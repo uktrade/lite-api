@@ -283,16 +283,15 @@ def _validate_goods(draft, errors, is_mandatory):
             errors["goods"] = [strings.Applications.Standard.NO_GOODS_SET]
 
     # Check goods documents
-    if goods_on_application:
-        goods = goods_on_application.values_list("good", flat=True)
-        document_errors = _get_document_errors(
-            GoodDocument.objects.filter(good__in=goods),
-            processing_error=strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING,
-            virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
-        )
-
-        if document_errors:
-            errors["goods"] = [document_errors]
+if goods_on_application.exists():
+    goods = goods_on_application.values_list("good", flat=True)
+    document_errors = _get_document_errors(
+        GoodDocument.objects.filter(good__in=goods),
+        processing_error=strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING,
+        virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
+    )
+    if document_errors:
+        errors["goods"] = [document_errors]
 
     return errors
 

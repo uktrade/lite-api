@@ -35,6 +35,4 @@ class Migration(migrations.Migration):
         ("cases", "0028_enforcementcheckid_entity_type"),
     ]
 
-    operations = [
-        migrations.RunPython(forward_migration),
-    ]
+    migrations.RunPython(forward_migration, migrations.RunPython.noop)

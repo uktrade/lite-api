@@ -37,6 +37,4 @@ def create_missing_application_audit(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [("applications", "0022_auto_20200331_1107"), ("audit_trail", "0001_initial")]
-    operations = [
-        migrations.RunPython(create_missing_application_audit),
-    ]
+    migrations.RunPython(create_missing_application_audit, migrations.RunPython.noop)

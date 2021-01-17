@@ -60,6 +60,4 @@ class Migration(migrations.Migration):
         ("audit_trail", "0002_migrate_old_status_payload"),
         ("cases", "0013_auto_20200325_1544"),
     ]
-    operations = [
-        migrations.RunPython(create_missing_create_audits),
-    ]
+    migrations.RunPython(create_missing_create_audits, migrations.RunPython.noop)
