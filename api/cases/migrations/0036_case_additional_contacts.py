@@ -30,9 +30,4 @@ class Migration(migrations.Migration):
         ("cases", "0035_auto_20200611_1246"),
     ]
 
-    operations = [
-        migrations.AddField(
-            model_name="case", name="additional_contacts", field=models.ManyToManyField(to="parties.Party"),
-        ),
-        migrations.RunPython(forward_migration),
-    ]
+            migrations.RunPython(forward_migration, migrations.RunPython.noop)
