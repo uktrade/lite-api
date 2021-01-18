@@ -35,3 +35,7 @@ class DenialSearchView(DocumentViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         return Response(queryset.execute().to_dict())
+
+    def filter_queryset(self, queryset):
+        queryset = queryset.filter("term", is_revoked=False)
+        return super().filter_queryset(queryset)
