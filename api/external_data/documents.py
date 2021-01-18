@@ -18,6 +18,7 @@ class DenialDocumentType(Document):
     address = fields.TextField()
     reference = fields.KeywordField()
     data = DataField()
+    is_revoked = fields.BooleanField()
 
     class Index:
         name = settings.ELASTICSEARCH_DENIALS_INDEX_ALIAS
@@ -32,6 +33,3 @@ class DenialDocumentType(Document):
 
     class Django:
         model = models.Denial
-
-    def get_indexing_queryset(self):
-        return self.get_queryset().exclude(is_revoked=True)
