@@ -6,7 +6,7 @@ from django.conf import settings
 
 from django.urls import reverse
 
-from api.external_data import models
+from api.external_data import models, serializers
 
 
 class DenialViewSetTests(DataTestClient):
@@ -20,24 +20,39 @@ class DenialViewSetTests(DataTestClient):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(models.Denial.objects.count(), 3)
         self.assertEqual(
-            list(models.Denial.objects.values("reference", "name", "address", "data")),
+            list(models.Denial.objects.values(*serializers.DenialFromCSVFileSerializer.required_headers, "data")),
             [
                 {
                     "address": "123 fake street",
-                    "data": {"field_one": "value_one", "field_two": "value_two", "field_n": "value_n"},
+                    "consignee_name": "Fred Food",
+                    "data": {"field_n": "value_n", "field_one": "value_one", "field_two": "value_two"},
+                    "final_destination": "Germany",
+                    "item_description": "Foo",
+                    "item_list_codes": "ABC123",
                     "name": "Jim Example",
+                    "notifying_government": "France",
                     "reference": "FOO123",
                 },
                 {
                     "address": "123 fake street",
-                    "data": {"field_one": "value_one", "field_two": "value_two", "field_n": "value_n"},
+                    "consignee_name": "Fred Food",
+                    "data": {"field_n": "value_n", "field_one": "value_one", "field_two": "value_two"},
+                    "final_destination": "Germany",
+                    "item_description": "Foo",
+                    "item_list_codes": "ABC123",
                     "name": "Jak Example",
+                    "notifying_government": "France",
                     "reference": "BAR123",
                 },
                 {
                     "address": "123 fake street",
-                    "data": {"field_one": "value_one", "field_two": "value_two", "field_n": "value_n"},
+                    "consignee_name": "Fred Food",
+                    "data": {"field_n": "value_n", "field_one": "value_one", "field_two": "value_two"},
+                    "final_destination": "Germany",
+                    "item_description": "Foo",
+                    "item_list_codes": "ABC123",
                     "name": "Bob Example",
+                    "notifying_government": "France",
                     "reference": "BAZ123",
                 },
             ],

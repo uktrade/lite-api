@@ -5,7 +5,7 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from api.external_data import models
+from api.external_data import models, serializers
 from test_helpers.clients import DataTestClient
 
 
@@ -19,9 +19,12 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
                 "reference": f"REF{self.faker.random_number()}",
                 "name": self.faker.name(),
                 "address": self.faker.address(),
-                "field_one": self.faker.word(),
-                "field_two": self.faker.word(),
                 "field_n": self.faker.word(),
+                "notifying_government": self.faker.word(),
+                "final_destination": self.faker.word(),
+                "item_list_codes": self.faker.word(),
+                "item_description": self.faker.word(),
+                "consignee_name": self.faker.word(),
             }
             for _ in range(5)
         ]
@@ -29,7 +32,7 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
         content = io.StringIO()
         writer = csv.DictWriter(
             content,
-            fieldnames=["reference", "name", "address", "field_one", "field_two", "field_n"],
+            fieldnames=[*serializers.DenialFromCSVFileSerializer.required_headers, "field_n"],
             delimiter=",",
             quoting=csv.QUOTE_MINIMAL,
         )

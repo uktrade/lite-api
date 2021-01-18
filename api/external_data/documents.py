@@ -12,11 +12,15 @@ class DataField(fields.ObjectField):
 
 @registry.register_document
 class DenialDocumentType(Document):
-
     id = fields.KeywordField()
     name = fields.TextField()
     address = fields.TextField()
     reference = fields.KeywordField()
+    notifying_government = fields.TextField()
+    final_destination = fields.TextField()
+    item_list_codes = fields.TextField()
+    item_description = fields.TextField()
+    consignee_name = fields.TextField()
     data = DataField()
 
     class Index:
