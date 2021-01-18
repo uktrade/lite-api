@@ -15,13 +15,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name="good", name="is_good_controlled", field=models.CharField(default=None, null=True, max_length=20)
-        ),
-        migrations.RunPython(nullify_is_good_controled),
-        migrations.AlterField(
-            model_name="good",
-            name="is_good_controlled",
-            field=models.BooleanField(blank=True, default=None, null=True),
-        ),
-    ]
+    migrations.AlterField(
+        model_name="good", name="is_good_controlled", field=models.CharField(default=None, null=True, max_length=20)
+    ),
+    migrations.RunPython(nullify_is_good_controled, migrations.RunPython.noop),
+    migrations.AlterField(
+        model_name="good", name="is_good_controlled", field=models.BooleanField(blank=True, default=None, null=True)
+    ),
+]
