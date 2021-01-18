@@ -74,7 +74,7 @@ class QueueCreateSerializer(serializers.ModelSerializer):
         validators = [
             serializers.UniqueTogetherValidator(
                 queryset=model.objects.all(),
-                fields=('name', 'team'),
-                message="Another queue in this team already has this name. Please pick a different name."
+                fields=("name", "team"),
+                message="Another queue in this team already has this name. Please pick a different name.",
             )
         ]

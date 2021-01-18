@@ -6,13 +6,10 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('teams', '0002_auto_20200307_1805'),
-        ('queues', '0002_auto_20200429_1018'),
+        ("teams", "0002_auto_20200307_1805"),
+        ("queues", "0002_auto_20200429_1018"),
     ]
 
     operations = [
-        migrations.AlterUniqueTogether(
-            name='queue',
-            unique_together={('name', 'team')},
-        ),
+        migrations.AlterUniqueTogether(name="queue", unique_together={("name", "team")},),
     ]
