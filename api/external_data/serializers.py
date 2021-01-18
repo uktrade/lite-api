@@ -18,6 +18,11 @@ class DenialSerializer(serializers.ModelSerializer):
             "name",
             "address",
             "reference",
+            "notifying_government",
+            "final_destination",
+            "item_list_codes",
+            "item_description",
+            "consignee_name",
             "data",
             "is_revoked",
             "is_revoked_comment",
@@ -37,6 +42,16 @@ class DenialSerializer(serializers.ModelSerializer):
 class DenialFromCSVFileSerializer(serializers.Serializer):
 
     csv_file = serializers.CharField()
+    required_headers = [
+        "reference",
+        "name",
+        "address",
+        "notifying_government",
+        "final_destination",
+        "item_list_codes",
+        "item_description",
+        "consignee_name",
+    ]
 
     @transaction.atomic
     def validate_csv_file(self, value):
@@ -51,11 +66,9 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
             data = dict(zip(headers, row))
             serializer = DenialSerializer(
                 data={
-                    "reference": data.pop("reference", None),
-                    "name": data.pop("name", None),
-                    "address": data.pop("address", None),
                     "data": data,
                     "created_by": self.context["request"].user,
+                    **{field: data.pop(field, None) for field in self.required_headers},
                 }
             )
 
