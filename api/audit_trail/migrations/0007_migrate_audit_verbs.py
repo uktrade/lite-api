@@ -60,6 +60,4 @@ class Migration(migrations.Migration):
     dependencies = [
         ("audit_trail", "0006_verb_choices"),
     ]
-    operations = [
-        migrations.RunPython(migrate_audit_verbs),
-    ]
+    operations = [migrations.RunPython(migrate_audit_verbs, migrations.RunPython.noop)]

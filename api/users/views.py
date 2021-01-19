@@ -179,10 +179,8 @@ class UserMeDetail(APIView):
             data.update(
                 {
                     "role": {
-                        "id": relationship.role.id,
-                        "permissions": convert_queryset_to_str(
-                            relationship.role.permissions.values_list("id", flat=True)
-                        ),
+                        "id": relationship.role_id,
+                        "permissions": convert_queryset_to_str(relationship.role.permissions.values_list("id", flat=True)),
                     }
                 }
             )
