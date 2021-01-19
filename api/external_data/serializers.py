@@ -23,6 +23,7 @@ class DenialSerializer(serializers.ModelSerializer):
             "item_list_codes",
             "item_description",
             "consignee_name",
+            "end_use",
             "data",
             "is_revoked",
             "is_revoked_comment",
@@ -51,6 +52,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         "item_list_codes",
         "item_description",
         "consignee_name",
+        "end_use",
     ]
 
     @transaction.atomic

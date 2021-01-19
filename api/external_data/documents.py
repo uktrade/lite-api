@@ -21,6 +21,7 @@ class DenialDocumentType(Document):
     item_list_codes = fields.TextField()
     item_description = fields.TextField()
     consignee_name = fields.TextField()
+    end_use = fields.TextField()
     data = DataField()
     is_revoked = fields.BooleanField()
 

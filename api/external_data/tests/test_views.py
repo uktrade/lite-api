@@ -32,6 +32,7 @@ class DenialViewSetTests(DataTestClient):
                     "item_list_codes": "ABC123",
                     "name": "Jim Example",
                     "notifying_government": "France",
+                    "end_use": "used in car",
                     "reference": "FOO123",
                 },
                 {
@@ -43,6 +44,7 @@ class DenialViewSetTests(DataTestClient):
                     "item_list_codes": "ABC123",
                     "name": "Jak Example",
                     "notifying_government": "France",
+                    "end_use": "used in car",
                     "reference": "BAR123",
                 },
                 {
@@ -54,6 +56,7 @@ class DenialViewSetTests(DataTestClient):
                     "item_list_codes": "ABC123",
                     "name": "Bob Example",
                     "notifying_government": "France",
+                    "end_use": "used in car",
                     "reference": "BAZ123",
                 },
             ],
