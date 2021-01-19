@@ -180,7 +180,9 @@ class UserMeDetail(APIView):
                 {
                     "role": {
                         "id": relationship.role_id,
-                        "permissions": convert_queryset_to_str(relationship.role.permissions.values_list("id", flat=True)),
+                        "permissions": convert_queryset_to_str(
+                            relationship.role.permissions.values_list("id", flat=True)
+                        ),
                     }
                 }
             )

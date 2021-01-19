@@ -13,6 +13,7 @@ from api.applications.views import (
     documents,
     end_use_details,
     temporary_export_details,
+    denials,
 )
 
 app_name = "applications"
@@ -98,4 +99,10 @@ urlpatterns = [
     # Existing parties
     path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties"),
     path("<uuid:pk>/exhibition-details/", applications.ExhibitionDetails.as_view(), name="exhibition"),
+    # Denial matches
+    path(
+        "<uuid:pk>/denial-matches/",
+        denials.ApplicationDenialMatchesOnApplication.as_view(),
+        name="application_denial_matches",
+    ),
 ]

@@ -30,6 +30,7 @@ urlpatterns = [
     path("licences/", include("api.licences.urls")),
     path("open-general-licences/", include("api.open_general_licences.urls")),
     path("data-workspace/", include("api.data_workspace.urls")),
+    path("external-data/", include("api.external_data.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 handler500 = "rest_framework.exceptions.server_error"
