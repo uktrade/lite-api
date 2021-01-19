@@ -30,6 +30,4 @@ class Migration(migrations.Migration):
         ("audit_trail", "0007_migrate_audit_verbs"),
         ("licences", "0002_licence_decisions"),
     ]
-    operations = [
-        migrations.RunPython(update_granted_application_payload_type),
-    ]
+    operations = [migrations.RunPython(update_granted_application_payload_type, migrations.RunPython.noop)]

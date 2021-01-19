@@ -77,26 +77,27 @@ GOODS_AND_RATINGS = {
     """,
     "parties": """
     select reference_code         "licence_ref"
-         , ap.id
-         , ap.created_at
-         , ap.updated_at
-         , deleted_at
+         , ap.id "party_on_application_id"
+         , ap.created_at "party_on_application_created_at"
+         , ap.updated_at "party_on_application_updated_at"
+         , deleted_at "party_on_application_deleted_at"
          , application_id
          , party_id
-         , pp.created_at
-         , pp.updated_at
+         , pp.created_at "party_created_at"
+         , pp.updated_at "party_updated_at"
          , pp.name
          , address
          , website
          , pp.type
          , sub_type
          , role
-         , country.id
-         , country.report_name
-         , country.type
-         , is_eu
-         , pp.copy_of_id
-         , pp.organisation_id
+         , country.id "country_id"
+         , country.name "country_name"
+         , country.report_name "spire_country_name"
+         , country.type "country_type"
+         , is_eu "country_is_eu"
+         , pp.copy_of_id "party_is_clone_of_party_id"
+         , pp.organisation_id "party_organisation_id"
          , pp.clearance_level
          , descriptors
          , details
@@ -127,6 +128,7 @@ WITH goods as (
          , ct.reference              "case_type"
          , cs.status
          , ag.is_good_incorporated
+         , ag.report_summary
          , COALESCE(ag.is_good_controlled, g.is_good_controlled) "is_good_controlled"
          , sa.export_type
          , g.is_military_use
@@ -294,7 +296,8 @@ with changes as (
            role_other,
            sub_type_other,
            c.id,
-           c.report_name "country_name",
+           c.name "country_name",
+           c.report_name "spire_country_name",
            c.type,
            is_eu,
            good_ata.id "good_audit_id",
@@ -335,4 +338,34 @@ from changes where
                    licence_created_at between %(start_date)s::date and %(end_date)s::date
                    or audit_created_at between %(start_date)s::date and %(end_date)s::date
 order by audit_created_at desc;
+"""
+
+SLA_CASES = """
+select cases_case.reference_code
+     , cases_case.submitted_at
+     , sla_days
+     , sla_remaining_days
+     , sla_updated_at
+     , statuses_casestatus.status "case_status"
+     , ll.status                  "licence_status"
+     , advice.type                "advice_type"
+     , advice.created_at          "advice_created_at"
+     , string_agg(DISTINCT advice_denial_reasons.denialreason_id,
+                  ',')            "denial_reasons"
+from cases_case
+         join statuses_casestatus
+              on cases_case.status_id = statuses_casestatus.id
+         left outer join applications_baseapplication on cases_case.id =
+                                                         applications_baseapplication.case_ptr_id
+         left outer join advice on cases_case.id = advice.case_id
+         left outer join advice_denial_reasons
+                         on advice.id = advice_denial_reasons.advice_id
+         left outer join licences_licence ll on cases_case.id = ll.case_id
+where
+    statuses_casestatus.status != 'draft'
+    and advice.created_at between %(start_date)s::date and %(end_date)s::date
+group by cases_case.reference_code, cases_case.submitted_at, sla_days,
+         sla_remaining_days, sla_updated_at, statuses_casestatus.status,
+         ll.status, advice.type, advice.created_at
+;
 """

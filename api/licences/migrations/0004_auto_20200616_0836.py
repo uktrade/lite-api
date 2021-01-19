@@ -19,6 +19,4 @@ class Migration(migrations.Migration):
         ("licences", "0003_licence_reference_code"),
     ]
 
-    operations = [
-        migrations.RunPython(set_licence_reference),
-    ]
+    operations = [migrations.RunPython(set_licence_reference, migrations.RunPython.noop)]
