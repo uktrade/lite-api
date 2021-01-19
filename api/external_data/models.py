@@ -18,6 +18,7 @@ class Denial(TimestampableModel):
     item_list_codes = models.TextField("The codes of the items being denied")
     item_description = models.TextField("The description of the item being denied")
     consignee_name = models.TextField()
+    end_use = models.TextField()
 
     data = JSONField()
     is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
