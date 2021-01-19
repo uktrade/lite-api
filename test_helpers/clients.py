@@ -42,7 +42,7 @@ from api.cases.models import (
     Advice,
 )
 from api.cases.tasks import get_application_target_sla
-from api.conf import settings
+from django.conf import settings
 from api.core.constants import Roles
 from api.conf.urls import urlpatterns
 from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
