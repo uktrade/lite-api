@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="case", name="additional_contacts", field=models.ManyToManyField(to="parties.Party"),
+            model_name="case", name="additional_contacts", field=models.ManyToManyField(to="parties.Party")
         ),
-        migrations.RunPython(forward_migration),
+        migrations.RunPython(forward_migration, migrations.RunPython.noop),
     ]

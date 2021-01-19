@@ -33,6 +33,4 @@ class Migration(migrations.Migration):
     dependencies = [
         ("audit_trail", "0008_granted_application_backfill"),
     ]
-    operations = [
-        migrations.RunPython(update_good_review_payload),
-    ]
+    operations = [migrations.RunPython(update_good_review_payload, migrations.RunPython.noop)]
