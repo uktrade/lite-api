@@ -37,26 +37,22 @@ class DenialDocumentType(Document):
         return self.get_queryset().exclude(is_revoked=True)
 
 
-class DenialDocumentType(Document):
+class SanctionDocumentType(Document):
 
-    dataid = fields.Keyword()
-    un_list_type = fields.Keyword()
-    list_type = fields.Object()
-    reference_number = fields.Keyword()
-    
-    first_name = fields.Text()
-    second_name = fields.Text()
-    third_name = fields.Text()
-    comments1 = fields.Text()
-    designation = fields.Object()
-    nationality = fields.Object()
-    individual_alias = fields.Object()
-    individual_address = fields.Object()
-    # versionnum = fields.Keyword()
-    # listed_on = fields.Date()
-    # last_day_updated = fields.Date()
-    # individual_date_of_birth
-    # individual_place_of_birth = 
-    # individual_document = 
-    # sort_key = 
-    # sort_key_last_mod = 
+    list_type = fields.Keyword()
+    reference = fields.Keyword()
+    name = fields.Text()
+    data = fields.Object(properties={
+        'listed_on': fields.TextField(),
+        'individual_date_of_birth': fields.Object(properties={
+            'date': fields.TextField(),
+        })
+    })
+
+    class Index:
+        name = settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS
+        settings = {
+            "number_of_shards": 1,
+            "number_of_replicas": 0,
+            "max_ngram_diff": 18,
+        }
