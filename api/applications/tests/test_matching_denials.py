@@ -15,17 +15,7 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
         self.faker = Faker()
         self.application = self.create_standard_application_case(self.organisation)
         denials = [
-            {
-                "reference": f"REF{self.faker.random_number()}",
-                "name": self.faker.name(),
-                "address": self.faker.address(),
-                "field_n": self.faker.word(),
-                "notifying_government": self.faker.word(),
-                "final_destination": self.faker.word(),
-                "item_list_codes": self.faker.word(),
-                "item_description": self.faker.word(),
-                "consignee_name": self.faker.word(),
-            }
+            {name: self.faker.word() for name in serializers.DenialFromCSVFileSerializer.required_headers}
             for _ in range(5)
         ]
 
