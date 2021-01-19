@@ -38,3 +38,31 @@ class DenialDocumentType(Document):
 
     class Django:
         model = models.Denial
+
+    def get_indexing_queryset(self):
+        return self.get_queryset().exclude(is_revoked=True)
+
+
+class DenialDocumentType(Document):
+
+    dataid = fields.Keyword()
+    un_list_type = fields.Keyword()
+    list_type = fields.Object()
+    reference_number = fields.Keyword()
+    
+    first_name = fields.Text()
+    second_name = fields.Text()
+    third_name = fields.Text()
+    comments1 = fields.Text()
+    designation = fields.Object()
+    nationality = fields.Object()
+    individual_alias = fields.Object()
+    individual_address = fields.Object()
+    # versionnum = fields.Keyword()
+    # listed_on = fields.Date()
+    # last_day_updated = fields.Date()
+    # individual_date_of_birth
+    # individual_place_of_birth = 
+    # individual_document = 
+    # sort_key = 
+    # sort_key_last_mod = 
