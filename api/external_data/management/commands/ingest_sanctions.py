@@ -1,5 +1,6 @@
 import itertools
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from elasticsearch_dsl import connections
@@ -56,7 +57,7 @@ class Command(BaseCommand):
 
     def rebuild_index(self):
         connection = connections.get_connection()
-        connection.indices.delete(index=documents.SanctionDocumentType.Index.name)
+        connection.indices.delete(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS)
         documents.SanctionDocumentType.init()
 
     def handle(self, *args, **options):

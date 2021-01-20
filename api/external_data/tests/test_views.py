@@ -136,7 +136,6 @@ class DenialSearchView(DataTestClient):
 
 
 class DenialSearchViewTests(DataTestClient):
-
     def test_search(self):
         Index("sanctions-alias-test").create(ignore=[400])
 

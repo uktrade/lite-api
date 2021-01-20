@@ -204,7 +204,7 @@ class PopulateSanctionsTests(DataTestClient):
 
         call_command("ingest_sanctions", rebuild=True)
 
-        Index(documents.SanctionDocumentType.Index.name).refresh()
+        Index(settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS).refresh()
 
         search = Search(index=documents.SanctionDocumentType.Index.name)
 

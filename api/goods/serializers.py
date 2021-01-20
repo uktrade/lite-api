@@ -396,7 +396,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
         if hasattr(self, "initial_data"):
-            if not self.initial_data.get("control_list_entries"):
+            if not self.initial_data.get("control_list_entries") and not self.partial:
                 self.initial_data["control_list_entries"] = []
 
         if self.get_initial().get("is_military_use"):
