@@ -40,6 +40,35 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         self.assertEquals(Good.objects.all().count(), 1)
 
+    def test_when_updating_non_clc_the_clc_is_not_overwritten(self):
+        ratings = ["ML1a", "ML1b"]
+        request_data = {"is_good_controlled": True, "control_list_entries": ratings}
+
+        response = self.client.put(self.url, request_data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(
+            sorted(response.json()["good"]["control_list_entries"], key=lambda i: i["rating"]),
+            [
+                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
+                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
+            ],
+        )
+
+        request_data = {
+            "is_military_use": MilitaryUse.YES_DESIGNED,
+            "modified_military_use_details": "",
+        }
+        response = self.client.put(self.url, request_data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(
+            sorted(response.json()["good"]["control_list_entries"], key=lambda i: i["rating"]),
+            [
+                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
+                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
+            ],
+        )
+
     def test_when_updating_clc_control_list_entries_then_new_control_list_entries_is_returned(self):
         request_data = {"is_good_controlled": True, "control_list_entries": ["ML1a", "ML1b"]}
 
