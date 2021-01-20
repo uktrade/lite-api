@@ -32,7 +32,7 @@ class RolesViews(ListCreateAPIView):
         data["organisation"] = str(org_pk)
         data["type"] = UserType.EXPORTER
 
-        if Role.objects.filter(organisation=org_pk, name__iexact=data["name"].strip()):
+        if Role.objects.filter(organisation=org_pk, name__iexact=data["name"].strip()).exists():
             error = {"name": [ErrorDetail(string="Name is not unique.", code="invalid")]}
             return JsonResponse(data={"errors": error}, status=status.HTTP_400_BAD_REQUEST)
 

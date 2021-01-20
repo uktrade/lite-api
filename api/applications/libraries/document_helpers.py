@@ -75,8 +75,8 @@ def upload_party_document(party, data, application, user):
         return JsonResponse(data={"error": "No such user"}, status=status.HTTP_404_NOT_FOUND)
 
     documents = PartyDocument.objects.filter(party=party, safe=True)
-    if documents:
-        return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST,)
+    if documents.exists():
+        return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
     data["party"] = party.id
     serializer = PartyDocumentSerializer(data=data)
@@ -132,8 +132,8 @@ def upload_goods_type_document(goods_type, data):
         return JsonResponse(data={"error": "No such goods type"}, status=status.HTTP_400_BAD_REQUEST)
 
     documents = GoodsTypeDocument.objects.filter(goods_type=goods_type)
-    if documents:
-        return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST,)
+    if documents.exists():
+        return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
     data["goods_type"] = goods_type.id
     serializer = GoodsTypeDocumentSerializer(data=data)

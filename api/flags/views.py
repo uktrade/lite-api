@@ -274,7 +274,7 @@ class AssignFlags(APIView):
 
         if not qs:
             qs = HmrcQuery.objects.filter(parties__party=party)
-        if qs:
+        if qs.exists():
             return qs.first().get_case()
 
 
