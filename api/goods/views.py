@@ -304,7 +304,9 @@ class GoodOverview(APIView):
             query = GoodsQuery.objects.filter(good=good)
             if query.exists():
                 delete_exporter_notifications(
-                    user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=query
+                    user=request.user.exporteruser,
+                    organisation_id=get_request_user_organisation_id(request),
+                    objects=query,
                 )
         else:
             serializer = GoodSerializerInternal(good)

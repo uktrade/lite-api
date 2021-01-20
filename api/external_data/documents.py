@@ -39,21 +39,18 @@ class DenialDocumentType(Document):
     class Django:
         model = models.Denial
 
-    def get_indexing_queryset(self):
-        return self.get_queryset().exclude(is_revoked=True)
-
 
 class SanctionDocumentType(Document):
 
     list_type = fields.Keyword()
     reference = fields.Keyword()
     name = fields.Text()
-    data = fields.Object(properties={
-        'listed_on': fields.TextField(),
-        'individual_date_of_birth': fields.Object(properties={
-            'date': fields.TextField(),
-        })
-    })
+    data = fields.Object(
+        properties={
+            "listed_on": fields.TextField(),
+            "individual_date_of_birth": fields.Object(properties={"date": fields.TextField(),}),
+        }
+    )
 
     class Index:
         name = settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS

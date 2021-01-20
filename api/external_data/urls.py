@@ -12,4 +12,5 @@ router.register("denial-search", views.DenialSearchView, basename="denial_search
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("sanction-search", views.SanctionSearchView.as_view(), name="sanction-search"),
 ]

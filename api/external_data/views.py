@@ -1,8 +1,12 @@
+from elasticsearch_dsl import Search
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
+
+from django.conf import settings
 
 from api.core.authentication import GovAuthentication
 from api.external_data import documents, models, serializers
@@ -39,3 +43,12 @@ class DenialSearchView(DocumentViewSet):
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False)
         return super().filter_queryset(queryset)
+
+
+class SanctionSearchView(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        search = Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS)
+        results = search.query("match", name=request.GET["name"]).execute()
+        return Response(results)
