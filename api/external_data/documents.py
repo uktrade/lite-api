@@ -45,6 +45,8 @@ class SanctionDocumentType(Document):
     list_type = fields.Keyword()
     reference = fields.Keyword()
     name = fields.Text()
+    address = fields.Text()
+
     data = fields.Object(
         properties={
             "listed_on": fields.TextField(),

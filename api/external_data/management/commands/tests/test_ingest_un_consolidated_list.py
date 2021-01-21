@@ -1,7 +1,10 @@
 from unittest import mock
 
 from elasticsearch_dsl import Index, Search
+import pyexcel
+import requests_mock
 
+from django.conf import settings
 from django.core.management import call_command
 
 from api.external_data.management.commands import ingest_sanctions
@@ -14,7 +17,7 @@ class PopulateSanctionsTests(DataTestClient):
     @mock.patch.object(ingest_sanctions, "get_office_financial_sanctions_implementation")
     @mock.patch.object(ingest_sanctions, "get_uk_sanctions_list")
     def test_populate_sanctions(
-        self, mock_get_uk_sanctions_list, mock_get_office_financial_sanctions_implementation, mock_get_un_sanctions,
+        self, mock_get_uk_sanctions_list, mock_get_office_financial_sanctions_implementation, mock_get_un_sanctions
     ):
         mock_get_uk_sanctions_list.return_value = iter(
             [
@@ -171,7 +174,7 @@ class PopulateSanctionsTests(DataTestClient):
                             "list_type": {"value": "UN List"},
                             "last_day_updated": {"value": None},
                             "individual_alias": {"quality": None, "alias_name": None},
-                            "individual_address": {"country": None},
+                            "individual_address": [{"country": None}],
                             "individual_date_of_birth": {"type_of_date": "EXACT", "date": "1964-07-17"},
                             "individual_place_of_birth": None,
                             "individual_document": {"type_of_document": "Passport", "number": "381310014"},
@@ -185,7 +188,9 @@ class PopulateSanctionsTests(DataTestClient):
                         {
                             "comments1": "The Propaganda and Agitation Department has full control over",
                             "dataid": "6908629",
-                            "entity_address": {"city": "Pyongyang", "country": "Democratic People's Republic of Korea"},
+                            "entity_address": [
+                                {"city": "Pyongyang", "country": "Democratic People's Republic of Korea"}
+                            ],
                             "entity_alias": {"alias_name": None, "quality": None},
                             "first_name": "PROPAGANDA AND AGITATION DEPARTMENT (PAD)",
                             "last_day_updated": {"value": None},
@@ -209,23 +214,57 @@ class PopulateSanctionsTests(DataTestClient):
         search = Search(index=documents.SanctionDocumentType.Index.name)
 
         results_one = search.query("match", name="RI WON HO").execute()
-        assert len(results_one.hits) == 1
-        assert results_one.hits[0]["name"] == "RI WON HO"
-        assert results_one.hits[0]["list_type"] == "UN SC"
-        assert results_one.hits[0]["reference"] == "6908555"
+        self.assertEqual(len(results_one.hits), 1)
+        self.assertEqual(results_one.hits[0]["name"], "RI WON HO")
+        self.assertEqual(results_one.hits[0]["list_type"], "UN SC")
+        self.assertEqual(results_one.hits[0]["reference"], "6908555")
 
         results_two = search.query("match", name="PROPAGANDA AND AGITATION DEPARTMENT").execute()
-        assert len(results_two.hits) == 1
-        assert results_two.hits[0]["name"] == "PROPAGANDA AND AGITATION DEPARTMENT (PAD)"
-        assert results_two.hits[0]["list_type"] == "UN SC"
-        assert results_two.hits[0]["reference"] == "6908629"
+        self.assertEqual(len(results_two.hits), 1)
+        self.assertEqual(results_two.hits[0]["name"], "PROPAGANDA AND AGITATION DEPARTMENT (PAD)")
+        self.assertEqual(results_two.hits[0]["list_type"], "UN SC")
+        self.assertEqual(results_two.hits[0]["reference"], "6908629")
 
         results_three = search.query("match", name="Haji Agha Abdul Manan").execute()
-        assert len(results_three.hits) == 2
-        assert results_three.hits[0]["name"] == "Haji Agha Abdul Manan"
-        assert results_three.hits[0]["list_type"] == "OFSI"
-        assert results_three.hits[0]["reference"] == "109"
+        self.assertEqual(len(results_three.hits), 2)
+        self.assertEqual(results_three.hits[0]["name"], "Haji Agha Abdul Manan")
+        self.assertEqual(results_three.hits[0]["list_type"], "OFSI")
+        self.assertEqual(results_three.hits[0]["reference"], "109")
 
-        assert results_three.hits[1]["name"] == "HAJI KHAIRULLAH HAJI SATTAR MONEY EXCHANGE"
-        assert results_three.hits[1]["list_type"] == "UK sanction"
-        assert results_three.hits[1]["reference"] == "AFG0001"
+        self.assertEqual(results_three.hits[1]["name"], "HAJI KHAIRULLAH HAJI SATTAR MONEY EXCHANGE")
+        self.assertEqual(results_three.hits[1]["list_type"], "UK sanction")
+        self.assertEqual(results_three.hits[1]["reference"], "AFG0001")
+
+    def test_get_un_sanctions(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://scsanctions.un.org/resources/xml/en/consolidated.xml", content=b"<note><to>Tove</to></note>")
+            ingest_sanctions.get_un_sanctions()
+
+    def test_get_office_financial_sanctions_implementation(self):
+        with requests_mock.Mocker() as m:
+            m.get(
+                "https://ofsistorage.blob.core.windows.net/publishlive/ConList.xml",
+                content=b"<note><to>Tove</to></note>",
+            )
+            ingest_sanctions.get_office_financial_sanctions_implementation()
+
+    def test_get_uk_sanctions_list(self):
+        book = pyexcel.get_book(
+            bookdict={
+                "Sheet 1": [["a", "b", "c"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]],
+                "Sheet 2": [["x", "y", "z"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+            }
+        )
+        with mock.patch.object(pyexcel, "get_book", return_value=book):
+            parsed = ingest_sanctions.get_uk_sanctions_list()
+
+        self.assertEqual(
+            list(parsed),
+            [
+                {"a": 1.0, "b": 2.0, "c": 3.0, "sheet": "Sheet 1"},
+                {"a": 4.0, "b": 5.0, "c": 6.0, "sheet": "Sheet 1"},
+                {"a": 7.0, "b": 8.0, "c": 9.0, "sheet": "Sheet 1"},
+                {"x": 1.0, "y": 2.0, "z": 3.0, "sheet": "Sheet 2"},
+                {"x": 4.0, "y": 5.0, "z": 6.0, "sheet": "Sheet 2"},
+            ],
+        )
