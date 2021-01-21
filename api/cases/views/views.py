@@ -133,7 +133,8 @@ class SetQueues(APIView):
         if len(request_queues) > queues.count():
             queues_not_found = list(request_queues - set((str(id) for id in queues.values_list("id", flat=True))))
             return JsonResponse(
-                data={"errors": {"queues": [Cases.Queue.NOT_FOUND + str(queues_not_found)]}}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": {"queues": [Cases.Queue.NOT_FOUND + str(queues_not_found)]}},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         initial_queues = set(case.queues.all())
