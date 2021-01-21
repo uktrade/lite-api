@@ -23,7 +23,16 @@ class PartyManager(models.Manager):
         Copies the details of a party.
         """
         qs = self.values(
-            "name", "address", "country", "website", "type", "organisation", "sub_type", "sub_type_other", "copy_of"
+            "name",
+            "address",
+            "country",
+            "website",
+            "signatory_name_euu",
+            "type",
+            "organisation",
+            "sub_type",
+            "sub_type_other",
+            "copy_of",
         )
         values = dict(qs.get(pk=pk))
         if not values["copy_of"]:
@@ -39,6 +48,7 @@ class Party(TimestampableModel):
     address = models.TextField(default=None, blank=True, max_length=256)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     website = models.URLField(default=None, blank=True, null=True)
+    signatory_name_euu = models.TextField(blank=True)
     type = models.CharField(choices=PartyType.choices, max_length=20)
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True, related_name="organisation_party", on_delete=models.DO_NOTHING,

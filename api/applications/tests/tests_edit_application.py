@@ -579,6 +579,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
             "type": PartyType.END_USER,
             "name": "Government of Paraguay",
             "address": "Asuncion",
+            "signatory_name_euu": "Government of Paraguay",
             "country": "PY",
             "sub_type": "government",
             "website": "https://www.gov.py",
