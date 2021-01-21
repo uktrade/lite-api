@@ -248,7 +248,7 @@ class GoodTAUDetails(APIView):
         good = get_good(pk)
 
         if hasattr(request.user, "exporteruser"):
-            if good.organisation.id != get_request_user_organisation_id(request):
+            if good.organisation_id != get_request_user_organisation_id(request):
                 raise PermissionDenied()
             else:
                 serializer = TinyGoodDetailsSerializer(good)
@@ -286,7 +286,7 @@ class GoodOverview(APIView):
         good = get_good(pk)
 
         if hasattr(request.user, "exporteruser"):
-            if good.organisation.id != get_request_user_organisation_id(request):
+            if good.organisation_id != get_request_user_organisation_id(request):
                 raise PermissionDenied()
 
             if str_to_bool(request.GET.get("full_detail")):
@@ -302,11 +302,9 @@ class GoodOverview(APIView):
 
             # If there's a query with this good, update the notifications on it
             query = GoodsQuery.objects.filter(good=good)
-            if query:
+            if query.exists():
                 delete_exporter_notifications(
-                    user=request.user.exporteruser,
-                    organisation_id=get_request_user_organisation_id(request),
-                    objects=query,
+                    user=request.user.exporteruser, organisation_id=get_request_user_organisation_id(request), objects=query
                 )
         else:
             serializer = GoodSerializerInternal(good)
@@ -317,7 +315,7 @@ class GoodOverview(APIView):
         """ Edit details of a good. This includes description, control codes and PV grading. """
         good = get_good(pk)
 
-        if good.organisation.id != get_request_user_organisation_id(request):
+        if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
 
         if good.status == GoodStatus.SUBMITTED:
@@ -339,7 +337,7 @@ class GoodOverview(APIView):
     def delete(self, request, pk):
         good = get_good(pk)
 
-        if good.organisation.id != get_request_user_organisation_id(request):
+        if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
 
         if good.status != GoodStatus.DRAFT:
@@ -375,7 +373,7 @@ class GoodDocuments(APIView):
         good_id = str(good.id)
         data = request.data
 
-        if good.organisation.id != get_request_user_organisation_id(request):
+        if good.organisation_id != get_request_user_organisation_id(request):
             delete_documents_on_bad_request(data)
             raise PermissionDenied()
 
@@ -416,7 +414,7 @@ class GoodDocumentDetail(APIView):
         """
         good = get_good(pk)
 
-        if good.organisation.id != get_request_user_organisation_id(request):
+        if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
 
         if good.status != GoodStatus.DRAFT:
@@ -435,7 +433,7 @@ class GoodDocumentDetail(APIView):
         """
         good = get_good(pk)
 
-        if good.organisation.id != get_request_user_organisation_id(request):
+        if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
 
         if good.status != GoodStatus.DRAFT:
@@ -448,7 +446,7 @@ class GoodDocumentDetail(APIView):
         document.delete_s3()
 
         good_document.delete()
-        if GoodDocument.objects.filter(good=good).count() == 0:
+        if not GoodDocument.objects.filter(good=good).exists():
             for good_on_application in GoodOnApplication.objects.filter(good=good):
                 good_on_application.delete()
 

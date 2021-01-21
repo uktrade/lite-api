@@ -127,7 +127,7 @@ def _validate_countries(draft, errors, is_mandatory):
 
     if is_mandatory:
         results = CountryOnApplication.objects.filter(application=draft)
-        if len(results) == 0:
+        if not results.exists():
             errors["countries"] = [strings.Applications.Open.NO_COUNTRIES_SET]
         elif getattr(draft, "goodstype_category", None) not in GoodsTypeCategory.IMMUTABLE_GOODS:
             for coa in results:
@@ -283,14 +283,13 @@ def _validate_goods(draft, errors, is_mandatory):
             errors["goods"] = [strings.Applications.Standard.NO_GOODS_SET]
 
     # Check goods documents
-    if goods_on_application:
+    if goods_on_application.exists():
         goods = goods_on_application.values_list("good", flat=True)
         document_errors = _get_document_errors(
             GoodDocument.objects.filter(good__in=goods),
             processing_error=strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING,
             virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
         )
-
         if document_errors:
             errors["goods"] = [document_errors]
 
