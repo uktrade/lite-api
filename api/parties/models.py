@@ -38,6 +38,8 @@ class PartyManager(models.Manager):
         if not values["copy_of"]:
             values["copy_of"] = str(pk)
         values["organisation"] = str(values.get("organisation", ""))
+        if "signatory_name_euu" in values:
+            values["signatory_name_euu"] = ""
 
         return values
 
