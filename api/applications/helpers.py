@@ -1,3 +1,7 @@
+from django.conf import settings
+
+from elasticsearch_dsl import Search
+
 from api.applications.enums import ApplicationExportType
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.applications.serializers.end_use_details import (
@@ -191,3 +195,15 @@ def delete_uploaded_document(data):
         Document(s3_key=doc_key, name="toDelete").delete_s3()
     else:
         s3_operations.delete_file(None, doc_key)
+
+
+def auto_match_sanctions(application):
+    search = Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS)
+    party = application.end_user.party
+    results = search.query("match", name=party.signatory_name_euu, address=party.address).execute()
+
+    for match in results.hits.hits:
+        SanctionMatch.objcets.create(
+            application=application,
+            elasticsearch_reference=match['reference']
+        )
