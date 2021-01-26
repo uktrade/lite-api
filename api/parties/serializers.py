@@ -18,6 +18,7 @@ class PartySerializer(serializers.ModelSerializer):
     address = serializers.CharField(error_messages=PartyErrors.ADDRESS)
     country = CountrySerializerField()
     website = serializers.CharField(required=False, allow_blank=True)
+    signatory_name_euu = serializers.CharField(allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices, error_messages=PartyErrors.TYPE)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
@@ -43,6 +44,7 @@ class PartySerializer(serializers.ModelSerializer):
             "address",
             "country",
             "website",
+            "signatory_name_euu",
             "type",
             "organisation",
             "document",
@@ -66,6 +68,9 @@ class PartySerializer(serializers.ModelSerializer):
             role = self.initial_data.get("role")
             sub_type = self.initial_data.get("sub_type")
 
+            if party_type != PartyType.END_USER:
+                self.fields["signatory_name_euu"].required = False
+
             if sub_type == SubType.OTHER:
                 self.fields["sub_type_other"].required = True
                 self.fields["sub_type_other"].allow_blank = False
@@ -85,6 +90,15 @@ class PartySerializer(serializers.ModelSerializer):
                     self.fields["role_other"].allow_null = False
                 else:
                     self.fields.pop("role_other")
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+
+        if validated_data.get("type") == PartyType.END_USER:
+            if "signatory_name_euu" in validated_data and validated_data.get("signatory_name_euu") == "":
+                raise serializers.ValidationError({"signatory_name_euu": "Enter a name"})
+
+        return validated_data
 
     @staticmethod
     def validate_website(value):

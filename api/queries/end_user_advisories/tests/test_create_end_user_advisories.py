@@ -21,6 +21,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
                 "name": "Ada",
                 "website": "https://gov.uk",
                 "address": "123",
+                "signatory_name_euu": "Ada",
                 "country": "GB",
                 "type": PartyType.END_USER,
             },
@@ -64,6 +65,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
                 "name": "Ada",
                 "website": "https://gov.uk",
                 "address": "123",
+                "signatory_name_euu": "Ada",
                 "country": "GB",
                 "type": PartyType.END_USER,
             },
@@ -132,6 +134,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
                 "name": "Ada",
                 "website": "https://gov.uk",
                 "address": "123",
+                "signatory_name_euu": "Ada",
                 "country": "GB",
                 "type": PartyType.END_USER,
             },
@@ -163,6 +166,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
                 "name": "Ada",
                 "website": "https://gov.uk",
                 "address": "123",
+                "signatory_name_euu": "Ada",
                 "country": "GB",
                 "type": PartyType.END_USER,
             },
@@ -192,6 +196,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
                 "name": "Ada",
                 "website": "https://gov.uk",
                 "address": "123",
+                "signatory_name_euu": "Ada",
                 "country": "GB",
                 "type": PartyType.END_USER,
             },
@@ -216,6 +221,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
                 "name": "Ada",
                 "website": "https://gov.uk",
                 "address": "123",
+                "signatory_name_euu": "Ada",
                 "country": "GB",
                 "type": PartyType.END_USER,
             },
@@ -238,6 +244,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(end_user_data["sub_type"]["key"], data["end_user"]["sub_type"])
         self.assertEqual(end_user_data["name"], data["end_user"]["name"])
         self.assertEqual(end_user_data["website"], data["end_user"]["website"])
+        self.assertEqual(end_user_data["signatory_name_euu"], data["end_user"]["signatory_name_euu"])
         self.assertEqual(end_user_data["address"], data["end_user"]["address"])
         self.assertEqual(end_user_data["country"]["id"], data["end_user"]["country"])
         self.assertEqual(Case.objects.count(), 1)

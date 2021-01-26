@@ -21,6 +21,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.new_end_user_data = {
             "name": "Government of Paraguay",
             "address": "Asuncion",
+            "signatory_name_euu": "Government of Paraguay",
             "country": "PY",
             "sub_type": "government",
             "website": "https://www.gov.py",
@@ -42,6 +43,7 @@ class EndUserOnDraftTests(DataTestClient):
         data = {
             "name": "Government",
             "address": "Westminster, London SW1A 0AA",
+            "signatory_name_euu": "Government",
             "country": "GB",
             "sub_type": data_type,
             "website": "https://www.gov.uk",
@@ -61,6 +63,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(party_on_application.party.name, data["name"])
         self.assertEqual(party_on_application.party.address, data["address"])
+        self.assertEqual(party_on_application.party.signatory_name_euu, data["signatory_name_euu"])
         self.assertEqual(party_on_application.party.country, get_country(data["country"]))
         self.assertEqual(party_on_application.party.sub_type, data_type)
         self.assertEqual(party_on_application.party.sub_type_other, data.get("sub_type_other"))
@@ -70,6 +73,7 @@ class EndUserOnDraftTests(DataTestClient):
         data = {
             "name": "Lemonworld Org",
             "address": "3730 Martinsburg Rd, Gambier, Ohio",
+            "signatory_name_euu": "Lemonworld",
             "country": "US",
             "sub_type": SubType.INDIVIDUAL,
             "type": PartyType.END_USER,
@@ -80,6 +84,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(end_user["name"], data["name"])
         self.assertEqual(end_user["address"], data["address"])
+        self.assertEqual(end_user["signatory_name_euu"], data["signatory_name_euu"])
         self.assertEqual(end_user["country"]["id"], data["country"])
         self.assertEqual(end_user["sub_type"]["key"], data["sub_type"])
 
@@ -327,6 +332,7 @@ class EndUserOnDraftTests(DataTestClient):
         end_user = {
             "name": "UK Government",
             "address": "Westminster, London SW1A 0AA",
+            "signatory_name_euu": "UK Government",
             "country": "GB",
             "sub_type": "government",
             "website": "https://www.gov.uk",
@@ -340,6 +346,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(self.draft.end_user.party.name, end_user["name"])
         self.assertEqual(response_data["name"], end_user["name"])
+        self.assertEqual(response_data["signatory_name_euu"], end_user["signatory_name_euu"])
         self.assertEqual(response_data["address"], end_user["address"])
         self.assertEqual(response_data["country"], end_user["country"])
         self.assertEqual(response_data["sub_type"], end_user["sub_type"])
@@ -353,6 +360,7 @@ class EndUserOnDraftTests(DataTestClient):
         """
         end_user = {
             "address": "Westminster, London SW1A 0AA",
+            "signatory_name_euu": "UK Government",
             "country": "GB",
             "sub_type": "government",
             "website": "https://www.gov.uk",
@@ -361,14 +369,20 @@ class EndUserOnDraftTests(DataTestClient):
         }
 
         response = self.client.post(self.url, end_user, **self.exporter_headers)
-
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": {"name": [PartyErrors.NAME["null"]]}})
+
+        end_user["name"] = "UK Government"
+        end_user["signatory_name_euu"] = ""
+        response = self.client.post(self.url, end_user, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": {"signatory_name_euu": ["Enter a name"]}})
 
     def test_end_user_copy_of_success(self):
         end_user = {
             "name": "UK Government",
             "address": "Westminster, London SW1A 0AA",
+            "signatory_name_euu": "UK Government",
             "country": "GB",
             "sub_type": "government",
             "website": "https://www.gov.uk",
