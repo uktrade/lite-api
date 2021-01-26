@@ -101,11 +101,17 @@ class Command(BaseCommand):
         for item in parsed["arrayofconsolidatedlist"]["consolidatedlist"]:
 
             item.pop("nationality", None)
+            address = item["fulladdress"]
+            postcode = normalize_address(item["postcode"])
+
+            if postcode not in normalize_address(address):
+                address += " " + postcode
 
             document = documents.SanctionDocumentType(
                 meta={"id": f'OFSI:{item["id"]}'},
                 name=item["fullname"],
-                address=item["fulladdress"],
+                address=address,
+                postcode=postcode,
                 list_type="OFSI",
                 reference=item["id"],
                 data=item,
@@ -118,13 +124,23 @@ class Command(BaseCommand):
 
             item.pop("nationality", None)
             address = join_fields(item, fields=["Address Line 1", "Address Line 2", "Address Line 3", "Address Line 4"])
+            postcode = normalize_address(item["Postcode"])
+            if postcode not in normalize_address(address):
+                address += " " + postcode
 
             document = documents.SanctionDocumentType(
                 # no unique id for this
                 name=item["Primary Name"],
                 address=address,
+                postcode=postcode,
                 list_type="UK sanction",
                 reference=item["Unique ID"],
                 data=item,
             )
             document.save()
+
+
+def normalize_address(value):
+    if value.lower() in ["unknown", None, ""]:
+        return None
+    return value.replace(" ", "")

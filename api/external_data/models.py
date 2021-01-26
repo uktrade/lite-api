@@ -23,3 +23,11 @@ class Denial(TimestampableModel):
     data = JSONField()
     is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
     is_revoked_comment = models.TextField(default="")
+
+
+class SanctionMatch(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
+    application = models.ForeignKey(
+        "applications.BaseApplication", on_delete=models.CASCADE, related_name="sanction_matches"
+    )
+    elasticsearch_reference = models.TextField()

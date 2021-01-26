@@ -20,7 +20,7 @@ from api.applications.helpers import (
     get_application_view_serializer,
     get_application_update_serializer,
     validate_and_create_goods_on_licence,
-    auto_match_sanctions
+    auto_match_sanctions,
 )
 from api.applications.libraries.application_helpers import (
     optional_str_to_bool,

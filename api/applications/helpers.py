@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from elasticsearch_dsl import Search
+from elasticsearch_dsl import Search, Q
 
 from api.applications.enums import ApplicationExportType
 from api.applications.models import BaseApplication, GoodOnApplication
@@ -47,6 +47,8 @@ from api.documents.models import Document
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from api.documents.libraries import s3_operations
+
+from api.external_data.models import SanctionMatch
 
 
 def get_application_view_serializer(application: BaseApplication):
@@ -198,12 +200,24 @@ def delete_uploaded_document(data):
 
 
 def auto_match_sanctions(application):
-    search = Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS)
     party = application.end_user.party
-    results = search.query("match", name=party.signatory_name_euu, address=party.address).execute()
+    query = build_query(name=party.signatory_name_euu, address=party.address)
+    results = Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS).query(query)
+    for match in results.execute().hits:
+        if match.meta.score > 0.5:
+            SanctionMatch.objects.create(application=application, elasticsearch_reference=match["reference"])
 
-    for match in results.hits.hits:
-        SanctionMatch.objcets.create(
-            application=application,
-            elasticsearch_reference=match['reference']
-        )
+
+def normalize_address(value):
+    return value.upper().replace(" ", "")
+
+
+def build_query(name, address):
+    return Q(
+        "bool",
+        should=[
+            Q("function_score", query=Q("match", name=name), min_score=0.5),
+            Q("function_score", query=Q("match", address=address), weight=0.5),
+        ],
+        minimum_should_match=1,
+    )
