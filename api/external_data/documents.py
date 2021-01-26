@@ -38,3 +38,26 @@ class DenialDocumentType(Document):
 
     class Django:
         model = models.Denial
+
+
+class SanctionDocumentType(Document):
+
+    list_type = fields.Keyword()
+    reference = fields.Keyword()
+    name = fields.Text()
+    address = fields.Text()
+
+    data = fields.Object(
+        properties={
+            "listed_on": fields.TextField(),
+            "individual_date_of_birth": fields.Object(properties={"date": fields.TextField(),}),
+        }
+    )
+
+    class Index:
+        name = settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS
+        settings = {
+            "number_of_shards": 1,
+            "number_of_replicas": 0,
+            "max_ngram_diff": 18,
+        }

@@ -1,13 +1,13 @@
 import os
 
-from test_helpers.clients import DataTestClient
+from elasticsearch_dsl import Index
 
 from django.core.management import call_command
 from django.conf import settings
-from django.test import override_settings
 from django.urls import reverse
 
-from api.external_data import models, serializers
+from api.external_data import documents, models, serializers
+from test_helpers.clients import DataTestClient
 
 
 class DenialViewSetTests(DataTestClient):
@@ -109,7 +109,6 @@ class DenialViewSetTests(DataTestClient):
 
 
 class DenialSearchView(DataTestClient):
-    @override_settings(ELASTICSEARCH_DENIALS_INDEX_ALIAS="denials-alias-test")
     def test_search(self):
         call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
         # given some denials exist
@@ -134,3 +133,14 @@ class DenialSearchView(DataTestClient):
         response = self.client.get(url, {"search": "Example"}, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()["hits"]["hits"]), 2)
+
+
+class DenialSearchViewTests(DataTestClient):
+    def test_search(self):
+        Index("sanctions-alias-test").create(ignore=[400])
+
+        url = reverse("external_data:sanction-search")
+
+        response = self.client.get(f"{url}?name=foo", **self.gov_headers)
+
+        self.assertEqual(response.status_code, 200)
