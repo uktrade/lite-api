@@ -88,7 +88,7 @@ postcode_normalizer = analysis.normalizer(
 
 class SanctionDocumentType(Document):
 
-    list_type = fields.Keyword()
+    flag_uuid = fields.Keyword()
     reference = fields.Keyword()
     name = fields.Text(analyzer=name_analyzer)
     address = fields.Text(analyzer=address_analyzer)

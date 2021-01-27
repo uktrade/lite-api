@@ -380,7 +380,7 @@ class ApplicationSubmission(APIView):
             if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
                 application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
             auto_match_sanctions(application)
 
         # If the user hasn't visited the optional goods to country mapping page, then no goods to country mappings will

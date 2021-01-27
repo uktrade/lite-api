@@ -27,7 +27,7 @@ class Denial(TimestampableModel):
 
 class SanctionMatch(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
-    application = models.ForeignKey(
-        "applications.BaseApplication", on_delete=models.CASCADE, related_name="sanction_matches"
+    party_on_application = models.ForeignKey(
+        "applications.PartyOnApplication", on_delete=models.CASCADE, related_name="sanction_matches"
     )
     elasticsearch_reference = models.TextField()

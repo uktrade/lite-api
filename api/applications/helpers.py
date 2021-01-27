@@ -44,11 +44,11 @@ from api.applications.serializers.temporary_export_details import TemporaryExpor
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType, AdviceLevel
 from api.core.exceptions import BadRequestError
 from api.documents.models import Document
+from api.documents.libraries import s3_operations
+from api.external_data.models import SanctionMatch
+from api.flags.models import Flag
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
-from api.documents.libraries import s3_operations
-
-from api.external_data.models import SanctionMatch
 
 
 def get_application_view_serializer(application: BaseApplication):
@@ -200,12 +200,24 @@ def delete_uploaded_document(data):
 
 
 def auto_match_sanctions(application):
-    party = application.end_user.party
-    query = build_query(name=party.signatory_name_euu, address=party.address)
-    results = Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS).query(query)
-    for match in results.execute().hits:
-        if match.meta.score > 0.5:
-            SanctionMatch.objects.create(application=application, elasticsearch_reference=match["reference"])
+    parties = []
+    if application.end_user:
+        parties.append(application.end_user.party)
+
+    for item in application.ultimate_end_users:
+        parties.append(item.party)
+
+    for party in parties:
+        query = build_query(name=party.signatory_name_euu, address=party.address)
+        results = Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS).query(query)
+        for match in results.execute().hits:
+            if match.meta.score > 0.5:
+                party_on_application = application.parties.get(party=party)
+                flag = Flag.objects.get(pk=match["flag_uuid"])
+                party_on_application.flags.add(flag)
+                SanctionMatch.objects.create(
+                    party_on_application=party_on_application, elasticsearch_reference=match["reference"]
+                )
 
 
 def normalize_address(value):

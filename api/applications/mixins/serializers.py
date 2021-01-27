@@ -61,6 +61,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
 
     def get_end_user(self, instance):
         data = self.__parties(instance, PartyType.END_USER)
+
         return data[0] if data else None
 
     def get_ultimate_end_users(self, instance):
