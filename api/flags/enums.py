@@ -3,12 +3,14 @@ class FlagLevels:
     ORGANISATION = "Organisation"
     GOOD = "Good"
     DESTINATION = "Destination"
+    PARTY_ON_APPLICATION = "PartyOnApplication"
 
     choices = [
         (CASE, "Case"),
         (ORGANISATION, "Organisation"),
         (GOOD, "Good"),
         (DESTINATION, "Destination"),
+        (PARTY_ON_APPLICATION, "PartyOnApplication"),
     ]
 
 

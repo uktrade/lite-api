@@ -16,7 +16,7 @@ from api.core.authentication import GovAuthentication
 from api.core.constants import GovPermissions
 from api.core.helpers import str_to_bool
 from api.core.permissions import assert_user_has_permission
-from api.flags.enums import FlagStatuses, SystemFlags
+from api.flags.enums import FlagLevels, FlagStatuses, SystemFlags
 from api.flags.helpers import get_object_of_level
 from api.flags.libraries.get_flag import get_flagging_rule
 from api.flags.models import Flag, FlaggingRule
@@ -62,7 +62,7 @@ class FlagsListCreateView(ListCreateAPIView):
         if case:
             flags = get_flags(get_case(case))
         else:
-            flags = Flag.objects.all()
+            flags = Flag.objects.exclude(level=FlagLevels.PARTY_ON_APPLICATION)
 
         if name:
             flags = flags.filter(name__icontains=name)
@@ -80,7 +80,7 @@ class FlagsListCreateView(ListCreateAPIView):
             flags = flags.filter(status=status)
 
         if include_system_flags:
-            system_flags = Flag.objects.filter(id__in=SystemFlags.list)
+            system_flags = Flag.objects.filter(id__in=SystemFlags.list).exclude(level=FlagLevels.PARTY_ON_APPLICATION)
             flags = flags | system_flags
 
         if blocks_approval:
@@ -94,7 +94,7 @@ class FlagsRetrieveUpdateView(RetrieveUpdateAPIView):
     serializer_class = FlagSerializer
 
     def get_queryset(self):
-        return Flag.objects.filter(team=self.request.user.govuser.team)
+        return Flag.objects.filter(team=self.request.user.govuser.team).exclude(level=FlagLevels.PARTY_ON_APPLICATION)
 
     def perform_update(self, serializer):
         # if status is being updated, ensure user has permission
