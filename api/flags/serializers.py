@@ -5,9 +5,9 @@ from rest_framework.validators import UniqueValidator
 from api.core.serializers import PrimaryKeyRelatedSerializerField
 from api.flags.enums import FlagLevels, FlagStatuses, FlagColours
 from api.flags.models import Flag, FlaggingRule
-from lite_content.lite_api import strings
 from api.teams.models import Team
 from api.teams.serializers import TeamSerializer, TeamReadOnlySerializer
+from lite_content.lite_api import strings
 
 
 class FlagReadOnlySerializer(serializers.Serializer):
