@@ -11,9 +11,6 @@ from test_helpers.clients import DataTestClient
 from api.external_data.documents import SanctionDocumentType
 
 
-index = Index(settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS)
-
-
 class AbstractAutoMatchTests:
     def create_application(self):
         raise NotImplementedError
@@ -22,7 +19,7 @@ class AbstractAutoMatchTests:
         raise NotImplementedError
 
     def test_auto_match_sanctions_no_matches(self):
-        index.delete(ignore=[404])
+        SanctionDocumentType._index.delete(ignore=[404])
         SanctionDocumentType.init()
 
         application = self.create_application()
@@ -36,7 +33,7 @@ class AbstractAutoMatchTests:
         self.assertEquals(party_on_application.flags.count(), 0)
 
     def test_auto_match_sanctions_match_name(self):
-        index.delete(ignore=[404])
+        SanctionDocumentType._index.delete(ignore=[404])
         SanctionDocumentType.init()
 
         application = self.create_application()
@@ -52,7 +49,7 @@ class AbstractAutoMatchTests:
             reference="123",
         )
         document.save()
-        index.refresh()
+        SanctionDocumentType._index.refresh()
 
         helpers.auto_match_sanctions(application)
 
@@ -63,7 +60,7 @@ class AbstractAutoMatchTests:
         self.assertEquals(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
 
     def test_auto_match_sanctions_match_address(self):
-        index.delete(ignore=[404])
+        SanctionDocumentType._index.delete(ignore=[404])
         SanctionDocumentType.init()
 
         application = self.create_application()
@@ -78,7 +75,7 @@ class AbstractAutoMatchTests:
             reference="123",
         )
         document.save()
-        index.refresh()
+        SanctionDocumentType._index.refresh()
 
         helpers.auto_match_sanctions(application)
 
@@ -95,7 +92,7 @@ class AbstractAutoMatchTests:
             "Jack Jeremyson",
         ]
         for name_variant in names:
-            index.delete(ignore=[404])
+            SanctionDocumentType._index.delete(ignore=[404])
             SanctionDocumentType.init()
 
             application = self.create_application()
@@ -111,7 +108,7 @@ class AbstractAutoMatchTests:
                 reference="123",
             )
             document.save()
-            index.refresh()
+            SanctionDocumentType._index.refresh()
 
             helpers.auto_match_sanctions(application)
 
@@ -131,7 +128,7 @@ class AbstractAutoMatchTests:
         ]
 
         for address_variant in addresses:
-            index.delete(ignore=[404])
+            SanctionDocumentType._index.delete(ignore=[404])
             SanctionDocumentType.init()
 
             application = self.create_application()
@@ -147,7 +144,7 @@ class AbstractAutoMatchTests:
                 reference="123",
             )
             document.save()
-            index.refresh()
+            SanctionDocumentType._index.refresh()
 
             helpers.auto_match_sanctions(application)
 
@@ -168,7 +165,7 @@ class AbstractAutoMatchTests:
         ]
 
         for name_variant in names:
-            index.delete(ignore=[404])
+            SanctionDocumentType._index.delete(ignore=[404])
             SanctionDocumentType.init()
 
             application = self.create_application()
@@ -185,7 +182,7 @@ class AbstractAutoMatchTests:
                 reference="123",
             )
             document.save()
-            index.refresh()
+            SanctionDocumentType._index.refresh()
 
             helpers.auto_match_sanctions(application)
 
@@ -221,7 +218,7 @@ class AbstractAutoMatchTests:
         ]
 
         for name, address, postcode in itertools.product(names, addresses, postcodes):
-            index.delete(ignore=[404])
+            SanctionDocumentType._index.delete(ignore=[404])
             SanctionDocumentType.init()
 
             application = self.create_application()
@@ -238,7 +235,7 @@ class AbstractAutoMatchTests:
                 reference="123",
             )
             document.save()
-            index.refresh()
+            SanctionDocumentType._index.refresh()
             helpers.auto_match_sanctions(application)
 
             party_on_application = application.parties.get(party=party)
