@@ -3,6 +3,7 @@ import itertools
 from elasticsearch_dsl import Index, Q, Search
 
 from django.conf import settings
+from django.test import tag
 
 from api.applications import helpers, models
 from api.flags.enums import SystemFlags
@@ -13,13 +14,7 @@ from api.external_data.documents import SanctionDocumentType
 
 def prepare_index():
     SanctionDocumentType._index.delete(ignore=[404])
-    SanctionDocumentType._index.refresh()
-    SanctionDocumentType._index.save()
-    SanctionDocumentType._index.refresh()
-    search = Search(index=SanctionDocumentType._index._name).update_from_dict({"query": {"match_all": {}}})
-
-    for item in search.execute().hits:
-        SanctionDocumentType.get(pk=item["id"]).delete()
+    SanctionDocumentType.init()
 
 
 class AbstractAutoMatchTests:
@@ -29,6 +24,7 @@ class AbstractAutoMatchTests:
     def get_party(self, application):
         raise NotImplementedError
 
+    @tag("elasticsearch")
     def test_auto_match_sanctions_no_matches(self):
         prepare_index()
 
@@ -42,6 +38,7 @@ class AbstractAutoMatchTests:
         self.assertEquals(party_on_application.sanction_matches.all().count(), 0)
         self.assertEquals(party_on_application.flags.count(), 0)
 
+    @tag("elasticsearch")
     def test_auto_match_sanctions_match_name(self):
         prepare_index()
 
@@ -68,6 +65,7 @@ class AbstractAutoMatchTests:
         self.assertEquals(party_on_application.sanction_matches.first().elasticsearch_reference, "123")
         self.assertEquals(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
 
+    @tag("elasticsearch")
     def test_auto_match_sanctions_match_address(self):
         prepare_index()
 
@@ -93,6 +91,7 @@ class AbstractAutoMatchTests:
         self.assertEquals(party_on_application.sanction_matches.first().elasticsearch_reference, "123")
         self.assertEquals(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
 
+    @tag("elasticsearch")
     def test_auto_match_sanctions_match_avoid_false_positive_similar_name_different_address(self):
         names = [
             "Jeremy Thompson",
@@ -124,6 +123,7 @@ class AbstractAutoMatchTests:
             self.assertEquals(party_on_application.sanction_matches.count(), 0)
             self.assertEquals(party_on_application.flags.count(), 0)
 
+    @tag("elasticsearch")
     def test_auto_match_sanctions_match_address_similar(self):
         addresses = [
             "123 Fake Street, London, E14 9IX",
@@ -159,6 +159,7 @@ class AbstractAutoMatchTests:
             self.assertEquals(party_on_application.sanction_matches.count(), 1, msg=f'tried "{address_variant}"')
             self.assertEquals(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
 
+    @tag("elasticsearch")
     def test_auto_match_sanctions_match_name_similar(self):
         names = [
             "Jeremy Jackson",
@@ -196,6 +197,7 @@ class AbstractAutoMatchTests:
             self.assertEquals(party_on_application.sanction_matches.count(), 1, msg=f'tried "{name_variant}"')
             self.assertEquals(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
 
+    @tag("elasticsearch")
     def test_auto_match_sanctions_match_name_address_similar(self):
         names = [
             "Jeremy Jackson",
