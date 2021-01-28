@@ -1,6 +1,6 @@
 import itertools
 
-from elasticsearch_dsl import Index
+from elasticsearch_dsl import Index, Q, Search
 
 from django.conf import settings
 
@@ -11,6 +11,17 @@ from test_helpers.clients import DataTestClient
 from api.external_data.documents import SanctionDocumentType
 
 
+def prepare_index():
+    SanctionDocumentType._index.delete(ignore=[404])
+    SanctionDocumentType._index.refresh()
+    SanctionDocumentType._index.save()
+    SanctionDocumentType._index.refresh()
+    search = Search(index=SanctionDocumentType._index._name).update_from_dict({"query": {"match_all": {}}})
+
+    for item in search.execute().hits:
+        SanctionDocumentType.get(pk=item["id"]).delete()
+
+
 class AbstractAutoMatchTests:
     def create_application(self):
         raise NotImplementedError
@@ -19,8 +30,7 @@ class AbstractAutoMatchTests:
         raise NotImplementedError
 
     def test_auto_match_sanctions_no_matches(self):
-        SanctionDocumentType._index.delete(ignore=[404])
-        SanctionDocumentType.init()
+        prepare_index()
 
         application = self.create_application()
         party = self.get_party(application)
@@ -33,8 +43,7 @@ class AbstractAutoMatchTests:
         self.assertEquals(party_on_application.flags.count(), 0)
 
     def test_auto_match_sanctions_match_name(self):
-        SanctionDocumentType._index.delete(ignore=[404])
-        SanctionDocumentType.init()
+        prepare_index()
 
         application = self.create_application()
 
@@ -60,8 +69,7 @@ class AbstractAutoMatchTests:
         self.assertEquals(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
 
     def test_auto_match_sanctions_match_address(self):
-        SanctionDocumentType._index.delete(ignore=[404])
-        SanctionDocumentType.init()
+        prepare_index()
 
         application = self.create_application()
         party = self.get_party(application)
@@ -92,8 +100,7 @@ class AbstractAutoMatchTests:
             "Jack Jeremyson",
         ]
         for name_variant in names:
-            SanctionDocumentType._index.delete(ignore=[404])
-            SanctionDocumentType.init()
+            prepare_index()
 
             application = self.create_application()
             party = self.get_party(application)
@@ -128,8 +135,7 @@ class AbstractAutoMatchTests:
         ]
 
         for address_variant in addresses:
-            SanctionDocumentType._index.delete(ignore=[404])
-            SanctionDocumentType.init()
+            prepare_index()
 
             application = self.create_application()
             party = self.get_party(application)
@@ -165,8 +171,7 @@ class AbstractAutoMatchTests:
         ]
 
         for name_variant in names:
-            SanctionDocumentType._index.delete(ignore=[404])
-            SanctionDocumentType.init()
+            prepare_index()
 
             application = self.create_application()
             party = self.get_party(application)
@@ -218,8 +223,7 @@ class AbstractAutoMatchTests:
         ]
 
         for name, address, postcode in itertools.product(names, addresses, postcodes):
-            SanctionDocumentType._index.delete(ignore=[404])
-            SanctionDocumentType.init()
+            prepare_index()
 
             application = self.create_application()
             party = self.get_party(application)
