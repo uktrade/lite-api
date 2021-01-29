@@ -219,11 +219,13 @@ def auto_match_sanctions(application):
             for match in matches:
                 if match.meta.score > 0.5:
                     party_on_application = application.parties.get(party=party)
-                    flag = Flag.objects.get(pk=match["flag_uuid"])
-                    party_on_application.flags.add(flag)
-                    SanctionMatch.objects.create(
-                        party_on_application=party_on_application, elasticsearch_reference=match["reference"]
-                    )
+                    reference = match["reference"]
+                    if not party_on_application.sanction_matches.filter(elasticsearch_reference=reference).exists():
+                        flag = Flag.objects.get(pk=match["flag_uuid"])
+                        party_on_application.flags.add(flag)
+                        SanctionMatch.objects.create(
+                            party_on_application=party_on_application, elasticsearch_reference=reference
+                        )
 
 
 def normalize_address(value):
