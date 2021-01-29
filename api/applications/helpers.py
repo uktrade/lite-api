@@ -224,7 +224,10 @@ def auto_match_sanctions(application):
                         flag = Flag.objects.get(pk=match["flag_uuid"])
                         party_on_application.flags.add(flag)
                         SanctionMatch.objects.create(
-                            party_on_application=party_on_application, elasticsearch_reference=reference
+                            party_on_application=party_on_application,
+                            elasticsearch_reference=reference,
+                            name=match["name"],
+                            flag_uuid=match["flag_uuid"],
                         )
 
 

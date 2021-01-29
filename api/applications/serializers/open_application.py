@@ -23,6 +23,7 @@ from api.goodstype.serializers import GoodsTypeViewSerializer
 from api.licences.models import Licence
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
+from api.external_data.serializers import SanctionMatchSerializer
 from api.staticdata.countries.models import Country
 from api.staticdata.countries.serializers import CountrySerializer
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
@@ -36,6 +37,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
     goodstype_category = serializers.SerializerMethodField()
+    sanction_matches = SanctionMatchSerializer(many=True)
 
     class Meta:
         model = OpenApplication
@@ -65,6 +67,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 "trade_control_product_categories",
                 "goodstype_category",
                 "contains_firearm_goods",
+                "sanction_matches",
             )
         )
 

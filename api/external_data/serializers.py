@@ -96,3 +96,20 @@ class DenialSearchSerializer(DocumentSerializer):
     class Meta:
         document = documents.DenialDocumentType
         fields = ("denied_name",)
+
+
+class SanctionMatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Denial
+        fields = (
+            "id",
+            "elasticsearch_reference",
+            "is_removed",
+            "is_removed_comment",
+        )
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+        if validated_data.get("is_removed") and not validated_data.get("is_removed_comment"):
+            raise serializers.ValidationError({"is_removed_comment": "This field is required"})
+        return validated_data
