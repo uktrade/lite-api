@@ -22,6 +22,7 @@ from api.core.serializers import KeyValueChoiceField
 from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
+from api.external_data.serializers import SanctionMatchSerializer
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -33,6 +34,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     proposed_return_date = serializers.DateField(required=False)
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
+    sanction_matches = SanctionMatchSerializer(many=True)
 
     class Meta:
         model = StandardApplication
@@ -67,6 +69,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "proposed_return_date",
                 "trade_control_activity",
                 "trade_control_product_categories",
+                "sanction_matches",
             )
         )
 
