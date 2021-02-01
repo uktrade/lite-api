@@ -7,6 +7,7 @@ from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
 from api.external_data import documents, models
+from api.flags.enums import SystemFlags
 
 
 class DenialSerializer(serializers.ModelSerializer):
@@ -99,13 +100,23 @@ class DenialSearchSerializer(DocumentSerializer):
 
 
 class SanctionMatchSerializer(serializers.ModelSerializer):
+    MATCH_NAME_MAPPING = {
+        SystemFlags.SANCTION_UN_SC_MATCH: "UN SC",
+        SystemFlags.SANCTION_OFSI_MATCH: "OFSI",
+        SystemFlags.SANCTION_UK_MATCH: "UK",
+    }
+
+    list_name = serializers.SerializerMethodField()
+
     class Meta:
-        model = models.Denial
+        model = models.SanctionMatch
         fields = (
             "id",
+            "name",
+            "list_name",
             "elasticsearch_reference",
-            "is_removed",
-            "is_removed_comment",
+            "is_revoked",
+            "is_revoked_comment",
         )
 
     def validate(self, data):
@@ -113,3 +124,6 @@ class SanctionMatchSerializer(serializers.ModelSerializer):
         if validated_data.get("is_removed") and not validated_data.get("is_removed_comment"):
             raise serializers.ValidationError({"is_removed_comment": "This field is required"})
         return validated_data
+
+    def get_list_name(self, obj):
+        return self.MATCH_NAME_MAPPING[obj.flag_uuid]

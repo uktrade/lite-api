@@ -24,6 +24,7 @@ from api.licences.models import Licence
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from api.external_data.serializers import SanctionMatchSerializer
+from api.external_data.models import SanctionMatch
 from api.staticdata.countries.models import Country
 from api.staticdata.countries.serializers import CountrySerializer
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
@@ -37,7 +38,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
     goodstype_category = serializers.SerializerMethodField()
-    sanction_matches = SanctionMatchSerializer(many=True)
+    sanction_matches = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
@@ -70,6 +71,10 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 "sanction_matches",
             )
         )
+
+    def get_sanction_matches(self, application):
+        queryset = SanctionMatch.objects.filter(party_on_application__application=application)
+        return SanctionMatchSerializer(queryset, many=True).data
 
     def get_goods_types(self, application):
         goods_types = application.goods_type.all().prefetch_related("countries", "countries__flags")

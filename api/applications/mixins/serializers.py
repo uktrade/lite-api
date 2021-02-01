@@ -2,10 +2,12 @@ from collections import defaultdict
 
 from rest_framework import serializers
 
+from django.db.models import Min, Case, When, BinaryField
+
 from api.cases.enums import CaseTypeSubTypeEnum
+from api.flags.serializers import FlagSerializer
 from api.parties.enums import PartyType
 from api.parties.serializers import PartySerializer
-from django.db.models import Min, Case, When, BinaryField
 
 
 class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
@@ -40,6 +42,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         self.__cache = defaultdict(list)
         for poa in instance.all_parties():
             party = PartySerializer(poa.party).data
+            party["flags"] += FlagSerializer(poa.flags, many=True).data
             if poa.deleted_at:
                 self.__cache[PartyType.INACTIVE_PARTIES].append(party)
             else:
@@ -61,7 +64,6 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
 
     def get_end_user(self, instance):
         data = self.__parties(instance, PartyType.END_USER)
-
         return data[0] if data else None
 
     def get_ultimate_end_users(self, instance):

@@ -140,6 +140,6 @@ class Command(BaseCommand):
 
 
 def normalize_address(value):
-    if value and value.lower() in ["unknown", None, ""]:
-        return None
+    if not value or value.lower() in ["unknown", None, ""]:
+        return ""
     return value.replace(" ", "")

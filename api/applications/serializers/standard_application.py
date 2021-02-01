@@ -23,6 +23,7 @@ from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.external_data.serializers import SanctionMatchSerializer
+from api.external_data.models import SanctionMatch
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -34,7 +35,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     proposed_return_date = serializers.DateField(required=False)
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
-    sanction_matches = SanctionMatchSerializer(many=True)
+    sanction_matches = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -72,6 +73,10 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "sanction_matches",
             )
         )
+
+    def get_sanction_matches(self, application):
+        queryset = SanctionMatch.objects.filter(party_on_application__application=application)
+        return SanctionMatchSerializer(queryset, many=True).data
 
     def get_licence(self, instance):
         licence = Licence.objects.filter(case=instance).first()

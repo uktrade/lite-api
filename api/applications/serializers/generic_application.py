@@ -14,6 +14,7 @@ from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import CaseType
 from api.core.helpers import get_value_from_enum
 from api.core.serializers import KeyValueChoiceField
+from api.flags.serializers import FlagSerializer
 from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation, Site, ExternalLocation
@@ -160,7 +161,10 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
 
     def get_destinations(self, application):
         if getattr(application, "end_user", None):
-            serializer = PartySerializer(application.end_user.party)
+            party = application.end_user.party
+            serializer = PartySerializer(party)
+            poa = party.parties_on_application.get(application=application)
+            serializer["flags"].value += FlagSerializer(poa.flags, many=True).data
             return {"type": "end_user", "data": serializer.data}
         else:
             return {"type": "end_user", "data": ""}
