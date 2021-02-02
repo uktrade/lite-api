@@ -46,7 +46,6 @@ from api.core.exceptions import BadRequestError
 from api.documents.models import Document
 from api.documents.libraries import s3_operations
 from api.external_data.models import SanctionMatch
-from api.flags.models import Flag
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 
@@ -221,8 +220,6 @@ def auto_match_sanctions(application):
                     party_on_application = application.parties.get(party=party)
                     reference = match["reference"]
                     if not party_on_application.sanction_matches.filter(elasticsearch_reference=reference).exists():
-                        flag = Flag.objects.get(pk=match["flag_uuid"])
-                        party_on_application.flags.add(flag)
                         SanctionMatch.objects.create(
                             party_on_application=party_on_application,
                             elasticsearch_reference=reference,

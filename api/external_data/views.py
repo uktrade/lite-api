@@ -25,6 +25,15 @@ class DenialViewSet(viewsets.ModelViewSet):
         pass
 
 
+class SanctionViewSet(viewsets.ModelViewSet):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = serializers.SanctionMatchSerializer
+    queryset = models.SanctionMatch.objects.all()
+
+    def perform_create(self, serializer):
+        pass
+
+
 class DenialSearchView(DocumentViewSet):
     document = documents.DenialDocumentType
     serializer_class = serializers.DenialSearchSerializer

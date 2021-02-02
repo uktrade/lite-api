@@ -5,6 +5,8 @@ from rest_framework import serializers
 from django.db.models import Min, Case, When, BinaryField
 
 from api.cases.enums import CaseTypeSubTypeEnum
+from api.external_data.models import SanctionMatch
+from api.external_data.serializers import SanctionMatchSerializer
 from api.flags.serializers import FlagSerializer
 from api.parties.enums import PartyType
 from api.parties.serializers import PartySerializer
@@ -104,3 +106,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         parties = [PartySerializer(poa.party).data for poa in parties_on_application]
 
         return parties
+
+    def get_sanction_matches(self, application):
+        queryset = SanctionMatch.objects.filter(party_on_application__application=application, is_revoked=False)
+        return SanctionMatchSerializer(queryset, many=True).data

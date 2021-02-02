@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 
 from api.common.models import TimestampableModel
+from api.flags.models import Flag
 from api.users.models import GovUser
 
 
@@ -35,3 +36,11 @@ class SanctionMatch(TimestampableModel):
     flag_uuid = models.TextField()
     is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
     is_revoked_comment = models.TextField(default="")
+
+    def save(self, *args, **kwargs):
+        flag = Flag.objects.get(pk=self.flag_uuid)
+        if self.is_revoked:
+            self.party_on_application.flags.remove(flag)
+        else:
+            self.party_on_application.flags.add(flag)
+        return super().save(*args, **kwargs)

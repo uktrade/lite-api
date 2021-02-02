@@ -74,10 +74,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
             )
         )
 
-    def get_sanction_matches(self, application):
-        queryset = SanctionMatch.objects.filter(party_on_application__application=application)
-        return SanctionMatchSerializer(queryset, many=True).data
-
     def get_licence(self, instance):
         licence = Licence.objects.filter(case=instance).first()
         if licence:
