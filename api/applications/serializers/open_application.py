@@ -23,7 +23,6 @@ from api.goodstype.serializers import GoodsTypeViewSerializer
 from api.licences.models import Licence
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
-from api.external_data.models import SanctionMatch
 from api.staticdata.countries.models import Country
 from api.staticdata.countries.serializers import CountrySerializer
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity

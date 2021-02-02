@@ -22,8 +22,6 @@ from api.core.serializers import KeyValueChoiceField
 from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
-from api.external_data.serializers import SanctionMatchSerializer
-from api.external_data.models import SanctionMatch
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
