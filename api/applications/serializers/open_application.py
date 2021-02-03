@@ -36,6 +36,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
     goodstype_category = serializers.SerializerMethodField()
+    sanction_matches = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
@@ -65,6 +66,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 "trade_control_product_categories",
                 "goodstype_category",
                 "contains_firearm_goods",
+                "sanction_matches",
             )
         )
 

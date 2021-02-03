@@ -171,7 +171,7 @@ class PopulateSanctionsTests(DataTestClient):
                             "comments1": "Ri Won Ho is a DPRK Ministry of State Security Official stationed in Syria.",
                             "designation": {"value": "DPRK Ministry of State Security Official"},
                             "nationality": {"value": "Democratic People's Republic of Korea"},
-                            "list_type": {"value": "UN List"},
+                            "list_name": {"value": "UN List"},
                             "last_day_updated": {"value": None},
                             "individual_alias": {"quality": None, "alias_name": None},
                             "individual_address": [{"country": None}],
@@ -194,7 +194,7 @@ class PopulateSanctionsTests(DataTestClient):
                             "entity_alias": {"alias_name": None, "quality": None},
                             "first_name": "PROPAGANDA AND AGITATION DEPARTMENT (PAD)",
                             "last_day_updated": {"value": None},
-                            "list_type": {"value": "UN List"},
+                            "list_name": {"value": "UN List"},
                             "listed_on": "2017-09-11",
                             "reference_number": "KPe.053",
                             "sort_key": None,
@@ -216,23 +216,23 @@ class PopulateSanctionsTests(DataTestClient):
         results_one = search.query("match", name="RI WON HO").execute()
         self.assertEqual(len(results_one.hits), 1)
         self.assertEqual(results_one.hits[0]["name"], "RI WON HO")
-        self.assertEqual(results_one.hits[0]["list_type"], "UN SC")
+        self.assertEqual(results_one.hits[0]["flag_uuid"], "00000000-0000-0000-0000-000000000039")
         self.assertEqual(results_one.hits[0]["reference"], "6908555")
 
         results_two = search.query("match", name="PROPAGANDA AND AGITATION DEPARTMENT").execute()
         self.assertEqual(len(results_two.hits), 1)
         self.assertEqual(results_two.hits[0]["name"], "PROPAGANDA AND AGITATION DEPARTMENT (PAD)")
-        self.assertEqual(results_two.hits[0]["list_type"], "UN SC")
+        self.assertEqual(results_two.hits[0]["flag_uuid"], "00000000-0000-0000-0000-000000000039")
         self.assertEqual(results_two.hits[0]["reference"], "6908629")
 
         results_three = search.query("match", name="Haji Agha Abdul Manan").execute()
         self.assertEqual(len(results_three.hits), 2)
         self.assertEqual(results_three.hits[0]["name"], "Haji Agha Abdul Manan")
-        self.assertEqual(results_three.hits[0]["list_type"], "OFSI")
+        self.assertEqual(results_three.hits[0]["flag_uuid"], "00000000-0000-0000-0000-000000000040")
         self.assertEqual(results_three.hits[0]["reference"], "109")
 
         self.assertEqual(results_three.hits[1]["name"], "HAJI KHAIRULLAH HAJI SATTAR MONEY EXCHANGE")
-        self.assertEqual(results_three.hits[1]["list_type"], "UK sanction")
+        self.assertEqual(results_three.hits[1]["flag_uuid"], "00000000-0000-0000-0000-000000000041")
         self.assertEqual(results_three.hits[1]["reference"], "AFG0001")
 
     def test_get_un_sanctions(self):

@@ -7,6 +7,7 @@ app_name = "external_data"
 
 router = DefaultRouter()
 router.register("denial", views.DenialViewSet, basename="denial")
+router.register("sanction", views.SanctionViewSet, basename="sanction")
 router.register("denial-search", views.DenialSearchView, basename="denial_search")
 
 

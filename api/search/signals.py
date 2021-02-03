@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django_elasticsearch_dsl.registries import registry
@@ -8,6 +9,9 @@ from api.applications.models import BaseApplication
 
 @receiver(post_save)
 def update_application_document(sender, **kwargs):
+    if not settings.LITE_API_ENABLE_ES:
+        return
+
     app_label = sender._meta.app_label
     model_name = sender._meta.model_name
     instance = kwargs["instance"]

@@ -387,6 +387,7 @@ class PartyOnApplication(TimestampableModel):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="parties")
     party = models.ForeignKey(Party, on_delete=models.PROTECT, related_name="parties_on_application")
     deleted_at = models.DateTimeField(null=True, default=None)
+    flags = models.ManyToManyField(Flag, related_name="parties_on_application")
 
     objects = PartyOnApplicationManager()
 

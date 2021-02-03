@@ -46,17 +46,17 @@ def populate_other_flags(cases: List[Dict]):
 
     case_ids = [case["id"] for case in cases]
 
-    case_flags = Flag.objects.filter(cases__id__in=case_ids).annotate(case_id=F("cases__id"))
-    organisation_flags = Flag.objects.filter(organisations__cases__id__in=case_ids).annotate(
-        case_id=F("organisations__cases__id")
+    union_flags = set(
+        [
+            *Flag.objects.filter(cases__id__in=case_ids).annotate(case_id=F("cases__id")),
+            *Flag.objects.filter(organisations__cases__id__in=case_ids).annotate(case_id=F("organisations__cases__id")),
+        ]
     )
-    union_flags = [*case_flags, *organisation_flags]
 
     for case in cases:
-        case["flags"] = CaseListFlagSerializer(
-            {flag for flag in union_flags if str(flag.case_id) == str(case["id"])}, many=True
-        ).data
-
+        case_id = str(case["id"])
+        flags = [flag for flag in union_flags if str(flag.case_id) == case_id]
+        case["flags"] = CaseListFlagSerializer(flags, many=True).data
     return cases
 
 
@@ -93,6 +93,7 @@ def populate_destinations_flags(cases: List[Dict]):
         )
         | Q(countries_on_applications__application_id__in=case_ids)
         | Q(countries__countries_on_application__application_id__in=case_ids)
+        | Q(parties_on_application__application__pk__in=case_ids)
     ).annotate(
         case_id=DjangoCase(
             When(
@@ -110,6 +111,9 @@ def populate_destinations_flags(cases: List[Dict]):
             When(
                 countries__countries_on_application__application_id__in=case_ids,
                 then=F("countries__countries_on_application__application_id"),
+            ),
+            When(
+                parties_on_application__application__pk__in=case_ids, then=F("parties_on_application__application_id")
             ),
             default=None,
             output_field=UUIDField(),

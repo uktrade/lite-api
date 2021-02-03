@@ -1,6 +1,7 @@
 from django.conf import settings
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
+from elasticsearch_dsl import analysis
 
 from api.external_data import models
 
@@ -10,7 +11,6 @@ class DataField(fields.ObjectField):
         return instance.data
 
 
-@registry.register_document
 class DenialDocumentType(Document):
     id = fields.KeywordField()
     name = fields.TextField()
@@ -40,12 +40,58 @@ class DenialDocumentType(Document):
         model = models.Denial
 
 
+custom_ascii_folding_filter = analysis.token_filter(
+    "custom_ascii_folding_filter", type="asciifolding", preserve_original=True
+)
+
+
+name_analyzer = analysis.analyzer(
+    "name_analyzer", tokenizer="standard", filter=["lowercase", "trim", custom_ascii_folding_filter],
+)
+
+postcode_filter = analysis.char_filter("postcode_filter", type="pattern_replace", pattern="\\s+", replacement=" ",)
+
+ngram_filter = analysis.token_filter("ngram_filter", type="ngram", min_gram=2, max_gram=10)
+
+address_stop_words_filter = analysis.token_filter(
+    "address_stop_words_filter",
+    type="stop",
+    stopwords=[
+        "avenue",
+        "boulevard",
+        "Box",
+        "court",
+        "drive",
+        "lane",
+        "loop",
+        "po",
+        "pob",
+        "road",
+        "route",
+        "street",
+        "way",
+    ],
+    ignore_case=True,
+)
+
+address_analyzer = analysis.analyzer(
+    "address_analyzer",
+    tokenizer="whitespace",
+    filter=["lowercase", "asciifolding", "trim", address_stop_words_filter, ngram_filter],
+)
+
+postcode_normalizer = analysis.normalizer(
+    "postcode_normalizer", type="custom", char_filter=[postcode_filter], filter=["lowercase", "asciifolding"],
+)
+
+
 class SanctionDocumentType(Document):
 
-    list_type = fields.Keyword()
+    flag_uuid = fields.Keyword()
     reference = fields.Keyword()
-    name = fields.Text()
-    address = fields.Text()
+    name = fields.Text(analyzer=name_analyzer)
+    address = fields.Text(analyzer=address_analyzer)
+    postcode = fields.Keyword(normalizer=postcode_normalizer)
 
     data = fields.Object(
         properties={
@@ -61,3 +107,7 @@ class SanctionDocumentType(Document):
             "number_of_replicas": 0,
             "max_ngram_diff": 18,
         }
+
+
+if settings.LITE_API_ENABLE_ES:
+    registry.register_document(DenialDocumentType)

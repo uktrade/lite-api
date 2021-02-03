@@ -10,6 +10,7 @@ import requests
 import xmltodict
 
 from api.external_data import documents
+from api.flags.enums import SystemFlags
 
 
 def get_un_sanctions():
@@ -90,7 +91,7 @@ class Command(BaseCommand):
                 meta={"id": item["dataid"]},
                 name=join_fields(item, fields=["first_name", "second_name", "third_name"]),
                 address=addresses,
-                list_type="UN SC",
+                flag_uuid=SystemFlags.SANCTION_UN_SC_MATCH,
                 reference=item["dataid"],
                 data=item,
             )
@@ -101,12 +102,18 @@ class Command(BaseCommand):
         for item in parsed["arrayofconsolidatedlist"]["consolidatedlist"]:
 
             item.pop("nationality", None)
+            address = item["fulladdress"]
+            postcode = normalize_address(item["postcode"])
+
+            if postcode not in normalize_address(address):
+                address += " " + postcode
 
             document = documents.SanctionDocumentType(
                 meta={"id": f'OFSI:{item["id"]}'},
                 name=item["fullname"],
-                address=item["fulladdress"],
-                list_type="OFSI",
+                address=address,
+                postcode=postcode,
+                flag_uuid=SystemFlags.SANCTION_OFSI_MATCH,
                 reference=item["id"],
                 data=item,
             )
@@ -115,16 +122,24 @@ class Command(BaseCommand):
     def populate_uk_sanctions_list(self):
         parsed = get_uk_sanctions_list()
         for item in parsed:
-
             item.pop("nationality", None)
             address = join_fields(item, fields=["Address Line 1", "Address Line 2", "Address Line 3", "Address Line 4"])
+            postcode = normalize_address(item["Postcode"])
+            if postcode not in normalize_address(address):
+                address += " " + postcode
 
             document = documents.SanctionDocumentType(
-                # no unique id for this
                 name=item["Primary Name"],
                 address=address,
-                list_type="UK sanction",
+                postcode=postcode,
+                flag_uuid=SystemFlags.SANCTION_UK_MATCH,
                 reference=item["Unique ID"],
                 data=item,
             )
             document.save()
+
+
+def normalize_address(value):
+    if not value or value.lower() in ["unknown", None, ""]:
+        return ""
+    return value.replace(" ", "")

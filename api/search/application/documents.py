@@ -141,7 +141,6 @@ class Queue(InnerDoc):
     )
 
 
-@registry.register_document
 class ApplicationDocumentType(Document):
     # purposefully not DED field - this is just for collecting other field values for wilcard search
     wildcard = Text(analyzer=ngram_analyzer, search_analyzer=whitespace_analyzer, store=True)
@@ -233,3 +232,7 @@ class ApplicationDocumentType(Document):
                 )
             )
         )
+
+
+if settings.LITE_API_ENABLE_ES:
+    registry.register_document(ApplicationDocumentType)

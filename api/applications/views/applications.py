@@ -20,6 +20,7 @@ from api.applications.helpers import (
     get_application_view_serializer,
     get_application_update_serializer,
     validate_and_create_goods_on_licence,
+    auto_match_sanctions,
 )
 from api.applications.libraries.application_helpers import (
     optional_str_to_bool,
@@ -378,6 +379,9 @@ class ApplicationSubmission(APIView):
         ]:
             if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
                 application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+            auto_match_sanctions(application)
 
         # If the user hasn't visited the optional goods to country mapping page, then no goods to country mappings will
         # have been saved before this point. So save mappings for all goods to all countries, which is the default

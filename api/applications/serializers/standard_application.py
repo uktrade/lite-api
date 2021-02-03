@@ -33,6 +33,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     proposed_return_date = serializers.DateField(required=False)
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
+    sanction_matches = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -67,6 +68,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "proposed_return_date",
                 "trade_control_activity",
                 "trade_control_product_categories",
+                "sanction_matches",
             )
         )
 

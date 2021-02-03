@@ -1,3 +1,8 @@
+from django.conf import settings
+
+from elasticsearch_dsl import Search, Q
+from elasticsearch.exceptions import NotFoundError
+
 from api.applications.enums import ApplicationExportType
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.applications.serializers.end_use_details import (
@@ -40,9 +45,10 @@ from api.applications.serializers.temporary_export_details import TemporaryExpor
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType, AdviceLevel
 from api.core.exceptions import BadRequestError
 from api.documents.models import Document
+from api.documents.libraries import s3_operations
+from api.external_data.models import SanctionMatch
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
-from api.documents.libraries import s3_operations
 
 
 def get_application_view_serializer(application: BaseApplication):
@@ -191,3 +197,48 @@ def delete_uploaded_document(data):
         Document(s3_key=doc_key, name="toDelete").delete_s3()
     else:
         s3_operations.delete_file(None, doc_key)
+
+
+def auto_match_sanctions(application):
+    parties = []
+    if application.end_user:
+        parties.append(application.end_user.party)
+
+    for item in application.ultimate_end_users:
+        parties.append(item.party)
+
+    for party in parties:
+        query = build_query(name=party.signatory_name_euu, address=party.address)
+        results = Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS).query(query)
+
+        try:
+            matches = results.execute().hits
+        except (KeyError, NotFoundError):
+            pass
+        else:
+            for match in matches:
+                if match.meta.score > 0.5:
+                    party_on_application = application.parties.get(party=party)
+                    reference = match["reference"]
+                    if not party_on_application.sanction_matches.filter(elasticsearch_reference=reference).exists():
+                        SanctionMatch.objects.create(
+                            party_on_application=party_on_application,
+                            elasticsearch_reference=reference,
+                            name=match["name"],
+                            flag_uuid=match["flag_uuid"],
+                        )
+
+
+def normalize_address(value):
+    return value.upper().replace(" ", "")
+
+
+def build_query(name, address):
+    return Q(
+        "bool",
+        should=[
+            Q("function_score", query=Q("match", name=name), min_score=0.5),
+            Q("function_score", query=Q("match", address=address), weight=0.5),
+        ],
+        minimum_should_match=1,
+    )

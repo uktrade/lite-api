@@ -11,7 +11,7 @@ def get_flag_priority():
 
 
 def get_flag_level():
-    lt_choices = [x[0] for x in FlagLevels.choices]  # nosec
+    lt_choices = [x[0] for x in FlagLevels.choices if x[0] != FlagLevels.PARTY_ON_APPLICATION]  # nosec
     return random.choice(lt_choices)  # nosec
 
 
