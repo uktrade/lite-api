@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from elasticsearch_dsl import Search, Q
+from elasticsearch.exceptions import NotFoundError
 
 from api.applications.enums import ApplicationExportType
 from api.applications.models import BaseApplication, GoodOnApplication
@@ -212,7 +213,7 @@ def auto_match_sanctions(application):
 
         try:
             matches = results.execute().hits
-        except KeyError:
+        except (KeyError, NotFoundError):
             pass
         else:
             for match in matches:

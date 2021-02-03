@@ -75,7 +75,6 @@ class Queue(InnerDoc):
     )
 
 
-@registry.register_document
 class ProductDocumentType(Document):
     # purposefully not DED field - this is just for collecting other field values for wilcard search
     wildcard = Text(analyzer=ngram_analyzer, search_analyzer=whitespace_analyzer, store=True,)
@@ -168,3 +167,7 @@ class ProductDocumentType(Document):
             .select_related("good__organisation")
             .prefetch_related("application__parties__party__flags")
         )
+
+
+if settings.LITE_API_ENABLE_ES:
+    registry.register_document(ProductDocumentType)

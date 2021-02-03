@@ -11,7 +11,6 @@ class DataField(fields.ObjectField):
         return instance.data
 
 
-@registry.register_document
 class DenialDocumentType(Document):
     id = fields.KeywordField()
     name = fields.TextField()
@@ -108,3 +107,7 @@ class SanctionDocumentType(Document):
             "number_of_replicas": 0,
             "max_ngram_diff": 18,
         }
+
+
+if settings.LITE_API_ENABLE_ES:
+    registry.register_document(DenialDocumentType)
