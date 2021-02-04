@@ -10,7 +10,7 @@ from api.core.constants import ExporterPermissions
 from api.core.exceptions import NotFoundError
 from api.flags.models import Flag
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
-from api.organisations.enums import OrganisationType, OrganisationStatus, LocationType
+from api.organisations.enums import LocationType, OrganisationDocumentType, OrganisationStatus, OrganisationType
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -96,6 +96,16 @@ class Organisation(TimestampableModel):
     class Meta:
         db_table = "organisation"
         ordering = ["name"]
+
+
+class DocumentOnOrganisation(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    document = models.ForeignKey(Organisation, related_name="document_on_organisations", on_delete=models.CASCADE)
+    organisation = models.ForeignKey(
+        'documents.Document', related_name="document_on_organisations", on_delete=models.CASCADE
+    )
+    expiry_date = models.DateField(help_text="Date the document is no longer valid")
+    document_type = models.TextField(choices=OrganisationDocumentType.choices)
 
 
 class SiteManager(models.Manager):

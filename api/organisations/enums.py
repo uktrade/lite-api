@@ -14,6 +14,16 @@ class OrganisationType:
         return [choice[0] for choice in cls.choices]
 
 
+class OrganisationDocumentType:
+    FIREARM_SECTION_FIVE = 'section-five-certificate'
+    REGISTERED_FIREARM_DEALER_CERTIFICATE = 'rfd-certificate'
+    
+    choices = [
+        (FIREARM_SECTION_FIVE, "Firearm Section 5 certificate"),
+        (REGISTERED_FIREARM_DEALER_CERTIFICATE, "Registered Firearm Dealer certificate"),
+    ]
+
+
 class OrganisationStatus:
     ACTIVE = "active"
     IN_REVIEW = "in_review"
