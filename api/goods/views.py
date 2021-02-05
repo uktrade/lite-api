@@ -37,7 +37,6 @@ from api.goods.serializers import (
     GoodSerializerExporterFullDetail,
     GoodDocumentAvailabilitySerializer,
     GoodDocumentSensitivitySerializer,
-    GoodMissingDocumentSerializer,
     TinyGoodDetailsSerializer,
 )
 from api.goodstype.models import GoodsType
@@ -154,7 +153,7 @@ class GoodList(ListCreateAPIView):
             good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(
                 "good", flat=True
             )
-            queryset = queryset.filter(Q(id__in=good_document_ids) | Q(missing_document_reason__isnull=False))
+            queryset = queryset.filter(Q(id__in=good_document_ids) | Q(is_document_available=True))
 
         queryset = queryset.prefetch_related("control_list_entries")
 
@@ -232,8 +231,7 @@ class GoodDocumentAvailabilityCheck(APIView):
             return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
         else:
             return JsonResponse(
-                data={"errors": {"is_document_available": ["Select yes or no"]}},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": {"is_document_available": ["Select yes or no"]}}, status=status.HTTP_400_BAD_REQUEST,
             )
 
 
@@ -255,8 +253,7 @@ class GoodDocumentCriteriaCheck(APIView):
             return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
         else:
             return JsonResponse(
-                data={"errors": {"is_document_sensitive": ["Select yes or no"]}},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": {"is_document_sensitive": ["Select yes or no"]}}, status=status.HTTP_400_BAD_REQUEST,
             )
 
 
@@ -417,8 +414,6 @@ class GoodDocuments(APIView):
                 return JsonResponse(
                     {"errors": {"file": strings.Documents.UPLOAD_FAILURE}}, status=status.HTTP_400_BAD_REQUEST
                 )
-            # Delete missing document reason as a document has now been uploaded
-            good.missing_document_reason = None
             good.save()
             return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
 

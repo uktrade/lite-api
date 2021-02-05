@@ -6,18 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods', '0025_good_name'),
+        ("goods", "0025_good_name"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='good',
-            name='is_document_available',
-            field=models.BooleanField(default=None, null=True),
+            model_name="good", name="is_document_available", field=models.BooleanField(default=None, null=True),
         ),
         migrations.AddField(
-            model_name='good',
-            name='is_document_sensitive',
-            field=models.BooleanField(default=None, null=True),
+            model_name="good", name="is_document_sensitive", field=models.BooleanField(default=None, null=True),
         ),
     ]
