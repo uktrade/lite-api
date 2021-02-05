@@ -488,6 +488,7 @@ def _get_pv_grading_context(pv_grading_details):
 def _get_good_on_application_context(good_on_application, advice=None):
     good_context = {
         "description": good_on_application.good.description,
+        "name": good_on_application.good.name,
         "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         "is_controlled": GoodControlled.to_str(good_on_application.good.is_good_controlled),
         "part_number": good_on_application.good.part_number,
