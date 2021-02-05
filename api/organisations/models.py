@@ -100,12 +100,13 @@ class Organisation(TimestampableModel):
 
 class DocumentOnOrganisation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    document = models.ForeignKey(Organisation, related_name="document_on_organisations", on_delete=models.CASCADE)
-    organisation = models.ForeignKey(
-        'documents.Document', related_name="document_on_organisations", on_delete=models.CASCADE
+    document = models.ForeignKey(
+        "documents.Document", related_name="document_on_organisations", on_delete=models.CASCADE
     )
+    organisation = models.ForeignKey(Organisation, related_name="document_on_organisations", on_delete=models.CASCADE)
     expiry_date = models.DateField(help_text="Date the document is no longer valid")
     document_type = models.TextField(choices=OrganisationDocumentType.choices)
+    reference_code = models.TextField()
 
 
 class SiteManager(models.Manager):

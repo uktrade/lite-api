@@ -1,0 +1,26 @@
+from rest_framework.views import APIView
+
+from django.http import JsonResponse
+
+from api.core.authentication import SharedAuthentication
+
+from api.organisations import models, serializers
+
+
+class DocumentOnOrganisationSerializerView(APIView):
+    authentication_classes = (SharedAuthentication,)
+    serializer_class = serializers.DocumentOnOrganisationSerializer
+
+    def get_queryset(self):
+        return models.DocumentOnOrganisation.objects.filter(organisation_id=self.kwargs["pk"])
+
+    def get(self, request, pk):
+        serializer = self.serializer_class(self.get_queryset(), many=True)
+        return JsonResponse({"documents": serializer.data})
+
+    def post(self, request, pk):
+        organisation = models.Organisation.objects.get(pk=pk)
+        serializer = self.serializer_class(data=request.data, context={"organisation": organisation})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return JsonResponse({"document": serializer.data}, status=201)

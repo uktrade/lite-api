@@ -15,9 +15,9 @@ class OrganisationType:
 
 
 class OrganisationDocumentType:
-    FIREARM_SECTION_FIVE = 'section-five-certificate'
-    REGISTERED_FIREARM_DEALER_CERTIFICATE = 'rfd-certificate'
-    
+    FIREARM_SECTION_FIVE = "section-five-certificate"
+    REGISTERED_FIREARM_DEALER_CERTIFICATE = "rfd-certificate"
+
     choices = [
         (FIREARM_SECTION_FIVE, "Firearm Section 5 certificate"),
         (REGISTERED_FIREARM_DEALER_CERTIFICATE, "Registered Firearm Dealer certificate"),
