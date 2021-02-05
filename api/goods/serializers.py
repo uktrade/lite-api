@@ -341,7 +341,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(read_only=True, choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
-    missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices, read_only=True)
     is_pv_graded = KeyValueChoiceField(
         choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
@@ -378,7 +377,8 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "not_sure_details_details",
             "is_pv_graded",
             "pv_grading_details",
-            "missing_document_reason",
+            "is_document_available",
+            "is_document_sensitive",
             "comment",
             "report_summary",
             "item_category",
@@ -607,6 +607,24 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     def _update_firearm_details(firearm_details, instance):
         return FirearmDetailsSerializer.update(
             FirearmDetailsSerializer(), validated_data=firearm_details, instance=instance,
+        )
+
+
+class GoodDocumentAvailabilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Good
+        fields = (
+            "id",
+            "is_document_available",
+        )
+
+
+class GoodDocumentSensitivitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Good
+        fields = (
+            "id",
+            "is_document_sensitive",
         )
 
 
