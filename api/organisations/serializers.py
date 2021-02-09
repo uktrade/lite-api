@@ -400,6 +400,7 @@ class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentOnOrganisation
         fields = [
+            "id",
             "document",
             "expiry_date",
             "document_type",

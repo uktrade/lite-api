@@ -1,4 +1,5 @@
 import datetime
+from unittest import mock
 
 from django.urls import reverse
 
@@ -17,6 +18,7 @@ class OrganisationDocumentViewTests(DataTestClient):
         }
         return self.client.post(url, data, **self.exporter_headers)
 
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
     def test_create_organisation_document(self):
         response = self.create_document_on_organisation("some-document")
 
@@ -33,10 +35,11 @@ class OrganisationDocumentViewTests(DataTestClient):
         self.assertEqual(instance.document_type, OrganisationDocumentType.FIREARM_SECTION_FIVE)
         self.assertEqual(instance.organisation, self.organisation)
 
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
     def test_list_organisation_documents(self):
-        self.assertEqual(self.create_document_on_organisation("some-document-one").status_code, 200)
-        self.assertEqual(self.create_document_on_organisation("some-document-two").status_code, 200)
-        self.assertEqual(self.create_document_on_organisation("some-document-three").status_code, 200)
+        self.assertEqual(self.create_document_on_organisation("some-document-one").status_code, 201)
+        self.assertEqual(self.create_document_on_organisation("some-document-two").status_code, 201)
+        self.assertEqual(self.create_document_on_organisation("some-document-three").status_code, 201)
 
         url = reverse("organisations:documents", kwargs={"pk": self.organisation.pk})
 
@@ -44,3 +47,37 @@ class OrganisationDocumentViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()["documents"]), 3)
+
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
+    def test_retrieve_organisation_documents(self):
+        response = self.create_document_on_organisation("some-document-one")
+        self.assertEqual(response.status_code, 201)
+
+        document_on_application_pk = response.json()["document"]["id"]
+
+        url = reverse(
+            "organisations:documents",
+            kwargs={"pk": self.organisation.pk, "document_on_application_pk": document_on_application_pk},
+        )
+
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "id": document_on_application_pk,
+                "expiry_date": "01 January 2022",
+                "document_type": "section-five-certificate",
+                "organisation": str(self.organisation.id),
+                "is_expired": False,
+                "reference_code": "123",
+                "document": {
+                    "name": "some-document-one",
+                    "s3_key": "some-document-one",
+                    "size": 476,
+                    "created_at": mock.ANY,
+                    "safe": None,
+                },
+            },
+        )
