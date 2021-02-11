@@ -15,10 +15,14 @@ class OrganisationType:
 
 
 class OrganisationDocumentType:
+    FIREARM_SECTION_ONE = "section-one-certificate"
+    FIREARM_SECTION_TWO = "section-two-certificate"
     FIREARM_SECTION_FIVE = "section-five-certificate"
     REGISTERED_FIREARM_DEALER_CERTIFICATE = "rfd-certificate"
 
     choices = [
+        (FIREARM_SECTION_ONE, "Firearm Section 1 certificate"),
+        (FIREARM_SECTION_TWO, "Firearm Section 2 certificate"),
         (FIREARM_SECTION_FIVE, "Firearm Section 5 certificate"),
         (REGISTERED_FIREARM_DEALER_CERTIFICATE, "Registered Firearm Dealer certificate"),
     ]
