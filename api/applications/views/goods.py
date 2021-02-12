@@ -92,7 +92,7 @@ class ApplicationGoodsOnApplication(APIView):
 
             good = get_good_with_organisation(data.get("good"), get_request_user_organisation_id(request))
 
-            if not good.missing_document_reason and not GoodDocument.objects.filter(good=good).exists():
+            if good.is_document_available and not GoodDocument.objects.filter(good=good).exists():
                 return JsonResponse(data={"error": strings.Goods.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST)
             serializer = GoodOnApplicationCreateSerializer(data=data)
             if serializer.is_valid():

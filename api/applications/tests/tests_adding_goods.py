@@ -217,9 +217,12 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
         self.assertEquals(response.status_code, data["response"])
 
-    def test_adding_good_without_document_or_reason_failure(self):
+    def test_adding_good_without_document_or_reason_success(self):
+        good = self.create_good("A good", self.organisation)
+        good.is_document_available = False
+        good.save()
         data = {
-            "good_id": self.good.id,
+            "good_id": good.id,
             "quantity": 1200.098896,
             "unit": Units.NAR,
             "value": 50000.45,
@@ -229,12 +232,11 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["error"], strings.Goods.DOCUMENT_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_adding_good_with_reason_official_sensitive_success(self):
         good = self.create_good("A good", self.organisation)
-        good.missing_document_reason = GoodMissingDocumentReasons.OFFICIAL_SENSITIVE
+        good.is_document_sensitive = True
         good.save()
         data = {
             "good_id": good.id,
