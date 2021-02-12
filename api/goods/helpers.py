@@ -59,20 +59,34 @@ def get_sporting_shortgun_errormsg(firearm_type):
 
 
 def validate_identification_markings(validated_data):
+
+    if "type" in validated_data and validated_data.get("type") not in FIREARMS_CORE_TYPES:
+        return
+
+    number_of_items = validated_data.get("number_of_items")
+    if "number_of_items" in validated_data and (number_of_items <= 0 or number_of_items == None):
+        raise serializers.ValidationError({"number_of_items": "Enter the number of items"})
+
     """ Mandatory question for firearm goods (Group 2) with conditional details fields based on the answer """
     has_identification_markings = validated_data.get("has_identification_markings")
     if "has_identification_markings" in validated_data and has_identification_markings is None:
         raise serializers.ValidationError({"has_identification_markings": [strings.Goods.FIREARM_GOOD_NO_MARKINGS]})
 
-    if has_identification_markings is True and not validated_data.get("identification_markings_details"):
-        raise serializers.ValidationError(
-            {"identification_markings_details": [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_MARKINGS]}
-        )
-
     if has_identification_markings is False and not validated_data.get("no_identification_markings_details"):
         raise serializers.ValidationError(
-            {"no_identification_markings_details": [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_NO_MARKINGS]}
+            {"no_identification_markings_details": ["Enter a reason why the product has not been marked"]}
         )
+
+    serial_numbers = validated_data.get("serial_numbers")
+    if has_identification_markings is True and "serial_numbers" in validated_data:
+        errors = {}
+
+        for index, item in enumerate(serial_numbers):
+            if item == "":
+                errors[f"serial_number_input_{index}"] = "Enter serial number"
+
+        if errors:
+            raise serializers.ValidationError({"serial_numbers": "Enter serial number in every row"})
 
 
 def validate_firearms_act_section(validated_data):
@@ -137,7 +151,6 @@ def check_if_firearm_details_edited_on_unsupported_good(data):
         "section_certificate_number",
         "section_certificate_date_of_expiry",
         "has_identification_markings",
-        "identification_markings_details",
         "no_identification_markings_details",
     ]
     if any(detail in data["firearm_details"] for detail in firearm_good_specific_details):

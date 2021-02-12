@@ -877,7 +877,6 @@ class CreateGoodTests(DataTestClient):
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "",
-                "identification_markings_details": "",
                 "no_identification_markings_details": "",
             },
         }
@@ -904,7 +903,6 @@ class CreateGoodTests(DataTestClient):
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "False",
-                "identification_markings_details": "",
                 "no_identification_markings_details": "",
             },
         }
@@ -914,7 +912,7 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            errors["no_identification_markings_details"], [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_NO_MARKINGS]
+            errors["no_identification_markings_details"], ["Enter a reason why the product has not been marked"]
         )
 
     def test_add_category_two_good_yes_markings_selected_but_no_details_provided_failure(self):
@@ -933,16 +931,12 @@ class CreateGoodTests(DataTestClient):
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "True",
-                "identification_markings_details": "",
                 "no_identification_markings_details": "",
             },
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["identification_markings_details"], [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_MARKINGS])
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
 
     def test_add_category_two_good_yes_markings_selected_success(self):
         data = {
@@ -961,7 +955,6 @@ class CreateGoodTests(DataTestClient):
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "True",
-                "identification_markings_details": "some marking details",
                 "no_identification_markings_details": "",
             },
         }
@@ -971,10 +964,6 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertTrue(good["firearm_details"]["has_identification_markings"])
-        self.assertEquals(
-            good["firearm_details"]["identification_markings_details"],
-            data["firearm_details"]["identification_markings_details"],
-        )
 
     def test_add_category_two_good_only_correct_markings_details_set_success(self):
         """ If details are provided for both answers, ensure that only the details for the given answer are stored. """
@@ -994,7 +983,6 @@ class CreateGoodTests(DataTestClient):
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": "True",
-                "identification_markings_details": "some marking details",
                 "no_identification_markings_details": "some non marking details",
             },
         }
@@ -1004,10 +992,6 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertTrue(good["firearm_details"]["has_identification_markings"])
-        self.assertEquals(
-            good["firearm_details"]["identification_markings_details"],
-            data["firearm_details"]["identification_markings_details"],
-        )
         self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
 
     def test_add_category_two_success(self):
@@ -1027,7 +1011,6 @@ class CreateGoodTests(DataTestClient):
                 "section_certificate_number": "ABC123",
                 "section_certificate_date_of_expiry": "2022-12-12",
                 "has_identification_markings": "True",
-                "identification_markings_details": "some marking details",
                 "no_identification_markings_details": "",
             },
         }
@@ -1058,21 +1041,9 @@ class CreateGoodTests(DataTestClient):
             data["firearm_details"]["section_certificate_date_of_expiry"],
         )
         self.assertTrue(good["firearm_details"]["has_identification_markings"])
-        self.assertEquals(
-            good["firearm_details"]["identification_markings_details"],
-            data["firearm_details"]["identification_markings_details"],
-        )
         self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
 
-    @parameterized.expand(
-        [
-            ["True", "identification_markings_details", "no_identification_markings_details"],
-            ["False", "no_identification_markings_details", "identification_markings_details"],
-        ]
-    )
-    def test_add_category_two_good_has_markings_details_too_long_failure(
-        self, has_identification_markings, details_field, other_details_fields
-    ):
+    def test_add_category_two_good_has_markings_details_too_long_failure(self):
         data = {
             "name": "Rifle",
             "description": "Firearm product",
@@ -1088,9 +1059,8 @@ class CreateGoodTests(DataTestClient):
                 "firearms_act_section": "firearms_act_section2",
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
-                "has_identification_markings": has_identification_markings,
-                details_field: "A" * 2001,
-                other_details_fields: "",
+                "has_identification_markings": False,
+                "no_identification_markings_details": "A" * 2001,
             },
         }
 
@@ -1098,7 +1068,9 @@ class CreateGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors[details_field], ["Ensure this field has no more than 2000 characters."])
+        self.assertEqual(
+            errors["no_identification_markings_details"], ["Ensure this field has no more than 2000 characters."]
+        )
 
 
 class GoodsCreateControlledGoodTests(DataTestClient):

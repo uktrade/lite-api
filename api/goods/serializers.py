@@ -122,9 +122,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         allow_null=True, required=False, error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE}
     )
     has_identification_markings = serializers.BooleanField(allow_null=True, required=False,)
-    identification_markings_details = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, max_length=2000
-    )
     no_identification_markings_details = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2000
     )
@@ -132,6 +129,12 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     date_of_deactivation = serializers.DateField(allow_null=True, required=False)
     deactivation_standard = serializers.CharField(allow_blank=True, required=False)
     deactivation_standard_other = serializers.CharField(allow_blank=True, required=False, allow_null=True)
+    number_of_items = serializers.IntegerField(
+        allow_null=False,
+        required=False,
+        error_messages={"null": "Enter the number of items", "invalid": "Number of items must be valid",},
+    )
+    serial_numbers = serializers.ListField(child=serializers.CharField(allow_blank=True), required=False)
 
     class Meta:
         model = FirearmGoodDetails
@@ -149,7 +152,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "section_certificate_number",
             "section_certificate_date_of_expiry",
             "has_identification_markings",
-            "identification_markings_details",
             "no_identification_markings_details",
             "has_proof_mark",
             "no_proof_mark_details",
@@ -158,6 +160,8 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "date_of_deactivation",
             "deactivation_standard",
             "deactivation_standard_other",
+            "number_of_items",
+            "serial_numbers",
         )
 
     def validate(self, data):
@@ -276,24 +280,22 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "section_certificate_date_of_expiry", instance.section_certificate_date_of_expiry
         )
 
-        has_markings = validated_data.get("has_identification_markings")
-        # if the answer to the identification markings question has changed
-        if has_markings is not None and has_markings != instance.has_identification_markings:
-            instance.has_identification_markings = has_markings
-            # If changed to Yes, clear the no_identification_markings_details field
-            if has_markings:
-                instance.no_identification_markings_details = ""
-                instance.identification_markings_details = validated_data.get("identification_markings_details")
+        instance.number_of_items = validated_data.get("number_of_items", instance.number_of_items)
+
+        if (
+            "has_identification_markings" in validated_data
+            and validated_data.get("has_identification_markings") is not None
+        ):
+            instance.has_identification_markings = validated_data.get("has_identification_markings")
+            if instance.has_identification_markings:
+                instance.no_identification_marking_details = ""
             else:
-                instance.identification_markings_details = ""
-                instance.no_identification_markings_details = validated_data.get("no_identification_markings_details")
-        # Update just the identification marking details fields value if changed
-        instance.identification_markings_details = validated_data.get(
-            "identification_markings_details", instance.identification_markings_details
-        )
-        instance.no_identification_markings_details = validated_data.get(
-            "no_identification_markings_details", instance.no_identification_markings_details
-        )
+                instance.no_identification_markings_details = validated_data.get(
+                    "no_identification_markings_details", instance.no_identification_markings_details
+                )
+
+        instance.serial_numbers = validated_data.get("serial_numbers", instance.serial_numbers)
+
         instance.is_sporting_shotgun = validated_data.get("is_sporting_shotgun", instance.is_sporting_shotgun)
 
         if instance.type != "firearms":
@@ -308,7 +310,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             instance.calibre = ""
             instance.section_certificate_number = ""
             instance.section_certificate_date_of_expiry = None
-            instance.identification_markings_details = ""
             instance.no_identification_markings_details = ""
 
         instance.save()
@@ -425,8 +426,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                 # Keep only the details relevant for the yes/no answer
                 if str_to_bool(firearm_details.get("has_identification_markings")):
                     firearm_details.pop("no_identification_markings_details")
-                else:
-                    firearm_details.pop("identification_markings_details")
 
         self.goods_query_case = (
             GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
