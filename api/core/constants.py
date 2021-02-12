@@ -6,7 +6,7 @@ class GovPermissions(Enum):
     MANAGE_LICENCE_FINAL_ADVICE = "Manage licence final advice"
     MANAGE_CLEARANCE_FINAL_ADVICE = "Manage clearance final advice"
     MANAGE_TEAM_ADVICE = "Manage team advice"
-    MANAGE_TEAM_CONFIRM_OWN_ADVICE = "Confirm own advice"
+    MANAGE_TEAM_CONFIRM_OWN_ADVICE = "Manage own advice"
     REVIEW_GOODS = "Review goods"
     RESPOND_PV_GRADING = "Respond to grading"
     ADMINISTER_ROLES = "Administer roles"
