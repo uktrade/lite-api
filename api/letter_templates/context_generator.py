@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from api.applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
 from api.applications.models import (
+    BaseApplication,
     ApplicationDocument,
     StandardApplication,
     OpenApplication,
@@ -140,7 +141,7 @@ class CountryOnApplicationSerializer(serializers.ModelSerializer):
 class CaseNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseNote
-        fields = ["text", "is_visible_to_exporter"]
+        fields = ["text", "is_visible_to_exporter", "time", "date", "user"]
 
     user = serializers.SerializerMethodField()
     date = serializers.DateField(format=DATE_FORMAT, input_formats=None, source="created_at")
@@ -195,6 +196,47 @@ class EcjuQueryResponseSerializer(serializers.ModelSerializer):
 class EcjuQuerySerializer(serializers.Serializer):
     question = EcjuQueryQuestionSerializer()
     response = EcjuQueryResponseSerializer()
+
+
+class BaseApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseApplication
+        fields = [
+            "user_reference",
+            "end_use_details",
+            "military_end_use_controls_reference",
+            "military_end_use_controls",
+            "informed_wmd",
+            "informed_wmd_reference",
+            "eu_military",
+            "compliant_limitations_eu_reference",
+            "compliant_limitations_eu",
+        ]
+
+    user_reference = serializers.CharField(source="name")
+    end_use_details = serializers.CharField(source="intended_end_use")
+    military_end_use_controls_reference = serializers.CharField(source="military_end_use_controls_ref")
+    military_end_use_controls = serializers.SerializerMethodField()
+    informed_wmd = serializers.SerializerMethodField()
+    informed_wmd_reference = serializers.CharField(source="informed_wmd_ref")
+    eu_military = serializers.SerializerMethodField()
+    compliant_limitations_eu = serializers.SerializerMethodField()
+    compliant_limitations_eu_reference = serializers.CharField(source="compliant_limitations_eu_ref")
+
+    def get_military_end_use_controls(self, obj):
+        return friendly_boolean(getattr(obj, "is_military_end_use_controls", ""))
+
+    def get_informed_wmd(self, obj):
+        return friendly_boolean(getattr(obj, "is_informed_wmd", ""))
+
+    def get_suspected_wmd(self, obj):
+        return friendly_boolean(getattr(obj, "is_suspected_wmd", ""))
+
+    def get_eu_military(self, obj):
+        return friendly_boolean(getattr(obj, "is_eu_military", ""))
+
+    def get_compliant_limitations_eu(self, obj):
+        return friendly_boolean(getattr(obj, "is_compliant_limitations_eu", ""))
 
 
 def get_document_context(case, addressee=None):
@@ -287,7 +329,7 @@ def _get_base_application_details_context(application):
 
 
 def _get_standard_application_context(case):
-    context = _get_base_application_details_context(case.baseapplication)
+    context = BaseApplicationSerializer(case.baseapplication).data
     standard_application = StandardApplication.objects.get(id=case.pk)
     context.update(
         {
@@ -309,7 +351,7 @@ def _get_standard_application_context(case):
 
 
 def _get_open_application_context(case):
-    context = _get_base_application_details_context(case.baseapplication)
+    context = BaseApplicationSerializer(case.baseapplication).data
     open_application = OpenApplication.objects.get(id=case.pk)
     context.update(
         {
@@ -333,7 +375,7 @@ def _get_open_application_context(case):
 
 
 def _get_hmrc_query_context(case):
-    context = _get_base_application_details_context(case.baseapplication)
+    context = BaseApplicationSerializer(case.baseapplication).data
     hmrc_query = HmrcQuery.objects.get(id=case.pk)
     context.update(
         {"query_reason": hmrc_query.reasoning, "have_goods_departed": friendly_boolean(hmrc_query.have_goods_departed),}
@@ -342,7 +384,7 @@ def _get_hmrc_query_context(case):
 
 
 def _get_exhibition_clearance_context(case):
-    context = _get_base_application_details_context(case.baseapplication)
+    context = BaseApplicationSerializer(case.baseapplication).data
     exhibition = ExhibitionClearanceApplication.objects.get(id=case.pk)
     context.update(
         {
@@ -360,7 +402,7 @@ def _get_exhibition_clearance_context(case):
 
 
 def _get_f680_clearance_context(case):
-    context = _get_base_application_details_context(case.baseapplication)
+    context = BaseApplicationSerializer(case.baseapplication).data
     f680 = F680ClearanceApplication.objects.get(id=case.pk)
     context.update(
         {
@@ -386,7 +428,7 @@ def _get_f680_clearance_context(case):
 
 
 def _get_gifting_clearance_context(case):
-    context = _get_base_application_details_context(case.baseapplication)
+    context = BaseApplicationSerializer(case.baseapplication).data
 
     return context
 
@@ -530,7 +572,7 @@ def _get_details_context(case):
     elif case_sub_type == CaseTypeSubTypeEnum.F680:
         return _get_f680_clearance_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.GIFTING:
-        return _get_gifting_clearance_context(case)
+        return BaseApplicationSerializer(case.baseapplication).data
     elif case_sub_type == CaseTypeSubTypeEnum.EUA:
         return _get_end_user_advisory_query_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
@@ -561,10 +603,7 @@ def _get_organisation_context(organisation):
         "sic_number": organisation.sic_number,
         "vat_number": organisation.vat_number,
         "registration_number": organisation.registration_number,
-        "primary_site": {
-            "name": organisation.primary_site.name,
-            **_get_address(organisation.primary_site.address)
-        },
+        "primary_site": {"name": organisation.primary_site.name, **_get_address(organisation.primary_site.address)},
     }
 
 
@@ -598,9 +637,7 @@ def _get_party_context(party):
 
 def _get_third_parties_context(third_parties):
     parties = [third_party.party for third_party in third_parties]
-    third_parties_context = {
-        "all": PartySerializer(parties, many=True).data
-    }
+    third_parties_context = {"all": PartySerializer(parties, many=True).data}
 
     # Split third parties into lists based on role
     for role, _ in PartyRole.choices:
@@ -891,11 +928,7 @@ def _get_external_location_context(location):
 
 
 def _get_document_context(document):
-    return {
-        "id": str(document.id),
-        "name": document.name,
-        "description": document.description
-    }
+    return {"id": str(document.id), "name": document.name, "description": document.description}
 
 
 def _get_temporary_export_details(application):
