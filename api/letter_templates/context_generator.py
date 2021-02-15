@@ -1,6 +1,8 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.db.models import Q
 
+from rest_framework import serializers
+
 from api.applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
 from api.applications.models import (
     ApplicationDocument,
@@ -12,7 +14,11 @@ from api.applications.models import (
     CountryOnApplication,
 )
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryType
-from api.cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision
+from api.cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision, CaseType
+from api.organisations.models import Organisation
+from api.addresses.models import Address
+from api.parties.models import Party
+from api.staticdata.countries.models import Country
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from api.core.helpers import (
@@ -42,6 +48,153 @@ from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
 from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.staticdata.units.enums import Units
+
+
+class CaseTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseType
+        fields = ["type", "sub_type", "reference"]
+
+
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ["name", "id"]
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ["address", "address_line_1", "address_line_2", "postcode", "city", "region", "country"]
+
+    address_line_1 = serializers.SerializerMethodField()
+    country = CountrySerializer()
+
+    def get_address_line_1(self, obj):
+        return obj.address_line_1 or obj.address
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Site
+        fields = ["name", "address"]
+
+    address = AddressSerializer()
+
+
+class FlattenedSiteSerializer(SiteSerializer):
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret = {**ret, **ret["address"]}
+        del ret["address"]
+        return ret
+
+
+class OrganisationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organisation
+        fields = ["name", "eori_number", "sic_number", "vat_number", "registration_number", "primary_site"]
+
+    primary_site = FlattenedSiteSerializer()
+
+
+class LicenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Licence
+        fields = ["duration", "start_date", "end_date"]
+
+    start_date = serializers.SerializerMethodField()
+    end_date = serializers.SerializerMethodField()
+
+    def get_start_date(self, obj):
+        return obj.start_date.strftime(DATE_FORMAT)
+
+    def get_end_date(self, obj):
+        return add_months(obj.start_date, obj.duration)
+
+
+class PartySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Party
+        fields = ["type", "name", "address", "descriptors", "website", "country"]
+
+    type = serializers.SerializerMethodField()
+    country = CountrySerializer()
+
+    def get_type(self, obj):
+        return obj.sub_type_other if obj.sub_type_other else get_value_from_enum(obj.sub_type, SubType)
+
+
+class CountryOnApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountryOnApplication
+        fields = ["country", "contract_types", "other_contract_type"]
+
+    country = CountrySerializer()
+    other_contract_type = serializers.SerializerMethodField()
+
+    def get_other_contract_type(self, obj):
+        return obj.other_contract_type_text
+
+
+class CaseNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseNote
+        fields = ["text", "is_visible_to_exporter"]
+
+    user = serializers.SerializerMethodField()
+    date = serializers.DateField(format=DATE_FORMAT, input_formats=None, source="created_at")
+    time = serializers.DateField(format=TIME_FORMAT, input_formats=None, source="created_at")
+
+    def get_user(self, obj):
+        return " ".join([obj.user.first_name, obj.user.last_name])
+
+
+class ExternalLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExternalLocation
+        fields = ["name", "address", "country"]
+
+    country = CountrySerializer()
+
+
+class ApplicationDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApplicationDocument
+        fields = ["id", "name", "description"]
+
+
+class EcjuQueryQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EcjuQuery
+        fields = ["text", "user", "created_at", "raised_by_user", "question", "date", "time"]
+
+    text = serializers.CharField(source="question")
+    user = serializers.SerializerMethodField()
+    date = serializers.DateField(format=DATE_FORMAT, input_formats=None, source="created_at")
+    time = serializers.DateField(format=TIME_FORMAT, input_formats=None, source="created_at")
+
+    def get_user(self, obj):
+        return f"{obj.raised_by_user.first_name} {obj.raised_by_user.last_name}"
+
+
+class EcjuQueryResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EcjuQuery
+        fields = ["text", "user", "created_at", "responded_by_user", "response", "date", "time"]
+
+    text = serializers.CharField(source="response")
+    user = serializers.SerializerMethodField()
+    date = serializers.DateField(format=DATE_FORMAT, input_formats=None, source="created_at")
+    time = serializers.DateField(format=TIME_FORMAT, input_formats=None, source="created_at")
+
+    def get_user(self, obj):
+        return f"{obj.responded_by_user.first_name} {obj.responded_by_user.last_name}"
+
+
+class EcjuQuerySerializer(serializers.Serializer):
+    question = EcjuQueryQuestionSerializer()
+    response = EcjuQueryResponseSerializer()
 
 
 def get_document_context(case, addressee=None):
@@ -77,38 +230,32 @@ def get_document_context(case, addressee=None):
 
     return {
         "case_reference": case.reference_code,
-        "case_type": {
-            "type": case.case_type.type,
-            "sub_type": case.case_type.sub_type,
-            "reference": case.case_type.reference,
-        },
+        "case_type": CaseTypeSerializer(case.case_type).data,
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
         "addressee": _get_addressee_context(addressee) if addressee else None,
-        "organisation": _get_organisation_context(case.organisation),
-        "licence": _get_licence_context(licence) if licence else None,
-        "end_user": _get_party_context(base_application.end_user.party)
+        "organisation": OrganisationSerializer(case.organisation).data,
+        "licence": LicenceSerializer(licence).data if licence else None,
+        "end_user": PartySerializer(base_application.end_user.party).data
         if base_application and getattr(base_application, "end_user", "")
         else None,
-        "consignee": _get_party_context(base_application.consignee.party)
+        "consignee": PartySerializer(base_application.consignee.party).data
         if base_application and getattr(base_application, "consignee", "")
         else None,
-        "ultimate_end_users": [
-            _get_party_context(ultimate_end_user.party) for ultimate_end_user in base_application.ultimate_end_users
-        ]
+        "ultimate_end_users": PartySerializer(base_application.ultimate_end_users, many=True).data
         if getattr(base_application, "ultimate_end_users", "")
         else [],
         "third_parties": _get_third_parties_context(base_application.third_parties)
         if getattr(base_application, "third_parties", "")
         else [],
         "goods": goods,
-        "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
-        "notes": [_get_case_note_context(note) for note in notes],
-        "sites": [_get_site_context(site) for site in sites],
-        "external_locations": [_get_external_location_context(location) for location in external_locations],
-        "documents": [_get_document_context(document) for document in documents],
-        "destinations": [_get_destination_context(destination) for destination in destinations],
+        "ecju_queries": EcjuQuerySerializer(ecju_queries, many=True).data,
+        "notes": CaseNoteSerializer(notes, many=True).data,
+        "sites": FlattenedSiteSerializer(sites, many=True).data,
+        "external_locations": ExternalLocationSerializer(external_locations, many=True).data,
+        "documents": ApplicationDocumentSerializer(documents, many=True).data,
+        "destinations": CountryOnApplicationSerializer(destinations, many=True),
     }
 
 
@@ -414,7 +561,10 @@ def _get_organisation_context(organisation):
         "sic_number": organisation.sic_number,
         "vat_number": organisation.vat_number,
         "registration_number": organisation.registration_number,
-        "primary_site": {"name": organisation.primary_site.name, **_get_address(organisation.primary_site.address)},
+        "primary_site": {
+            "name": organisation.primary_site.name,
+            **_get_address(organisation.primary_site.address)
+        },
     }
 
 
@@ -447,15 +597,17 @@ def _get_party_context(party):
 
 
 def _get_third_parties_context(third_parties):
-    third_parties_context = {"all": [_get_party_context(third_party.party) for third_party in third_parties]}
+    parties = [third_party.party for third_party in third_parties]
+    third_parties_context = {
+        "all": PartySerializer(parties, many=True).data
+    }
 
     # Split third parties into lists based on role
     for role, _ in PartyRole.choices:
         third_parties_of_type = third_parties.filter(party__role=role)
         if third_parties_of_type:
-            third_parties_context[role] = [
-                _get_party_context(third_party.party) for third_party in third_parties_of_type
-            ]
+            filtered_parties = [third_party.party for third_party in third_parties_of_type]
+            third_parties_context[role] = PartySerializer(filtered_parties, many=True).data
 
     return third_parties_context
 
@@ -739,7 +891,11 @@ def _get_external_location_context(location):
 
 
 def _get_document_context(document):
-    return {"id": str(document.id), "name": document.name, "description": document.description}
+    return {
+        "id": str(document.id),
+        "name": document.name,
+        "description": document.description
+    }
 
 
 def _get_temporary_export_details(application):
