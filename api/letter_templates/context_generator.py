@@ -251,7 +251,16 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
 class EndUserAdvisoryQuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = EndUserAdvisoryQuery
-        fields = ["note", "query_reasoning", "nature_of_business", "contact_name", "contact_email", "contact_job_title", "contact_telephone", "end_user"]
+        fields = [
+            "note",
+            "query_reasoning",
+            "nature_of_business",
+            "contact_name",
+            "contact_email",
+            "contact_job_title",
+            "contact_telephone",
+            "end_user",
+        ]
 
     query_reason = serializers.CharField(source="reasoning")
     end_user = PartySerializer()
@@ -279,6 +288,60 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
     def get_control_list_entries(self, obj):
         return [clc.rating for clc in obj.control_list_entries.all()]
+
+
+class CompliancePersonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompliancePerson
+        fields = ["name", "job_title"]
+
+
+class ComplianceVisitCaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ComplianceVisitCase
+        fields = [
+            "reference_code",
+            "visit_type",
+            "visit_date",
+            "overall_risk_value",
+            "licence_risk_value",
+            "overview",
+            "inspection",
+            "compliance_overview",
+            "compliance_risk_value",
+            "individuals_overview",
+            "individuals_risk_value",
+            "products_overview",
+            "products_risk_value",
+            "people_present",
+        ]
+
+    visit_type = serializers.SerializerMethodField()
+    overall_risk_value = serializers.SerializerMethodField()
+    compliance_risk_value = serializers.SerializerMethodField()
+    individuals_risk_value = serializers.SerializerMethodField()
+    products_risk_value = serializers.SerializerMethodField()
+    visit_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
+    people_present = serializers.SerializerMethodField()
+
+    def get_visit_type(self, obj):
+        return ComplianceVisitTypes.to_str(obj.visit_type) if obj.visit_type else None
+
+    def get_overall_risk_value(self, obj):
+        return ComplianceRiskValues.to_str(obj.overall_risk_value) if obj.overall_risk_value else None
+
+    def get_compliance_risk_value(self, obj):
+        return ComplianceRiskValues.to_str(obj.compliance_risk_value) if obj.overall_risk_value else None
+
+    def get_individuals_risk_value(self, obj):
+        return ComplianceRiskValues.to_str(obj.individuals_risk_value) if obj.overall_risk_value else None
+
+    def get_products_risk_value(self, obj):
+        return ComplianceRiskValues.to_str(obj.products_risk_value) if obj.overall_risk_value else None
+
+    def get_people_present(self, obj):
+        people = CompliancePerson.objects.filter(visit_case=obj.id)
+        return CompliancePersonSerializer(people, many=True)
 
 
 def get_document_context(case, addressee=None):
@@ -588,7 +651,7 @@ def _get_compliance_site_context(case, with_visit_reports=True):
     }
     if with_visit_reports:
         context["visit_reports"] = [
-            _convert_compliance_visit_case_to_dict(visit)
+            ComplianceVisitCaseSerializer(visit).data
             for visit in ComplianceVisitCase.objects.filter(site_case_id=case.id)
         ]
     return context
@@ -596,7 +659,7 @@ def _get_compliance_site_context(case, with_visit_reports=True):
 
 def _get_compliance_visit_context(case):
     comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
-    context = _convert_compliance_visit_case_to_dict(comp_case)
+    context = ComplianceVisitCaseSerializer(comp_case).data
     context["site_case"] = _get_compliance_site_context(comp_case.site_case, with_visit_reports=False)
     return context
 
