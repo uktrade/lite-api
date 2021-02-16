@@ -20,7 +20,6 @@ from api.staticdata.units.enums import Units
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from api.users.models import ExporterUser
 from api.users.serializers import ExporterUserSimpleSerializer
-from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.organisations.models import DocumentOnOrganisation
 
 

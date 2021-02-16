@@ -318,7 +318,9 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
             return list(instance.flags.values("id", "name", "colour", "label", "priority"))
 
     def get_documents(self, instance):
-        queryset = instance.document_on_organisations.order_by("document_type", "-updated_at").distinct("document_type")
+        queryset = instance.document_on_organisations.order_by("document_type", "-expiry_date").distinct(
+            "document_type"
+        )
         serializer = DocumentOnOrganisationSerializer(queryset, many=True)
         return serializer.data
 
@@ -386,7 +388,7 @@ class OrganisationUserListView(serializers.ModelSerializer):
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        fields = ("name", "s3_key", "size", "created_at", "safe")
+        fields = ("id", "name", "s3_key", "size", "created_at", "safe")
         extra_kwargs = {
             "created_at": {"read_only": True},
             "safe": {"read_only": True},

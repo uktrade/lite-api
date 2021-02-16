@@ -78,6 +78,7 @@ class OrganisationDocumentViewTests(DataTestClient):
                     "size": 476,
                     "created_at": mock.ANY,
                     "safe": None,
+                    "id": mock.ANY,
                 },
             },
         )

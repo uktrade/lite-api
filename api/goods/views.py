@@ -1,6 +1,6 @@
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Q, Count
+from django.db.models import Count
 from django.http import JsonResponse
 from django.utils.functional import cached_property
 from rest_framework import status
@@ -136,7 +136,6 @@ class GoodList(ListCreateAPIView):
         description = self.request.GET.get("description", "")
         part_number = self.request.GET.get("part_number", "")
         control_list_entry = self.request.GET.get("control_list_entry")
-        for_application = self.request.GET.get("for_application")
         organisation = get_request_user_organisation_id(self.request)
 
         queryset = Good.objects.filter(
@@ -148,12 +147,6 @@ class GoodList(ListCreateAPIView):
 
         if control_list_entry:
             queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
-
-        if for_application:
-            good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(
-                "good", flat=True
-            )
-            queryset = queryset.filter(Q(id__in=good_document_ids) | Q(is_document_available=True))
 
         queryset = queryset.prefetch_related("control_list_entries")
 
