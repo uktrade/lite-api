@@ -4,6 +4,22 @@ from django.db.models import Q
 from rest_framework import serializers
 
 from api.applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryType
+from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
+from api.licences.enums import LicenceStatus
+from api.parties.enums import PartyRole, PartyType, SubType
+from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
+from api.staticdata.units.enums import Units
+from api.goods.enums import (
+    PvGrading,
+    ItemCategory,
+    Component,
+    MilitaryUse,
+    FirearmGoodType,
+    GoodControlled,
+    GoodPvGraded,
+)
+
 from api.applications.models import (
     BaseApplication,
     ApplicationDocument,
@@ -14,14 +30,21 @@ from api.applications.models import (
     HmrcQuery,
     CountryOnApplication,
 )
-from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryType
+from api.goods.models import PvGradingDetails
+from api.goodstype.models import GoodsType
 from api.cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision, CaseType
 from api.organisations.models import Organisation
 from api.addresses.models import Address
 from api.parties.models import Party
-from api.staticdata.countries.models import Country
-from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
+from api.licences.models import Licence
+from api.organisations.models import Site, ExternalLocation
+from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
+from api.queries.goods_query.models import GoodsQuery
+
+from api.staticdata.countries.models import Country
+from api.staticdata.control_list_entries.models import ControlListEntry
+
 from api.core.helpers import (
     get_date_and_time,
     add_months,
@@ -31,24 +54,23 @@ from api.core.helpers import (
     pluralise_unit,
     get_value_from_enum,
 )
-from api.goods.enums import (
-    PvGrading,
-    ItemCategory,
-    Component,
-    MilitaryUse,
-    FirearmGoodType,
-    GoodControlled,
-    GoodPvGraded,
-)
-from api.licences.enums import LicenceStatus
-from api.licences.models import Licence
-from api.organisations.models import Site, ExternalLocation
-from api.parties.enums import PartyRole, PartyType, SubType
-from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
-from api.queries.goods_query.models import GoodsQuery
-from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
+
 from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
-from api.staticdata.units.enums import Units
+
+
+class FriendlyBooleanField(serializers.Field):
+    def to_representation(self, value):
+        return friendly_boolean(value)
+
+    def to_internal_value(self, data):
+        if data is None or data == "":
+            return None
+        elif data == "Yes":
+            return True
+        elif data == "No":
+            return False
+        else:
+            return False
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -84,8 +106,8 @@ class SiteSerializer(serializers.ModelSerializer):
 
 
 class FlattenedSiteSerializer(SiteSerializer):
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
         ret = {**ret, **ret["address"]}
         del ret["address"]
         return ret
@@ -207,6 +229,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
             "military_end_use_controls_reference",
             "military_end_use_controls",
             "informed_wmd",
+            "suspected_wmd",
             "informed_wmd_reference",
             "eu_military",
             "compliant_limitations_eu_reference",
@@ -216,27 +239,46 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
     user_reference = serializers.CharField(source="name")
     end_use_details = serializers.CharField(source="intended_end_use")
     military_end_use_controls_reference = serializers.CharField(source="military_end_use_controls_ref")
-    military_end_use_controls = serializers.SerializerMethodField()
-    informed_wmd = serializers.SerializerMethodField()
+    military_end_use_controls = FriendlyBooleanField(source="is_military_end_use_controls")
+    informed_wmd = FriendlyBooleanField(source="is_informed_wmd")
+    suspected_wmd = FriendlyBooleanField(source="is_suspected_wmd")
     informed_wmd_reference = serializers.CharField(source="informed_wmd_ref")
-    eu_military = serializers.SerializerMethodField()
-    compliant_limitations_eu = serializers.SerializerMethodField()
+    eu_military = FriendlyBooleanField(source="is_eu_military")
+    compliant_limitations_eu = FriendlyBooleanField(source="is_compliant_limitations_eu")
     compliant_limitations_eu_reference = serializers.CharField(source="compliant_limitations_eu_ref")
 
-    def get_military_end_use_controls(self, obj):
-        return friendly_boolean(getattr(obj, "is_military_end_use_controls", ""))
 
-    def get_informed_wmd(self, obj):
-        return friendly_boolean(getattr(obj, "is_informed_wmd", ""))
+class EndUserAdvisoryQuerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EndUserAdvisoryQuery
+        fields = ["note", "query_reasoning", "nature_of_business", "contact_name", "contact_email", "contact_job_title", "contact_telephone", "end_user"]
 
-    def get_suspected_wmd(self, obj):
-        return friendly_boolean(getattr(obj, "is_suspected_wmd", ""))
+    query_reason = serializers.CharField(source="reasoning")
+    end_user = PartySerializer()
 
-    def get_eu_military(self, obj):
-        return friendly_boolean(getattr(obj, "is_eu_military", ""))
 
-    def get_compliant_limitations_eu(self, obj):
-        return friendly_boolean(getattr(obj, "is_compliant_limitations_eu", ""))
+class PvGradingDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PvGradingDetails
+        fields = ["prefix", "suffix", "issuing_authority", "reference", "date_of_issue", "grading"]
+
+    grading = serializers.SerializerMethodField()
+
+    def get_grading(self, obj):
+        if obj.grading:
+            return PvGrading.to_str(obj.grading)
+        return obj.custom_grading
+
+
+class GoodsTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoodsType
+        fields = ["description", "control_list_entries", "is_controlled"]
+
+    control_list_entries = serializers.SerializerMethodField()
+
+    def get_control_list_entries(self, obj):
+        return [clc.rating for clc in obj.control_list_entries.all()]
 
 
 def get_document_context(case, addressee=None):
@@ -297,7 +339,7 @@ def get_document_context(case, addressee=None):
         "sites": FlattenedSiteSerializer(sites, many=True).data,
         "external_locations": ExternalLocationSerializer(external_locations, many=True).data,
         "documents": ApplicationDocumentSerializer(documents, many=True).data,
-        "destinations": CountryOnApplicationSerializer(destinations, many=True),
+        "destinations": CountryOnApplicationSerializer(destinations, many=True).data,
     }
 
 
@@ -574,7 +616,8 @@ def _get_details_context(case):
     elif case_sub_type == CaseTypeSubTypeEnum.GIFTING:
         return BaseApplicationSerializer(case.baseapplication).data
     elif case_sub_type == CaseTypeSubTypeEnum.EUA:
-        return _get_end_user_advisory_query_context(case)
+        end_user_advisory = EndUserAdvisoryQuery.objects.get(id=case.pk)
+        return EndUserAdvisoryQuerySerializer(end_user_advisory).data
     elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
         return _get_goods_query_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.COMP_SITE:
@@ -736,7 +779,7 @@ def _get_good_on_application_context(good_on_application, advice=None):
         good_context["other_item_type"] = good_on_application.other_item_type
 
     if good_on_application.good.is_pv_graded != GoodPvGraded.NO:
-        good_context["pv_grading"] = _get_pv_grading_context(good_on_application.good.pv_grading_details)
+        good_context["pv_grading"] = PvGradingDetailsSerializer(good_on_application.good.pv_grading_details).data
 
     return good_context
 
