@@ -43,7 +43,6 @@ from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
 
 from api.staticdata.countries.models import Country
-from api.staticdata.control_list_entries.models import ControlListEntry
 
 from api.core.helpers import (
     get_date_and_time,
@@ -82,7 +81,9 @@ class CaseTypeSerializer(serializers.ModelSerializer):
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ["name", "id"]
+        fields = ["name", "code"]
+
+    code = serializers.CharField(source="id")
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -126,11 +127,8 @@ class LicenceSerializer(serializers.ModelSerializer):
         model = Licence
         fields = ["duration", "start_date", "end_date"]
 
-    start_date = serializers.SerializerMethodField()
+    start_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
     end_date = serializers.SerializerMethodField()
-
-    def get_start_date(self, obj):
-        return obj.start_date.strftime(DATE_FORMAT)
 
     def get_end_date(self, obj):
         return add_months(obj.start_date, obj.duration)
@@ -145,7 +143,7 @@ class PartySerializer(serializers.ModelSerializer):
     country = CountrySerializer()
 
     def get_type(self, obj):
-        return obj.sub_type_other if obj.sub_type_other else get_value_from_enum(obj.sub_type, SubType)
+        return obj.sub_type_other if hasattr(obj, "sub_type_other") else get_value_from_enum(obj.sub_type, SubType)
 
 
 class CountryOnApplicationSerializer(serializers.ModelSerializer):
@@ -166,8 +164,8 @@ class CaseNoteSerializer(serializers.ModelSerializer):
         fields = ["text", "is_visible_to_exporter", "time", "date", "user"]
 
     user = serializers.SerializerMethodField()
-    date = serializers.DateField(format=DATE_FORMAT, input_formats=None, source="created_at")
-    time = serializers.DateField(format=TIME_FORMAT, input_formats=None, source="created_at")
+    date = serializers.DateTimeField(format=DATE_FORMAT, input_formats=None, source="created_at")
+    time = serializers.DateTimeField(format=TIME_FORMAT, input_formats=None, source="created_at")
 
     def get_user(self, obj):
         return " ".join([obj.user.first_name, obj.user.last_name])
@@ -194,8 +192,8 @@ class EcjuQueryQuestionSerializer(serializers.ModelSerializer):
 
     text = serializers.CharField(source="question")
     user = serializers.SerializerMethodField()
-    date = serializers.DateField(format=DATE_FORMAT, input_formats=None, source="created_at")
-    time = serializers.DateField(format=TIME_FORMAT, input_formats=None, source="created_at")
+    date = serializers.DateTimeField(format=DATE_FORMAT, input_formats=None, source="created_at")
+    time = serializers.DateTimeField(format=TIME_FORMAT, input_formats=None, source="created_at")
 
     def get_user(self, obj):
         return f"{obj.raised_by_user.first_name} {obj.raised_by_user.last_name}"
@@ -208,8 +206,8 @@ class EcjuQueryResponseSerializer(serializers.ModelSerializer):
 
     text = serializers.CharField(source="response")
     user = serializers.SerializerMethodField()
-    date = serializers.DateField(format=DATE_FORMAT, input_formats=None, source="created_at")
-    time = serializers.DateField(format=TIME_FORMAT, input_formats=None, source="created_at")
+    date = serializers.DateTimeField(format=DATE_FORMAT, input_formats=None, source="created_at")
+    time = serializers.DateTimeField(format=TIME_FORMAT, input_formats=None, source="created_at")
 
     def get_user(self, obj):
         return f"{obj.responded_by_user.first_name} {obj.responded_by_user.last_name}"
@@ -247,8 +245,9 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
     military_end_use_controls_reference = serializers.CharField(source="military_end_use_controls_ref")
     military_end_use_controls = FriendlyBooleanField(source="is_military_end_use_controls")
     informed_wmd = FriendlyBooleanField(source="is_informed_wmd")
+    informed_wmd_reference = serializers.CharField(source="informed_wmd_ref")
     suspected_wmd = FriendlyBooleanField(source="is_suspected_wmd")
-    suspected_wmd_reference = FriendlyBooleanField(source="suspected_wmd_ref")
+    suspected_wmd_reference = serializers.CharField(source="suspected_wmd_ref")
     informed_wmd_reference = serializers.CharField(source="informed_wmd_ref")
     eu_military = FriendlyBooleanField(source="is_eu_military")
     compliant_limitations_eu = FriendlyBooleanField(source="is_compliant_limitations_eu")
@@ -388,6 +387,7 @@ def get_document_context(case, addressee=None):
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
     destinations = CountryOnApplication.objects.filter(application_id=case.pk).order_by("country__name")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
+    ultimate_end_users = [p.party for p in base_application.ultimate_end_users] if base_application.ultimate_end_users else None
 
     if getattr(base_application, "goods", "") and base_application.goods.exists():
         goods = _get_goods_context(base_application, final_advice, licence)
@@ -420,7 +420,7 @@ def get_document_context(case, addressee=None):
         "consignee": PartySerializer(base_application.consignee.party).data
         if base_application and getattr(base_application, "consignee", "")
         else None,
-        "ultimate_end_users": PartySerializer(base_application.ultimate_end_users, many=True).data
+        "ultimate_end_users": PartySerializer(ultimate_end_users, many=True).data
         if getattr(base_application, "ultimate_end_users", "")
         else [],
         "third_parties": _get_third_parties_context(base_application.third_parties)
