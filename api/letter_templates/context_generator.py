@@ -216,8 +216,13 @@ class EcjuQueryResponseSerializer(serializers.ModelSerializer):
 
 
 class EcjuQuerySerializer(serializers.Serializer):
-    question = EcjuQueryQuestionSerializer()
-    response = EcjuQueryResponseSerializer()
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        question = EcjuQueryQuestionSerializer(obj).data
+        response = EcjuQueryResponseSerializer(obj).data
+        ret["question"] = question
+        ret["response"] = response
+        return ret
 
 
 class BaseApplicationSerializer(serializers.ModelSerializer):
@@ -230,6 +235,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
             "military_end_use_controls",
             "informed_wmd",
             "suspected_wmd",
+            "suspected_wmd_reference",
             "informed_wmd_reference",
             "eu_military",
             "compliant_limitations_eu_reference",
@@ -242,6 +248,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
     military_end_use_controls = FriendlyBooleanField(source="is_military_end_use_controls")
     informed_wmd = FriendlyBooleanField(source="is_informed_wmd")
     suspected_wmd = FriendlyBooleanField(source="is_suspected_wmd")
+    suspected_wmd_reference = FriendlyBooleanField(source="suspected_wmd_ref")
     informed_wmd_reference = serializers.CharField(source="informed_wmd_ref")
     eu_military = FriendlyBooleanField(source="is_eu_military")
     compliant_limitations_eu = FriendlyBooleanField(source="is_compliant_limitations_eu")
@@ -253,7 +260,7 @@ class EndUserAdvisoryQuerySerializer(serializers.ModelSerializer):
         model = EndUserAdvisoryQuery
         fields = [
             "note",
-            "query_reasoning",
+            "query_reason",
             "nature_of_business",
             "contact_name",
             "contact_email",
@@ -342,6 +349,29 @@ class ComplianceVisitCaseSerializer(serializers.ModelSerializer):
     def get_people_present(self, obj):
         people = CompliancePerson.objects.filter(visit_case=obj.id)
         return CompliancePersonSerializer(people, many=True)
+
+
+class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ComplianceVisitCase
+        fields = ["reference_code", "address"]
+
+    site_name = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
+    open_licence_returns = serializers.SerializerMethodField()
+    licences = serializers.SerializerMethodField()
+
+    def get_site_name(self, obj):
+        return obj.compliancesitecase.site.name
+
+    def get_address(self, obj):
+        return AddressSerializer()
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret = {**ret, **ret["address"]}
+        del ret["address"]
+        return ret
 
 
 def get_document_context(case, addressee=None):
@@ -686,7 +716,10 @@ def _get_details_context(case):
     elif case_sub_type == CaseTypeSubTypeEnum.COMP_SITE:
         return _get_compliance_site_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
-        return _get_compliance_visit_context(case)
+        comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
+        context = ComplianceVisitCaseSerializer(comp_case).data
+        context["site_case"] = _get_compliance_site_context(comp_case.site_case, with_visit_reports=False)
+        return context
     else:
         return None
 
