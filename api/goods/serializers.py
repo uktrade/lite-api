@@ -341,7 +341,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(read_only=True, choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
-    missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices, read_only=True)
     is_pv_graded = KeyValueChoiceField(
         choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
@@ -378,7 +377,8 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "not_sure_details_details",
             "is_pv_graded",
             "pv_grading_details",
-            "missing_document_reason",
+            "is_document_available",
+            "is_document_sensitive",
             "comment",
             "report_summary",
             "item_category",
@@ -610,6 +610,24 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         )
 
 
+class GoodDocumentAvailabilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Good
+        fields = (
+            "id",
+            "is_document_available",
+        )
+
+
+class GoodDocumentSensitivitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Good
+        fields = (
+            "id",
+            "is_document_sensitive",
+        )
+
+
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):
     missing_document_reason = KeyValueChoiceField(
         choices=GoodMissingDocumentReasons.choices,
@@ -702,7 +720,8 @@ class GoodSerializerInternal(serializers.Serializer):
     modified_military_use_details = serializers.CharField()
     component_details = serializers.CharField()
     information_security_details = serializers.CharField()
-    missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
+    is_document_available = serializers.BooleanField()
+    is_document_sensitive = serializers.BooleanField()
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
     is_precedent = serializers.BooleanField(required=False, default=False)
@@ -754,7 +773,8 @@ class GoodSerializerExporter(serializers.Serializer):
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     case_id = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
-    missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
+    is_document_available = serializers.BooleanField()
+    is_document_sensitive = serializers.BooleanField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     query = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()

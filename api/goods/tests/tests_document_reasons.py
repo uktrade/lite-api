@@ -1,3 +1,4 @@
+from parameterized import parameterized
 from unittest import mock
 
 from django.urls import reverse
@@ -8,63 +9,45 @@ from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentRea
 from test_helpers.clients import DataTestClient
 
 
-class GoodDocumentMissingReasonsTests(DataTestClient):
+class GoodDocumentAvaiabilityandSensitivityTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.good = self.create_good("a good", self.organisation)
-        self.url = reverse("goods:good_document_sensitivity", kwargs={"pk": self.good.id})
+        self.document_availability_url = reverse("goods:good_document_availability", kwargs={"pk": self.good.id})
+        self.document_sensitivity_url = reverse("goods:good_document_sensitivity", kwargs={"pk": self.good.id})
 
-    def test_has_document_to_upload_yes_success(self):
-        data = {"has_document_to_upload": "yes"}
-        response = self.client.post(self.url, data, **self.exporter_headers)
+    @parameterized.expand(
+        [[{"is_document_available": "yes"}], [{"is_document_available": "no"}],]
+    )
+    def test_document_available_to_upload(self, data):
+        response = self.client.post(self.document_availability_url, data, **self.exporter_headers)
 
         self.assertEquals(status.HTTP_200_OK, response.status_code)
         self.assertTrue("good" in response.json())
 
-    def test_missing_document_reason_empty_failure(self):
-        data = {"has_document_to_upload": "no", "missing_document_reason": "blank"}
-        response = self.client.post(self.url, data, **self.exporter_headers)
+    def test_document_available_to_upload_failure(self):
+        data = {"is_document_available": None}
+        response = self.client.post(self.document_availability_url, data, **self.exporter_headers)
 
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
         errors = response.json()["errors"]
-        self.assertTrue("missing_document_reason" in errors)
-        self.assertEquals(errors["missing_document_reason"][0], strings.Goods.INVALID_MISSING_DOCUMENT_REASON)
+        self.assertTrue("is_document_available" in errors)
+        self.assertEquals(errors["is_document_available"][0], "Select yes or no")
 
-    def test_missing_document_reason_valid_success(self):
-        data = {
-            "has_document_to_upload": "no",
-            "missing_document_reason": GoodMissingDocumentReasons.OFFICIAL_SENSITIVE,
-        }
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEquals(status.HTTP_200_OK, response.status_code)
-        good = response.json()["good"]
-        self.assertEquals(good["missing_document_reason"]["key"], GoodMissingDocumentReasons.OFFICIAL_SENSITIVE)
-
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def test_uploading_document_clears_missing_document_reason(self, scan_document_for_viruses_function):
-        # Give a missing document reason
-        data = {
-            "has_document_to_upload": "no",
-            "missing_document_reason": GoodMissingDocumentReasons.NO_DOCUMENT,
-        }
-        response = self.client.post(self.url, data, **self.exporter_headers)
+    @parameterized.expand(
+        [[{"is_document_sensitive": "yes"}], [{"is_document_sensitive": "no"}],]
+    )
+    def test_document_sensitive(self, data):
+        response = self.client.post(self.document_sensitivity_url, data, **self.exporter_headers)
 
         self.assertEquals(status.HTTP_200_OK, response.status_code)
-        self.assertTrue(response.json()["good"]["missing_document_reason"])
+        self.assertTrue("good" in response.json())
 
-        # Upload a document for the good
-        data = [
-            {"name": "file123.pdf", "s3_key": "file123_12345678.pdf", "size": 476, "description": "Description 58398"}
-        ]
-        url = reverse("goods:documents", kwargs={"pk": self.good.id})
-        response = self.client.post(url, data=data, **self.exporter_headers)
+    def test_document_sensitivity_empty_failure(self):
+        data = {"is_document_sensitive": None}
+        response = self.client.post(self.document_sensitivity_url, data, **self.exporter_headers)
 
-        self.assertEquals(status.HTTP_201_CREATED, response.status_code)
-
-        # Get good and check the missing document reason is removed
-        url = reverse("goods:good", kwargs={"pk": self.good.id})
-        response = self.client.get(url + "?full_detail=True", **self.exporter_headers)
-
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertFalse(response.json()["good"]["missing_document_reason"])
+        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        errors = response.json()["errors"]
+        self.assertTrue("is_document_sensitive" in errors)
+        self.assertEquals(errors["is_document_sensitive"][0], "Select yes or no")

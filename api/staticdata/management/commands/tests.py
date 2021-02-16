@@ -62,7 +62,7 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_control_list_entries(self):
         self.seed_command(seedcontrollistentries.Command)
-        self.assertEqual(ControlListEntry.objects.count(), 2902)
+        self.assertEqual(ControlListEntry.objects.count(), 2903)
 
     def test_seed_countries(self):
         self.seed_command(seedcountries.Command)
