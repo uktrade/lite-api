@@ -60,4 +60,4 @@ pyexcel = "==0.6.6"
 pyexcel-ods3 = "*"
 
 [requires]
-python_version = "3.7.9"
+python_version = "3.7"
