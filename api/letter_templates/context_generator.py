@@ -137,13 +137,23 @@ class LicenceSerializer(serializers.ModelSerializer):
 class PartySerializer(serializers.ModelSerializer):
     class Meta:
         model = Party
-        fields = ["type", "name", "address", "descriptors", "website", "country"]
+        fields = ["type", "name", "address", "descriptors", "website", "country", "clearance_level", "role"]
 
     type = serializers.SerializerMethodField()
     country = CountrySerializer()
+    clearance_level = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
+
+    def get_role(self, obj):
+        if obj.type == PartyType.THIRD_PARTY:
+            return obj.role_other if obj.role_other else get_value_from_enum(obj.role, PartyRole)
+        return None
+
+    def get_clearance_level(self, obj):
+        return PvGrading.to_str(obj.clearance_level) if obj.clearance_level else None
 
     def get_type(self, obj):
-        return obj.sub_type_other if hasattr(obj, "sub_type_other") else get_value_from_enum(obj.sub_type, SubType)
+        return obj.sub_type_other if obj.sub_type_other else get_value_from_enum(obj.sub_type, SubType)
 
 
 class CountryOnApplicationSerializer(serializers.ModelSerializer):
@@ -387,7 +397,10 @@ def get_document_context(case, addressee=None):
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
     destinations = CountryOnApplication.objects.filter(application_id=case.pk).order_by("country__name")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
-    ultimate_end_users = [p.party for p in base_application.ultimate_end_users] if base_application.ultimate_end_users else None
+    if base_application:
+        ultimate_end_users = [p.party for p in base_application.ultimate_end_users] if base_application.ultimate_end_users else None
+    else:
+        ultimate_end_users = None
 
     if getattr(base_application, "goods", "") and base_application.goods.exists():
         goods = _get_goods_context(base_application, final_advice, licence)
@@ -420,9 +433,7 @@ def get_document_context(case, addressee=None):
         "consignee": PartySerializer(base_application.consignee.party).data
         if base_application and getattr(base_application, "consignee", "")
         else None,
-        "ultimate_end_users": PartySerializer(ultimate_end_users, many=True).data
-        if getattr(base_application, "ultimate_end_users", "")
-        else [],
+        "ultimate_end_users": PartySerializer(ultimate_end_users, many=True).data or [],
         "third_parties": _get_third_parties_context(base_application.third_parties)
         if getattr(base_application, "third_parties", "")
         else [],
