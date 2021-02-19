@@ -44,6 +44,9 @@ class Role(models.Model):
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=True)
     statuses = models.ManyToManyField(CaseStatus, related_name="roles_statuses")
 
+    def __str__(self):
+        return f"{self.__class__.__name__}(name={self.name}, type={self.type})"
+
     class Meta:
         ordering = ["name"]
 

@@ -1,6 +1,7 @@
 from django.urls import path
 
-from api.organisations.views import organisations, sites, external_locations, users, roles, activities
+from api.organisations.views import documents, organisations, sites, external_locations, users, roles, activities
+
 
 app_name = "organisations"
 
@@ -27,4 +28,14 @@ urlpatterns = [
     path("permissions/", roles.PermissionsView.as_view(), name="permissions"),
     path("<uuid:pk>/activity/", activities.OrganisationActivityView.as_view(), name="activities"),
     path("<uuid:pk>/sites-activity/", activities.SitesActivityView.as_view(), name="sites-activity"),
+    path(
+        "<uuid:pk>/documents/",
+        documents.DocumentOnOrganisationView.as_view({"get": "list", "post": "create"}),
+        name="documents",
+    ),
+    path(
+        "<uuid:pk>/document/<uuid:document_on_application_pk>/",
+        documents.DocumentOnOrganisationView.as_view({"get": "retrieve"}),
+        name="documents",
+    ),
 ]

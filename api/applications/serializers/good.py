@@ -20,6 +20,7 @@ from api.staticdata.units.enums import Units
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from api.users.models import ExporterUser
 from api.users.serializers import ExporterUserSimpleSerializer
+from api.organisations.models import DocumentOnOrganisation
 
 
 class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
@@ -190,25 +191,48 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentOnOrganisation
+        fields = [
+            "document",
+            "expiry_date",
+            "document_type",
+            "organisation",
+            "reference_code",
+        ]
+        extra_kwargs = {
+            "document": {"required": False},
+            "organisation": {"required": False},
+        }
+
+
 class GoodOnApplicationDocumentCreateSerializer(serializers.ModelSerializer):
     application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
+    document_on_organisation = DocumentOnOrganisationSerializer(required=False, write_only=True)
 
     class Meta:
         model = GoodOnApplicationDocument
-        fields = (
-            "name",
-            "s3_key",
-            "user",
-            "size",
-            "application",
-            "good",
-        )
+        fields = ("name", "s3_key", "user", "size", "application", "good", "document_on_organisation")
 
     def create(self, validated_data):
+        document_on_organisation = validated_data.pop("document_on_organisation", None)
         document = super().create(validated_data)
         document.save()
+
+        if document_on_organisation:
+            serializer = DocumentOnOrganisationSerializer(
+                data={
+                    "document": document.pk,
+                    "organisation": document.application.organisation.pk,
+                    **document_on_organisation,
+                }
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
         process_document(document)
         return document
 

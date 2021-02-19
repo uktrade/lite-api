@@ -17,7 +17,6 @@ from api.goods.enums import (
 
 from api.organisations.models import Organisation
 from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
 from api.users.models import ExporterUser
 
 
@@ -44,10 +43,12 @@ class FirearmGoodDetails(models.Model):
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = models.TextField(blank=True, default="")
     firearms_act_section = models.TextField(blank=True, default="")
+
     section_certificate_missing = models.BooleanField(blank=True, null=True)
     section_certificate_missing_reason = models.TextField(blank=True, default="")
     section_certificate_number = models.CharField(blank=True, max_length=100, null=True)
     section_certificate_date_of_expiry = models.DateField(blank=True, null=True)
+
     has_identification_markings = models.BooleanField(null=True)
     identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
     no_identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
@@ -86,7 +87,8 @@ class Good(TimestampableModel):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
     flags = models.ManyToManyField(Flag, related_name="goods")
-    missing_document_reason = models.CharField(choices=GoodMissingDocumentReasons.choices, null=True, max_length=30)
+    is_document_available = models.BooleanField(default=None, null=True)
+    is_document_sensitive = models.BooleanField(default=None, null=True)
     item_category = models.CharField(choices=ItemCategory.choices, null=True, max_length=20)
     is_military_use = models.CharField(choices=MilitaryUse.choices, null=True, max_length=15)
     modified_military_use_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
