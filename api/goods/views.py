@@ -136,6 +136,7 @@ class GoodList(ListCreateAPIView):
         description = self.request.GET.get("description", "")
         part_number = self.request.GET.get("part_number", "")
         control_list_entry = self.request.GET.get("control_list_entry")
+        for_application = self.request.GET.get("for_application")
         organisation = get_request_user_organisation_id(self.request)
 
         queryset = Good.objects.filter(
