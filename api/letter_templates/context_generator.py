@@ -264,6 +264,58 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
     compliant_limitations_eu_reference = serializers.CharField(source="compliant_limitations_eu_ref")
 
 
+class F680ClearanceApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = F680ClearanceApplication
+        fields = [
+            "expedited",
+            "expedited_date",
+            "foreign_technology",
+            "foreign_technology_description",
+            "locally_manufactured",
+            "locally_manufactured_description",
+            "mtcr_type",
+            "electronic_warfare_requirement",
+            "uk_service_equipment",
+            "uk_service_equipment_description",
+            "uk_service_equipment_type",
+            "prospect_value",
+            "clearance_level",
+        ]
+
+    expedited = FriendlyBooleanField()
+    foreign_technology = FriendlyBooleanField()
+    locally_manufactured = FriendlyBooleanField()
+    electronic_warfare_requirement = FriendlyBooleanField()
+    uk_service_equipment = FriendlyBooleanField()
+
+
+class FlattenedF680ClearanceApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = ["baseapplication"]
+
+    baseapplication = BaseApplicationSerializer()
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        f680 = F680ClearanceApplication.objects.get(id=obj.pk)
+        f680_data = F680ClearanceApplicationSerializer(f680).data
+        serialized = {**ret["baseapplication"], **f680_data}
+        return serialized
+
+
+class TemporaryExportDetailsSerializer(serializers.Serializer):
+    """
+        Serializes both OpenApplication and StandardApplication
+    """
+
+    temp_export_details = serializers.CharField()
+    is_temp_direct_control = FriendlyBooleanField()
+    temp_direct_control_details = serializers.CharField()
+    proposed_return_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
+
+
 class EndUserAdvisoryQuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = EndUserAdvisoryQuery
@@ -398,7 +450,9 @@ def get_document_context(case, addressee=None):
     destinations = CountryOnApplication.objects.filter(application_id=case.pk).order_by("country__name")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
     if base_application:
-        ultimate_end_users = [p.party for p in base_application.ultimate_end_users] if base_application.ultimate_end_users else None
+        ultimate_end_users = (
+            [p.party for p in base_application.ultimate_end_users] if base_application.ultimate_end_users else None
+        )
     else:
         ultimate_end_users = None
 
@@ -490,7 +544,7 @@ def _get_standard_application_context(case):
             "trade_control_activity": standard_application.trade_control_activity,
             "trade_control_activity_other": standard_application.trade_control_activity_other,
             "trade_control_product_categories": standard_application.trade_control_product_categories,
-            "temporary_export_details": _get_temporary_export_details(standard_application),
+            "temporary_export_details": TemporaryExportDetailsSerializer(standard_application).data,
         }
     )
     return context
@@ -514,7 +568,7 @@ def _get_open_application_context(case):
             "goodstype_category": GoodsTypeCategory.get_text(open_application.goodstype_category)
             if open_application.goodstype_category
             else None,
-            "temporary_export_details": _get_temporary_export_details(open_application),
+            "temporary_export_details": TemporaryExportDetailsSerializer(open_application).data,
         }
     )
     return context
@@ -716,7 +770,7 @@ def _get_details_context(case):
     elif case_sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return _get_exhibition_clearance_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.F680:
-        return _get_f680_clearance_context(case)
+        return FlattenedF680ClearanceApplicationSerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.GIFTING:
         return BaseApplicationSerializer(case.baseapplication).data
     elif case_sub_type == CaseTypeSubTypeEnum.EUA:

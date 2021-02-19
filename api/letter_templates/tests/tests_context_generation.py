@@ -261,7 +261,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["temp_export_details"], case.temp_export_details)
         self.assertEqual(context["is_temp_direct_control"], case.is_temp_direct_control)
         self.assertEqual(context["temp_direct_control_details"], case.temp_direct_control_details)
-        self.assertEqual(context["proposed_return_date"], case.proposed_return_date)
+        self.assertEqual(context["proposed_return_date"], case.proposed_return_date.strftime(DATE_FORMAT))
 
     def _assert_base_application_details(self, context, case):
         self.assertEqual(context["user_reference"], case.name)
