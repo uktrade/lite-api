@@ -1072,6 +1072,16 @@ class CreateGoodTests(DataTestClient):
             errors["no_identification_markings_details"], ["Ensure this field has no more than 2000 characters."]
         )
 
+    @parameterized.expand(
+        [["no"], ["yes"],]
+    )
+    def test_create_good_with_and_without_document(self, is_document_available):
+        self.request_data["is_document_available"] = is_document_available
+        response = self.client.post(URL, self.request_data, **self.exporter_headers)
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        _assert_response_data(self, response.json()["good"], self.request_data)
+        self.assertEquals(Good.objects.all().count(), 1)
+
 
 class GoodsCreateControlledGoodTests(DataTestClient):
     def setUp(self):

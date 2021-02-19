@@ -167,6 +167,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
                 # If the quantity or value aren't set, they are defaulted to 1 and 0 respectively
                 if not data["quantity"]:
                     data["quantity"] = 1
+                    data["firearm_details"]["number_of_items"] = 1
                 if not data["value"]:
                     data["value"] = 0
 

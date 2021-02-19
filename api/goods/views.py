@@ -153,7 +153,7 @@ class GoodList(ListCreateAPIView):
             good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(
                 "good", flat=True
             )
-            queryset = queryset.filter(Q(id__in=good_document_ids) | Q(is_document_available=True))
+            queryset = queryset.filter(Q(id__in=good_document_ids) | Q(is_document_available__isnull=False))
 
         queryset = queryset.prefetch_related("control_list_entries")
 
