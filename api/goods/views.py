@@ -148,6 +148,12 @@ class GoodList(ListCreateAPIView):
         if control_list_entry:
             queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
 
+        if for_application:
+            good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(
+                "good", flat=True
+            )
+            queryset = queryset.filter(Q(id__in=good_document_ids) | Q(is_document_available__isnull=False))
+
         queryset = queryset.prefetch_related("control_list_entries")
 
         return queryset.order_by("-updated_at")
