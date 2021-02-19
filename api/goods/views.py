@@ -1,6 +1,6 @@
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.utils.functional import cached_property
 from rest_framework import status
