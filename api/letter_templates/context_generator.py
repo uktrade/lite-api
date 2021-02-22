@@ -281,13 +281,31 @@ class F680ClearanceApplicationSerializer(serializers.ModelSerializer):
             "uk_service_equipment_type",
             "prospect_value",
             "clearance_level",
+            "clearance_types",
         ]
 
+    expedited_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
     expedited = FriendlyBooleanField()
     foreign_technology = FriendlyBooleanField()
     locally_manufactured = FriendlyBooleanField()
     electronic_warfare_requirement = FriendlyBooleanField()
     uk_service_equipment = FriendlyBooleanField()
+    clearance_types = serializers.SerializerMethodField()
+    mtcr_type = serializers.SerializerMethodField()
+    uk_service_equipment_type = serializers.SerializerMethodField()
+    clearance_level = serializers.SerializerMethodField()
+
+    def get_uk_service_equipment_type(self, obj):
+        return ServiceEquipmentType.to_str(obj.uk_service_equipment_type) if obj.uk_service_equipment_type else None
+
+    def get_mtcr_type(self, obj):
+        return MTCRAnswers.to_str(obj.mtcr_type) if obj.mtcr_type else None
+
+    def get_clearance_types(self, obj):
+        return [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in obj.types.all()]
+
+    def get_clearance_level(self, obj):
+        return PvGrading.to_str(obj.clearance_level)
 
 
 class FlattenedF680ClearanceApplicationSerializer(serializers.ModelSerializer):
@@ -314,6 +332,83 @@ class TemporaryExportDetailsSerializer(serializers.Serializer):
     is_temp_direct_control = FriendlyBooleanField()
     temp_direct_control_details = serializers.CharField()
     proposed_return_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
+
+
+class StandardApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StandardApplication
+        fields = [
+            "export_type",
+            "reference_number_on_information_form",
+            "has_been_informed",
+            "shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
+            "proposed_return_date",
+            "trade_control_activity",
+            "trade_control_activity_other",
+            "trade_control_product_categories",
+            "temporary_export_details",
+        ]
+
+    has_been_informed = serializers.CharField(source="have_you_been_informed")
+    shipped_waybill_or_lading = FriendlyBooleanField(source="is_shipped_waybill_or_lading")
+    proposed_return_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
+    temporary_export_details = TemporaryExportDetailsSerializer(source="temp_export_details")
+
+
+class FlattenedStandardApplicationSerializer(StandardApplicationSerializer):
+    class Meta:
+        model = Case
+        fields = ["baseapplication"]
+
+    baseapplication = BaseApplicationSerializer()
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        standard_application = StandardApplication.objects.get(id=obj.pk)
+        standard_application_data = StandardApplicationSerializer(standard_application).data
+        serialized = {**ret["baseapplication"], **standard_application_data}
+        return serialized
+
+
+class OpenApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpenApplication
+        fields = [
+            "export_type",
+            "contains_firearm_goods",
+            "shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
+            "proposed_return_date",
+            "trade_control_activity",
+            "trade_control_activity_other",
+            "trade_control_product_categories",
+            "goodstype_category",
+            "temporary_export_details",
+        ]
+
+    contains_firearm_goods = FriendlyBooleanField()
+    shipped_waybill_or_lading = FriendlyBooleanField()
+    proposed_return_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
+    goodstype_category = serializers.SerializerMethodField()
+
+    def get_goodstype_category(self, obj):
+        return GoodsTypeCategory.get_text(obj.goodstype_category) if obj.goodstype_category else None
+
+
+class FlattenedOpenApplicationSerializer(OpenApplicationSerializer):
+    class Meta:
+        model = Case
+        fields = ["baseapplication"]
+
+    baseapplication = BaseApplicationSerializer()
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        open_application = OpenApplication.objects.get(id=obj.pk)
+        open_application_data = OpenApplicationSerializer(open_application).data
+        serialized = {**ret["baseapplication"], **open_application_data}
+        return serialized
 
 
 class EndUserAdvisoryQuerySerializer(serializers.ModelSerializer):
@@ -762,9 +857,9 @@ def _get_compliance_visit_context(case):
 def _get_details_context(case):
     case_sub_type = case.case_type.sub_type
     if case_sub_type == CaseTypeSubTypeEnum.STANDARD:
-        return _get_standard_application_context(case)
+        return FlattenedStandardApplicationSerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.OPEN:
-        return _get_open_application_context(case)
+        return FlattenedOpenApplicationSerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.HMRC:
         return _get_hmrc_query_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.EXHIBITION:

@@ -336,7 +336,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(
             context["uk_service_equipment_type"], ServiceEquipmentType.to_str(case.uk_service_equipment_type)
         )
-        self.assertEqual(context["prospect_value"], case.prospect_value)
+        self.assertEqual(context["prospect_value"], '{:.2f}'.format(case.prospect_value))
         self.assertEqual(context["clearance_level"], PvGrading.to_str(case.clearance_level))
 
     def _assert_end_user_advisory_details(self, context, case):
