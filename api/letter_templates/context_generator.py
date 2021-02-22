@@ -30,7 +30,7 @@ from api.applications.models import (
     HmrcQuery,
     CountryOnApplication,
 )
-from api.goods.models import PvGradingDetails
+from api.goods.models import PvGradingDetails, Good
 from api.goodstype.models import GoodsType
 from api.cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision, CaseType
 from api.organisations.models import Organisation
@@ -89,13 +89,20 @@ class CountrySerializer(serializers.ModelSerializer):
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ["address", "address_line_1", "address_line_2", "postcode", "city", "region", "country"]
+        fields = ["address_line_1", "address_line_2", "postcode", "city", "region", "country"]
 
     address_line_1 = serializers.SerializerMethodField()
     country = CountrySerializer()
 
     def get_address_line_1(self, obj):
         return obj.address_line_1 or obj.address
+
+
+class AddresseeSerializer(serializers.Serializer):
+    name = serializers.SerializerMethodField()
+    email = serializers.CharField()
+    address = serializers.CharField()
+    phone_number = serializers.CharField()
 
 
 class SiteSerializer(serializers.ModelSerializer):
@@ -132,6 +139,21 @@ class LicenceSerializer(serializers.ModelSerializer):
 
     def get_end_date(self, obj):
         return add_months(obj.start_date, obj.duration)
+
+
+class OpenLicenceReturnsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpenLicenceReturns
+        fields = ["file_name", "year", "timestamp"]
+
+    file_name = serializers.SerializerMethodField()
+    timestamp = serializers.SerializerMethodField()
+
+    def get_file_name(self, obj):
+        return f"{obj.year}OpenLicenceReturns.csv"
+
+    def get_timestamp(self, obj):
+        return obj.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}")
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -411,6 +433,55 @@ class FlattenedOpenApplicationSerializer(OpenApplicationSerializer):
         return serialized
 
 
+class ExhibitionClearanceApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExhibitionClearanceApplication
+        fields = ["exhibition_title", "first_exhibition_date", "required_by_date", "reason_for_clearance"]
+
+    exhibition_title = serializers.CharField(source="exhibition_title")
+    first_exhibition_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
+    required_by_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
+
+
+class FlattenedExhibitionClearanceApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = ["baseapplication"]
+
+    baseapplication = BaseApplicationSerializer()
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        exhibition_clearance = ExhibitionClearanceApplication.objects.get(id=obj.pk)
+        exhibition_clearance_data = OpenApplicationSerializer(exhibition_clearance).data
+        serialized = {**ret["baseapplication"], **exhibition_clearance_data}
+        return serialized
+
+
+class HmrcQuerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HmrcQuery
+        fields = ["query_reason", "have_goods_departed"]
+
+    query_reason = serializers.CharField(source="reasoning")
+    have_goods_departed = FriendlyBooleanField()
+
+
+class FlattenedHmrcQuerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = ["baseapplication"]
+
+    baseapplication = BaseApplicationSerializer()
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        hmrc_query = HmrcQuery.objects.get(id=obj.pk)
+        hmrc_query_data = OpenApplicationSerializer(hmrc_query).data
+        serialized = {**ret["baseapplication"], **hmrc_query_data}
+        return serialized
+
+
 class EndUserAdvisoryQuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = EndUserAdvisoryQuery
@@ -451,6 +522,29 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
     def get_control_list_entries(self, obj):
         return [clc.rating for clc in obj.control_list_entries.all()]
+
+
+class GoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Good
+        fields = ["description", "control_list_entries", "is_controlled", "part_number"]
+
+    is_controlled = serializers.NullBooleanField(source="is_good_controlled")
+    control_list_entries = serializers.SerializerMethodField()
+
+    def get_control_list_entries(self, obj):
+        return [clc.rating for clc in obj.control_list_entries.all()]
+
+
+class GoodsQuerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoodsQuery
+        fields = ["control_list_entry", "clc_raised_reasons", "pv_grading_raised_reasons", "good", "clc_responded", "pv_grading_responded"]
+
+    control_list_entry = serializers.CharField(source="clc_control_list_entry")
+    clc_responded = FriendlyBooleanField()
+    pv_grading_responded = FriendlyBooleanField()
+    good = GoodSerializer()
 
 
 class CompliancePersonSerializer(serializers.ModelSerializer):
@@ -513,15 +607,12 @@ class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
         fields = ["reference_code", "address"]
 
     site_name = serializers.SerializerMethodField()
-    address = serializers.SerializerMethodField()
+    address = AddressSerializer()
     open_licence_returns = serializers.SerializerMethodField()
     licences = serializers.SerializerMethodField()
 
     def get_site_name(self, obj):
         return obj.compliancesitecase.site.name
-
-    def get_address(self, obj):
-        return AddressSerializer()
 
     def to_representation(self, obj):
         ret = super().to_representation(obj)
@@ -568,15 +659,11 @@ def get_document_context(case, addressee=None):
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
-        "addressee": _get_addressee_context(addressee) if addressee else None,
+        "addressee": AddresseeSerializer(addressee).data,
         "organisation": OrganisationSerializer(case.organisation).data,
         "licence": LicenceSerializer(licence).data if licence else None,
-        "end_user": PartySerializer(base_application.end_user.party).data
-        if base_application and getattr(base_application, "end_user", "")
-        else None,
-        "consignee": PartySerializer(base_application.consignee.party).data
-        if base_application and getattr(base_application, "consignee", "")
-        else None,
+        "end_user": PartySerializer(base_application.end_user.party).data,
+        "consignee": PartySerializer(base_application.consignee.party).data,
         "ultimate_end_users": PartySerializer(ultimate_end_users, many=True).data or [],
         "third_parties": _get_third_parties_context(base_application.third_parties)
         if getattr(base_application, "third_parties", "")
@@ -602,53 +689,6 @@ def _get_address(address):
     }
 
 
-def _get_hmrc_query_context(case):
-    context = BaseApplicationSerializer(case.baseapplication).data
-    hmrc_query = HmrcQuery.objects.get(id=case.pk)
-    context.update(
-        {"query_reason": hmrc_query.reasoning, "have_goods_departed": friendly_boolean(hmrc_query.have_goods_departed),}
-    )
-    return context
-
-
-def _get_exhibition_clearance_context(case):
-    context = BaseApplicationSerializer(case.baseapplication).data
-    exhibition = ExhibitionClearanceApplication.objects.get(id=case.pk)
-    context.update(
-        {
-            "exhibition_title": exhibition.title,
-            "first_exhibition_date": exhibition.first_exhibition_date.strftime(DATE_FORMAT)
-            if exhibition.first_exhibition_date
-            else None,
-            "required_by_date": exhibition.required_by_date.strftime(DATE_FORMAT)
-            if exhibition.required_by_date
-            else None,
-            "reason_for_clearance": exhibition.reason_for_clearance,
-        }
-    )
-    return context
-
-
-def _get_goods_query_context(case):
-    def _get_goods_query_good_context(good):
-        return {
-            "description": good.description,
-            "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
-            "is_controlled": good.is_good_controlled,
-            "part_number": good.part_number,
-        }
-
-    query = GoodsQuery.objects.get(id=case.pk)
-    return {
-        "control_list_entry": query.clc_control_list_entry,
-        "clc_raised_reasons": query.clc_raised_reasons,
-        "pv_grading_raised_reasons": query.pv_grading_raised_reasons,
-        "good": _get_goods_query_good_context(query.good) if query.good else None,
-        "clc_responded": friendly_boolean(query.clc_responded),
-        "pv_grading_responded": friendly_boolean(query.pv_grading_responded),
-    }
-
-
 def _get_compliance_licence_status(case):
     # The latest non draft licence should be the only active licence on a case or the licence that was active
     last_licence = (
@@ -665,30 +705,22 @@ def _get_compliance_licence_status(case):
 def _get_compliance_site_licences(case_id):
     cases = Case.objects.filter_for_cases_related_to_compliance_case(case_id)
     context = [
-        {"reference_code": case.reference_code, "status": _get_compliance_licence_status(case),} for case in cases
+        {
+            "reference_code": case.reference_code,
+            "status": _get_compliance_licence_status(case),
+        }
+        for case in cases
     ]
     return context
 
 
-def _get_organisations_open_licence_returns(organisation_id):
-    olrs = OpenLicenceReturns.objects.filter(organisation_id=organisation_id).order_by("-year", "-created_at")
-
-    return [
-        {
-            "file_name": f"{olr.year}OpenLicenceReturns.csv",
-            "year": olr.year,
-            "timestamp": olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
-        }
-        for olr in olrs
-    ]
-
-
 def _get_compliance_site_context(case, with_visit_reports=True):
+    olrs = OpenLicenceReturns.objects.filter(organisation_id=case.organisation.id).order_by("-year", "-created_at")
     context = {
         "reference_code": case.reference_code,
         "site_name": case.compliancesitecase.site.name,
-        **_get_address(case.compliancesitecase.site.address),
-        "open_licence_returns": _get_organisations_open_licence_returns(case.organisation.id),
+        **AddressSerializer(case.compliancesitecase.site.address).data,
+        "open_licence_returns": OpenLicenceReturnsSerializer(olrs, many=True).data,
         "licences": _get_compliance_site_licences(case.id),
     }
     if with_visit_reports:
@@ -699,6 +731,18 @@ def _get_compliance_site_context(case, with_visit_reports=True):
     return context
 
 
+SERIALIZER_MAPPING = {
+    CaseTypeSubTypeEnum.STANDARD: FlattenedStandardApplicationSerializer,
+    CaseTypeSubTypeEnum.OPEN: FlattenedOpenApplicationSerializer,
+    CaseTypeSubTypeEnum.HMRC: FlattenedHmrcQuerySerializer,
+    CaseTypeSubTypeEnum.EXHIBITION: FlattenedExhibitionClearanceApplicationSerializer,
+    CaseTypeSubTypeEnum.F680: FlattenedF680ClearanceApplicationSerializer,
+    CaseTypeSubTypeEnum.GIFTING: BaseApplicationSerializer,
+    CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQuerySerializer,
+    CaseTypeSubTypeEnum.GOODS: GoodsQuerySerializer
+}
+
+
 def _get_details_context(case):
     case_sub_type = case.case_type.sub_type
     if case_sub_type == CaseTypeSubTypeEnum.STANDARD:
@@ -706,9 +750,9 @@ def _get_details_context(case):
     elif case_sub_type == CaseTypeSubTypeEnum.OPEN:
         return FlattenedOpenApplicationSerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.HMRC:
-        return _get_hmrc_query_context(case)
+        return FlattenedHmrcQuerySerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.EXHIBITION:
-        return _get_exhibition_clearance_context(case)
+        return FlattenedExhibitionClearanceApplicationSerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.F680:
         return FlattenedF680ClearanceApplicationSerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.GIFTING:
@@ -717,7 +761,7 @@ def _get_details_context(case):
         end_user_advisory = EndUserAdvisoryQuery.objects.get(id=case.pk)
         return EndUserAdvisoryQuerySerializer(end_user_advisory).data
     elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
-        return _get_goods_query_context(case)
+        return GoodsQuerySerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.COMP_SITE:
         return _get_compliance_site_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
@@ -727,17 +771,6 @@ def _get_details_context(case):
         return context
     else:
         return None
-
-
-def _get_addressee_context(addressee):
-    return {
-        "name": " ".join([addressee.first_name, addressee.last_name])
-        if hasattr(addressee, "first_name")
-        else addressee.name,
-        "email": addressee.email,
-        "address": getattr(addressee, "address", ""),
-        "phone_number": getattr(addressee, "phone_number", ""),
-    }
 
 
 def _get_third_parties_context(third_parties):
@@ -754,7 +787,7 @@ def _get_third_parties_context(third_parties):
     return third_parties_context
 
 
-def _format_quantity(quantity, unit):
+def format_quantity(quantity, unit):
     if quantity and unit:
         return " ".join([intcomma(quantity), pluralise_unit(Units.to_str(unit), quantity),])
     elif unit:
@@ -768,7 +801,7 @@ def _get_good_on_application_context(good_on_application, advice=None):
         "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         "is_controlled": GoodControlled.to_str(good_on_application.good.is_good_controlled),
         "part_number": good_on_application.good.part_number,
-        "applied_for_quantity": _format_quantity(good_on_application.quantity, good_on_application.unit)
+        "applied_for_quantity": format_quantity(good_on_application.quantity, good_on_application.unit)
         if good_on_application.quantity
         else None,
         "applied_for_value": f"£{good_on_application.value}",
@@ -830,7 +863,7 @@ def _get_good_on_application_context(good_on_application, advice=None):
 
 def _get_good_on_licence_context(good_on_licence, advice=None):
     good_context = _get_good_on_application_context(good_on_licence.good, advice)
-    good_context["quantity"] = _format_quantity(good_on_licence.quantity, good_on_licence.good.unit)
+    good_context["quantity"] = format_quantity(good_on_licence.quantity, good_on_licence.good.unit)
     good_context["value"] = f"£{good_on_licence.value}"
 
     return good_context
