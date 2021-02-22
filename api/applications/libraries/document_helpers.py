@@ -3,6 +3,7 @@ from rest_framework import status
 
 from api.applications.models import ApplicationDocument
 from api.applications.serializers.document import ApplicationDocumentSerializer
+from api.applications.serializers.good import DocumentOnOrganisationSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.goodstype.document.models import GoodsTypeDocument
@@ -36,11 +37,24 @@ def get_application_document(doc_pk):
 
 
 def upload_application_document(application, data, user):
+    document_on_organisation = data.pop("document_on_organisation", None)
+
     data["application"] = application.id
     serializer = ApplicationDocumentSerializer(data=data)
     if not serializer.is_valid():
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    serializer.save()
+    document = serializer.save()
+
+    if document_on_organisation:
+        doa_serializer = DocumentOnOrganisationSerializer(
+            data={
+                "document": document.pk,
+                "organisation": document.application.organisation.pk,
+                **document_on_organisation,
+            }
+        )
+        doa_serializer.is_valid(raise_exception=True)
+        doa_serializer.save()
 
     audit_trail_service.create(
         actor=user,

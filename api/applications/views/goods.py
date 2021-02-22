@@ -183,7 +183,6 @@ class ApplicationGoodOnApplicationDocumentView(APIView):
     def post(self, request, pk, good_pk):
         data = request.data
         application = self.get_object()
-
         if application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,

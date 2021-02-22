@@ -209,7 +209,11 @@ def auto_match_sanctions(application):
 
     for party in parties:
         query = build_query(name=party.signatory_name_euu, address=party.address)
-        results = Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS).query(query)
+        results = (
+            Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS)
+            .query(query)
+            .update_from_dict({"size": 50, "collapse": {"field": "reference"}})
+        )
 
         try:
             matches = results.execute().hits
@@ -219,7 +223,7 @@ def auto_match_sanctions(application):
             for match in matches:
                 if match.meta.score > 0.5:
                     party_on_application = application.parties.get(party=party)
-                    reference = match["reference"]
+                    reference = match["reference"][0]
                     if not party_on_application.sanction_matches.filter(elasticsearch_reference=reference).exists():
                         SanctionMatch.objects.create(
                             party_on_application=party_on_application,

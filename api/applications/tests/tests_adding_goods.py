@@ -294,6 +294,7 @@ class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
                         "year_of_manufacture": 2020,
                         "section_certificate_date_of_expiry": "2025-12-31",
                         "number_of_items": 1,
+                        "serial_numbers": ["serial1"],
                     },
                 },
                 True,

@@ -67,7 +67,7 @@ def validate_identification_markings(validated_data):
     if "number_of_items" in validated_data and (number_of_items <= 0 or number_of_items == None):
         raise serializers.ValidationError({"number_of_items": "Enter the number of items"})
 
-    """ Mandatory question for firearm goods (Group 2) with conditional details fields based on the answer """
+    # Mandatory question for firearm goods (Group 2) with conditional details fields based on the answer
     has_identification_markings = validated_data.get("has_identification_markings")
     if "has_identification_markings" in validated_data and has_identification_markings is None:
         raise serializers.ValidationError({"has_identification_markings": [strings.Goods.FIREARM_GOOD_NO_MARKINGS]})
@@ -78,7 +78,7 @@ def validate_identification_markings(validated_data):
         )
 
     serial_numbers = validated_data.get("serial_numbers")
-    if has_identification_markings is True and "serial_numbers" in validated_data:
+    if "serial_numbers" in validated_data:
         errors = {}
 
         for index, item in enumerate(serial_numbers):
