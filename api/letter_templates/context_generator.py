@@ -554,12 +554,7 @@ def get_document_context(case, addressee=None):
     if getattr(base_application, "goods", "") and base_application.goods.exists():
         goods = _get_goods_context(base_application, final_advice, licence)
     elif getattr(base_application, "goods_type", "") and base_application.goods_type.exists():
-        goods = _get_goods_type_context(
-            base_application.goods_type.all()
-            .order_by("created_at")
-            .prefetch_related("countries", "control_list_entries"),
-            case.pk,
-        )
+        goods = _get_goods_type_context(base_application.goods_type.all().order_by("created_at").prefetch_related("countries", "control_list_entries"), case.pk)
     else:
         goods = None
 
@@ -607,68 +602,6 @@ def _get_address(address):
     }
 
 
-def _get_base_application_details_context(application):
-    return {
-        "user_reference": application.name,
-        "end_use_details": getattr(application, "intended_end_use", ""),
-        "military_end_use_controls": friendly_boolean(getattr(application, "is_military_end_use_controls", "")),
-        "military_end_use_controls_reference": getattr(application, "military_end_use_controls_ref", ""),
-        "informed_wmd": friendly_boolean(getattr(application, "is_informed_wmd", "")),
-        "informed_wmd_reference": getattr(application, "informed_wmd_ref", ""),
-        "suspected_wmd": friendly_boolean(getattr(application, "is_suspected_wmd", "")),
-        "suspected_wmd_reference": getattr(application, "suspected_wmd_ref", ""),
-        "eu_military": friendly_boolean(getattr(application, "is_eu_military", "")),
-        "compliant_limitations_eu": friendly_boolean(getattr(application, "is_compliant_limitations_eu", "")),
-        "compliant_limitations_eu_reference": getattr(application, "compliant_limitations_eu_ref", ""),
-    }
-
-
-def _get_standard_application_context(case):
-    context = BaseApplicationSerializer(case.baseapplication).data
-    standard_application = StandardApplication.objects.get(id=case.pk)
-    context.update(
-        {
-            "export_type": standard_application.export_type,
-            "reference_number_on_information_form": standard_application.reference_number_on_information_form,
-            "has_been_informed": standard_application.have_you_been_informed,
-            "shipped_waybill_or_lading": friendly_boolean(standard_application.is_shipped_waybill_or_lading),
-            "non_waybill_or_lading_route_details": standard_application.non_waybill_or_lading_route_details,
-            "proposed_return_date": standard_application.proposed_return_date.strftime(DATE_FORMAT)
-            if standard_application.proposed_return_date
-            else None,
-            "trade_control_activity": standard_application.trade_control_activity,
-            "trade_control_activity_other": standard_application.trade_control_activity_other,
-            "trade_control_product_categories": standard_application.trade_control_product_categories,
-            "temporary_export_details": TemporaryExportDetailsSerializer(standard_application).data,
-        }
-    )
-    return context
-
-
-def _get_open_application_context(case):
-    context = BaseApplicationSerializer(case.baseapplication).data
-    open_application = OpenApplication.objects.get(id=case.pk)
-    context.update(
-        {
-            "export_type": open_application.export_type,
-            "contains_firearm_goods": friendly_boolean(open_application.contains_firearm_goods),
-            "shipped_waybill_or_lading": friendly_boolean(open_application.is_shipped_waybill_or_lading),
-            "non_waybill_or_lading_route_details": open_application.non_waybill_or_lading_route_details,
-            "proposed_return_date": open_application.proposed_return_date.strftime(DATE_FORMAT)
-            if open_application.proposed_return_date
-            else None,
-            "trade_control_activity": open_application.trade_control_activity,
-            "trade_control_activity_other": open_application.trade_control_activity_other,
-            "trade_control_product_categories": open_application.trade_control_product_categories,
-            "goodstype_category": GoodsTypeCategory.get_text(open_application.goodstype_category)
-            if open_application.goodstype_category
-            else None,
-            "temporary_export_details": TemporaryExportDetailsSerializer(open_application).data,
-        }
-    )
-    return context
-
-
 def _get_hmrc_query_context(case):
     context = BaseApplicationSerializer(case.baseapplication).data
     hmrc_query = HmrcQuery.objects.get(id=case.pk)
@@ -694,52 +627,6 @@ def _get_exhibition_clearance_context(case):
         }
     )
     return context
-
-
-def _get_f680_clearance_context(case):
-    context = BaseApplicationSerializer(case.baseapplication).data
-    f680 = F680ClearanceApplication.objects.get(id=case.pk)
-    context.update(
-        {
-            "clearance_types": [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in f680.types.all()],
-            "expedited": friendly_boolean(f680.expedited),
-            "expedited_date": f680.expedited_date.strftime(DATE_FORMAT) if f680.expedited_date else None,
-            "foreign_technology": friendly_boolean(f680.foreign_technology),
-            "foreign_technology_description": f680.foreign_technology_description,
-            "locally_manufactured": friendly_boolean(f680.locally_manufactured),
-            "locally_manufactured_description": f680.locally_manufactured_description,
-            "mtcr_type": MTCRAnswers.to_str(f680.mtcr_type) if f680.mtcr_type else None,
-            "electronic_warfare_requirement": friendly_boolean(f680.electronic_warfare_requirement),
-            "uk_service_equipment": friendly_boolean(f680.uk_service_equipment),
-            "uk_service_equipment_description": f680.uk_service_equipment_description,
-            "uk_service_equipment_type": ServiceEquipmentType.to_str(f680.uk_service_equipment_type)
-            if f680.uk_service_equipment_type
-            else None,
-            "prospect_value": f680.prospect_value,
-            "clearance_level": PvGrading.to_str(f680.clearance_level),
-        }
-    )
-    return context
-
-
-def _get_gifting_clearance_context(case):
-    context = BaseApplicationSerializer(case.baseapplication).data
-
-    return context
-
-
-def _get_end_user_advisory_query_context(case):
-    query = EndUserAdvisoryQuery.objects.get(id=case.pk)
-    return {
-        "note": query.note,
-        "query_reason": query.reasoning,
-        "nature_of_business": query.nature_of_business,
-        "contact_name": query.contact_name,
-        "contact_email": query.contact_email,
-        "contact_job_title": query.contact_job_title,
-        "contact_telephone": query.contact_telephone,
-        "end_user": _get_party_context(query.end_user),
-    }
 
 
 def _get_goods_query_context(case):
@@ -796,41 +683,6 @@ def _get_organisations_open_licence_returns(organisation_id):
     ]
 
 
-def _get_people_present_compliance_visit_context(case):
-    people = list(CompliancePerson.objects.filter(visit_case=case.id))
-    if people:
-        return [{"name": person.name, "job_title": person.job_title} for person in people]
-    else:
-        return None
-
-
-def _convert_compliance_visit_case_to_dict(comp_case):
-    return {
-        "reference_code": comp_case.reference_code,
-        "visit_type": ComplianceVisitTypes.to_str(comp_case.visit_type) if comp_case.visit_type else None,
-        "visit_date": comp_case.visit_date.strftime(DATE_FORMAT) if comp_case.visit_date else None,
-        "overall_risk_value": ComplianceRiskValues.to_str(comp_case.overall_risk_value)
-        if comp_case.overall_risk_value
-        else None,
-        "licence_risk_value": comp_case.licence_risk_value,
-        "overview": comp_case.overview,
-        "inspection": comp_case.inspection,
-        "compliance_overview": comp_case.compliance_overview,
-        "compliance_risk_value": ComplianceRiskValues.to_str(comp_case.compliance_risk_value)
-        if comp_case.overall_risk_value
-        else None,
-        "individuals_overview": comp_case.individuals_overview,
-        "individuals_risk_value": ComplianceRiskValues.to_str(comp_case.individuals_risk_value)
-        if comp_case.overall_risk_value
-        else None,
-        "products_overview": comp_case.products_overview,
-        "products_risk_value": ComplianceRiskValues.to_str(comp_case.products_risk_value)
-        if comp_case.overall_risk_value
-        else None,
-        "people_present": _get_people_present_compliance_visit_context(comp_case),
-    }
-
-
 def _get_compliance_site_context(case, with_visit_reports=True):
     context = {
         "reference_code": case.reference_code,
@@ -844,13 +696,6 @@ def _get_compliance_site_context(case, with_visit_reports=True):
             ComplianceVisitCaseSerializer(visit).data
             for visit in ComplianceVisitCase.objects.filter(site_case_id=case.id)
         ]
-    return context
-
-
-def _get_compliance_visit_context(case):
-    comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
-    context = ComplianceVisitCaseSerializer(comp_case).data
-    context["site_case"] = _get_compliance_site_context(comp_case.site_case, with_visit_reports=False)
     return context
 
 
@@ -895,45 +740,6 @@ def _get_addressee_context(addressee):
     }
 
 
-def _get_organisation_context(organisation):
-    return {
-        "name": organisation.name,
-        "eori_number": organisation.eori_number,
-        "sic_number": organisation.sic_number,
-        "vat_number": organisation.vat_number,
-        "registration_number": organisation.registration_number,
-        "primary_site": {"name": organisation.primary_site.name, **_get_address(organisation.primary_site.address)},
-    }
-
-
-def _get_licence_context(licence):
-    return {
-        "start_date": licence.start_date.strftime(DATE_FORMAT),
-        "duration": licence.duration,
-        "end_date": add_months(licence.start_date, licence.duration),
-    }
-
-
-def _get_party_context(party):
-    context = {
-        "name": party.name,
-        "type": party.sub_type_other if party.sub_type_other else get_value_from_enum(party.sub_type, SubType),
-        "address": party.address,
-        "descriptors": party.descriptors,
-        "country": {"name": party.country.name, "code": party.country.id},
-        "website": party.website,
-    }
-    if party.clearance_level:
-        context["clearance_level"] = PvGrading.to_str(party.clearance_level)
-    else:
-        context["clearance_level"] = None
-
-    if party.type == PartyType.THIRD_PARTY:
-        context["role"] = party.role_other if party.role_other else get_value_from_enum(party.role, PartyRole)
-
-    return context
-
-
 def _get_third_parties_context(third_parties):
     parties = [third_party.party for third_party in third_parties]
     third_parties_context = {"all": PartySerializer(parties, many=True).data}
@@ -953,24 +759,6 @@ def _format_quantity(quantity, unit):
         return " ".join([intcomma(quantity), pluralise_unit(Units.to_str(unit), quantity),])
     elif unit:
         return "0 " + pluralise_unit(Units.to_str(unit), quantity)
-
-
-def _get_pv_grading_context(pv_grading_details):
-    context = {
-        "prefix": pv_grading_details.prefix,
-        "suffix": pv_grading_details.suffix,
-        "issuing_authority": pv_grading_details.issuing_authority,
-        "reference": pv_grading_details.reference,
-        "date_of_issue": pv_grading_details.date_of_issue.strftime(DATE_FORMAT)
-        if pv_grading_details.date_of_issue
-        else None,
-    }
-    if pv_grading_details.grading:
-        context["grading"] = PvGrading.to_str(pv_grading_details.grading)
-    else:
-        context["grading"] = pv_grading_details.custom_grading
-
-    return context
 
 
 def _get_good_on_application_context(good_on_application, advice=None):
@@ -1077,23 +865,15 @@ def _get_goods_context(application, final_advice, licence=None):
     return goods_context
 
 
-def _get_goods_type(goods_type):
-    return {
-        "description": goods_type.description,
-        "control_list_entries": [clc.rating for clc in goods_type.control_list_entries.all()],
-        "is_controlled": friendly_boolean(goods_type.is_good_controlled),
-    }
-
-
 def _get_approved_goods_type_context(approved_goods_type_on_country_decisions):
     # Approved goods types on country
     if approved_goods_type_on_country_decisions:
         context = {}
         for decision in approved_goods_type_on_country_decisions:
             if decision.country.name not in context:
-                context[decision.country.name] = [_get_goods_type(decision.goods_type)]
+                context[decision.country.name] = [GoodsTypeSerializer(decision.goods_type).data]
             else:
-                context[decision.country.name].append(_get_goods_type(decision.goods_type))
+                context[decision.country.name].append(GoodsTypeSerializer(decision.goods_type).data)
         return context
 
 
@@ -1123,9 +903,9 @@ def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_
     if refused_goods_type_on_country_decisions:
         for decision in refused_goods_type_on_country_decisions:
             if decision.country.name not in context:
-                context[decision.country.name] = {decision.goods_type.id: _get_goods_type(decision.goods_type)}
+                context[decision.country.name] = {decision.goods_type.id: GoodsTypeSerializer(decision.goods_type).data}
             else:
-                context[decision.country.name][decision.goods_type.id] = _get_goods_type(decision.goods_type)
+                context[decision.country.name][decision.goods_type.id] = GoodsTypeSerializer(decision.goods_type).data
 
     refused_final_advice_countries, refused_final_advice_goods_types = _get_entities_refused_at_the_final_advice_level(
         case_pk
@@ -1137,25 +917,25 @@ def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_
             goods_type_for_country = goods_types.filter(countries=country)
             for goods_type in goods_type_for_country:
                 if country.name not in context:
-                    context[country.name] = {goods_type.id: _get_goods_type(goods_type)}
+                    context[country.name] = {goods_type.id: GoodsTypeSerializer(goods_type).data}
                 elif goods_type.id not in context[country.name]:
-                    context[country.name][goods_type.id] = _get_goods_type(goods_type)
+                    context[country.name][goods_type.id] = GoodsTypeSerializer(goods_type).data
 
     # Goods types refused for all countries at final advice level
     if refused_final_advice_goods_types:
         for goods_type in refused_final_advice_goods_types:
             for country in goods_type.countries.all():
                 if country.name not in context:
-                    context[country.name] = {goods_type.id: _get_goods_type(goods_type)}
+                    context[country.name] = {goods_type.id: GoodsTypeSerializer(goods_type).data}
                 elif goods_type.id not in context[country.name]:
-                    context[country.name][goods_type.id] = _get_goods_type(goods_type)
+                    context[country.name][goods_type.id] = GoodsTypeSerializer(goods_type).data
 
     # Remove ID's used to avoid duplication
     return {key: list(context[key].values()) for key in context} if context else None
 
 
 def _get_goods_type_context(goods_types, case_pk):
-    goods_type_context = {"all": [_get_goods_type(goods_type) for goods_type in goods_types]}
+    goods_type_context = {"all": [GoodsTypeSerializer(goods_type).data for goods_type in goods_types]}
 
     # Get GoodCountryDecisions
     goods_type_on_country_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).prefetch_related(
@@ -1180,68 +960,3 @@ def _get_goods_type_context(goods_types, case_pk):
         goods_type_context[AdviceType.REFUSE] = refused_goods_type_context
 
     return goods_type_context
-
-
-def _get_ecju_query_context(query):
-    query_context = {
-        "question": {
-            "text": query.question,
-            "user": " ".join([query.raised_by_user.first_name, query.raised_by_user.last_name]),
-            "date": query.created_at.strftime(DATE_FORMAT),
-            "time": query.created_at.strftime(TIME_FORMAT),
-            "type": ECJUQueryType.to_str(query.query_type),
-        }
-    }
-
-    if query.response:
-        query_context["response"] = {
-            "text": query.response,
-            "user": " ".join([query.responded_by_user.first_name, query.responded_by_user.last_name]),
-            "date": query.responded_at.strftime(DATE_FORMAT),
-            "time": query.responded_at.strftime(TIME_FORMAT),
-        }
-
-    return query_context
-
-
-def _get_case_note_context(note):
-    return {
-        "text": note.text,
-        "user": " ".join([note.user.first_name, note.user.last_name]),
-        "date": note.created_at.strftime(DATE_FORMAT),
-        "time": note.created_at.strftime(TIME_FORMAT),
-        "visible_to_exporter": note.is_visible_to_exporter,
-    }
-
-
-def _get_site_context(site):
-    return {"name": site.name, **_get_address(site.address)}
-
-
-def _get_external_location_context(location):
-    return {
-        "name": location.name,
-        "address": location.address,
-        "country": {"name": location.country.name, "code": location.country.id},
-    }
-
-
-def _get_document_context(document):
-    return {"id": str(document.id), "name": document.name, "description": document.description}
-
-
-def _get_temporary_export_details(application):
-    return {
-        "temp_export_details": application.temp_export_details,
-        "is_temp_direct_control": friendly_boolean(application.is_temp_direct_control),
-        "temp_direct_control_details": application.temp_direct_control_details,
-        "proposed_return_date": application.proposed_return_date,
-    }
-
-
-def _get_destination_context(destination):
-    return {
-        "country": {"code": destination.country.id, "name": destination.country.name,},
-        "contract_types": destination.contract_types,
-        "other_contract_type": destination.other_contract_type_text,
-    }
