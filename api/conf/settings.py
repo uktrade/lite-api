@@ -125,7 +125,7 @@ ROOT_URLCONF = "api.conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "api/letter_templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "debug": DEBUG,

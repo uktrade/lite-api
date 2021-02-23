@@ -31,7 +31,7 @@ from api.applications.models import (
     CountryOnApplication,
     GoodOnApplication,
 )
-from api.goods.models import PvGradingDetails, Good
+from api.goods.models import PvGradingDetails, Good, FirearmGoodDetails
 from api.goodstype.models import GoodsType
 from api.cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision, CaseType
 from api.organisations.models import Organisation
@@ -73,7 +73,7 @@ class FriendlyBooleanField(serializers.Field):
             return False
 
 
-class FlattenedAddressSerializerMixin():
+class FlattenedAddressSerializerMixin:
     def to_representation(self, obj):
         ret = super().to_representation(obj)
         ret = {**ret, **ret["address"]}
@@ -110,8 +110,23 @@ class AddressSerializer(serializers.ModelSerializer):
 class AddresseeSerializer(serializers.Serializer):
     name = serializers.SerializerMethodField()
     email = serializers.CharField()
-    address = serializers.CharField()
-    phone_number = serializers.CharField()
+    address = serializers.SerializerMethodField()
+    phone_number = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        if hasattr(obj, "first_name"):
+            return " ".join([obj.first_name, obj.last_name])
+        return obj.name
+
+    def get_address(self, obj):
+        if hasattr(obj, "address"):
+            return obj.address
+        return None
+
+    def get_phone_number(self, obj):
+        if hasattr(obj, "phone_number"):
+            return obj.phone_number
+        return None
 
 
 class SiteSerializer(serializers.ModelSerializer):
@@ -380,7 +395,10 @@ class StandardApplicationSerializer(serializers.ModelSerializer):
     has_been_informed = serializers.CharField(source="have_you_been_informed")
     shipped_waybill_or_lading = FriendlyBooleanField(source="is_shipped_waybill_or_lading")
     proposed_return_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
-    temporary_export_details = TemporaryExportDetailsSerializer(source="temp_export_details")
+    temporary_export_details = serializers.SerializerMethodField()
+
+    def get_temporary_export_details(self, obj):
+        return TemporaryExportDetailsSerializer(obj).data
 
 
 class FlattenedStandardApplicationSerializer(StandardApplicationSerializer):
@@ -415,9 +433,13 @@ class OpenApplicationSerializer(serializers.ModelSerializer):
         ]
 
     contains_firearm_goods = FriendlyBooleanField()
-    shipped_waybill_or_lading = FriendlyBooleanField()
+    shipped_waybill_or_lading = FriendlyBooleanField(source="is_shipped_waybill_or_lading")
     proposed_return_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
     goodstype_category = serializers.SerializerMethodField()
+    temporary_export_details = serializers.SerializerMethodField()
+
+    def get_temporary_export_details(self, obj):
+        return TemporaryExportDetailsSerializer(obj).data
 
     def get_goodstype_category(self, obj):
         return GoodsTypeCategory.get_text(obj.goodstype_category) if obj.goodstype_category else None
@@ -443,7 +465,7 @@ class ExhibitionClearanceApplicationSerializer(serializers.ModelSerializer):
         model = ExhibitionClearanceApplication
         fields = ["exhibition_title", "first_exhibition_date", "required_by_date", "reason_for_clearance"]
 
-    exhibition_title = serializers.CharField(source="exhibition_title")
+    exhibition_title = serializers.CharField()
     first_exhibition_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
     required_by_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
 
@@ -458,7 +480,7 @@ class FlattenedExhibitionClearanceApplicationSerializer(serializers.ModelSeriali
     def to_representation(self, obj):
         ret = super().to_representation(obj)
         exhibition_clearance = ExhibitionClearanceApplication.objects.get(id=obj.pk)
-        exhibition_clearance_data = OpenApplicationSerializer(exhibition_clearance).data
+        exhibition_clearance_data = ExhibitionClearanceApplicationSerializer(exhibition_clearance).data
         serialized = {**ret["baseapplication"], **exhibition_clearance_data}
         return serialized
 
@@ -482,7 +504,7 @@ class FlattenedHmrcQuerySerializer(serializers.ModelSerializer):
     def to_representation(self, obj):
         ret = super().to_representation(obj)
         hmrc_query = HmrcQuery.objects.get(id=obj.pk)
-        hmrc_query_data = OpenApplicationSerializer(hmrc_query).data
+        hmrc_query_data = HmrcQuerySerializer(hmrc_query).data
         serialized = {**ret["baseapplication"], **hmrc_query_data}
         return serialized
 
@@ -532,6 +554,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         fields = ["description", "control_list_entries", "is_controlled"]
 
     control_list_entries = serializers.SerializerMethodField()
+    is_controlled = FriendlyBooleanField(source="is_good_controlled")
 
     def get_control_list_entries(self, obj):
         return [clc.rating for clc in obj.control_list_entries.all()]
@@ -549,6 +572,36 @@ class GoodsQueryGoodSerializer(serializers.ModelSerializer):
         return [clc.rating for clc in obj.control_list_entries.all()]
 
 
+class FlattenedGoodMixin:
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret = {**ret, **ret["good"]}
+        del ret["good"]
+        return ret
+
+
+class FirearmsDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FirearmGoodDetails
+        fields = [
+            "firearm_type",
+            "year_of_manufacture",
+            "calibre",
+            "is_covered_by_firearm_act_section_one_two_or_five",
+            "section_certificate_number",
+            "section_certificate_date_of_expiry",
+            "has_identification_markings",
+            "identification_markings_details",
+            "no_identification_markings_details",
+        ]
+
+    firearm_type = serializers.SerializerMethodField()
+    is_covered_by_firearm_act_section_one_two_or_five = FriendlyBooleanField()
+
+    def get_firearm_type(self, obj):
+        return FirearmGoodType.to_str(obj.type)
+
+
 class GoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Good
@@ -562,16 +615,56 @@ class GoodSerializer(serializers.ModelSerializer):
             "applied_for_value",
             "item_category",
             "is_pv_graded",
+            "is_military_use",
+            "is_component",
+            "modified_military_use_details",
+            "component_details",
+            "uses_information_security",
+            "information_security_details",
         ]
 
     is_controlled = serializers.SerializerMethodField()
     control_list_entries = serializers.SerializerMethodField()
+    applied_for_quantity = serializers.SerializerMethodField()
+    applied_for_value = serializers.SerializerMethodField()
+    is_military_use = serializers.SerializerMethodField()
+    is_component = serializers.SerializerMethodField()
+    uses_information_security = FriendlyBooleanField()
 
-    def get_is_good_controlled(self, obj):
+    def get_is_controlled(self, obj):
         return GoodControlled.to_str(obj.is_good_controlled)
+
+    def get_is_military_use(self, obj):
+        return MilitaryUse.to_str(obj.is_military_use)
+
+    def get_is_component(self, obj):
+        return Component.to_str(obj.is_component)
 
     def get_control_list_entries(self, obj):
         return [clc.rating for clc in obj.control_list_entries.all()]
+
+    def get_applied_for_quantity(self, obj):
+        if hasattr(obj, "quantity"):
+            return format_quantity(obj.quantity, obj.unit)
+        return None
+
+    def get_applied_for_value(self, obj):
+        if hasattr(obj, "value"):
+            return f"£{obj.value}"
+        return None
+
+
+class GoodOnApplicationSerializer(serializers.ModelSerializer, FlattenedGoodMixin):
+    class Meta:
+        model = GoodOnApplication
+        fields = ["good", "is_incorporated", "item_type", "other_item_type", "firearm_details"]
+
+    good = GoodSerializer()
+    firearm_details = serializers.SerializerMethodField()
+    is_incorporated = FriendlyBooleanField(source="is_good_incorporated")
+
+    def get_firearm_details(self, obj):
+        return obj.firearm_details or obj.good.firearm_details
 
 
 class GoodsQuerySerializer(serializers.ModelSerializer):
@@ -590,21 +683,6 @@ class GoodsQuerySerializer(serializers.ModelSerializer):
     clc_responded = FriendlyBooleanField()
     pv_grading_responded = FriendlyBooleanField()
     good = GoodsQueryGoodSerializer()
-
-
-class FlattenedGoodOnApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GoodOnApplication
-        fields = ["good", "is_incorporated"]
-
-    is_incorporated = FriendlyBooleanField(source="is_good_incorporated")
-    good = GoodSerializer()
-
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        ret = {**ret, **ret["good"]}
-        del ret["good"]
-        return ret
 
 
 class CompliancePersonSerializer(serializers.ModelSerializer):
@@ -741,9 +819,7 @@ class ComplianceSiteWithVisitReportsSerializer(ComplianceSiteSerializer):
         return ComplianceVisitCaseSerializer(visits, many=True).data
 
 
-class FlattenedComplianceSiteSerializer(
-    ComplianceSiteSerializer, FlattenedAddressSerializerMixin
-):
+class FlattenedComplianceSiteSerializer(ComplianceSiteSerializer, FlattenedAddressSerializerMixin):
     pass
 
 
@@ -799,8 +875,8 @@ def get_document_context(case, addressee=None):
         "addressee": AddresseeSerializer(addressee).data,
         "organisation": OrganisationSerializer(case.organisation).data,
         "licence": LicenceSerializer(licence).data if licence else None,
-        "end_user": PartySerializer(base_application.end_user.party).data,
-        "consignee": PartySerializer(base_application.consignee.party).data,
+        "end_user": PartySerializer(base_application.end_user.party).data if base_application and base_application.end_user else None,
+        "consignee": PartySerializer(base_application.consignee.party).data if base_application and base_application.consignee else None,
         "ultimate_end_users": PartySerializer(ultimate_end_users, many=True).data or [],
         "third_parties": _get_third_parties_context(base_application.third_parties)
         if getattr(base_application, "third_parties", "")
@@ -832,9 +908,11 @@ SERIALIZER_MAPPING = {
 
 def _get_details_context(case):
     case_sub_type = case.case_type.sub_type
-    serializer = SERIALIZER_MAPPING[case_sub_type]
 
     if case_sub_type and case_sub_type in SERIALIZER_MAPPING:
+        serializer = SERIALIZER_MAPPING[case_sub_type]
+        if serializer == FlattenedComplianceSiteWithVisitReportsSerializer:
+            import pdb; pdb.set_trace()
         return serializer(case).data
     else:
         return None
@@ -863,20 +941,10 @@ def format_quantity(quantity, unit):
 
 def _get_good_on_application_context(good_on_application, advice=None):
 
-    good_context = FlattenedGoodOnApplicationSerializer(good_on_application).data
+    good_context = GoodOnApplicationSerializer(good_on_application).data
 
     # handle item categories for goods and their differences
-    if good_on_application.good.item_category in ItemCategory.group_one:
-        good_context["is_military_use"] = MilitaryUse.to_str(good_on_application.good.is_military_use)
-        if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
-            good_context["modified_military_use_details"] = good_on_application.good.modified_military_use_details
-        good_context["is_component"] = Component.to_str(good_on_application.good.is_component)
-        if good_on_application.good.is_component != Component.NO:
-            good_context["component_details"] = good_on_application.good.component_details
-        good_context["uses_information_security"] = friendly_boolean(good_on_application.good.uses_information_security)
-        if good_on_application.good.uses_information_security:
-            good_context["information_security_details"] = good_on_application.good.information_security_details
-    elif good_on_application.good.item_category in ItemCategory.group_two:
+    if good_on_application.good.item_category in ItemCategory.group_two:
         firearm_details = good_on_application.firearm_details or good_on_application.good.firearm_details
         good_context["firearm_type"] = FirearmGoodType.to_str(firearm_details.type)
         good_context["year_of_manufacture"] = firearm_details.year_of_manufacture
@@ -884,31 +952,37 @@ def _get_good_on_application_context(good_on_application, advice=None):
         good_context["is_covered_by_firearm_act_section_one_two_or_five"] = friendly_boolean(
             firearm_details.is_covered_by_firearm_act_section_one_two_or_five
         )
+
         if firearm_details.is_covered_by_firearm_act_section_one_two_or_five:
             good_context["section_certificate_number"] = firearm_details.section_certificate_number
             good_context["section_certificate_date_of_expiry"] = firearm_details.section_certificate_date_of_expiry
+
         good_context["has_identification_markings"] = friendly_boolean(firearm_details.has_identification_markings)
+
         if firearm_details.has_identification_markings:
             good_context["identification_markings_details"] = firearm_details.identification_markings_details
+
         else:
             good_context["no_identification_markings_details"] = firearm_details.no_identification_markings_details
+
     elif good_on_application.good.item_category in ItemCategory.group_three:
         good_context["is_military_use"] = MilitaryUse.to_str(good_on_application.good.is_military_use)
+
         if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
             good_context["modified_military_use_details"] = good_on_application.good.modified_military_use_details
+
         good_context["software_or_technology_details"] = good_on_application.good.software_or_technology_details
         good_context["uses_information_security"] = friendly_boolean(good_on_application.good.uses_information_security)
+
         if good_on_application.good.uses_information_security:
             good_context["information_security_details"] = good_on_application.good.information_security_details
 
     if advice:
         good_context["reason"] = advice.text
         good_context["note"] = advice.note
+
         if advice.proviso:
             good_context["proviso_reason"] = advice.proviso
-    if good_on_application.item_type:
-        good_context["item_type"] = good_on_application.item_type
-        good_context["other_item_type"] = good_on_application.other_item_type
 
     if good_on_application.good.is_pv_graded != GoodPvGraded.NO:
         good_context["pv_grading"] = PvGradingDetailsSerializer(good_on_application.good.pv_grading_details).data

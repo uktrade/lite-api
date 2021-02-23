@@ -1,0 +1,182 @@
+{% load custom_tags %}
+
+<div class="document">
+	{# Layout to produce test document containing all available case context data. #}
+	{# NOTE: paths used in this layout are intentionally the exact paths used in production documents #}
+	<h1>Test document for checking variables</h1>
+	<h2>Core properties</h2>
+	<ul>
+		<li><b>case_reference:</b> {{ case_reference }}</li>
+		<li><b>current_date:</b> {{ current_date }}</li>
+		<li><b>current_time:</b> {{ current_time }}</li>
+	</ul>
+	{% if case_type %}
+		<h2>Case type</h2>
+		<ul>
+			<li><b>case_type:</b>
+				<ul>
+					{{ case_type|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if details %}
+		<h2>Details</h2>
+		<ul>
+			<li><b>details:</b>
+				<ul>
+					{{ details|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	<h2>Addressee</h2>
+	<p>Defaulted to case submitter</p>
+	<ul>
+		<li><b>addressee:</b>
+			<ul>
+				{{ addressee|context_data_to_list|safe }}
+			</ul>
+		</li>
+	</ul>
+	<h2>Organisation</h2>
+	<ul>
+		<li><b>organisation:</b>
+			<ul>
+				{{ organisation|context_data_to_list|safe }}
+			</ul>
+		</li>
+	</ul>
+	{% if licence %}
+	<h2>Licence</h2>
+	<ul>
+		<li><b>licence:</b>
+			<ul>
+				{{ licence|context_data_to_list|safe }}
+			</ul>
+		</li>
+	</ul>
+	{% endif %}
+	{% if end_user %}
+		<h2>End User</h2>
+		<ul>
+			<li><b>end_user:</b>
+				<ul>
+					{{ end_user|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if consignee %}
+		<h2>Consignee</h2>
+		<ul>
+			<li><b>consignee:</b>
+				<ul>
+					{{ consignee|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if ultimate_end_users %}
+		<h2>Ultimate end users</h2>
+		<ul>
+			<li><b>ultimate_end_users:</b>
+				<ul>
+					{{ ultimate_end_users|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if third_parties %}
+		<h2>Third parties</h2>
+		<ul>
+			<li><b>third_parties:</b>
+				<ul>
+					{{ third_parties|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	<h2>Goods</h2>
+	<ul>
+		<li><b>goods:</b>
+			<ul>
+				{{ goods|context_data_to_list|safe }}
+			</ul>
+		</li>
+	</ul>
+	{% if goods_type %}
+		<h2>Goods types</h2>
+		<ul>
+			<li><b>goods_type:</b>
+				<ul>
+					{{ goods_type|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if ecju_queries %}
+		<h2>ECJU queries</h2>
+		<ul>
+			<li><b>ecju_queries:</b>
+				<ul>
+					{{ ecju_queries|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if notes %}
+		<h2>Notes</h2>
+		<ul>
+			<li><b>notes:</b>
+				<ul>
+					{{ notes|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if sites %}
+		<h2>Sites</h2>
+		<ul>
+			<li><b>sites:</b>
+				<ul>
+					{{ sites|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if external_locations %}
+		<h2>External locations</h2>
+		<ul>
+			<li><b>external_locations:</b>
+				<ul>
+					{{ external_locations|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if documents %}
+		<h2>Documents</h2>
+		<ul>
+			<li><b>documents:</b>
+				<ul>
+					{{ documents|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if destinations %}
+		<h2>Destinations</h2>
+		<ul>
+			<li><b>destinations:</b>
+				<ul>
+					{{ destinations|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	<h2>User entered text</h2>
+	<div id="paragraph_content">
+		$USER_CONTENT$
+	</div>
+</div>

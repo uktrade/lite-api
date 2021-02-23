@@ -1,5 +1,8 @@
 from datetime import date
 
+from django.template.loader import render_to_string
+from django.test import tag
+
 from parameterized import parameterized
 
 from api.applications.enums import (
@@ -381,12 +384,14 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["products_overview"], case.products_overview)
         self.assertEqual(context["products_risk_value"], ComplianceRiskValues.to_str(case.products_risk_value))
 
+    @tag("context_gen")
     def test_generate_context_with_parties(self):
         # Standard application with all party types
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         self.create_party("Ultimate end user", self.organisation, PartyType.ULTIMATE_END_USER, case)
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self.assertIsNotNone(context["current_date"])
@@ -401,6 +406,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(len(context["third_parties"]), 2)
         self._assert_third_party(context["third_parties"], case.third_parties[0].party)
 
+    @tag("context_gen")
     def test_generate_context_with_custom_addressee(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         addressee = Party.objects.create(
@@ -413,17 +419,21 @@ class DocumentContextGenerationTests(DataTestClient):
         )
 
         context = get_document_context(case, addressee=addressee)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_addressee(context["addressee"], addressee)
 
+    @tag("context_gen")
     def test_generate_context_with_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_good(context["goods"]["all"][0], case.goods.all()[0])
 
+    @tag("context_gen")
     def test_generate_context_with_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
@@ -435,10 +445,12 @@ class DocumentContextGenerationTests(DataTestClient):
         good.save()
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
 
+    @tag("context_gen")
     def test_generate_context_with_proviso_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
@@ -450,11 +462,13 @@ class DocumentContextGenerationTests(DataTestClient):
         good.save()
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["proviso_reason"], final_advice.proviso)
 
+    @tag("context_gen")
     def test_generate_context_with_goods_types(self):
         case = self.create_open_application_case(self.organisation)
         approved_goods_type = case.goods_type.last()
@@ -490,6 +504,7 @@ class DocumentContextGenerationTests(DataTestClient):
         GoodCountryDecisionFactory(case=case, country=refused_country, goods_type=refused_goods_type, approve=False)
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
         self.assertEqual(context["case_reference"], case.reference_code)
 
         # All goods types should be in all
@@ -522,6 +537,7 @@ class DocumentContextGenerationTests(DataTestClient):
         )
 
     @parameterized.expand([(date(2020, 1, 31),), (date(2020, 4, 30),), (date(2020, 10, 13),)])
+    @tag("context_gen")
     def test_generate_context_with_licence(self, start_date):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
 
@@ -531,11 +547,13 @@ class DocumentContextGenerationTests(DataTestClient):
         )
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_licence(context["licence"], licence)
         self._assert_good_on_licence(context["goods"]["approve"][0], good_on_licence)
 
+    @tag("context_gen")
     def test_generate_context_with_ecju_query(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         ecju_query = self.create_ecju_query(case)
@@ -544,46 +562,56 @@ class DocumentContextGenerationTests(DataTestClient):
         ecju_query.save()
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_ecju_query(context["ecju_queries"][0], ecju_query)
 
+    @tag("context_gen")
     def test_generate_context_with_case_note(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         note = self.create_case_note(case, "text", self.gov_user.baseuser_ptr)
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_note(context["notes"][0], note)
 
+    @tag("context_gen")
     def test_generate_context_with_site(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         site = case.application_sites.first().site
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_site(context["sites"][0], site)
 
+    @tag("context_gen")
     def test_generate_context_with_external_locations(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         location = self.create_external_location("external", self.organisation)
         ExternalLocationOnApplication.objects.create(external_location=location, application=case)
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_external_location(context["external_locations"][0], location)
 
+    @tag("context_gen")
     def test_generate_context_with_document(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         document = self.create_application_document(case)
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_document(context["documents"][0], document)
 
+    @tag("context_gen")
     def test_generate_context_with_application_details(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
 
@@ -602,9 +630,11 @@ class DocumentContextGenerationTests(DataTestClient):
         case.baseapplication.refresh_from_db()
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_base_application_details(context["details"], case)
 
+    @tag("context_gen")
     def test_generate_context_with_standard_application_details(self):
         case = self.create_standard_application_case(self.organisation)
         case.export_type = ApplicationExportType.TEMPORARY
@@ -619,12 +649,14 @@ class DocumentContextGenerationTests(DataTestClient):
         case.save()
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_case_type_details(context["case_type"], case)
         self._assert_base_application_details(context["details"], case)
         self._assert_standard_application_details(context["details"], case)
 
+    @tag("context_gen")
     def test_generate_context_with_open_application_details(self):
         case = self.create_open_application_case(self.organisation)
         case.export_type = ApplicationExportType.TEMPORARY
@@ -642,6 +674,7 @@ class DocumentContextGenerationTests(DataTestClient):
         case.save()
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_case_type_details(context["case_type"], case)
@@ -649,15 +682,18 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_open_application_details(context["details"], case)
         self._assert_destination_details(context["destinations"][0], destination)
 
+    @tag("context_gen")
     def test_generate_context_with_hmrc_query_details(self):
         case = self.create_hmrc_query(self.organisation)
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_case_type_details(context["case_type"], case)
         self._assert_hmrc_query_details(context["details"], case)
 
+    @tag("context_gen")
     def test_generate_context_with_exhibition_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
         case.reason_for_clearance = "abc"
@@ -668,12 +704,14 @@ class DocumentContextGenerationTests(DataTestClient):
         case.save()
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_case_type_details(context["case_type"], case)
         self._assert_exhibition_clearance_details(context["details"], case)
         self._assert_good(context["goods"]["all"][0], good)
 
+    @tag("context_gen")
     def test_generate_context_with_f680_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
         case.expedited = True
@@ -691,35 +729,43 @@ class DocumentContextGenerationTests(DataTestClient):
         case.save()
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_case_type_details(context["case_type"], case)
         self._assert_f680_clearance_details(context["details"], case)
 
+    @tag("context_gen")
     def test_generate_context_with_gifting_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_case_type_details(context["case_type"], case)
 
+    @tag("context_gen")
     def test_generate_context_with_end_user_advisory_query_details(self):
         case = self.create_end_user_advisory(note="abc", reasoning="def", organisation=self.organisation)
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_end_user_advisory_details(context["details"], case)
 
+    @tag("context_gen")
     def test_generate_context_with_goods_query_details(self):
         case = self.create_goods_query("abc", self.organisation, "clc reason", "pv reason")
 
         context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_goods_query_details(context["details"], case)
 
+    @tag("context_gen")
     def test_generate_context_with_compliance_visit_details(self):
         compliance_case = ComplianceSiteCaseFactory(
             organisation=self.organisation,
@@ -739,6 +785,7 @@ class DocumentContextGenerationTests(DataTestClient):
         olr = OpenLicenceReturnsFactory(organisation=self.organisation)
 
         context = get_document_context(comp_visit_case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], comp_visit_case.reference_code)
         self._assert_compliance_visit_case_details(context["details"], comp_visit_case)
@@ -754,6 +801,7 @@ class DocumentContextGenerationTests(DataTestClient):
             olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
         )
 
+    @tag("context_gen")
     def test_generate_context_with_compliance_site_details(self):
         compliance_case = ComplianceSiteCaseFactory(
             organisation=self.organisation,
@@ -768,11 +816,12 @@ class DocumentContextGenerationTests(DataTestClient):
 
         application = self.create_open_application_case(self.organisation)
 
-        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        self.create_licence(application, status=LicenceStatus.ISSUED)
 
         olr = OpenLicenceReturnsFactory(organisation=self.organisation)
 
         context = get_document_context(compliance_case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], compliance_case.reference_code)
         self._assert_compliance_visit_case_details(context["details"]["visit_reports"][0], comp_visit_case)
@@ -787,6 +836,7 @@ class DocumentContextGenerationTests(DataTestClient):
             olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
         )
 
+    @tag("context_gen")
     def test_generate_context_with_category_1_good_details(self):
         application = self.create_standard_application_case(self.organisation)
         application.goods.all().delete()
@@ -805,10 +855,12 @@ class DocumentContextGenerationTests(DataTestClient):
         )
 
         context = get_document_context(application)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], application.reference_code)
         self._assert_good(context["goods"]["all"][0], goa)
 
+    @tag("context_gen")
     def test_generate_context_with_category_3_good_details(self):
         application = self.create_standard_application_case(self.organisation)
         application.goods.all().delete()
@@ -827,10 +879,12 @@ class DocumentContextGenerationTests(DataTestClient):
         )
 
         context = get_document_context(application)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], application.reference_code)
         self._assert_good(context["goods"]["all"][0], goa)
 
+    @tag("context_gen")
     def test_generate_context_with_category_2_good_details_legacy(self):
         application = self.create_standard_application_case(self.organisation)
         application.goods.all().delete()
@@ -844,6 +898,7 @@ class DocumentContextGenerationTests(DataTestClient):
         )
 
         context = get_document_context(application)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         # in the case of a legacy case context should fall back to the firearms
         # details on a good.
@@ -852,6 +907,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], application.reference_code)
         self._assert_good(context["goods"]["all"][0], goa)
 
+    @tag("context_gen")
     def test_generate_context_with_category_2_good_details(self):
         application = self.create_standard_application_case(self.organisation)
         application.goods.all().delete()
@@ -871,6 +927,7 @@ class DocumentContextGenerationTests(DataTestClient):
         )
 
         context = get_document_context(application)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], application.reference_code)
         self._assert_good(context["goods"]["all"][0], goa)
