@@ -7,6 +7,14 @@ class CountryManager(models.Manager):
     def get_queryset(self):
         return super(CountryManager, self).get_queryset().exclude(id="UKCS")
 
+    def get_by_natural_key(self, pk):
+        return self.get(pk=pk)
+
+
+class ExcludeSpecialCountryManager(CountryManager):
+    def get_queryset(self):
+        return super().get_queryset().exclude(id="UKCS")
+
 
 class Country(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=10)  # Country Code
@@ -16,5 +24,8 @@ class Country(models.Model):
     is_eu = models.BooleanField()
     report_name = models.TextField(help_text="Name to use in reports, to harmonize with SPIRE", default="")
 
-    objects = models.Manager()
-    exclude_special_countries = CountryManager()
+    objects = CountryManager()
+    exclude_special_countries = ExcludeSpecialCountryManager()
+
+    def natural_key(self):
+        return (self.pk,)
