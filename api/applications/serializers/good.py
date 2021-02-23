@@ -5,22 +5,23 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from django.forms.models import model_to_dict
 
 from api.applications.models import GoodOnApplicationDocument, BaseApplication, GoodOnApplication
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
 from api.documents.libraries.process_document import process_document
-from api.goods.enums import GoodControlled
-from api.goods.enums import ItemType
+from api.goods.enums import GoodControlled, ItemType
 from api.goods.models import Good
 from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializer
 from api.licences.models import GoodOnLicence
-from lite_content.lite_api import strings
-from api.staticdata.units.enums import Units
+from api.organisations.models import DocumentOnOrganisation
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.staticdata.units.enums import Units
 from api.users.models import ExporterUser
 from api.users.serializers import ExporterUserSimpleSerializer
-from api.organisations.models import DocumentOnOrganisation
+from lite_content.lite_api import strings
 
 
 class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
@@ -221,7 +222,6 @@ class GoodOnApplicationDocumentCreateSerializer(serializers.ModelSerializer):
         document_on_organisation = validated_data.pop("document_on_organisation", None)
         document = super().create(validated_data)
         document.save()
-
         if document_on_organisation:
             serializer = DocumentOnOrganisationSerializer(
                 data={
@@ -232,6 +232,13 @@ class GoodOnApplicationDocumentCreateSerializer(serializers.ModelSerializer):
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
+
+            audit_trail_service.create(
+                actor=validated_data["user"],
+                verb=AuditType.DOCUMENT_ON_ORGANISATION_CREATE,
+                target=document.application.organisation,
+                payload={"file_name": validated_data.get("name")},
+            )
 
         process_document(document)
         return document
