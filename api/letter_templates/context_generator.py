@@ -505,6 +505,14 @@ class EndUserAdvisoryQuerySerializer(serializers.ModelSerializer):
     end_user = PartySerializer()
 
 
+class EndUserAdvisoryQueryCaseSerializer(serializers.Serializer):
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        end_user_advisory = EndUserAdvisoryQuery.objects.get(id=obj.pk)
+        serialized = {**ret, **EndUserAdvisoryQuerySerializer(end_user_advisory).data}
+        return serialized
+
+
 class PvGradingDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PvGradingDetails
@@ -623,6 +631,7 @@ class ComplianceVisitCaseSerializer(serializers.ModelSerializer):
             "products_overview",
             "products_risk_value",
             "people_present",
+            "site_case",
         ]
 
     visit_type = serializers.SerializerMethodField()
@@ -632,6 +641,10 @@ class ComplianceVisitCaseSerializer(serializers.ModelSerializer):
     products_risk_value = serializers.SerializerMethodField()
     visit_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
     people_present = serializers.SerializerMethodField()
+    site_case = serializers.SerializerMethodField()
+
+    def get_site_case(self, obj):
+        return FlattenedComplianceSiteSerializer(obj.site_case).data
 
     def get_visit_type(self, obj):
         return ComplianceVisitTypes.to_str(obj.visit_type) if obj.visit_type else None
@@ -651,6 +664,14 @@ class ComplianceVisitCaseSerializer(serializers.ModelSerializer):
     def get_people_present(self, obj):
         people = CompliancePerson.objects.filter(visit_case=obj.id)
         return CompliancePersonSerializer(people, many=True)
+
+
+class ComplianceVisitSerializer(ComplianceVisitCaseSerializer):
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=obj.id)
+        ret = {**ret, **ComplianceVisitCaseSerializer(comp_case).data}
+        return ret
 
 
 class ComplianceSiteCaseSerializer(serializers.ModelSerializer, FlattenedAddressSerializerMixin):
@@ -794,22 +815,6 @@ def get_document_context(case, addressee=None):
     }
 
 
-def _get_compliance_site_context(case, with_visit_reports=True):
-    olrs = OpenLicenceReturns.objects.filter(organisation_id=case.organisation.id).order_by("-year", "-created_at")
-    cases = Case.objects.filter_for_cases_related_to_compliance_case(case.id)
-    context = {
-        "reference_code": case.reference_code,
-        "site_name": case.compliancesitecase.site.name,
-        **AddressSerializer(case.compliancesitecase.site.address).data,
-        "open_licence_returns": OpenLicenceReturnsSerializer(olrs, many=True).data,
-        "licences": ComplianceSiteLicenceSerializer(cases, many=True).data,
-    }
-    if with_visit_reports:
-        visits = ComplianceVisitCase.objects.filter(site_case_id=case.id)
-        context["visit_reports"] = ComplianceVisitCaseSerializer(visits, many=True).data
-    return context
-
-
 SERIALIZER_MAPPING = {
     CaseTypeSubTypeEnum.STANDARD: FlattenedStandardApplicationSerializer,
     CaseTypeSubTypeEnum.OPEN: FlattenedOpenApplicationSerializer,
@@ -819,35 +824,18 @@ SERIALIZER_MAPPING = {
     CaseTypeSubTypeEnum.GIFTING: BaseApplicationSerializer,
     CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQuerySerializer,
     CaseTypeSubTypeEnum.GOODS: GoodsQuerySerializer,
+    CaseTypeSubTypeEnum.COMP_SITE: FlattenedComplianceSiteWithVisitReportsSerializer,
+    CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQueryCaseSerializer,
+    CaseTypeSubTypeEnum.COMP_VISIT: ComplianceVisitSerializer,
 }
 
 
 def _get_details_context(case):
     case_sub_type = case.case_type.sub_type
-    if case_sub_type == CaseTypeSubTypeEnum.STANDARD:
-        return FlattenedStandardApplicationSerializer(case).data
-    elif case_sub_type == CaseTypeSubTypeEnum.OPEN:
-        return FlattenedOpenApplicationSerializer(case).data
-    elif case_sub_type == CaseTypeSubTypeEnum.HMRC:
-        return FlattenedHmrcQuerySerializer(case).data
-    elif case_sub_type == CaseTypeSubTypeEnum.EXHIBITION:
-        return FlattenedExhibitionClearanceApplicationSerializer(case).data
-    elif case_sub_type == CaseTypeSubTypeEnum.F680:
-        return FlattenedF680ClearanceApplicationSerializer(case).data
-    elif case_sub_type == CaseTypeSubTypeEnum.GIFTING:
-        return BaseApplicationSerializer(case.baseapplication).data
-    elif case_sub_type == CaseTypeSubTypeEnum.EUA:
-        end_user_advisory = EndUserAdvisoryQuery.objects.get(id=case.pk)
-        return EndUserAdvisoryQuerySerializer(end_user_advisory).data
-    elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
-        return GoodsQuerySerializer(case).data
-    elif case_sub_type == CaseTypeSubTypeEnum.COMP_SITE:
-        return FlattenedComplianceSiteWithVisitReportsSerializer(case).data
-    elif case_sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
-        comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
-        context = ComplianceVisitCaseSerializer(comp_case).data
-        context["site_case"] = FlattenedComplianceSiteSerializer(comp_case.site_case).data
-        return context
+    serializer = SERIALIZER_MAPPING[case_sub_type]
+
+    if case_sub_type and case_sub_type in SERIALIZER_MAPPING:
+        return serializer(case).data
     else:
         return None
 
