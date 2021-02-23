@@ -517,11 +517,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
-            "firearm_details": {
-                "has_identification_markings": "True",
-                "identification_markings_details": "some new details",
-                "no_identification_markings_details": "",
-            }
+            "firearm_details": {"has_identification_markings": "True", "no_identification_markings_details": "",}
         }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
@@ -529,21 +525,16 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertTrue(good["firearm_details"]["has_identification_markings"])
-        self.assertEquals(good["firearm_details"]["identification_markings_details"], "some new details")
         self.assertEquals(good["firearm_details"]["no_identification_markings_details"], "")
 
-    def test_edit_category_two_identification_markings_no_details_provided_failure(self):
+    def test_edit_category_two_no_identification_markings_no_details_provided_failure(self):
         good = self.create_good(
             "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
         )
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
-            "firearm_details": {
-                "has_identification_markings": "True",
-                "identification_markings_details": "",
-                "no_identification_markings_details": "",
-            }
+            "firearm_details": {"has_identification_markings": "False", "no_identification_markings_details": "",}
         }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
@@ -554,18 +545,16 @@ class GoodsEditDraftGoodTests(DataTestClient):
         # assert good didn't get edited
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(good.firearm_details.has_identification_markings)
-        self.assertEquals(good.firearm_details.identification_markings_details, "some marking details")
         self.assertEquals(good.firearm_details.no_identification_markings_details, "")
-        self.assertEqual(errors["identification_markings_details"], [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_MARKINGS])
+        self.assertEqual(
+            errors["no_identification_markings_details"], ["Enter a reason why the product has not been marked"]
+        )
 
     @parameterized.expand(
-        [
-            ["True", "identification_markings_details", "no_identification_markings_details"],
-            ["False", "no_identification_markings_details", "identification_markings_details"],
-        ]
+        [["False", "no_identification_markings_details"],]
     )
     def test_edit_category_two_good_has_markings_details_too_long_failure(
-        self, has_identification_markings, details_field, other_details_fields
+        self, has_identification_markings, details_field
     ):
         good = self.create_good(
             "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
@@ -588,7 +577,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": has_identification_markings,
                 details_field: "A" * 2001,
-                other_details_fields: "",
             },
         }
 

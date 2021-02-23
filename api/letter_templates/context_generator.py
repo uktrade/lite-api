@@ -523,9 +523,7 @@ def _get_good_on_application_context(good_on_application, advice=None):
             good_context["section_certificate_number"] = firearm_details.section_certificate_number
             good_context["section_certificate_date_of_expiry"] = firearm_details.section_certificate_date_of_expiry
         good_context["has_identification_markings"] = friendly_boolean(firearm_details.has_identification_markings)
-        if firearm_details.has_identification_markings:
-            good_context["identification_markings_details"] = firearm_details.identification_markings_details
-        else:
+        if firearm_details.has_identification_markings is False:
             good_context["no_identification_markings_details"] = firearm_details.no_identification_markings_details
     elif good_on_application.good.item_category in ItemCategory.group_three:
         good_context["is_military_use"] = MilitaryUse.to_str(good_on_application.good.is_military_use)
