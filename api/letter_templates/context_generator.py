@@ -29,6 +29,7 @@ from api.applications.models import (
     F680ClearanceApplication,
     HmrcQuery,
     CountryOnApplication,
+    GoodOnApplication,
 )
 from api.goods.models import PvGradingDetails, Good
 from api.goodstype.models import GoodsType
@@ -72,6 +73,14 @@ class FriendlyBooleanField(serializers.Field):
             return False
 
 
+class FlattenedAddressSerializerMixin():
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret = {**ret, **ret["address"]}
+        del ret["address"]
+        return ret
+
+
 class CaseTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseType
@@ -113,12 +122,8 @@ class SiteSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
 
 
-class FlattenedSiteSerializer(SiteSerializer):
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        ret = {**ret, **ret["address"]}
-        del ret["address"]
-        return ret
+class FlattenedSiteSerializer(SiteSerializer, FlattenedAddressSerializerMixin):
+    pass
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
@@ -524,10 +529,10 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         return [clc.rating for clc in obj.control_list_entries.all()]
 
 
-class GoodSerializer(serializers.ModelSerializer):
+class GoodsQueryGoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Good
-        fields = ["description", "control_list_entries", "is_controlled", "part_number"]
+        fields = ["description", "name", "control_list_entries", "is_controlled", "part_number"]
 
     is_controlled = serializers.NullBooleanField(source="is_good_controlled")
     control_list_entries = serializers.SerializerMethodField()
@@ -536,15 +541,62 @@ class GoodSerializer(serializers.ModelSerializer):
         return [clc.rating for clc in obj.control_list_entries.all()]
 
 
+class GoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Good
+        fields = [
+            "description",
+            "name",
+            "control_list_entries",
+            "is_controlled",
+            "part_number",
+            "applied_for_quantity",
+            "applied_for_value",
+            "item_category",
+            "is_pv_graded",
+        ]
+
+    is_controlled = serializers.SerializerMethodField()
+    control_list_entries = serializers.SerializerMethodField()
+
+    def get_is_good_controlled(self, obj):
+        return GoodControlled.to_str(obj.is_good_controlled)
+
+    def get_control_list_entries(self, obj):
+        return [clc.rating for clc in obj.control_list_entries.all()]
+
+
 class GoodsQuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodsQuery
-        fields = ["control_list_entry", "clc_raised_reasons", "pv_grading_raised_reasons", "good", "clc_responded", "pv_grading_responded"]
+        fields = [
+            "control_list_entry",
+            "clc_raised_reasons",
+            "pv_grading_raised_reasons",
+            "good",
+            "clc_responded",
+            "pv_grading_responded",
+        ]
 
     control_list_entry = serializers.CharField(source="clc_control_list_entry")
     clc_responded = FriendlyBooleanField()
     pv_grading_responded = FriendlyBooleanField()
+    good = GoodsQueryGoodSerializer()
+
+
+class FlattenedGoodOnApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoodOnApplication
+        fields = ["good", "is_incorporated"]
+
+    is_incorporated = FriendlyBooleanField(source="is_good_incorporated")
     good = GoodSerializer()
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret = {**ret, **ret["good"]}
+        del ret["good"]
+        return ret
 
 
 class CompliancePersonSerializer(serializers.ModelSerializer):
@@ -601,7 +653,7 @@ class ComplianceVisitCaseSerializer(serializers.ModelSerializer):
         return CompliancePersonSerializer(people, many=True)
 
 
-class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
+class ComplianceSiteCaseSerializer(serializers.ModelSerializer, FlattenedAddressSerializerMixin):
     class Meta:
         model = ComplianceVisitCase
         fields = ["reference_code", "address"]
@@ -614,11 +666,70 @@ class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
     def get_site_name(self, obj):
         return obj.compliancesitecase.site.name
 
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        ret = {**ret, **ret["address"]}
-        del ret["address"]
-        return ret
+
+class ComplianceSiteLicenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = ["reference_code", "status"]
+
+    status = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        # The latest non draft licence should be the only active licence on a case or the licence that was active
+        last_licence = (
+            Licence.objects.filter(case_id=obj.id).exclude(status=LicenceStatus.DRAFT).order_by("created_at").last()
+        )
+
+        # not all obj types contain a licence, for example OGLs do not. As a result we display the case status
+        if last_licence:
+            return LicenceStatus.to_str(last_licence.status)
+        else:
+            return get_status_value_from_case_status_enum(obj.status.status)
+
+
+class ComplianceSiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = ["reference_code", "site_name", "open_licence_returns", "licences"]
+
+    site_name = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
+    open_licence_returns = serializers.SerializerMethodField()
+    licences = serializers.SerializerMethodField()
+
+    def get_site_name(self, obj):
+        return obj.compliancesitecase.site.name
+
+    def get_address(self, obj):
+        return AddressSerializer(obj.compliancesitecase.site.address).data
+
+    def get_open_licence_returns(self, obj):
+        olrs = OpenLicenceReturns.objects.filter(organisation_id=obj.organisation.id).order_by("-year", "-created_at")
+        return OpenLicenceReturnsSerializer(olrs, many=True).data
+
+    def get_licences(self, obj):
+        cases = Case.objects.filter_for_cases_related_to_compliance_case(obj.id)
+        return ComplianceSiteLicenceSerializer(cases, many=True).data
+
+
+class ComplianceSiteWithVisitReportsSerializer(ComplianceSiteSerializer):
+    visit_reports = serializers.SerializerMethodField()
+
+    def get_visit_reports(self, obj):
+        visits = ComplianceVisitCase.objects.filter(site_case_id=obj.id)
+        return ComplianceVisitCaseSerializer(visits, many=True).data
+
+
+class FlattenedComplianceSiteSerializer(
+    ComplianceSiteSerializer, FlattenedAddressSerializerMixin
+):
+    pass
+
+
+class FlattenedComplianceSiteWithVisitReportsSerializer(
+    ComplianceSiteWithVisitReportsSerializer, FlattenedAddressSerializerMixin
+):
+    pass
 
 
 def get_document_context(case, addressee=None):
@@ -645,7 +756,12 @@ def get_document_context(case, addressee=None):
     if getattr(base_application, "goods", "") and base_application.goods.exists():
         goods = _get_goods_context(base_application, final_advice, licence)
     elif getattr(base_application, "goods_type", "") and base_application.goods_type.exists():
-        goods = _get_goods_type_context(base_application.goods_type.all().order_by("created_at").prefetch_related("countries", "control_list_entries"), case.pk)
+        goods = _get_goods_type_context(
+            base_application.goods_type.all()
+            .order_by("created_at")
+            .prefetch_related("countries", "control_list_entries"),
+            case.pk,
+        )
     else:
         goods = None
 
@@ -678,56 +794,19 @@ def get_document_context(case, addressee=None):
     }
 
 
-def _get_address(address):
-    return {
-        "address_line_1": address.address_line_1 or address.address,
-        "address_line_2": address.address_line_2,
-        "postcode": address.postcode,
-        "city": address.city,
-        "region": address.region,
-        "country": {"name": address.country.name, "code": address.country.id,},
-    }
-
-
-def _get_compliance_licence_status(case):
-    # The latest non draft licence should be the only active licence on a case or the licence that was active
-    last_licence = (
-        Licence.objects.filter(case_id=case.id).exclude(status=LicenceStatus.DRAFT).order_by("created_at").last()
-    )
-
-    # not all case types contain a licence, for example OGLs do not. As a result we display the case status
-    if last_licence:
-        return LicenceStatus.to_str(last_licence.status)
-    else:
-        return get_status_value_from_case_status_enum(case.status.status)
-
-
-def _get_compliance_site_licences(case_id):
-    cases = Case.objects.filter_for_cases_related_to_compliance_case(case_id)
-    context = [
-        {
-            "reference_code": case.reference_code,
-            "status": _get_compliance_licence_status(case),
-        }
-        for case in cases
-    ]
-    return context
-
-
 def _get_compliance_site_context(case, with_visit_reports=True):
     olrs = OpenLicenceReturns.objects.filter(organisation_id=case.organisation.id).order_by("-year", "-created_at")
+    cases = Case.objects.filter_for_cases_related_to_compliance_case(case.id)
     context = {
         "reference_code": case.reference_code,
         "site_name": case.compliancesitecase.site.name,
         **AddressSerializer(case.compliancesitecase.site.address).data,
         "open_licence_returns": OpenLicenceReturnsSerializer(olrs, many=True).data,
-        "licences": _get_compliance_site_licences(case.id),
+        "licences": ComplianceSiteLicenceSerializer(cases, many=True).data,
     }
     if with_visit_reports:
-        context["visit_reports"] = [
-            ComplianceVisitCaseSerializer(visit).data
-            for visit in ComplianceVisitCase.objects.filter(site_case_id=case.id)
-        ]
+        visits = ComplianceVisitCase.objects.filter(site_case_id=case.id)
+        context["visit_reports"] = ComplianceVisitCaseSerializer(visits, many=True).data
     return context
 
 
@@ -739,7 +818,7 @@ SERIALIZER_MAPPING = {
     CaseTypeSubTypeEnum.F680: FlattenedF680ClearanceApplicationSerializer,
     CaseTypeSubTypeEnum.GIFTING: BaseApplicationSerializer,
     CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQuerySerializer,
-    CaseTypeSubTypeEnum.GOODS: GoodsQuerySerializer
+    CaseTypeSubTypeEnum.GOODS: GoodsQuerySerializer,
 }
 
 
@@ -763,11 +842,11 @@ def _get_details_context(case):
     elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
         return GoodsQuerySerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.COMP_SITE:
-        return _get_compliance_site_context(case)
+        return FlattenedComplianceSiteWithVisitReportsSerializer(case).data
     elif case_sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
         comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
         context = ComplianceVisitCaseSerializer(comp_case).data
-        context["site_case"] = _get_compliance_site_context(comp_case.site_case, with_visit_reports=False)
+        context["site_case"] = FlattenedComplianceSiteSerializer(comp_case.site_case).data
         return context
     else:
         return None
@@ -795,20 +874,8 @@ def format_quantity(quantity, unit):
 
 
 def _get_good_on_application_context(good_on_application, advice=None):
-    good_context = {
-        "description": good_on_application.good.description,
-        "name": good_on_application.good.name,
-        "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
-        "is_controlled": GoodControlled.to_str(good_on_application.good.is_good_controlled),
-        "part_number": good_on_application.good.part_number,
-        "applied_for_quantity": format_quantity(good_on_application.quantity, good_on_application.unit)
-        if good_on_application.quantity
-        else None,
-        "applied_for_value": f"£{good_on_application.value}",
-        "is_incorporated": friendly_boolean(good_on_application.is_good_incorporated),
-        "item_category": ItemCategory.to_str(good_on_application.good.item_category),
-        "is_pv_graded": GoodPvGraded.to_str(good_on_application.good.is_pv_graded),
-    }
+
+    good_context = FlattenedGoodOnApplicationSerializer(good_on_application).data
 
     # handle item categories for goods and their differences
     if good_on_application.good.item_category in ItemCategory.group_one:
