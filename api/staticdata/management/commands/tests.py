@@ -77,7 +77,7 @@ class SeedingTests(SeedCommandTest):
     def test_seed_layouts(self):
         self.seed_command(seedlayouts.Command)
         csv = seedlayouts.Command.read_csv(seedlayouts.LAYOUTS_FILE)
-        html_layouts = os.listdir(os.path.join(BASE_DIR, "letter_templates", "layouts"))
+        html_layouts = os.listdir(os.path.join(BASE_DIR, "letter_templates", "templates", "letter_templates"))
         for row in csv:
             self.assertTrue(f"{row['filename']}.html" in html_layouts)
         self.assertEqual(LetterLayout.objects.count(), len(csv))
