@@ -73,14 +73,6 @@ class FriendlyBooleanField(serializers.Field):
             return False
 
 
-class FlattenedAddressSerializerMixin:
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        ret = {**ret, **ret["address"]}
-        del ret["address"]
-        return ret
-
-
 class CaseTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseType
@@ -137,8 +129,12 @@ class SiteSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
 
 
-class FlattenedSiteSerializer(SiteSerializer, FlattenedAddressSerializerMixin):
-    pass
+class FlattenedSiteSerializer(SiteSerializer):
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret = {**ret, **ret["address"]}
+        del ret["address"]
+        return ret
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
@@ -465,7 +461,7 @@ class ExhibitionClearanceApplicationSerializer(serializers.ModelSerializer):
         model = ExhibitionClearanceApplication
         fields = ["exhibition_title", "first_exhibition_date", "required_by_date", "reason_for_clearance"]
 
-    exhibition_title = serializers.CharField()
+    exhibition_title = serializers.CharField(source="title")
     first_exhibition_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
     required_by_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
 
@@ -572,14 +568,6 @@ class GoodsQueryGoodSerializer(serializers.ModelSerializer):
         return [clc.rating for clc in obj.control_list_entries.all()]
 
 
-class FlattenedGoodMixin:
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        ret = {**ret, **ret["good"]}
-        del ret["good"]
-        return ret
-
-
 class FirearmsDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirearmGoodDetails
@@ -611,8 +599,6 @@ class GoodSerializer(serializers.ModelSerializer):
             "control_list_entries",
             "is_controlled",
             "part_number",
-            "applied_for_quantity",
-            "applied_for_value",
             "item_category",
             "is_pv_graded",
             "is_military_use",
@@ -625,11 +611,17 @@ class GoodSerializer(serializers.ModelSerializer):
 
     is_controlled = serializers.SerializerMethodField()
     control_list_entries = serializers.SerializerMethodField()
-    applied_for_quantity = serializers.SerializerMethodField()
-    applied_for_value = serializers.SerializerMethodField()
     is_military_use = serializers.SerializerMethodField()
     is_component = serializers.SerializerMethodField()
+    item_category = serializers.SerializerMethodField()
+    is_pv_graded = serializers.SerializerMethodField()
     uses_information_security = FriendlyBooleanField()
+
+    def get_is_pv_graded(self, obj):
+        return GoodPvGraded.to_str(obj.is_pv_graded)
+
+    def get_item_category(self, obj):
+        return ItemCategory.to_str(obj.item_category)
 
     def get_is_controlled(self, obj):
         return GoodControlled.to_str(obj.is_good_controlled)
@@ -643,28 +635,36 @@ class GoodSerializer(serializers.ModelSerializer):
     def get_control_list_entries(self, obj):
         return [clc.rating for clc in obj.control_list_entries.all()]
 
-    def get_applied_for_quantity(self, obj):
-        if hasattr(obj, "quantity"):
-            return format_quantity(obj.quantity, obj.unit)
-        return None
 
-    def get_applied_for_value(self, obj):
-        if hasattr(obj, "value"):
-            return f"£{obj.value}"
-        return None
-
-
-class GoodOnApplicationSerializer(serializers.ModelSerializer, FlattenedGoodMixin):
+class GoodOnApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodOnApplication
-        fields = ["good", "is_incorporated", "item_type", "other_item_type", "firearm_details"]
+        fields = ["good", "is_incorporated", "item_type", "other_item_type", "firearm_details", "applied_for_quantity", "applied_for_value"]
 
     good = GoodSerializer()
     firearm_details = serializers.SerializerMethodField()
     is_incorporated = FriendlyBooleanField(source="is_good_incorporated")
+    applied_for_quantity = serializers.SerializerMethodField()
+    applied_for_value = serializers.SerializerMethodField()
 
     def get_firearm_details(self, obj):
         return obj.firearm_details or obj.good.firearm_details
+
+    def get_applied_for_quantity(self, obj):
+        if hasattr(obj, "quantity"):
+            return format_quantity(obj.quantity, obj.unit)
+        return ""
+
+    def get_applied_for_value(self, obj):
+        if hasattr(obj, "value"):
+            return f"£{obj.value}"
+        return ""
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret = {**ret, **ret["good"]}
+        del ret["good"]
+        return ret
 
 
 class GoodsQuerySerializer(serializers.ModelSerializer):
@@ -752,7 +752,7 @@ class ComplianceVisitSerializer(ComplianceVisitCaseSerializer):
         return ret
 
 
-class ComplianceSiteCaseSerializer(serializers.ModelSerializer, FlattenedAddressSerializerMixin):
+class ComplianceSiteCaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComplianceVisitCase
         fields = ["reference_code", "address"]
@@ -764,6 +764,12 @@ class ComplianceSiteCaseSerializer(serializers.ModelSerializer, FlattenedAddress
 
     def get_site_name(self, obj):
         return obj.compliancesitecase.site.name
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret = {**ret, **ret["address"]}
+        del ret["address"]
+        return ret
 
 
 class ComplianceSiteLicenceSerializer(serializers.ModelSerializer):
@@ -786,11 +792,11 @@ class ComplianceSiteLicenceSerializer(serializers.ModelSerializer):
             return get_status_value_from_case_status_enum(obj.status.status)
 
 
-class ComplianceSiteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Case
-        fields = ["reference_code", "site_name", "open_licence_returns", "licences"]
-
+class ComplianceSiteSerializer(serializers.Serializer):
+    """
+        Serializes a Case object
+    """
+    reference_code = serializers.CharField()
     site_name = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
     open_licence_returns = serializers.SerializerMethodField()
@@ -819,14 +825,20 @@ class ComplianceSiteWithVisitReportsSerializer(ComplianceSiteSerializer):
         return ComplianceVisitCaseSerializer(visits, many=True).data
 
 
-class FlattenedComplianceSiteSerializer(ComplianceSiteSerializer, FlattenedAddressSerializerMixin):
-    pass
+class FlattenedComplianceSiteSerializer(ComplianceSiteSerializer):
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret = {**ret, **ret["address"]}
+        del ret["address"]
+        return ret
 
 
-class FlattenedComplianceSiteWithVisitReportsSerializer(
-    ComplianceSiteWithVisitReportsSerializer, FlattenedAddressSerializerMixin
-):
-    pass
+class FlattenedComplianceSiteWithVisitReportsSerializer(ComplianceSiteWithVisitReportsSerializer):
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        ret = {**ret, **ret["address"]}
+        del ret["address"]
+        return ret
 
 
 def get_document_context(case, addressee=None):
@@ -911,8 +923,6 @@ def _get_details_context(case):
 
     if case_sub_type and case_sub_type in SERIALIZER_MAPPING:
         serializer = SERIALIZER_MAPPING[case_sub_type]
-        if serializer == FlattenedComplianceSiteWithVisitReportsSerializer:
-            import pdb; pdb.set_trace()
         return serializer(case).data
     else:
         return None
