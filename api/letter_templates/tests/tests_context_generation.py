@@ -159,11 +159,6 @@ class DocumentContextGenerationTests(DataTestClient):
                 context["has_identification_markings"],
                 friendly_boolean(good_on_application.firearm_details.has_identification_markings),
             )
-            self.assertEqual(
-                context["identification_markings_details"],
-                good_on_application.firearm_details.identification_markings_details,
-            )
-
         elif good_on_application.good.item_category in ItemCategory.group_three:
             self.assertEqual(context["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
             self.assertEqual(

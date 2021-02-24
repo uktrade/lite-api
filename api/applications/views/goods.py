@@ -29,7 +29,6 @@ from api.core.exceptions import BadRequestError
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.libraries.get_goods import get_good_with_organisation
-from api.goods.models import GoodDocument
 from api.goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
@@ -92,8 +91,6 @@ class ApplicationGoodsOnApplication(APIView):
 
             good = get_good_with_organisation(data.get("good"), get_request_user_organisation_id(request))
 
-            if not good.missing_document_reason and not GoodDocument.objects.filter(good=good).exists():
-                return JsonResponse(data={"error": strings.Goods.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST)
             serializer = GoodOnApplicationCreateSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
@@ -186,7 +183,6 @@ class ApplicationGoodOnApplicationDocumentView(APIView):
     def post(self, request, pk, good_pk):
         data = request.data
         application = self.get_object()
-
         if application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,

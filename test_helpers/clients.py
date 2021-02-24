@@ -475,7 +475,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 section_certificate_number=None,
                 section_certificate_date_of_expiry=None,
                 has_identification_markings=True,
-                identification_markings_details="some marking details",
                 no_identification_markings_details="",
             )
 

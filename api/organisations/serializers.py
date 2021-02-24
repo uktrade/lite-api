@@ -1,6 +1,7 @@
 import re
 
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 
 from api.addresses.models import Address
@@ -12,11 +13,13 @@ from api.core.serializers import (
     KeyValueChoiceField,
     CountrySerializerField,
 )
+from api.documents.libraries.process_document import process_document
+from api.documents.models import Document
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Organisations
 from api.organisations.constants import UK_VAT_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus, LocationType
-from api.organisations.models import Organisation, Site, ExternalLocation
+from api.organisations.models import ExternalLocation, Organisation, DocumentOnOrganisation, Site
 from api.staticdata.countries.helpers import get_country
 from api.users.libraries.get_user import get_user_organisation_relationship
 from api.users.models import UserOrganisationRelationship, ExporterUser
@@ -304,6 +307,7 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
     type = KeyValueChoiceField(OrganisationType.choices)
     flags = serializers.SerializerMethodField()
     status = KeyValueChoiceField(OrganisationStatus.choices)
+    documents = serializers.SerializerMethodField()
 
     def get_flags(self, instance):
         # TODO remove try block when other end points adopt generics
@@ -312,6 +316,13 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
                 return list(instance.flags.values("id", "name", "colour", "label", "priority"))
         except AttributeError:
             return list(instance.flags.values("id", "name", "colour", "label", "priority"))
+
+    def get_documents(self, instance):
+        queryset = instance.document_on_organisations.order_by("document_type", "-expiry_date").distinct(
+            "document_type"
+        )
+        serializer = DocumentOnOrganisationSerializer(queryset, many=True)
+        return serializer.data
 
     class Meta:
         model = Organisation
@@ -372,3 +383,46 @@ class OrganisationUserListView(serializers.ModelSerializer):
             "role_name",
             "status",
         )
+
+
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ("id", "name", "s3_key", "size", "created_at", "safe")
+        extra_kwargs = {
+            "created_at": {"read_only": True},
+            "safe": {"read_only": True},
+        }
+
+
+class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
+    document = DocumentSerializer()
+    is_expired = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DocumentOnOrganisation
+        fields = [
+            "id",
+            "document",
+            "expiry_date",
+            "document_type",
+            "organisation",
+            "is_expired",
+            "reference_code",
+        ]
+        extra_kwargs = {"organisation": {"read_only": True}}
+
+    def get_is_expired(self, instance):
+        return timezone.now().date() > instance.expiry_date
+
+    def create(self, validated_data):
+        document_serializer = DocumentSerializer(data=validated_data["document"])
+        document_serializer.is_valid(raise_exception=True)
+        document = document_serializer.save()
+        process_document(document)
+        return super().create({**validated_data, "document": document, "organisation": self.context["organisation"]})
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["expiry_date"] = instance.expiry_date.strftime("%d %B %Y")
+        return representation

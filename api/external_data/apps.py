@@ -1,6 +1,7 @@
 from elasticsearch_dsl.exceptions import IllegalOperation
 
 from django.apps import AppConfig
+from django.conf import settings
 from django.db.models.signals import post_migrate
 
 
@@ -17,4 +18,5 @@ class ExternalDataConfig(AppConfig):
     name = "api.external_data"
 
     def ready(self):
-        post_migrate.connect(receiver=ensure_elasticsearch_index, sender=self)
+        if settings.LITE_API_ENABLE_ES:
+            post_migrate.connect(receiver=ensure_elasticsearch_index, sender=self)

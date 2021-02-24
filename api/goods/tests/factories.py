@@ -50,7 +50,6 @@ class FirearmFactory(factory.django.DjangoModelFactory):
     section_certificate_number = "section certificate number?"
     section_certificate_date_of_expiry = factory.LazyFunction(timezone.now().date)
     has_identification_markings = True
-    identification_markings_details = factory.Faker("word")
 
     class Meta:
         model = models.FirearmGoodDetails

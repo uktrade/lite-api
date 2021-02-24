@@ -23,7 +23,7 @@ jobs:
     working_directory: ~/lite-api
 
     environment:
-      LITE_API_ENABLE_ES: True
+      LITE_API_ENABLE_ES: False
       ELASTICSEARCH_HOST: http://localhost:9200
       ENABLE_SPIRE_SEARCH: True
 
@@ -74,6 +74,10 @@ jobs:
       - run:
           name: Run tests
           command: pipenv run coverage run --source="." ./manage.py test --parallel 8 --exclude-tag=seeding --exclude-tag=elasticsearch --exclude-tag=performance
+
+      - run:
+          name: Run elasticsearch tests
+          command: LITE_API_ENABLE_ES=true pipenv run coverage run --source="." ./manage.py test --tag=elasticsearch
 
       - store_test_results:
           path: test-results
