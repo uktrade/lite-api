@@ -44,6 +44,11 @@ from api.users.models import (
 )
 
 
+class CaseTypeManager(models.Manager):
+    def get_by_natural_key(self, reference):
+        return self.get(reference=reference)
+
+
 class CaseType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35)
@@ -51,6 +56,11 @@ class CaseType(models.Model):
     reference = models.CharField(
         choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=6,
     )
+
+    objects = CaseTypeManager()
+
+    def natural_key(self):
+        return (self.reference,)
 
 
 class Case(TimestampableModel):
