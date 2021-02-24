@@ -4,9 +4,6 @@ from api.flags.models import Flag
 
 
 class CountryManager(models.Manager):
-    def get_queryset(self):
-        return super(CountryManager, self).get_queryset().exclude(id="UKCS")
-
     def get_by_natural_key(self, pk):
         return self.get(pk=pk)
 
