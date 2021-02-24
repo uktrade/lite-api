@@ -647,7 +647,15 @@ class GoodSerializer(serializers.ModelSerializer):
 class GoodOnApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodOnApplication
-        fields = ["good", "is_incorporated", "item_type", "other_item_type", "firearm_details", "applied_for_quantity", "applied_for_value"]
+        fields = [
+            "good",
+            "is_incorporated",
+            "item_type",
+            "other_item_type",
+            "firearm_details",
+            "applied_for_quantity",
+            "applied_for_value",
+        ]
 
     good = GoodSerializer()
     firearm_details = serializers.SerializerMethodField()
@@ -806,6 +814,7 @@ class ComplianceSiteSerializer(serializers.Serializer):
     """
         Serializes a Case object
     """
+
     reference_code = serializers.CharField()
     site_name = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
@@ -897,8 +906,12 @@ def get_document_context(case, addressee=None):
         "addressee": AddresseeSerializer(addressee).data,
         "organisation": OrganisationSerializer(case.organisation).data,
         "licence": LicenceSerializer(licence).data if licence else None,
-        "end_user": PartySerializer(base_application.end_user.party).data if base_application and base_application.end_user else None,
-        "consignee": PartySerializer(base_application.consignee.party).data if base_application and base_application.consignee else None,
+        "end_user": PartySerializer(base_application.end_user.party).data
+        if base_application and base_application.end_user
+        else None,
+        "consignee": PartySerializer(base_application.consignee.party).data
+        if base_application and base_application.consignee
+        else None,
         "ultimate_end_users": PartySerializer(ultimate_end_users, many=True).data or [],
         "third_parties": _get_third_parties_context(base_application.third_parties)
         if getattr(base_application, "third_parties", "")
