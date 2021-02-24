@@ -124,5 +124,5 @@ audit_type_format = {
     AuditType.LICENCE_UPDATED_GOOD_USAGE: strings.Audit.LICENCE_UPDATED_GOOD_USAGE,
     AuditType.OGEL_REISSUED: strings.Audit.OGEL_REISSUED,
     AuditType.LICENCE_UPDATED_STATUS: strings.Audit.LICENCE_UPDATED_STATUS,
-    AuditType.DOCUMENT_ON_ORGANISATION_CREATE: "added document {file_name} to organization",
+    AuditType.DOCUMENT_ON_ORGANISATION_CREATE: "added {document_type} '{file_name}' to organization",
 }
