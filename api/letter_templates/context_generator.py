@@ -1093,7 +1093,7 @@ def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_
 
 
 def _get_goods_type_context(goods_types, case_pk):
-    goods_type_context = {"all": [GoodsTypeSerializer(goods_type).data for goods_type in goods_types]}
+    goods_type_context = {"all": GoodsTypeSerializer(goods_types, many=True).data}
 
     # Get GoodCountryDecisions
     goods_type_on_country_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).prefetch_related(
