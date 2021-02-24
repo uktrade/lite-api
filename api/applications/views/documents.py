@@ -3,14 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from api.applications.libraries.document_helpers import (
-    upload_application_document,
-    delete_application_document,
-    get_application_document,
-    upload_goods_type_document,
-    delete_goods_type_document,
-    get_goods_type_document,
-)
+from api.applications.libraries import document_helpers
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import ApplicationDocument
 from api.applications.serializers.document import ApplicationDocumentSerializer
@@ -50,7 +43,7 @@ class ApplicationDocumentView(APIView):
         Upload additional document onto an application
         """
         application = get_application(pk)
-        return upload_application_document(application, request.data, request.user)
+        return document_helpers.upload_application_document(application, request.data, request.user)
 
 
 class ApplicationDocumentDetailView(APIView):
@@ -65,7 +58,7 @@ class ApplicationDocumentDetailView(APIView):
         """
         View an additional document on an application
         """
-        return get_application_document(doc_pk)
+        return document_helpers.get_application_document(doc_pk)
 
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
@@ -75,7 +68,7 @@ class ApplicationDocumentDetailView(APIView):
         Delete an additional document on an application
         """
         application = get_application(pk)
-        return delete_application_document(doc_pk, application, request.user)
+        return document_helpers.delete_application_document(doc_pk, application, request.user)
 
 
 class GoodsTypeDocumentView(APIView):
@@ -89,7 +82,7 @@ class GoodsTypeDocumentView(APIView):
     @authorised_to_view_application(ExporterUser)
     def get(self, request, pk, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
-        return get_goods_type_document(goods_type)
+        return document_helpers.get_goods_type_document(goods_type)
 
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
@@ -97,7 +90,7 @@ class GoodsTypeDocumentView(APIView):
     @authorised_to_view_application(ExporterUser)
     def post(self, request, pk, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
-        return upload_goods_type_document(goods_type, request.data)
+        return document_helpers.upload_goods_type_document(goods_type, request.data)
 
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
@@ -107,4 +100,4 @@ class GoodsTypeDocumentView(APIView):
         if not goods_type:
             return JsonResponse(data={"error": "No such goods type"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return delete_goods_type_document(goods_type)
+        return document_helpers.delete_goods_type_document(goods_type)
