@@ -4,7 +4,7 @@ from django.db.models import Q
 from rest_framework import serializers
 
 from api.applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
-from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryType
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyRole, PartyType, SubType
@@ -568,7 +568,7 @@ class GoodsQueryGoodSerializer(serializers.ModelSerializer):
         return [clc.rating for clc in obj.control_list_entries.all()]
 
 
-class FirearmsDetailsSerializer(serializers.ModelSerializer):
+class FirearmDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirearmGoodDetails
         fields = [
@@ -585,6 +585,8 @@ class FirearmsDetailsSerializer(serializers.ModelSerializer):
 
     firearm_type = serializers.SerializerMethodField()
     is_covered_by_firearm_act_section_one_two_or_five = FriendlyBooleanField()
+    section_certificate_date_of_expiry = serializers.DateField(format=DATE_FORMAT, input_formats=None)
+    has_identification_markings = FriendlyBooleanField()
 
     def get_firearm_type(self, obj):
         return FirearmGoodType.to_str(obj.type)
@@ -604,9 +606,11 @@ class GoodSerializer(serializers.ModelSerializer):
             "is_military_use",
             "is_component",
             "modified_military_use_details",
+            "software_or_technology_details",
             "component_details",
             "uses_information_security",
             "information_security_details",
+            "pv_grading",
         ]
 
     is_controlled = serializers.SerializerMethodField()
@@ -615,7 +619,11 @@ class GoodSerializer(serializers.ModelSerializer):
     is_component = serializers.SerializerMethodField()
     item_category = serializers.SerializerMethodField()
     is_pv_graded = serializers.SerializerMethodField()
+    pv_grading = serializers.SerializerMethodField()
     uses_information_security = FriendlyBooleanField()
+
+    def get_pv_grading(self, obj):
+        return PvGradingDetailsSerializer(obj.pv_grading_details).data
 
     def get_is_pv_graded(self, obj):
         return GoodPvGraded.to_str(obj.is_pv_graded)
@@ -648,7 +656,8 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
     applied_for_value = serializers.SerializerMethodField()
 
     def get_firearm_details(self, obj):
-        return obj.firearm_details or obj.good.firearm_details
+        details = obj.firearm_details or obj.good.firearm_details
+        return FirearmDetailsSerializer(details).data
 
     def get_applied_for_quantity(self, obj):
         if hasattr(obj, "quantity"):
@@ -662,8 +671,9 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         ret = super().to_representation(obj)
-        ret = {**ret, **ret["good"]}
+        ret = {**ret, **ret["good"], **ret["firearm_details"]}
         del ret["good"]
+        del ret["firearm_details"]
         return ret
 
 
@@ -949,43 +959,9 @@ def format_quantity(quantity, unit):
         return "0 " + pluralise_unit(Units.to_str(unit), quantity)
 
 
-def _get_good_on_application_context(good_on_application, advice=None):
+def _get_good_on_application_context_with_advice(good_on_application, advice):
 
     good_context = GoodOnApplicationSerializer(good_on_application).data
-
-    # handle item categories for goods and their differences
-    if good_on_application.good.item_category in ItemCategory.group_two:
-        firearm_details = good_on_application.firearm_details or good_on_application.good.firearm_details
-        good_context["firearm_type"] = FirearmGoodType.to_str(firearm_details.type)
-        good_context["year_of_manufacture"] = firearm_details.year_of_manufacture
-        good_context["calibre"] = firearm_details.calibre
-        good_context["is_covered_by_firearm_act_section_one_two_or_five"] = friendly_boolean(
-            firearm_details.is_covered_by_firearm_act_section_one_two_or_five
-        )
-
-        if firearm_details.is_covered_by_firearm_act_section_one_two_or_five:
-            good_context["section_certificate_number"] = firearm_details.section_certificate_number
-            good_context["section_certificate_date_of_expiry"] = firearm_details.section_certificate_date_of_expiry
-
-        good_context["has_identification_markings"] = friendly_boolean(firearm_details.has_identification_markings)
-
-        if firearm_details.has_identification_markings:
-            good_context["identification_markings_details"] = firearm_details.identification_markings_details
-
-        else:
-            good_context["no_identification_markings_details"] = firearm_details.no_identification_markings_details
-
-    elif good_on_application.good.item_category in ItemCategory.group_three:
-        good_context["is_military_use"] = MilitaryUse.to_str(good_on_application.good.is_military_use)
-
-        if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
-            good_context["modified_military_use_details"] = good_on_application.good.modified_military_use_details
-
-        good_context["software_or_technology_details"] = good_on_application.good.software_or_technology_details
-        good_context["uses_information_security"] = friendly_boolean(good_on_application.good.uses_information_security)
-
-        if good_on_application.good.uses_information_security:
-            good_context["information_security_details"] = good_on_application.good.information_security_details
 
     if advice:
         good_context["reason"] = advice.text
@@ -994,14 +970,11 @@ def _get_good_on_application_context(good_on_application, advice=None):
         if advice.proviso:
             good_context["proviso_reason"] = advice.proviso
 
-    if good_on_application.good.is_pv_graded != GoodPvGraded.NO:
-        good_context["pv_grading"] = PvGradingDetailsSerializer(good_on_application.good.pv_grading_details).data
-
     return good_context
 
 
-def _get_good_on_licence_context(good_on_licence, advice=None):
-    good_context = _get_good_on_application_context(good_on_licence.good, advice)
+def _get_good_on_licence_context(good_on_licence):
+    good_context = GoodOnApplicationSerializer(good_on_licence.good).data
     good_context["quantity"] = format_quantity(good_on_licence.quantity, good_on_licence.good.unit)
     good_context["value"] = f"£{good_on_licence.value}"
 
@@ -1016,7 +989,7 @@ def _get_goods_context(application, final_advice, licence=None):
     goods_on_application_dict = {
         good_on_application.good_id: good_on_application for good_on_application in goods_on_application
     }
-    goods_context["all"] = [_get_good_on_application_context(good) for good in goods_on_application]
+    goods_context["all"] = GoodOnApplicationSerializer(goods_on_application, many=True).data
 
     if licence:
         goods_on_licence = licence.goods.all().order_by("good__good__description")
@@ -1030,7 +1003,7 @@ def _get_goods_context(application, final_advice, licence=None):
 
     for advice in final_advice:
         good_on_application = goods_on_application_dict[advice.good_id]
-        goods_context[advice.type].append(_get_good_on_application_context(good_on_application, advice))
+        goods_context[advice.type].append(_get_good_on_application_context_with_advice(good_on_application, advice))
 
     # Move proviso elements into approved because they are treated the same
     goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))

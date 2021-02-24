@@ -153,7 +153,7 @@ class DocumentContextGenerationTests(DataTestClient):
             )
             self.assertEqual(
                 context["section_certificate_date_of_expiry"],
-                good_on_application.firearm_details.section_certificate_date_of_expiry,
+                good_on_application.firearm_details.section_certificate_date_of_expiry.strftime(DATE_FORMAT),
             )
             self.assertEqual(
                 context["has_identification_markings"],
