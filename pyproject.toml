@@ -20,5 +20,6 @@ exclude = '''
   | build
   | dist
   | vendor
+  | migrations
 )/
 '''
