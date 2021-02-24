@@ -579,7 +579,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "section_certificate_number",
             "section_certificate_date_of_expiry",
             "has_identification_markings",
-            "identification_markings_details",
             "no_identification_markings_details",
         ]
 
