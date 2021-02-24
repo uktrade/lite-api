@@ -1,7 +1,6 @@
 import uuid
 
 from django.db import models
-from django.contrib.postgres.fields import JSONField
 
 from api.common.models import TimestampableModel
 from api.flags.models import Flag
@@ -21,7 +20,7 @@ class Denial(TimestampableModel):
     consignee_name = models.TextField()
     end_use = models.TextField()
 
-    data = JSONField()
+    data = models.JSONField(default=dict)
     is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
     is_revoked_comment = models.TextField(default="")
 

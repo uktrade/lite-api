@@ -5,7 +5,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timesince
 from django.utils.translation import ugettext as _
-from jsonfield import JSONField
 
 from api.audit_trail.managers import AuditManager
 from api.audit_trail.enums import AuditType
@@ -48,7 +47,7 @@ class Audit(TimestampableModel):
     action_object_object_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     action_object = GenericForeignKey("action_object_content_type", "action_object_object_id")
 
-    payload = JSONField()
+    payload = models.JSONField(default=dict)
 
     objects = AuditManager()
 
