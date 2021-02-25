@@ -8,6 +8,11 @@ from api.flags.enums import FlagLevels, FlagStatuses, FlagColours
 from api.teams.models import Team
 
 
+class FlagManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
 class Flag(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default="Untitled Flag", unique=True, max_length=25)
@@ -19,9 +24,26 @@ class Flag(TimestampableModel):
     priority = models.PositiveSmallIntegerField(default=0)
     blocks_approval = models.BooleanField(null=False, blank=False, default=False)
 
+    objects = FlagManager()
+
     class Meta:
         db_table = "flag"
         ordering = ["team"]
+
+    def natural_key(self):
+        return (self.name,)
+
+
+class FlaggingRuleManager(models.Manager):
+    def get_by_natural_key(self, team_name, level, status, flag, matching_value, is_for_verified_goods_only):
+        return self.get(
+            team__name=team_name,
+            level=level,
+            status=status,
+            flag__name=flag,
+            matching_value=matching_value,
+            is_for_verified_goods_only=is_for_verified_goods_only,
+        )
 
 
 class FlaggingRule(TimestampableModel):
@@ -35,7 +57,19 @@ class FlaggingRule(TimestampableModel):
     excluded_values = ArrayField(models.TextField(default=""), default=list)
     is_for_verified_goods_only = models.BooleanField(null=True, blank=True)
 
+    objects = FlaggingRuleManager()
+
     class Meta:
         db_table = "flagging_rule"
         indexes = [models.Index(fields=["created_at"])]
         ordering = ["team__name", "-created_at"]
+
+    def natural_key(self):
+        return (
+            self.team.name,
+            self.level,
+            self.status,
+            self.flag.name,
+            self.matching_value,
+            self.is_for_verified_goods_only,
+        )
