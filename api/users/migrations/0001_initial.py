@@ -136,7 +136,8 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={"verbose_name": "user", "verbose_name_plural": "users", "abstract": False,},
-            bases=("users.baseuser",),
+            # commenting this out because incompatible with django 3. Yes it means cannot reverse migrations
+            # bases=("users.baseuser",),
             managers=[("objects", api.users.models.CustomUserManager()),],
         ),
         migrations.CreateModel(
@@ -232,7 +233,8 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={"verbose_name": "user", "verbose_name_plural": "users", "abstract": False,},
-            bases=("users.baseuser",),
+            # commenting this out because incompatible with django 3. Yes it means cannot reverse migrations
+            # bases=("users.baseuser",),
             managers=[("objects", api.users.models.CustomUserManager()),],
         ),
         migrations.CreateModel(
