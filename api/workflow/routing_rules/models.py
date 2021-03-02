@@ -15,6 +15,20 @@ from api.users.models import GovUser
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
+class RoutingRuleManager(models.Manager):
+    def get_by_natural_key(self, team_name, queue_name, status, tier, additional_rules, active, username, country_code):
+        return self.get(
+            team__name=team_name,
+            queue__name=queue_name,
+            status=status,
+            tier=tier,
+            additional_rules=additional_rules,
+            active=active,
+            user__baseuser_ptr__username=username,
+            country_id=country_code,
+        )
+
+
 class RoutingRule(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     team = models.ForeignKey(Team, related_name="routing_rules", on_delete=models.CASCADE)
@@ -34,6 +48,8 @@ class RoutingRule(TimestampableModel):
     country = models.ForeignKey(
         Country, related_name="routing_rules", on_delete=models.DO_NOTHING, blank=True, null=True
     )
+
+    objects = RoutingRuleManager()
 
     class Meta:
         indexes = [models.Index(fields=["created_at", "tier"])]
@@ -73,3 +89,17 @@ class RoutingRule(TimestampableModel):
             ]
 
         return parameter_sets
+
+    def natural_key(self):
+        return (
+            self.team.name,
+            self.queue.name,
+            self.status,
+            self.tier,
+            self.additional_rules,
+            self.active,
+            self.user__baseuser_ptr__username,
+            self.country_id,  # country code
+        )
+
+    natural_key.dependencies = ["teams.Team", "queues.Queue", "users.GovUser", "countries.Country"]

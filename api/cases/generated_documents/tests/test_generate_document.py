@@ -267,12 +267,10 @@ class GenerateDocumentTests(DataTestClient):
 
     def test_get_document_preview_without_template_query_param_failure(self):
         url = reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
-        response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        body = response.json()
-        self.assertTrue("errors" in body)
-        self.assertEqual(body["errors"], [strings.Cases.GeneratedDocuments.MISSING_TEMPLATE])
+        with self.assertRaises(AttributeError) as e:
+            self.client.get(url, **self.gov_headers)
+            self.assertEqual(e.exception, strings.Cases.GeneratedDocuments.MISSING_TEMPLATE)
 
     @mock.patch("api.cases.generated_documents.helpers.generate_preview")
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
@@ -288,12 +286,11 @@ class GenerateDocumentTests(DataTestClient):
             + str(self.letter_template.id)
             + "&text=Sample"
         )
-        response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        body = response.json()
-        self.assertTrue("errors" in body)
-        self.assertEqual(body["errors"], ["Failed to get preview"])
+        with self.assertRaises(AttributeError) as e:
+            self.client.get(url, **self.gov_headers)
+            self.assertEqual(e.exception, "Failed to get preview")
+
         html_to_pdf_func.assert_not_called()
         upload_bytes_file_func.assert_not_called()
 
