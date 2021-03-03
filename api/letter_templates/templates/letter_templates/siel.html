@@ -256,7 +256,7 @@
         {% for good in goods.approve %}
             <tr>
                 <td class="border-black" colspan="1">{{ forloop.counter }}</td>
-                <td class="border-black" colspan="5">{{ good.description }}</td>
+                <td class="border-black" colspan="5">{% if good.name %}{{ good.name }}<br>{% endif %}{{ good.description }}</td>
                 <td class="border-black" colspan="2">
                     {% for clc in good.control_list_entries %}
                         {{ clc }}{% if not forloop.last %},{% endif %}

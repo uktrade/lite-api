@@ -13,6 +13,7 @@ from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import GoodControlled, ItemType
+from api.goods.helpers import update_firearms_certificate_data
 from api.goods.models import Good
 from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializer
 from api.licences.models import GoodOnLicence
@@ -188,6 +189,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             firearm_data = model_to_dict(validated_data["good"].firearm_details)
             if validated_data.get("firearm_details"):
                 firearm_data.update(validated_data["firearm_details"])
+            firearm_data = update_firearms_certificate_data(validated_data["good"].organisation_id, firearm_data)
             serializer = FirearmDetailsSerializer(data=firearm_data)
             serializer.is_valid(raise_exception=True)
             validated_data["firearm_details"] = serializer.save()
