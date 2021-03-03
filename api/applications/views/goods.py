@@ -26,13 +26,16 @@ from api.core.decorators import (
     application_in_state,
 )
 from api.core.exceptions import BadRequestError
+from api.core.helpers import str_to_bool
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
+from api.goods.helpers import FIREARMS_CORE_TYPES, has_valid_certificate
 from api.goods.libraries.get_goods import get_good_with_organisation
 from api.goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
+from api.organisations.models import OrganisationDocumentType
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.staticdata.countries.models import Country
 from api.users.models import ExporterUser
@@ -73,6 +76,7 @@ class ApplicationGoodsOnApplication(APIView):
     def post(self, request, pk):
         data = request.data
         data["application"] = pk
+        rfd_status = False
 
         if "validate_only" in data and not isinstance(data["validate_only"], bool):
             return JsonResponse(data={"error": strings.Goods.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
@@ -91,6 +95,23 @@ class ApplicationGoodsOnApplication(APIView):
 
             good = get_good_with_organisation(data.get("good"), get_request_user_organisation_id(request))
 
+            if data.get("firearm_details") and good.firearm_details.type in FIREARMS_CORE_TYPES:
+                is_rfd = str_to_bool(data.get("is_registered_firearm_dealer")) is True
+
+                rfd_status = is_rfd or has_valid_certificate(
+                    good.organisation_id, OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE
+                )
+                data["firearm_details"]["rfd_status"] = rfd_status
+
+                # If the user is a registered firearms dealer and has a valid certificate then it
+                # covers section1 and section2 so in this case if the answer is Yes to firearms act question
+                # then it implicitly means it is for section5
+                if (
+                    rfd_status
+                    and data["firearm_details"].get("is_covered_by_firearm_act_section_one_two_or_five") == "Yes"
+                ):
+                    data["firearm_details"]["firearms_act_section"] = "firearms_act_section5"
+
             serializer = GoodOnApplicationCreateSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
@@ -105,7 +126,13 @@ class ApplicationGoodsOnApplication(APIView):
 
                 return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        errors = {**serializer.errors}
+        if rfd_status and "is_covered_by_firearm_act_section_one_two_or_five" in serializer.errors:
+            errors["is_covered_by_firearm_act_section_one_two_or_five"] = [
+                "Select yes if the product is covered by section 5 of the Firearms Act 1968"
+            ]
+
+        return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationGoodOnApplication(APIView):
