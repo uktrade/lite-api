@@ -16,7 +16,7 @@ from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
 class RoutingRuleManager(models.Manager):
-    def get_by_natural_key(self, team_name, queue_name, status, tier, additional_rules, active, username, country_code):
+    def get_by_natural_key(self, team_name, queue_name, status, tier, additional_rules, active, country_code):
         return self.get(
             team__name=team_name,
             queue__name=queue_name,
@@ -24,7 +24,6 @@ class RoutingRuleManager(models.Manager):
             tier=tier,
             additional_rules=additional_rules,
             active=active,
-            user__baseuser_ptr__username=username,
             country_id=country_code,
         )
 
@@ -98,7 +97,6 @@ class RoutingRule(TimestampableModel):
             self.tier,
             self.additional_rules,
             self.active,
-            self.user__baseuser_ptr__username,
             self.country_id,  # country code
         )
 
