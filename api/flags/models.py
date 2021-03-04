@@ -35,13 +35,25 @@ class Flag(TimestampableModel):
 
 
 class FlaggingRuleManager(models.Manager):
-    def get_by_natural_key(self, team_name, level, status, flag, matching_value, is_for_verified_goods_only):
+    def get_by_natural_key(
+        self,
+        team_name,
+        level,
+        status,
+        flag,
+        matching_values,
+        matching_groups,
+        excluded_values,
+        is_for_verified_goods_only,
+    ):
         return self.get(
             team__name=team_name,
             level=level,
             status=status,
             flag__name=flag,
-            matching_value=matching_value,
+            matching_values=matching_values,
+            matching_groups=matching_groups,
+            excluded_values=excluded_values,
             is_for_verified_goods_only=is_for_verified_goods_only,
         )
 
@@ -70,6 +82,8 @@ class FlaggingRule(TimestampableModel):
             self.level,
             self.status,
             self.flag.name,
-            self.matching_value,
+            self.matching_values,
+            self.matching_groups,
+            self.excluded_values,
             self.is_for_verified_goods_only,
         )
