@@ -3,7 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
 from api.core.serializers import PrimaryKeyRelatedSerializerField
-from api.flags.enums import FlagLevels, FlagStatuses, FlagColours
+from api.flags.enums import FlagLevels, FlagStatuses, FlagColours, FlagPermissions
 from api.flags.models import Flag, FlaggingRule
 from api.teams.models import Team
 from api.teams.serializers import TeamSerializer, TeamReadOnlySerializer
@@ -23,6 +23,7 @@ class FlagReadOnlySerializer(serializers.Serializer):
     status = serializers.CharField(read_only=True)
     priority = serializers.IntegerField(read_only=True)
     blocks_approval = serializers.BooleanField(read_only=True)
+    removable_by = serializers.CharField(read_only=True)
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamReadOnlySerializer)
 
 
@@ -40,7 +41,7 @@ class FlagwithFlaggingRulesReadOnlySerializer(FlagReadOnlySerializer):
 
 class FlagSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
-        max_length=25,
+        max_length=100,
         validators=[UniqueValidator(queryset=Flag.objects.all(), lookup="iexact", message=strings.Flags.NON_UNIQUE)],
         error_messages={"blank": strings.Flags.BLANK_NAME},
     )
@@ -71,6 +72,11 @@ class FlagSerializer(serializers.ModelSerializer):
         allow_null=False,
         error_messages={"required": strings.Flags.ValidationErrors.BLOCKING_APPROVAL_MISSING,},
     )
+    removable_by = serializers.ChoiceField(
+        choices=FlagPermissions.choices,
+        default=FlagPermissions.DEFAULT,
+        allow_null=False,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -95,6 +101,7 @@ class FlagSerializer(serializers.ModelSerializer):
             "colour",
             "priority",
             "blocks_approval",
+            "removable_by",
         )
 
     def update(self, instance, validated_data):
@@ -104,6 +111,7 @@ class FlagSerializer(serializers.ModelSerializer):
         instance.priority = validated_data.get("priority", instance.priority)
         instance.status = validated_data.get("status", instance.status)
         instance.blocks_approval = validated_data.get("blocks_approval", instance.blocks_approval)
+        instance.removable_by = validated_data.get("removable_by", instance.removable_by)
         instance.save()
         return instance
 

@@ -1,22 +1,28 @@
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
+
 from rest_framework import status
+from rest_framework import serializers
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from api.applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
+
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
+
 from api.cases.libraries.get_case import get_case
 from api.cases.libraries.get_flags import get_flags
 from api.cases.models import Case
+
 from api.core.authentication import GovAuthentication
 from api.core.constants import GovPermissions
 from api.core.helpers import str_to_bool
 from api.core.permissions import assert_user_has_permission
-from api.flags.enums import FlagLevels, FlagStatuses, SystemFlags
+
+from api.flags.enums import FlagLevels, FlagStatuses, SystemFlags, FlagPermissions
 from api.flags.helpers import get_object_of_level
 from api.flags.libraries.get_flag import get_flagging_rule
 from api.flags.models import Flag, FlaggingRule
@@ -28,14 +34,21 @@ from api.flags.serializers import (
     FlaggingRuleListSerializer,
     FlagwithFlaggingRulesReadOnlySerializer,
 )
+
 from api.goods.models import Good
-from lite_content.lite_api import strings
+
 from api.organisations.models import Organisation
+
 from api.parties.models import Party
+
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
+
 from api.staticdata.countries.models import Country
+
 from api.workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
+
+from lite_content.lite_api import strings
 
 
 class FlagsListCreateView(ListCreateAPIView):
@@ -127,13 +140,17 @@ class AssignFlags(APIView):
             )
 
             if serializer.is_valid():
-                self._assign_flags(
-                    flags=serializer.validated_data.get("flags"),
-                    level=level.title(),
-                    note=serializer.validated_data.get("note"),
-                    obj=obj,
-                    user=request.user.govuser,
-                )
+                try:
+                    self._assign_flags(
+                        flags=serializer.validated_data.get("flags"),
+                        level=level.title(),
+                        note=serializer.validated_data.get("note"),
+                        obj=obj,
+                        user=request.user.govuser,
+                    )
+                except serializers.ValidationError as e:
+                    return JsonResponse(data={"errors": {"flags[]": e.detail}}, status=status.HTTP_400_BAD_REQUEST)
+
                 response_data.append({level.lower(): serializer.data})
             else:
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -150,14 +167,33 @@ class AssignFlags(APIView):
 
         added_flags = [flag.name for flag in flags if flag not in previously_assigned_team_flags]
         ignored_flags = flags + [x for x in previously_assigned_deactivated_team_flags]
-        removed_flags = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
+        removed_flags = [flag for flag in previously_assigned_team_flags if flag not in ignored_flags]
+        removed_flag_names = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
+
+        user_permissions = [p.name for p in user.role.permissions.all()]
+
+        cannot_remove_some_flags = any([
+            flag.removable_by != FlagPermissions.DEFAULT
+            and FlagPermissions.PERMISSIONS_MAPPING[flag.removable_by].value not in user_permissions
+            for flag in removed_flags
+        ])
+
+        if cannot_remove_some_flags:
+            flags_user_cannot_remove = []
+
+            for flag in removed_flags:
+                if flag.removable_by != FlagPermissions.DEFAULT and FlagPermissions.PERMISSIONS_MAPPING[flag.removable_by].value not in user_permissions:
+                    flags_user_cannot_remove.append(flag.name)
+
+            flags_list = ", ".join(flags_user_cannot_remove)
+            raise serializers.ValidationError(f"You do not have permission to remove the following flags: {flags_list}")
 
         # Add activity item
 
         if isinstance(obj, Case):
-            self._set_case_activity(added_flags, removed_flags, obj, user, note)
+            self._set_case_activity(added_flags, removed_flag_names, obj, user, note)
         elif isinstance(obj, Organisation):
-            self._set_organisation_activity(added_flags, removed_flags, obj, user, note)
+            self._set_organisation_activity(added_flags, removed_flag_names, obj, user, note)
 
         if isinstance(obj, Good):
             cases = []
@@ -169,11 +205,11 @@ class AssignFlags(APIView):
             )
 
             for case in cases:
-                self._set_case_activity_for_goods(added_flags, removed_flags, case, user, note, good=obj)
+                self._set_case_activity_for_goods(added_flags, removed_flag_names, case, user, note, good=obj)
 
         if isinstance(obj, Party):
             case = self._get_case_for_destination(obj)
-            self._set_case_activity_for_destinations(added_flags, removed_flags, case, user, note, destination=obj)
+            self._set_case_activity_for_destinations(added_flags, removed_flag_names, case, user, note, destination=obj)
 
         if isinstance(obj, Country):
             cases = Case.objects.filter(
@@ -181,7 +217,7 @@ class AssignFlags(APIView):
             )
 
             for case in cases:
-                self._set_case_activity_for_destinations(added_flags, removed_flags, case, user, note, destination=obj)
+                self._set_case_activity_for_destinations(added_flags, removed_flag_names, case, user, note, destination=obj)
 
         obj.flags.set(
             flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags)
