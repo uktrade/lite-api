@@ -38,7 +38,7 @@ class RoleManager(models.Manager):
 
 class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(default=None, blank=True, null=True, max_length=30)
+    name = models.TextField(default=None, blank=True, null=True, max_length=100)
     permissions = models.ManyToManyField(Permission, related_name="roles")
     type = models.CharField(choices=UserType.non_system_choices(), default=UserType.INTERNAL, max_length=8)
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=True)
