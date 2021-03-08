@@ -1,7 +1,13 @@
 from django.urls import reverse
+
 from rest_framework import status
+from rest_framework.serializers import ValidationError
 
 from test_helpers.clients import DataTestClient
+
+from api.flags.enums import FlagPermissions
+
+from api.flags.tests.factories import FlagFactory
 
 
 class CaseFlagsManagementTests(DataTestClient):
@@ -126,3 +132,87 @@ class CaseFlagsManagementTests(DataTestClient):
         self.assertEquals(len(self.all_flags), len(self.case.flags.all()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.case.flags.all())
+
+    def test_user_can_add_approval_blocking_flags(self):
+        """
+        Given a Case with no Flags assigned
+        And a Flag that blocks application approval
+        When a user attempts to add this Flag
+        Then the Flag is successfully added
+        """
+
+        approval_blocking_flag = FlagFactory(
+            name="Approval blocking flag",
+            level="Case",
+            team=self.team,
+            blocks_approval=True
+        )
+
+        flags_to_add = {
+            "level": "cases",
+            "objects": [self.case.id],
+            "flags": [approval_blocking_flag.pk],
+        }
+
+        self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
+
+        self.assertEquals(len(flags_to_add["flags"]), len(self.case.flags.all()))
+        self.assertTrue(approval_blocking_flag in self.case.flags.all())
+
+    def test_user_can_add_approval_blocking_flags_with_special_permissions(self):
+        """
+        Given a Case with no Flags assigned
+        And a Flag that blocks application approval
+        And the Flag requires special permissions to remove it
+        When a user attempts to add this Flag
+        Then the Flag is successfully added
+        """
+
+        approval_blocking_flag = FlagFactory(
+            name="Approval blocking flag",
+            level="Case",
+            team=self.team,
+            blocks_approval=True,
+            removable_by=FlagPermissions.AUTHORISED_COUNTERSIGNER
+        )
+
+        flags_to_add = {
+            "level": "cases",
+            "objects": [self.case.id],
+            "flags": [approval_blocking_flag.pk],
+        }
+
+        self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
+
+        self.assertEquals(len(flags_to_add["flags"]), len(self.case.flags.all()))
+        self.assertTrue(approval_blocking_flag in self.case.flags.all())
+
+    def test_user_cannot_remove_approval_blocking_flags_that_have_special_permissions(self):
+        """
+        Given a Case with a Flag that blocks application approval
+        And the Flag requires special permissions to remove it
+        When a user without this permission attempts to remove this Flag
+        Then an error is raised
+        """
+
+        approval_blocking_flag = FlagFactory(
+            name="Approval blocking flag",
+            level="Case",
+            team=self.team,
+            blocks_approval=True,
+            removable_by=FlagPermissions.AUTHORISED_COUNTERSIGNER
+        )
+
+        self.case.flags.set([approval_blocking_flag])
+
+        flags_to_add = {
+            "level": "cases",
+            "objects": [self.case.id],
+            "flags": [],
+        }
+
+        self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
+
+        self.assertEquals(1, len(self.case.flags.all()))
+        self.assertTrue(approval_blocking_flag in self.case.flags.all())
+        self.assertRaises(ValidationError)

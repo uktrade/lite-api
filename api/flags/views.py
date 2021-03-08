@@ -2,8 +2,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 
-from rest_framework import status
-from rest_framework import serializers
+from rest_framework import status, serializers
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
