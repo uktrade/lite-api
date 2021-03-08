@@ -1,3 +1,6 @@
+from api.core.constants import GovPermissions
+
+
 class FlagLevels:
     CASE = "Case"
     ORGANISATION = "Organisation"
@@ -48,6 +51,23 @@ class FlagColours:
         (TURQUOISE, "Turquoise"),
         (PINK, "Pink"),
     ]
+
+
+class FlagPermissions:
+    DEFAULT = "Anyone"
+    AUTHORISED_COUNTERSIGNER = "Authorised countersigner"
+    HEAD_OF_LICENSING_UNIT_COUNTERSIGNER = "Head of Licensing Unit countersigner"
+
+    choices = [
+        (DEFAULT, "Anyone"),
+        (AUTHORISED_COUNTERSIGNER, "Authorised countersigner"),
+        (HEAD_OF_LICENSING_UNIT_COUNTERSIGNER, "Head of Licensing Unit countersigner"),
+    ]
+
+    PERMISSIONS_MAPPING = {
+        AUTHORISED_COUNTERSIGNER: GovPermissions.REMOVE_AUTHORISED_COUNTERSIGNER_FLAGS,
+        HEAD_OF_LICENSING_UNIT_COUNTERSIGNER: GovPermissions.REMOVE_HEAD_OF_LICENSING_UNIT_FLAGS,
+    }
 
 
 class SystemFlags:
