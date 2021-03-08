@@ -14,7 +14,7 @@ manage:
 	pipenv run ./manage.py $(ARGUMENTS)
 
 test:
-	pipenv run pytest
+	pipenv run ./manage.py test
 
 secrets:
 	cp local.env .env
