@@ -73,9 +73,7 @@ class FlagSerializer(serializers.ModelSerializer):
         error_messages={"required": strings.Flags.ValidationErrors.BLOCKING_APPROVAL_MISSING,},
     )
     removable_by = serializers.ChoiceField(
-        choices=FlagPermissions.choices,
-        default=FlagPermissions.DEFAULT,
-        allow_null=False,
+        choices=FlagPermissions.choices, default=FlagPermissions.DEFAULT, allow_null=False,
     )
 
     def __init__(self, *args, **kwargs):

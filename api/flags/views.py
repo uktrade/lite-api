@@ -172,17 +172,22 @@ class AssignFlags(APIView):
 
         user_permissions = [p.name for p in user.role.permissions.all()]
 
-        cannot_remove_some_flags = any([
-            flag.removable_by != FlagPermissions.DEFAULT
-            and FlagPermissions.PERMISSIONS_MAPPING[flag.removable_by].value not in user_permissions
-            for flag in removed_flags
-        ])
+        cannot_remove_some_flags = any(
+            [
+                flag.removable_by != FlagPermissions.DEFAULT
+                and FlagPermissions.PERMISSIONS_MAPPING[flag.removable_by].value not in user_permissions
+                for flag in removed_flags
+            ]
+        )
 
         if cannot_remove_some_flags:
             flags_user_cannot_remove = []
 
             for flag in removed_flags:
-                if flag.removable_by != FlagPermissions.DEFAULT and FlagPermissions.PERMISSIONS_MAPPING[flag.removable_by].value not in user_permissions:
+                if (
+                    flag.removable_by != FlagPermissions.DEFAULT
+                    and FlagPermissions.PERMISSIONS_MAPPING[flag.removable_by].value not in user_permissions
+                ):
                     flags_user_cannot_remove.append(flag.name)
 
             flags_list = ", ".join(flags_user_cannot_remove)
@@ -217,7 +222,9 @@ class AssignFlags(APIView):
             )
 
             for case in cases:
-                self._set_case_activity_for_destinations(added_flags, removed_flag_names, case, user, note, destination=obj)
+                self._set_case_activity_for_destinations(
+                    added_flags, removed_flag_names, case, user, note, destination=obj
+                )
 
         obj.flags.set(
             flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags)
