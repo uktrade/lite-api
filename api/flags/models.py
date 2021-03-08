@@ -15,7 +15,7 @@ class FlagManager(models.Manager):
 
 class Flag(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(default="Untitled Flag", unique=True, max_length=100)
+    name = models.TextField(default="Untitled Flag", unique=True, max_length=100)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     level = models.CharField(choices=FlagLevels.choices, max_length=20)
     status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
@@ -23,7 +23,7 @@ class Flag(TimestampableModel):
     colour = models.CharField(choices=FlagColours.choices, default=FlagColours.DEFAULT, max_length=20)
     priority = models.PositiveSmallIntegerField(default=0)
     blocks_approval = models.BooleanField(null=False, blank=False, default=False)
-    removable_by = models.CharField(choices=FlagPermissions.choices, default=FlagPermissions.DEFAULT, max_length=50)
+    removable_by = models.TextField(choices=FlagPermissions.choices, default=FlagPermissions.DEFAULT, max_length=50)
 
     objects = FlagManager()
 

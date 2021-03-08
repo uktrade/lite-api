@@ -18,8 +18,8 @@ from api.users.managers import InternalManager, ExporterManager
 
 
 class Permission(models.Model):
-    id = models.CharField(primary_key=True, editable=False, max_length=100)
-    name = models.CharField(default="permission - FIX", max_length=100)
+    id = models.TextField(primary_key=True, editable=False, max_length=100)
+    name = models.TextField(default="permission - FIX", max_length=100)
     # For convenience using UserType as a proxy for Permission Type
     type = models.CharField(choices=UserType.non_system_choices(), default=UserType.INTERNAL, max_length=8)
 
