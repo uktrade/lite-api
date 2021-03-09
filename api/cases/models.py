@@ -230,8 +230,8 @@ class Case(TimestampableModel):
 
 class CaseAssignmentSla(models.Model):
     sla_days = models.IntegerField()
-    queue = models.ForeignKey(Queue, related_name='slas')
-    case = models.ForeignKey(Case, related_name='slas')
+    queue = models.ForeignKey(Queue, related_name="slas", on_delete=models.CASCADE)
+    case = models.ForeignKey(Case, related_name="slas", on_delete=models.CASCADE)
 
 
 class CaseReferenceCode(models.Model):

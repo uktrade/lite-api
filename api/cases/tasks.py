@@ -92,28 +92,21 @@ def update_cases_sla():
             # Lock with select_for_update()
             # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
             active_ecju_query_cases = get_case_ids_with_active_ecju_queries(date)
-            cases = (
-                Case.objects.filter(
-                    submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=tz(settings.TIME_ZONE)),
-                    last_closed_at__isnull=True,
-                    sla_remaining_days__isnull=False,
-                )
-                .exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
-            )
+            cases = Case.objects.filter(
+                submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=tz(settings.TIME_ZONE)),
+                last_closed_at__isnull=True,
+                sla_remaining_days__isnull=False,
+            ).exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
             with transaction.atomic():
-                results = (
-                    cases.select_for_update().update(
-                        sla_days=F("sla_days") + 1,
-                        sla_remaining_days=F("sla_remaining_days") - 1,
-                        sla_updated_at=date,
-                    )
+                results = cases.select_for_update().update(
+                    sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date,
                 )
                 for assignment in CaseAssignment.objects.filter(case__in=cases):
                     CaseAssignmentSla.objects.update_or_create(
                         queue=assignment.queue,
                         case=assignment.case,
                         sla_days=F("sla_days") + 1,
-                        defaults={"sla_days": 0}
+                        defaults={"sla_days": 0},
                     )
 
             logging.info(f"{LOG_PREFIX} SLA Update Successful. Updated {results} cases")
