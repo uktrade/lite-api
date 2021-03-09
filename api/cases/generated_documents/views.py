@@ -1,9 +1,11 @@
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
+
 from rest_framework import status, generics
 from rest_framework.exceptions import ParseError
 from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -143,9 +145,5 @@ class GeneratedDocumentPreview(APIView):
         """
         Get a preview of the document to be generated
         """
-        try:
-            document = get_generated_document_data(request.GET, pk)
-        except AttributeError as e:
-            return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
-
-        return JsonResponse(data={"preview": document.document_html}, status=status.HTTP_200_OK)
+        document = get_generated_document_data(request.GET, pk)
+        return Response(data={"preview": document.document_html})

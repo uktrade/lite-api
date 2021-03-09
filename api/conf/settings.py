@@ -125,7 +125,7 @@ ROOT_URLCONF = "api.conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "api/letter_templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "debug": DEBUG,
@@ -204,7 +204,7 @@ STATIC_URL = "/assets/"
 STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "assets")
 CSS_ROOT = os.path.join(STATIC_ROOT, "css")
 
-LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts")
+LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "templates", "letter_templates")
 
 # Database
 DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/settings/#databases

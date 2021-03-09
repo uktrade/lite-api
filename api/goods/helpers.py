@@ -4,6 +4,8 @@ from rest_framework.exceptions import ValidationError
 
 from api.core.exceptions import BadRequestError
 from api.goods.enums import Component, MilitaryUse
+from api.organisations.models import DocumentOnOrganisation
+from api.organisations.enums import OrganisationDocumentType
 from lite_content.lite_api import strings
 
 FIREARMS_CORE_TYPES = ["firearms", "ammunition", "components_for_firearms", "components_for_ammunition"]
@@ -177,3 +179,33 @@ def check_if_unsupported_fields_edited_on_firearm_good(data):
     # The parent field values don't get sent if not explicitly selected on the form, so we check the presence of details fields as well
     if any(section in data for section in sections):
         raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+
+def has_valid_certificate(organisation_id, document_type):
+    certificate_exists = DocumentOnOrganisation.objects.filter(
+        organisation=organisation_id, document_type=document_type,
+    ).first()
+
+    if certificate_exists and timezone.now().date() < certificate_exists.expiry_date:
+        return True
+
+    return False
+
+
+def update_firearms_certificate_data(organisation_id, firearm_data):
+    has_valid_rfd = has_valid_certificate(
+        organisation_id, OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE
+    )
+    has_valid_section5 = has_valid_certificate(organisation_id, OrganisationDocumentType.FIREARM_SECTION_FIVE)
+
+    if not has_valid_rfd:
+        if has_valid_section5:
+            del firearm_data["section_certificate_number"]
+        return firearm_data
+
+    if has_valid_rfd and has_valid_section5:
+        # because user is not asked to upload the certificate again
+        # it fails validation if this is not removed here
+        del firearm_data["section_certificate_number"]
+
+    return firearm_data
