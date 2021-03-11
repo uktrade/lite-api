@@ -15,6 +15,7 @@ from api.reports.queries.standard import (
     LICENCES_WITH_GOOD_AMENDMENTS,
     SLA_CASES,
     APPLICATIONS_FINALISED_SUMMARY,
+    MI_COMBINED_ALL_LIVE,
 )
 
 REPORT_QUERY_LOOKUP = {
@@ -23,6 +24,7 @@ REPORT_QUERY_LOOKUP = {
     "good_amendments": LICENCES_WITH_GOOD_AMENDMENTS,
     "sla_cases": SLA_CASES,
     "standard_applications_finalised_summary": APPLICATIONS_FINALISED_SUMMARY,
+    "mi_combined_all_live": MI_COMBINED_ALL_LIVE,
 }
 
 
