@@ -369,3 +369,149 @@ group by cases_case.reference_code, cases_case.submitted_at, sla_days,
          ll.status, advice.type, advice.created_at
 ;
 """
+
+APPLICATIONS_FINALISED_SUMMARY = """
+With applications as (
+    select
+        cc.reference_code
+        , cs.status "case_status"
+        , cc.id as "case_id"
+        , ct.reference "case_type"
+        , sa.export_type  "export_type"
+        , intended_end_use
+        , agreed_to_foi
+        , foi_reason
+        , submitted_at
+        , o.name  "licensee"
+        , last_closed_at
+    from applications_standardapplication sa
+    join applications_baseapplication ab on sa.baseapplication_ptr_id = ab.case_ptr_id
+    join cases_case cc on ab.case_ptr_id = cc.id
+    join cases_casetype ct on cc.case_type_id = ct.id
+    join statuses_casestatus cs on cc.status_id = cs.id
+    join organisation o on cc.organisation_id = o.id
+    where cc.created_at between %(start_date)s::date and %(end_date)s::date
+    and cs.status in ('closed', 'deregistered', 'suspended', 'revoked', 'surrendered', 'withdrawn', 'finalised')
+    ),
+advices as (
+    select
+        case_id    "case_id",
+        type       "type",
+        text       "text",
+        denialreason_id    "dn_id"
+    from advice
+    left outer join advice_denial_reasons dn on dn.advice_id = advice.id
+),
+licences as (
+    select
+        ll.reference_code "reference_code"
+        , case_id
+        , status
+    from licences_licence ll
+),
+goods as (
+select cc.reference_code         "licence_ref"
+        , sa.baseapplication_ptr_id "application_id"
+        , g.id                      "good_id"
+        , g.name                    "good_name"
+        , g.description             "good_desc"
+        , ct.reference              "case_type"
+        , concat(ct.reference, ' ', '(', sa.export_type, ')') "application_type"
+        , cs.status
+        , ag.is_good_incorporated   "good_incorporated"
+        , ag.report_summary
+        , COALESCE(ag.is_good_controlled, g.is_good_controlled) "is_good_controlled"
+        , ag.value                  "good_value"
+        , ag.quantity               "good_quantity"
+        , (
+            select usage from licences_goodonlicence
+            where good_id = ag.good_id
+        ) "licence_usage"
+        , (
+            with
+            _good as (
+                select good_id
+            ),
+            application_rating as (
+                select
+                ag.good_id
+                , c.rating "rating"
+                from control_list_entry c
+                join applications_goodonapplication_control_list_entries agcle  on agcle.controllistentry_id = c.id
+                where agcle.goodonapplication_id = ag.id
+            ), good_rating as (
+                select
+                gcle.good_id
+                , c.rating "rating"
+                from good_control_list_entries gcle
+                join control_list_entry c on gcle.controllistentry_id = c.id
+                where gcle.good_id = g.id
+            ) select string_agg(coalesce(ar.rating, gr.rating), ',' order by coalesce(ar.rating, gr.rating))
+                from _good
+                left outer join good_rating gr
+                    on _good.good_id = gr.good_id
+                left outer join application_rating ar
+                    on _good.good_id = gr.good_id
+        ) "ratings"
+from applications_standardapplication sa
+            join applications_baseapplication ab
+                on sa.baseapplication_ptr_id = ab.case_ptr_id
+            join cases_case cc on ab.case_ptr_id = cc.id
+            join statuses_casestatus cs on cc.status_id = cs.id
+            join applications_goodonapplication ag
+                on ab.case_ptr_id = ag.application_id
+            join good g on ag.good_id = g.id
+            join cases_casetype ct on cc.case_type_id = ct.id
+            left outer join licences_licence ll on cc.id = ll.case_id
+where cc.created_at between %(start_date)s::date and %(end_date)s::date
+and cs.status in ('closed', 'deregistered', 'suspended', 'revoked', 'surrendered', 'withdrawn', 'finalised')
+), party as (
+select reference_code         "licence_ref"
+        , application_id
+        , pp.name
+        , pp.type
+        , sub_type
+        , country.name "country_name"
+        , country.report_name "spire_country_name"
+        , country.type "country_type"
+from applications_standardapplication sa
+        join applications_baseapplication ab
+                on sa.baseapplication_ptr_id = ab.case_ptr_id
+        join applications_partyonapplication ap
+                            on ab.case_ptr_id = ap.application_id
+        join cases_case cc on ab.case_ptr_id = cc.id
+        join statuses_casestatus cs on cc.status_id = cs.id
+        join parties_party pp on ap.party_id = pp.id
+        join countries_country country on pp.country_id = country.id
+where cc.created_at between %(start_date)s::date and %(end_date)s::date
+and cs.status in ('closed', 'deregistered', 'suspended', 'revoked', 'surrendered', 'withdrawn', 'finalised')
+) select
+applications.case_type "Case type",
+applications.export_type "Export type",
+applications.licensee "Licensee",
+applications.intended_end_use "End use",
+applications.agreed_to_foi "FOI Objection flag",
+applications.foi_reason "FOI Objection",
+applications.submitted_at "Submitted Datetime",
+applications.case_status "Case closed reason",
+applications.last_closed_at "Closed Datetime",
+licences.reference_code "Licence reference",
+licences.status "Licence status",
+(select string_agg(distinct advices.type, ',') from advices where advices.case_id = applications.case_id) "Outcome",
+(select string_agg(distinct advices.dn_id, ',') from advices where advices.case_id = applications.case_id) "Reason for refusal",
+(select string_agg(distinct goods.report_summary, ',') from goods where goods.application_id = applications.case_id) "Goods Ars",
+(select string_agg(distinct goods.ratings, ',') from goods where goods.application_id = applications.case_id) "Goods Rating",
+(select string_agg(cast((goods.good_quantity - goods.licence_usage) as text), ',') from goods where goods.application_id = applications.case_id) "Licence Remaining quantities",
+(select sum(goods.good_value) from goods where goods.application_id = applications.case_id) "Total Goods value",
+(select string_agg(distinct concat(goods.good_name, ': ', goods.good_desc), ',') from goods where goods.application_id = applications.case_id) "Description",
+(select bool_or(goods.good_incorporated) from goods where goods.application_id = applications.case_id) "Incorporation",
+(select string_agg(distinct party.name, ',') from party where party.licence_ref = applications.reference_code and type = 'end_user') "End Users",
+(select string_agg(distinct party.country_name, ',') from party where party.licence_ref = applications.reference_code and type = 'end_user') "End User countries",
+(select string_agg(distinct party.name, ',') from party where party.licence_ref = applications.reference_code and type = 'consignee') "Consignee",
+(select string_agg(distinct party.country_name, ',') from party where party.licence_ref = applications.reference_code and type = 'consignee') "Consignee countries" ,
+(select string_agg(distinct party.name, ',') from party where party.licence_ref = applications.reference_code and type = 'ultimate_end_user') "Ultimate End Users",
+(select string_agg(distinct party.country_name, ',') from party where party.licence_ref = applications.reference_code and type = 'ultimate_end_user') "Ultimate End User countries"
+from
+applications
+left outer join licences on applications.case_id = licences.case_id
+"""
