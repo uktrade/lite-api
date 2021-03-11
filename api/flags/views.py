@@ -2,7 +2,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 
-from rest_framework import status, serializers
+from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -21,7 +21,7 @@ from api.core.constants import GovPermissions
 from api.core.helpers import str_to_bool
 from api.core.permissions import assert_user_has_permission
 
-from api.flags.enums import FlagLevels, FlagStatuses, SystemFlags, FlagPermissions
+from api.flags.enums import FlagLevels, FlagStatuses, SystemFlags
 from api.flags.helpers import get_object_of_level
 from api.flags.libraries.get_flag import get_flagging_rule
 from api.flags.models import Flag, FlaggingRule
@@ -135,12 +135,13 @@ class AssignFlags(APIView):
         for pk in objects:
             obj = get_object_of_level(level, pk)
             serializer = FlagAssignmentSerializer(
-                data=data, context={
+                data=data,
+                context={
                     "team": request.user.govuser.team,
                     "level": level.title(),
                     "user": request.user.govuser,
                     "obj": obj,
-                }
+                },
             )
 
             if serializer.is_valid():

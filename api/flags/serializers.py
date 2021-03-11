@@ -154,9 +154,7 @@ class FlagAssignmentSerializer(serializers.Serializer):
 
             raise serializers.ValidationError(f"You do not have permission to remove the following flags: {flags_list}")
 
-        team_flags = list(
-            Flag.objects.filter(level=level, team=team, status=FlagStatuses.ACTIVE,)
-        )
+        team_flags = list(Flag.objects.filter(level=level, team=team, status=FlagStatuses.ACTIVE,))
 
         if not set(flags).issubset(list(team_flags)):
             raise serializers.ValidationError("You can only assign flags that are available to your team.")
