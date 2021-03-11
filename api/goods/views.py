@@ -22,7 +22,11 @@ from api.documents.libraries.delete_documents_on_bad_request import delete_docum
 from api.documents.models import Document
 from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
 from api.goods.goods_paginator import GoodListPaginator
-from api.goods.helpers import check_if_firearm_details_edited_on_unsupported_good
+from api.goods.helpers import (
+    FIREARMS_CORE_TYPES,
+    check_if_firearm_details_edited_on_unsupported_good,
+    has_valid_certificate,
+)
 from api.goods.libraries.get_goods import get_good, get_good_document
 from api.goods.libraries.save_good import create_or_update_good
 from api.goods.models import Good, GoodDocument
@@ -42,6 +46,7 @@ from api.goods.serializers import (
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
+from api.organisations.models import OrganisationDocumentType
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -208,9 +213,28 @@ class GoodList(ListCreateAPIView):
             if data.get("firearm_details") and item_category not in ItemCategory.group_two:
                 check_if_firearm_details_edited_on_unsupported_good(data)
 
+            # check if the user is registered firearm dealer
+            if item_category == ItemCategory.GROUP2_FIREARMS:
+                if data.get("firearm_details") and data["firearm_details"]["type"] in FIREARMS_CORE_TYPES:
+                    is_rfd = str_to_bool(data.get("is_registered_firearm_dealer")) is True
+                    rfd_status = is_rfd or has_valid_certificate(
+                        str(data["organisation"]), OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE
+                    )
+
+                    data["firearm_details"]["rfd_status"] = rfd_status
+
+                    # If the user is a registered firearms dealer and has a valid certificate then it
+                    # covers section1 and section2 so in this case if the answer is Yes to firearms act question
+                    # then it implicitly means it is for section5
+                    if (
+                        rfd_status
+                        and data["firearm_details"].get("is_covered_by_firearm_act_section_one_two_or_five") == "Yes"
+                    ):
+                        data["firearm_details"]["firearms_act_section"] = "firearms_act_section5"
+
         serializer = GoodCreateSerializer(data=data)
 
-        return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
+        return create_or_update_good(serializer, data, is_created=True)
 
 
 class GoodDocumentAvailabilityCheck(APIView):
@@ -291,8 +315,21 @@ class GoodTAUDetails(APIView):
         if good.status == GoodStatus.SUBMITTED:
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]})
 
+        # check if the user is registered firearm dealer
+        if good.item_category == ItemCategory.GROUP2_FIREARMS and good.firearm_details.type in FIREARMS_CORE_TYPES:
+            is_rfd = has_valid_certificate(
+                good.organisation_id, OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE
+            )
+            data["firearm_details"]["rfd_status"] = is_rfd
+
+            # If the user is a registered firearms dealer and has a valid certificate then it
+            # covers section1 and section2 so in this case if the answer is Yes to firearms act question
+            # then it implicitly means it is for section5
+            if is_rfd and data["firearm_details"].get("is_covered_by_firearm_act_section_one_two_or_five") == "Yes":
+                data["firearm_details"]["firearms_act_section"] = "firearms_act_section5"
+
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
-        return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
+        return create_or_update_good(serializer, data, is_created=False)
 
 
 class GoodOverview(APIView):
@@ -350,7 +387,7 @@ class GoodOverview(APIView):
         data["organisation"] = get_request_user_organisation_id(request)
 
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
-        return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
+        return create_or_update_good(serializer, data, is_created=False)
 
     def delete(self, request, pk):
         good = get_good(pk)

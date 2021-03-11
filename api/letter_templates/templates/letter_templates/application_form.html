@@ -387,9 +387,7 @@
 										{{ good.has_identification_markings }}
 										<span class="govuk-hint">
 										<br>
-											{% if good.has_identification_markings %}
-												{{ good.identification_markings_details|default_na }}
-											{% else %}
+											{% if not good.has_identification_markings %}
 												{{ good.no_identification_markings_details|default_na }}
 											{% endif %}
 										</span>
