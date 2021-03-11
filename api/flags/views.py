@@ -135,21 +135,22 @@ class AssignFlags(APIView):
         for pk in objects:
             obj = get_object_of_level(level, pk)
             serializer = FlagAssignmentSerializer(
-                data=data, context={"team": request.user.govuser.team, "level": level.title()}
+                data=data, context={
+                    "team": request.user.govuser.team,
+                    "level": level.title(),
+                    "user": request.user.govuser,
+                    "obj": obj,
+                }
             )
 
             if serializer.is_valid():
-                try:
-                    self._assign_flags(
-                        flags=serializer.validated_data.get("flags"),
-                        level=level.title(),
-                        note=serializer.validated_data.get("note"),
-                        obj=obj,
-                        user=request.user.govuser,
-                    )
-                except serializers.ValidationError as e:
-                    return JsonResponse(data={"errors": {"flags[]": e.detail}}, status=status.HTTP_400_BAD_REQUEST)
-
+                self._assign_flags(
+                    flags=serializer.validated_data.get("flags"),
+                    level=level.title(),
+                    note=serializer.validated_data.get("note"),
+                    obj=obj,
+                    user=request.user.govuser,
+                )
                 response_data.append({level.lower(): serializer.data})
             else:
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -166,31 +167,7 @@ class AssignFlags(APIView):
 
         added_flags = [flag.name for flag in flags if flag not in previously_assigned_team_flags]
         ignored_flags = flags + [x for x in previously_assigned_deactivated_team_flags]
-        removed_flags = [flag for flag in previously_assigned_team_flags if flag not in ignored_flags]
         removed_flag_names = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
-
-        user_permissions = [p.name for p in user.role.permissions.all()]
-
-        cannot_remove_some_flags = any(
-            [
-                flag.removable_by != FlagPermissions.DEFAULT
-                and FlagPermissions.PERMISSIONS_MAPPING[flag.removable_by].value not in user_permissions
-                for flag in removed_flags
-            ]
-        )
-
-        if cannot_remove_some_flags:
-            flags_user_cannot_remove = []
-
-            for flag in removed_flags:
-                if (
-                    flag.removable_by != FlagPermissions.DEFAULT
-                    and FlagPermissions.PERMISSIONS_MAPPING[flag.removable_by].value not in user_permissions
-                ):
-                    flags_user_cannot_remove.append(flag.name)
-
-            flags_list = ", ".join(flags_user_cannot_remove)
-            raise serializers.ValidationError(f"You do not have permission to remove the following flags: {flags_list}")
 
         # Add activity item
 
