@@ -9,8 +9,9 @@ from test_helpers.clients import DataTestClient
 
 
 class ApplicationDocumentViewTests(DataTestClient):
-    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file", mock.Mock(return_value=None))
-    def test_audit_trail_create(self):
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
+    def test_audit_trail_create(self, upload_bytes_func, scan_document_func):
         application = self.create_draft_standard_application(organisation=self.organisation, user=self.exporter_user)
         good = self.create_good("A good", self.organisation)
 

@@ -1,4 +1,5 @@
 from django.urls import reverse
+from unittest import mock
 
 from api.applications.serializers import good as serializers
 from api.audit_trail.enums import AuditType
@@ -7,7 +8,9 @@ from test_helpers.clients import DataTestClient
 
 
 class ApplicationGoodOnApplicationDocumentViewTests(DataTestClient):
-    def test_audit_trail_create(self):
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
+    def test_audit_trail_create(self, upload_bytes_func, scan_document_func):
         application = self.create_draft_standard_application(organisation=self.organisation, user=self.exporter_user)
         good = self.create_good("A good", self.organisation)
 
@@ -33,4 +36,4 @@ class ApplicationGoodOnApplicationDocumentViewTests(DataTestClient):
         self.assertEqual(audit.actor, self.exporter_user)
         self.assertEqual(audit.target.id, self.organisation.id)
         self.assertEqual(audit.verb, AuditType.DOCUMENT_ON_ORGANISATION_CREATE)
-        self.assertEqual(audit.payload, {"file_name": "section5.png"})
+        self.assertEqual(audit.payload, {"file_name": "section5.png", "document_type": "section-five-certificate"})
