@@ -241,7 +241,10 @@ class GoodOnApplicationDocumentCreateSerializer(serializers.ModelSerializer):
                 actor=validated_data["user"],
                 verb=AuditType.DOCUMENT_ON_ORGANISATION_CREATE,
                 target=document.application.organisation,
-                payload={"file_name": validated_data.get("name")},
+                payload={
+                    "file_name": validated_data.get("name"),
+                    "document_type": document_on_organisation.get("document_type"),
+                },
             )
 
         process_document(document)
