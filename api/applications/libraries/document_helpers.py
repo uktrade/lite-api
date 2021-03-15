@@ -55,6 +55,12 @@ def upload_application_document(application, data, user):
         )
         doa_serializer.is_valid(raise_exception=True)
         doa_serializer.save()
+        audit_trail_service.create(
+            actor=user.exporteruser,
+            verb=AuditType.DOCUMENT_ON_ORGANISATION_CREATE,
+            target=document.application.organisation,
+            payload={"file_name": data.get("name")},
+        )
 
     audit_trail_service.create(
         actor=user,
