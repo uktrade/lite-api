@@ -3,8 +3,9 @@ from rest_framework import viewsets
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
 from api.core.authentication import SharedAuthentication
-
 from api.organisations import models, serializers
 
 
@@ -28,5 +29,12 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
         organisation = models.Organisation.objects.get(pk=pk)
         serializer = self.serializer_class(data=request.data, context={"organisation": organisation})
         serializer.is_valid(raise_exception=True)
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.DOCUMENT_ON_ORGANISATION_CREATE,
+            target=organisation,
+            payload={"file_name": request.data["document"]["name"], "document_type": request.data["document_type"],},
+        )
+
         serializer.save()
         return JsonResponse({"document": serializer.data}, status=201)
