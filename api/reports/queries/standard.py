@@ -510,7 +510,9 @@ licences.status "Licence status",
 (select string_agg(distinct party.name, ',') from party where party.licence_ref = applications.reference_code and type = 'consignee') "Consignee",
 (select string_agg(distinct party.country_name, ',') from party where party.licence_ref = applications.reference_code and type = 'consignee') "Consignee countries" ,
 (select string_agg(distinct party.name, ',') from party where party.licence_ref = applications.reference_code and type = 'ultimate_end_user') "Ultimate End Users",
-(select string_agg(distinct party.country_name, ',') from party where party.licence_ref = applications.reference_code and type = 'ultimate_end_user') "Ultimate End User countries"
+(select string_agg(distinct party.country_name, ',') from party where party.licence_ref = applications.reference_code and type = 'ultimate_end_user') "Ultimate End User countries",
+(select string_agg(distinct party.name, ',') from party where party.licence_ref = applications.reference_code and type = 'third_party') "Third Party",
+(select string_agg(distinct party.country_name, ',') from party where party.licence_ref = applications.reference_code and type = 'third_party') "Third Party Countries"
 from
 applications
 left outer join licences on applications.case_id = licences.case_id
