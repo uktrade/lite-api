@@ -622,6 +622,7 @@ select
      , cases_case.id "case_id"
      , cases_case.submitted_at "case_submitted_at"
      , count(cecjuq.id) as "open_ecju_queries"
+     , string_agg(DISTINCT edd.name, ', ') "DENIAL_MATCH"
 from cases_case
          join statuses_casestatus
               on cases_case.status_id = statuses_casestatus.id
@@ -646,6 +647,8 @@ from cases_case
          left outer join goods on cases_case.id = goods.application_id
          left outer join cases_ecjuquery cecjuq on cases_case.id = cecjuq.case_id and cecjuq.responded_at is NULL
          left outer join cases_caseassignmentsla cc_sla on aq.id = cc_sla.queue_id and cases_case.id = cc_sla.case_id
+         left outer join applications_denialmatchonapplication ad on applications_baseapplication.case_ptr_id = ad.application_id
+         left outer join external_data_denial edd on ad.denial_id = edd.id
 where
     statuses_casestatus.status != 'draft'
     and
