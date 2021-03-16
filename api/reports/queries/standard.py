@@ -598,24 +598,30 @@ select
     , 'NOT IN LITE' "RESPONSE_DUE_DATE"
     , 'NOT IN LITE' "COMMUNITY_NAME"
     , assignment.email "ADVISOR_NAME"
-    , 'NOT IN LITE' "WORKING_DAYS_ELAPSED"
+    , COALESCE(cc_sla.sla_days, 0) "WORKING_DAYS_ELAPSED"
     , organisation.name "APPLICANT"
     , applications_baseapplication.intended_end_use "END_USE"
     , string_agg(DISTINCT concat(goods.good_name, goods.good_desc, ' '), ', ') "GOODS_DESCRIPTIONS"
     , string_agg(DISTINCT goods.ratings, ', ') "GOODS_RATINGS"
     , string_agg(DISTINCT consignee_pp.name, ', ') "CONSIGNEE"
+    , string_agg(DISTINCT consignee_cc.id, ', ') "CONSIGNEE_COUNTRY"
+    , string_agg(DISTINCT consignee_cc.report_name, ', ') "CONSIGNEE_SPIRE_COUNTRY"
+    , string_agg(DISTINCT end_user_cc.id, ', ') "END_USER_COUNTRY"
+    , string_agg(DISTINCT end_user_cc.report_name, ', ') "END_USER_SPIRE_COUNTRY"
+    , string_agg(DISTINCT end_user_pp.name, ', ') "END_USER"
     , string_agg(DISTINCT ultimate_end_user_cc.id, ', ') "ULTIMATE_END_USER_COUNTRY"
     , string_agg(DISTINCT ultimate_end_user_cc.report_name, ', ') "ULTIMATE_END_USER_SPIRE_COUNTRY"
     , string_agg(DISTINCT ultimate_end_user_pp.name, ', ') "ULTIMATE_END_USER"
     , string_agg(DISTINCT third_party_cc.id, ', ') "THIRD_PARTY_COUNTRY"
     , string_agg(DISTINCT third_party_cc.report_name, ', ') "THIRD_PARTY_SPIRE_COUNTRY"
     , string_agg(DISTINCT third_party_pp.name, ', ') "THIRD_PARTY"
-    , sla_days "TOTAL_GOVERNMENT_DAYS"
+    , cases_case.sla_days "TOTAL_GOVERNMENT_DAYS"
      , sla_remaining_days "REMAINING_GOVERNMENT_DAYS"
      , statuses_casestatus.status "case_status"
      , ll.status                  "licence_status"
      , cases_case.id "case_id"
      , cases_case.submitted_at "case_submitted_at"
+     , count(cecjuq.id) as "open_ecju_queries"
 from cases_case
          join statuses_casestatus
               on cases_case.status_id = statuses_casestatus.id
@@ -638,12 +644,14 @@ from cases_case
          left outer join teams_team t on aq.team_id = t.id
          left outer join organisation on cases_case.organisation_id = organisation.id
          left outer join goods on cases_case.id = goods.application_id
+         left outer join cases_ecjuquery cecjuq on cases_case.id = cecjuq.case_id and cecjuq.responded_at is NULL
+         left outer join cases_caseassignmentsla cc_sla on aq.id = cc_sla.queue_id and cases_case.id = cc_sla.case_id
 where
     statuses_casestatus.status != 'draft'
     and
     statuses_casestatus.status not in ('closed', 'deregistered', 'suspended', 'revoked', 'surrendered', 'withdrawn', 'finalised', 'applicant_editing')
     and cases_case.created_at between %(start_date)s::date and %(end_date)s::date
-group by cases_case.reference_code, cases_case.submitted_at, sla_days,
+group by cases_case.reference_code, cases_case.submitted_at, cases_case.sla_days, cc_sla.sla_days,
          sla_remaining_days, sla_updated_at, statuses_casestatus.status,
          ll.status, cases_casetype.reference, cases_case.id, assignment.email,
          assignment.created_at, organisation.name, applications_baseapplication.intended_end_use
