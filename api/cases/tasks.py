@@ -10,7 +10,7 @@ from django.utils import timezone
 from pytz import timezone as tz
 
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import Case
+from api.cases.models import Case, CaseAssignment, CaseAssignmentSla
 from api.cases.models import EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
 
@@ -86,26 +86,32 @@ def update_cases_sla():
     date = timezone.localtime()
     if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
         try:
+
             # Get cases submitted before the cutoff time today, where they have never been closed
             # and where the cases SLA haven't been updated today (to avoid running twice in a single day).
             # Lock with select_for_update()
             # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
+            active_ecju_query_cases = get_case_ids_with_active_ecju_queries(date)
+            cases = Case.objects.filter(
+                submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=tz(settings.TIME_ZONE)),
+                last_closed_at__isnull=True,
+                sla_remaining_days__isnull=False,
+            ).exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
             with transaction.atomic():
-                active_ecju_query_cases = get_case_ids_with_active_ecju_queries(date)
-                results = (
-                    Case.objects.select_for_update()
-                    .filter(
-                        submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=tz(settings.TIME_ZONE)),
-                        last_closed_at__isnull=True,
-                        sla_remaining_days__isnull=False,
-                    )
-                    .exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
-                    .update(
-                        sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
-                    )
+                for assignment in CaseAssignment.objects.filter(case__in=cases):
+                    try:
+                        assignment_sla = CaseAssignmentSla.objects.get(queue=assignment.queue, case=assignment.case)
+                        assignment_sla.sla_days += 1
+                        assignment_sla.save()
+                    except CaseAssignmentSla.DoesNotExist:
+                        CaseAssignmentSla.objects.create(queue=assignment.queue, case=assignment.case, sla_days=1)
+
+                results = cases.select_for_update().update(
+                    sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date,
                 )
-                logging.info(f"{LOG_PREFIX} SLA Update Successful. Updated {results} cases")
-                return results
+
+            logging.info(f"{LOG_PREFIX} SLA Update Successful. Updated {results} cases")
+            return results
         except Exception as e:  # noqa
             logging.error(e)
             return False
