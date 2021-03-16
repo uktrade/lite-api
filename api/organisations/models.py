@@ -40,9 +40,7 @@ class Organisation(TimestampableModel):
             raise NotFoundError({"user": "User does not belong to this organisation"})
 
     def get_users(self):
-        user_organisation_relationships = UserOrganisationRelationship.objects.filter(organisation=self).order_by(
-            "user__first_name"
-        )
+        user_organisation_relationships = UserOrganisationRelationship.objects.filter(organisation=self)
 
         for relationship in user_organisation_relationships:
             relationship.user.status = relationship.status
