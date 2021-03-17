@@ -661,3 +661,156 @@ group by cases_case.reference_code, cases_case.submitted_at, cases_case.sla_days
 order by submitted_at
 ;
 """
+
+
+STRATEGIC_EXPORT_CONTROLS_YEAR_QTR = """
+with changes as (
+    select ll.created_at "licence_created_at",
+           ll.updated_at,
+           ll.id,
+           start_date,
+           duration,
+           case_id,
+           ll.reference_code  "licence_ref",
+           hmrc_integration_sent_at,
+           ll.status,
+           end_date,
+           cc.created_at,
+           cc.updated_at,
+           cc.id,
+           cc.reference_code "case_ref",
+           submitted_at,
+           case_officer_id,
+           cc.organisation_id,
+           status_id,
+           case_type_id,
+           cc.copy_of_id,
+           last_closed_at,
+           extract(year from last_closed_at) as report_year,
+           extract(quarter from last_closed_at) as report_quarter,
+           sla_days,
+           sla_remaining_days,
+           sla_updated_at,
+           submitted_by_id,
+           case_ptr_id,
+           ab.name,
+           activity,
+           usage,
+           ab.clearance_level,
+           compliant_limitations_eu_ref,
+           informed_wmd_ref,
+           agreed_to_foi,
+           reference  "case_type",
+           sa.export_type "case_sub_type",
+           ct.sub_type,
+           ct.type,
+           ct.id,
+           case is_good_incorporated
+              when true then 'Incorporation' else ct.reference
+           end as p_class,
+           case is_good_incorporated
+              when true then 'Incorporation' else sa.export_type
+           end as p_class_subtype,
+           case cle.category
+              when 'Human Rights' then '1' else '0'
+           end as torture_flag,
+           cs.status  "s_class",
+           ag.created_at,
+           ag.updated_at,
+           ag.id,
+           quantity,
+           unit,
+           value,
+           is_good_incorporated,
+           is_military_end_use_controls,
+           ag.application_id,
+           ag.good_id,
+           item_type,
+           other_item_type,
+           g.is_good_controlled
+           is_pv_graded,
+           g.status,
+           g.report_summary,
+           gcle.id,
+           gcle.good_id,
+           controllistentry_id,
+           cle.id,
+           cle.category  "cle_category",
+           rating,
+           text,
+           parent_id,
+           category,
+           ap.id,
+           ap.created_at,
+           ap.updated_at,
+           ap.application_id,
+           party_id,
+           pp.created_at,
+           pp.updated_at,
+           pp.id,
+           pp.name,
+           address,
+           website,
+           pp.type,
+           pp.sub_type,
+           role,
+           pp.copy_of_id,
+           country_id,
+           c.id  "dest_country_id",
+           c.name "country_name",
+           c.report_name "spire_country_name",
+           c.type,
+           is_eu,
+           good_ata.id "good_audit_id",
+           good_ata.verb,
+           good_ata.payload,
+           good_ata.created_at "audit_created_at"
+    from licences_licence ll
+             join cases_case cc on ll.case_id = cc.id
+             join audit_trail_audit good_ata
+                       on cc.id::varchar = good_ata.target_object_id
+             join applications_baseapplication ab on cc.id = ab.case_ptr_id
+             join cases_casetype ct on cc.case_type_id = ct.id
+             join statuses_casestatus cs on cc.status_id = cs.id
+             join applications_goodonapplication ag
+                  on ab.case_ptr_id = ag.application_id
+             join applications_standardapplication sa
+                  on ab.case_ptr_id = sa.baseapplication_ptr_id
+             join good g on ag.good_id = g.id
+             left outer join good_control_list_entries gcle on g.id = gcle.good_id
+             left outer join control_list_entry cle on gcle.controllistentry_id = cle.id
+             left outer join applications_partyonapplication ap
+                       on ab.case_ptr_id = ap.application_id
+             left join parties_party pp on ap.party_id = pp.id
+             left join countries_country c on pp.country_id = c.id
+)
+select
+       good_audit_id  "Incident Id",
+       concat(report_year, 'Q' , report_quarter) "Report Quarter",
+       changes.case_ref  "Licence Ref",
+       start_date,
+       licence_created_at,
+       changes.case_type,
+       changes.case_sub_type,
+       changes.is_good_incorporated  "Incorporation Flag",
+       changes.torture_flag  "Torture Flag",
+       changes.p_class  "P class",
+       changes.p_class_subtype  "P class subtype",
+       changes.s_class  "S class",
+       changes.is_military_end_use_controls  "T class (is military end use controls)",
+       'NOT IN LITE'  "Temp flag",
+       changes.last_closed_at   "Report Date",
+       changes.country_name  "Country name",
+       changes.dest_country_id   "Destination Country Id",
+       changes.rating  "Report rating",
+       changes.quantity,
+       changes.unit,
+       changes.value,
+       changes.audit_created_at,
+       'NOT IN LITE'  "Country Map id"
+from changes
+where
+    licence_created_at between %(start_date)s::date and %(end_date)s::date
+    or audit_created_at between %(start_date)s::date and %(end_date)s::date
+order by audit_created_at desc;
+"""

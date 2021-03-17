@@ -16,6 +16,7 @@ from api.reports.queries.standard import (
     SLA_CASES,
     APPLICATIONS_FINALISED_SUMMARY,
     MI_COMBINED_ALL_LIVE,
+    STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
 )
 
 REPORT_QUERY_LOOKUP = {
@@ -25,6 +26,7 @@ REPORT_QUERY_LOOKUP = {
     "sla_cases": SLA_CASES,
     "standard_applications_finalised_summary": APPLICATIONS_FINALISED_SUMMARY,
     "mi_combined_all_live": MI_COMBINED_ALL_LIVE,
+    "strategic_export_controls_year_qtr": STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
 }
 
 
