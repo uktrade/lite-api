@@ -220,9 +220,10 @@ def _authenticate(request, lookup_credentials):
     """
 
     if settings.HAWK_AUTHENTICATION_ENABLED:
+        header = request.META.get("HTTP_HAWK_AUTHENTICATION") or request.META.get("HTTP_AUTHORIZATION") or ""
         return Receiver(
             lookup_credentials,
-            request.META["HTTP_HAWK_AUTHENTICATION"],
+            header,
             request.build_absolute_uri(),
             request.method,
             content=request.body,
