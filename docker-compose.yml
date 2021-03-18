@@ -1,6 +1,22 @@
 version: '3.4'
 
 services:
+  mocksso:
+    image: ukti/mock-sso
+    environment:
+      - MOCK_SSO_PORT=7070
+      - MOCK_SSO_USERNAME=ravi.kotecha@digital.trade.gov.uk
+      - MOCK_SSO_EMAIL_USER_ID=ravi.kotecha@digital.trade.gov.uk
+      - MOCK_SSO_SCOPE="read,write,profile"
+      - MOCK_SSO_TOKEN=token
+      - MOCK_SSO_VALIDATE_TOKEN=False
+    expose:
+      - 7070
+    ports:
+      - 7070:7070
+    networks:
+      - lite
+
   db:
     image: "postgres"
     environment:
