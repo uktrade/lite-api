@@ -15,6 +15,8 @@ from api.reports.queries.standard import (
     LICENCES_WITH_GOOD_AMENDMENTS,
     SLA_CASES,
     APPLICATIONS_FINALISED_SUMMARY,
+    MI_COMBINED_ALL_LIVE,
+    STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
 )
 from gov_notify.client import LiteNotificationClient
 from notifications_python_client import prepare_upload, errors
@@ -25,6 +27,8 @@ REPORT_QUERY_LOOKUP = {
     "good_amendments": LICENCES_WITH_GOOD_AMENDMENTS,
     "sla_cases": SLA_CASES,
     "standard_applications_finalised_summary": APPLICATIONS_FINALISED_SUMMARY,
+    "mi_combined_all_live": MI_COMBINED_ALL_LIVE,
+    "strategic_export_controls_year_qtr": STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
 }
 
 EMAIL_REPORTS_QUEUE = "email_reports_queue"

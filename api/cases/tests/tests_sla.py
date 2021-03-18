@@ -19,6 +19,7 @@ from api.cases.tasks import (
     SLA_UPDATE_CUTOFF_TIME,
     HMRC_QUERY_TARGET_DAYS,
 )
+from api.cases.models import CaseAssignment, CaseAssignmentSla
 from test_helpers.clients import DataTestClient
 
 HOUR_BEFORE_CUTOFF = time(SLA_UPDATE_CUTOFF_TIME.hour - 1, 0, 0)
@@ -69,6 +70,7 @@ class SlaCaseTests(DataTestClient):
 
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
+
         self.assertEqual(case.sla_remaining_days, target - 1)
 
     @mock.patch("api.cases.tasks.is_weekend")
@@ -129,10 +131,14 @@ class SlaCaseTests(DataTestClient):
         application = self.case_types[application_type]
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-
+        CaseAssignment.objects.create(
+            case=application.case_ptr, user=self.gov_user, queue=self.queue,
+        )
         results = update_cases_sla.now()
+        sla = CaseAssignmentSla.objects.get()
         case.refresh_from_db()
 
+        self.assertEqual(sla.sla_days, 1)
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
@@ -151,10 +157,16 @@ class SlaCaseTests(DataTestClient):
         application = self.case_types[application_type]
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-
+        CaseAssignment.objects.create(
+            queue=self.queue, case=application.case_ptr, user=self.gov_user,
+        )
+        sla = CaseAssignmentSla.objects.create(sla_days=4, queue=self.queue, case=application.case_ptr,)
         results = update_cases_sla.now()
-        case.refresh_from_db()
 
+        case.refresh_from_db()
+        sla.refresh_from_db()
+
+        self.assertEqual(sla.sla_days, 5)
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)

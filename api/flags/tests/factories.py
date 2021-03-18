@@ -3,7 +3,7 @@ import random
 import factory
 
 from api.flags import models
-from api.flags.enums import FlagColours, FlagStatuses, FlagLevels
+from api.flags.enums import FlagColours, FlagStatuses, FlagLevels, FlagPermissions
 
 
 def get_flag_priority():
@@ -23,6 +23,8 @@ class FlagFactory(factory.django.DjangoModelFactory):
     colour = FlagColours.DEFAULT
     label = None
     priority = factory.LazyFunction(get_flag_priority)
+    blocks_approval = False
+    removable_by = FlagPermissions.DEFAULT
 
     class Meta:
         model = models.Flag
