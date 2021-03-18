@@ -27,7 +27,7 @@ env = Env(
     LITE_HMRC_INTEGRATION_ENABLED=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
-    ENV=(str, "dev"),
+    ENV=(str, "localhost"),
     EXPORTER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
@@ -399,5 +399,17 @@ if FEATURE_STAFF_SSO_ENABLED:
 
 PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
 
-LITE_REPORTS_RECIPIENTS = env.list("LITE_REPORTS_RECIPIENTS", default=[])
-LITE_REPORTS_EMAIL_TEMPLATE_ID = env.str("LITE_REPORTS_EMAIL_TEMPLATE_ID", default="reports-email-template_id")
+# Email configuration
+FEATURE_EMAIL_REPORTS_ENABLED = env.bool("FEATURE_EMAIL_REPORTS_ENABLED", False)
+if FEATURE_EMAIL_REPORTS_ENABLED:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = env("EMAIL_HOST")
+    EMAIL_PORT = env("EMAIL_PORT", default=587)
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="email")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="password")
+    EMAIL_USE_TLS = env.bool("EMAIL_HOST_TLS", default=True)
+    EMAIL_TIMEOUT = env("EMAIL_TIMEOUT", default=30)
+
+    LITE_OPS_EMAIL = env.str("LITE_OPS_EMAIL")
+    LITE_REPORTS_RECIPIENTS = env.list("LITE_REPORTS_RECIPIENTS", default=[])
+    LITE_REPORTS_EMAIL_TEMPLATE_ID = env.str("LITE_REPORTS_EMAIL_TEMPLATE_ID", default="reports-email-template_id")

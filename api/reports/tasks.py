@@ -2,14 +2,16 @@ import csv
 import logging
 
 from background_task import background
-from datetime import date
+from datetime import date, datetime, time
 from django.conf import settings
+from django.core import mail
 from django.db import connection
+from django.utils import timezone
 from openpyxl import Workbook
+from pytz import timezone as tz
 from tempfile import NamedTemporaryFile
 from uuid import UUID
 
-from api.reports.queries.ogl import OGL_SUMMARY
 from api.reports.queries.standard import (
     GOODS_AND_RATINGS,
     LICENCES_WITH_GOOD_AMENDMENTS,
@@ -18,11 +20,8 @@ from api.reports.queries.standard import (
     MI_COMBINED_ALL_LIVE,
     STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
 )
-from gov_notify.client import LiteNotificationClient
-from notifications_python_client import prepare_upload, errors
 
 REPORT_QUERY_LOOKUP = {
-    "ogl_summary": OGL_SUMMARY,
     "standard_applications_goods_and_ratings": GOODS_AND_RATINGS,
     "good_amendments": LICENCES_WITH_GOOD_AMENDMENTS,
     "sla_cases": SLA_CASES,
@@ -31,10 +30,10 @@ REPORT_QUERY_LOOKUP = {
     "strategic_export_controls_year_qtr": STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
 }
 
+EMAIL_REPORTS_TASK_TIME = time(6, 30, 0)
 EMAIL_REPORTS_QUEUE = "email_reports_queue"
 
 logger = logging.getLogger(__name__)
-notify_client = LiteNotificationClient(settings.GOV_NOTIFY_KEY)
 
 identity = lambda x: x
 
@@ -64,7 +63,7 @@ def email_report(report_name, query):
         suffix = ".csv"
         mode = "w"
 
-    with NamedTemporaryFile(prefix=report_name, suffix=suffix, mode=mode, delete=True) as temp_file:
+    with NamedTemporaryFile(prefix=report_name + "_", suffix=suffix, mode=mode, delete=True) as temp_file:
         with connection.cursor() as cursor:
             if isinstance(query, dict):
                 wb = Workbook(write_only=True)
@@ -89,29 +88,35 @@ def email_report(report_name, query):
 
             temp_file.flush()
 
-        # send email using gov uk notify
-        try:
-            for recipient in settings.LITE_REPORTS_RECIPIENTS:
-                temp_file.seek(0)
-                with open(temp_file.name, "rb") as f:
-                    data = {
-                        "report_filename": temp_file.name.split("/")[-1],
-                        "link_to_file": prepare_upload(f, is_csv=True),
-                    }
-                    response = notify_client.send_email(recipient, settings.LITE_REPORTS_EMAIL_TEMPLATE_ID, data)
-                    logger.info(response)
-        except errors.HTTPError as err:
-            raise err
+        with mail.get_connection() as smtp_connection:
+            temp_file.seek(0)
+            report_filename = temp_file.name.split("/")[-1]
+            subject = f"[LITE-Reports][{settings.ENV}][{date.today().strftime('%d-%m-%Y')}]"
+            body = f"Please find attached the report {report_filename} with this email\n\n- LITE OPS Team"
+            email = mail.EmailMessage(
+                subject=f"{subject}: {report_filename}",
+                body=body,
+                from_email=settings.LITE_OPS_EMAIL,
+                to=settings.LITE_REPORTS_RECIPIENTS,
+                bcc=[],
+                connection=smtp_connection,
+            )
+
+            email.attach_file(temp_file.name)
+            email.send()
 
 
-@background(queue=EMAIL_REPORTS_QUEUE, schedule=0)
+@background(schedule=datetime.combine(timezone.localtime(), EMAIL_REPORTS_TASK_TIME, tzinfo=tz(settings.TIME_ZONE)))
 def email_reports_task():
     """Task that generates the reports and emails them"""
 
-    logger.info("Polling inbox for updates")
+    if not settings.FEATURE_EMAIL_REPORTS_ENABLED:
+        logger.info("Feature flag FEATURE_EMAIL_REPORTS_ENABLED to enable emailing reports not enabled")
+        return
 
     try:
         for report_name, query in REPORT_QUERY_LOOKUP.items():
+            logger.info(f"Generating and emailing report {report_name}")
             email_report(report_name, query)
 
     except Exception as exc:  # noqa
