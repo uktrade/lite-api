@@ -39,6 +39,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
             cases = (
                 OpenGeneralLicenceCase.objects.filter(site__in=sites)
                 .select_related("status", "site", "site__address")
+                .order_by("created_at")
                 .annotate(records_located_at_name=F("site__site_records_located_at__name"))
             )
 
