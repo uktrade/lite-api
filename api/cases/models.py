@@ -227,6 +227,13 @@ class Case(TimestampableModel):
                 verb=AuditType.REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS, action_object=case,
             )
 
+    def get_case_officer_name(self):
+        """
+        Returns the name of the case officer
+        """
+        if self.case_officer:
+            return self.case_officer.baseuser_ptr.get_full_name()
+
 
 class CaseQueue(TimestampableModel):
     case = models.ForeignKey(Case, related_name="casequeues", on_delete=models.DO_NOTHING)
