@@ -71,7 +71,7 @@ class Case(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     reference_code = models.CharField(max_length=30, unique=True, null=True, blank=False, editable=False, default=None)
     case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=False, blank=False)
-    queues = models.ManyToManyField(Queue, related_name="cases")
+    queues = models.ManyToManyField(Queue, related_name="cases", through="CaseQueue")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, related_name="cases")
     submitted_at = models.DateTimeField(blank=True, null=True)
@@ -233,6 +233,14 @@ class Case(TimestampableModel):
         """
         if self.case_officer:
             return self.case_officer.baseuser_ptr.get_full_name()
+
+
+class CaseQueue(TimestampableModel):
+    case = models.ForeignKey(Case, related_name="casequeues", on_delete=models.DO_NOTHING)
+    queue = models.ForeignKey(Queue, related_name="casequeues", on_delete=models.DO_NOTHING)
+
+    class Meta:
+        db_table = "cases_case_queues"
 
 
 class CaseAssignmentSla(models.Model):
