@@ -2,8 +2,8 @@
 
 <div class="document">
   <p id="references">
-    Our Ref: TBC<br>
-    Your Ref: TBC<br>
+    Our Ref: {{ case_reference }}<br>
+    Your Ref: {{ details.user_reference }}<br>
     SPIRE Doc Ref:PREVIEW
   </p>
   <img src="{% static 'images/dit.png' %}">
@@ -22,6 +22,7 @@
       <p>Date: {% now "jS F Y" %}</p>
     </div>
     <div id="sender-address">
+      <p>{{ case_officer_name }}</p>
       <p>Export Control Organisation</p>
       <p>
         3 Whitehall Place<br>
