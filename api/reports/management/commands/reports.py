@@ -9,25 +9,7 @@ from openpyxl import Workbook
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-from api.reports.queries.ogl import OGL_SUMMARY
-from api.reports.queries.standard import (
-    GOODS_AND_RATINGS,
-    LICENCES_WITH_GOOD_AMENDMENTS,
-    SLA_CASES,
-    APPLICATIONS_FINALISED_SUMMARY,
-    MI_COMBINED_ALL_LIVE,
-    STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
-)
-
-REPORT_QUERY_LOOKUP = {
-    "ogl_summary": OGL_SUMMARY,
-    "standard_applications_goods_and_ratings": GOODS_AND_RATINGS,
-    "good_amendments": LICENCES_WITH_GOOD_AMENDMENTS,
-    "sla_cases": SLA_CASES,
-    "standard_applications_finalised_summary": APPLICATIONS_FINALISED_SUMMARY,
-    "mi_combined_all_live": MI_COMBINED_ALL_LIVE,
-    "strategic_export_controls_year_qtr": STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
-}
+from api.reports.tasks import REPORT_QUERY_LOOKUP
 
 
 class Command(BaseCommand):

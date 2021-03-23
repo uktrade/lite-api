@@ -247,7 +247,6 @@ with changes as (
                              is_pv_graded,
            part_number,
            g.status,
-           missing_document_reason,
            g.comment,
            grading_comment,
            g.report_summary,
