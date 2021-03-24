@@ -67,7 +67,10 @@ def construct_coalesced_advice_values(
 
         if advice_type:
             if advice_type != advice.type:
-                advice_type = AdviceType.CONFLICTING
+                if {advice_type, advice.type} == {AdviceType.APPROVE, AdviceType.PROVISO}:
+                    advice_type = AdviceType.PROVISO
+                else:
+                    advice_type = AdviceType.CONFLICTING
         else:
             advice_type = advice.type
 
