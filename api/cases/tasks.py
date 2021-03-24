@@ -10,7 +10,7 @@ from django.utils import timezone
 from pytz import timezone as tz
 
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import Case, CaseAssignment, CaseAssignmentSla, CaseQueue
+from api.cases.models import Case, CaseAssignmentSla, CaseQueue
 from api.cases.models import EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
 
