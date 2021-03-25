@@ -64,7 +64,6 @@ def construct_coalesced_advice_values(
     for advice in deduplicated_advice:
         for denial_reason in advice.denial_reasons.values_list("id", flat=True):
             denial_reasons.append(denial_reason)
-
         if advice_type:
             if advice_type != advice.type:
                 if {advice_type, advice.type} == {AdviceType.APPROVE, AdviceType.PROVISO}:
@@ -85,7 +84,6 @@ def construct_coalesced_advice_values(
         if fields["collated_pv_grading"]
         else None
     )
-
     return Advice(
         text=break_text.join(fields["text"]),
         case=case,
