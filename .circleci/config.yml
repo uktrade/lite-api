@@ -3,7 +3,32 @@ version: 2.1
 orbs:
   jq: circleci/jq@1.8.0
 
+commands:
+  setup_code_climate:
+    steps:
+      - run:
+          name:  Download cc-test-reporter
+          command: |
+            mkdir -p tmp/
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
+            chmod +x ./tmp/cc-test-reporter
+            ./tmp/cc-test-reporter before-build
+
 jobs:
+  upload_coverage:
+    working_directory: ~/lite-api
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - attach_workspace:
+          at: ~/lite-api/tmp
+      - setup_code_climate
+      - run:
+          name: Upload coverage results to Code Climate
+          command: |
+            ./tmp/cc-test-reporter sum-coverage tmp/codeclimate.*.json -p 2 -o tmp/codeclimate.total.json
+            ./tmp/cc-test-reporter upload-coverage -i tmp/codeclimate.total.json
+
   tests:
     docker:
       - image: circleci/python:3.7
@@ -29,6 +54,7 @@ jobs:
 
     steps:
       - checkout
+      - setup_code_climate
       - run:
           name: Git Submodule Checkout
           command: |
@@ -64,16 +90,15 @@ jobs:
           path: seed-test-results
 
       - run:
-          name: Setup Code Climate test-reporter
-          command: |
-            # download test reporter as a static binary
-              curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-              chmod +x ./cc-test-reporter
-              ./cc-test-reporter before-build
-
-      - run:
           name: Run tests
-          command: pipenv run coverage run --source="." ./manage.py test --parallel 8 --exclude-tag=seeding --exclude-tag=elasticsearch --exclude-tag=performance
+          command: |
+            pipenv run coverage run --source="." ./manage.py test --parallel 8 --exclude-tag=seeding --exclude-tag=elasticsearch --exclude-tag=performance
+            ./tmp/cc-test-reporter format-coverage -t coverage.py -o tmp/codeclimate.api.json coverage/.resultset.json
+
+      - persist_to_workspace:
+          root: tmp
+          paths:
+            - codeclimate.api.json
 
       - run:
           name: Run elasticsearch tests
@@ -81,12 +106,6 @@ jobs:
 
       - store_test_results:
           path: test-results
-
-      - run:
-          name: Upload coverage
-          command: |
-            pipenv run coverage xml
-            ./cc-test-reporter after-build --coverage-input-type coverage.py
 
       - run:
           name: Run Bandit tests
@@ -135,3 +154,7 @@ workflows:
     jobs:
       - tests
       - linting
+      - upload_coverage:
+          requires:
+           - tests
+           - linting
