@@ -1,7 +1,9 @@
 import datetime
 import csv
 
-from django.test import SimpleTestCase, tag
+import pytest
+from django.test import SimpleTestCase
+
 from api.cases.enums import CaseTypeEnum
 from api.conf.settings import env
 from test_helpers.test_endpoints.client import get
@@ -11,7 +13,8 @@ from test_helpers.test_endpoints.user_setup import login_exporter, login_interna
 csv_data = [["date_time", datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")]]
 
 
-@tag("performance", "endpoints-performance")
+@pytest.mark.performance
+@pytest.mark.endpoints_performance
 class EndPointTests(SimpleTestCase):
     """
     Class to run tests against different endpoints, to determine their response times.

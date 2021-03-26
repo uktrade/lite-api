@@ -26,7 +26,7 @@ jobs:
       - run:
           name: Upload coverage results to Code Climate
           command: |
-            ./tmp/cc-test-reporter sum-coverage tmp/codeclimate.*.json -p 2 -o tmp/codeclimate.total.json
+            ./tmp/cc-test-reporter sum-coverage tmp/codeclimate.*.json -p 3 -o tmp/codeclimate.total.json
             ./tmp/cc-test-reporter upload-coverage -i tmp/codeclimate.total.json
 
   tests:
@@ -51,7 +51,6 @@ jobs:
       LITE_API_ENABLE_ES: False
       ELASTICSEARCH_HOST: http://localhost:9200
       ENABLE_SPIRE_SEARCH: True
-
     steps:
       - checkout
       - setup_code_climate
@@ -85,27 +84,28 @@ jobs:
 
       - run:
           name: Run seeding tests
-          command: pipenv run ./manage.py test --tag=seeding
-      - store_test_results:
-          path: seed-test-results
+          command: |
+            LITE_API_ENABLE_ES=true pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
+            ./tmp/cc-test-reporter format-coverage -t coverage.py -o tmp/codeclimate.seeding.json coverage/seeding.resultset.json
 
       - run:
           name: Run tests
           command: |
-            pipenv run coverage run --source="." ./manage.py test --parallel 8 --exclude-tag=seeding --exclude-tag=elasticsearch --exclude-tag=performance
-            ./tmp/cc-test-reporter format-coverage -t coverage.py -o tmp/codeclimate.api.json coverage/.resultset.json
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k "not seeding and not elasticsearch and not performance"
+            ./tmp/cc-test-reporter format-coverage -t coverage.py -o tmp/codeclimate.api.json coverage/api.resultset.json
+
+      - run:
+          name: Run elasticsearch tests
+          command: |
+            LITE_API_ENABLE_ES=true pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
+            ./tmp/cc-test-reporter format-coverage -t coverage.py -o tmp/codeclimate.es.json coverage/es.resultset.json
 
       - persist_to_workspace:
           root: tmp
           paths:
             - codeclimate.api.json
-
-      - run:
-          name: Run elasticsearch tests
-          command: LITE_API_ENABLE_ES=true pipenv run coverage run --source="." ./manage.py test --tag=elasticsearch
-
-      - store_test_results:
-          path: test-results
+            - codeclimate.es.json
+            - codeclimate.seeding.json
 
       - run:
           name: Run Bandit tests
