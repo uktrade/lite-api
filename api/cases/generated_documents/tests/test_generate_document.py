@@ -294,6 +294,17 @@ class GenerateDocumentTests(DataTestClient):
         html_to_pdf_func.assert_not_called()
         upload_bytes_file_func.assert_not_called()
 
+    def test_get_document_preview_when_get_html_contains_error_string(self):
+        url = (
+            reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
+            + "?template="
+            + str(self.letter_template.id)
+            + "&text=This text contains the string - error"
+        )
+
+        response = self.client.get(url, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
 class GetGeneratedDocumentsTests(DataTestClient):
     def setUp(self):

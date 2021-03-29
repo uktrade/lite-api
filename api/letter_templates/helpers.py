@@ -71,6 +71,10 @@ def format_user_text(user_text):
     return markdown_to_html(mark_safe(cleaned_text))
 
 
+class DocumentPreviewError(Exception):
+    pass
+
+
 def generate_preview(
     layout: str,
     text: str,
@@ -96,4 +100,4 @@ def generate_preview(
 
         return load_css(layout) + template.render(Context(context))
     except (FileNotFoundError, TemplateDoesNotExist):
-        return {"error": strings.LetterTemplates.PREVIEW_ERROR}
+        raise DocumentPreviewError(strings.LetterTemplates.PREVIEW_ERROR)
