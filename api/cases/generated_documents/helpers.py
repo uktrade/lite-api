@@ -3,13 +3,14 @@ from collections import namedtuple
 from django.utils import timezone
 from weasyprint import CSS, HTML
 from weasyprint.fonts import FontConfiguration
+from rest_framework.exceptions import ValidationError
 
 from api.cases.enums import CaseDocumentState
 from api.cases.libraries.get_case import get_case
 from api.cases.models import CaseDocument
 from api.core.exceptions import NotFoundError
 from api.documents.libraries import s3_operations
-from api.letter_templates.helpers import get_css_location, generate_preview
+from api.letter_templates.helpers import get_css_location, generate_preview, DocumentPreviewError
 from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
@@ -59,15 +60,17 @@ def get_generated_document_data(request_params, pk):
         template = LetterTemplate.objects.get(pk=template_id, case_types=case.case_type)
     except LetterTemplate.DoesNotExist:
         raise NotFoundError({"letter_template": strings.Cases.GeneratedDocuments.LETTER_TEMPLATE_NOT_FOUND})
-    document_html = generate_preview(
-        layout=template.layout.filename,
-        text=text,
-        case=case,
-        additional_contact=additional_contact,
-        include_digital_signature=template.include_digital_signature,
-    )
 
-    if "error" in document_html:
-        raise AttributeError(document_html["error"])
+    try:
+        document_html = generate_preview(
+            layout=template.layout.filename,
+            text=text,
+            case=case,
+            additional_contact=additional_contact,
+            include_digital_signature=template.include_digital_signature,
+        )
+
+    except DocumentPreviewError as exc:
+        raise ValidationError(str(exc))
 
     return GeneratedDocumentPayload(case=case, template=template, document_html=document_html, text=text)
