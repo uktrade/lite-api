@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from api.applications.serializers.advice import CountryWithFlagsSerializer
 from api.audit_trail import service as audit_trail_service
@@ -34,7 +35,6 @@ from api.cases.libraries.get_goods_type_countries_decisions import (
 from api.cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
-    check_if_team_advice_exists,
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
@@ -248,14 +248,7 @@ class UserAdvice(APIView):
         """
         Creates advice for a case
         """
-        final_advice_exists = check_if_final_advice_exists(self.case)
-        team_advice_exists = check_if_team_advice_exists(self.case, self.request.user)
-        if final_advice_exists:
-            return final_advice_exists
-        elif team_advice_exists:
-            return team_advice_exists
-        else:
-            return post_advice(request, self.case, AdviceLevel.USER)
+        return post_advice(request, self.case, AdviceLevel.USER)
 
 
 class TeamAdviceView(APIView):
@@ -276,13 +269,14 @@ class TeamAdviceView(APIView):
         """
         Concatenates all advice for a case
         """
-        if self.team_advice.filter(team=request.user.govuser.team).count() == 0:
-            user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user.govuser)
-            if user_cannot_manage_team_advice:
-                return user_cannot_manage_team_advice
 
-            team = self.request.user.govuser.team_id
-            advice = self.advice.filter(user__team_id=team)
+        user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user.govuser)
+        if user_cannot_manage_team_advice:
+            return user_cannot_manage_team_advice
+
+        if self.team_advice.filter(team=request.user.govuser.team).count() == 0:
+            team_id = self.request.user.govuser.team_id
+            advice = self.advice.filter(user__team_id=team_id)
             group_advice(self.case, advice, request.user, AdviceLevel.TEAM)
             case_advice_contains_refusal(pk)
 
@@ -290,7 +284,8 @@ class TeamAdviceView(APIView):
                 actor=request.user, verb=AuditType.CREATED_TEAM_ADVICE, target=self.case,
             )
 
-            team_advice = Advice.objects.filter(case=self.case, team_id=team).order_by("-created_at")
+            team_advice = Advice.objects.filter(case=self.case, team_id=team_id).order_by("-created_at")
+
         else:
             team_advice = self.team_advice
 
