@@ -1,7 +1,7 @@
 from datetime import date
 
 from django.template.loader import render_to_string
-from django.test import tag
+import pytest
 
 from parameterized import parameterized
 
@@ -49,7 +49,7 @@ from api.staticdata.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
-@tag("context_gen")
+@pytest.mark.context_gen
 class DocumentContextGenerationTests(DataTestClient):
     def _assert_applicant(self, context, case):
         applicant = case.submitted_by

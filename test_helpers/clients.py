@@ -6,9 +6,10 @@ from typing import Optional, List, Tuple
 
 import django.utils.timezone
 from django.db import connection
-from django.test import tag, override_settings
+from django.test import override_settings
 from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
+import pytest
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
@@ -1055,7 +1056,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return rule
 
 
-@tag("performance")
+@pytest.mark.performance
 # we need to set debug to true otherwise we can't see the amount of queries
 @override_settings(DEBUG=True, SUPPRESS_TEST_OUTPUT=True)
 class PerformanceTestClient(DataTestClient):

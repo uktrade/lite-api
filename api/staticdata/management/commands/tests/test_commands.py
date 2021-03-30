@@ -1,7 +1,7 @@
 import os
 
 from django.conf import settings
-from django.test import tag
+import pytest
 
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
@@ -35,8 +35,8 @@ from api.teams.models import Team
 from api.users.models import Permission
 
 
-@tag("seeding")
 class SeedingTests(SeedCommandTest):
+    @pytest.mark.seeding
     def test_seed_case_types(self):
         self.seed_command(seedcasetypes.Command)
         enum = CaseTypeEnum.CASE_TYPE_LIST
@@ -44,6 +44,7 @@ class SeedingTests(SeedCommandTest):
         for item in enum:
             self.assertTrue(CaseType.objects.get(id=item.id))
 
+    @pytest.mark.seeding
     def test_seed_case_statuses(self):
         self.seed_command(seedcasetypes.Command)
         self.seed_command(seedcasestatuses.Command)
@@ -60,20 +61,24 @@ class SeedingTests(SeedCommandTest):
 
         self.assertEqual(CaseStatusCaseType.objects.all().count(), counter)
 
+    @pytest.mark.seeding
     def test_seed_control_list_entries(self):
         self.seed_command(seedcontrollistentries.Command)
         self.assertEqual(ControlListEntry.objects.count(), 2903)
 
+    @pytest.mark.seeding
     def test_seed_countries(self):
         self.seed_command(seedcountries.Command)
         self.assertEqual(Country.objects.count(), len(seedcountries.Command.read_csv(seedcountries.COUNTRIES_FILE)))
 
+    @pytest.mark.seeding
     def test_seed_denial_reasons(self):
         self.seed_command(seeddenialreasons.Command)
         self.assertEqual(
             DenialReason.objects.count(), len(seeddenialreasons.Command.read_csv(seeddenialreasons.DENIAL_REASONS_FILE))
         )
 
+    @pytest.mark.seeding
     def test_seed_layouts(self):
         self.seed_command(seedlayouts.Command)
         csv = seedlayouts.Command.read_csv(seedlayouts.LAYOUTS_FILE)
@@ -82,10 +87,12 @@ class SeedingTests(SeedCommandTest):
             self.assertTrue(f"{row['filename']}.html" in html_layouts)
         self.assertEqual(LetterLayout.objects.count(), len(csv))
 
+    @pytest.mark.seeding
     def test_seed_role_permissions(self):
         self.seed_command(seedrolepermissions.Command)
         self.assertTrue(Permission.objects.count() >= len(GovPermissions) + len(ExporterPermissions))
 
+    @pytest.mark.seeding
     def test_seed_flags(self):
         self.seed_command(seedrolepermissions.Command)
         self.seed_command(seedadminteam.Command)
@@ -93,6 +100,7 @@ class SeedingTests(SeedCommandTest):
         for flag in seedflags.Command.read_csv(seedflags.FLAGS_FILE):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
 
+    @pytest.mark.seeding
     def test_seed_demo_data(self):
         self.seed_command(seedadminteam.Command)
         self.seed_command(seedinternaldemodata.Command)
@@ -103,6 +111,7 @@ class SeedingTests(SeedCommandTest):
         for flag in deserialize_csv_from_string(settings.LITE_API_DEMO_FLAGS_CSV):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
 
+    @pytest.mark.seeding
     def test_seed_decisions(self):
         self.seed_command(seedfinaldecisions.Command)
         enum = AdviceType.choices
