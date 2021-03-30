@@ -10,7 +10,7 @@ from django.utils import timezone
 from pytz import timezone as tz
 
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import Case, CaseAssignment, CaseAssignmentSla
+from api.cases.models import Case, CaseAssignmentSla, CaseQueue
 from api.cases.models import EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
 
@@ -98,7 +98,7 @@ def update_cases_sla():
                 sla_remaining_days__isnull=False,
             ).exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
             with transaction.atomic():
-                for assignment in CaseAssignment.objects.filter(case__in=cases):
+                for assignment in CaseQueue.objects.filter(case__in=cases):
                     try:
                         assignment_sla = CaseAssignmentSla.objects.get(queue=assignment.queue, case=assignment.case)
                         assignment_sla.sla_days += 1
