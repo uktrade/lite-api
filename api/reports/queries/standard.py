@@ -814,3 +814,174 @@ where
     or audit_created_at between %(start_date)s::date and %(end_date)s::date
 order by audit_created_at desc;
 """
+
+
+MI_ELA_STATISTICS = """
+With applications as (
+    select
+        cc.reference_code
+        , cs.status "case_status"
+        , cc.id as "case_id"
+        , sa.export_type  "export_type"
+        , ct.reference "case_type"
+        , intended_end_use
+        , agreed_to_foi
+        , foi_reason
+        , submitted_at
+        , o.name  "licensee"
+        , last_closed_at  "last_closed_at"
+        , cc.sla_days     "sla_days"
+    from applications_standardapplication sa
+    join applications_baseapplication ab on sa.baseapplication_ptr_id = ab.case_ptr_id
+    join cases_case cc on ab.case_ptr_id = cc.id
+    join cases_casetype ct on cc.case_type_id = ct.id
+    join statuses_casestatus cs on cc.status_id = cs.id
+    join organisation o on cc.organisation_id = o.id
+    where cc.created_at between %(start_date)s::date and %(end_date)s::date
+    and cs.status in ('closed', 'deregistered', 'suspended', 'revoked', 'surrendered', 'withdrawn', 'finalised')
+),
+licences as (
+    select
+        ll.reference_code "reference_code"
+        , case_id
+        , status
+    from licences_licence ll
+),
+teams as (
+    select
+        case_id,
+        q.name  "queue_name",
+        tm.name  "team_name",
+        concat(tm.name, ' ', created_at)   "moved_to_team_at",
+        created_at
+    from cases_case_queues
+    join queue q on queue_id = q.id
+    join teams_team tm on team_id = tm.id
+),
+team_sla_days as
+(
+    select
+        case_id,
+        q.team_id,
+        tt.name "team_name",
+        sum(sla_days) sum_sla_days
+    from cases_caseassignmentsla
+        full outer join queue q on queue_id = q.id
+        join teams_team tt on q.team_id = tt.id
+    group by case_id, q.team_id, tt.name
+),
+team_sla_days_agg as (
+    select
+        case_id,
+        {team_filter_string}
+    from team_sla_days
+    where sum_sla_days is not null
+    group by case_id
+    order by case_id
+),
+assignments as (
+    select
+        ca.case_id   "case_id",
+        ca.user_id   "user_id",
+        tm.id        "team_id",
+        tm.name      "team_name"
+    from cases_caseassignment ca
+    join cases_case cc on cc.id = ca.id
+    join queue q on ca.queue_id = q.id
+    join teams_team tm on q.team_id = tm.id
+    order by ca.created_at desc
+),
+goods as (
+select cc.reference_code         "licence_ref"
+        , sa.baseapplication_ptr_id "application_id"
+        , g.id                      "good_id"
+        , g.name                    "good_name"
+        , g.description             "good_desc"
+        , ct.reference              "case_type"
+        , concat(ct.reference, ' ', '(', sa.export_type, ')') "application_type"
+        , cs.status
+        , ag.is_good_incorporated   "good_incorporated"
+        , ag.report_summary
+        , COALESCE(ag.is_good_controlled, g.is_good_controlled) "is_good_controlled"
+        , ag.value                  "good_value"
+        , ag.quantity               "good_quantity"
+        , (
+            select usage from licences_goodonlicence
+            where good_id = ag.good_id
+        ) "licence_usage"
+        , (
+            with
+            _good as (
+                select good_id
+            ),
+            application_rating as (
+                select
+                ag.good_id
+                , c.rating "rating"
+                from control_list_entry c
+                join applications_goodonapplication_control_list_entries agcle  on agcle.controllistentry_id = c.id
+                where agcle.goodonapplication_id = ag.id
+            ), good_rating as (
+                select
+                gcle.good_id
+                , c.rating "rating"
+                from good_control_list_entries gcle
+                join control_list_entry c on gcle.controllistentry_id = c.id
+                where gcle.good_id = g.id
+            ) select string_agg(coalesce(ar.rating, gr.rating), ',' order by coalesce(ar.rating, gr.rating))
+                from _good
+                left outer join good_rating gr
+                    on _good.good_id = gr.good_id
+                left outer join application_rating ar
+                    on _good.good_id = gr.good_id
+        ) "ratings"
+from applications_standardapplication sa
+            join applications_baseapplication ab
+                on sa.baseapplication_ptr_id = ab.case_ptr_id
+            join cases_case cc on ab.case_ptr_id = cc.id
+            join statuses_casestatus cs on cc.status_id = cs.id
+            join applications_goodonapplication ag
+                on ab.case_ptr_id = ag.application_id
+            join good g on ag.good_id = g.id
+            join cases_casetype ct on cc.case_type_id = ct.id
+where cc.created_at between %(start_date)s::date and %(end_date)s::date
+and cs.status in ('closed', 'deregistered', 'suspended', 'revoked', 'surrendered', 'withdrawn', 'finalised')
+), party as (
+select reference_code         "licence_ref"
+        , application_id
+        , pp.name
+        , pp.type
+        , sub_type
+        , country.name "country_name"
+        , country.report_name "spire_country_name"
+        , country.type "country_type"
+from applications_standardapplication sa
+        join applications_baseapplication ab
+                on sa.baseapplication_ptr_id = ab.case_ptr_id
+        join applications_partyonapplication ap
+                            on ab.case_ptr_id = ap.application_id
+        join cases_case cc on ab.case_ptr_id = cc.id
+        join statuses_casestatus cs on cc.status_id = cs.id
+        join parties_party pp on ap.party_id = pp.id
+        join countries_country country on pp.country_id = country.id
+where cc.created_at between %(start_date)s::date and %(end_date)s::date
+and cs.status in ('closed', 'deregistered', 'suspended', 'revoked', 'surrendered', 'withdrawn', 'finalised')
+) select
+applications.reference_code "Case Reference",
+applications.submitted_at "Submitted Datetime",
+applications.last_closed_at "Closed Datetime",
+applications.case_status "Case closed reason",
+licences.status "Licence status",
+(select assignments.team_name from assignments where assignments.case_id = applications.case_id)  "Current status (Team)",
+(select string_agg(distinct goods.report_summary, ', ') from goods where goods.application_id = applications.case_id) "Goods Ars",
+(select string_agg(distinct goods.ratings, ', ') from goods where goods.application_id = applications.case_id) "Goods Ratings",
+(select string_agg(distinct party.country_name, ', ') from party where party.licence_ref = applications.reference_code and type = 'end_user') "End User countries",
+(select string_agg(distinct party.name, ', ') from party where party.licence_ref = applications.reference_code and type = 'ultimate_end_user') "Ultimate End Users",
+(select string_agg(distinct party.country_name, ', ') from party where party.licence_ref = applications.reference_code and type = 'ultimate_end_user') "Ultimate End User countries",
+applications.sla_days  "Total days",
+{team_select_string}
+from
+applications
+left outer join licences on applications.case_id = licences.case_id
+left outer join team_sla_days_agg on applications.case_id = team_sla_days_agg.case_id
+"""

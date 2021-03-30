@@ -12,6 +12,7 @@ from pytz import timezone as tz
 from tempfile import NamedTemporaryFile
 from uuid import UUID
 
+from api.reports.helpers import get_team_query_options
 from api.reports.queries.standard import (
     GOODS_AND_RATINGS,
     LICENCES_WITH_GOOD_AMENDMENTS,
@@ -19,6 +20,7 @@ from api.reports.queries.standard import (
     APPLICATIONS_FINALISED_SUMMARY,
     MI_COMBINED_ALL_LIVE,
     STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
+    MI_ELA_STATISTICS,
 )
 
 REPORT_QUERY_LOOKUP = {
@@ -28,6 +30,7 @@ REPORT_QUERY_LOOKUP = {
     "standard_applications_finalised_summary": APPLICATIONS_FINALISED_SUMMARY,
     "mi_combined_all_live": MI_COMBINED_ALL_LIVE,
     "strategic_export_controls_year_qtr": STRATEGIC_EXPORT_CONTROLS_YEAR_QTR,
+    "mi_ela_statistics": MI_ELA_STATISTICS,
 }
 
 EMAIL_REPORTS_TASK_TIME = time(6, 30, 0)
@@ -62,6 +65,10 @@ def email_report(report_name, query):
     else:
         suffix = ".csv"
         mode = "w"
+
+    if report_name == "mi_ela_statistics":
+        team_options = get_team_query_options()
+        query = query.format(**team_options)
 
     with NamedTemporaryFile(prefix=report_name + "_", suffix=suffix, mode=mode, delete=True) as temp_file:
         with connection.cursor() as cursor:
