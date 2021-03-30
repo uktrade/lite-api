@@ -27,6 +27,10 @@
               {{ organisation.primary_site.city }}<br>
               {{ organisation.primary_site.region }}<br>
               {{ organisation.primary_site.country.name }}
+              <br><br>
+          </span>
+          <span>
+                <strong>Registered No. {{ organisation.registration_number}}</strong>
           </span>
         </td>
         <td class="border-black" colspan="3">
@@ -57,6 +61,15 @@
       <tr>
         <td class="border-black" colspan="6">
           <span class="cell__heading">4. Exporter contact details</span>
+          <br>
+          <span class="cell__uppercase">
+            {{ addressee.name }} <br><br>
+          </span>
+          {% if addressee.phone_number %}
+            <span class="cell__uppercase">
+                TEL: {{ addressee.phone_number }}
+            </span>
+          {% endif %}
           <span class="cell__uppercase">
               {{ addressee.email }}
           </span>
@@ -107,8 +120,8 @@
       </tr>
       <tr>
         <td class="border-black" colspan="4">
-          <span class="cell__heading" colspan="2">8. Country of consignment</span>
-          <span class="cell__uppercase">{{ consignee.country.name }}</span>
+          <span class="cell__heading" colspan="2">9. Country of export</span>
+          <span class="cell__uppercase">{{ organisation.primary_site.country.name }}</span>
         </td>
         <td class="border-black" colspan="2">
           <span class="cell__heading">Code</span>
@@ -125,7 +138,7 @@
           </span>
         </td>
         <td class="border-black" colspan="4">
-          <span class="cell__heading">11. Member state of current or future location of the items</span>
+          <span class="cell__heading">11. Current or future location of the items</span>
           <span class="cell__uppercase">TBC</span>
         </td>
         <td class="border-black" colspan="2">
@@ -135,7 +148,7 @@
       </tr>
       <tr>
         <td class="border-black" colspan="4">
-          <span class="cell__heading">12. Member State of intended entry into the Customs export procedure</span>
+          <span class="cell__heading">12. Intended entry into the Customs export procedure</span>
           <span class="cell__uppercase">TBC</span>
         </td>
         <td class="border-black" colspan="2">
@@ -219,6 +232,10 @@
               {{ organisation.primary_site.city }}<br>
               {{ organisation.primary_site.region }}<br>
               {{ organisation.primary_site.country.name }}
+              <br><br>
+          </span>
+          <span>
+                <strong>Registered No. {{ organisation.registration_number}}</strong>
           </span>
         </td>
         <td class="border-black" colspan="3">
@@ -253,18 +270,49 @@
         <td class="border-black italic" colspan="2">17. Currency and Value</td>
         <td class="border-black italic" colspan="2">18. Quantity of the items</td>
       </tr>
-        {% for good in goods.approve %}
+        {% for good_item in goods.approve %}
+          {% with good=good_item.good firearm_details=good_item.firearm_details %}
             <tr>
                 <td class="border-black" colspan="1">{{ forloop.counter }}</td>
-                <td class="border-black" colspan="5">{% if good.name %}{{ good.name }}<br>{% endif %}{{ good.description }}</td>
+                <td class="border-black" colspan="5">
+                  <table border="0">
+                    <tr>
+                        <td><strong>Name:</strong></td>
+                        <td>{% if good.name %}{{ good.name }}{% else %}{{ good.description }}{% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Description:</strong></td>
+                        <td>{{ good.description|default_na }}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Part number:</strong></td>
+                      <td>{{ good.part_number|default_na }}</td>
+                    </tr>
+                    {% if firearm_details and firearm_details.has_identification_markings == "Yes" %}
+                      <tr>
+                        <td><strong>Serial number:</strong></td>
+                        <td>
+                          {{ firearm_details.serial_numbers|format_serial_numbers|join:"<br>" }}
+                        </td>
+                      </tr>
+                    {% else %}
+                      <tr>
+                        <td><strong>Serial number:</strong></td>
+                        <td>N/A</td>
+                      </tr>
+                    {% endif %}
+                  </table>
+                </td>
                 <td class="border-black" colspan="2">
                     {% for clc in good.control_list_entries %}
                         {{ clc }}{% if not forloop.last %},{% endif %}
                     {% endfor %}
                 </td>
-                <td class="border-black" colspan="2">{{ good.value }}</td>
-                <td class="border-black" colspan="2">{{ good.quantity }}</td>
+                <td class="border-black" colspan="2">{{ good_item.applied_for_value }}</td>
+                <td class="border-black" colspan="2">{{ good_item.applied_for_quantity }}</td>
             </tr>
+          {% endwith %}
         {% endfor %}
     <tr>
         <td class="border-black" colspan="12" style="height: 200px" id="paragraph_content">$USER_CONTENT$</td>
@@ -291,6 +339,10 @@
               {{ organisation.primary_site.city }}<br>
               {{ organisation.primary_site.region }}<br>
               {{ organisation.primary_site.country.name }}
+              <br><br>
+          </span>
+          <span>
+                <strong>Registered No. {{ organisation.registration_number}}</strong>
           </span>
         </td>
         <td class="border-black" colspan="3">
@@ -320,16 +372,37 @@
       </tr>
       <tr>
           <td class="border-black" colspan="12">
+              <div class="terms-and-conditions-heading">Additional conditions</div>
+              {% for proviso in goods.approve|remove_duplicate_provisos %}
+                <div class="terms-and-conditions-paragraph">
+                  {{ proviso }}
+                </div>
+              {% endfor %}
+
               <div class="terms-and-conditions-heading">Authorisation</div>
               <div class="terms-and-conditions-paragraph">
                   The Secretary of State authorises the person named in box 1 of this licence ("the licensee") to export or transfer the goods, software
                   and/or technology described in box 14 ("the listed items") to the person named in box 5, before the end of the date shown in box 3,
                   subject to the conditions attached or specified in this licence as set out below.
               </div>
+              {% if not goods.approve|licence_products_covered_by_firearms_act %}
+                <div class="terms-and-conditions-paragraph">
+                  Authorisation of the goods, software and/or technology has been granted under Article 26 of the Export Control Order 2008, as amended.
+                </div>
+              {% endif %}
               <div class="terms-and-conditions-paragraph">
-				  Authorisation for the goods, software and/or technology has been granted under Article 26 of the Export Control Order 2008, as
-				  amended and Article 9 of Council Regulation (EC) No. 428/2009, as amended.
-			  </div>
+                This licence does not permit any activity prohibited by financial sanctions. Where activity is prohibited by multiple types of sanctions, 
+                more than one licence may be required. Details of those designated under the regulations made under The Sanctions and Anti-Money Laundering Act 2018, 
+                can be found at: https://www.gov.uk/government/publications/the-uk-sanctions-list. UK sanctions evolve regularly, and it is the responsibility 
+                of the exporter to ensure that each export of goods under this licence is compliant with all relevant sanctions restrictions.
+              </div>
+              {% if goods.approve|licence_products_covered_by_firearms_act %}
+                <div class="terms-and-conditions-paragraph">
+                  If exporting from Great Britain, the authorisation for the goods against control entry 'FR AI' has been granted under Article 4 of Regulation (EU) No 258/2012. 
+                  If exporting from Northern Ireland, the authorisation for the goods against control entry 'FR AI' has been granted under Article 4 of Regulation (EU) No 258/2012 
+                  as it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal agreement.
+                </div>
+              {% endif %}
 			  <div class="terms-and-conditions-heading">Conditions</div>
 			  <div class="terms-and-conditions-paragraph">
 				  1.This condition applies if listed items are being exported from the United Kingdom to a destination outside the territory of the Member
@@ -388,7 +461,41 @@
 				  For listed items covered by Regulation (EU) 258/2012, marking details and serial numbers must form part of the supporting commercial
 				  documentation accompanying the export.
 			  </div>
-          </td>
+
+        {% if details.export_type == "temporary" %}
+          <div class="terms-and-conditions-heading">For temporary SIELs</div>
+          <div class="terms-and-conditions-paragraph">
+            5. The licensee may only export the listed items if he has obtained such permissions from the authorities of the country of destination as are necessary to enable the listed items to be returned to the country from which he is exporting them (the country of origin) before the end of the date given in [box 3] of this licence the expiry date).
+          </div>
+
+          <div class="terms-and-conditions-paragraph">
+            6. The licensee must make and maintain all necessary arrangements (including all necessary security arrangements) and must at all times retain sufficient control of the listed items to ensure that they are safely returned to the country of origin before the end of the expiry date; the licensee must not transfer to any person ownership of the listed items or any interest in them or take any action which may have the result of impeding or diminishing his power to ensure their safe return to the country of origin before the end of the expiry date.
+          </div>
+
+          <div class="terms-and-conditions-paragraph">
+            7. The licensee must ensure that the listed items only pass through a country not specified in this licence where this is necessary for them to reach their final destination and/or to return from that destination to the country of origin.
+          </div>
+
+          <div class="terms-and-conditions-paragraph">
+            8. The ECO shall be kept fully and accurately informed of:
+          </div>
+            <div class="terms-and-conditions-paragraph">
+              a. Each place where the listed items are kept or pass through after export; and
+            </div>
+            <div class="terms-and-conditions-paragraph">
+              b. Any occurrence which may result in the listed items or any part of them not being returned to the country of origin before the end of the expiry date.
+            </div>
+          <div class="terms-and-conditions-paragraph">
+            9. As soon as the listed items have been returned to the country of origin, the licensee shall send to ECO (at exportcontrol.help@trade.gov.uk) notice of their return together with any documentary evidence thereof.
+          </div>
+          <div class="terms-and-conditions-paragraph">
+            10. The licensee shall ensure that the listed items will not be used for any purpose other than that declared in the application form for this licence.
+          </div>
+          <div class="terms-and-conditions-paragraph">
+            Note: The granting of this temporary export licence sets no precedent in respect of any subsequent applications to permanently export or transfer similar goods, software and/or technology.
+          </div>
+        {% endif %}
+        </td>
       </tr>
     </table>
 
@@ -412,6 +519,10 @@
               {{ organisation.primary_site.city }}<br>
               {{ organisation.primary_site.region }}<br>
               {{ organisation.primary_site.country.name }}
+              <br><br>
+          </span>
+          <span>
+                <strong>Registered No. {{ organisation.registration_number}}</strong>
           </span>
         </td>
         <td class="border-black" colspan="3">
