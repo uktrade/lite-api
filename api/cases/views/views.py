@@ -7,7 +7,6 @@ from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.views import APIView
-from rest_framework.response import Response
 
 from api.applications.serializers.advice import CountryWithFlagsSerializer
 from api.audit_trail import service as audit_trail_service
