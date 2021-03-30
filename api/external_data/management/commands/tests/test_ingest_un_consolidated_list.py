@@ -6,7 +6,7 @@ import requests_mock
 
 from django.conf import settings
 from django.core.management import call_command
-from django.test import tag
+import pytest
 
 from api.external_data.management.commands import ingest_sanctions
 from api.external_data import documents
@@ -14,7 +14,7 @@ from test_helpers.clients import DataTestClient
 
 
 class PopulateSanctionsTests(DataTestClient):
-    @tag("elasticsearch")
+    @pytest.mark.elasticsearch
     @mock.patch.object(ingest_sanctions, "get_un_sanctions")
     @mock.patch.object(ingest_sanctions, "get_office_financial_sanctions_implementation")
     @mock.patch.object(ingest_sanctions, "get_uk_sanctions_list")

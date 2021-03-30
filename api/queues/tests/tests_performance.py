@@ -1,4 +1,4 @@
-from django.test import tag
+import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -6,7 +6,7 @@ from test_helpers.clients import PerformanceTestClient
 from parameterized import parameterized
 
 
-@tag("performance-queues")
+@pytest.mark.performance_queues
 class QueuesPerformanceTests(PerformanceTestClient):
     def _make_queue_request(self):
         """
@@ -31,7 +31,7 @@ class QueuesPerformanceTests(PerformanceTestClient):
         self.timeit(self._make_queue_request)
 
 
-@tag("performance-queues")
+@pytest.mark.performance_queues
 class AllQueuesPerformanceTests(PerformanceTestClient):
     def _all_queues_request(self):
         """

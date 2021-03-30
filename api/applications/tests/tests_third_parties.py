@@ -1,6 +1,6 @@
 from unittest import mock
 
-from django.test import tag
+import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -29,7 +29,7 @@ class ThirdPartiesOnDraft(DataTestClient):
             "size": 123456,
         }
 
-    @tag("only")
+    @pytest.mark.only
     def test_set_multiple_third_parties_on_draft_successful(self):
         """
         Given a standard draft has been created
