@@ -372,12 +372,14 @@
       </tr>
       <tr>
           <td class="border-black" colspan="12">
-              <div class="terms-and-conditions-heading">Additional conditions</div>
-              {% for proviso in goods.approve|remove_duplicate_provisos %}
-                <div class="terms-and-conditions-paragraph">
-                  {{ proviso }}
-                </div>
-              {% endfor %}
+              {% if goods.approve|remove_duplicate_provisos|length %}
+                <div class="terms-and-conditions-heading">Additional conditions</div>
+                {% for proviso in goods.approve|remove_duplicate_provisos %}
+                  <div class="terms-and-conditions-paragraph">
+                    {{ proviso|linebreaksbr }}
+                  </div>
+                {% endfor %}
+              {% endif %}
 
               <div class="terms-and-conditions-heading">Authorisation</div>
               <div class="terms-and-conditions-paragraph">
@@ -385,7 +387,7 @@
                   and/or technology described in box 14 ("the listed items") to the person named in box 5, before the end of the date shown in box 3,
                   subject to the conditions attached or specified in this licence as set out below.
               </div>
-              {% if not goods.approve|licence_products_covered_by_firearms_act %}
+              {% if not goods.approve|licence_products_covered_by_firearms_regulations %}
                 <div class="terms-and-conditions-paragraph">
                   Authorisation of the goods, software and/or technology has been granted under Article 26 of the Export Control Order 2008, as amended.
                 </div>
@@ -396,7 +398,7 @@
                 can be found at: https://www.gov.uk/government/publications/the-uk-sanctions-list. UK sanctions evolve regularly, and it is the responsibility 
                 of the exporter to ensure that each export of goods under this licence is compliant with all relevant sanctions restrictions.
               </div>
-              {% if goods.approve|licence_products_covered_by_firearms_act %}
+              {% if goods.approve|licence_products_covered_by_firearms_regulations %}
                 <div class="terms-and-conditions-paragraph">
                   If exporting from Great Britain, the authorisation for the goods against control entry 'FR AI' has been granted under Article 4 of Regulation (EU) No 258/2012. 
                   If exporting from Northern Ireland, the authorisation for the goods against control entry 'FR AI' has been granted under Article 4 of Regulation (EU) No 258/2012 
@@ -405,62 +407,53 @@
               {% endif %}
 			  <div class="terms-and-conditions-heading">Conditions</div>
 			  <div class="terms-and-conditions-paragraph">
-				  1.This condition applies if listed items are being exported from the United Kingdom to a destination outside the territory of the Member
-				  States of the European Community. The licensee must quote the number of this licence to the proper officer of HM Revenue and
-				  Customs when the listed items are presented to that officer for export or must comply with such alternative arrangements as are agreed
-				  with that officer.
+          1. For exports to a destination outside the United Kingdom, the licensee must submit a customs declaration prior to export, quoting
+           the number of this licence to the proper officer of HM Revenue and Customs when the listed items are presented to that officer 
+           for export or must comply with such alternative arrangements as are agreed with that officer, unless the export falls within condition 2 below. 
 			  </div>
 			  <div class="terms-and-conditions-paragraph">
-				  2.This condition applies if listed items are being exported from the United Kingdom to a destination in the territory of a Member State of
-				  the European Community:
+          2. For exports from Northern Ireland to the customs territory of the European Union, for goods on the UK Military List, or dual-use items listed in
+           Annex IV to Council Regulation (EC) No 428/2009 as it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal 
+           agreement, or goods within the scope of Directive 91/477/EEC or goods that could be used for torture or capital punishment listed in Regulation (EU) 2019/125 as 
+           it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal agreement, where no pre export customs declaration 
+           is required, the licensee must quote the number of this licence to the proper officer of HM Revenue and Customs* at least three working days before the date of 
+           the proposed export identifying a location where the listed items will be capable of inspection at any time during those three days, or shall comply with such 
+           alternative arrangements as are agreed with an officer of HM Revenue and Customs. * Notifications should be sent to it.audit.south.district@hmrc.gov.uk.
 			  </div>
 			  <div class="terms-and-conditions-paragraph">
-				  a.The licensee must quote the number of this licence to the proper officer of HM Revenue and Customs at least three working days
-				  before the date of the proposed export identifying a location where the listed items will be capable of inspection at any time during those
-				  three days, or shall comply with such alternative arrangements as are agreed with an officer of HM Revenue and Customs. This
-				  paragraph does not apply where the licensee is exporting firearms covered by EC Directive 91/477/EEC or ammunition for use therewith.
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  b.The licensee must:
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  i. maintain records of all transactions carried out under this licence,
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  ii. present a copy of these records each time the licence is presented to HM Revenue & Customs,
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  iii. permit these records to be inspected and copied by any person authorised by the Secretary of State or the Commissioners, and
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  iv. inform the Export Control Organisation ("ECO") when the licence becomes exhausted.
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  3.This condition applies if listed items are being exported or transferred from a Member State of the European Community other than the
-				  United Kingdom. The licensee must present a hard copy of this licence, signed and stamped by an official of the Department for
-				  Business, Innovation and Skills, to the appropriate authorities in that Member State on request.
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  4. This condition applies if listed items (being software or technology) have been transferred. The licensee must keep records that
-				  contain sufficient detail to allow the following to be identified:
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  a. A description of the listed items that have been transferred;
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  b. The date(s) of the transfer(s); and
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  c. In so far as it is known to the licensee, the name and address of the end-user of the listed items.
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  The licensee must permit these records to be inspected and copied by any person authorised by the Secretary of State or the
-				  Commissioners.
-			  </div>
-			  <div class="terms-and-conditions-paragraph">
-				  For listed items covered by Regulation (EU) 258/2012, marking details and serial numbers must form part of the supporting commercial
-				  documentation accompanying the export.
-			  </div>
+          3.The licensee must:
+        </div>
+        <div class="terms-and-conditions-paragraph">
+          i. maintain records of all transactions carried out under this licence,
+        </div>
+        <div class="terms-and-conditions-paragraph">
+          ii. present a copy of these records each time the licence is presented to HM Revenue & Customs,
+        </div>
+        <div class="terms-and-conditions-paragraph">
+          iii. permit these records to be inspected and copied by any person authorised by the Secretary of State or the Commissioners, and
+        </div>
+        <div class="terms-and-conditions-paragraph">
+            iv. inform the Export Control Joint ("ECJU") when the licence becomes exhausted.
+        </div>
+
+        <div class="terms-and-conditions-paragraph">
+          4. This condition applies if listed items (being software or technology) have been transferred. The licensee must keep records that contain sufficient detail to allow the following to be identified:
+
+        <div class="terms-and-conditions-paragraph">
+          a. A description of the listed items that have been transferred;
+        </div>
+        <div class="terms-and-conditions-paragraph">
+          b. The date(s) of the transfer(s); and
+        </div>
+        <div class="terms-and-conditions-paragraph">
+          c. In so far as it is known to the licensee, the name and address of the end-user of the listed items.
+        </div>
+        <div class="terms-and-conditions-paragraph">
+          The licensee must permit these records to be inspected and copied by any person authorised by the Secretary of State or the Commissioners.
+        </div>
+        <div class="terms-and-conditions-paragraph">
+            For listed items covered by Regulation (EU) 258/2012 and Regulation (EU) 258/2012 as it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal agreement (retained under the European Union (Withdrawal) Act 2018), marking details and serial numbers must form part of the supporting commercial documentation accompanying the export.
+        </div>
 
         {% if details.export_type == "temporary" %}
           <div class="terms-and-conditions-heading">For temporary SIELs</div>
@@ -590,17 +583,20 @@
 				  the Customs and Excise Management Act 1979, or the legislation under which this licence was issued.
 			  </div>
 			  <div class="terms-and-conditions-paragraph">
-				  <b>Understanding the Control List Number (Rating Classification)</b>
+				  <strong>Understanding the Control List Number (Rating Classification)</strong>
 			  </div>
 			  <div class="terms-and-conditions-paragraph">
-				  <i>Control List No. 		Relevant Control List</i><br>
-				  MEND* Military end-use control
+				  Control List No.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Relevant Control List<br>
+				  ML*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;UK Military List
 			  </div>
 			  <div class="terms-and-conditions-paragraph">
-				  For further details on the Control List Number (rating), and how you can use this information, please go to the GOV.UK website and read
-				  the guidance about 'Strategic exports: when to request an export licence'.
+          For further details on the Control List number (rating), read the UK Strategic Export Control Lists guidance on GOV.UK:
 			  </div>
-          </td>
+
+        <a href="https://www.gov.uk/guidance/uk-strategic-export-control-lists-the-consolidated-list-of-strategic-military-and-dual-use-items">
+          https://www.gov.uk/guidance/uk-strategic-export-control-lists-the-consolidated-list-of-strategic-military-and-dual-use-items
+        </a>
+        </td>
       </tr>
     </table>
 </div>

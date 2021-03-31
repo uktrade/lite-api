@@ -105,16 +105,15 @@ def format_serial_numbers(serial_numbers):
 
 
 @register.filter()
-def licence_products_covered_by_firearms_act(goods_approved):
+def licence_products_covered_by_firearms_regulations(goods_approved):
     if goods_approved is None:
         return False
 
+    control_list_entries = []
     for good_item in goods_approved:
-        firearm_details = good_item["firearm_details"]
-        if firearm_details and firearm_details["is_covered_by_firearm_act_section_one_two_or_five"] == "Yes":
-            return True
+        control_list_entries.extend(good_item["good"]["control_list_entries"])
 
-    return False
+    return "FR AI" in control_list_entries
 
 
 @register.filter()
