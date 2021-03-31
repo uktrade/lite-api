@@ -25,23 +25,10 @@ def check_if_user_cannot_manage_team_advice(case, user):
     ):
         assert_user_has_permission(user, constants.GovPermissions.MANAGE_TEAM_ADVICE)
 
-        if Advice.objects.filter(case=case, user=user).exists():
-            return JsonResponse(
-                {"errors": strings.Cases.ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
 
 def check_if_final_advice_exists(case):
     if Advice.objects.get_final_advice(case=case):
         return JsonResponse({"errors": "Final advice already exists for this case"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-def check_if_team_advice_exists(case, user):
-    if Advice.objects.get_team_advice(case=case, team=user.govuser.team):
-        return JsonResponse(
-            {"errors": "Team advice from your team already exists for this case"}, status=status.HTTP_400_BAD_REQUEST
-        )
 
 
 def check_refusal_errors(advice):
