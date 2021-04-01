@@ -105,13 +105,13 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_party(context[third_party.role][0], third_party)
 
     def _assert_good(self, context, good_on_application):
-        self.assertEqual(context["description"], good_on_application.good.description)
+        good = context["good"]
+        self.assertEqual(good["description"], good_on_application.good.description)
         self.assertEqual(
-            context["control_list_entries"],
-            [clc.rating for clc in good_on_application.good.control_list_entries.all()],
+            good["control_list_entries"], [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         )
-        self.assertEqual(context["is_controlled"], GoodControlled.to_str(good_on_application.good.is_good_controlled))
-        self.assertEqual(context["part_number"], good_on_application.good.part_number)
+        self.assertEqual(good["is_controlled"], GoodControlled.to_str(good_on_application.good.is_good_controlled))
+        self.assertEqual(good["part_number"], good_on_application.good.part_number)
         self.assertTrue(str(good_on_application.quantity) in context["applied_for_quantity"])
         self.assertTrue(Units.to_str(good_on_application.unit) in context["applied_for_quantity"])
         self.assertEqual(context["applied_for_value"], f"£{good_on_application.value:.2f}")
@@ -121,63 +121,65 @@ class DocumentContextGenerationTests(DataTestClient):
             self.assertEqual(context["other_item_type"], good_on_application.other_item_type)
 
         # TAU
-        self.assertEqual(context["item_category"], ItemCategory.to_str(good_on_application.good.item_category))
+        self.assertEqual(good["item_category"], ItemCategory.to_str(good_on_application.good.item_category))
 
         if good_on_application.good.item_category in ItemCategory.group_one:
-            self.assertEqual(context["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
+            self.assertEqual(good["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
             if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
                 self.assertEqual(
-                    context["modified_military_use_details"], good_on_application.good.modified_military_use_details
+                    good["modified_military_use_details"], good_on_application.good.modified_military_use_details
                 )
-            self.assertEqual(context["is_component"], Component.to_str(good_on_application.good.is_component))
+            self.assertEqual(good["is_component"], Component.to_str(good_on_application.good.is_component))
             if good_on_application.good.is_component != Component.NO:
-                self.assertEqual(context["component_details"], good_on_application.good.component_details)
+                self.assertEqual(good["component_details"], good_on_application.good.component_details)
             self.assertEqual(
-                context["uses_information_security"],
-                friendly_boolean(good_on_application.good.uses_information_security),
+                good["uses_information_security"], friendly_boolean(good_on_application.good.uses_information_security),
             )
             if good_on_application.good.uses_information_security:
                 self.assertEqual(
-                    context["information_security_details"], good_on_application.good.information_security_details
+                    good["information_security_details"], good_on_application.good.information_security_details
                 )
-        elif good_on_application.good.item_category in ItemCategory.group_two:
-            self.assertEqual(context["firearm_type"], FirearmGoodType.to_str(good_on_application.firearm_details.type))
-            self.assertEqual(context["year_of_manufacture"], good_on_application.firearm_details.year_of_manufacture)
+        elif context["firearm_details"] and good_on_application.good.item_category in ItemCategory.group_two:
+            firearm_details = context["firearm_details"]
+            self.assertEqual(firearm_details["type"], good_on_application.firearm_details.type)
+            self.assertEqual(
+                firearm_details["year_of_manufacture"], good_on_application.firearm_details.year_of_manufacture
+            )
 
-            self.assertEqual(context["calibre"], good_on_application.firearm_details.calibre)
+            self.assertEqual(firearm_details["calibre"], good_on_application.firearm_details.calibre)
             self.assertEqual(
-                context["is_covered_by_firearm_act_section_one_two_or_five"],
-                friendly_boolean(good_on_application.firearm_details.is_covered_by_firearm_act_section_one_two_or_five),
+                firearm_details["is_covered_by_firearm_act_section_one_two_or_five"],
+                str(good_on_application.firearm_details.is_covered_by_firearm_act_section_one_two_or_five),
             )
             self.assertEqual(
-                context["section_certificate_number"], good_on_application.firearm_details.section_certificate_number,
+                firearm_details["section_certificate_number"],
+                good_on_application.firearm_details.section_certificate_number,
             )
             self.assertEqual(
-                context["section_certificate_date_of_expiry"],
+                firearm_details["section_certificate_date_of_expiry"],
                 good_on_application.firearm_details.section_certificate_date_of_expiry.strftime(DATE_FORMAT),
             )
             self.assertEqual(
-                context["has_identification_markings"],
+                firearm_details["has_identification_markings"],
                 friendly_boolean(good_on_application.firearm_details.has_identification_markings),
             )
         elif good_on_application.good.item_category in ItemCategory.group_three:
-            self.assertEqual(context["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
+            self.assertEqual(good["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
             self.assertEqual(
-                context["modified_military_use_details"], good_on_application.good.modified_military_use_details
+                good["modified_military_use_details"], good_on_application.good.modified_military_use_details
             )
             self.assertEqual(
-                context["software_or_technology_details"], good_on_application.good.software_or_technology_details
+                good["software_or_technology_details"], good_on_application.good.software_or_technology_details
             )
             self.assertEqual(
-                context["uses_information_security"],
-                friendly_boolean(good_on_application.good.uses_information_security),
+                good["uses_information_security"], friendly_boolean(good_on_application.good.uses_information_security),
             )
             self.assertEqual(
-                context["information_security_details"], good_on_application.good.information_security_details
+                good["information_security_details"], good_on_application.good.information_security_details
             )
 
         # pv grading
-        self.assertEqual(context["is_pv_graded"], GoodPvGraded.to_str(good_on_application.good.is_pv_graded))
+        self.assertEqual(good["is_pv_graded"], GoodPvGraded.to_str(good_on_application.good.is_pv_graded))
         if good_on_application.good.pv_grading_details:
             if good_on_application.good.pv_grading_details.grading:
                 self.assertEqual(
