@@ -45,6 +45,8 @@ class SiteListSerializer(serializers.Serializer):
                     "postcode": site.address.postcode,
                     "city": site.address.city,
                     "country": {"name": site.address.country.name},
+                    "phone_number": site.address.phone_number,
+                    "website": site.address.website,
                 },
             }
 
@@ -382,6 +384,7 @@ class OrganisationUserListView(serializers.ModelSerializer):
             "email",
             "role_name",
             "status",
+            "phone_number",
         )
 
 

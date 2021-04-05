@@ -1,4 +1,5 @@
 import re
+import string
 
 from rest_framework import serializers
 
@@ -21,6 +22,23 @@ class AddressSerializer(serializers.ModelSerializer):
     city = serializers.CharField(max_length=50, required=False, error_messages={"blank": Addresses.CITY})
     region = serializers.CharField(max_length=50, required=False, error_messages={"blank": Addresses.REGION})
     country = CountrySerializerField(required=False)
+    phone_number = serializers.CharField(required=True, allow_blank=True)
+    website = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = Address
+        fields = (
+            "id",
+            "address",
+            "address_line_1",
+            "address_line_2",
+            "city",
+            "region",
+            "postcode",
+            "country",
+            "phone_number",
+            "website",
+        )
 
     def validate_postcode(self, value):
         """
@@ -52,6 +70,19 @@ class AddressSerializer(serializers.ModelSerializer):
         if "address_line_1" in validated_data:
             validated_data["country"] = get_country("GB")
 
+        if "phone_number" in validated_data:
+            error = (
+                "Enter an organisation phone number"
+                if self.context.get("commercial", "commercial")
+                else "Enter a phone number"
+            )
+            if validated_data["phone_number"] == "":
+                raise serializers.ValidationError({"phone_number": error})
+
+            allowed_chars = set(string.digits + "+-/()[]x ")
+            if not (set(validated_data["phone_number"]) <= allowed_chars):
+                raise serializers.ValidationError({"phone_number": error})
+
         return validated_data
 
     def to_representation(self, instance):
@@ -65,16 +96,3 @@ class AddressSerializer(serializers.ModelSerializer):
             del repr_dict["city"]
             del repr_dict["region"]
         return repr_dict
-
-    class Meta:
-        model = Address
-        fields = (
-            "id",
-            "address",
-            "address_line_1",
-            "address_line_2",
-            "city",
-            "region",
-            "postcode",
-            "country",
-        )

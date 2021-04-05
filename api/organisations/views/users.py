@@ -56,6 +56,7 @@ class UsersList(generics.ListCreateAPIView):
                 email=F("baseuser_ptr__email"),
                 status=F("relationship__status"),
                 role_name=F("relationship__role__name"),
+                phone_number=F("baseuser_ptr__phone_number"),
             )
         )
 

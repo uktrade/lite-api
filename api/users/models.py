@@ -66,6 +66,7 @@ class BaseUser(AbstractUser, TimestampableModel):
     password = None
     last_login = None
     type = models.CharField(choices=UserType.choices(), null=False, blank=False, max_length=8)
+    phone_number = models.TextField(blank=True, default="")
 
     @property
     def has_django_admin_permission(self):
@@ -135,6 +136,10 @@ class BaseUserCompatMixin:
     @property
     def email(self):
         return self.baseuser_ptr.email
+
+    @property
+    def phone_number(self):
+        return self.baseuser_ptr.phone_number
 
     @property
     def is_anonymous(self):

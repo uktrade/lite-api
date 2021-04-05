@@ -85,6 +85,7 @@ class OrganisationSitesTests(DataTestClient):
                 "city": "london",
                 "postcode": "E14GH",
                 "region": "Hertfordshire",
+                "phone_number": "7608543210",
             },
         }
 
@@ -107,6 +108,8 @@ class OrganisationSitesTests(DataTestClient):
                     "country": {"name": site.address.country.name},
                     "postcode": site.address.postcode,
                     "region": site.address.region,
+                    "phone_number": "7608543210",
+                    "website": "",
                 },
             },
         )
@@ -168,6 +171,7 @@ class OrganisationSitesTests(DataTestClient):
                 "city": "london",
                 "postcode": "E14GH",
                 "region": "Hertfordshire",
+                "phone_number": "7608543210",
             },
         }
 
@@ -190,6 +194,7 @@ class OrganisationSitesTests(DataTestClient):
                 "city": "london",
                 "postcode": "E14GH",
                 "region": "Hertfordshire",
+                "phone_number": "7608543210",
             },
             "users": [exporter_user.pk, exporter_user_2.pk],
         }
@@ -205,7 +210,7 @@ class OrganisationSitesTests(DataTestClient):
 
         data = {
             "name": "regional site",
-            "address": {"address": "a street", "country": "PL",},
+            "address": {"address": "a street", "country": "PL", "phone_number": "7608543210",},
         }
 
         response = self.client.post(url, data, **self.gov_headers)

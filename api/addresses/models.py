@@ -17,6 +17,8 @@ class Address(models.Model):
         default=None, blank=True, null=True, max_length=256, help_text="Used for addresses not in the UK"
     )
     country = models.ForeignKey(Country, blank=False, null=False, on_delete=models.CASCADE)
+    phone_number = models.TextField(default="")
+    website = models.URLField(blank=True, default="")
 
     class Meta:
         db_table = "address"

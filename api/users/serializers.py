@@ -71,12 +71,14 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     )
     role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), write_only=True, required=False)
     sites = serializers.PrimaryKeyRelatedField(queryset=Site.objects.all(), write_only=True, many=True)
+    phone_number = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = ExporterUser
         fields = (
             "id",
             "email",
+            "phone_number",
             "role",
             "organisation",
             "sites",
@@ -116,6 +118,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
         base_user_defaults = {
             "email": validated_data.pop("email"),
+            "phone_number": validated_data.pop("phone_number", ""),
         }
 
         organisation = validated_data.pop("organisation")

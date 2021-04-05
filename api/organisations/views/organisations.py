@@ -73,7 +73,9 @@ class OrganisationsList(generics.ListCreateAPIView):
             if getattr(request.user, "type", None) == UserType.INTERNAL
             else OrganisationStatus.IN_REVIEW
         )
-        serializer = OrganisationCreateUpdateSerializer(data=data, context={"validate_only": validate_only})
+        serializer = OrganisationCreateUpdateSerializer(
+            data=data, context={"validate_only": validate_only, "commercial": data["type"] == "commercial"}
+        )
 
         if serializer.is_valid(raise_exception=True):
             if not validate_only:

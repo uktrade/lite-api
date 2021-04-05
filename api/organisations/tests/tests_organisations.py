@@ -112,17 +112,17 @@ class CreateOrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
+                    "phone_number": "71123581321",
                 },
             },
             "user": {"email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         organisation = Organisation.objects.get(name=data["name"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(organisation.name, data["name"])
         self.assertEqual(organisation.eori_number, data["eori_number"])
@@ -155,9 +155,10 @@ class CreateOrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
+                    "phone_number": "71123581321",
                 }
             ],
-            [{"address": "123", "country": "PL"}],
+            [{"address": "123", "country": "PL", "phone_number": "71123581321",}],
         ]
     )
     def test_create_commercial_organisation_as_exporter_success(self, address):
@@ -175,11 +176,10 @@ class CreateOrganisationTests(DataTestClient):
         response = self.client.post(
             self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
         )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(organisation.name, data["name"])
         self.assertEqual(organisation.eori_number, data["eori_number"])
@@ -202,6 +202,7 @@ class CreateOrganisationTests(DataTestClient):
             self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
             self.assertEqual(site.address.region, data["site"]["address"]["region"])
             self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
+            self.assertEqual(site.address.phone_number, data["site"]["address"]["phone_number"])
             self.assertEqual(site.address.city, data["site"]["address"]["city"])
             self.assertEqualIgnoreType(site.address.country.id, "GB")
         else:
@@ -210,6 +211,39 @@ class CreateOrganisationTests(DataTestClient):
 
         # assert records located at set to site itself
         self.assertEqual(site.site_records_located_at, site)
+
+    def test_create_organisation_phone_number_mandatory(self):
+        data = {
+            "name": "Lemonworld Co",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": "GB123456789000",
+            "sic_number": "01110",
+            "vat_number": "GB123456789",
+            "registration_number": "98765432",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                    "phone_number": "",
+                },
+            },
+            "user": {"email": "trinity@bsg.com"},
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        addr_errors = response.json()["errors"]["site"]["address"]
+        self.assertEqual(addr_errors["phone_number"][0], "Enter an organisation phone number")
+
+        data["type"] = OrganisationType.INDIVIDUAL
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        addr_errors = response.json()["errors"]["site"]["address"]
+        self.assertEqual(addr_errors["phone_number"][0], "Enter a phone number")
 
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
@@ -271,6 +305,47 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Audit.objects.count(), 0)
 
+    @parameterized.expand(
+        [
+            ["1234", True],
+            ["123-4567890", True],
+            ["07123467890", True],
+            ["44 (0) 7123467890", True],
+            ["+44 (0) 7123467890", True],
+            ["44 (0) 712-3467890", True],
+            ["447123467890", True],
+            ["44-7123467890", True],
+            ["447123467890x1234", True],
+            ["+44 (0) 7123467890 x2468", True],
+            ["12345678ab", False],
+            ["abcdedghij", False],
+        ]
+    )
+    def test_create_organisation_phone_number_checks(self, phone_number, valid):
+        data = {
+            "name": "Lemonworld Co",
+            "type": "commercial",
+            "eori_number": "12345",
+            "sic_number": "24680",
+            "vat_number": "GB123456789",
+            "registration_number": "16286358",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                    "phone_number": phone_number,
+                },
+            },
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED if valid else status.HTTP_400_BAD_REQUEST)
+
     @parameterized.expand([["GB123456789"], [""]])
     def test_create_organisation_as_a_private_individual(self, vat_number):
         data = {
@@ -286,17 +361,18 @@ class CreateOrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
+                    "phone_number": "71123581321",
                 },
             },
             "user": {"email": "john@smith.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         organisation = Organisation.objects.get(name=data["name"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(organisation.name, data["name"])
         self.assertEqual(organisation.eori_number, data["eori_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
@@ -308,6 +384,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
+        self.assertEqual(site.address.phone_number, data["site"]["address"]["phone_number"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
         self.assertEqual(site.site_records_located_at, site)
         self.assertEqualIgnoreType(site.address.country.id, "GB")
@@ -325,18 +402,18 @@ class CreateOrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
+                    "phone_number": "71123581321",
                 },
             },
             "user": {"email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(organisation.name, data["name"])
 
@@ -347,6 +424,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
+        self.assertEqual(site.address.phone_number, data["site"]["address"]["phone_number"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
         self.assertEqualIgnoreType(site.address.country.id, "GB")
         self.assertEqual(Audit.objects.count(), 1)
