@@ -18,6 +18,8 @@ class Command(SeedCommand):
     @transaction.atomic
     def operation(self, *args, **options):
         csv = self.read_csv(DENIAL_REASONS_FILE)
-        filtered_csv = [{"id": row["id"], "deprecated": row["deprecated"]} for row in csv]
+        filtered_csv = [
+            {"id": row["id"], "deprecated": row["deprecated"], "description": row["description"]} for row in csv
+        ]
         self.update_or_create(DenialReason, filtered_csv)
         self.delete_unused_objects(DenialReason, filtered_csv)
