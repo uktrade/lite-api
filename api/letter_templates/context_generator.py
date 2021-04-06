@@ -8,6 +8,7 @@ from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyRole, PartyType, SubType
+from api.staticdata.denial_reasons.serializers import DenialReasonSerializer
 from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
 from api.staticdata.units.enums import Units
 from api.goods.enums import (
@@ -846,6 +847,15 @@ class FlattenedComplianceSiteWithVisitReportsSerializer(ComplianceSiteWithVisitR
         return ret
 
 
+class AdviceSerializer(serializers.ModelSerializer):
+
+    denial_reasons = DenialReasonSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Advice
+        fields = ("type", "text", "note", "proviso", "denial_reasons")
+
+
 def get_document_context(case, addressee=None):
     """
     Generate universal context dictionary to provide data for all document types.
@@ -964,11 +974,11 @@ def _get_good_on_application_context_with_advice(good_on_application, advice):
     good_context = GoodOnApplicationSerializer(good_on_application).data
 
     if advice:
-        good_context["reason"] = advice.text
-        good_context["note"] = advice.note
-
-        if advice.proviso:
-            good_context["proviso_reason"] = advice.proviso
+        advice = AdviceSerializer(advice).data
+        good_context["reason"] = advice["text"]
+        good_context["note"] = advice["note"]
+        good_context["denial_reasons"] = advice["denial_reasons"]
+        good_context["proviso_reason"] = advice["proviso"]
 
     return good_context
 

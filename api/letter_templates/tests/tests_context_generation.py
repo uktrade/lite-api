@@ -213,6 +213,8 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_good(goods[0], good_on_application)
         self.assertEqual(goods[0]["reason"], advice.text)
         self.assertEqual(goods[0]["note"], advice.note)
+        self.assertEqual(goods[0]["proviso_reason"], advice.proviso)
+        self.assertEqual(len(goods[0]["denial_reasons"]), advice.denial_reasons.count())
 
     def _assert_goods_type(self, context, goods_type):
         self.assertEqual(goods_type.description, context["description"])
@@ -434,7 +436,7 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
-            self.gov_user, case, "good", AdviceType.APPROVE, AdviceLevel.FINAL, advice_text="abc",
+            self.gov_user, case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, advice_text="abc",
         )
         good = case.goods.first()
         good.licenced_quantity = 10
