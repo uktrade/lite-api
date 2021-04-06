@@ -370,7 +370,7 @@ class SiclExternalLocationSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "address", "country", "organisation", "location_type")
 
 
-class OrganisationUserListView(serializers.ModelSerializer):
+class OrganisationUserListSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     role_name = serializers.CharField(read_only=True)
     status = serializers.CharField(read_only=True)
@@ -384,8 +384,13 @@ class OrganisationUserListView(serializers.ModelSerializer):
             "email",
             "role_name",
             "status",
-            "phone_number",
         )
+
+
+class CommercialOrganisationUserListSerializer(OrganisationUserListSerializer):
+    class Meta:
+        model = ExporterUser
+        fields = OrganisationUserListSerializer.Meta.fields + ("phone_number",)
 
 
 class DocumentSerializer(serializers.ModelSerializer):
