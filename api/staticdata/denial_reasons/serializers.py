@@ -9,4 +9,5 @@ class DenialReasonSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "deprecated",
+            "description",
         )
