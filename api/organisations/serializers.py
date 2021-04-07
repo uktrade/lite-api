@@ -126,6 +126,15 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
+        address_data = validated_data.get("address", instance.address)
+        address_data["country"] = address_data["country"].id
+        address_serializer = AddressSerializer(data=address_data)
+        if address_serializer.is_valid(raise_exception=True):
+            address = Address(**address_serializer.validated_data)
+            address.save()
+
+        instance.address = address
+
         instance.site_records_located_at = validated_data.get(
             "site_records_located_at", instance.site_records_located_at
         )
@@ -181,7 +190,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         },
     )
     user = ExporterUserCreateUpdateSerializer(write_only=True)
-    site = SiteCreateUpdateSerializer(write_only=True)
+    primary_site = SiteCreateUpdateSerializer(write_only=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -219,7 +228,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "vat_number",
             "registration_number",
             "user",
-            "site",
+            "primary_site",
         )
 
     def validate_sic_number(self, value):
@@ -246,7 +255,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             return
 
         user_data = validated_data.pop("user")
-        site_data = validated_data.pop("site")
+        site_data = validated_data.pop("primary_site")
         organisation = Organisation.objects.create(**validated_data)
         user_data["organisation"] = organisation.id
 
@@ -269,6 +278,25 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         organisation.primary_site.save()
 
         return organisation
+
+    def update(self, instance, validated_data):
+        site_data = validated_data.pop("primary_site", None)
+        if site_data:
+            site_data["address"]["country"] = site_data["address"]["country"].id
+            site_serializer = SiteCreateUpdateSerializer(instance=instance.primary_site, data=site_data, partial=True)
+            if site_serializer.is_valid(raise_exception=True):
+                site = site_serializer.save()
+                site.site_records_located_at = site
+                site.save()
+
+            instance.primary_site = site
+
+        instance.primary_site.organisation = instance
+        instance.primary_site.save()
+
+        instance = super(OrganisationCreateUpdateSerializer, self).update(instance, validated_data)
+        instance.save()
+        return instance
 
 
 class OrganisationStatusUpdateSerializer(serializers.ModelSerializer):
@@ -311,6 +339,10 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
     status = KeyValueChoiceField(OrganisationStatus.choices)
     documents = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Organisation
+        fields = "__all__"
+
     def get_flags(self, instance):
         # TODO remove try block when other end points adopt generics
         try:
@@ -325,10 +357,6 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
         )
         serializer = DocumentOnOrganisationSerializer(queryset, many=True)
         return serializer.data
-
-    class Meta:
-        model = Organisation
-        fields = "__all__"
 
 
 class OrganisationCaseSerializer(serializers.Serializer):

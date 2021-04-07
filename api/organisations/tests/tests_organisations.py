@@ -104,7 +104,7 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": "01110",
             "vat_number": "GB123456789",
             "registration_number": "98765432",
-            "site": {
+            "primary_site": {
                 "name": "Headquarters",
                 "address": {
                     "address_line_1": "42 Industrial Estate",
@@ -137,12 +137,12 @@ class CreateOrganisationTests(DataTestClient):
             Roles.EXPORTER_SUPER_USER_ROLE_ID,
         )
 
-        self.assertEqual(site.name, data["site"]["name"])
-        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
-        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
-        self.assertEqual(site.address.region, data["site"]["address"]["region"])
-        self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
-        self.assertEqual(site.address.city, data["site"]["address"]["city"])
+        self.assertEqual(site.name, data["primary_site"]["name"])
+        self.assertEqual(site.address.address_line_1, data["primary_site"]["address"]["address_line_1"])
+        self.assertEqual(site.address.address_line_2, data["primary_site"]["address"]["address_line_2"])
+        self.assertEqual(site.address.region, data["primary_site"]["address"]["region"])
+        self.assertEqual(site.address.postcode, data["primary_site"]["address"]["postcode"])
+        self.assertEqual(site.address.city, data["primary_site"]["address"]["city"])
         self.assertEqualIgnoreType(site.address.country.id, "GB")
         self.assertEqual(Audit.objects.count(), 1)
 
@@ -169,7 +169,7 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": "01110",
             "vat_number": "GB123456789",
             "registration_number": "98765432",
-            "site": {"name": "Headquarters", "address": address},
+            "primary_site": {"name": "Headquarters", "address": address},
             "user": {"email": "trinity@bsg.com"},
         }
 
@@ -194,20 +194,20 @@ class CreateOrganisationTests(DataTestClient):
             Roles.EXPORTER_SUPER_USER_ROLE_ID,
         )
 
-        self.assertEqual(site.name, data["site"]["name"])
+        self.assertEqual(site.name, data["primary_site"]["name"])
         self.assertEqual(Audit.objects.count(), 1)
 
         if "address_line_1" in address:
-            self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
-            self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
-            self.assertEqual(site.address.region, data["site"]["address"]["region"])
-            self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
-            self.assertEqual(site.address.phone_number, data["site"]["address"]["phone_number"])
-            self.assertEqual(site.address.city, data["site"]["address"]["city"])
+            self.assertEqual(site.address.address_line_1, data["primary_site"]["address"]["address_line_1"])
+            self.assertEqual(site.address.address_line_2, data["primary_site"]["address"]["address_line_2"])
+            self.assertEqual(site.address.region, data["primary_site"]["address"]["region"])
+            self.assertEqual(site.address.postcode, data["primary_site"]["address"]["postcode"])
+            self.assertEqual(site.address.phone_number, data["primary_site"]["address"]["phone_number"])
+            self.assertEqual(site.address.city, data["primary_site"]["address"]["city"])
             self.assertEqualIgnoreType(site.address.country.id, "GB")
         else:
-            self.assertEqual(site.address.address, data["site"]["address"]["address"])
-            self.assertEqualIgnoreType(site.address.country.id, data["site"]["address"]["country"])
+            self.assertEqual(site.address.address, data["primary_site"]["address"]["address"])
+            self.assertEqualIgnoreType(site.address.country.id, data["primary_site"]["address"]["country"])
 
         # assert records located at set to site itself
         self.assertEqual(site.site_records_located_at, site)
@@ -220,7 +220,7 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": "01110",
             "vat_number": "GB123456789",
             "registration_number": "98765432",
-            "site": {
+            "primary_site": {
                 "name": "Headquarters",
                 "address": {
                     "address_line_1": "42 Industrial Estate",
@@ -236,13 +236,13 @@ class CreateOrganisationTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        addr_errors = response.json()["errors"]["site"]["address"]
+        addr_errors = response.json()["errors"]["primary_site"]["address"]
         self.assertEqual(addr_errors["phone_number"][0], "Enter an organisation phone number")
 
         data["type"] = OrganisationType.INDIVIDUAL
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        addr_errors = response.json()["errors"]["site"]["address"]
+        addr_errors = response.json()["errors"]["primary_site"]["address"]
         self.assertEqual(addr_errors["phone_number"][0], "Enter a phone number")
 
     def test_cannot_create_organisation_with_invalid_data(self):
@@ -253,7 +253,7 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": None,
             "vat_number": None,
             "registration_number": None,
-            "site": {
+            "primary_site": {
                 "name": None,
                 "address": {
                     "address_line_1": None,
@@ -287,7 +287,7 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": sic_number,
             "vat_number": vat_number,
             "registration_number": registration_number,
-            "site": {
+            "primary_site": {
                 "name": "Headquarters",
                 "address": {
                     "address_line_1": "42 Industrial Estate",
@@ -329,7 +329,7 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": "24680",
             "vat_number": "GB123456789",
             "registration_number": "16286358",
-            "site": {
+            "primary_site": {
                 "name": "Headquarters",
                 "address": {
                     "address_line_1": "42 Industrial Estate",
@@ -353,7 +353,7 @@ class CreateOrganisationTests(DataTestClient):
             "type": OrganisationType.INDIVIDUAL,
             "eori_number": "1234567890",
             "vat_number": vat_number,
-            "site": {
+            "primary_site": {
                 "name": "Headquarters",
                 "address": {
                     "address_line_1": "42 Industrial Estate",
@@ -379,13 +379,13 @@ class CreateOrganisationTests(DataTestClient):
 
         self.assertEqual(exporter_user.email, data["user"]["email"])
 
-        self.assertEqual(site.name, data["site"]["name"])
-        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
-        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
-        self.assertEqual(site.address.region, data["site"]["address"]["region"])
-        self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
-        self.assertEqual(site.address.phone_number, data["site"]["address"]["phone_number"])
-        self.assertEqual(site.address.city, data["site"]["address"]["city"])
+        self.assertEqual(site.name, data["primary_site"]["name"])
+        self.assertEqual(site.address.address_line_1, data["primary_site"]["address"]["address_line_1"])
+        self.assertEqual(site.address.address_line_2, data["primary_site"]["address"]["address_line_2"])
+        self.assertEqual(site.address.region, data["primary_site"]["address"]["region"])
+        self.assertEqual(site.address.postcode, data["primary_site"]["address"]["postcode"])
+        self.assertEqual(site.address.phone_number, data["primary_site"]["address"]["phone_number"])
+        self.assertEqual(site.address.city, data["primary_site"]["address"]["city"])
         self.assertEqual(site.site_records_located_at, site)
         self.assertEqualIgnoreType(site.address.country.id, "GB")
         self.assertEqual(Audit.objects.count(), 1)
@@ -394,7 +394,7 @@ class CreateOrganisationTests(DataTestClient):
         data = {
             "name": "hmrc organisation",
             "type": "hmrc",
-            "site": {
+            "primary_site": {
                 "name": "Headquarters",
                 "address": {
                     "address_line_1": "42 Industrial Estate",
@@ -419,13 +419,13 @@ class CreateOrganisationTests(DataTestClient):
 
         self.assertEqual(exporter_user.email, data["user"]["email"])
 
-        self.assertEqual(site.name, data["site"]["name"])
-        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
-        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
-        self.assertEqual(site.address.region, data["site"]["address"]["region"])
-        self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
-        self.assertEqual(site.address.phone_number, data["site"]["address"]["phone_number"])
-        self.assertEqual(site.address.city, data["site"]["address"]["city"])
+        self.assertEqual(site.name, data["primary_site"]["name"])
+        self.assertEqual(site.address.address_line_1, data["primary_site"]["address"]["address_line_1"])
+        self.assertEqual(site.address.address_line_2, data["primary_site"]["address"]["address_line_2"])
+        self.assertEqual(site.address.region, data["primary_site"]["address"]["region"])
+        self.assertEqual(site.address.postcode, data["primary_site"]["address"]["postcode"])
+        self.assertEqual(site.address.phone_number, data["primary_site"]["address"]["phone_number"])
+        self.assertEqual(site.address.city, data["primary_site"]["address"]["city"])
         self.assertEqualIgnoreType(site.address.country.id, "GB")
         self.assertEqual(Audit.objects.count(), 1)
 
