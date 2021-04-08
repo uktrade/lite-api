@@ -895,6 +895,7 @@ def get_document_context(case, addressee=None):
 
     return {
         "case_reference": case.reference_code,
+        "case_submitted_at": case.submitted_at,
         "case_officer_name": case.get_case_officer_name(),
         "case_type": CaseTypeSerializer(case.case_type).data,
         "current_date": date,
