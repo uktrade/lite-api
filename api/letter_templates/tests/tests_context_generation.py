@@ -650,6 +650,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
+        self.assertEqual(context["case_submitted_at"], case.submitted_at)
         self.assertEqual(context["case_reference"], case.reference_code)
         self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_case_type_details(context["case_type"], case)
