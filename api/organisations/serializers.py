@@ -2,6 +2,7 @@ import re
 
 from django.db import transaction
 from django.utils import timezone
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from api.addresses.models import Address
@@ -178,6 +179,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "max_length": Organisations.Create.LENGTH_REGISTRATION_NUMBER,
         },
     )
+    phone_number = PhoneNumberField(required=True, allow_blank=True)
+    website = serializers.URLField(allow_blank=True)
+
     user = ExporterUserCreateUpdateSerializer(write_only=True)
     site = SiteCreateUpdateSerializer(write_only=True)
 
@@ -216,6 +220,8 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "sic_number",
             "vat_number",
             "registration_number",
+            "phone_number",
+            "website",
             "user",
             "site",
         )
@@ -236,6 +242,17 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             if not re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat):
                 raise serializers.ValidationError(Organisations.Create.INVALID_VAT)
             return stripped_vat
+        return value
+
+    def validate_phone_number(self, value):
+        if value == "":
+            error = (
+                "Enter an organisation phone number"
+                if self.context.get("type") == "commercial"
+                else "Enter a phone number"
+            )
+            raise serializers.ValidationError(error)
+
         return value
 
     @transaction.atomic

@@ -67,13 +67,16 @@ class OrganisationsList(generics.ListCreateAPIView):
         """ Create a new organisation. """
         data = request.data.copy()
         validate_only = request.data.get("validate_only", False)
+        print(f"===> data: {data}")
 
         data["status"] = (
             OrganisationStatus.ACTIVE
             if getattr(request.user, "type", None) == UserType.INTERNAL
             else OrganisationStatus.IN_REVIEW
         )
-        serializer = OrganisationCreateUpdateSerializer(data=data, context={"validate_only": validate_only})
+        serializer = OrganisationCreateUpdateSerializer(
+            data=data, context={"validate_only": validate_only, "type": data["type"]}
+        )
 
         if serializer.is_valid(raise_exception=True):
             if not validate_only:
