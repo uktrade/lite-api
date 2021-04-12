@@ -67,7 +67,6 @@ class OrganisationsList(generics.ListCreateAPIView):
         """ Create a new organisation. """
         data = request.data.copy()
         validate_only = request.data.get("validate_only", False)
-        print(f"===> data: {data}")
 
         data["status"] = (
             OrganisationStatus.ACTIVE

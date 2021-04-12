@@ -128,6 +128,14 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         instance.site_records_located_at = validated_data.get(
             "site_records_located_at", instance.site_records_located_at
         )
+        address_data = validated_data.pop("address")
+        if address_data:
+            address_data["country"] = address_data["country"].id
+
+            address_serializer = AddressSerializer(instance=instance.address, data=address_data, partial=True)
+            if address_serializer.is_valid(raise_exception=True):
+                address_serializer.save()
+
         instance.save()
         return instance
 
@@ -289,7 +297,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         site_data = validated_data.pop("site", None)
         if site_data:
             site_data["address"]["country"] = site_data["address"]["country"].id
-            site_serializer = SiteCreateUpdateSerializer(data=site_data, partial=True)
+            site_serializer = SiteCreateUpdateSerializer(instance=instance.primary_site, data=site_data, partial=True)
             if site_serializer.is_valid(raise_exception=True):
                 site = site_serializer.save()
                 # Set the site records are located at to the site itself
