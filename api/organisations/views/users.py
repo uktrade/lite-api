@@ -13,9 +13,14 @@ from api.core.constants import Roles, ExporterPermissions
 from api.core.permissions import assert_user_has_permission
 from api.gov_users.serializers import RoleListSerializer
 from lite_content.lite_api import strings
+from api.organisations.enums import OrganisationType
 from api.organisations.libraries.get_organisation import get_organisation_by_pk
 from api.organisations.models import Site
-from api.organisations.serializers import OrganisationUserListView, SiteListSerializer
+from api.organisations.serializers import (
+    OrganisationUserListSerializer,
+    CommercialOrganisationUserListSerializer,
+    SiteListSerializer,
+)
 from api.users.enums import UserStatuses
 from api.users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from api.users.models import ExporterUser, Role
@@ -28,12 +33,19 @@ from api.users.services import filter_roles_by_user_role
 
 class UsersList(generics.ListCreateAPIView):
     authentication_classes = (SharedAuthentication,)
-    serializer_class = OrganisationUserListView
+
+    def get_serializer_class(self):
+        organisation = get_organisation_by_pk(self.kwargs["org_pk"])
+        if organisation.type == OrganisationType.INDIVIDUAL and hasattr(self.request.user, "govuser"):
+            return OrganisationUserListSerializer
+        else:
+            return CommercialOrganisationUserListSerializer
 
     def get_queryset(self):
         _status = self.request.GET.get("status")
         exclude_permission = self.request.GET.get("exclude_permission")
         organisation_id = self.kwargs["org_pk"]
+        organisation = get_organisation_by_pk(self.kwargs["org_pk"])
 
         if hasattr(self.request.user, "exporteruser"):
             assert_user_has_permission(
@@ -45,18 +57,27 @@ class UsersList(generics.ListCreateAPIView):
         if _status:
             query.append(Q(relationship__status=UserStatuses.from_string(_status)))
 
+        values = ("baseuser_ptr_id", "first_name", "last_name", "email", "status", "role_name")
+        if (
+            organisation.type == OrganisationType.COMMERCIAL
+            or organisation.type == OrganisationType.HMRC
+            or hasattr(self.request.user, "exporteruser")
+        ):
+            values += ("phone_number",)
+
         return (
             ExporterUser.objects.filter(reduce(operator.and_, query))
             .exclude(relationship__role__permissions__in=[exclude_permission])
             .select_related("relationship__role")
-            .values(
-                "baseuser_ptr_id",
+            .annotate(
                 first_name=F("baseuser_ptr__first_name"),
                 last_name=F("baseuser_ptr__last_name"),
                 email=F("baseuser_ptr__email"),
                 status=F("relationship__status"),
                 role_name=F("relationship__role__name"),
+                phone_number=F("baseuser_ptr__phone_number"),
             )
+            .values(*values)
         )
 
     def post(self, request, org_pk):
