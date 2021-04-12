@@ -107,6 +107,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
     def put(self, request, pk):
         """ Edit details of an organisation. """
+        data = request.data.copy()
         organisation = get_organisation_by_pk(pk)
         org_name_changed = False
 
@@ -120,7 +121,10 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
                     data={"errors": Organisations.NO_PERM_TO_EDIT_NAME}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=request.data, partial=True)
+        if "primary_site" in data:
+            data["site"] = data.pop("primary_site")
+
+        serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=data, partial=True)
 
         if serializer.is_valid(raise_exception=True):
             if str_to_bool(request.data.get("validate_only", False)):

@@ -285,6 +285,22 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
 
         return organisation
 
+    def update(self, instance, validated_data):
+        site_data = validated_data.pop("site", None)
+        if site_data:
+            site_data["address"]["country"] = site_data["address"]["country"].id
+            site_serializer = SiteCreateUpdateSerializer(data=site_data, partial=True)
+            if site_serializer.is_valid(raise_exception=True):
+                site = site_serializer.save()
+                # Set the site records are located at to the site itself
+                site.site_records_located_at = site
+                site.save()
+
+            instance.primary_site = site
+        instance = super(OrganisationCreateUpdateSerializer, self).update(instance, validated_data)
+        instance.save()
+        return instance
+
 
 class OrganisationStatusUpdateSerializer(serializers.ModelSerializer):
     status = KeyValueChoiceField(choices=OrganisationStatus.choices, required=True, allow_null=False, allow_blank=False)
