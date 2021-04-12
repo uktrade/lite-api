@@ -103,6 +103,8 @@ class CreateOrganisationTests(DataTestClient):
             "eori_number": "GB123456789000",
             "sic_number": "01110",
             "vat_number": "GB123456789",
+            "phone_number": "+441234567895",
+            "website": "",
             "registration_number": "98765432",
             "site": {
                 "name": "Headquarters",
@@ -118,17 +120,17 @@ class CreateOrganisationTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         organisation = Organisation.objects.get(name=data["name"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(organisation.name, data["name"])
         self.assertEqual(organisation.eori_number, data["eori_number"])
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
+        self.assertEqual(organisation.phone_number, data["phone_number"])
         self.assertEqual(organisation.status, OrganisationStatus.ACTIVE)
 
         self.assertEqual(exporter_user.email, data["user"]["email"])
@@ -168,6 +170,8 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": "01110",
             "vat_number": "GB123456789",
             "registration_number": "98765432",
+            "phone_number": "+441234567895",
+            "website": "",
             "site": {"name": "Headquarters", "address": address},
             "user": {"email": "trinity@bsg.com"},
         }
@@ -175,11 +179,10 @@ class CreateOrganisationTests(DataTestClient):
         response = self.client.post(
             self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user.baseuser_ptr)}
         )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(organisation.name, data["name"])
         self.assertEqual(organisation.eori_number, data["eori_number"])
@@ -210,6 +213,39 @@ class CreateOrganisationTests(DataTestClient):
 
         # assert records located at set to site itself
         self.assertEqual(site.site_records_located_at, site)
+
+    def test_create_organisation_phone_number_mandatory(self):
+        data = {
+            "name": "Lemonworld Co",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": "GB123456789000",
+            "sic_number": "01110",
+            "vat_number": "GB123456789",
+            "registration_number": "98765432",
+            "phone_number": "",
+            "primary_site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                },
+            },
+            "user": {"email": "trinity@bsg.com"},
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = response.json()["errors"]
+        self.assertEqual(errors["phone_number"][0], "Enter an organisation phone number")
+
+        data["type"] = OrganisationType.INDIVIDUAL
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = response.json()["errors"]
+        self.assertEqual(errors["phone_number"][0], "Enter a phone number")
 
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
@@ -278,6 +314,8 @@ class CreateOrganisationTests(DataTestClient):
             "type": OrganisationType.INDIVIDUAL,
             "eori_number": "1234567890",
             "vat_number": vat_number,
+            "phone_number": "+441234567895",
+            "website": "",
             "site": {
                 "name": "Headquarters",
                 "address": {
@@ -317,6 +355,8 @@ class CreateOrganisationTests(DataTestClient):
         data = {
             "name": "hmrc organisation",
             "type": "hmrc",
+            "phone_number": "+441234567895",
+            "website": "",
             "site": {
                 "name": "Headquarters",
                 "address": {
@@ -331,12 +371,11 @@ class CreateOrganisationTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(organisation.name, data["name"])
 
