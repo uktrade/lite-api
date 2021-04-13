@@ -120,9 +120,6 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
                     data={"errors": Organisations.NO_PERM_TO_EDIT_NAME}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        if "primary_site" in data:
-            data["site"] = data.pop("primary_site")
-
         serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=data, partial=True)
 
         if serializer.is_valid(raise_exception=True):

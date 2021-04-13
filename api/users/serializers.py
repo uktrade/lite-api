@@ -116,9 +116,9 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         return email.lower() if email else None
 
     def create(self, validated_data: Dict):
-        phone_number = ""
-        if "phone_number" in validated_data:
-            phone_number = validated_data.pop("phone_number").as_e164
+        phone_number = validated_data.pop("phone_number", "")
+        if phone_number:
+            phone_number = phone_number.as_e164
 
         base_user_defaults = {
             "email": validated_data.pop("email"),

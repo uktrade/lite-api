@@ -128,7 +128,7 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         instance.site_records_located_at = validated_data.get(
             "site_records_located_at", instance.site_records_located_at
         )
-        address_data = validated_data.pop("address")
+        address_data = validated_data.pop("address", None)
         if address_data:
             address_data["country"] = address_data["country"].id
 

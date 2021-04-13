@@ -223,7 +223,7 @@ class CreateOrganisationTests(DataTestClient):
             "vat_number": "GB123456789",
             "registration_number": "98765432",
             "phone_number": "",
-            "primary_site": {
+            "site": {
                 "name": "Headquarters",
                 "address": {
                     "address_line_1": "42 Industrial Estate",
@@ -632,7 +632,7 @@ class EditOrganisationTests(DataTestClient):
             stripped_vat = re.sub(r"[^A-Z0-9]", "", invalid_vat)
             self.assertFalse(bool(re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat)))
 
-    def test_edit_organisation_address(self):
+    def test_edit_organisation_details(self):
         organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
         self.gov_user.role.permissions.set(
             [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
