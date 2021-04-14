@@ -1,7 +1,17 @@
+import logging
+from urllib.parse import urljoin
+
+import requests
+from requests.exceptions import RequestException
+from authbroker_client.utils import get_client
+from django.conf import settings
 from django.http import StreamingHttpResponse
+from rest_framework.exceptions import ValidationError
 from mohawk import Receiver
 from mohawk.util import prepare_header_val, utc_now
 
+
+logger = logging.Logger(__name__)
 
 class HawkSigningMiddleware:
     def __init__(self, get_response=None):
@@ -36,3 +46,34 @@ class HawkSigningMiddleware:
             response["Server-Authorization"] = response_header
 
         return response
+
+
+class TokenIntrospectionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def introspect(self, request):
+        user_token = request.META.get('HTTP_GOV_USER_TOKEN')
+        cache_key = f"sso_introspection:{user_token}"
+        if (cache.get(cache_key)):
+            return
+        else:
+            cache.set(cache_key, timout=SSO_INTROSPECTION_TTL)
+        response = requests.post(
+            urljoin(settings.AUTHBROKER_URL, '/o/introspect'),
+            data={'token': user_token}
+            headers={
+                'Authorization': f'Bearer {settings.STAFF_SSO_AUTH_TOKEN}',
+                'Accept': 'application/json;q=0.9,*/*;q=0.8'
+            },
+            timeout=settings.STAFF_SSO_REQUEST_TIMEOUT,
+        )
+        if not response.json()['active']:
+            raise ValidationError()
+
+    def __call__(self, request):
+        try:
+            self.introspect(request)
+        except RequestException:
+            raise ValidationError('SSO introspection request failed.')
+        return self.get_response(request)
