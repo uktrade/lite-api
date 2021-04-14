@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "phonenumber_field",
     "api.core",
     "api.documents",
     "api.flags",
@@ -266,6 +267,8 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+PHONENUMBER_DB_FORMAT = "E164"
 
 ELASTICSEARCH_SANCTION_INDEX_ALIAS = env.str("ELASTICSEARCH_SANCTION_INDEX_ALIAS", "sanctions-alias")
 ELASTICSEARCH_DENIALS_INDEX_ALIAS = env.str("ELASTICSEARCH_DENIALS_INDEX_ALIAS", "denials-alias")

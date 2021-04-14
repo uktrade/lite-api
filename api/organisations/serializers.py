@@ -2,6 +2,7 @@ import re
 
 from django.db import transaction
 from django.utils import timezone
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from api.addresses.models import Address
@@ -127,6 +128,14 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         instance.site_records_located_at = validated_data.get(
             "site_records_located_at", instance.site_records_located_at
         )
+        address_data = validated_data.pop("address", None)
+        if address_data:
+            address_data["country"] = address_data["country"].id
+
+            address_serializer = AddressSerializer(instance=instance.address, data=address_data, partial=True)
+            if address_serializer.is_valid(raise_exception=True):
+                address_serializer.save()
+
         instance.save()
         return instance
 
@@ -178,6 +187,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "max_length": Organisations.Create.LENGTH_REGISTRATION_NUMBER,
         },
     )
+    phone_number = PhoneNumberField(required=True, allow_blank=True)
+    website = serializers.URLField(allow_blank=True)
+
     user = ExporterUserCreateUpdateSerializer(write_only=True)
     site = SiteCreateUpdateSerializer(write_only=True)
 
@@ -216,6 +228,8 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "sic_number",
             "vat_number",
             "registration_number",
+            "phone_number",
+            "website",
             "user",
             "site",
         )
@@ -236,6 +250,17 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             if not re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat):
                 raise serializers.ValidationError(Organisations.Create.INVALID_VAT)
             return stripped_vat
+        return value
+
+    def validate_phone_number(self, value):
+        if value == "":
+            error = (
+                "Enter an organisation phone number"
+                if self.context.get("type") == "commercial"
+                else "Enter a phone number"
+            )
+            raise serializers.ValidationError(error)
+
         return value
 
     @transaction.atomic
@@ -267,6 +292,22 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         organisation.primary_site.save()
 
         return organisation
+
+    def update(self, instance, validated_data):
+        site_data = validated_data.pop("site", None)
+        if site_data:
+            site_data["address"]["country"] = site_data["address"]["country"].id
+            site_serializer = SiteCreateUpdateSerializer(instance=instance.primary_site, data=site_data, partial=True)
+            if site_serializer.is_valid(raise_exception=True):
+                site = site_serializer.save()
+                # Set the site records are located at to the site itself
+                site.site_records_located_at = site
+                site.save()
+
+            instance.primary_site = site
+        instance = super(OrganisationCreateUpdateSerializer, self).update(instance, validated_data)
+        instance.save()
+        return instance
 
 
 class OrganisationStatusUpdateSerializer(serializers.ModelSerializer):
@@ -368,7 +409,7 @@ class SiclExternalLocationSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "address", "country", "organisation", "location_type")
 
 
-class OrganisationUserListView(serializers.ModelSerializer):
+class OrganisationUserListSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     role_name = serializers.CharField(read_only=True)
     status = serializers.CharField(read_only=True)
@@ -383,6 +424,12 @@ class OrganisationUserListView(serializers.ModelSerializer):
             "role_name",
             "status",
         )
+
+
+class CommercialOrganisationUserListSerializer(OrganisationUserListSerializer):
+    class Meta:
+        model = ExporterUser
+        fields = OrganisationUserListSerializer.Meta.fields + ("phone_number",)
 
 
 class DocumentSerializer(serializers.ModelSerializer):

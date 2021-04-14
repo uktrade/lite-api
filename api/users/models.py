@@ -1,5 +1,6 @@
 import uuid
 from abc import abstractmethod
+from phonenumber_field.modelfields import PhoneNumberField
 
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
@@ -66,6 +67,7 @@ class BaseUser(AbstractUser, TimestampableModel):
     password = None
     last_login = None
     type = models.CharField(choices=UserType.choices(), null=False, blank=False, max_length=8)
+    phone_number = PhoneNumberField(default="")
 
     @property
     def has_django_admin_permission(self):
@@ -135,6 +137,10 @@ class BaseUserCompatMixin:
     @property
     def email(self):
         return self.baseuser_ptr.email
+
+    @property
+    def phone_number(self):
+        return self.baseuser_ptr.phone_number
 
     @property
     def is_anonymous(self):
