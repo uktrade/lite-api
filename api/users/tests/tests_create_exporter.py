@@ -49,3 +49,18 @@ class CreateExporterUser(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ExporterUser.objects.count(), previous_user_count)
+
+    def test_create_exporter_uppercase_email(self):
+        previous_user_count = ExporterUser.objects.count()
+        data = {
+            "email": "TESTEXPORTER@email.com",
+            "phone_number": "+447812346820",
+            "sites": [str(self.site.id)],
+            "role": Roles.EXPORTER_DEFAULT_ROLE_ID,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ExporterUser.objects.count(), previous_user_count + 1)
+        self.assertEqual(ExporterUser.objects.filter(baseuser_ptr__email__iexact=data["email"].lower()).count(), 1)
