@@ -82,6 +82,7 @@ def generate_preview(
     additional_contact=None,
     allow_missing_variables=True,
     include_digital_signature=False,
+    include_css=True,
 ):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
@@ -98,6 +99,13 @@ def generate_preview(
         if case:
             context = {**context, **get_document_context(case, additional_contact)}
 
-        return load_css(layout) + template.render(Context(context))
+        # TODO: we should use the template to substitute css rather than preprending here
+        css_string = ""
+        if include_css:
+            css_string = load_css(layout)
+            if layout == "siel":
+                css_string = load_css("siel_preview")
+
+        return css_string + template.render(Context(context))
     except (FileNotFoundError, TemplateDoesNotExist):
         raise DocumentPreviewError(strings.LetterTemplates.PREVIEW_ERROR)

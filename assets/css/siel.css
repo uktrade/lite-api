@@ -92,9 +92,55 @@
   page-break-after: always;
 }
 .document .terms-and-conditions-heading {
+  padding-left: 10px;
   padding-bottom: 15px;
   text-decoration: underline;
 }
 .document .terms-and-conditions-paragraph {
+  padding-left: 10px;
+  padding-right: 10px;
   padding-bottom: 15px;
+}
+
+.terms-and-conditions-paragraph-div {
+  padding: 0px;
+  margin: 0px;
+  width: 90.6%;
+  float: right;
+  border-left: solid 1px black;
+  border-right: solid 1px black;
+  border-bottom: none;
+}
+
+.terms-and-conditions-paragraph-last-div {
+  padding: 0px;
+  margin: 0px;
+  width: 90.6%;
+  float: right;
+  border-left: solid 1px black;
+  border-right: solid 1px black;
+  border-bottom: solid 1px black;
+}
+
+#terms-and-conditions-table-last-row {
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  border-bottom: none;
+}
+
+table.print-friendly tr td,
+table.print-friendly tr th {
+  page-break-inside: avoid;
+}
+
+#paragraph_content_div {
+  padding: 0px;
+  margin: 0px;
+  width: 91%;
+  border: solid 1px black;
+  float: right;
+}
+
+.document>p {
+  margin-bottom: 0px;
 }
