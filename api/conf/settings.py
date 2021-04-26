@@ -53,7 +53,7 @@ ALLOWED_CIDR_NETS = ["10.0.0.0/8"]
 INSTALLED_APPS = [
     "api.addresses",
     "api.applications.apps.ApplicationsConfig",
-    "api.audit_trail",
+    "api.audit_trail.apps.ApplicationsConfig",
     "background_task",
     "api.cases",
     "api.cases.generated_documents",
