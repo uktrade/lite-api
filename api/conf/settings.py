@@ -307,10 +307,17 @@ if "test" not in sys.argv:
             "json": {
                 "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
                 "format": "(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)",  # noqa
-            }
+            },
+            "ecs_formatter": {"class": "django_log_formatter_ecs.ECSFormatter",},
         },
-        "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},
-        "loggers": {"": {"handlers": ["console"], "level": env("LOG_LEVEL").upper()}},
+        "handlers": {
+            "console": {"class": "logging.StreamHandler", "formatter": "json"},
+            "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter",},
+        },
+        "loggers": {
+            "": {"handlers": ["console"], "level": env("LOG_LEVEL").upper()},
+            "django": {"handlers": ["ecs"],},
+        },
     }
 else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}
