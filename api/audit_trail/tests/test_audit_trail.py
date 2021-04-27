@@ -26,7 +26,7 @@ class CasesAuditTrail(DataTestClient):
 
         self.assertEqual(audit_qs.count(), 1)
 
-        service.create(actor=self.exporter_user, verb=AuditType.ADD_FLAGS, target=self.case)
+        service.create(actor=self.exporter_user, verb=AuditType.CREATED, target=self.case)
 
         self.assertEqual(audit_qs.count(), 2)
         self.case.delete()
