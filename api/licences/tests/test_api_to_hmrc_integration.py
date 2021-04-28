@@ -190,6 +190,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             {
                 "id": str(organisation.id),
                 "name": organisation.name,
+                "eori_number": organisation.eori_number,
                 "address": {
                     "line_1": organisation.primary_site.name,
                     "line_2": organisation.primary_site.address.address_line_1,
