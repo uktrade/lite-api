@@ -37,4 +37,4 @@ class ApplicationDocumentViewTests(DataTestClient):
         self.assertEqual(audit.actor, self.exporter_user)
         self.assertEqual(audit.target.id, self.organisation.id)
         self.assertEqual(audit.verb, AuditType.DOCUMENT_ON_ORGANISATION_CREATE)
-        self.assertEqual(audit.payload, {"file_name": "section5.png"})
+        self.assertEqual(audit.payload, {"file_name": "section5.png", "document_type": "section-five-certificate"})

@@ -1,10 +1,18 @@
+from unittest import mock
+
 from rest_framework.exceptions import PermissionDenied
 
 from api.audit_trail import service
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
+from api.audit_trail.serializers import AuditSerializer
 from test_helpers.clients import DataTestClient
 from api.users.models import BaseUser
+
+
+class Any(object):
+    def __eq__(a, b):
+        return True
 
 
 class CasesAuditTrail(DataTestClient):
@@ -18,7 +26,7 @@ class CasesAuditTrail(DataTestClient):
 
         self.assertEqual(audit_qs.count(), 1)
 
-        service.create(actor=self.exporter_user, verb=AuditType.ADD_FLAGS, target=self.case)
+        service.create(actor=self.exporter_user, verb=AuditType.CREATED, target=self.case)
 
         self.assertEqual(audit_qs.count(), 2)
         self.case.delete()
@@ -57,3 +65,8 @@ class CasesAuditTrail(DataTestClient):
 
         self.assertEqual(gov_audit_trail_qs.count(), 1)
         self.assertEqual(exp_audit_trail_qs.count(), 0)
+
+    @mock.patch("api.audit_trail.signals.logger")
+    def test_emit_audit_log(self, mock_logger):
+        audit = service.create(actor=self.exporter_user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case)
+        mock_logger.info.assert_called_with(Any(), extra={"audit": AuditSerializer(audit).data})

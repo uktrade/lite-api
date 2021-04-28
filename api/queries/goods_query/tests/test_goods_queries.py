@@ -146,6 +146,8 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
                     "good_name": self.query.good.description,
                     "old_control_list_entry": ["No control code"],
                     "new_control_list_entry": self.data["control_list_entries"],
+                    "new_is_good_controlled": "Yes",
+                    "old_is_good_controlled": "Yes",
                 }
                 self.assertEqual(audit.payload, payload)
 
