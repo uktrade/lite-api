@@ -62,6 +62,7 @@ pyexcel-ods3 = "*"
 Pillow = ">8.1.0,<8.2"
 django-phonenumber-field = "==5.0.0"
 phonenumbers = "~=8.12"
+django-log-formatter-ecs = "==0.0.5"
 
 [requires]
 python_version = "3.7"

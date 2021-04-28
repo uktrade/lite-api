@@ -64,8 +64,8 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         self.assertEqual(res.first().actor_object_id, str(self.gov_user.pk))
 
     def test_filter_by_audit_type(self):
-        audit_type = AuditType.UPDATED_STATUS
-        fake_audit_type = AuditType.GOOD_REVIEWED
+        audit_type = AuditType.CREATED
+        fake_audit_type = AuditType.CREATED_CASE_NOTE
         AuditFactory(actor=self.exporter_user, verb=audit_type, target=self.case.get_case())
         AuditFactory(actor=self.gov_user, verb=fake_audit_type, target=self.case.get_case())
 
@@ -73,7 +73,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
             object_id=self.case.id, object_content_type=self.content_type, audit_type=audit_type
         )
 
-        self.assertEqual(res.count(), 2)
+        self.assertEqual(res.count(), 1)
         self.assertEqual(res.first().actor_object_id, str(self.exporter_user.pk))
         self.assertEqual(res.first().verb, audit_type)
 
