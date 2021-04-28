@@ -18,7 +18,7 @@ from api.documents.libraries.process_document import process_document
 from api.documents.models import Document
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Organisations
-from api.organisations.constants import UK_VAT_VALIDATION_REGEX
+from api.organisations.constants import UK_EORI_VALIDATION_REGEX, UK_VAT_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from api.organisations.models import ExternalLocation, Organisation, DocumentOnOrganisation, Site
 from api.staticdata.countries.helpers import get_country
@@ -242,6 +242,14 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             int_value = int(value)
             if int_value < 1110 or int_value > 99999:
                 raise serializers.ValidationError(Organisations.Create.INVALID_SIC)
+        return value
+
+    def validate_eori_number(self, value):
+        if value:
+            eori = re.sub(r"[^A-Z0-9]", "", value)
+            if not re.match(r"%s" % UK_EORI_VALIDATION_REGEX, eori):
+                raise serializers.ValidationError("Invalid UK EORI number")
+            return eori
         return value
 
     def validate_vat_number(self, value):
