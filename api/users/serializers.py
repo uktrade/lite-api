@@ -1,5 +1,6 @@
 from typing import Dict
 
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from api.core.constants import Roles
@@ -71,12 +72,14 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     )
     role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), write_only=True, required=False)
     sites = serializers.PrimaryKeyRelatedField(queryset=Site.objects.all(), write_only=True, many=True)
+    phone_number = PhoneNumberField(required=False, allow_blank=True)
 
     class Meta:
         model = ExporterUser
         fields = (
             "id",
             "email",
+            "phone_number",
             "role",
             "organisation",
             "sites",
@@ -113,9 +116,13 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         return email.lower() if email else None
 
     def create(self, validated_data: Dict):
+        phone_number = validated_data.pop("phone_number", "")
+        if phone_number:
+            phone_number = phone_number.as_e164
 
         base_user_defaults = {
             "email": validated_data.pop("email"),
+            "phone_number": phone_number,
         }
 
         organisation = validated_data.pop("organisation")

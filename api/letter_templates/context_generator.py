@@ -8,6 +8,7 @@ from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyRole, PartyType, SubType
+from api.staticdata.denial_reasons.serializers import DenialReasonSerializer
 from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
 from api.staticdata.units.enums import Units
 from api.goods.enums import (
@@ -15,7 +16,6 @@ from api.goods.enums import (
     ItemCategory,
     Component,
     MilitaryUse,
-    FirearmGoodType,
     GoodControlled,
     GoodPvGraded,
 )
@@ -572,23 +572,21 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirearmGoodDetails
         fields = [
-            "firearm_type",
+            "type",
             "year_of_manufacture",
             "calibre",
             "is_covered_by_firearm_act_section_one_two_or_five",
+            "firearms_act_section",
             "section_certificate_number",
             "section_certificate_date_of_expiry",
             "has_identification_markings",
             "no_identification_markings_details",
+            "number_of_items",
+            "serial_numbers",
         ]
 
-    firearm_type = serializers.SerializerMethodField()
-    is_covered_by_firearm_act_section_one_two_or_five = FriendlyBooleanField()
     section_certificate_date_of_expiry = serializers.DateField(format=DATE_FORMAT, input_formats=None)
     has_identification_markings = FriendlyBooleanField()
-
-    def get_firearm_type(self, obj):
-        return FirearmGoodType.to_str(obj.type)
 
 
 class GoodSerializer(serializers.ModelSerializer):
@@ -647,6 +645,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodOnApplication
         fields = [
+            "id",
             "good",
             "is_incorporated",
             "item_type",
@@ -657,14 +656,10 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
         ]
 
     good = GoodSerializer()
-    firearm_details = serializers.SerializerMethodField()
+    firearm_details = FirearmDetailsSerializer()
     is_incorporated = FriendlyBooleanField(source="is_good_incorporated")
     applied_for_quantity = serializers.SerializerMethodField()
     applied_for_value = serializers.SerializerMethodField()
-
-    def get_firearm_details(self, obj):
-        details = obj.firearm_details or obj.good.firearm_details
-        return FirearmDetailsSerializer(details).data
 
     def get_applied_for_quantity(self, obj):
         if hasattr(obj, "quantity"):
@@ -675,13 +670,6 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
         if hasattr(obj, "value"):
             return f"£{obj.value}"
         return ""
-
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        ret = {**ret, **ret["good"], **ret["firearm_details"]}
-        del ret["good"]
-        del ret["firearm_details"]
-        return ret
 
 
 class GoodsQuerySerializer(serializers.ModelSerializer):
@@ -859,6 +847,15 @@ class FlattenedComplianceSiteWithVisitReportsSerializer(ComplianceSiteWithVisitR
         return ret
 
 
+class AdviceSerializer(serializers.ModelSerializer):
+
+    denial_reasons = DenialReasonSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Advice
+        fields = ("type", "text", "note", "proviso", "denial_reasons")
+
+
 def get_document_context(case, addressee=None):
     """
     Generate universal context dictionary to provide data for all document types.
@@ -898,6 +895,8 @@ def get_document_context(case, addressee=None):
 
     return {
         "case_reference": case.reference_code,
+        "case_submitted_at": case.submitted_at,
+        "case_officer_name": case.get_case_officer_name(),
         "case_type": CaseTypeSerializer(case.case_type).data,
         "current_date": date,
         "current_time": time,
@@ -976,11 +975,11 @@ def _get_good_on_application_context_with_advice(good_on_application, advice):
     good_context = GoodOnApplicationSerializer(good_on_application).data
 
     if advice:
-        good_context["reason"] = advice.text
-        good_context["note"] = advice.note
-
-        if advice.proviso:
-            good_context["proviso_reason"] = advice.proviso
+        advice = AdviceSerializer(advice).data
+        good_context["reason"] = advice["text"]
+        good_context["note"] = advice["note"]
+        good_context["denial_reasons"] = advice["denial_reasons"]
+        good_context["proviso_reason"] = advice["proviso"]
 
     return good_context
 
@@ -1016,6 +1015,16 @@ def _get_goods_context(application, final_advice, licence=None):
     for advice in final_advice:
         good_on_application = goods_on_application_dict[advice.good_id]
         goods_context[advice.type].append(_get_good_on_application_context_with_advice(good_on_application, advice))
+
+    # Because we append goods that are approved with proviso to the approved goods below
+    # we need to remove them from the approved goods list otherwise they are duplicated
+    # in the licence document.
+    proviso_good_ids = [item["id"] for item in goods_context[AdviceType.PROVISO]]
+    if proviso_good_ids:
+        current_approved_goods = goods_context.pop(AdviceType.APPROVE)
+        goods_context[AdviceType.APPROVE] = [
+            item for item in current_approved_goods if item["id"] not in proviso_good_ids
+        ]
 
     # Move proviso elements into approved because they are treated the same
     goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))

@@ -7,7 +7,7 @@ from test_helpers.clients import PerformanceTestClient
 from parameterized import parameterized
 
 
-@tag("destructive")
+@pytest.mark.destructive
 class FlaggingRulesPerformanceTests(PerformanceTestClient):
     url = reverse("flags:flagging_rules")
 

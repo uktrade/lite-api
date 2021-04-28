@@ -1,7 +1,7 @@
 from datetime import date
 
 from django.template.loader import render_to_string
-from django.test import tag
+import pytest
 
 from parameterized import parameterized
 
@@ -49,7 +49,7 @@ from api.staticdata.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
-@tag("context_gen")
+@pytest.mark.context_gen
 class DocumentContextGenerationTests(DataTestClient):
     def _assert_applicant(self, context, case):
         applicant = case.submitted_by
@@ -105,13 +105,13 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_party(context[third_party.role][0], third_party)
 
     def _assert_good(self, context, good_on_application):
-        self.assertEqual(context["description"], good_on_application.good.description)
+        good = context["good"]
+        self.assertEqual(good["description"], good_on_application.good.description)
         self.assertEqual(
-            context["control_list_entries"],
-            [clc.rating for clc in good_on_application.good.control_list_entries.all()],
+            good["control_list_entries"], [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         )
-        self.assertEqual(context["is_controlled"], GoodControlled.to_str(good_on_application.good.is_good_controlled))
-        self.assertEqual(context["part_number"], good_on_application.good.part_number)
+        self.assertEqual(good["is_controlled"], GoodControlled.to_str(good_on_application.good.is_good_controlled))
+        self.assertEqual(good["part_number"], good_on_application.good.part_number)
         self.assertTrue(str(good_on_application.quantity) in context["applied_for_quantity"])
         self.assertTrue(Units.to_str(good_on_application.unit) in context["applied_for_quantity"])
         self.assertEqual(context["applied_for_value"], f"£{good_on_application.value:.2f}")
@@ -121,63 +121,65 @@ class DocumentContextGenerationTests(DataTestClient):
             self.assertEqual(context["other_item_type"], good_on_application.other_item_type)
 
         # TAU
-        self.assertEqual(context["item_category"], ItemCategory.to_str(good_on_application.good.item_category))
+        self.assertEqual(good["item_category"], ItemCategory.to_str(good_on_application.good.item_category))
 
         if good_on_application.good.item_category in ItemCategory.group_one:
-            self.assertEqual(context["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
+            self.assertEqual(good["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
             if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
                 self.assertEqual(
-                    context["modified_military_use_details"], good_on_application.good.modified_military_use_details
+                    good["modified_military_use_details"], good_on_application.good.modified_military_use_details
                 )
-            self.assertEqual(context["is_component"], Component.to_str(good_on_application.good.is_component))
+            self.assertEqual(good["is_component"], Component.to_str(good_on_application.good.is_component))
             if good_on_application.good.is_component != Component.NO:
-                self.assertEqual(context["component_details"], good_on_application.good.component_details)
+                self.assertEqual(good["component_details"], good_on_application.good.component_details)
             self.assertEqual(
-                context["uses_information_security"],
-                friendly_boolean(good_on_application.good.uses_information_security),
+                good["uses_information_security"], friendly_boolean(good_on_application.good.uses_information_security),
             )
             if good_on_application.good.uses_information_security:
                 self.assertEqual(
-                    context["information_security_details"], good_on_application.good.information_security_details
+                    good["information_security_details"], good_on_application.good.information_security_details
                 )
-        elif good_on_application.good.item_category in ItemCategory.group_two:
-            self.assertEqual(context["firearm_type"], FirearmGoodType.to_str(good_on_application.firearm_details.type))
-            self.assertEqual(context["year_of_manufacture"], good_on_application.firearm_details.year_of_manufacture)
+        elif context["firearm_details"] and good_on_application.good.item_category in ItemCategory.group_two:
+            firearm_details = context["firearm_details"]
+            self.assertEqual(firearm_details["type"], good_on_application.firearm_details.type)
+            self.assertEqual(
+                firearm_details["year_of_manufacture"], good_on_application.firearm_details.year_of_manufacture
+            )
 
-            self.assertEqual(context["calibre"], good_on_application.firearm_details.calibre)
+            self.assertEqual(firearm_details["calibre"], good_on_application.firearm_details.calibre)
             self.assertEqual(
-                context["is_covered_by_firearm_act_section_one_two_or_five"],
-                friendly_boolean(good_on_application.firearm_details.is_covered_by_firearm_act_section_one_two_or_five),
+                firearm_details["is_covered_by_firearm_act_section_one_two_or_five"],
+                str(good_on_application.firearm_details.is_covered_by_firearm_act_section_one_two_or_five),
             )
             self.assertEqual(
-                context["section_certificate_number"], good_on_application.firearm_details.section_certificate_number,
+                firearm_details["section_certificate_number"],
+                good_on_application.firearm_details.section_certificate_number,
             )
             self.assertEqual(
-                context["section_certificate_date_of_expiry"],
+                firearm_details["section_certificate_date_of_expiry"],
                 good_on_application.firearm_details.section_certificate_date_of_expiry.strftime(DATE_FORMAT),
             )
             self.assertEqual(
-                context["has_identification_markings"],
+                firearm_details["has_identification_markings"],
                 friendly_boolean(good_on_application.firearm_details.has_identification_markings),
             )
         elif good_on_application.good.item_category in ItemCategory.group_three:
-            self.assertEqual(context["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
+            self.assertEqual(good["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
             self.assertEqual(
-                context["modified_military_use_details"], good_on_application.good.modified_military_use_details
+                good["modified_military_use_details"], good_on_application.good.modified_military_use_details
             )
             self.assertEqual(
-                context["software_or_technology_details"], good_on_application.good.software_or_technology_details
+                good["software_or_technology_details"], good_on_application.good.software_or_technology_details
             )
             self.assertEqual(
-                context["uses_information_security"],
-                friendly_boolean(good_on_application.good.uses_information_security),
+                good["uses_information_security"], friendly_boolean(good_on_application.good.uses_information_security),
             )
             self.assertEqual(
-                context["information_security_details"], good_on_application.good.information_security_details
+                good["information_security_details"], good_on_application.good.information_security_details
             )
 
         # pv grading
-        self.assertEqual(context["is_pv_graded"], GoodPvGraded.to_str(good_on_application.good.is_pv_graded))
+        self.assertEqual(good["is_pv_graded"], GoodPvGraded.to_str(good_on_application.good.is_pv_graded))
         if good_on_application.good.pv_grading_details:
             if good_on_application.good.pv_grading_details.grading:
                 self.assertEqual(
@@ -211,6 +213,8 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_good(goods[0], good_on_application)
         self.assertEqual(goods[0]["reason"], advice.text)
         self.assertEqual(goods[0]["note"], advice.note)
+        self.assertEqual(goods[0]["proviso_reason"], advice.proviso)
+        self.assertEqual(len(goods[0]["denial_reasons"]), advice.denial_reasons.count())
 
     def _assert_goods_type(self, context, goods_type):
         self.assertEqual(goods_type.description, context["description"])
@@ -389,6 +393,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self.assertIsNotNone(context["current_date"])
         self.assertIsNotNone(context["current_time"])
         self._assert_applicant(context["addressee"], case)
@@ -415,6 +420,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case, addressee=addressee)
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_addressee(context["addressee"], addressee)
 
     def test_generate_context_with_goods(self):
@@ -424,12 +430,13 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_good(context["goods"]["all"][0], case.goods.all()[0])
 
     def test_generate_context_with_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
-            self.gov_user, case, "good", AdviceType.APPROVE, AdviceLevel.FINAL, advice_text="abc",
+            self.gov_user, case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, advice_text="abc",
         )
         good = case.goods.first()
         good.licenced_quantity = 10
@@ -440,6 +447,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
 
     def test_generate_context_with_proviso_advice_on_goods(self):
@@ -456,6 +464,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["proviso_reason"], final_advice.proviso)
 
@@ -496,6 +505,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
 
         # All goods types should be in all
         self.assertEqual(len(context["goods"]["all"]), 3)
@@ -539,6 +549,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_licence(context["licence"], licence)
         self._assert_good_on_licence(context["goods"]["approve"][0], good_on_licence)
 
@@ -553,6 +564,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_ecju_query(context["ecju_queries"][0], ecju_query)
 
     def test_generate_context_with_case_note(self):
@@ -563,6 +575,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_note(context["notes"][0], note)
 
     def test_generate_context_with_site(self):
@@ -573,6 +586,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_site(context["sites"][0], site)
 
     def test_generate_context_with_external_locations(self):
@@ -584,6 +598,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_external_location(context["external_locations"][0], location)
 
     def test_generate_context_with_document(self):
@@ -593,6 +608,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_document(context["documents"][0], document)
 
     def test_generate_context_with_application_details(self):
@@ -615,6 +631,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_base_application_details(context["details"], case)
 
     def test_generate_context_with_standard_application_details(self):
@@ -633,7 +650,9 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
+        self.assertEqual(context["case_submitted_at"], case.submitted_at)
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_case_type_details(context["case_type"], case)
         self._assert_base_application_details(context["details"], case)
         self._assert_standard_application_details(context["details"], case)
@@ -658,6 +677,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_case_type_details(context["case_type"], case)
         self._assert_base_application_details(context["details"], case)
         self._assert_open_application_details(context["details"], case)
@@ -670,6 +690,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_case_type_details(context["case_type"], case)
         self._assert_hmrc_query_details(context["details"], case)
 
@@ -686,6 +707,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_case_type_details(context["case_type"], case)
         self._assert_exhibition_clearance_details(context["details"], case)
         self._assert_good(context["goods"]["all"][0], good)
@@ -710,6 +732,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_case_type_details(context["case_type"], case)
         self._assert_f680_clearance_details(context["details"], case)
 
@@ -720,6 +743,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_case_type_details(context["case_type"], case)
 
     def test_generate_context_with_end_user_advisory_query_details(self):
@@ -729,6 +753,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_end_user_advisory_details(context["details"], case)
 
     def test_generate_context_with_goods_query_details(self):
@@ -738,6 +763,7 @@ class DocumentContextGenerationTests(DataTestClient):
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_goods_query_details(context["details"], case)
 
     def test_generate_context_with_compliance_visit_details(self):

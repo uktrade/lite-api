@@ -12,6 +12,7 @@ class TeamReadOnlySerializer(serializers.Serializer):
 
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(read_only=True)
+    part_of_ecju = serializers.BooleanField(read_only=True)
 
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -22,7 +23,21 @@ class TeamSerializer(serializers.ModelSerializer):
         ],
         error_messages={"blank": strings.Teams.BLANK_NAME},
     )
+    part_of_ecju = serializers.BooleanField(
+        error_messages={
+            "null": "Select yes if the team is part of ECJU",
+            "required": "Select yes if the team is part of ECJU",
+        }
+    )
 
     class Meta:
         model = Team
-        fields = ("id", "name")
+        fields = "__all__"
+
+    def validate(self, attrs):
+        validated_data = super().validate(attrs)
+
+        if "part_of_ecju" not in validated_data:
+            raise serializers.ValidationError({"part_of_ecju": "Select yes if the team is part of ECJU"})
+
+        return validated_data

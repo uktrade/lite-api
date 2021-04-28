@@ -59,7 +59,7 @@ def upload_application_document(application, data, user):
             actor=user.exporteruser,
             verb=AuditType.DOCUMENT_ON_ORGANISATION_CREATE,
             target=document.application.organisation,
-            payload={"file_name": data.get("name")},
+            payload={"file_name": data.get("name"), "document_type": doa_serializer.data.get("document_type")},
         )
 
     audit_trail_service.create(

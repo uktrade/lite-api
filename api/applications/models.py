@@ -343,6 +343,10 @@ class GoodOnApplication(AbstractGoodOnApplication):
         ordering = ["created_at"]
 
     @property
+    def name(self):
+        return self.good.name
+
+    @property
     def description(self):
         return self.good.description
 

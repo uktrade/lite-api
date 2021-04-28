@@ -41,7 +41,10 @@ def template_engine_factory(allow_missing_variables):
             "api.letter_templates.templatetags.custom_tags",
         ],
         dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)],
-        libraries={"static": "django.templatetags.static"},
+        libraries={
+            "static": "django.templatetags.static",
+            "custom_tags": "api.letter_templates.templatetags.custom_tags",
+        },
     )
 
 
@@ -66,6 +69,10 @@ def load_css(filename):
 def format_user_text(user_text):
     cleaned_text = bleach.clean(user_text, tags=ALLOWED_TAGS)
     return markdown_to_html(mark_safe(cleaned_text))
+
+
+class DocumentPreviewError(Exception):
+    pass
 
 
 def generate_preview(
@@ -93,4 +100,4 @@ def generate_preview(
 
         return load_css(layout) + template.render(Context(context))
     except (FileNotFoundError, TemplateDoesNotExist):
-        return {"error": strings.LetterTemplates.PREVIEW_ERROR}
+        raise DocumentPreviewError(strings.LetterTemplates.PREVIEW_ERROR)

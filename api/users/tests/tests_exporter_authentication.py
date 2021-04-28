@@ -38,3 +38,22 @@ class ExporterUserAuthenticateTests(DataTestClient):
 
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_authentication_with_email_in_uppercase(self):
+        data = {
+            "email": self.exporter_user.email.upper(),
+            "user_profile": {"first_name": "Matt", "last_name": "Berninger"},
+        }
+
+        response = self.client.post(self.url, data)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        headers = {
+            "HTTP_EXPORTER_USER_TOKEN": response_data["token"],
+            "HTTP_ORGANISATION_ID": str(self.organisation.id),
+        }
+
+        response = self.client.get(reverse("goods:goods"), **headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

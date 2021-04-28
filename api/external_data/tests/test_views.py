@@ -1,6 +1,7 @@
 import os
 
 from elasticsearch_dsl import Index
+import pytest
 
 from django.core.management import call_command
 from django.conf import settings
@@ -109,6 +110,7 @@ class DenialViewSetTests(DataTestClient):
 
 
 class DenialSearchView(DataTestClient):
+    @pytest.mark.elasticsearch
     def test_search(self):
         call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
         # given some denials exist
@@ -136,6 +138,7 @@ class DenialSearchView(DataTestClient):
 
 
 class DenialSearchViewTests(DataTestClient):
+    @pytest.mark.elasticsearch
     def test_search(self):
         Index("sanctions-alias-test").create(ignore=[400])
 

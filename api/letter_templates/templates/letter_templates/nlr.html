@@ -1,47 +1,93 @@
-{% load static %}
+{% extends "ecju_base.html" %}
 
+{% block table %}
 
-<div class="document">
-  <div id="addresses">
-    <div class="address">
-	  Reference: {{ case_reference }}<br>
-      <p>
-		  {{ organisation.name }}<br>
-		  {% if organisation.primary_site.address %}
-			  {{ organisation.primary_site.address }}
-		  {% else %}
-			  {{ organisation.primary_site.address_line_1 }}<br>
-			  {% if organisation.primary_site.address_line_2 %}
-				  {{ organisation.primary_site.address_line_2 }}<br>
-			  {% endif %}
-		  {% endif %}
-		  {% if organisation.primary_site.postcode %}{{ organisation.primary_site.postcode }}<br>{% endif %}
-		  {% if organisation.primary_site.city %}{{ organisation.primary_site.city }}<br>{% endif %}
-		  {% if organisation.primary_site.region %}{{ organisation.primary_site.region }}<br>{% endif %}
-		  {{ organisation.primary_site.country.name }}
-	  </p>
-      <p>Date: {{ current_date }}</p>
-    </div>
-    <div class="address">
-	  <img src="{% static 'images/dit.png' %}">
-      <p>Export Control Organisation</p>
-      <p>
-        3 Whitehall Place<br>
-        London<br>
-        SW1A 2AW
-      </p>
-      <p>
-        Tel +44 (0)20 7215 4594<br>
-        Enquiries +44 (0)20 7215 5000
-      </p>
-      <p>
-        www.trade.gov.uk<br>
-        exportcontrol.help@trade.gov.uk
-      </p>
-    </div>
-  </div>
+<div id="paragraph_content">
+  {% filter linebreaks %}
+    Dear {{ addressee.name }},
 
-  <div id="paragraph_content">
-      $USER_CONTENT$
-  </div>
+    I refer to your licence application dated {{ case_submitted_at|date:'j F Y' }}.
+
+    1. Based on the information provided in your application the items listed in the Schedule to this letter do not currently require an export licence. This is because they are not listed in the controls applicable to the destinations in your application and we currently have no specific concerns for these items being exported to the recipients specified in your application.
+
+    2. This assessment is made taking into account the information given in your licence application and the legislation in force at the date of this letter. However, this assessment could change if, before the export takes place, there are changes to the legislation (including country sanctions) or information becomes available, either to you or to the Export Control Joint Unit (ECJU), which suggests that an end-use control may be applicable. Therefore, ECJU cannot fully guarantee that your export can proceed.
+
+    3. In addition, ECJU cannot comment on any action Her Majesty's Revenue & Customs (HMRC) may wish to take at the point of export, since HMRC have a legal obligation to verify export declarations and undertake examination of either documents or goods where there are doubts about whether a prohibition or restriction may apply.
+
+    4. We therefore advise that if, at any time from the date of this letter you have grounds for suspecting the items in the Schedule are intended for Weapons of Mass Destruction (WMD) purposes (as further explained below) and/or if there is a considerable delay between the date of this letter and the date of export, then you should make an End-User Advice Enquiry on SPIRE for an up-to-date re-assessment of the end-users for which the export is intended.
+
+    5. Please note that ECJU will not offer compensation for any loss of business as a result of exercising its statutory functions to make export licence decisions. We would only consider cases where it can be shown that there has been negligence or maladministration by Her Majesty's Government (HMG). Accordingly, you are strongly encouraged to carefully consider this letter and regularly check the information on our web pages about current export control requirements, details of which are set out in the following paragraphs.
+
+    <h2>Sanctions</h2>
+
+    6. For general advice on current embargoes and restrictions (including information on embargoed destinations and scope of the sanctions), see:
+
+    https://www.gov.uk/guidance/uk-sanctions
+
+    <h2>End-Use Controls</h2>
+
+    7. You will also need to be aware of the end-use controls and how they may apply to the items you intend to export. For information and guidance on the operation of the WMD and Military End-Use Controls, and an explanation of the legal responsibilities of exporters under those controls, see:
+
+    https://www.gov.uk/guidance/supplementary-wmd-end-use-controls
+
+    https://www.gov.uk/guidance/export-controls-military-goods-software-and-technology#military-end-use-controls
+
+    8. As explained in the guidance, if now, or at any time in the future, you become aware or have any grounds for suspecting that the items you wish to export might be used in any way in connection with nuclear, chemical or biological weapons, or missiles to deliver them, as set out in Article 4 of Council Regulation (EC) No 428/2009 (for exports from Great Britain) or Council Regulation (EC) No 428/2009 as it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal agreement (for exports from Northern Ireland), and/or Article 6 of the Export Control Order 2008 as amended (WMD purposes end-use control supplementing the dual-use Regulation), then you should tell us of the circumstances and apply for a licence.
+
+    <h2>Restrictions not operated by the Export Control Organisation</h2>
+
+    9. This application has been assessed against all relevant legislation for which the Export Control Joint Unit (ECJU) has responsibility. However, it has not been assessed against other restrictions on exports (for example on antique goods or pharmaceutical products) not administered by ECJU. For further details of these restrictions, please see:
+
+    https://www.gov.uk/starting-to-export/licences
+
+    10. In addition you should be aware that there are significant restrictions on the transfer of funds or making economic resources available (including the supply of goods) or providing any financial services to persons, entities or bodies covered by financial sanctions. You are prohibited from carrying out certain activities if financial sanctions apply. Details of financial sanctions, including freezing the financial assets of specific people, can be found at:
+
+    https://ofsistorage.blob.core.windows.net/publishlive/ConList.html
+
+    In addition, the UK financial sanctions against embargoed destinations are included in the UK sanctions regimes established under the Sanctions and Anti-Money Laundering Act 2018. These may include prohibitions on all financial transactions and business relationships between UK financial and credit institutions and banks incorporated in countries which are subject to sanctions. Whilst this legislation affects financial and credit institutions and does not directly restrict exports, it could make it harder for you to trade with the relevant embargoed destination/s, as your bank may not be able to handle payments from or to banks in the countries subject to these financial restrictions. UK's financial sanctions are administered by H M Treasury (HMT's) Office of Financial Sanctions Implementation (OFSI). You should always refer to the up-to-date version of the legislation imposing the specific financial sanctions which apply in your case to understand exactly what is prohibited.
+
+    11. Guidance on UK's financial sanctions can be found at:
+
+    https://www.gov.uk/government/publications/uk-financial-sanctions-guidance
+
+    <h2>Where to find further information</h2>
+
+    12. It is the responsibility of exporters to consult the current export control legislation, familiarise themselves with export controls and make their own evaluation of the need for export licences.
+
+    13. For general information on strategic export controls (including a basic evaluation of the need for export licences) see:
+
+    https://www.gov.uk/guidance/export-controls-military-goods-software-and-technology
+
+    https://www.gov.uk/guidance/export-controls-dual-use-items-software-and-technology-goods-for-torture-and-radioactive-sources
+
+    14. Finally, if you require further advice regarding the measures referred to in this letter, including how any relevant export control legislation may apply to your particular case, we recommend that you seek independent legal advice.
+
+    Yours sincerely,
+
+    {{ case_officer_name }}
+    Export Control Organisation
+
+    The following items do not require a licence:
+  {% endfilter %}
+  <table class="govuk-table">
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th class="govuk-table__header">#</th>
+        <th class="govuk-table__header">Name</th>
+        <th class="govuk-table__header">Description</th>
+        <th class="govuk-table__header">Part number</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for good in goods.no_licence_required %}
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">{{ forloop.counter }}</td>
+          <td class="govuk-table__cell">{{ good.name }}</td>
+          <td class="govuk-table__cell">{{ good.description }}</td>
+          <td class="govuk-table__cell">{{ good.part_number }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
+{% endblock %}

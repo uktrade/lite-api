@@ -27,7 +27,7 @@ env = Env(
     LITE_HMRC_INTEGRATION_ENABLED=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
-    ENV=(str, "dev"),
+    ENV=(str, "localhost"),
     EXPORTER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
@@ -53,7 +53,7 @@ ALLOWED_CIDR_NETS = ["10.0.0.0/8"]
 INSTALLED_APPS = [
     "api.addresses",
     "api.applications.apps.ApplicationsConfig",
-    "api.audit_trail",
+    "api.audit_trail.apps.ApplicationsConfig",
     "background_task",
     "api.cases",
     "api.cases.generated_documents",
@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "phonenumber_field",
     "api.core",
     "api.documents",
     "api.flags",
@@ -267,6 +268,8 @@ USE_L10N = True
 
 USE_TZ = True
 
+PHONENUMBER_DB_FORMAT = "E164"
+
 ELASTICSEARCH_SANCTION_INDEX_ALIAS = env.str("ELASTICSEARCH_SANCTION_INDEX_ALIAS", "sanctions-alias")
 ELASTICSEARCH_DENIALS_INDEX_ALIAS = env.str("ELASTICSEARCH_DENIALS_INDEX_ALIAS", "denials-alias")
 ELASTICSEARCH_PRODUCT_INDEX_ALIAS = env.str("ELASTICSEARCH_PRODUCT_INDEX_ALIAS", "products-alias")
@@ -304,10 +307,17 @@ if "test" not in sys.argv:
             "json": {
                 "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
                 "format": "(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)",  # noqa
-            }
+            },
+            "ecs_formatter": {"class": "django_log_formatter_ecs.ECSFormatter",},
         },
-        "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},
-        "loggers": {"": {"handlers": ["console"], "level": env("LOG_LEVEL").upper()}},
+        "handlers": {
+            "console": {"class": "logging.StreamHandler", "formatter": "json"},
+            "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter",},
+        },
+        "loggers": {
+            "": {"handlers": ["console"], "level": env("LOG_LEVEL").upper()},
+            "django": {"handlers": ["ecs"],},
+        },
     }
 else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}
@@ -398,3 +408,18 @@ if FEATURE_STAFF_SSO_ENABLED:
 
 
 PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
+
+# Email configuration
+FEATURE_EMAIL_REPORTS_ENABLED = env.bool("FEATURE_EMAIL_REPORTS_ENABLED", False)
+if FEATURE_EMAIL_REPORTS_ENABLED:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = env("EMAIL_HOST")
+    EMAIL_PORT = env("EMAIL_PORT", default=587)
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="email")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="password")
+    EMAIL_USE_TLS = env.bool("EMAIL_HOST_TLS", default=True)
+    EMAIL_TIMEOUT = env("EMAIL_TIMEOUT", default=30)
+
+    LITE_OPS_EMAIL = env.str("LITE_OPS_EMAIL")
+    LITE_REPORTS_RECIPIENTS = env.list("LITE_REPORTS_RECIPIENTS", default=[])
+    LITE_REPORTS_EMAIL_TEMPLATE_ID = env.str("LITE_REPORTS_EMAIL_TEMPLATE_ID", default="reports-email-template_id")

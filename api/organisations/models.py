@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models, transaction
 from django.utils import timezone
+from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.exceptions import ValidationError
 
 from api.addresses.models import Address
@@ -27,6 +28,8 @@ class Organisation(TimestampableModel):
     sic_number = models.TextField(default=None, blank=True, null=True)
     vat_number = models.TextField(default=None, blank=True, null=True)
     registration_number = models.TextField(default=None, blank=True, null=True)
+    phone_number = PhoneNumberField(default="")
+    website = models.URLField(blank=True, default="")
     primary_site = models.ForeignKey(
         "Site", related_name="organisation_primary_site", on_delete=models.CASCADE, blank=True, null=True, default=None,
     )

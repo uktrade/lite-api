@@ -10,7 +10,8 @@ class TeamManager(models.Manager):
 
 class Team(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=60, default=None, blank=False, null=False, unique=True)
+    name = models.TextField(default=None, unique=True)
+    part_of_ecju = models.BooleanField(default=None, null=True)
 
     objects = TeamManager()
 

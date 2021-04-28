@@ -64,7 +64,7 @@ class AuthenticateExporterUser(APIView):
             )
 
         try:
-            user = ExporterUser.objects.get(baseuser_ptr__email=data.get("email"))
+            user = ExporterUser.objects.get(baseuser_ptr__email__iexact=data.get("email"))
             # Update the user's first and last names
             user.baseuser_ptr.first_name = first_name
             user.baseuser_ptr.last_name = last_name

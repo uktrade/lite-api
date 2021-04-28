@@ -97,3 +97,34 @@ def get_exporter_lite_content_string(value):
 def display_clc_ratings(control_list_entries):
     ratings = [item["rating"] for item in control_list_entries]
     return ", ".join(ratings)
+
+
+@register.filter()
+def format_serial_numbers(serial_numbers):
+    return [f"{sn} - {index}" for index, sn in enumerate(serial_numbers, start=1)]
+
+
+@register.filter()
+def licence_products_covered_by_firearms_regulations(goods_approved):
+    if goods_approved is None:
+        return False
+
+    control_list_entries = []
+    for good_item in goods_approved:
+        control_list_entries.extend(good_item["good"]["control_list_entries"])
+
+    return "FR AI" in control_list_entries
+
+
+@register.filter()
+def remove_duplicate_provisos(goods_approved):
+    provisos = set()
+
+    if goods_approved is None:
+        return provisos
+
+    for good_item in goods_approved:
+        if "proviso_reason" in good_item:
+            provisos.add(good_item["proviso_reason"])
+
+    return provisos
