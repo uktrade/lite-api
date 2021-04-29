@@ -117,6 +117,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "api.conf.middleware.HawkSigningMiddleware",
 ]
@@ -204,6 +205,9 @@ STATIC_URL = "/assets/"
 # CSS
 STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "assets")
 CSS_ROOT = os.path.join(STATIC_ROOT, "css")
+
+# Cache static files
+STATICFILES_STORAGE = env.str("STATICFILES_STORAGE", "whitenoise.storage.CompressedManifestStaticFilesStorage")
 
 LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "templates", "letter_templates")
 
