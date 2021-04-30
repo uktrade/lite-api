@@ -1,11 +1,15 @@
+import os
 from unittest import mock
 
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
 from rest_framework.reverse import reverse
+from tempfile import NamedTemporaryFile
 
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, AdviceType
+from api.cases.generated_documents.helpers import html_to_pdf
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.licences.enums import LicenceStatus
 from lite_content.lite_api import strings
@@ -304,6 +308,20 @@ class GenerateDocumentTests(DataTestClient):
 
         response = self.client.get(url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_presence_of_css_files_for_document_templates(self):
+        expected = ["siel.css", "siel_preview.css", "nlr.css", "refusal.css"]
+        css_files = os.listdir(settings.CSS_ROOT)
+        self.assertTrue(set(expected).issubset(css_files))
+
+    def test_generating_siel_licence_pdf_with_css(self):
+        resp = html_to_pdf("<div>Hello World !!</div>", "siel", None)
+        with NamedTemporaryFile(suffix=".pdf", delete=True) as tmp_file:
+            tmp_file.write(resp)
+
+        resp = html_to_pdf("<div>Hello World !!</div>", "siel_preview", None)
+        with NamedTemporaryFile(suffix=".pdf", delete=True) as tmp_file:
+            tmp_file.write(resp)
 
 
 class GetGeneratedDocumentsTests(DataTestClient):

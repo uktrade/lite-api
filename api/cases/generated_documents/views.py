@@ -64,7 +64,7 @@ class GeneratedDocuments(generics.ListAPIView):
         """
         licence = None
         try:
-            document = get_generated_document_data(request.data, pk)
+            document = get_generated_document_data(request.data, pk, include_css=False)
         except AttributeError as e:
             return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
 
