@@ -153,6 +153,8 @@ class GoodQueryCLCResponse(APIView):
                             "good_name": query.good.description,
                             "old_control_list_entry": previous_control_list_entries,
                             "new_control_list_entry": new_control_list_entries,
+                            "old_is_good_controlled": "Yes" if query.good.is_good_controlled else "No",
+                            "new_is_good_controlled": "Yes" if query.good.is_good_controlled else "No",
                         },
                     )
 

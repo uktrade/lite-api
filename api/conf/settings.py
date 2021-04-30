@@ -53,7 +53,7 @@ ALLOWED_CIDR_NETS = ["10.0.0.0/8"]
 INSTALLED_APPS = [
     "api.addresses",
     "api.applications.apps.ApplicationsConfig",
-    "api.audit_trail",
+    "api.audit_trail.apps.ApplicationsConfig",
     "background_task",
     "api.cases",
     "api.cases.generated_documents",
@@ -117,6 +117,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "api.conf.middleware.HawkSigningMiddleware",
 ]
@@ -204,6 +205,9 @@ STATIC_URL = "/assets/"
 # CSS
 STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "assets")
 CSS_ROOT = os.path.join(STATIC_ROOT, "css")
+
+# Cache static files
+STATICFILES_STORAGE = env.str("STATICFILES_STORAGE", "whitenoise.storage.CompressedManifestStaticFilesStorage")
 
 LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "templates", "letter_templates")
 
@@ -307,10 +311,17 @@ if "test" not in sys.argv:
             "json": {
                 "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
                 "format": "(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)",  # noqa
-            }
+            },
+            "ecs_formatter": {"class": "django_log_formatter_ecs.ECSFormatter",},
         },
-        "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},
-        "loggers": {"": {"handlers": ["console"], "level": env("LOG_LEVEL").upper()}},
+        "handlers": {
+            "console": {"class": "logging.StreamHandler", "formatter": "json"},
+            "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter",},
+        },
+        "loggers": {
+            "": {"handlers": ["console"], "level": env("LOG_LEVEL").upper()},
+            "django": {"handlers": ["ecs"],},
+        },
     }
 else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}

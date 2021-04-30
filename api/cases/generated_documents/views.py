@@ -69,7 +69,7 @@ class GeneratedDocuments(generics.ListAPIView):
             return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            pdf = html_to_pdf(document.document_html, document.template.layout.filename)
+            pdf = html_to_pdf(document.document_html, document.template.layout.filename, request.build_absolute_uri())
         except Exception:  # noqa
             return JsonResponse(
                 {"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR

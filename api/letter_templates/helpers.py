@@ -14,7 +14,6 @@ from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 
 
-CONTENT_PLACEHOLDER = "$USER_CONTENT$"
 ALLOWED_TAGS = ["b", "strong", "em", "u", "h1", "h2", "h3", "h4", "h5", "h6"]
 
 
@@ -88,14 +87,7 @@ def generate_preview(
         django_engine = template_engine_factory(allow_missing_variables)
         template = django_engine.get_template(f"{layout}.html")
 
-        # Substitute content placeholder for user text
-        template_text = template.source
-        if CONTENT_PLACEHOLDER in template_text:
-            text = format_user_text(text)
-            template = template_text.replace(CONTENT_PLACEHOLDER, text)
-            template = django_engine.from_string(template)
-
-        context = {"include_digital_signature": include_digital_signature}
+        context = {"include_digital_signature": include_digital_signature, "user_content": text}
         if case:
             context = {**context, **get_document_context(case, additional_contact)}
 
