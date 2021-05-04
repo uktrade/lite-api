@@ -4,7 +4,6 @@
   <p id="references">
     Our Ref: {{ case_reference }}<br>
     Your Ref: {{ details.user_reference }}<br>
-    SPIRE Doc Ref:PREVIEW
   </p>
   <img src="{% static 'images/dit.png' %}">
 
@@ -41,7 +40,7 @@
   </div>
 
   <div class="border-black padding page-break-after" id="paragraph_content">
-      $USER_CONTENT$
+    {{ user_content }}
   </div>
 
   <h1>Schedule of Entities Assessed</h1>
