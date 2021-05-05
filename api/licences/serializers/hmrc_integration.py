@@ -31,6 +31,7 @@ class HMRCIntegrationOrganisationSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
     address = serializers.SerializerMethodField()
+    eori_number = serializers.CharField()
 
     def get_address(self, instance):
         return HMRCIntegrationAddressSerializer(

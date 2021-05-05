@@ -10,10 +10,22 @@
 }
 .document #addresses {
   display: flex;
+  flex-direction: row;
+}
+.document #recipient-address {
+  width: 90mm;
+}
+.document #sender-address {
+  margin-left: 10%;
 }
 .document .address {
   width: 50%;
 }
 .document img {
-  width: 50%;
+  display: inline-block;
+  float: right;
+  width: 25%;
+}
+.document #references {
+  display: inline-block;
 }
