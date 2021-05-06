@@ -14,11 +14,11 @@ from api.core.requests import post
 from api.conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT, HAWK_LITE_API_CREDENTIALS
 from api.licences.enums import HMRCIntegrationActionEnum, hmrc_integration_action_to_licence_status
 from api.licences.helpers import get_approved_goods_types
-from api.licences.models import Licence, HMRCIntegrationUsageUpdate, GoodOnLicence
+from api.licences.models import Licence, HMRCIntegrationUsageData, GoodOnLicence
 from api.licences.serializers.hmrc_integration import (
     HMRCIntegrationLicenceSerializer,
-    HMRCIntegrationUsageUpdateGoodSerializer,
-    HMRCIntegrationUsageUpdateLicenceSerializer,
+    HMRCIntegrationUsageDataGoodSerializer,
+    HMRCIntegrationUsageDataLicenceSerializer,
 )
 
 SEND_LICENCE_ENDPOINT = "/mail/update-licence/"
@@ -51,13 +51,13 @@ def send_licence(licence: Licence, action: str):
     logging.info(f"Successfully sent licence '{licence.id}', action '{action}' to HMRC Integration")
 
 
-def save_licence_usage_updates(usage_update_id: UUID, valid_licences: list):
+def save_licence_usage_updates(usage_data_id: UUID, valid_licences: list):
     """Updates Usage figures on Goods on Licences and creates an HMRCIntegrationUsageUpdate"""
 
     with transaction.atomic():
         updated_licence_ids = [_update_licence(validated_data) for validated_data in valid_licences]
-        hmrc_integration_usage_update = HMRCIntegrationUsageUpdate.objects.create(id=usage_update_id)
-        hmrc_integration_usage_update.licences.set(updated_licence_ids)
+        hmrc_integration_usage_data = HMRCIntegrationUsageData.objects.create(id=usage_data_id)
+        hmrc_integration_usage_data.licences.set(updated_licence_ids)
 
 
 def validate_licence_usage_updates(licences: list) -> (list, list):
@@ -80,7 +80,7 @@ def validate_licence_usage_updates(licences: list) -> (list, list):
 def _validate_licence(data: dict) -> dict:
     """Validates that a Licence exists and that the Goods exist on that Licence"""
 
-    serializer = HMRCIntegrationUsageUpdateLicenceSerializer(data=data)
+    serializer = HMRCIntegrationUsageDataLicenceSerializer(data=data)
 
     if not serializer.is_valid():
         data["errors"] = serializer.errors
@@ -130,7 +130,7 @@ def _validate_goods_on_licence(licence: Licence, goods: list) -> (list, list):
 def _validate_good_on_licence(licence: Licence, data: dict) -> dict:
     """Validates that a Good exists on a Licence"""
 
-    serializer = HMRCIntegrationUsageUpdateGoodSerializer(data=data)
+    serializer = HMRCIntegrationUsageDataGoodSerializer(data=data)
     if not serializer.is_valid():
         data["errors"] = serializer.errors
         return data

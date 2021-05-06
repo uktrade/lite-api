@@ -125,17 +125,17 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             return []
 
 
-class HMRCIntegrationUsageUpdateGoodSerializer(serializers.Serializer):
+class HMRCIntegrationUsageDataGoodSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True, allow_null=False)
     usage = serializers.FloatField(required=True, allow_null=False, min_value=0)
 
 
-class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
+class HMRCIntegrationUsageDataLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True, allow_null=False)
     action = serializers.CharField(required=True, allow_null=False)
     goods = serializers.ListField(required=True, allow_null=False, allow_empty=True)
 
 
-class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
-    usage_update_id = serializers.UUIDField(required=True, allow_null=False)
+class HMRCIntegrationUsageDataLicencesSerializer(serializers.Serializer):
+    usage_data_id = serializers.UUIDField(required=True, allow_null=False)
     licences = serializers.ListField(required=True, allow_null=False, allow_empty=False)
