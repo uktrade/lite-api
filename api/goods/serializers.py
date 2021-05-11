@@ -516,8 +516,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         if instance.is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO]:
             instance.modified_military_use_details = None
 
-        # import pdb; pdb.set_trace()
-
         is_component = validated_data.get("is_component")
         # if component answer has changed, then set the new value and the details field
         if is_component is not None and is_component != instance.is_component:
