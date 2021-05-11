@@ -9,10 +9,15 @@ from api.organisations.enums import OrganisationDocumentType
 from lite_content.lite_api import strings
 
 FIREARMS_CORE_TYPES = ["firearms", "ammunition", "components_for_firearms", "components_for_ammunition"]
+FIREARMS_ACCESSORY = ["firearms_accessory"]
 
 
 def validate_component_details(data):
     """ Validate the accompanying details for the chosen 'yes' component option. """
+
+    if "firearm_details" in data and data["firearm_details"].get("type") not in FIREARMS_ACCESSORY:
+        return
+
     component = data["is_component"]
     component_detail_options = {
         Component.YES_DESIGNED: {
@@ -40,13 +45,26 @@ def validate_component_details(data):
 
 
 def validate_military_use(data):
-    """ Validate military use selected if category is either Group 1 or 3. """
+    """ Validate military use selected if category is either Group 1, 2 or 3. """
+    if "firearm_details" in data and data["firearm_details"].get("type") in FIREARMS_CORE_TYPES:
+        return
+
     if "item_category" in data and not data.get("is_military_use"):
         raise ValidationError({"is_military_use": [strings.Goods.FORM_NO_MILITARY_USE_SELECTED]})
 
     is_military_use = data.get("is_military_use")
     if is_military_use == MilitaryUse.YES_MODIFIED and not data.get("modified_military_use_details"):
         raise serializers.ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
+
+
+def validate_information_security(data):
+    if "firearm_details" in data and data["firearm_details"].get("type") in FIREARMS_CORE_TYPES:
+        return
+
+    if "uses_information_security" in data and data.get("uses_information_security") is None:
+        raise serializers.ValidationError(
+            {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
+        )
 
 
 def get_sporting_shortgun_errormsg(firearm_type):

@@ -1,4 +1,5 @@
 from datetime import timedelta
+from copy import deepcopy
 from unittest import mock
 
 from django.utils.timezone import now
@@ -8,6 +9,7 @@ from rest_framework.reverse import reverse
 from api.goods.enums import (
     GoodPvGraded,
     ItemCategory,
+    MilitaryUse,
     FirearmGoodType,
 )
 from api.organisations.enums import OrganisationDocumentType
@@ -24,6 +26,9 @@ def good_template():
         "is_pv_graded": GoodPvGraded.NO,
         "item_category": ItemCategory.GROUP2_FIREARMS,
         "validate_only": False,
+        "is_military_use": MilitaryUse.NO,
+        "modified_military_use_details": "",
+        "uses_information_security": False,
         "firearm_details": {
             "type": FirearmGoodType.FIREARMS,
             "calibre": "0.5",
@@ -117,6 +122,7 @@ class CreateFirearmGoodTests(DataTestClient):
         self.assertEqual(response.status_code, 201, msg=response.content)
         self.assertEqual(self.organisation.document_on_organisations.count(), 1)
 
+        data = deepcopy(data)
         data["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"] = ""
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
