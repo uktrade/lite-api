@@ -12,7 +12,7 @@ from api.licences.managers import LicenceManager
 from api.staticdata.decisions.models import Decision
 
 
-class HMRCIntegrationUsageUpdate(TimestampableModel):
+class HMRCIntegrationUsageData(TimestampableModel):
     """
     A history of when a Licence was updated via a Usage Update from HMRC Integration
     This is to prevent the same update from being processed multiple times
@@ -32,7 +32,7 @@ class Licence(TimestampableModel):
     decisions = models.ManyToManyField(Decision, related_name="licence")
     hmrc_integration_sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
     hmrc_integration_usage_updates = models.ManyToManyField(
-        HMRCIntegrationUsageUpdate, related_name="licences"
+        HMRCIntegrationUsageData, related_name="licences"
     )  # Usage Update IDs from from HMRC Integration
 
     objects = LicenceManager()
