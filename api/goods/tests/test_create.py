@@ -565,6 +565,9 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
+            "is_military_use": MilitaryUse.NO,
+            "modified_military_use_details": "",
+            "uses_information_security": False,
             "firearm_details": {"type": FirearmGoodType.AMMUNITION, "calibre": "0.5", "year_of_manufacture": str(year)},
         }
 
@@ -618,6 +621,9 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
+            "is_military_use": MilitaryUse.NO,
+            "modified_military_use_details": "",
+            "uses_information_security": False,
             "firearm_details": {
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
@@ -682,6 +688,9 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
+            "is_military_use": MilitaryUse.NO,
+            "modified_military_use_details": "",
+            "uses_information_security": False,
             "firearm_details": {
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
@@ -843,6 +852,9 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
+            "is_military_use": MilitaryUse.NO,
+            "modified_military_use_details": "",
+            "uses_information_security": False,
             "firearm_details": {
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
@@ -923,6 +935,9 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
+            "is_military_use": MilitaryUse.NO,
+            "modified_military_use_details": "",
+            "uses_information_security": False,
             "firearm_details": {
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
@@ -946,6 +961,9 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
+            "is_military_use": MilitaryUse.NO,
+            "modified_military_use_details": "",
+            "uses_information_security": False,
             "firearm_details": {
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
@@ -974,6 +992,9 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
+            "is_military_use": MilitaryUse.NO,
+            "modified_military_use_details": "",
+            "uses_information_security": False,
             "firearm_details": {
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",
@@ -1002,6 +1023,9 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
+            "is_military_use": MilitaryUse.NO,
+            "modified_military_use_details": "",
+            "uses_information_security": False,
             "firearm_details": {
                 "type": FirearmGoodType.AMMUNITION,
                 "calibre": "0.5",

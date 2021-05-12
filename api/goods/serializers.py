@@ -20,6 +20,7 @@ from api.flags.enums import SystemFlags
 from api.goods.helpers import (
     FIREARMS_CORE_TYPES,
     validate_military_use,
+    validate_information_security,
     validate_component_details,
     validate_identification_markings,
     validate_firearms_act_section,
@@ -434,46 +435,41 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         # Get item category from the instance when it is not passed down on editing a good
         item_category = data.get("item_category") if "item_category" in data else self.instance.item_category
 
-        if item_category not in ItemCategory.group_two:
-            # NB! The order of validation should match the order of the forms so that the appropriate error is raised if the
-            # user clicks Back
-            # Validate software/technology details for products in group 3
-            if "software_or_technology_details" in data and not data.get("software_or_technology_details"):
-                raise serializers.ValidationError(
-                    {
-                        "software_or_technology_details": [
-                            strings.Goods.FORM_NO_SOFTWARE_DETAILS
-                            if item_category == ItemCategory.GROUP3_SOFTWARE
-                            else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
-                        ]
-                    }
-                )
+        # NB! The order of validation should match the order of the forms so that the appropriate error is raised if the
+        # user clicks Back
+        # Validate software/technology details for products in group 3
+        if "software_or_technology_details" in data and not data.get("software_or_technology_details"):
+            raise serializers.ValidationError(
+                {
+                    "software_or_technology_details": [
+                        strings.Goods.FORM_NO_SOFTWARE_DETAILS
+                        if item_category == ItemCategory.GROUP3_SOFTWARE
+                        else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
+                    ]
+                }
+            )
 
-            validate_military_use(data)
+        validate_military_use(data)
 
-            # Validate component field on creation (using is_component_step sent by the form), and on editing a good
-            # (using is_component)
-            if (
-                item_category in ItemCategory.group_one
-                and ("is_component" in data or "is_component_step" in self.initial_data)
-                and not data.get("is_component")
-            ):
-                raise serializers.ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
+        # Validate component field on creation (using is_component_step sent by the form), and on editing a good
+        # (using is_component)
+        if (
+            item_category in (ItemCategory.group_one + ItemCategory.group_two)
+            and ("is_component" in data or "is_component_step" in self.initial_data)
+            and not data.get("is_component")
+        ):
+            raise serializers.ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
 
-            # Validate component detail field if the answer was not 'No' using the initial data which contains all details
-            # fields as passed by the form
-            if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
-                valid_components = validate_component_details(self.initial_data)
-                if not valid_components["is_valid"]:
-                    raise serializers.ValidationError({valid_components["details_field"]: [valid_components["error"]]})
-                # Map the specific details field that was filled in to the single component_details field on the model
-                data["component_details"] = self.initial_data[valid_components["details_field"]]
+        # Validate component detail field if the answer was not 'No' using the initial data which contains all details
+        # fields as passed by the form
+        if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
+            valid_components = validate_component_details(self.initial_data)
+            if not valid_components["is_valid"]:
+                raise serializers.ValidationError({valid_components["details_field"]: [valid_components["error"]]})
+            # Map the specific details field that was filled in to the single component_details field on the model
+            data["component_details"] = self.initial_data[valid_components["details_field"]]
 
-            # Validate information security
-            if "uses_information_security" in data and data.get("uses_information_security") is None:
-                raise serializers.ValidationError(
-                    {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
-                )
+        validate_information_security(data)
 
         return super().validate(data)
 
