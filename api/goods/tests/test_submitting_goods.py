@@ -1,6 +1,7 @@
 from unittest import mock
 
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication
@@ -27,7 +28,13 @@ class GoodTests(DataTestClient):
         self.assertEqual(draft.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(Good.objects.get().status, "draft")
 
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
+        data = {
+            "submit_declaration": True,
+            "agreed_to_declaration": True,
+            "agreed_to_foi": True,
+            "foi_reason": "internal details",
+            "agreed_to_declaration_text": "I AGREE",
+        }
 
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
@@ -44,6 +51,76 @@ class GoodTests(DataTestClient):
         self.assertTrue(is_not_verified_flag_set_on_good(good))
         html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
+
+    def test_cannot_submit_if_no_reason_provided_for_not_disclosing_details(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        draft = self.create_draft_standard_application(self.organisation)
+        self.assertEqual(draft.status.status, CaseStatusEnum.DRAFT)
+        self.assertEqual(Good.objects.get().status, "draft")
+
+        data = {
+            "submit_declaration": True,
+            "agreed_to_declaration": True,
+            "agreed_to_foi": True,
+            "foi_reason": "",
+            "agreed_to_declaration_text": "I AGREE",
+        }
+
+        url = reverse("applications:application_submit", kwargs={"pk": draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = response.json()["errors"]
+        self.assertEqual(
+            errors["foi_reason"][0],
+            "To submit the application, you must answer why the disclosure of information would be harmful to your interests",
+        )
+
+    @parameterized.expand([["IAGREE"], ["NOT AGREED"], [""]])
+    def test_cannot_submit_if_not_agreed_to_declaration(self, declaration_text):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        draft = self.create_draft_standard_application(self.organisation)
+        self.assertEqual(draft.status.status, CaseStatusEnum.DRAFT)
+        self.assertEqual(Good.objects.get().status, "draft")
+
+        data = {
+            "submit_declaration": True,
+            "agreed_to_declaration": True,
+            "agreed_to_foi": True,
+            "foi_reason": "internal details",
+            "agreed_to_declaration_text": declaration_text,
+        }
+
+        url = reverse("applications:application_submit", kwargs={"pk": draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = response.json()["errors"]
+        self.assertEqual(
+            errors["agreed_to_declaration_text"][0],
+            "To submit the application, you must confirm that you agree by typing “I AGREE”",
+        )
+
+    @parameterized.expand(
+        [["I AGREE"], ["i AGREE"], ["i agree"], ["i AgrEE"], ["I aGrEe"],]
+    )
+    def test_agreed_to_declaration_case_insensitive(self, declaration_text):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        draft = self.create_draft_standard_application(self.organisation)
+        self.assertEqual(draft.status.status, CaseStatusEnum.DRAFT)
+        self.assertEqual(Good.objects.get().status, "draft")
+
+        data = {
+            "submit_declaration": True,
+            "agreed_to_declaration": True,
+            "agreed_to_foi": True,
+            "foi_reason": "",
+            "agreed_to_declaration_text": declaration_text,
+        }
+
+        url = reverse("applications:application_submit", kwargs={"pk": draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = response.json()["errors"]
+        self.assertTrue("agreed_to_declaration_text" not in errors)
 
     def test_submitted_good_cannot_be_edited(self):
         """
