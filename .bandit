@@ -1,2 +1,4 @@
 [bandit]
 exclude: /vendor,/.venv,/staticdata/management
+assert_used:
+  skips: ['test_*.py']
