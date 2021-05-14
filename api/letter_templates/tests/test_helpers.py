@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 from django.test import TestCase
 from test_helpers.clients import DataTestClient
 from api.letter_templates.helpers import generate_preview
@@ -21,6 +22,14 @@ class DocumentGenerationTestCase(DataTestClient):
             "siel",
         ]
         for layout in layouts:
-            html = generate_preview(layout=layout, case=case, text="")
-            # check there are no missing variables in the rendered template
-            assert "{{" not in html and "}}" not in html
+            # check it renders with no errors
+            assert generate_preview(layout=layout, case=case, text="")
+
+    def test_siel_logo(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+
+        html = generate_preview(layout="siel", case=case, text="")
+        soup = BeautifulSoup(html, "html.parser")
+        logo = soup.find(id="dit-logo")
+        assert "data:image/png;base64" in logo["src"]
+        assert len(logo["src"]) > 21
