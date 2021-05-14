@@ -102,6 +102,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
             "is_major_editable",
             "goods_locations",
             "case_officer",
+            "agreed_to_foi",
             "foi_reason",
         )
 
