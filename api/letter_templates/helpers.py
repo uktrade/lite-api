@@ -1,5 +1,4 @@
 import bleach
-from base64 import b64encode
 import os
 
 from django.template import Engine
@@ -95,11 +94,6 @@ def generate_preview(
         css_string = load_css(layout)
         if layout == "siel":
             css_string = load_css("siel_preview")
-            file_path = os.path.join(settings.STATIC_ROOT, "images/dit.png")
-            with open(file_path, "rb") as f:
-                image = f.read()
-            image_data = b64encode(image).decode()
-            context["image_data"] = image_data
 
     context["css"] = css_string
 
