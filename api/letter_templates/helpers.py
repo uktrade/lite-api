@@ -1,7 +1,9 @@
 import bleach
+from base64 import b64encode
 import os
 
-from django.template import Context, Engine, TemplateDoesNotExist
+from django.template import Engine
+from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 from markdown import markdown
 
@@ -11,7 +13,6 @@ from api.conf.settings import CSS_ROOT
 from api.letter_templates.context_generator import get_document_context
 from api.letter_templates.exceptions import InvalidVarException
 from api.letter_templates.models import LetterTemplate
-from lite_content.lite_api import strings
 
 
 ALLOWED_TAGS = ["b", "strong", "em", "u", "h1", "h2", "h3", "h4", "h5", "h6"]
@@ -83,21 +84,23 @@ def generate_preview(
     include_digital_signature=False,
     include_css=True,
 ):
-    try:
-        django_engine = template_engine_factory(allow_missing_variables)
-        template = django_engine.get_template(f"{layout}.html")
+    template_name = f"letter_templates/{layout}.html"
 
-        context = {"include_digital_signature": include_digital_signature, "user_content": text}
-        if case:
-            context = {**context, **get_document_context(case, additional_contact)}
+    context = {"include_digital_signature": include_digital_signature, "user_content": text}
+    if case:
+        context = {**context, **get_document_context(case, additional_contact)}
 
-        # TODO: we should use the template to substitute css rather than preprending here
-        css_string = ""
-        if include_css:
-            css_string = load_css(layout)
-            if layout == "siel":
-                css_string = load_css("siel_preview")
+    css_string = ""
+    if include_css:
+        css_string = load_css(layout)
+        if layout == "siel":
+            css_string = load_css("siel_preview")
+            file_path = os.path.join(settings.STATIC_ROOT, "images/dit.png")
+            with open(file_path, "rb") as f:
+                image = f.read()
+            image_data = b64encode(image).decode()
+            context["image_data"] = image_data
 
-        return css_string + template.render(Context(context))
-    except (FileNotFoundError, TemplateDoesNotExist):
-        raise DocumentPreviewError(strings.LetterTemplates.PREVIEW_ERROR)
+    context["css"] = css_string
+
+    return render_to_string(template_name, context)
