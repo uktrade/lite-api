@@ -222,11 +222,17 @@ def _validate_end_use_details(draft, errors, application_type):
 def _validate_agree_to_declaration(request, errors):
     """ Checks the exporter has agreed to the T&Cs of the licence """
 
-    if not str_to_bool(request.data.get("agreed_to_declaration")):
-        errors["agreed_to_declaration"] = [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED]
+    if "agreed_to_foi" in request.data and str_to_bool(request.data["agreed_to_foi"]):
+        if "foi_reason" not in request.data or request.data["foi_reason"] == "":
+            errors["foi_reason"] = [
+                "To submit the application, you must answer why the disclosure of information would be harmful to your interests"
+            ]
 
-    if "agreed_to_foi" not in request.data:
-        errors["agreed_to_foi"] = [strings.Applications.Generic.AGREEMENT_TO_FOI_REQUIRED]
+    text = request.data.get("agreed_to_declaration_text", "").lower()
+    if text != "i agree":
+        errors["agreed_to_declaration_text"] = [
+            "To submit the application, you must confirm that you agree by typing “I AGREE”"
+        ]
 
     return errors
 
