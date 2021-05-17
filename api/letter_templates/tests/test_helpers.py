@@ -9,7 +9,7 @@ class PreviewTestCase(TestCase):
 
 
 class DocumentGenerationTestCase(DataTestClient):
-    def test_document_layouts(self):
+    def test_document_layouts(self, layout):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         layouts = [
             "application_form",
@@ -22,4 +22,4 @@ class DocumentGenerationTestCase(DataTestClient):
         ]
         for layout in layouts:
             # check it renders with no errors
-            assert generate_preview(layout=layout, case=case, text="")
+            generate_preview(layout=layout, case=case, text="")
