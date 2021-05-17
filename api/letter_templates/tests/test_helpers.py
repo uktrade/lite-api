@@ -9,7 +9,7 @@ class PreviewTestCase(TestCase):
 
 
 class DocumentGenerationTestCase(DataTestClient):
-    def test_document_layouts(self, layout):
+    def test_document_layouts(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         layouts = [
             "application_form",
