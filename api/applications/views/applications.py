@@ -1,7 +1,7 @@
 from copy import deepcopy
 from uuid import UUID
 
-from django.conf import settings
+# from django.conf import settings
 from django.db import transaction
 from django.db.models import F
 from django.http import JsonResponse
