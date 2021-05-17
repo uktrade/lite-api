@@ -496,15 +496,16 @@ class ApplicationManageStatus(APIView):
             run_routing_rules(case=application, keep_status=True)
 
         if CaseStatusEnum.is_terminal(application.status.status):
-            gov_notify_service.send_email(
-                email_address=application.submitted_by.email,
-                template_type=TemplateType.APPLICATION_STATUS,
-                data=ApplicationStatusEmailData(
-                    case_reference=application.reference_code,
-                    application_reference=application.name,
-                    link=f"{settings.EXPORTER_BASE_URL}/applications/{application.id}",
-                ),
-            )
+            pass # email template not approved for use, turning it off temporarily as part of the ticket LTD-880
+            # gov_notify_service.send_email(
+            #     email_address=application.submitted_by.email,
+            #     template_type=TemplateType.APPLICATION_STATUS,
+            #     data=ApplicationStatusEmailData(
+            #         case_reference=application.reference_code,
+            #         application_reference=application.name,
+            #         link=f"{settings.EXPORTER_BASE_URL}/applications/{application.id}",
+            #     ),
+            # )
 
         data = get_application_view_serializer(application)(application, context={"user_type": request.user.type}).data
 
