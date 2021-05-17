@@ -1,2 +1,2 @@
 [bandit]
-exclude: /vendor,/.venv,/staticdata/management
+exclude: /vendor,/.venv,/staticdata/management,**/test_*.py

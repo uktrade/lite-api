@@ -1,4 +1,6 @@
-{% load static %}
+{% load static custom_tags %}
+
+{{ css|safe }}
 
 <div class="document">
     <h1>Standard Individual Export Licence</h1>
@@ -397,15 +399,15 @@
         </div>
       {% endif %}
       <div class="terms-and-conditions-paragraph">
-        This licence does not permit any activity prohibited by financial sanctions. Where activity is prohibited by multiple types of sanctions, 
-        more than one licence may be required. Details of those designated under the regulations made under The Sanctions and Anti-Money Laundering Act 2018, 
-        can be found at: https://www.gov.uk/government/publications/the-uk-sanctions-list. UK sanctions evolve regularly, and it is the responsibility 
+        This licence does not permit any activity prohibited by financial sanctions. Where activity is prohibited by multiple types of sanctions,
+        more than one licence may be required. Details of those designated under the regulations made under The Sanctions and Anti-Money Laundering Act 2018,
+        can be found at: https://www.gov.uk/government/publications/the-uk-sanctions-list. UK sanctions evolve regularly, and it is the responsibility
         of the exporter to ensure that each export of goods under this licence is compliant with all relevant sanctions restrictions.
       </div>
       {% if goods.approve|licence_products_covered_by_firearms_regulations %}
         <div class="terms-and-conditions-paragraph">
-          If exporting from Great Britain, the authorisation for the goods against control entry 'FR AI' has been granted under Article 4 of Regulation (EU) No 258/2012. 
-          If exporting from Northern Ireland, the authorisation for the goods against control entry 'FR AI' has been granted under Article 4 of Regulation (EU) No 258/2012 
+          If exporting from Great Britain, the authorisation for the goods against control entry 'FR AI' has been granted under Article 4 of Regulation (EU) No 258/2012.
+          If exporting from Northern Ireland, the authorisation for the goods against control entry 'FR AI' has been granted under Article 4 of Regulation (EU) No 258/2012
           as it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal agreement.
         </div>
       {% endif %}
@@ -415,16 +417,16 @@
       <div class="terms-and-conditions-heading">Conditions</div>
       <div class="terms-and-conditions-paragraph">
         1. For exports to a destination outside the United Kingdom, the licensee must submit a customs declaration prior to export, quoting
-         the number of this licence to the proper officer of HM Revenue and Customs when the listed items are presented to that officer 
-         for export or must comply with such alternative arrangements as are agreed with that officer, unless the export falls within condition 2 below. 
+         the number of this licence to the proper officer of HM Revenue and Customs when the listed items are presented to that officer
+         for export or must comply with such alternative arrangements as are agreed with that officer, unless the export falls within condition 2 below.
       </div>
       <div class="terms-and-conditions-paragraph">
         2. For exports from Northern Ireland to the customs territory of the European Union, for goods on the UK Military List, or dual-use items listed in
-         Annex IV to Council Regulation (EC) No 428/2009 as it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal 
-         agreement, or goods within the scope of Directive 91/477/EEC or goods that could be used for torture or capital punishment listed in Regulation (EU) 2019/125 as 
-         it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal agreement, where no pre export customs declaration 
-         is required, the licensee must quote the number of this licence to the proper officer of HM Revenue and Customs* at least three working days before the date of 
-         the proposed export identifying a location where the listed items will be capable of inspection at any time during those three days, or shall comply with such 
+         Annex IV to Council Regulation (EC) No 428/2009 as it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal
+         agreement, or goods within the scope of Directive 91/477/EEC or goods that could be used for torture or capital punishment listed in Regulation (EU) 2019/125 as
+         it has effect in Northern Ireland by virtue of the Protocol on Ireland/Northern Ireland in the EU withdrawal agreement, where no pre export customs declaration
+         is required, the licensee must quote the number of this licence to the proper officer of HM Revenue and Customs* at least three working days before the date of
+         the proposed export identifying a location where the listed items will be capable of inspection at any time during those three days, or shall comply with such
          alternative arrangements as are agreed with an officer of HM Revenue and Customs. * Notifications should be sent to it.audit.south.district@hmrc.gov.uk.
       </div>
     </div>
