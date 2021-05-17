@@ -208,7 +208,7 @@ def auto_match_sanctions(application):
         parties.append(item.party)
 
     for party in parties:
-        query = build_query(name=party.signatory_name_euu, address=party.address)
+        query = build_query(name=party.signatory_name_euu)
         results = (
             Search(index=settings.ELASTICSEARCH_SANCTION_INDEX_ALIAS)
             .query(query)
@@ -237,12 +237,5 @@ def normalize_address(value):
     return value.upper().replace(" ", "")
 
 
-def build_query(name, address):
-    return Q(
-        "bool",
-        should=[
-            Q("function_score", query=Q("match", name=name), min_score=0.5),
-            Q("function_score", query=Q("match", address=address), weight=0.5),
-        ],
-        minimum_should_match=1,
-    )
+def build_query(name):
+    return Q("match", name=name)
