@@ -75,7 +75,7 @@ from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData, EcjuComplianceCreatedEmailData
+from gov_notify.payloads import EcjuComplianceCreatedEmailData
 from api.licences.models import Licence
 from api.licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
@@ -496,17 +496,6 @@ class ECJUQueries(APIView):
                             link=link,
                         ),
                     )
-            else:
-                gov_notify_service.send_email(
-                    email_address=case_info["email"],
-                    template_type=TemplateType.ECJU_CREATED,
-                    data=EcjuCreatedEmailData(
-                        application_reference=case_info["name"] or "",
-                        case_reference=case_info["reference_code"],
-                        link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
-                    ),
-                )
-
             return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
 
 
@@ -823,16 +812,6 @@ class FinaliseView(UpdateAPIView):
         old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
-
-        gov_notify_service.send_email(
-            email_address=case.submitted_by.email,
-            template_type=TemplateType.APPLICATION_STATUS,
-            data=ApplicationStatusEmailData(
-                application_reference=case.baseapplication.name,
-                case_reference=case.reference_code,
-                link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}",
-            ),
-        )
 
         audit_trail_service.create(
             actor=request.user,
