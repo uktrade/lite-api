@@ -1,16 +1,13 @@
 import bleach
 import os
 
-from django.template import Engine
 from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 from markdown import markdown
 
-from django.conf import settings
 from api.core.exceptions import NotFoundError
 from api.conf.settings import CSS_ROOT
 from api.letter_templates.context_generator import get_document_context
-from api.letter_templates.exceptions import InvalidVarException
 from api.letter_templates.models import LetterTemplate
 
 
@@ -22,29 +19,6 @@ def get_letter_template(pk):
         return LetterTemplate.objects.get(pk=pk)
     except LetterTemplate.DoesNotExist:
         raise NotFoundError({"letter_template": "LetterTemplate not found - " + str(pk)})
-
-
-def template_engine_factory(allow_missing_variables):
-    """
-    Create a template engine configured for use with letter templates.
-    """
-    # Put the variable name in if missing variables. Else trigger an InvalidVarException.
-    string_if_invalid = "{{ %s }}" if allow_missing_variables else InvalidVarException()
-
-    return Engine(
-        string_if_invalid=string_if_invalid,
-        builtins=[
-            "django.template.defaulttags",
-            "django.template.defaultfilters",
-            "django.template.loader_tags",
-            "api.letter_templates.templatetags.custom_tags",
-        ],
-        dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)],
-        libraries={
-            "static": "django.templatetags.static",
-            "custom_tags": "api.letter_templates.templatetags.custom_tags",
-        },
-    )
 
 
 def markdown_to_html(text: str):
@@ -79,7 +53,6 @@ def generate_preview(
     text: str,
     case=None,
     additional_contact=None,
-    allow_missing_variables=True,
     include_digital_signature=False,
     include_css=True,
 ):
