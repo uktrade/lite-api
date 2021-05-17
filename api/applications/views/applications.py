@@ -73,7 +73,7 @@ from api.flags.enums import FlagStatuses, SystemFlags
 from api.flags.models import Flag
 from api.goods.serializers import GoodCreateSerializer
 from api.goodstype.models import GoodsType
-from gov_notify import service as gov_notify_service
+# from gov_notify import service as gov_notify_service
 # from gov_notify.enums import TemplateType
 # from gov_notify.payloads import ApplicationStatusEmailData
 from api.licences.enums import LicenceStatus
