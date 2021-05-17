@@ -75,7 +75,7 @@ from api.goods.serializers import GoodCreateSerializer
 from api.goodstype.models import GoodsType
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import ApplicationStatusEmailData
+# from gov_notify.payloads import ApplicationStatusEmailData
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code, update_licence_status
 from api.licences.models import Licence

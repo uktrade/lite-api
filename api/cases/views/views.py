@@ -75,7 +75,7 @@ from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData, EcjuComplianceCreatedEmailData
+from gov_notify.payloads import EcjuComplianceCreatedEmailData  # EcjuCreatedEmailData, ApplicationStatusEmailData
 from api.licences.models import Licence
 from api.licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
