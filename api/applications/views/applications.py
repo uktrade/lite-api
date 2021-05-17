@@ -1,7 +1,6 @@
 from copy import deepcopy
 from uuid import UUID
 
-from django.conf import settings
 from django.db import transaction
 from django.db.models import F
 from django.http import JsonResponse
@@ -73,9 +72,6 @@ from api.flags.enums import FlagStatuses, SystemFlags
 from api.flags.models import Flag
 from api.goods.serializers import GoodCreateSerializer
 from api.goodstype.models import GoodsType
-from gov_notify import service as gov_notify_service
-from gov_notify.enums import TemplateType
-from gov_notify.payloads import ApplicationStatusEmailData
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code, update_licence_status
 from api.licences.models import Licence
@@ -494,17 +490,6 @@ class ApplicationManageStatus(APIView):
         # Case routing rules
         if old_status != application.status:
             run_routing_rules(case=application, keep_status=True)
-
-        if CaseStatusEnum.is_terminal(application.status.status):
-            gov_notify_service.send_email(
-                email_address=application.submitted_by.email,
-                template_type=TemplateType.APPLICATION_STATUS,
-                data=ApplicationStatusEmailData(
-                    case_reference=application.reference_code,
-                    application_reference=application.name,
-                    link=f"{settings.EXPORTER_BASE_URL}/applications/{application.id}",
-                ),
-            )
 
         data = get_application_view_serializer(application)(application, context={"user_type": request.user.type}).data
 
