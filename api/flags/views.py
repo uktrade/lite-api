@@ -69,7 +69,7 @@ class FlagsListCreateView(ListCreateAPIView):
         team = self.request.GET.get("team")
         status = self.request.GET.get("status", FlagStatuses.ACTIVE)
         include_system_flags = str_to_bool(self.request.GET.get("include_system_flags"))
-        blocks_approval = str_to_bool(self.request.GET.get("blocks_approval"))
+        blocks_finalising = str_to_bool(self.request.GET.get("blocks_finalising"))
 
         if case:
             flags = get_flags(get_case(case))
@@ -95,8 +95,8 @@ class FlagsListCreateView(ListCreateAPIView):
             system_flags = Flag.objects.filter(id__in=SystemFlags.list).exclude(level=FlagLevels.PARTY_ON_APPLICATION)
             flags = flags | system_flags
 
-        if blocks_approval:
-            flags = flags.filter(blocks_approval=True)
+        if blocks_finalising:
+            flags = flags.filter(blocks_finalising=True)
 
         return flags.order_by("name").select_related("team")
 

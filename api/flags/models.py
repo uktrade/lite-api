@@ -22,7 +22,7 @@ class Flag(TimestampableModel):
     label = models.CharField(max_length=15, null=True, blank=True)
     colour = models.CharField(choices=FlagColours.choices, default=FlagColours.DEFAULT, max_length=20)
     priority = models.PositiveSmallIntegerField(default=0)
-    blocks_approval = models.BooleanField(null=False, blank=False, default=False)
+    blocks_finalising = models.BooleanField(default=False)
     removable_by = models.CharField(choices=FlagPermissions.choices, default=FlagPermissions.DEFAULT, max_length=50)
 
     objects = FlagManager()

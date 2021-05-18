@@ -572,7 +572,7 @@ class ApplicationFinaliseView(APIView):
         # Check if any blocking flags are on the case
         blocking_flags = (
             get_flags(application.get_case())
-            .filter(status=FlagStatuses.ACTIVE, blocks_approval=True)
+            .filter(status=FlagStatuses.ACTIVE, blocks_finalising=True)
             .order_by("name")
             .values_list("name", flat=True)
         )

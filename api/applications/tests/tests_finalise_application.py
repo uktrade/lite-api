@@ -128,7 +128,7 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_approve_application_blocking_flags_failure(self):
-        flag = FlagFactory(level=FlagLevels.CASE, team=self.team, blocks_approval=True)
+        flag = FlagFactory(level=FlagLevels.CASE, team=self.team, blocks_finalising=True)
         self.standard_application.flags.add(flag)
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
         data = {"action": AdviceType.APPROVE, "duration": 60}
