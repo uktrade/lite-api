@@ -569,24 +569,24 @@ class ApplicationFinaliseView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Check if any blocking flags are on the case
+        blocking_flags = (
+            get_flags(application.get_case())
+            .filter(status=FlagStatuses.ACTIVE, blocks_approval=True)
+            .order_by("name")
+            .values_list("name", flat=True)
+        )
+        if blocking_flags:
+            raise PermissionDenied(
+                [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"]
+            )
+
         # Refusals & NLRs
         if action in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
             return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
 
         # Approvals & Provisos
         else:
-            # Check if any blocking flags are on the case
-            blocking_flags = (
-                get_flags(application.get_case())
-                .filter(status=FlagStatuses.ACTIVE, blocks_approval=True)
-                .order_by("name")
-                .values_list("name", flat=True)
-            )
-            if blocking_flags:
-                raise PermissionDenied(
-                    [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"]
-                )
-
             try:
                 active_licence = Licence.objects.get_active_licence(application)
                 default_licence_duration = active_licence.duration
