@@ -42,13 +42,13 @@ class FlagsListTests(DataTestClient):
 
     def test_get_case_flags_which_block_approval(self):
         case = self.create_standard_application_case(self.organisation)
-        flag_1 = FlagFactory(level=FlagLevels.CASE, team=self.team, blocks_approval=True)
+        flag_1 = FlagFactory(level=FlagLevels.CASE, team=self.team, blocks_finalising=True)
         flag_2 = FlagFactory(level=FlagLevels.CASE, team=self.team)
         flags = [flag_1, flag_2]
         case.flags.set(flags)
 
         response = self.client.get(
-            self.url + f"?case={case.pk}&only_show_deactivated=False&blocks_approval=True&disable_pagination=True",
+            self.url + f"?case={case.pk}&only_show_deactivated=False&blocks_finalising=True&disable_pagination=True",
             **self.gov_headers,
         )
         response_data = response.json()

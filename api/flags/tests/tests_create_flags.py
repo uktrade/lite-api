@@ -17,7 +17,7 @@ class FlagsCreateTest(DataTestClient):
             "level": "Organisation",
             "colour": FlagColours.ORANGE,
             "label": "This is label",
-            "blocks_approval": False,
+            "blocks_finalising": False,
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -87,7 +87,7 @@ class FlagsCreateTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Flags.ValidationErrors.LABEL_MISSING, response.json()["errors"]["label"])
 
-    def test_cannot_create_flag_without_blocks_approval(self):
+    def test_cannot_create_flag_without_blocks_finalising(self):
         data = {
             "name": "new flag",
             "level": "Organisation",
@@ -99,5 +99,5 @@ class FlagsCreateTest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["blocks_approval"], [strings.Flags.ValidationErrors.BLOCKING_APPROVAL_MISSING]
+            response.json()["errors"]["blocks_finalising"], [strings.Flags.ValidationErrors.BLOCKING_APPROVAL_MISSING]
         )

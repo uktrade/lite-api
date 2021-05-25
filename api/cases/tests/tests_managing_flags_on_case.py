@@ -142,7 +142,7 @@ class CaseFlagsManagementTests(DataTestClient):
         """
 
         approval_blocking_flag = FlagFactory(
-            name="Approval blocking flag", level="Case", team=self.team, blocks_approval=True
+            name="Approval blocking flag", level="Case", team=self.team, blocks_finalising=True
         )
 
         flags_to_add = {
@@ -169,7 +169,7 @@ class CaseFlagsManagementTests(DataTestClient):
             name="Approval blocking flag",
             level="Case",
             team=self.team,
-            blocks_approval=True,
+            blocks_finalising=True,
             removable_by=FlagPermissions.AUTHORISED_COUNTERSIGNER,
         )
 
@@ -196,7 +196,7 @@ class CaseFlagsManagementTests(DataTestClient):
             name="Approval blocking flag",
             level="Case",
             team=self.team,
-            blocks_approval=True,
+            blocks_finalising=True,
             removable_by=FlagPermissions.AUTHORISED_COUNTERSIGNER,
         )
 

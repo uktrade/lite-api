@@ -23,7 +23,7 @@ class FlagFactory(factory.django.DjangoModelFactory):
     colour = FlagColours.DEFAULT
     label = None
     priority = factory.LazyFunction(get_flag_priority)
-    blocks_approval = False
+    blocks_finalising = False
     removable_by = FlagPermissions.DEFAULT
 
     class Meta:
