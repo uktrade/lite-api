@@ -90,7 +90,7 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
             raise error
 
 
-class FirearmDetailsSerializer(serializers.ModelSerializer):
+class FirearmGoodDetailsSerializer(serializers.ModelSerializer):
     type = KeyValueChoiceField(
         choices=FirearmGoodType.choices,
         allow_null=False,
@@ -166,7 +166,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        validated_data = super(FirearmDetailsSerializer, self).validate(data)
+        validated_data = super(FirearmGoodDetailsSerializer, self).validate(data)
 
         # Year of manufacture should be in the past and a valid year
         year_of_manufacture = validated_data.get("year_of_manufacture")
@@ -362,7 +362,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     software_or_technology_details = serializers.CharField(
         allow_null=True, required=False, allow_blank=True, max_length=2000
     )
-    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    firearm_details = FirearmGoodDetailsSerializer(allow_null=True, required=False)
 
     class Meta:
         model = Good
@@ -595,12 +595,12 @@ class GoodCreateSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def _create_firearm_details(firearm_details):
-        return FirearmDetailsSerializer.create(FirearmDetailsSerializer(), validated_data=firearm_details)
+        return FirearmGoodDetailsSerializer.create(FirearmGoodDetailsSerializer(), validated_data=firearm_details)
 
     @staticmethod
     def _update_firearm_details(firearm_details, instance):
-        return FirearmDetailsSerializer.update(
-            FirearmDetailsSerializer(), validated_data=firearm_details, instance=instance,
+        return FirearmGoodDetailsSerializer.update(
+            FirearmGoodDetailsSerializer(), validated_data=firearm_details, instance=instance,
         )
 
 
@@ -717,7 +717,7 @@ class GoodSerializerInternal(serializers.Serializer):
     is_document_available = serializers.BooleanField()
     is_document_sensitive = serializers.BooleanField()
     software_or_technology_details = serializers.CharField()
-    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    firearm_details = FirearmGoodDetailsSerializer(allow_null=True, required=False)
     is_precedent = serializers.BooleanField(required=False, default=False)
 
     def get_documents(self, instance):
@@ -726,7 +726,7 @@ class GoodSerializerInternal(serializers.Serializer):
 
 
 class TinyGoodDetailsSerializer(serializers.ModelSerializer):
-    firearm_details = FirearmDetailsSerializer(read_only=True)
+    firearm_details = FirearmGoodDetailsSerializer(read_only=True)
 
     class Meta:
         model = Good
@@ -761,7 +761,7 @@ class GoodSerializerExporter(serializers.Serializer):
     information_security_details = serializers.CharField()
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
     software_or_technology_details = serializers.CharField()
-    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    firearm_details = FirearmGoodDetailsSerializer(allow_null=True, required=False)
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
