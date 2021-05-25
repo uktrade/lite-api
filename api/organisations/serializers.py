@@ -2,6 +2,7 @@ import re
 
 from django.db import transaction
 from django.utils import timezone
+from dateutil.relativedelta import relativedelta
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
@@ -469,6 +470,14 @@ class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
 
     def get_is_expired(self, instance):
         return timezone.now().date() > instance.expiry_date
+
+    def validate_expiry_date(self, value):
+        years_from_now = relativedelta(value, timezone.now().date()).years
+        if years_from_now > 5:
+            raise serializers.ValidationError("Expiry date is too far in the future")
+        elif value < timezone.now().date():
+            raise serializers.ValidationError("Expiry date must be in the future")
+        return value
 
     def create(self, validated_data):
         document_serializer = DocumentSerializer(data=validated_data["document"])

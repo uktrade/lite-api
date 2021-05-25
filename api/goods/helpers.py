@@ -1,4 +1,6 @@
 from django.utils import timezone
+from dateutil.relativedelta import relativedelta
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -138,7 +140,7 @@ def validate_firearms_act_certificate_expiry_date(validated_data):
     if covered_by_firearms_act == "No" or covered_by_firearms_act == "Unsure":
         return
 
-    certificate_missing = validated_data.get("section_certificate_missing", False) == True
+    certificate_missing = validated_data.get("section_certificate_missing", False)
     if certificate_missing:
         if validated_data.get("section_certificate_missing_reason", "") == "":
             errors["section_certificate_missing_reason"] = "Enter a reason why you do not have a section 1 certificate"
@@ -156,6 +158,11 @@ def validate_firearms_act_certificate_expiry_date(validated_data):
         # Date of expiry has to be in the future
         if date_of_expiry and date_of_expiry < timezone.now().date():
             errors["section_certificate_date_of_expiry"] = strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE
+
+        difference_in_years = relativedelta(date_of_expiry, timezone.now().date()).years
+
+        if difference_in_years > 5:
+            errors["section_certificate_date_of_expiry"] = "Expiry date is too far in the future"
 
     if errors:
         raise serializers.ValidationError(errors)

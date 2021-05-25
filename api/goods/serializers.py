@@ -187,7 +187,7 @@ class FirearmGoodDetailsSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({"is_replica": "Select yes if the product is a replica firearm"})
 
                 if validated_data.get("is_replica") is True:
-                    if "replica_description" not in validated_data or validated_data.get("replica_description") is "":
+                    if "replica_description" not in validated_data or validated_data.get("replica_description") == "":
                         raise serializers.ValidationError({"replica_description": "Enter description"})
             if validated_data.get("is_replica") is not None and "firearms" != validated_data.get("type"):
                 raise serializers.ValidationError({"is_replica": "Invalid firearm product type"})
