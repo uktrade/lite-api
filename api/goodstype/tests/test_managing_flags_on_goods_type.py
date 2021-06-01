@@ -29,7 +29,7 @@ class GoodTypeFlagsManagementTests(DataTestClient):
             self.other_team_good_flag,
         ]
 
-        self.good_url = reverse("goodstype:goodstypes_detail", kwargs={"pk": self.goods_type.id})
+        self.good_url = reverse("goodstype:retrieve", kwargs={"pk": self.goods_type.id})
         self.good_flag_url = reverse("flags:assign_flags")
 
     def test_no_flags_for_goods_type_are_returned(self):
@@ -42,7 +42,7 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         response = self.client.get(self.good_url, **self.gov_headers)
 
         # Assert
-        self.assertEqual([], response.json()["good"]["flags"])
+        self.assertEqual([], response.json()["flags"])
 
     def test_all_flags_for_goods_type_are_returned(self):
         """
@@ -53,9 +53,8 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         self.goods_type.flags.set(self.all_flags)
 
         response = self.client.get(self.good_url, **self.gov_headers)
-        returned_good = response.json()["good"]
 
-        self.assertEquals(len(self.goods_type.flags.all()), len(returned_good["flags"]))
+        self.assertEquals(len(self.goods_type.flags.all()), len(response.json()["flags"]))
 
     def test_user_can_add_good_level_flags_from_their_own_team(self):
         """
