@@ -246,7 +246,7 @@ class StandardApplicationTests(DataTestClient):
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": "Because", "agreed_to_declaration_text": "I Agree"}
 
         url = reverse("applications:application_submit", kwargs={"pk": standard_application.id})
 
@@ -334,7 +334,8 @@ class StandardApplicationTests(DataTestClient):
             "submit_declaration": "True",
             "agreed_to_declaration": "True",
             "agreed_to_foi": "False",
-            "foi_reason": "Lorem ipsum",
+            "foi_reason": "Because",
+            "agreed_to_declaration_text": "I Agree"
         }
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
@@ -347,7 +348,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertNotEqual(case.status.status, CaseStatusEnum.DRAFT)
         self.assertFalse(case.status.is_terminal)
         self.assertEqual(case.baseapplication.agreed_to_foi, False)
-        self.assertEqual(case.baseapplication.foi_reason, "Lorem ipsum")
+        self.assertEqual(case.baseapplication.foi_reason, "Because")
         self.assertEqual(case.submitted_by, self.exporter_user)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in case.flags.values_list("id", flat=True))
 
@@ -381,7 +382,7 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
-        data = {"submit_declaration": True, "agreed_to_declaration": False, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": False, "agreed_to_foi": True, "foi_reason": "Because"}
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
@@ -389,7 +390,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         errors = response.json()["errors"]
-        self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
+        self.assertEqual(errors["agreed_to_declaration_text"], ["To submit the application, you must confirm that you agree by typing “I AGREE”"])
 
     @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("api.cases.generated_documents.helpers.html_to_pdf")
@@ -407,7 +408,7 @@ class StandardApplicationTests(DataTestClient):
         draft.is_military_end_use_controls = True
         draft.is_informed_wmd = True
         draft.save()
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": "Because", "agreed_to_declaration_text": "I Agree"}
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
         response = self.client.put(url, data=data, **self.exporter_headers)
@@ -447,7 +448,7 @@ class StandardApplicationTests(DataTestClient):
         self.draft.save()
 
         # Re-submit application
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": "Because", "agreed_to_declaration_text": "I Agree"}
         response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()
         case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
@@ -557,7 +558,7 @@ class StandardApplicationTests(DataTestClient):
         self.draft.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
         self.draft.save()
 
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": "Because", "agreed_to_declaration_text": "I Agree"}
 
         response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()

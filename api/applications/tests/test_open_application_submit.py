@@ -105,7 +105,8 @@ class OpenApplicationTests(DataTestClient):
             "submit_declaration": True,
             "agreed_to_declaration": True,
             "agreed_to_foi": True,
-            "foi_reason": "",
+            "foi_reason": "Because",
+            "agreed_to_declaration_text": "I Agree"
         }
         case = Case.objects.get()
         self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
@@ -152,6 +153,7 @@ class OpenApplicationTests(DataTestClient):
             "submit_declaration": True,
             "agreed_to_declaration": False,
             "agreed_to_foi": True,
+            "foi_reason": "Because",
         }
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
@@ -160,7 +162,7 @@ class OpenApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         errors = response.json()["errors"]
-        self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
+        self.assertEqual(errors["agreed_to_declaration_text"], ["To submit the application, you must confirm that you agree by typing “I AGREE”"])
 
     def test_submit_open_application_temporary_with_temp_export_details_success(self):
         self.draft.export_type = ApplicationExportType.TEMPORARY
@@ -211,7 +213,7 @@ class OpenApplicationTests(DataTestClient):
         self.draft.trade_control_activity = TradeControlActivity.MARITIME_ANTI_PIRACY
         self.draft.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
         self.draft.save()
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": ""}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True, "foi_reason": "Because", "agreed_to_declaration_text": "I Agree"}
 
         response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()
