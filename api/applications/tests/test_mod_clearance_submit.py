@@ -152,7 +152,10 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         errors = response.json()["errors"]
-        self.assertEqual(errors["agreed_to_declaration_text"], ["To submit the application, you must confirm that you agree by typing “I AGREE”"])
+        self.assertEqual(
+            errors["agreed_to_declaration_text"],
+            ["To submit the application, you must confirm that you agree by typing “I AGREE”"],
+        )
 
 
 class GiftingClearanceTests(DataTestClient):
@@ -271,7 +274,10 @@ class GiftingClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         errors = response.json()["errors"]
-        self.assertEqual(errors["agreed_to_declaration_text"], ["To submit the application, you must confirm that you agree by typing “I AGREE”"])
+        self.assertEqual(
+            errors["agreed_to_declaration_text"],
+            ["To submit the application, you must confirm that you agree by typing “I AGREE”"],
+        )
 
 
 class F680ClearanceTests(DataTestClient):
@@ -429,4 +435,8 @@ class F680ClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         errors = response.json()["errors"]
-        self.assertEqual(errors["agreed_to_declaration_text"], ["To submit the application, you must confirm that you agree by typing “I AGREE”"])
+        self.assertEqual(
+            errors["agreed_to_declaration_text"],
+            ["To submit the application, you must confirm that you agree by typing “I AGREE”"],
+        )
+

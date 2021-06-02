@@ -410,7 +410,7 @@ class EditOrganisationTests(DataTestClient):
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {
-            "eori_number": 'GB123456789000',
+            "eori_number": "GB123456789000",
             "sic_number": self.faker.sic_number(),
             "vat_number": self.faker.vat_number(),
             "registration_number": self.faker.registration_number(),
@@ -662,7 +662,7 @@ class EditOrganisationTests(DataTestClient):
         data = {
             "name": "regional site",
             "type": OrganisationType.COMMERCIAL,
-            "eori_number": 'GB123456789000',
+            "eori_number": "GB123456789000",
             "sic_number": self.faker.sic_number(),
             "vat_number": self.faker.vat_number(),
             "registration_number": self.faker.registration_number(),

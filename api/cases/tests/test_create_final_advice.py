@@ -228,7 +228,7 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @pytest.mark.xfail(reason='Possibly caused by flux in behavior of advice section. Needs to be reviewed.')
+    @pytest.mark.xfail(reason="Possibly caused by flux in behavior of advice section. Needs to be reviewed.")
     def test_cannot_submit_user_level_advice_if_final_advice_exists_on_that_case(self):
         """
         Logically blocks the submission of lower tier advice if higher tier advice exists
