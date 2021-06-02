@@ -23,10 +23,10 @@ REQUEST_DATA = {
 
 
 def _assert_response_data(self, response_data, request_data):
-    self.assertEquals(response_data["name"], request_data["name"])
-    self.assertEquals(response_data["description"], request_data["description"])
-    self.assertEquals(response_data["url"], request_data["url"])
-    self.assertEquals(response_data["case_type"]["id"], str(request_data["case_type"]))
+    self.assertEqual(response_data["name"], request_data["name"])
+    self.assertEqual(response_data["description"], request_data["description"])
+    self.assertEqual(response_data["url"], request_data["url"])
+    self.assertEqual(response_data["case_type"]["id"], str(request_data["case_type"]))
 
     self.assertTrue(len(response_data["countries"]) > 0)
     for country in response_data["countries"]:
@@ -47,9 +47,9 @@ class TestCreateOGL(DataTestClient):
     def test_creating_success(self):
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json(), self.request_data)
-        self.assertEquals(OpenGeneralLicence.objects.all().count(), 1)
+        self.assertEqual(OpenGeneralLicence.objects.all().count(), 1)
         self.assertEqual(Audit.objects.all().count(), 1)
 
     @parameterized.expand([(CaseTypeEnum.OGEL.id,), (CaseTypeEnum.OGTL.id,), (CaseTypeEnum.OGTCL.id,)])
@@ -57,9 +57,9 @@ class TestCreateOGL(DataTestClient):
         self.request_data["case_type"] = case_type_id
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json(), self.request_data)
-        self.assertEquals(OpenGeneralLicence.objects.all().count(), 1)
+        self.assertEqual(OpenGeneralLicence.objects.all().count(), 1)
         self.assertEqual(Audit.objects.all().count(), 1)
 
     @parameterized.expand(REQUEST_DATA.keys())
@@ -69,7 +69,7 @@ class TestCreateOGL(DataTestClient):
         self.request_data.pop(key)
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Audit.objects.all().count(), 0)
 
     @parameterized.expand(REQUEST_DATA.keys())
@@ -79,7 +79,7 @@ class TestCreateOGL(DataTestClient):
         self.request_data[key] = None
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Audit.objects.all().count(), 0)
 
     @parameterized.expand(REQUEST_DATA.keys())
@@ -93,7 +93,7 @@ class TestCreateOGL(DataTestClient):
         self.request_data.pop(key)
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Audit.objects.all().count(), 0)
 
     def test_fail_without_permission(self):
@@ -102,4 +102,4 @@ class TestCreateOGL(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

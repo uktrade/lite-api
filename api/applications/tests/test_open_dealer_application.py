@@ -70,8 +70,8 @@ class OpenDealerTests(DataTestClient):
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(GoodsType.objects.all().count(), initial_goods_count)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(GoodsType.objects.all().count(), initial_goods_count)
 
     def test_cannot_change_countries_on_dealer_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)

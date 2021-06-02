@@ -57,7 +57,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         response = self.client.get(self.good_url, **self.exporter_headers)
 
         returned_good = response.json()["good"]
-        self.assertEquals(len(self.goods_type_1.countries.all()), len(returned_good["countries"]))
+        self.assertEqual(len(self.goods_type_1.countries.all()), len(returned_good["countries"]))
 
     def test_state_can_be_over_written(self):
         """
@@ -70,7 +70,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
 
         self.client.put(self.good_country_url, data, **self.exporter_headers)
 
-        self.assertEquals(2, len(self.goods_type_1.countries.all()))
+        self.assertEqual(2, len(self.goods_type_1.countries.all()))
         self.assertTrue(self.country_1 in self.goods_type_1.countries.all())
         self.assertTrue(self.country_2 in self.goods_type_1.countries.all())
 

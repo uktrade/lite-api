@@ -22,7 +22,7 @@ class DataWorkspaceTests(DataTestClient):
         sender = get_hawk_sender("GET", self.licences, None, settings.HAWK_LITE_DATA_WORKSPACE_CREDENTIALS)
         self.client.credentials(HTTP_HAWK_AUTHENTICATION=sender.request_header, CONTENT_TYPE="application/json")
         response = self.client.get(self.licences)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @override_settings(HAWK_AUTHENTICATION_ENABLED=True)
     def test_dw_view_licences_fail_incorrect_hawk_key(self):
@@ -36,7 +36,7 @@ class DataWorkspaceTests(DataTestClient):
         sender = get_hawk_sender("GET", self.ogl_list, None, settings.HAWK_LITE_DATA_WORKSPACE_CREDENTIALS)
         self.client.credentials(HTTP_HAWK_AUTHENTICATION=sender.request_header, CONTENT_TYPE="application/json")
         response = self.client.get(self.ogl_list)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @override_settings(HAWK_AUTHENTICATION_ENABLED=True)
     def test_dw_view_ogl_fail_incorrect_hawk_key(self):

@@ -289,7 +289,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        self.assertEquals(
+        self.assertEqual(
             PvGrading.to_str(pv_grading), Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
         )
 
@@ -347,7 +347,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        self.assertEquals(
+        self.assertEqual(
             PvGrading.to_str(pv_grading), Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
         )
 

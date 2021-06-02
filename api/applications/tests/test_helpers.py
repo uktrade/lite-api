@@ -35,8 +35,8 @@ class AbstractAutoMatchTests:
 
         party_on_application = application.parties.get(party=party)
 
-        self.assertEquals(party_on_application.sanction_matches.all().count(), 0)
-        self.assertEquals(party_on_application.flags.count(), 0)
+        self.assertEqual(party_on_application.sanction_matches.all().count(), 0)
+        self.assertEqual(party_on_application.flags.count(), 0)
 
     @pytest.mark.elasticsearch
     def test_auto_match_sanctions_match_name(self):
@@ -61,9 +61,9 @@ class AbstractAutoMatchTests:
 
         party_on_application = application.parties.get(party=party)
 
-        self.assertEquals(party_on_application.sanction_matches.count(), 1)
-        self.assertEquals(party_on_application.sanction_matches.first().elasticsearch_reference, "123")
-        self.assertEquals(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
+        self.assertEqual(party_on_application.sanction_matches.count(), 1)
+        self.assertEqual(party_on_application.sanction_matches.first().elasticsearch_reference, "123")
+        self.assertEqual(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
 
     @pytest.mark.elasticsearch
     def test_auto_match_sanctions_avoid_false_positives(self):
@@ -100,8 +100,8 @@ class AbstractAutoMatchTests:
 
             party_on_application = application.parties.get(party=party)
 
-            self.assertEquals(party_on_application.sanction_matches.count(), 0)
-            self.assertEquals(party_on_application.flags.count(), 0)
+            self.assertEqual(party_on_application.sanction_matches.count(), 0)
+            self.assertEqual(party_on_application.flags.count(), 0)
 
     @pytest.mark.elasticsearch
     def test_auto_match_sanctions_match_name_similar(self):
@@ -138,8 +138,8 @@ class AbstractAutoMatchTests:
 
             party_on_application = application.parties.get(party=party)
 
-            self.assertEquals(party_on_application.sanction_matches.count(), 1, msg=f'tried "{name_variant}"')
-            self.assertEquals(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
+            self.assertEqual(party_on_application.sanction_matches.count(), 1, msg=f'tried "{name_variant}"')
+            self.assertEqual(str(party_on_application.flags.first().pk), SystemFlags.SANCTION_UK_MATCH)
 
 
 class AutoMatchStandardApplicationTests(AbstractAutoMatchTests, DataTestClient):

@@ -127,7 +127,7 @@ class DraftTests(DataTestClient):
             retrieved_application["is_compliant_limitations_eu"], standard_application.is_compliant_limitations_eu
         )
         self.assertEqual(retrieved_application["intended_end_use"], standard_application.intended_end_use)
-        self.assertEquals(
+        self.assertEqual(
             GoodOnApplication.objects.filter(application__id=standard_application.id).count(), 1,
         )
         self.assertEqual(

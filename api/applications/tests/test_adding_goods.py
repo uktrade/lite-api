@@ -215,7 +215,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
         response = self.client.post(url, data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, data["response"])
+        self.assertEqual(response.status_code, data["response"])
 
     def test_adding_good_without_document_or_reason_success(self):
         good = self.create_good("A good", self.organisation)

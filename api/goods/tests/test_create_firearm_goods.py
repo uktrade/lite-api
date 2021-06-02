@@ -63,7 +63,7 @@ class CreateFirearmGoodTests(DataTestClient):
         data = good_rifle()
         data["firearm_details"]["number_of_items"] = 0
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = response.json()["errors"]
         self.assertEqual(response["number_of_items"][0], "Enter the number of items")
 
@@ -72,7 +72,7 @@ class CreateFirearmGoodTests(DataTestClient):
         data["firearm_details"]["number_of_items"] = 5
         data["firearm_details"]["has_identification_markings"] = False
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = response.json()["errors"]
         self.assertEqual(
             response["no_identification_markings_details"][0], "Enter a reason why the product has not been marked"
@@ -85,7 +85,7 @@ class CreateFirearmGoodTests(DataTestClient):
         data["firearm_details"]["no_identification_markings_details"] = ""
         data["firearm_details"]["serial_numbers"] = ["serial1", "serial2", "serial3"]
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
     def test_firearms_act_user_is_rfd(self):

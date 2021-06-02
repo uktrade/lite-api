@@ -54,7 +54,7 @@ class GoodTypeFlagsManagementTests(DataTestClient):
 
         response = self.client.get(self.good_url, **self.gov_headers)
 
-        self.assertEquals(len(self.goods_type.flags.all()), len(response.json()["flags"]))
+        self.assertEqual(len(self.goods_type.flags.all()), len(response.json()["flags"]))
 
     def test_user_can_add_good_level_flags_from_their_own_team(self):
         """
@@ -71,7 +71,7 @@ class GoodTypeFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(data["flags"]), len(self.goods_type.flags.all()))
+        self.assertEqual(len(data["flags"]), len(self.goods_type.flags.all()))
         self.assertTrue(self.team_good_flag_1 in self.goods_type.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
@@ -89,8 +89,8 @@ class GoodTypeFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(0, len(self.goods_type.flags.all()))
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(0, len(self.goods_type.flags.all()))
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_user_cannot_assign_flags_that_are_not_good_level(self):
         """
@@ -107,8 +107,8 @@ class GoodTypeFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(0, len(self.goods_type.flags.all()))
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(0, len(self.goods_type.flags.all()))
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
         """
@@ -128,7 +128,7 @@ class GoodTypeFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(self.all_flags), len(self.goods_type.flags.all()))
+        self.assertEqual(len(self.all_flags), len(self.goods_type.flags.all()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.goods_type.flags.all())
 
