@@ -506,9 +506,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five, "No")
         self.assertIsNone(good.firearm_details.section_certificate_number)
         self.assertIsNone(good.firearm_details.section_certificate_date_of_expiry)
-        self.assertEqual(
-            errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE]
-        )
+        self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE])
 
     def test_edit_category_two_identification_markings_details_success(self):
         good = self.create_good(
