@@ -1,4 +1,3 @@
-
 import pytest
 from django.urls import reverse
 from parameterized import parameterized
@@ -183,7 +182,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         # Team 2's advice would conflict with team 1's if both were brought in
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @pytest.mark.xfail(reason='Possibly caused by flux in behavior of advice section. Needs to be reviewed.')
+    @pytest.mark.xfail(reason="Possibly caused by flux in behavior of advice section. Needs to be reviewed.")
     def test_cannot_submit_user_level_advice_if_team_advice_exists_for_that_team_on_that_case(self,):
         """
         Logically blocks the submission of lower tier advice if higher tier advice exists
@@ -203,7 +202,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @pytest.mark.xfail(reason='Possibly caused by flux in behavior of advice section. Needs to be reviewed.')
+    @pytest.mark.xfail(reason="Possibly caused by flux in behavior of advice section. Needs to be reviewed.")
     def test_can_submit_user_level_advice_if_team_advice_has_been_cleared_for_that_team_on_that_case(self,):
         """
         No residual data is left to block lower tier advice being submitted after a clear
@@ -362,7 +361,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @pytest.mark.xfail(reason='Possibly caused by flux in behavior of advice section. Needs to be reviewed.')
+    @pytest.mark.xfail(reason="Possibly caused by flux in behavior of advice section. Needs to be reviewed.")
     def test_when_user_advice_exists_combine_team_advice_without_confirm_own_advice_failure(self,):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_ADVICE.name])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
@@ -383,7 +382,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @pytest.mark.xfail(reason='Possibly caused by flux in behavior of advice section. Needs to be reviewed.')
+    @pytest.mark.xfail(reason="Possibly caused by flux in behavior of advice section. Needs to be reviewed.")
     def test_when_user_advice_exists_clear_team_advice_without_confirm_own_advice_failure(self,):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_ADVICE.name])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
@@ -410,7 +409,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @pytest.mark.xfail(reason='Possibly caused by flux in behavior of advice section. Needs to be reviewed.')
+    @pytest.mark.xfail(reason="Possibly caused by flux in behavior of advice section. Needs to be reviewed.")
     def test_when_user_advice_exists_create_team_advice_without_confirm_own_advice_failure(self,):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_ADVICE.name])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)

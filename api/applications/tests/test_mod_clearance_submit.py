@@ -439,4 +439,3 @@ class F680ClearanceTests(DataTestClient):
             errors["agreed_to_declaration_text"],
             ["To submit the application, you must confirm that you agree by typing “I AGREE”"],
         )
-
