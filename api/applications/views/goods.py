@@ -298,7 +298,7 @@ class ApplicationGoodsTypes(APIView):
                 verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
                 action_object=serializer.instance,
                 target=application.get_case(),
-                payload={"good_type_name": serializer.instance.name or serializer.instance.description},
+                payload={serializer.instance.description},
             )
 
             return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
