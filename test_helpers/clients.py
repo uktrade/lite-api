@@ -381,9 +381,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_flag(name: str, level: str, team: Team):
-        warnings.warn(
-            "create_flag is a deprecated function. Use a FlagFactory instead", category=DeprecationWarning, stacklevel=2
-        )
         return FlagFactory(name=name, level=level, team=team)
 
     @staticmethod
