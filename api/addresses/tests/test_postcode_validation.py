@@ -60,6 +60,8 @@ class AddressSerializerPostcodeValidationTest(DataTestClient):
                 },
             },
             "user": {"email": "trinity@bsg.com"},
+            "phone_number": "+441234567895",
+            "website": "",
         }
 
         valid_postcodes = [

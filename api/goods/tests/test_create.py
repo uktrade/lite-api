@@ -52,20 +52,20 @@ REQUEST_DATA = {
 
 
 def _assert_response_data(self, response_data, request_data):
-    self.assertEquals(response_data["description"], request_data["description"])
-    self.assertEquals(response_data["part_number"], request_data["part_number"])
-    self.assertEquals(response_data["status"]["key"], GoodStatus.DRAFT)
-    self.assertEquals(response_data["item_category"]["key"], request_data["item_category"])
-    self.assertEquals(response_data["is_military_use"]["key"], request_data["is_military_use"])
+    self.assertEqual(response_data["description"], request_data["description"])
+    self.assertEqual(response_data["part_number"], request_data["part_number"])
+    self.assertEqual(response_data["status"]["key"], GoodStatus.DRAFT)
+    self.assertEqual(response_data["item_category"]["key"], request_data["item_category"])
+    self.assertEqual(response_data["is_military_use"]["key"], request_data["is_military_use"])
 
     if request_data["is_good_controlled"] == True:
-        self.assertEquals(response_data["is_good_controlled"]["key"], "True")
-        self.assertEquals(
+        self.assertEqual(response_data["is_good_controlled"]["key"], "True")
+        self.assertEqual(
             response_data["control_list_entries"], [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}]
         )
 
     if request_data["is_pv_graded"] == GoodPvGraded.YES:
-        self.assertEquals(response_data["is_pv_graded"]["key"], GoodPvGraded.YES)
+        self.assertEqual(response_data["is_pv_graded"]["key"], GoodPvGraded.YES)
 
         response_data_pv_grading_details = response_data["pv_grading_details"]
         request_data_pv_grading_details = request_data["pv_grading_details"]
@@ -73,7 +73,7 @@ def _assert_response_data(self, response_data, request_data):
         if request_data_pv_grading_details["grading"]:
             grading_response = response_data_pv_grading_details.pop("grading")
             grading_request = request_data_pv_grading_details.pop("grading")
-            self.assertEquals(grading_response["key"], grading_request)
+            self.assertEqual(grading_response["key"], grading_request)
 
         for key, value in request_data_pv_grading_details.items():
             self.assertEqual(response_data_pv_grading_details[key], value)
@@ -87,9 +87,9 @@ class CreateGoodTests(DataTestClient):
     def test_when_creating_a_good_with_not_controlled_and_not_pv_graded_then_created_response_is_returned(self):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_pv_graded_and_controlled_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = True
@@ -98,20 +98,20 @@ class CreateGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_pv_graded_set_to_null_then_bad_request_response_is_returned(self):
         self.request_data["is_pv_graded"] = None
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
             response.json()["errors"], {"is_pv_graded": ["This field may not be null."]},
         )
-        self.assertEquals(Good.objects.all().count(), 0)
+        self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_validate_only_then_ok_response_is_returned_and_good_is_not_created(self,):
         self.request_data["is_good_controlled"] = False
@@ -120,28 +120,28 @@ class CreateGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(Good.objects.all().count(), 0)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_that_is_not_controlled_success(self,):
         self.request_data["is_good_controlled"] = False
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_that_is_not_controlled_multiple_clcs_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = False
         self.request_data["control_list_entries"] = ["ML1a", "ML1b"]
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         control_list_entries = response.json()["good"]["control_list_entries"]
         ratings = [item["rating"] for item in control_list_entries]
         self.assertEqual(sorted(["ML1a", "ML1b"]), sorted(ratings))
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_add_good_no_item_category_selected_failure(self):
         data = {
@@ -156,7 +156,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors["item_category"], [strings.Goods.FORM_NO_ITEM_CATEGORY_SELECTED])
 
@@ -172,7 +172,7 @@ class CreateGoodTests(DataTestClient):
             "modified_military_use_details": "",
         }
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_add_good_empty_name_provided_failure(self):
         data = {
@@ -187,7 +187,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors["name"], ["Enter a product name"])
 
@@ -205,7 +205,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors["is_military_use"], [strings.Goods.FORM_NO_MILITARY_USE_SELECTED])
 
@@ -225,7 +225,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors["modified_military_use_details"], [strings.Goods.NO_MODIFICATIONS_DETAILS])
 
@@ -246,7 +246,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors["is_component"], [strings.Goods.FORM_NO_COMPONENT_SELECTED])
 
@@ -277,7 +277,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors[details_field], [details_error])
 
@@ -300,7 +300,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEqual(
             errors["uses_information_security"], [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]
@@ -325,11 +325,11 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         good = response.json()["good"]
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(good["description"], data["description"])
-        self.assertEquals(good["status"]["key"], GoodStatus.DRAFT)
-        self.assertEquals(good["item_category"]["key"], data["item_category"])
-        self.assertEquals(good["is_military_use"]["key"], data["is_military_use"])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(good["description"], data["description"])
+        self.assertEqual(good["status"]["key"], GoodStatus.DRAFT)
+        self.assertEqual(good["item_category"]["key"], data["item_category"])
+        self.assertEqual(good["is_military_use"]["key"], data["is_military_use"])
         self.assertEqual(good["is_component"]["key"], data["is_component"])
         self.assertTrue(good["uses_information_security"])
 
@@ -353,14 +353,14 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         good = response.json()["good"]
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(good["description"], data["description"])
-        self.assertEquals(good["status"]["key"], GoodStatus.DRAFT)
-        self.assertEquals(good["item_category"]["key"], data["item_category"])
-        self.assertEquals(good["is_military_use"]["key"], data["is_military_use"])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(good["description"], data["description"])
+        self.assertEqual(good["status"]["key"], GoodStatus.DRAFT)
+        self.assertEqual(good["item_category"]["key"], data["item_category"])
+        self.assertEqual(good["is_military_use"]["key"], data["is_military_use"])
         self.assertEqual(good["is_component"]["key"], data["is_component"])
         self.assertTrue(good["uses_information_security"])
-        self.assertEquals(good["information_security_details"], data["information_security_details"])
+        self.assertEqual(good["information_security_details"], data["information_security_details"])
 
     @parameterized.expand(
         [[ItemCategory.GROUP3_SOFTWARE, "software details"], [ItemCategory.GROUP3_TECHNOLOGY, "technology details"]]
@@ -385,14 +385,14 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         good = response.json()["good"]
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(good["description"], data["description"])
-        self.assertEquals(good["status"]["key"], GoodStatus.DRAFT)
-        self.assertEquals(good["item_category"]["key"], data["item_category"])
-        self.assertEquals(good["software_or_technology_details"], data["software_or_technology_details"])
-        self.assertEquals(good["is_military_use"]["key"], data["is_military_use"])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(good["description"], data["description"])
+        self.assertEqual(good["status"]["key"], GoodStatus.DRAFT)
+        self.assertEqual(good["item_category"]["key"], data["item_category"])
+        self.assertEqual(good["software_or_technology_details"], data["software_or_technology_details"])
+        self.assertEqual(good["is_military_use"]["key"], data["is_military_use"])
         self.assertTrue(good["uses_information_security"])
-        self.assertEquals(good["information_security_details"], data["information_security_details"])
+        self.assertEqual(good["information_security_details"], data["information_security_details"])
 
     @parameterized.expand(
         [
@@ -414,7 +414,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors["software_or_technology_details"], [error])
 
@@ -432,7 +432,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEqual(
             errors["software_or_technology_details"], ["Ensure this field has no more than 2000 characters."]
@@ -463,7 +463,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["is_sporting_shotgun"], [error_msg])
 
     def test_add_category_two_good_no_type_selected_failure(self):
@@ -480,7 +480,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["type"], [strings.Goods.FIREARM_GOOD_NO_TYPE])
 
     def test_add_firearms_type_replica_status_not_selected(self):
@@ -497,7 +497,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["is_replica"][0], "Select yes if the product is a replica firearm")
 
     @parameterized.expand([["ammunition"], ["components_for_firearms"], ["components_for_ammunition"]])
@@ -515,7 +515,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["is_replica"][0], "Invalid firearm product type")
 
     def test_add_firearms_replica_description_required(self):
@@ -532,7 +532,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["replica_description"], ["Enter description"])
 
     def test_add_category_two_good_no_year_of_manufacture_not_in_the_past_failure(self):
@@ -553,7 +553,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["year_of_manufacture"], [strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_IN_PAST])
 
     @parameterized.expand([[timezone.now().date().year], [timezone.now().date().year - 1]])
@@ -574,7 +574,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         good = response.json()["good"]
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(good["firearm_details"]["year_of_manufacture"], year)
 
     def test_add_firearms_act_section_question_check_errors(self):
@@ -598,7 +598,7 @@ class CreateGoodTests(DataTestClient):
 
         response = self.client.post(URL, data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = response.json()["errors"]
         self.assertEqual(
             response["is_covered_by_firearm_act_section_one_two_or_five"][0],
@@ -609,7 +609,7 @@ class CreateGoodTests(DataTestClient):
         data["firearm_details"]["firearms_act_section"] = ""
         response = self.client.post(URL, data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = response.json()["errors"]
         self.assertEqual(response["firearms_act_section"][0], "Select which section the product is covered by")
 
@@ -638,7 +638,7 @@ class CreateGoodTests(DataTestClient):
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = response.json()["errors"]
         self.assertEqual(
             response["section_certificate_missing_reason"][0],
@@ -665,14 +665,14 @@ class CreateGoodTests(DataTestClient):
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = response.json()["errors"]
         self.assertEqual(response["section_certificate_number"][0], "Enter the certificate number")
 
         data["firearm_details"]["section_certificate_number"] = "FR8C1604"
         data["firearm_details"]["section_certificate_date_of_expiry"] = None
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = response.json()["errors"]
 
         self.assertEqual(
@@ -703,7 +703,7 @@ class CreateGoodTests(DataTestClient):
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = response.json()["errors"]
         self.assertEqual(
             response["section_certificate_missing_reason"][0],
@@ -712,7 +712,7 @@ class CreateGoodTests(DataTestClient):
 
         data["firearm_details"]["section_certificate_missing_reason"] = "Certificate not required"
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_add_category_two_good_no_section_certificate_failure(self):
         data = {
@@ -735,7 +735,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             errors["is_covered_by_firearm_act_section_one_two_or_five"], [strings.Goods.FIREARM_GOOD_NO_SECTION]
         )
@@ -762,7 +762,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["section_certificate_number"], ["Enter the certificate number"])
 
     def test_add_category_two_good_no_certificate_expiry_date_failure(self):
@@ -787,7 +787,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             errors["section_certificate_date_of_expiry"],
             ["Enter the certificate expiry date and include a day, month and year"],
@@ -815,7 +815,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE])
 
     def test_add_category_two_good_invalid_format_certificate_number_failure(self):
@@ -839,7 +839,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             errors["section_certificate_date_of_expiry"], ["Enter the expiry date and include a day, month and year"],
         )
@@ -868,7 +868,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         good = response.json()["good"]
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNone(good["firearm_details"]["section_certificate_date_of_expiry"])
         self.assertIsNone(good["firearm_details"]["section_certificate_number"])
         self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "No")
@@ -896,7 +896,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["has_identification_markings"], [strings.Goods.FIREARM_GOOD_NO_MARKINGS])
 
     def test_add_category_two_good_no_markings_selected_but_no_details_provided_failure(self):
@@ -922,7 +922,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             errors["no_identification_markings_details"], ["Enter a reason why the product has not been marked"]
         )
@@ -951,7 +951,7 @@ class CreateGoodTests(DataTestClient):
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_add_category_two_good_yes_markings_selected_success(self):
         data = {
@@ -980,7 +980,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         good = response.json()["good"]
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(good["firearm_details"]["has_identification_markings"])
 
     def test_add_category_two_good_only_correct_markings_details_set_success(self):
@@ -1011,7 +1011,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         good = response.json()["good"]
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(good["firearm_details"]["has_identification_markings"])
         self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
 
@@ -1042,25 +1042,25 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         good = response.json()["good"]
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # good details
-        self.assertEquals(good["description"], data["description"])
-        self.assertEquals(good["is_good_controlled"]["key"], str(data["is_good_controlled"]))
-        self.assertEquals(good["is_pv_graded"]["key"], data["is_pv_graded"])
-        self.assertEquals(good["item_category"]["key"], data["item_category"])
+        self.assertEqual(good["description"], data["description"])
+        self.assertEqual(good["is_good_controlled"]["key"], str(data["is_good_controlled"]))
+        self.assertEqual(good["is_pv_graded"]["key"], data["is_pv_graded"])
+        self.assertEqual(good["item_category"]["key"], data["item_category"])
 
         # good's firearm details
-        self.assertEquals(good["firearm_details"]["type"]["key"], data["firearm_details"]["type"])
-        self.assertEquals(good["firearm_details"]["calibre"], data["firearm_details"]["calibre"])
-        self.assertEquals(
+        self.assertEqual(good["firearm_details"]["type"]["key"], data["firearm_details"]["type"])
+        self.assertEqual(good["firearm_details"]["calibre"], data["firearm_details"]["calibre"])
+        self.assertEqual(
             str(good["firearm_details"]["year_of_manufacture"]), data["firearm_details"]["year_of_manufacture"]
         )
         self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "Yes")
-        self.assertEquals(
+        self.assertEqual(
             good["firearm_details"]["section_certificate_number"], data["firearm_details"]["section_certificate_number"]
         )
-        self.assertEquals(
+        self.assertEqual(
             good["firearm_details"]["section_certificate_date_of_expiry"],
             data["firearm_details"]["section_certificate_date_of_expiry"],
         )
@@ -1091,7 +1091,7 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             errors["no_identification_markings_details"], ["Ensure this field has no more than 2000 characters."]
         )
@@ -1102,9 +1102,9 @@ class CreateGoodTests(DataTestClient):
     def test_create_good_with_and_without_document(self, is_document_available):
         self.request_data["is_document_available"] = is_document_available
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(Good.objects.all().count(), 1)
 
 
 class GoodsCreateControlledGoodTests(DataTestClient):
@@ -1118,9 +1118,9 @@ class GoodsCreateControlledGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_multiple_clcs_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = True
@@ -1129,10 +1129,10 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
         response_data = response.json()["good"]["control_list_entries"]
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue({"rating": "ML1a", "text": get_control_list_entry("ML1a").text} in response_data)
         self.assertTrue({"rating": "ML1b", "text": get_control_list_entry("ML1b").text} in response_data)
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_an_invalid_control_list_entries_then_bad_request_response_is_returned(self):
         self.request_data["is_good_controlled"] = True
@@ -1140,11 +1140,9 @@ class GoodsCreateControlledGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
-            response.json()["errors"], {"control_list_entries": [strings.Goods.CONTROL_LIST_ENTRY_IVALID]}
-        )
-        self.assertEquals(Good.objects.all().count(), 0)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"control_list_entries": [strings.Goods.CONTROL_LIST_ENTRY_IVALID]})
+        self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_not_controlled_then_no_control_list_entry_needed_success(self):
         self.request_data["is_good_controlled"] = False
@@ -1152,8 +1150,8 @@ class GoodsCreateControlledGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Good.objects.all().count(), 1)
 
 
 class GoodsCreatePvGradedGoodTests(DataTestClient):
@@ -1166,9 +1164,9 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_a_grading_then_created_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
@@ -1177,9 +1175,9 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
-        self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_a_null_grading_and_custom_grading_then_bad_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
@@ -1187,11 +1185,11 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
             response.json()["errors"], {"custom_grading": [strings.Goods.NO_CUSTOM_GRADING_ERROR]},
         )
-        self.assertEquals(Good.objects.all().count(), 0)
+        self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_a_grading_and_custom_grading_then_bad_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
@@ -1200,11 +1198,11 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
             response.json()["errors"], {"custom_grading": [strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR]},
         )
-        self.assertEquals(Good.objects.all().count(), 0)
+        self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_a_null_authority_then_bad_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
@@ -1212,11 +1210,11 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
             response.json()["errors"], {"issuing_authority": ["This field may not be null."]},
         )
-        self.assertEquals(Good.objects.all().count(), 0)
+        self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_a_null_reference_then_bad_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
@@ -1224,11 +1222,11 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
             response.json()["errors"], {"reference": ["This field may not be null."]},
         )
-        self.assertEquals(Good.objects.all().count(), 0)
+        self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_a_null_date_of_issue_then_bad_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
@@ -1236,8 +1234,8 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
             response.json()["errors"], {"date_of_issue": ["This field may not be null."]},
         )
-        self.assertEquals(Good.objects.all().count(), 0)
+        self.assertEqual(Good.objects.all().count(), 0)

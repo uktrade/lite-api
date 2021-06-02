@@ -32,7 +32,7 @@ class ReferenceCode(DataTestClient):
         expected_reference = build_expected_reference(
             CaseTypeEnum.SIEL.reference, is_licence_type=True, export_type=PERMANENT
         )
-        self.assertEquals(standard_application.reference_code, expected_reference)
+        self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_standard_individual_transhipment_application_reference_code(self):
         standard_application = self.create_draft_standard_application(
@@ -43,7 +43,7 @@ class ReferenceCode(DataTestClient):
         expected_reference = build_expected_reference(
             CaseTypeEnum.SITL.reference, is_licence_type=True, export_type=PERMANENT
         )
-        self.assertEquals(standard_application.reference_code, expected_reference)
+        self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_open_application_reference_code(self):
         open_application = self.create_draft_open_application(self.organisation)
@@ -52,7 +52,7 @@ class ReferenceCode(DataTestClient):
         expected_reference = build_expected_reference(
             CaseTypeEnum.OIEL.reference, is_licence_type=True, export_type=PERMANENT
         )
-        self.assertEquals(open_application.reference_code, expected_reference)
+        self.assertEqual(open_application.reference_code, expected_reference)
 
     def test_exhibition_clearance_reference_code(self):
         exhibition_clearance = self.create_mod_clearance_application(
@@ -61,40 +61,40 @@ class ReferenceCode(DataTestClient):
         exhibition_clearance = self.submit_application(exhibition_clearance)
 
         expected_reference = build_expected_reference(CaseTypeEnum.EXHIBITION.reference)
-        self.assertEquals(exhibition_clearance.reference_code, expected_reference)
+        self.assertEqual(exhibition_clearance.reference_code, expected_reference)
 
     def test_f680_clearance_reference_code(self):
         f680_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
         f680_clearance = self.submit_application(f680_clearance)
 
         expected_reference = build_expected_reference(CaseTypeEnum.F680.reference)
-        self.assertEquals(f680_clearance.reference_code, expected_reference)
+        self.assertEqual(f680_clearance.reference_code, expected_reference)
 
     def test_gifting_clearance_reference_code(self):
         gifting_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
         gifting_clearance = self.submit_application(gifting_clearance)
 
         expected_reference = build_expected_reference(CaseTypeEnum.GIFTING.reference)
-        self.assertEquals(gifting_clearance.reference_code, expected_reference)
+        self.assertEqual(gifting_clearance.reference_code, expected_reference)
 
     def test_hmrc_query_reference_code(self):
         hmrc_query = self.create_hmrc_query(self.organisation)
         hmrc_query = self.submit_application(hmrc_query)
 
         expected_reference = build_expected_reference(CaseTypeEnum.HMRC.reference)
-        self.assertEquals(hmrc_query.reference_code, expected_reference)
+        self.assertEqual(hmrc_query.reference_code, expected_reference)
 
     def test_end_user_advisory_reference_code(self):
         end_user_advisory_query = self.create_end_user_advisory_case("", "", self.organisation)
 
         expected_reference = build_expected_reference(CaseTypeEnum.EUA.reference)
-        self.assertEquals(end_user_advisory_query.reference_code, expected_reference)
+        self.assertEqual(end_user_advisory_query.reference_code, expected_reference)
 
     def test_control_list_classification_reference_code(self):
         clc_query = self.create_clc_query("", self.organisation)
 
         expected_reference = build_expected_reference(CaseTypeEnum.GOODS.reference)
-        self.assertEquals(clc_query.reference_code, expected_reference)
+        self.assertEqual(clc_query.reference_code, expected_reference)
 
     def test_temporary_application_reference_code(self):
         standard_application = self.create_draft_standard_application(self.organisation)
@@ -104,7 +104,7 @@ class ReferenceCode(DataTestClient):
         expected_reference = build_expected_reference(
             CaseTypeEnum.SIEL.reference, is_licence_type=True, export_type=TEMPORARY
         )
-        self.assertEquals(standard_application.reference_code, expected_reference)
+        self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_trade_control_application_reference_code(self):
         standard_application = self.create_draft_standard_application(
@@ -115,7 +115,7 @@ class ReferenceCode(DataTestClient):
         expected_reference = build_expected_reference(
             CaseTypeEnum.SICL.reference, is_licence_type=True, export_type=PERMANENT
         )
-        self.assertEquals(standard_application.reference_code, expected_reference)
+        self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_draft_applications_dont_have_reference_codes(self):
         draft = self.create_draft_standard_application(self.organisation)

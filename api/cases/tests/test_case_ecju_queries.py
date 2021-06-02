@@ -177,15 +177,13 @@ class ECJUQueriesCreateTest(DataTestClient):
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
         data = {"question": "Test ECJU Query question?", "query_type": query_type}
 
-        with mock.patch("gov_notify.service.client") as mock_notify_client:
-            response = self.client.post(url, data, **self.gov_headers)
+        response = self.client.post(url, data, **self.gov_headers)
         response_data = response.json()
         ecju_query = EcjuQuery.objects.get(case=case)
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Test ECJU Query question?", ecju_query.question)
-        mock_notify_client.send_email.assert_called()
 
     @parameterized.expand([[""], [None], ["a" * 5001]])
     def test_submit_invalid_data_failure(self, data):
@@ -309,8 +307,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
         data = {"question": "Please provide required documents", "query_type": query_type}
 
-        with mock.patch("gov_notify.service.client") as mock_notify_client:
-            response = self.client.post(url, data, **self.gov_headers)
+        response = self.client.post(url, data, **self.gov_headers)
         response_data = response.json()
         ecju_query = EcjuQuery.objects.get(case=case)
 
@@ -318,7 +315,6 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Please provide required documents", ecju_query.question)
         self.assertIsNone(ecju_query.response)
-        mock_notify_client.send_email.assert_called()
 
         documents_to_be_added = []
         if add_documents:

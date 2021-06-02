@@ -312,7 +312,7 @@ class CreateOrganisationTests(DataTestClient):
         data = {
             "name": "John Smith",
             "type": OrganisationType.INDIVIDUAL,
-            "eori_number": "1234567890",
+            "eori_number": "GB123456789000",
             "vat_number": vat_number,
             "phone_number": "+441234567895",
             "website": "",
@@ -410,7 +410,7 @@ class EditOrganisationTests(DataTestClient):
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {
-            "eori_number": self.faker.eori_number(),
+            "eori_number": "GB123456789000",
             "sic_number": self.faker.sic_number(),
             "vat_number": self.faker.vat_number(),
             "registration_number": self.faker.registration_number(),
@@ -662,7 +662,7 @@ class EditOrganisationTests(DataTestClient):
         data = {
             "name": "regional site",
             "type": OrganisationType.COMMERCIAL,
-            "eori_number": self.faker.eori_number(),
+            "eori_number": "GB123456789000",
             "sic_number": self.faker.sic_number(),
             "vat_number": self.faker.vat_number(),
             "registration_number": self.faker.registration_number(),

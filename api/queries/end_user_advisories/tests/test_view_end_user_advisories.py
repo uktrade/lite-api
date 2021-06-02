@@ -15,7 +15,7 @@ class EndUserAdvisoryViewTests(DataTestClient):
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(len(response_data), 1)
+        self.assertEqual(len(response_data), 1)
 
         response_data = response_data[0]
         end_user_data = response_data["end_user"]

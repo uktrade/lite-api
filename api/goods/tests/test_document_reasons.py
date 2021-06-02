@@ -22,17 +22,17 @@ class GoodDocumentAvaiabilityandSensitivityTests(DataTestClient):
     def test_document_available_to_upload(self, data):
         response = self.client.post(self.document_availability_url, data, **self.exporter_headers)
 
-        self.assertEquals(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertTrue("good" in response.json())
 
     def test_document_available_to_upload_failure(self):
         data = {"is_document_available": None}
         response = self.client.post(self.document_availability_url, data, **self.exporter_headers)
 
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
         errors = response.json()["errors"]
         self.assertTrue("is_document_available" in errors)
-        self.assertEquals(errors["is_document_available"][0], "Select yes or no")
+        self.assertEqual(errors["is_document_available"][0], "Select yes or no")
 
     @parameterized.expand(
         [[{"is_document_sensitive": "yes"}], [{"is_document_sensitive": "no"}],]
@@ -40,14 +40,14 @@ class GoodDocumentAvaiabilityandSensitivityTests(DataTestClient):
     def test_document_sensitive(self, data):
         response = self.client.post(self.document_sensitivity_url, data, **self.exporter_headers)
 
-        self.assertEquals(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertTrue("good" in response.json())
 
     def test_document_sensitivity_empty_failure(self):
         data = {"is_document_sensitive": None}
         response = self.client.post(self.document_sensitivity_url, data, **self.exporter_headers)
 
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
         errors = response.json()["errors"]
         self.assertTrue("is_document_sensitive" in errors)
-        self.assertEquals(errors["is_document_sensitive"][0], "Select yes or no")
+        self.assertEqual(errors["is_document_sensitive"][0], "Select yes or no")

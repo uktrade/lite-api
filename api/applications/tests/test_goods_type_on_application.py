@@ -36,43 +36,43 @@ class GoodsTypeOnApplicationTests(DataTestClient):
     def test_create_goodstype_on_open_application_as_exporter_user_success(self):
         response = self.client.post(self.url, self.data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = response.json()["good"]
-        self.assertEquals(response_data["description"], "Widget")
-        self.assertEquals(response_data["is_good_controlled"], True)
-        self.assertEquals(
+        self.assertEqual(response_data["description"], "Widget")
+        self.assertEqual(response_data["is_good_controlled"], True)
+        self.assertEqual(
             response_data["control_list_entries"], [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}]
         )
-        self.assertEquals(response_data["is_good_incorporated"], True)
+        self.assertEqual(response_data["is_good_incorporated"], True)
 
     def test_create_goodstype_multiple_clcs_on_open_application_as_exporter_user_success(self):
         self.data["control_list_entries"] = ["ML1a", "ML1b"]
         response = self.client.post(self.url, self.data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = response.json()["good"]
-        self.assertEquals(response_data["description"], "Widget")
-        self.assertEquals(response_data["is_good_controlled"], True)
-        self.assertEquals(
+        self.assertEqual(response_data["description"], "Widget")
+        self.assertEqual(response_data["is_good_controlled"], True)
+        self.assertEqual(
             sorted(response_data["control_list_entries"], key=lambda i: i["rating"]),
             [
                 {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
                 {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
             ],
         )
-        self.assertEquals(response_data["is_good_incorporated"], True)
+        self.assertEqual(response_data["is_good_incorporated"], True)
 
     def test_create_goodstype_on_open_application_as_exporter_user_failure(self):
         data = {}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_goodstype_on_open_application_as_gov_user_failure(self):
         response = self.client.post(self.url, self.data, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_goodstype_on_standard_application_as_exporter_user_failure(self):
         # Goodstypes only valid on HMRC and Open applications.
@@ -88,7 +88,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
         response = self.client.post(url, data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_remove_goodstype_from_open_application_as_exporter_user_success(self):
         self.create_draft_open_application(self.organisation)
@@ -102,8 +102,8 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(GoodsType.objects.all().count(), initial_goods_types_count - 1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(GoodsType.objects.all().count(), initial_goods_types_count - 1)
 
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_post_goods_type_document_success(self, scan_document_for_viruses_function):

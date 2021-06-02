@@ -99,10 +99,10 @@ class OrganisationUsersViewTests(DataTestClient):
 
         site = response.json()["sites"][0]
 
-        self.assertEquals(
+        self.assertEqual(
             site["id"], str(self.organisation.primary_site.id),
         )
-        self.assertEquals(
+        self.assertEqual(
             site["name"], str(self.organisation.primary_site.name),
         )
 

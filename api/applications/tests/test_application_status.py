@@ -58,8 +58,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING))
 
-    @mock.patch("gov_notify.service.client")
-    def test_exporter_set_application_status_withdrawn_when_application_not_terminal_success(self, mock_notify_client):
+    def test_exporter_set_application_status_withdrawn_when_application_not_terminal_success(self):
         self.submit_application(self.standard_application)
 
         data = {"status": CaseStatusEnum.WITHDRAWN}
@@ -69,15 +68,6 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.WITHDRAWN))
-        mock_notify_client.send_email.assert_called_with(
-            email_address=self.standard_application.submitted_by.email,
-            template_id=TemplateType.APPLICATION_STATUS.template_id,
-            data={
-                "case_reference": self.standard_application.reference_code,
-                "application_reference": self.standard_application.name,
-                "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_application.pk}",
-            },
-        )
 
     @parameterized.expand(
         [
@@ -104,8 +94,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         data = {"status": case_status}
 
-        with mock.patch("gov_notify.service.client") as mock_notify_client:
-            response = self.client.put(self.url, data, **self.gov_headers)
+        response = self.client.put(self.url, data, **self.gov_headers)
 
         self.standard_application.refresh_from_db()
 
@@ -114,15 +103,6 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.queues.count(), 0)
         self.assertEqual(self.standard_application.case_officer, None)
         self.assertEqual(CaseAssignment.objects.filter(case=self.standard_application).count(), 0)
-        mock_notify_client.send_email.assert_called_with(
-            email_address=self.standard_application.submitted_by.email,
-            template_id=TemplateType.APPLICATION_STATUS.template_id,
-            data={
-                "case_reference": self.standard_application.reference_code,
-                "application_reference": self.standard_application.name,
-                "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_application.pk}",
-            },
-        )
 
     @parameterized.expand(
         [
@@ -190,8 +170,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
-    @mock.patch("gov_notify.service.client")
-    def test_exporter_set_application_status_surrendered_success(self, mock_notify_client):
+    def test_exporter_set_application_status_surrendered_success(self):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
         self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
@@ -209,15 +188,6 @@ class ApplicationManageStatusTests(DataTestClient):
             {"key": surrendered_status.status, "value": CaseStatusEnum.get_text(surrendered_status.status)},
         )
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SURRENDERED))
-        mock_notify_client.send_email.assert_called_with(
-            email_address=self.standard_application.submitted_by.email,
-            template_id=TemplateType.APPLICATION_STATUS.template_id,
-            data={
-                "case_reference": self.standard_application.reference_code,
-                "application_reference": self.standard_application.name,
-                "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_application.pk}",
-            },
-        )
 
     def test_exporter_set_application_status_surrendered_no_licence_failure(self):
         """ Test failure in exporter user setting a case status to surrendered when the case
@@ -296,24 +266,12 @@ class ApplicationManageStatusTests(DataTestClient):
 
         data = {"status": case_status}
 
-        with mock.patch("gov_notify.service.client") as mock_notify_client:
-            response = self.client.put(self.url, data=data, **self.gov_headers)
+        response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(case_status))
-
-        if CaseStatusEnum.is_terminal(case_status):
-            mock_notify_client.send_email.assert_called_with(
-                email_address=self.standard_application.submitted_by.email,
-                template_id=TemplateType.APPLICATION_STATUS.template_id,
-                data={
-                    "case_reference": self.standard_application.reference_code,
-                    "application_reference": self.standard_application.name,
-                    "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_application.pk}",
-                },
-            )
 
     @parameterized.expand([CaseStatusEnum.REOPENED_FOR_CHANGES, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES])
     def test_gov_set_status_when_they_have_do_not_permission_to_reopen_closed_cases_failure(self, reopened_status):

@@ -30,7 +30,7 @@ class InternalListTests(DataTestClient):
     def test_get_list_back(self):
         response = self.client.get(self.url, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_data = response.json()["results"]
 
@@ -43,7 +43,7 @@ class InternalListTests(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_data = response.json()["results"]
 
@@ -56,7 +56,7 @@ class InternalListTests(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class ExporterListTests(DataTestClient):
@@ -79,9 +79,9 @@ class ExporterListTests(DataTestClient):
     def test_exporter_view_licences_success(self):
         response = self.client.get(self.url, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(len(response.json()["results"]), 1)
-        self.assertEquals(len(response.json()["results"][0]["registrations"]), 2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 1)
+        self.assertEqual(len(response.json()["results"][0]["registrations"]), 2)
         registration = response.json()["results"][0]["registrations"][0]
         self.assertEqual(registration["reference_code"], self.open_general_licence_case.reference_code)
         self.assertEqual(registration["site"]["id"], str(self.organisation.primary_site.id))
@@ -110,22 +110,22 @@ class ExporterListTests(DataTestClient):
             self.url + "?site=" + str(self.organisation.primary_site.id), **self.exporter_headers
         )
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(len(response.json()["results"]), 1)
-        self.assertEquals(len(response.json()["results"][0]["registrations"]), 2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 1)
+        self.assertEqual(len(response.json()["results"][0]["registrations"]), 2)
 
     def test_exporter_view_active_licences_success(self):
         self.open_general_licence_case_2.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         self.open_general_licence_case_2.save()
         response = self.client.get(self.url + "?active_only=True", **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(len(response.json()["results"]), 1)
-        self.assertEquals(len(response.json()["results"][0]["registrations"]), 1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 1)
+        self.assertEqual(len(response.json()["results"][0]["registrations"]), 1)
 
     def test_exporter_view_registered_licences_success(self):
         response = self.client.get(self.url + "?registered=True", **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(len(response.json()["results"]), 1)
-        self.assertEquals(len(response.json()["results"][0]["registrations"]), 2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 1)
+        self.assertEqual(len(response.json()["results"][0]["registrations"]), 2)

@@ -54,7 +54,7 @@ class GoodFlagsManagementTests(DataTestClient):
         response = self.client.get(self.good_url, **self.gov_headers)
         returned_good = response.json()["good"]
 
-        self.assertEquals(len(self.good.flags.all()), len(returned_good["flags"]))
+        self.assertEqual(len(self.good.flags.all()), len(returned_good["flags"]))
 
     def test_user_can_add_good_level_flags_from_their_own_team(self):
         """
@@ -71,7 +71,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(data["flags"]), len(self.good.flags.all()))
+        self.assertEqual(len(data["flags"]), len(self.good.flags.all()))
         self.assertTrue(self.team_good_flag_1 in self.good.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
@@ -89,8 +89,8 @@ class GoodFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(0, len(self.good.flags.all()))
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(0, len(self.good.flags.all()))
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_user_cannot_assign_flags_that_are_not_good_level(self):
         """
@@ -107,8 +107,8 @@ class GoodFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEquals(0, len(self.good.flags.all()))
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(0, len(self.good.flags.all()))
 
     def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
         """
@@ -128,7 +128,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(self.all_flags), len(self.good.flags.all()))
+        self.assertEqual(len(self.all_flags), len(self.good.flags.all()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.good.flags.all())
 

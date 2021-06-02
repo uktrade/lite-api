@@ -57,7 +57,7 @@ class CaseFlagsManagementTests(DataTestClient):
         response = self.client.get(self.case_url, **self.gov_headers)
         returned_case = response.json()["case"]
 
-        self.assertEquals(len(self.case.flags.all()), len(returned_case["flags"]))
+        self.assertEqual(len(self.case.flags.all()), len(returned_case["flags"]))
 
     def test_user_can_add_case_level_flags_from_their_own_team(self):
         """
@@ -73,7 +73,7 @@ class CaseFlagsManagementTests(DataTestClient):
 
         self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-        self.assertEquals(len(flags_to_add["flags"]), len(self.case.flags.all()))
+        self.assertEqual(len(flags_to_add["flags"]), len(self.case.flags.all()))
         self.assertTrue(self.team_case_flag_1 in self.case.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
@@ -90,8 +90,8 @@ class CaseFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-        self.assertEquals(0, len(self.case.flags.all()))
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(0, len(self.case.flags.all()))
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_user_cannot_assign_flags_that_are_not_case_level(self):
         """
@@ -107,8 +107,8 @@ class CaseFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-        self.assertEquals(0, len(self.case.flags.all()))
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(0, len(self.case.flags.all()))
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
         """
@@ -129,7 +129,7 @@ class CaseFlagsManagementTests(DataTestClient):
 
         self.client.put(self.case_flag_url, flags_to_keep, **self.gov_headers)
 
-        self.assertEquals(len(self.all_flags), len(self.case.flags.all()))
+        self.assertEqual(len(self.all_flags), len(self.case.flags.all()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.case.flags.all())
 
@@ -153,7 +153,7 @@ class CaseFlagsManagementTests(DataTestClient):
 
         self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-        self.assertEquals(len(flags_to_add["flags"]), len(self.case.flags.all()))
+        self.assertEqual(len(flags_to_add["flags"]), len(self.case.flags.all()))
         self.assertTrue(approval_blocking_flag in self.case.flags.all())
 
     def test_user_can_add_approval_blocking_flags_with_special_permissions(self):
@@ -181,7 +181,7 @@ class CaseFlagsManagementTests(DataTestClient):
 
         self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-        self.assertEquals(len(flags_to_add["flags"]), len(self.case.flags.all()))
+        self.assertEqual(len(flags_to_add["flags"]), len(self.case.flags.all()))
         self.assertTrue(approval_blocking_flag in self.case.flags.all())
 
     def test_user_cannot_remove_approval_blocking_flags_that_have_special_permissions(self):
@@ -210,6 +210,6 @@ class CaseFlagsManagementTests(DataTestClient):
 
         self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-        self.assertEquals(1, len(self.case.flags.all()))
+        self.assertEqual(1, len(self.case.flags.all()))
         self.assertTrue(approval_blocking_flag in self.case.flags.all())
         self.assertRaises(ValidationError)

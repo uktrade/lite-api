@@ -57,15 +57,15 @@ class PartyFlagsManagementTests(DataTestClient):
 
         self.client.put(self.assign_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(data["flags"]), len(self.end_user.flags.all()))
+        self.assertEqual(len(data["flags"]), len(self.end_user.flags.all()))
         self.assertTrue(self.team_destination_flag_1 in self.end_user.flags.all())
-        self.assertEquals(len(data["flags"]), len(self.ultimate_end_user.flags.all()))
+        self.assertEqual(len(data["flags"]), len(self.ultimate_end_user.flags.all()))
         self.assertTrue(self.team_destination_flag_1 in self.ultimate_end_user.flags.all())
-        self.assertEquals(len(data["flags"]), len(self.consignee.flags.all()))
+        self.assertEqual(len(data["flags"]), len(self.consignee.flags.all()))
         self.assertTrue(self.team_destination_flag_1 in self.consignee.flags.all())
-        self.assertEquals(len(data["flags"]), len(self.third_party.flags.all()))
+        self.assertEqual(len(data["flags"]), len(self.third_party.flags.all()))
         self.assertTrue(self.team_destination_flag_1 in self.third_party.flags.all())
-        self.assertEquals(len(data["flags"]), len(country.flags.all()))
+        self.assertEqual(len(data["flags"]), len(country.flags.all()))
         self.assertTrue(self.team_destination_flag_1 in country.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
@@ -83,8 +83,8 @@ class PartyFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.assign_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(0, len(self.end_user.flags.all()))
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(0, len(self.end_user.flags.all()))
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_user_cannot_assign_flags_that_are_not_destination_level(self):
         """
@@ -101,8 +101,8 @@ class PartyFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.assign_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEquals(0, len(self.end_user.flags.all()))
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(0, len(self.end_user.flags.all()))
 
     def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
         """
@@ -122,7 +122,7 @@ class PartyFlagsManagementTests(DataTestClient):
 
         self.client.put(self.assign_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(self.all_flags), len(self.end_user.flags.all()))
+        self.assertEqual(len(self.all_flags), len(self.end_user.flags.all()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.end_user.flags.all())
 

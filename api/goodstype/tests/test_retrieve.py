@@ -11,6 +11,6 @@ class GoodViewTests(DataTestClient):
         goods_type = GoodsType.objects.filter(application=application).first()
         url = reverse("goodstype:retrieve", kwargs={"pk": goods_type.id})
 
-        response = self.client.get(url, **self.exporter_headers)
+        response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

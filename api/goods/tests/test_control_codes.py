@@ -63,7 +63,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         verified_good_1 = Good.objects.get(pk=self.good_1.pk)
         verified_good_2 = Good.objects.get(pk=self.good_2.pk)
@@ -84,7 +84,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
         self.good_2.refresh_from_db()
@@ -103,7 +103,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         # when I review the goods
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         # then the valid good is updated
         verified_good = Good.objects.get(pk=self.good_1.pk)
@@ -147,7 +147,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         # when I review the goods
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         # then the good_on_application is updated
         verified_good_on_application = GoodOnApplication.objects.get(pk=self.good_on_application_1.pk)
@@ -166,7 +166,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # since it has an invalid control code, flags should not be removed
         verified_good = Good.objects.get(pk=self.good_1.pk)
@@ -185,7 +185,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
     def test_user_cannot_review_good_without_permissions(self):
         """
@@ -223,7 +223,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class GoodsVerifiedTestsOpenApplication(DataTestClient):
@@ -262,7 +262,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
         self.assertEqual(list(self.good_1.control_list_entries.values_list("rating", flat=True)), ["ML1a"])
@@ -286,7 +286,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
         self.assertEqual(list(self.good_1.control_list_entries.values_list("rating", flat=True)), ["ML1a"])
@@ -308,7 +308,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # since it has an invalid control code, flags should not be removed
         self.good_1.refresh_from_db()
