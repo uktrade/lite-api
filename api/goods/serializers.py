@@ -16,6 +16,7 @@ from api.goods.enums import (
     FirearmGoodType,
 )
 from api.applications.models import GoodOnApplication
+from api.applications.serializers import good as good_serializers
 from api.flags.enums import SystemFlags
 from api.goods.helpers import (
     FIREARMS_CORE_TYPES,
@@ -30,7 +31,7 @@ from api.goods.helpers import (
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
-from api.organisations.models import Organisation
+from api.organisations.models import DocumentOnOrganisation, Organisation
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
@@ -773,6 +774,7 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     query = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
+    organisation_documents = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super(GoodSerializerExporterFullDetail, self).__init__(*args, **kwargs)
@@ -784,6 +786,10 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
         return SimpleGoodDocumentViewSerializer(documents, many=True).data
+
+    def get_organisation_documents(self, instance):
+        documents = DocumentOnOrganisation.objects.filter(organisation=instance.organisation)
+        return good_serializers.DocumentOnOrganisationSerializer(documents, many=True).data
 
     def get_query(self, instance):
         from api.queries.goods_query.serializers import ExporterReadGoodQuerySerializer
