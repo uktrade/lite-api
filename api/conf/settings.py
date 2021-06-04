@@ -4,6 +4,7 @@ import sys
 from environ import Env
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+from django_log_formatter_ecs import ECSFormatter
 
 from django.urls import reverse_lazy
 
@@ -308,20 +309,14 @@ if "test" not in sys.argv:
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "json": {
-                "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
-                "format": "(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)",  # noqa
-            },
-            "ecs_formatter": {"class": "django_log_formatter_ecs.ECSFormatter",},
+            "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
+            "ecs_formatter": {"()": ECSFormatter},
         },
         "handlers": {
-            "console": {"class": "logging.StreamHandler", "formatter": "json"},
-            "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter",},
+            "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
+            "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
         },
-        "loggers": {
-            "": {"handlers": ["console"], "level": env("LOG_LEVEL").upper()},
-            "django": {"handlers": ["ecs"],},
-        },
+        "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
     }
 else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}
