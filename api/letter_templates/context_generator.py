@@ -258,7 +258,10 @@ class EcjuQueryResponseSerializer(serializers.ModelSerializer):
     time = serializers.DateTimeField(format=TIME_FORMAT, input_formats=None, source="created_at")
 
     def get_user(self, obj):
-        return f"{obj.responded_by_user.first_name} {obj.responded_by_user.last_name}"
+        if obj.responded_by_user:
+            return f"{obj.responded_by_user.first_name} {obj.responded_by_user.last_name}"
+        else:
+            return "N/A"
 
 
 class EcjuQuerySerializer(serializers.Serializer):
