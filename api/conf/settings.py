@@ -109,6 +109,7 @@ INSTALLED_APPS = [
     "health_check.cache",
     "health_check.storage",
     "health_check.contrib.migrations",
+    "django_audit_log_middleware",
 ]
 
 MIDDLEWARE = [
@@ -121,6 +122,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "api.conf.middleware.HawkSigningMiddleware",
+    "django_audit_log_middleware.AuditLogMiddleware",
 ]
 
 ROOT_URLCONF = "api.conf.urls"
