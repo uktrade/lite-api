@@ -63,6 +63,7 @@ django-phonenumber-field = "==5.0.0"
 phonenumbers = "~=8.12"
 django-log-formatter-ecs = "==0.0.5"
 whitenoise = "~=5.0"
+django-audit-log-middleware = "*"
 
 [requires]
 python_version = "3.7"
