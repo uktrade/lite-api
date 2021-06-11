@@ -452,8 +452,12 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
-    document = DocumentSerializer()
+    document = DocumentSerializer(error_messages={"null": "Select certificate file to upload",},)
     is_expired = serializers.SerializerMethodField()
+    reference_code = serializers.CharField(error_messages={"blank": "Enter the certificate number",},)
+    expiry_date = serializers.DateField(
+        error_messages={"null": "Enter the certificate expiry date and include a day, month and year",},
+    )
 
     class Meta:
         model = DocumentOnOrganisation
@@ -482,6 +486,8 @@ class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         document_serializer = DocumentSerializer(data=validated_data["document"])
         document_serializer.is_valid(raise_exception=True)
+        if self.context["validate_only"]:
+            return
         document = document_serializer.save()
         process_document(document)
         return super().create({**validated_data, "document": document, "organisation": self.context["organisation"]})
