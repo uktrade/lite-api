@@ -274,7 +274,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        if self.context["validate_only"]:
+        if self.context.get("validate_only", False):
             return
 
         user_data = validated_data.pop("user")
@@ -486,7 +486,7 @@ class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         document_serializer = DocumentSerializer(data=validated_data["document"])
         document_serializer.is_valid(raise_exception=True)
-        if self.context["validate_only"]:
+        if self.context.get("validate_only", False):
             return
         document = document_serializer.save()
         process_document(document)
