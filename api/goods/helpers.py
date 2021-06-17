@@ -161,7 +161,7 @@ def validate_firearms_act_certificate_expiry_date(validated_data):
 
         difference_in_years = relativedelta(date_of_expiry, timezone.now().date()).years
 
-        if difference_in_years > 5:
+        if difference_in_years >= 5:
             errors["section_certificate_date_of_expiry"] = "Expiry date is too far in the future"
 
     if errors:
