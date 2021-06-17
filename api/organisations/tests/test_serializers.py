@@ -40,6 +40,16 @@ from api.organisations.enums import OrganisationDocumentType
             False,
             "Expiry date is too far in the future",
         ),
+        (
+            {
+                "expiry_date": "2015-01-02",
+                "document": {"name": "a-document", "s3_key": "a-document", "size": 476},
+                "document_type": OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE,
+                "reference_code": "1234",
+            },
+            False,
+            "Expiry date is too far in the future",
+        ),
     ],
 )
 @unittest.mock.patch("django.utils.timezone.now", side_effect=mocked_now)

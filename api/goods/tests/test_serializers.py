@@ -48,6 +48,15 @@ class TestPvGradingDetailsSerializer(unittest.TestCase):
             False,
             "Expiry date is too far in the future",
         ),
+        (
+            {
+                "section_certificate_date_of_expiry": "2015-01-02",
+                "section_certificate_number": "1",
+                "certificate_missing": False,
+            },
+            False,
+            "Expiry date is too far in the future",
+        ),
     ],
 )
 @unittest.mock.patch("django.utils.timezone.now", side_effect=mocked_now)

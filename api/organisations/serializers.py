@@ -477,7 +477,7 @@ class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
 
     def validate_expiry_date(self, value):
         years_from_now = relativedelta(value, timezone.now().date()).years
-        if years_from_now > 5:
+        if years_from_now >= 5:
             raise serializers.ValidationError("Expiry date is too far in the future")
         elif value < timezone.now().date():
             raise serializers.ValidationError("Expiry date must be in the future")
