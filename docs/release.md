@@ -31,7 +31,7 @@ Deploy to Demo
 
 1. Go [here](https://jenkins.ci.uktrade.digital/job/lite-api/).
 2. Hit `Build with Parameters`.
-3. Choose `master` for `GIT_TAG` and `demo` for environment. (We can also choose the releast tag instead of master but ATM, master is ok)
+3. Choose `Tag version` and `demo` for environment. (We can also choose the `master` but there is a risk of deploying ticket that are still under product review)
 4. Hit `Build`.
 5. When the build finishes, put the following message in the Teams channel - "Hey <friend-from-product>, LITE API v<your-version> is deployed on demo and ready for product review before release to prod."
 
@@ -39,7 +39,6 @@ Deploy to Prod
 --------------
 
 1. When product approves the release, go [here](https://jenkins.ci.uktrade.digital/job/lite-api-PROD/).
-2. Hit `Build with Parameters`, choose `master` for `GIT_TAG` and hit `Build`.
+2. Hit `Build with Parameters`, choose `Tag version` and hit `Build`.
 3. When the build is finished, keep an eye on Sentry for a while to make sure nothing funny is happening. 
 4. Under the previous message on Teams channel, type - "LITE API v<your-version> is now on prod".
-
