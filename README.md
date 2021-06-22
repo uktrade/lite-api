@@ -83,8 +83,9 @@ To regenerate the diagrams run `pipenv run ./manage.py create_er_diagrams`
 
 ## Running Tests
 
-- `pipenv run ./manage.py test` will run all tests
-- `pipenv run ./manage.py test cases` will run the `cases` module tests
+- `pipenv run ./manage.py test` will run all tests (takes over 30 minutes)
+- `pipenv run ./manage.py test --parallel` will run all tests in parallel
+- `pipenv run ./manage.py test api/cases` will run the `cases` module tests
 
 ## Running Code Coverage
 
@@ -107,13 +108,3 @@ To regenerate the diagrams run `pipenv run ./manage.py create_er_diagrams`
 ## Running Bandit
 
 `pipenv run bandit -r .`
-
-## Running API tests
-
-`pipenv run ./manage.py test`
-
-with option `--parallel` to run them in parallel
-
-To run a specific folder:
-
-`pipenv run ./manage.py test <folder_name>`
