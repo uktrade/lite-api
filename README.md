@@ -15,7 +15,8 @@ Service for handling backend calls in LITE.
   - Set up your local config file:
 
     - `cp local.env .env` - you will want to set this up with valid values, ask another developer or get them from Vault.
-      If you want to run in Docker then uncomment the appropriate line in `.env` refering to DATABASE_URL
+      If you want to run in Docker then uncomment the appropriate line in `.env` refering to DATABASE_URL. To run in
+      Docker, you will also need to fill in the email field for INTERNAL_USERS and EXPORTER_USERS with valid values.
 
   - Initialise submodules
 
@@ -28,7 +29,7 @@ Service for handling backend calls in LITE.
 
     - `docker network create lite` - shared network to allow API and frontend to communicate
     - `docker-compose build` - build the container image
-    - `docker-compose start db` - to bring up the db to allow the migrate to succeed
+    - `docker-compose up -d db` - to bring up the db to allow the migrate to succeed
 
   - Run the migrations
     - `./bin/migrate.sh` - Perform the Django migrations
@@ -37,7 +38,7 @@ Service for handling backend calls in LITE.
   - `docker-compose up` - to start the API's django server
 - Go to the index page (e.g. `http://localhost:8100`)
 - At this point you might want to seed your database with some static
-  - run `docker-compose run ./manage.py seedall`
+  - run `docker-compose run api ./manage.py seedall`
 
 ## Add a single user:
 
