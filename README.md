@@ -15,8 +15,8 @@ Service for handling backend calls in LITE.
   - Set up your local config file:
 
     - `cp local.env .env` - you will want to set this up with valid values, ask another developer or get them from Vault.
-      If you want to run in Docker then uncomment the appropriate line in `.env` refering to DATABASE_URL. To run in
-      Docker, you will also need to fill in the email field for INTERNAL_USERS and EXPORTER_USERS with valid values.
+      If you want to run in Docker then uncomment the appropriate line in `.env` referring to DATABASE_URL. 
+    - In `.env`, also fill in the email field for INTERNAL_USERS and EXPORTER_USERS with valid values.
 
   - Initialise submodules
 
