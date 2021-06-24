@@ -15,7 +15,10 @@ Service for handling backend calls in LITE.
   - Set up your local config file:
 
     - `cp local.env .env` - you will want to set this up with valid values, ask another developer or get them from Vault.
-      If you want to run in Docker then uncomment the appropriate line in `.env` refering to DATABASE_URL
+      If you want to run in Docker then uncomment the appropriate line in `.env` referring to DATABASE_URL. 
+    - In `.env`, also fill in the email field for INTERNAL_USERS and EXPORTER_USERS with valid values.
+    - If running locally (using pipenv), make sure to change the DATABASE_URL to use the port exposed by docker-compose
+      which is 5462 (double check by viewing the docker-compose file)
 
   - Initialise submodules
 
@@ -28,7 +31,7 @@ Service for handling backend calls in LITE.
 
     - `docker network create lite` - shared network to allow API and frontend to communicate
     - `docker-compose build` - build the container image
-    - `docker-compose start db` - to bring up the db to allow the migrate to succeed
+    - `docker-compose up -d db` - to bring up the db to allow the migrate to succeed
 
   - Run the migrations
     - `./bin/migrate.sh` - Perform the Django migrations
@@ -37,7 +40,7 @@ Service for handling backend calls in LITE.
   - `docker-compose up` - to start the API's django server
 - Go to the index page (e.g. `http://localhost:8100`)
 - At this point you might want to seed your database with some static
-  - run `docker-compose run ./manage.py seedall`
+  - run `docker-compose run api ./manage.py seedall`
 
 ## Add a single user:
 
@@ -82,8 +85,9 @@ To regenerate the diagrams run `pipenv run ./manage.py create_er_diagrams`
 
 ## Running Tests
 
-- `pipenv run ./manage.py test` will run all tests
-- `pipenv run ./manage.py test cases` will run the `cases` module tests
+- `pipenv run ./manage.py test` will run all tests (takes over 30 minutes)
+- `pipenv run ./manage.py test --parallel` will run all tests in parallel
+- `pipenv run ./manage.py test api/cases` will run the `cases` module tests
 
 ## Running Code Coverage
 
@@ -106,13 +110,3 @@ To regenerate the diagrams run `pipenv run ./manage.py create_er_diagrams`
 ## Running Bandit
 
 `pipenv run bandit -r .`
-
-## Running API tests
-
-`pipenv run ./manage.py test`
-
-with option `--parallel` to run them in parallel
-
-To run a specific folder:
-
-`pipenv run ./manage.py test <folder_name>`
