@@ -15,7 +15,7 @@ from api.documents.libraries.process_document import process_document
 from api.goods.enums import GoodControlled, ItemType
 from api.goods.helpers import update_firearms_certificate_data
 from api.goods.models import Good
-from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializer
+from api.goods.serializers import GoodSerializerInternal, FirearmGoodDetailsSerializer
 from api.licences.models import GoodOnLicence
 from api.organisations.models import DocumentOnOrganisation
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
@@ -68,7 +68,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     control_list_entries = ControlListEntrySerializer(many=True)
     audit_trail = serializers.SerializerMethodField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
-    firearm_details = FirearmDetailsSerializer()
+    firearm_details = FirearmGoodDetailsSerializer()
 
     class Meta:
         model = GoodOnApplication
@@ -125,7 +125,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         max_length=100,
         error_messages={"required": strings.Goods.OTHER_ITEM_TYPE, "blank": strings.Goods.OTHER_ITEM_TYPE},
     )
-    firearm_details = FirearmDetailsSerializer(required=False)
+    firearm_details = FirearmGoodDetailsSerializer(required=False)
 
     class Meta:
         model = GoodOnApplication
@@ -190,7 +190,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             if validated_data.get("firearm_details"):
                 firearm_data.update(validated_data["firearm_details"])
             firearm_data = update_firearms_certificate_data(validated_data["good"].organisation_id, firearm_data)
-            serializer = FirearmDetailsSerializer(data=firearm_data)
+            serializer = FirearmGoodDetailsSerializer(data=firearm_data)
             serializer.is_valid(raise_exception=True)
             validated_data["firearm_details"] = serializer.save()
         return super().create(validated_data)

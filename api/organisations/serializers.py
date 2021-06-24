@@ -2,6 +2,7 @@ import re
 
 from django.db import transaction
 from django.utils import timezone
+from dateutil.relativedelta import relativedelta
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
@@ -273,7 +274,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        if self.context["validate_only"]:
+        if self.context.get("validate_only", False):
             return
 
         user_data = validated_data.pop("user")
@@ -451,8 +452,12 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
-    document = DocumentSerializer()
+    document = DocumentSerializer(error_messages={"null": "Select certificate file to upload",},)
     is_expired = serializers.SerializerMethodField()
+    reference_code = serializers.CharField(error_messages={"blank": "Enter the certificate number",},)
+    expiry_date = serializers.DateField(
+        error_messages={"null": "Enter the certificate expiry date and include a day, month and year",},
+    )
 
     class Meta:
         model = DocumentOnOrganisation
@@ -470,9 +475,19 @@ class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
     def get_is_expired(self, instance):
         return timezone.now().date() > instance.expiry_date
 
+    def validate_expiry_date(self, value):
+        years_from_now = relativedelta(value, timezone.now().date()).years
+        if years_from_now >= 5:
+            raise serializers.ValidationError("Expiry date is too far in the future")
+        elif value < timezone.now().date():
+            raise serializers.ValidationError("Expiry date must be in the future")
+        return value
+
     def create(self, validated_data):
         document_serializer = DocumentSerializer(data=validated_data["document"])
         document_serializer.is_valid(raise_exception=True)
+        if self.context.get("validate_only", False):
+            return
         document = document_serializer.save()
         process_document(document)
         return super().create({**validated_data, "document": document, "organisation": self.context["organisation"]})

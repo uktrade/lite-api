@@ -31,6 +31,7 @@ from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDe
 from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
+from api.organisations.serializers import DocumentOnOrganisationSerializer
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
@@ -90,7 +91,7 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
             raise error
 
 
-class FirearmDetailsSerializer(serializers.ModelSerializer):
+class FirearmGoodDetailsSerializer(serializers.ModelSerializer):
     type = KeyValueChoiceField(
         choices=FirearmGoodType.choices,
         allow_null=False,
@@ -137,6 +138,10 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     )
     serial_numbers = serializers.ListField(child=serializers.CharField(allow_blank=True), required=False)
 
+    is_registered_firearm_dealer = serializers.BooleanField(allow_null=True, required=False)
+
+    document_on_organisation = DocumentOnOrganisationSerializer(allow_null=True, required=False)
+
     class Meta:
         model = FirearmGoodDetails
         fields = (
@@ -163,10 +168,27 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "deactivation_standard_other",
             "number_of_items",
             "serial_numbers",
+            # non model fields below included for validation only
+            "is_registered_firearm_dealer",
+            "document_on_organisation",
         )
 
+    def create(self, validated_data):
+        # These fields not in the model so remove before create
+        if "is_registered_firearm_dealer" in validated_data:
+            validated_data.pop("is_registered_firearm_dealer")
+
+        if validated_data.get("document_on_organisation"):
+            validated_data["document_on_organisation"] = DocumentOnOrganisationSerializer.create(
+                DocumentOnOrganisationSerializer(context=self.context),
+                validated_data=validated_data["document_on_organisation"],
+            )
+            validated_data.pop("document_on_organisation")
+
+        return super().create(validated_data)
+
     def validate(self, data):
-        validated_data = super(FirearmDetailsSerializer, self).validate(data)
+        validated_data = super().validate(data)
 
         # Year of manufacture should be in the past and a valid year
         year_of_manufacture = validated_data.get("year_of_manufacture")
@@ -187,7 +209,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({"is_replica": "Select yes if the product is a replica firearm"})
 
                 if validated_data.get("is_replica") is True:
-                    if "replica_description" not in validated_data or validated_data.get("replica_description") is "":
+                    if "replica_description" not in validated_data or validated_data.get("replica_description") == "":
                         raise serializers.ValidationError({"replica_description": "Enter description"})
             if validated_data.get("is_replica") is not None and "firearms" != validated_data.get("type"):
                 raise serializers.ValidationError({"is_replica": "Invalid firearm product type"})
@@ -205,6 +227,14 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         if "is_sporting_shotgun" in validated_data and validated_data.get("is_sporting_shotgun") is None:
             raise serializers.ValidationError(
                 {"is_sporting_shotgun": [get_sporting_shortgun_errormsg(validated_data.get("type"))]}
+            )
+
+        if (
+            "is_registered_firearm_dealer" in validated_data
+            and validated_data.get("is_registered_firearm_dealer") is None
+        ):
+            raise serializers.ValidationError(
+                {"is_registered_firearm_dealer": ["Select yes if you are a registered firearms dealer"]}
             )
 
         if validated_data.get("has_proof_mark") is False and validated_data.get("no_proof_mark_details") == "":
@@ -362,7 +392,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     software_or_technology_details = serializers.CharField(
         allow_null=True, required=False, allow_blank=True, max_length=2000
     )
-    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    firearm_details = FirearmGoodDetailsSerializer(allow_null=True, required=False)
 
     class Meta:
         model = Good
@@ -422,6 +452,13 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                     if "section_certificate_date_of_expiry" in firearm_details:
                         firearm_details.pop("section_certificate_date_of_expiry")
 
+            # If user has answered No to registered firearms dealer question, don't validate RFD document upload
+            if (
+                not str_to_bool(firearm_details.get("is_registered_firearm_dealer"))
+                and "document_on_organisation" in firearm_details
+            ):
+                firearm_details.pop("document_on_organisation")
+
             if "has_identification_markings" in firearm_details:
                 # Keep only the details relevant for the yes/no answer
                 if str_to_bool(firearm_details.get("has_identification_markings")):
@@ -480,8 +517,8 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             )
 
         if validated_data.get("firearm_details"):
-            validated_data["firearm_details"] = GoodCreateSerializer._create_firearm_details(
-                validated_data["firearm_details"]
+            validated_data["firearm_details"] = FirearmGoodDetailsSerializer.create(
+                FirearmGoodDetailsSerializer(context=self.context), validated_data=validated_data["firearm_details"]
             )
 
         return super(GoodCreateSerializer, self).create(validated_data)
@@ -594,13 +631,9 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         return None
 
     @staticmethod
-    def _create_firearm_details(firearm_details):
-        return FirearmDetailsSerializer.create(FirearmDetailsSerializer(), validated_data=firearm_details)
-
-    @staticmethod
     def _update_firearm_details(firearm_details, instance):
-        return FirearmDetailsSerializer.update(
-            FirearmDetailsSerializer(), validated_data=firearm_details, instance=instance,
+        return FirearmGoodDetailsSerializer.update(
+            FirearmGoodDetailsSerializer(), validated_data=firearm_details, instance=instance,
         )
 
 
@@ -717,7 +750,7 @@ class GoodSerializerInternal(serializers.Serializer):
     is_document_available = serializers.BooleanField()
     is_document_sensitive = serializers.BooleanField()
     software_or_technology_details = serializers.CharField()
-    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    firearm_details = FirearmGoodDetailsSerializer(allow_null=True, required=False)
     is_precedent = serializers.BooleanField(required=False, default=False)
 
     def get_documents(self, instance):
@@ -726,7 +759,7 @@ class GoodSerializerInternal(serializers.Serializer):
 
 
 class TinyGoodDetailsSerializer(serializers.ModelSerializer):
-    firearm_details = FirearmDetailsSerializer(read_only=True)
+    firearm_details = FirearmGoodDetailsSerializer(read_only=True)
 
     class Meta:
         model = Good
@@ -761,7 +794,7 @@ class GoodSerializerExporter(serializers.Serializer):
     information_security_details = serializers.CharField()
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
     software_or_technology_details = serializers.CharField()
-    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    firearm_details = FirearmGoodDetailsSerializer(allow_null=True, required=False)
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
