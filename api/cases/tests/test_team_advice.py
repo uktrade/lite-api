@@ -359,17 +359,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @pytest.mark.xfail(reason="Possibly caused by flux in behavior of advice section. Needs to be reviewed.")
-    def test_when_user_advice_exists_combine_team_advice_without_confirm_own_advice_failure(self,):
-        self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_ADVICE.name])
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
-
-        response = self.client.get(
-            reverse("cases:team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
     def test_when_user_advice_exists_clear_team_advice_with_confirm_own_advice_success(self,):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
@@ -379,17 +368,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    @pytest.mark.xfail(reason="Possibly caused by flux in behavior of advice section. Needs to be reviewed.")
-    def test_when_user_advice_exists_clear_team_advice_without_confirm_own_advice_failure(self,):
-        self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_ADVICE.name])
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
-
-        response = self.client.delete(
-            reverse("cases:team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_when_user_advice_exists_create_team_advice_with_confirm_own_advice_success(self,):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
@@ -406,23 +384,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    @pytest.mark.xfail(reason="Possibly caused by flux in behavior of advice section. Needs to be reviewed.")
-    def test_when_user_advice_exists_create_team_advice_without_confirm_own_advice_failure(self,):
-        self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_ADVICE.name])
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
-        data = {
-            "text": "I Am Easy to Find",
-            "note": "I Am Easy to Find",
-            "type": AdviceType.APPROVE,
-            "end_user": str(self.standard_application.end_user.party.id),
-        }
-
-        response = self.client.post(
-            reverse("cases:team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @parameterized.expand(CaseStatusEnum.terminal_statuses())
     def test_cannot_create_team_advice_when_case_in_terminal_state(self, terminal_status):
