@@ -571,7 +571,7 @@ class GoodsQueryGoodSerializer(serializers.ModelSerializer):
         return [clc.rating for clc in obj.control_list_entries.all()]
 
 
-class FirearmGoodDetailsSerializer(serializers.ModelSerializer):
+class FirearmDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirearmGoodDetails
         fields = [
@@ -659,7 +659,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
         ]
 
     good = GoodSerializer()
-    firearm_details = FirearmGoodDetailsSerializer()
+    firearm_details = FirearmDetailsSerializer()
     is_incorporated = FriendlyBooleanField(source="is_good_incorporated")
     applied_for_quantity = serializers.SerializerMethodField()
     applied_for_value = serializers.SerializerMethodField()

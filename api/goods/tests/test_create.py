@@ -1,4 +1,3 @@
-import unittest
 import uuid
 from copy import deepcopy
 
@@ -19,9 +18,8 @@ from api.goods.enums import (
 from api.goods.models import Good
 from lite_content.lite_api import strings
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
-
+from api.staticdata.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
-from test_helpers.helpers import mocked_now
 
 URL = reverse("goods:goods")
 
@@ -580,41 +578,40 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(good["firearm_details"]["year_of_manufacture"], year)
 
     def test_add_firearms_act_section_question_check_errors(self):
-        with unittest.mock.patch("django.utils.timezone.now", side_effect=mocked_now):
-            data = {
-                "name": "Rifle",
-                "description": "Firearm product",
-                "is_good_controlled": False,
-                "is_pv_graded": GoodPvGraded.NO,
-                "item_category": ItemCategory.GROUP2_FIREARMS,
-                "validate_only": True,
-                "firearm_details": {
-                    "type": FirearmGoodType.FIREARMS,
-                    "calibre": "9mm",
-                    "year_of_manufacture": "2010",
-                    "is_covered_by_firearm_act_section_one_two_or_five": "",
-                    "firearms_act_section": "firearms_act_section1",
-                    "section_certificate_number": "ABC123",
-                    "section_certificate_date_of_expiry": "2012-12-12",
-                },
-            }
+        data = {
+            "name": "Rifle",
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.FIREARMS,
+                "calibre": "9mm",
+                "year_of_manufacture": "2010",
+                "is_covered_by_firearm_act_section_one_two_or_five": "",
+                "firearms_act_section": "firearms_act_section1",
+                "section_certificate_number": "ABC123",
+                "section_certificate_date_of_expiry": "2012-12-12",
+            },
+        }
 
-            response = self.client.post(URL, data, **self.exporter_headers)
+        response = self.client.post(URL, data, **self.exporter_headers)
 
-            self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-            response = response.json()["errors"]
-            self.assertEqual(
-                response["is_covered_by_firearm_act_section_one_two_or_five"][0],
-                "Select yes if the product is covered by Section 1, Section 2 or Section 5 of the Firearms Act 1968",
-            )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(
+            response["is_covered_by_firearm_act_section_one_two_or_five"][0],
+            "Select yes if the product is covered by Section 1, Section 2 or Section 5 of the Firearms Act 1968",
+        )
 
-            data["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"] = "Yes"
-            data["firearm_details"]["firearms_act_section"] = ""
-            response = self.client.post(URL, data, **self.exporter_headers)
+        data["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"] = "Yes"
+        data["firearm_details"]["firearms_act_section"] = ""
+        response = self.client.post(URL, data, **self.exporter_headers)
 
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            response = response.json()["errors"]
-            self.assertEqual(response["firearms_act_section"][0], "Select which section the product is covered by")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(response["firearms_act_section"][0], "Select which section the product is covered by")
 
     def test_add_firearms_certificate_missing_checks(self):
         data = {
@@ -649,42 +646,41 @@ class CreateGoodTests(DataTestClient):
         )
 
     def test_add_firearms_certificate_question_check_errors(self):
-        with unittest.mock.patch("django.utils.timezone.now", side_effect=mocked_now):
-            data = {
-                "name": "Rifle",
-                "description": "Firearm product",
-                "is_good_controlled": False,
-                "is_pv_graded": GoodPvGraded.NO,
-                "item_category": ItemCategory.GROUP2_FIREARMS,
-                "validate_only": True,
-                "firearm_details": {
-                    "type": FirearmGoodType.AMMUNITION,
-                    "calibre": "0.5",
-                    "year_of_manufacture": "1991",
-                    "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
-                    "firearms_act_section": "firearms_act_section1",
-                    "section_certificate_number": "",
-                    "section_certificate_date_of_expiry": "2012-12-12",
-                },
-            }
+        data = {
+            "name": "Rifle",
+            "description": "Firearm product",
+            "is_good_controlled": False,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
+                "firearms_act_section": "firearms_act_section1",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "2012-12-12",
+            },
+        }
 
-            response = self.client.post(URL, data, **self.exporter_headers)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            response = response.json()["errors"]
-            self.assertEqual(response["section_certificate_number"][0], "Enter the certificate number")
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(response["section_certificate_number"][0], "Enter the certificate number")
 
-            data["firearm_details"]["section_certificate_number"] = "FR8C1604"
-            data["firearm_details"]["section_certificate_date_of_expiry"] = None
-            response = self.client.post(URL, data, **self.exporter_headers)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            response = response.json()["errors"]
+        data["firearm_details"]["section_certificate_number"] = "FR8C1604"
+        data["firearm_details"]["section_certificate_date_of_expiry"] = None
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
 
-            self.assertEqual(
-                response["section_certificate_date_of_expiry"][0],
-                "Enter the certificate expiry date and include a day, month and year",
-            )
+        self.assertEqual(
+            response["section_certificate_date_of_expiry"][0],
+            "Enter the certificate expiry date and include a day, month and year",
+        )
 
-    def test_add_firearms_certificate_missing_checks_2(self):
+    def test_add_firearms_certificate_missing_checks(self):
         data = {
             "name": "Rifle",
             "description": "Firearm product",
