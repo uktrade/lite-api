@@ -9,6 +9,7 @@ class ControlListEntry(models.Model):
     text = models.TextField(blank=False, null=False)
     parent = models.ForeignKey("self", related_name="children", default=None, null=True, on_delete=models.CASCADE)
     category = models.CharField(max_length=100, default="")
+    controlled = models.BooleanField(default=True)
 
     class Meta:
         db_table = "control_list_entry"
