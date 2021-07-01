@@ -9,10 +9,7 @@ def get_control_list_entry(rating):
         raise NotFoundError({"control_list_entry": f"'{rating}' - Control list entry not found"})
 
 
-def convert_control_list_entries_to_tree(queryset=None):
-    # custom queryset exists for testing purposes since it contains a number of random control codes otherwise
-    data = queryset if queryset else ControlListEntry.objects.all().values()
-
+def convert_control_list_entries_to_tree(data):
     # Link children inside their parent object
     data_dict = {control_code["id"]: control_code for control_code in data}
     for control_code in data:
