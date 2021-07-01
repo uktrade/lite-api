@@ -34,10 +34,10 @@ def create_or_update_good(serializer, data, is_created):
         flattened_errors = flatten_errors(serializer.errors, data)
         return JsonResponse(data={"errors": flattened_errors}, status=status.HTTP_400_BAD_REQUEST)
 
+    serializer.save()
+
     if str_to_bool(data.get("validate_only")):
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
-
-    serializer.save()
 
     return JsonResponse(
         data={"good": serializer.data}, status=status.HTTP_201_CREATED if is_created else status.HTTP_200_OK
