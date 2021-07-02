@@ -7,6 +7,7 @@ class ControlListEntriesFactory(factory.django.DjangoModelFactory):
     text = factory.Faker("word")
     parent = None
     category = "test-list"
+    controlled = True
 
     class Meta:
         model = models.ControlListEntry

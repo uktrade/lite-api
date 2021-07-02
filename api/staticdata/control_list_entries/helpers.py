@@ -42,7 +42,7 @@ def get_clc_parent_nodes(rating):
     except ControlListEntry.DoesNotExist:
         node = None
 
-    if node and node.parent:
+    if node and node.parent and node.parent.controlled:
         parent_nodes.append(node.parent.rating)
         next_parent = get_clc_parent_nodes(node.parent.rating)
         parent_nodes.extend(next_parent)
@@ -65,7 +65,7 @@ def get_clc_child_nodes(group_rating):
     except ControlListEntry.DoesNotExist:
         node = None
 
-    if node:
+    if node and node.controlled:
         if node.children.exists():
             child_nodes.append(node.rating)
             for child in node.children.all():

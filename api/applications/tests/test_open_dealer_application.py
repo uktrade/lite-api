@@ -27,7 +27,7 @@ class OpenDealerTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.count(), 1)
-        self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 15)
+        self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 14)
 
     def test_all_eu_countries_added_dealer(self):
         data = {
