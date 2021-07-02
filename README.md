@@ -110,3 +110,19 @@ To regenerate the diagrams run `pipenv run ./manage.py create_er_diagrams`
 ## Running Bandit
 
 `pipenv run bandit -r .`
+
+## Adding new Control list entries
+
+The control list entries are maintained in an excel sheet in an internal repo. They are arranged in a tree structure with each category in a different sheet. As with the changes in policy we need to update the list. This involves adding new entries, decontrolling existing entries or updating the description of entry(s).
+
+To add a new entry simply add the description, rating at the correct level. Mark whether it is decontrolled or not by entering 'x' in the decontrolled column. Usually everything is controlled unless otherwise marked in this column.
+
+If only description is to be updated then just edit the description text.
+
+Once the changes are done run the seed command to populate the db with the updated entries and ensure no errors are reported.
+
+`pipenv run ./manage.py seedcontrollistentries`
+
+Deploy the API so that it picks up the updated entries in the corresponding environment. Because of the way the seeding commands are executed during deployment we have to deploy twice to see these changes. During deployment it first runs the seed commands and then deploys new changes so during the first deployment we are still seeding existing entries. If we deploy twice then the updated entries get seeded.
+
+Once the API is deployed then restart the frontends because the control list entries are cached in the frontend and to discard them and pull updated list we need to restart the app.
