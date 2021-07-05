@@ -42,7 +42,7 @@ class GoodFactory(factory.django.DjangoModelFactory):
         self.flags.set(extracted)
 
 
-class FirearmGoodDetailsFactory(factory.django.DjangoModelFactory):
+class FirearmFactory(factory.django.DjangoModelFactory):
     type = FirearmGoodType.AMMUNITION
     year_of_manufacture = 2019
     calibre = "5.56x45mm"

@@ -1,5 +1,4 @@
-from datetime import datetime
-from django.utils import timezone
+from django.db import IntegrityError
 from faker import Faker
 
 from api.core.constants import Roles
@@ -8,10 +7,6 @@ from api.staticdata.countries.models import Country
 from api.users.models import ExporterUser, UserOrganisationRelationship
 
 faker = Faker()
-
-
-def mocked_now():
-    return datetime(2010, 1, 1, tzinfo=timezone.utc)
 
 
 def generate_key_value_pair(key, choices):

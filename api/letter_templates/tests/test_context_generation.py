@@ -33,7 +33,7 @@ from api.goods.enums import (
     GoodControlled,
     GoodPvGraded,
 )
-from api.goods.tests.factories import GoodFactory, FirearmGoodDetailsFactory
+from api.goods.tests.factories import GoodFactory, FirearmFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.letter_templates.context_generator import get_document_context
 from api.licences.enums import LicenceStatus
@@ -884,7 +884,7 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_category_2_good_details_legacy(self):
         application = self.create_standard_application_case(self.organisation)
         application.goods.all().delete()
-        firearm_details = FirearmGoodDetailsFactory()
+        firearm_details = FirearmFactory()
         good = GoodFactory(
             organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, firearm_details=firearm_details
         )
@@ -906,8 +906,8 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_category_2_good_details(self):
         application = self.create_standard_application_case(self.organisation)
         application.goods.all().delete()
-        firearm_details = FirearmGoodDetailsFactory(year_of_manufacture=2020)
-        firearm_details_on_application = FirearmGoodDetailsFactory(year_of_manufacture=1919)
+        firearm_details = FirearmFactory(year_of_manufacture=2020)
+        firearm_details_on_application = FirearmFactory(year_of_manufacture=1919)
         good = GoodFactory(
             organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, firearm_details=firearm_details
         )

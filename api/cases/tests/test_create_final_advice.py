@@ -246,7 +246,7 @@ class CreateCaseAdviceTests(DataTestClient):
             reverse("cases:user_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_can_submit_user_level_advice_if_final_advice_has_been_cleared_for_that_team_on_that_case(self,):
         """

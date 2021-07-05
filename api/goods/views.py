@@ -47,7 +47,7 @@ from api.goodstype.models import GoodsType
 from api.goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import OrganisationDocumentType
-from api.organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterNotification
@@ -197,7 +197,6 @@ class GoodList(ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         """ Add a good to to an organisation. """
         data = request.data
-        validate_only = request.data.get("validate_only", False)
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
 
@@ -233,9 +232,7 @@ class GoodList(ListCreateAPIView):
                     ):
                         data["firearm_details"]["firearms_act_section"] = "firearms_act_section5"
 
-        serializer = GoodCreateSerializer(
-            data=data, context={"validate_only": validate_only, "organisation": get_request_user_organisation(request)}
-        )
+        serializer = GoodCreateSerializer(data=data)
 
         return create_or_update_good(serializer, data, is_created=True)
 
