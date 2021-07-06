@@ -48,6 +48,10 @@ class CLCListTests(DataTestClient):
             ["ML1", []],
             ["ML1c", ["ML1"]],
             ["ML1b1", ["ML1", "ML1b"]],
+            ["ML1d1", ["ML1"]],
+            ["ML1d6", ["ML1"]],
+            ["ML2c1", ["ML2"]],
+            ["ML2c4", ["ML2"]],
             ["6E003a1", ["6", "6E", "6E003", "6E003a"]],
             ["6A005d1d1a", ["6", "6A", "6A005", "6A005d", "6A005d1", "6A005d1d", "6A005d1d1"]],
             ["INVALID_CLC", []],
@@ -61,7 +65,10 @@ class CLCListTests(DataTestClient):
         [
             ["ML1a", ["ML1a"]],
             ["ML1b", ["ML1b", "ML1b1", "ML1b2"]],
-            ["ML1", ["ML1", "ML1a", "ML1b", "ML1b1", "ML1b2", "ML1c", "ML1d"]],
+            [
+                "ML1",
+                ["ML1", "ML1a", "ML1b", "ML1b1", "ML1b2", "ML1c", "ML1d1", "ML1d2", "ML1d3", "ML1d4", "ML1d5", "ML1d6"],
+            ],
             ["6A005b9", ["6A005b9", "6A005b9a", "6A005b9a1", "6A005b9a2", "6A005b9b", "6A005b9b1", "6A005b9b2"]],
             ["INVALID_CLC", []],
         ]
@@ -92,7 +99,7 @@ class CLCTests(DataTestClient):
         self._validate_clc(response_data["parent"], self.parent_rating)
 
     def test_get_clc_with_children(self):
-        child_2 = ControlListEntriesFactory(rating="ML1d1", text="Child 2-1", parent=self.parent_rating)
+        child_2 = ControlListEntriesFactory(rating="ML1e1", text="Child 2-1", parent=self.parent_rating)
 
         url = reverse(self.url, kwargs={"rating": self.parent_rating.rating},)
         response = self.client.get(url, **self.exporter_headers)
@@ -114,6 +121,7 @@ class ControlListEntryHelpersTest(DataTestClient):
             "text": control_list.text,
             "parent_id": control_list.parent_id,
             "category": control_list.category,
+            "controlled": control_list.controlled,
         }
         if children:
             json["children"] = children

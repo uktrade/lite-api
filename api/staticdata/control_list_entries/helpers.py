@@ -9,10 +9,7 @@ def get_control_list_entry(rating):
         raise NotFoundError({"control_list_entry": f"'{rating}' - Control list entry not found"})
 
 
-def convert_control_list_entries_to_tree(queryset=None):
-    # custom queryset exists for testing purposes since it contains a number of random control codes otherwise
-    data = queryset if queryset else ControlListEntry.objects.all().values()
-
+def convert_control_list_entries_to_tree(data):
     # Link children inside their parent object
     data_dict = {control_code["id"]: control_code for control_code in data}
     for control_code in data:
@@ -45,7 +42,7 @@ def get_clc_parent_nodes(rating):
     except ControlListEntry.DoesNotExist:
         node = None
 
-    if node and node.parent:
+    if node and node.parent and node.parent.controlled:
         parent_nodes.append(node.parent.rating)
         next_parent = get_clc_parent_nodes(node.parent.rating)
         parent_nodes.extend(next_parent)
@@ -68,7 +65,7 @@ def get_clc_child_nodes(group_rating):
     except ControlListEntry.DoesNotExist:
         node = None
 
-    if node:
+    if node and node.controlled:
         if node.children.exists():
             child_nodes.append(node.rating)
             for child in node.children.all():
