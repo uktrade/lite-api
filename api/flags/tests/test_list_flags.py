@@ -1,3 +1,4 @@
+import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -56,3 +57,12 @@ class FlagsListTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], flag_1.name)
+
+    def test_include_system_flags_filter(self):
+        """Test that the include_system_flags filter works properly."""
+
+        def get_flags_count(system_flags):
+            response = self.client.get(self.url + f"?include_system_flags={system_flags}", **self.gov_headers)
+            return response.json()["count"]
+
+        assert get_flags_count(True) > get_flags_count(False)
