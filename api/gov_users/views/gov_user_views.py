@@ -1,3 +1,4 @@
+import logging
 from django.http import JsonResponse
 from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
@@ -31,6 +32,7 @@ class AuthenticateGovUser(APIView):
         email = data.get("email")
         first_name = data.get("first_name")
         last_name = data.get("last_name")
+        logging.info(f"====> Request data: {data}")
 
         try:
             user = GovUser.objects.get(baseuser_ptr__email=email)
@@ -40,10 +42,10 @@ class AuthenticateGovUser(APIView):
             user.baseuser_ptr.last_name = last_name
             user.baseuser_ptr.save()
         except GovUser.DoesNotExist:
-            return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(data={"errors": f"User does not exist, {data}"}, status=status.HTTP_403_FORBIDDEN)
 
         if user.status == GovUserStatuses.DEACTIVATED:
-            return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(data={"errors": "User status not active"}, status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user.baseuser_ptr)
         return JsonResponse(
