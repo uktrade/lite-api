@@ -18,4 +18,5 @@ class Command(SeedCommand):
     @transaction.atomic
     def operation(self, *args, **options):
         csv = self.read_csv(FLAGS_FILE)
+        self.delete_unused_objects(Flag, csv)
         self.update_or_create(Flag, csv)
