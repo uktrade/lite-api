@@ -540,3 +540,32 @@ class SlaHmrcCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
         self.assertNotIn("sla_hours_since_raised", response_data[0])
+
+
+class TerminalCaseSlaTests(DataTestClient):
+    @mock.patch("api.cases.tasks.is_weekend")
+    @mock.patch("api.cases.tasks.is_bank_holiday")
+    def test_sla_not_update_for_terminal(
+        self, mock_is_weekend, mock_is_bank_holiday,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.create_draft_standard_application(self.organisation)
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, STANDARD_APPLICATION_TARGET_DAYS - 1)
+
+        for case_status in CaseStatusEnum.terminal_statuses():
+            application.status = get_case_status_by_status(case_status)
+            application.save()
+
+            results = update_cases_sla.now()
+            case.refresh_from_db()
+            self.assertEqual(results, 0)
+            self.assertEqual(case.sla_days, 1)
+            self.assertEqual(case.sla_remaining_days, STANDARD_APPLICATION_TARGET_DAYS - 1)
