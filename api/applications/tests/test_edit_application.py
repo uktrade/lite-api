@@ -475,7 +475,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
         data = {
             "title": self.application.title,
             "required_by_date": self.application.required_by_date,
-            "first_exhibition_date": "2022-05-03",
+            "first_exhibition_date": "2030-08-03",
         }
 
         response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
