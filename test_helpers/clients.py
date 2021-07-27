@@ -742,8 +742,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if case_type == CaseTypeEnum.EXHIBITION:
             application.title = "title"
-            application.required_by_date = "2021-07-20"
-            application.first_exhibition_date = "2022-08-19"
+            application.required_by_date = "2030-07-20"
+            application.first_exhibition_date = "2030-07-20"
             application.save()
             # must be refreshed to return data in same format as database call
             application.refresh_from_db()
