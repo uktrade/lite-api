@@ -74,7 +74,7 @@ class FlagsListCreateView(ListCreateAPIView):
         if case:
             flags = get_flags(get_case(case))
         else:
-            flags = Flag.objects.exclude(level=FlagLevels.PARTY_ON_APPLICATION, id__in=SystemFlags.list)
+            flags = Flag.objects.exclude(level=FlagLevels.PARTY_ON_APPLICATION)
 
         if name:
             flags = flags.filter(name__icontains=name)
