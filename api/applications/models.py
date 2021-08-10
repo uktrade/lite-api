@@ -318,6 +318,22 @@ class AbstractGoodOnApplication(TimestampableModel):
         abstract = True
 
 
+class GoodOnApplicationControlListEntry(models.Model):
+    goodonapplication = models.ForeignKey("GoodOnApplication", related_name="goods", on_delete=models.CASCADE)
+    controllistentry = models.ForeignKey(ControlListEntry, related_name="controllistentry", on_delete=models.CASCADE)
+
+    class Meta:
+        """
+        This table name should not be modified, this is the through table name that Django created for us
+        when previously 'through' table was not specified for the M2M field 'control_list_entries' in
+        'GoodOnApplication' model below. We have recently updated the field to use this model as the
+        through table and we don't want Django to create a new table but use the previously inferred
+        through table instead hence we are specifying the same table name using the 'db_table' attribute.
+        """
+
+        db_table = "applications_goodonapplication_control_list_entries"
+
+
 class GoodOnApplication(AbstractGoodOnApplication):
 
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods", null=False)
@@ -338,6 +354,7 @@ class GoodOnApplication(AbstractGoodOnApplication):
         content_type_field="action_object_content_type",
         object_id_field="action_object_object_id",
     )
+    control_list_entries = models.ManyToManyField(ControlListEntry, through=GoodOnApplicationControlListEntry)
 
     class Meta:
         ordering = ["created_at"]
