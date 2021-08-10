@@ -82,6 +82,7 @@ class GoodControlListEntry(models.Model):
         and we don't want Django to create a new table but use the previously inferred through table
         instead hence we are specifying the same table name using the 'db_table' attribute.
         """
+
         db_table = "good_control_list_entries"
 
 
