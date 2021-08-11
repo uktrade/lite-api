@@ -38,9 +38,9 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
         response = self.client.post(reverse("applications:applications"), data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.get(self.standard_applications)
+        response = self.client.options(self.standard_applications)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        actual_keys = response.json()["results"][0].keys()
+        actual_keys = response.json()["actions"]["OPTIONS"].keys()
         expected_keys = [
             "id",
             "name",
@@ -78,9 +78,9 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
         self.good_on_application = GoodOnApplication.objects.create(
             good=self.good, application=self.application, quantity=10, unit=Units.NAR, value=500
         )
-        response = self.client.get(self.good_on_applications)
+        response = self.client.options(self.good_on_applications)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        actual_keys = response.json()["results"][0].keys()
+        actual_keys = response.json()["actions"]["OPTIONS"].keys()
         expected_keys = [
             "id",
             "good",
@@ -100,9 +100,9 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
         for key in expected_keys:
             self.assertTrue(key in actual_keys)
 
-        response = self.client.get(self.party_on_applications)
+        response = self.client.options(self.party_on_applications)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        actual_keys = response.json()["results"][0].keys()
+        actual_keys = response.json()["actions"]["OPTIONS"].keys()
         expected_keys = ["id", "application", "party", "flags"]
         for key in expected_keys:
             self.assertTrue(key in actual_keys)

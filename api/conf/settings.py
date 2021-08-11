@@ -146,11 +146,13 @@ TEMPLATES = [
 
 AUTH_USER_MODEL = "users.BaseUser"
 
+
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     "DEFAULT_AUTHENTICATION_CLASSES": (),
     "DEFAULT_PERMISSION_CLASSES": (),
+    "DEFAULT_METADATA_CLASS": "api.core.metadata.SimpleMetadataForAllMethods",
     "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser", "rest_framework.parsers.FormParser"),
     "DEFAULT_PAGINATION_CLASS": "api.conf.pagination.MaxPageNumberPagination",
     "PAGE_SIZE": 25,
