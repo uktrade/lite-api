@@ -27,7 +27,6 @@ class DataWorkspaceTests(DataTestClient):
         options = response.json()["actions"]["OPTIONS"]
         self.assertEqual(tuple(options.keys()), expected_fields)
 
-
     def test_case_types(self):
         url = reverse("data_workspace:dw-case-type-list")
         expected_fields = ("id", "reference", "type", "sub_type")
