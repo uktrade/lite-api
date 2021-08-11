@@ -14,7 +14,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_case_assignment_slas(self):
         url = reverse("data_workspace:dw-case-assignment-sla-list")
-        expected_fields = ('id', 'sla_days', 'queue', 'case')
+        expected_fields = ("id", "sla_days", "queue", "case")
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -30,7 +30,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_case_types(self):
         url = reverse("data_workspace:dw-case-type-list")
-        expected_fields = ('id', 'reference', 'type', 'sub_type')
+        expected_fields = ("id", "reference", "type", "sub_type")
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -45,7 +45,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_case_queues(self):
         url = reverse("data_workspace:dw-case-queue-list")
-        expected_fields = ('id', 'created_at', 'updated_at', 'case', 'queue')
+        expected_fields = ("id", "created_at", "updated_at", "case", "queue")
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
