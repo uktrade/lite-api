@@ -70,6 +70,22 @@ class FirearmGoodDetails(models.Model):
     deactivation_standard_other = models.TextField(default="")
 
 
+class GoodControlListEntry(models.Model):
+    good = models.ForeignKey("Good", related_name="goods", on_delete=models.CASCADE)
+    controllistentry = models.ForeignKey(ControlListEntry, related_name="controllistentries", on_delete=models.CASCADE)
+
+    class Meta:
+        """
+        This table name should not be modified, this is the through table name that Django created for us
+        when previously 'through' table was not specified for the M2M field 'control_list_entries' in
+        'Good' model below. We have recently updated the field to use this model as the through table
+        and we don't want Django to create a new table but use the previously inferred through table
+        instead hence we are specifying the same table name using the 'db_table' attribute.
+        """
+
+        db_table = "good_control_list_entries"
+
+
 class Good(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
@@ -77,7 +93,7 @@ class Good(TimestampableModel):
 
     # CLC. used as base values that can be overridden at application level
     is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
-    control_list_entries = models.ManyToManyField(ControlListEntry, related_name="goods")
+    control_list_entries = models.ManyToManyField(ControlListEntry, related_name="goods", through=GoodControlListEntry)
 
     # PV
     is_pv_graded = models.CharField(choices=GoodPvGraded.choices, default=GoodPvGraded.GRADING_REQUIRED, max_length=20)
