@@ -19,7 +19,9 @@ from api.cases.models import (
     Case,
     CaseNote,
     CaseAssignment,
+    CaseAssignmentSla,
     CaseDocument,
+    CaseQueue,
     EcjuQuery,
     EcjuQueryDocument,
     Advice,
@@ -77,6 +79,20 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
         )
 
 
+class CaseAssignmentSlaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CaseAssignmentSla
+        fields = "__all__"
+
+
+class CaseQueueSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CaseQueue
+        fields = "__all__"
+
+
 class QueueCaseAssignmentUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = GovUser
@@ -86,6 +102,13 @@ class QueueCaseAssignmentUserSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
         )
+
+
+class CaseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Case
+        fields = "__all__"
 
 
 class CaseListSerializer(serializers.Serializer):
