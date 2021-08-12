@@ -126,6 +126,12 @@ class PartySerializer(serializers.ModelSerializer):
         return docs.values()[0] if docs.exists() else None
 
 
+class PartyViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Party
+        fields = "__all__"
+
+
 class PartyDocumentSerializer(serializers.ModelSerializer):
     party = serializers.PrimaryKeyRelatedField(queryset=Party.objects.all())
 
