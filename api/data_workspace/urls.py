@@ -23,6 +23,7 @@ router.register("v1/case-statuses", staticdata_views.CaseStatusListView, basenam
 router.register("v1/goods", good_views.GoodListView, basename="dw-goods")
 router.register("v1/licences", license_views.LicencesListDW, basename="dw-licences")
 router.register("v1/ogl", license_views.OpenGeneralLicenceListDW, basename="dw-ogl")
+router.register("v1/good-on-licences", license_views.GoodOnLicenceList, basename="dw-good-on-licences")
 router.register("v1/case-assignment-slas", case_views.CaseAssignmentSlaList, basename="dw-case-assignment-sla")
 router.register("v1/case-types", case_views.CaseTypeList, basename="dw-case-type")
 router.register("v1/case-queues", case_views.CaseQueueList, basename="dw-case-queue")
