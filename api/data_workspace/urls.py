@@ -15,6 +15,11 @@ router.register(
 router.register(
     "v1/party-on-applications", application_views.PartyOnApplicationListView, basename="dw-party-on-applications"
 )
+router.register(
+    "v1/control-list-entries", staticdata_views.ControlListEntriesListView, basename="dw-control-list-entries"
+)
+router.register("v1/countries", staticdata_views.CountriesListView, basename="dw-countries")
+router.register("v1/case-statuses", staticdata_views.CaseStatusListView, basename="dw-case-statuses")
 router.register("v1/licences", license_views.LicencesListDW, basename="dw-licences")
 router.register("v1/ogl", license_views.OpenGeneralLicenceListDW, basename="dw-ogl")
 router.register("v1/case-assignment-slas", case_views.CaseAssignmentSlaList, basename="dw-case-assignment-sla")
