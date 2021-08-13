@@ -19,8 +19,8 @@ class DataWorkspaceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         test_host = "http://testserver"
-        self.licences = parse.urljoin(test_host, reverse("data_workspace:dw-licences-list"))
-        self.ogl_list = parse.urljoin(test_host, reverse("data_workspace:dw-ogl-list"))
+        self.licences = parse.urljoin(test_host, reverse("data_workspace:dw-licences-only-list"))
+        self.ogl_list = parse.urljoin(test_host, reverse("data_workspace:dw-ogl-only-list"))
         # Set up fixtures for testing.
         case = self.create_standard_application_case(self.organisation)
         good = GoodFactory(organisation=self.organisation, is_good_controlled=True, control_list_entries=["ML21"],)
