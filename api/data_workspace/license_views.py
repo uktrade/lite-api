@@ -47,3 +47,10 @@ class GoodOnLicenceList(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.GoodOnLicenceViewSerializer
     pagination_class = LimitOffsetPagination
     queryset = models.GoodOnLicence.objects.all()
+
+
+class LicencesList(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    serializer_class = serializers.LicenceListSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = models.Licence.objects.all()

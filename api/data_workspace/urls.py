@@ -25,6 +25,7 @@ router_v1.register(
 router_v1.register("countries", staticdata_views.CountriesListView, basename="dw-countries")
 router_v1.register("case-statuses", staticdata_views.CaseStatusListView, basename="dw-case-statuses")
 router_v1.register("goods", good_views.GoodListView, basename="dw-goods")
+router_v1.register("licences", license_views.LicencesList, basename="dw-licences")
 router_v1.register("good-on-licences", license_views.GoodOnLicenceList, basename="dw-good-on-licences")
 router_v1.register("organisations", views.OrganisationListView, basename="dw-organisations")
 router_v1.register("parties", views.PartyListView, basename="dw-parties")

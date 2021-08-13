@@ -89,3 +89,17 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         options = response.json()["actions"]["OPTIONS"]
         self.assertEqual(tuple(options.keys()), expected_fields)
+
+    def test_licenses(self):
+        url = reverse("data_workspace:dw-licences-list")
+        expected_fields = ("id", "reference_code", "status", "application", "goods")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()["results"]
+        self.assertGreater(len(results), 0)
+        self.assertEqual(tuple(results[0].keys()), expected_fields)
+
+        response = self.client.options(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        options = response.json()["actions"]["OPTIONS"]
+        self.assertEqual(tuple(options.keys()), expected_fields)
