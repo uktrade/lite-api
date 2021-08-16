@@ -74,6 +74,8 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
         model = GoodOnApplication
         fields = (
             "id",
+            "created_at",
+            "updated_at",
             "good",
             "application",
             "quantity",
