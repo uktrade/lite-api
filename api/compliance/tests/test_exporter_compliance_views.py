@@ -11,7 +11,6 @@ from api.users.models import UserOrganisationRelationship
 
 class ComplianceExporterViewTests(DataTestClient):
     def compare_compliance_case_in_list(self, data, case, site):
-        self.assertEqual(data["id"], str(case.id))
         self.assertEqual(data["site_name"], str(site.name))
         self.assertEqual(data["address"]["address_line_1"], site.address.address_line_1)
         self.assertEqual(data["address"]["address_line_2"], site.address.address_line_2)

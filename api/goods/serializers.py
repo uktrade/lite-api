@@ -27,7 +27,7 @@ from api.goods.helpers import (
     validate_firearms_act_certificate_expiry_date,
     get_sporting_shortgun_errormsg,
 )
-from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
+from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails, GoodControlListEntry
 from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
@@ -690,6 +690,12 @@ class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
 class GoodsFlagSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
+
+
+class GoodControlListEntryViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoodControlListEntry
+        fields = "__all__"
 
 
 class GoodSerializerInternal(serializers.Serializer):

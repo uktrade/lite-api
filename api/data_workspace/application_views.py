@@ -22,7 +22,7 @@ class GoodOnApplicationListView(viewsets.ReadOnlyModelViewSet):
 
 class GoodOnApplicationControlListEntriesListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = good.GoodOnApplicationControlListEntryViewSerializer
+    serializer_class = good.GoodOnApplicationControlListEntrySerializer
     pagination_class = LimitOffsetPagination
     queryset = models.GoodOnApplicationControlListEntry.objects.all()
 

@@ -65,7 +65,7 @@ class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
         return data
 
 
-class GoodOnApplicationControlListEntryViewSerializer(serializers.ModelSerializer):
+class GoodOnApplicationControlListEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodOnApplicationControlListEntry
         fields = "__all__"
