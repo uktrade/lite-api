@@ -4,7 +4,12 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from django.forms.models import model_to_dict
 
-from api.applications.models import GoodOnApplicationDocument, BaseApplication, GoodOnApplication
+from api.applications.models import (
+    GoodOnApplicationDocument,
+    BaseApplication,
+    GoodOnApplication,
+    GoodOnApplicationControlListEntry,
+)
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.serializers import AuditSerializer
@@ -58,6 +63,12 @@ class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
         if data["quantity"] > self.context.get("applied_for_quantity"):
             raise serializers.ValidationError({"quantity": strings.Licence.INVALID_QUANTITY_ERROR})
         return data
+
+
+class GoodOnApplicationControlListEntryViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoodOnApplicationControlListEntry
+        fields = "__all__"
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):

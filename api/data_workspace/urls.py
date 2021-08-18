@@ -17,6 +17,11 @@ router_v1.register(
     "good-on-applications", application_views.GoodOnApplicationListView, basename="dw-good-on-applications"
 )
 router_v1.register(
+    "good-on-application-control-list-entries",
+    application_views.GoodOnApplicationControlListEntriesListView,
+    basename="dw-good-on-applications-control-list-entries",
+)
+router_v1.register(
     "party-on-applications", application_views.PartyOnApplicationListView, basename="dw-party-on-applications"
 )
 router_v1.register(
