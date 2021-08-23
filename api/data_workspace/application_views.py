@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
 from api.applications import models
-from api.applications.serializers import standard_application, good, party
+from api.applications.serializers import standard_application, good, party, denial
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 
 
@@ -25,3 +25,10 @@ class PartyOnApplicationListView(viewsets.ReadOnlyModelViewSet):
     serializer_class = party.PartyOnApplicationViewSerializer
     pagination_class = LimitOffsetPagination
     queryset = models.PartyOnApplication.objects.all()
+
+
+class DenialMatchOnApplicationListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    serializer_class = denial.DenialMatchOnApplicationViewSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = models.DenialMatchOnApplication.objects.all()
