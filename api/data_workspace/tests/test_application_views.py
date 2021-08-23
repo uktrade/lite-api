@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
@@ -24,6 +23,7 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
         self.standard_applications = parse.urljoin(test_host, reverse("data_workspace:dw-standard-applications-list"))
         self.good_on_applications = parse.urljoin(test_host, reverse("data_workspace:dw-good-on-applications-list"))
         self.party_on_applications = parse.urljoin(test_host, reverse("data_workspace:dw-party-on-applications-list"))
+        self.denial_on_applications = parse.urljoin(test_host, reverse("data_workspace:dw-denial-on-applications-list"))
 
     @override_settings(HAWK_AUTHENTICATION_ENABLED=False)
     def test_dw_standard_application_views(self):
@@ -106,3 +106,24 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
         expected_keys = ["id", "application", "party", "flags"]
         for key in expected_keys:
             self.assertTrue(key in actual_keys)
+
+    @override_settings(HAWK_AUTHENTICATION_ENABLED=False)
+    def test_dw_denial_on_application_views(self):
+        response = self.client.options(self.denial_on_applications)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        actual_keys = response.json()["actions"]["OPTIONS"].keys()
+        expected_keys = [
+            "id",
+            "denial",
+            "application",
+            "category",
+        ]
+        for key in expected_keys:
+            self.assertIn(key, actual_keys)
+
+        response = self.client.options(self.denial_on_applications)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        actual_keys = response.json()["actions"]["OPTIONS"].keys()
+        expected_keys = ["id", "application", "denial", "category"]
+        for key in expected_keys:
+            self.assertIn(key, actual_keys)
