@@ -183,6 +183,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data["status"].pop("id", None)
         self.assertEqual(
             response_data["status"],
             {"key": surrendered_status.status, "value": CaseStatusEnum.get_text(surrendered_status.status)},

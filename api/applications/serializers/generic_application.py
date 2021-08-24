@@ -104,6 +104,10 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
             "case_officer",
             "agreed_to_foi",
             "foi_reason",
+            "sla_days",
+            "sla_remaining_days",
+            "sla_updated_at",
+            "last_closed_at",
         )
 
     def __init__(self, *args, **kwargs):
@@ -127,6 +131,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
     def get_status(self, instance):
         if instance.status:
             return {
+                "id": instance.status.id,
                 "key": instance.status.status,
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }

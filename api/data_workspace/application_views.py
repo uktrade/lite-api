@@ -20,6 +20,13 @@ class GoodOnApplicationListView(viewsets.ReadOnlyModelViewSet):
     queryset = models.GoodOnApplication.objects.all()
 
 
+class GoodOnApplicationControlListEntriesListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    serializer_class = good.GoodOnApplicationControlListEntrySerializer
+    pagination_class = LimitOffsetPagination
+    queryset = models.GoodOnApplicationControlListEntry.objects.all()
+
+
 class PartyOnApplicationListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = party.PartyOnApplicationViewSerializer

@@ -4,7 +4,12 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from django.forms.models import model_to_dict
 
-from api.applications.models import GoodOnApplicationDocument, BaseApplication, GoodOnApplication
+from api.applications.models import (
+    GoodOnApplicationDocument,
+    BaseApplication,
+    GoodOnApplication,
+    GoodOnApplicationControlListEntry,
+)
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.serializers import AuditSerializer
@@ -60,6 +65,12 @@ class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
         return data
 
 
+class GoodOnApplicationControlListEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoodOnApplicationControlListEntry
+        fields = "__all__"
+
+
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializerInternal(read_only=True)
     good_application_documents = serializers.SerializerMethodField()
@@ -74,6 +85,8 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
         model = GoodOnApplication
         fields = (
             "id",
+            "created_at",
+            "updated_at",
             "good",
             "application",
             "quantity",
