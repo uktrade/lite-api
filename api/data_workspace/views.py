@@ -7,7 +7,7 @@ from api.organisations.serializers import OrganisationDetailSerializer
 from api.parties.models import Party
 from api.parties.serializers import PartyViewSerializer
 from api.queues.models import Queue
-from api.queues.serializers import QueueViewSerializer
+from api.queues.serializers import QueueListSerializer
 from api.teams.models import Team
 from api.teams.serializers import TeamReadOnlySerializer
 
@@ -28,7 +28,7 @@ class PartyListView(viewsets.ReadOnlyModelViewSet):
 
 class QueueListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = QueueViewSerializer
+    serializer_class = QueueListSerializer
     pagination_class = LimitOffsetPagination
     queryset = Queue.objects.all()
 
