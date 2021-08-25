@@ -33,6 +33,11 @@ router_v1.register(
     "party-on-applications", application_views.PartyOnApplicationListView, basename="dw-party-on-applications"
 )
 router_v1.register(
+    "denial-match-on-applications",
+    application_views.DenialMatchOnApplicationListView,
+    basename="dw-denial-match-on-applications",
+)
+router_v1.register(
     "control-list-entries", staticdata_views.ControlListEntriesListView, basename="dw-control-list-entries"
 )
 router_v1.register("countries", staticdata_views.CountriesListView, basename="dw-countries")
