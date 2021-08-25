@@ -11,4 +11,5 @@ class CountrySerializer(serializers.ModelSerializer):
             "name",
             "type",
             "is_eu",
+            "report_name",
         )
