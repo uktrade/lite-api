@@ -31,4 +31,4 @@ class PartyOnApplicationListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = party.PartyOnApplicationViewSerializer
     pagination_class = LimitOffsetPagination
-    queryset = models.PartyOnApplication.objects.all()
+    queryset = models.PartyOnApplication.objects.all().order_by("id")
