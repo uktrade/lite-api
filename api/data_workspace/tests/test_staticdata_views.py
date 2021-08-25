@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 class DataWorkspaceTests(DataTestClient):
     def test_control_list_entries(self):
         url = reverse("data_workspace:dw-control-list-entries-list")
-        expected_fields = ("rating", "text")
+        expected_fields = ("id", "rating", "text", "category", "controlled", "parent")
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -17,12 +17,12 @@ class DataWorkspaceTests(DataTestClient):
 
         response = self.client.options(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        options = response.json()["actions"]["OPTIONS"]
+        options = response.json()["actions"]["GET"]
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_countries(self):
         url = reverse("data_workspace:dw-countries-list")
-        expected_fields = ("id", "name", "type", "is_eu")
+        expected_fields = ("id", "name", "type", "is_eu", "report_name")
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -32,7 +32,7 @@ class DataWorkspaceTests(DataTestClient):
 
         response = self.client.options(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        options = response.json()["actions"]["OPTIONS"]
+        options = response.json()["actions"]["GET"]
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_case_statuses(self):
@@ -47,5 +47,5 @@ class DataWorkspaceTests(DataTestClient):
 
         response = self.client.options(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        options = response.json()["actions"]["OPTIONS"]
+        options = response.json()["actions"]["GET"]
         self.assertEqual(tuple(options.keys()), expected_fields)

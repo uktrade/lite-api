@@ -10,3 +10,10 @@ class GoodListView(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.GoodSerializerInternal
     pagination_class = LimitOffsetPagination
     queryset = models.Good.objects.all()
+
+
+class GoodControlListEntryListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    serializer_class = serializers.GoodControlListEntryViewSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = models.GoodControlListEntry.objects.all()

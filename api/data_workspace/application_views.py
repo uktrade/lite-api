@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
 from api.applications import models
-from api.applications.serializers import standard_application, good, party
+from api.applications.serializers import standard_application, good, party, denial
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 
 
@@ -20,8 +20,22 @@ class GoodOnApplicationListView(viewsets.ReadOnlyModelViewSet):
     queryset = models.GoodOnApplication.objects.all()
 
 
+class GoodOnApplicationControlListEntriesListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    serializer_class = good.GoodOnApplicationControlListEntrySerializer
+    pagination_class = LimitOffsetPagination
+    queryset = models.GoodOnApplicationControlListEntry.objects.all()
+
+
 class PartyOnApplicationListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = party.PartyOnApplicationViewSerializer
     pagination_class = LimitOffsetPagination
-    queryset = models.PartyOnApplication.objects.all()
+    queryset = models.PartyOnApplication.objects.all().order_by("id")
+
+
+class DenialMatchOnApplicationListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    serializer_class = denial.DenialMatchOnApplicationViewSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = models.PartyOnApplication.objects.all().order_by("id")

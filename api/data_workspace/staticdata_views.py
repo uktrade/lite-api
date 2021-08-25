@@ -3,7 +3,7 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.staticdata.control_list_entries.serializers import ControlListEntriesListSerializer
 from api.staticdata.countries.models import Country
 from api.staticdata.countries.serializers import CountrySerializer
 from api.staticdata.statuses.models import CaseStatus
@@ -12,7 +12,7 @@ from api.staticdata.statuses.serializers import CaseStatusSerializer
 
 class ControlListEntriesListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = ControlListEntrySerializer
+    serializer_class = ControlListEntriesListSerializer
     pagination_class = LimitOffsetPagination
     queryset = ControlListEntry.objects.all()
 

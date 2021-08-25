@@ -47,13 +47,12 @@ class GoodsEditDraftGoodTests(DataTestClient):
         response = self.client.put(self.url, request_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            sorted(response.json()["good"]["control_list_entries"], key=lambda i: i["rating"]),
-            [
-                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
-                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
-            ],
-        )
+        clc_entries = response.json()["good"]["control_list_entries"]
+        self.assertEqual(len(clc_entries), len(ratings))
+        for item in clc_entries:
+            actual_rating = item["rating"]
+            self.assertTrue(actual_rating in ratings)
+            self.assertEqual(item["text"], get_control_list_entry(actual_rating).text)
 
         request_data = {
             "is_military_use": MilitaryUse.YES_DESIGNED,
@@ -61,44 +60,42 @@ class GoodsEditDraftGoodTests(DataTestClient):
         }
         response = self.client.put(self.url, request_data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            sorted(response.json()["good"]["control_list_entries"], key=lambda i: i["rating"]),
-            [
-                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
-                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
-            ],
-        )
+        clc_entries = response.json()["good"]["control_list_entries"]
+        self.assertEqual(len(clc_entries), len(ratings))
+        for item in clc_entries:
+            actual_rating = item["rating"]
+            self.assertTrue(actual_rating in ratings)
+            self.assertEqual(item["text"], get_control_list_entry(actual_rating).text)
 
     def test_when_updating_clc_control_list_entries_then_new_control_list_entries_is_returned(self):
-        request_data = {"is_good_controlled": True, "control_list_entries": ["ML1a", "ML1b"]}
+        ratings = ["ML1a", "ML1b"]
+        request_data = {"is_good_controlled": True, "control_list_entries": ratings}
 
         response = self.client.put(self.url, request_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            sorted(response.json()["good"]["control_list_entries"], key=lambda i: i["rating"]),
-            [
-                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
-                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
-            ],
-        )
+        clc_entries = response.json()["good"]["control_list_entries"]
+        self.assertEqual(len(clc_entries), len(ratings))
+        for item in clc_entries:
+            actual_rating = item["rating"]
+            self.assertTrue(actual_rating in ratings)
+            self.assertEqual(item["text"], get_control_list_entry(actual_rating).text)
         self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_removing_a_clc_control_list_entry_from_many_then_new_control_list_entries_is_returned(self):
-        good = GoodFactory(
-            organisation=self.organisation, is_good_controlled=True, control_list_entries=["ML1a", "ML1b"]
-        )
+        ratings = ["ML1a", "ML1b"]
+        good = GoodFactory(organisation=self.organisation, is_good_controlled=True, control_list_entries=ratings)
         url = reverse("goods:good", kwargs={"pk": str(good.id)})
 
         request_data = {"is_good_controlled": True, "control_list_entries": ["ML1b"]}
 
         response = self.client.put(url, request_data, **self.exporter_headers)
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.json()["good"]["control_list_entries"],
-            [{"rating": "ML1b", "text": get_control_list_entry("ML1b").text}],
-        )
+        clc_entries = response.json()["good"]["control_list_entries"]
+        self.assertEqual(len(clc_entries), 1)
+        expected_rating = request_data["control_list_entries"][0]
+        self.assertEqual(clc_entries[0]["rating"], expected_rating)
+        self.assertEqual(clc_entries[0]["text"], get_control_list_entry(expected_rating).text)
 
     def test_when_updating_is_pv_graded_to_no_then_pv_grading_details_are_deleted(self):
         request_data = {"is_pv_graded": GoodPvGraded.NO}

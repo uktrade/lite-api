@@ -78,7 +78,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_queues(self):
         url = reverse("data_workspace:dw-queues-list")
-        expected_fields = ("id", "name", "is_system_queue", "countersigning_queue")
+        expected_fields = ("id", "name", "team", "countersigning_queue")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.json()["results"]
