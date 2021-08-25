@@ -25,16 +25,12 @@ class DataWorkspaceTests(DataTestClient):
     def test_case_assignment(self):
         url = reverse("data_workspace:dw-case-assignment-list")
 
-        # Check OPTIONS
         expected_fields = {"user", "case"}
-        expected_case_fields = {"type", "required", "read_only", "label"}
-        expected_user_fields = {"type", "required", "read_only", "label", "children"}
         response = self.client.options(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        options = response.json()["actions"]["OPTIONS"]
-        self.assertEqual(set(options.keys()), expected_fields)
-        self.assertEqual(set(options["case"].keys()), expected_case_fields)
-        self.assertEqual(set(options["user"].keys()), expected_user_fields)
+        payload = response.json()
+        actions_get = payload["actions"]["GET"]
+        self.assertEqual(set(actions_get.keys()), expected_fields)
 
     def test_case_assignment_slas(self):
         url = reverse("data_workspace:dw-case-assignment-sla-list")
