@@ -20,7 +20,9 @@ router_v1.register(
     "party-on-applications", application_views.PartyOnApplicationListView, basename="dw-party-on-applications"
 )
 router_v1.register(
-    "denial-on-applications", application_views.DenialMatchOnApplicationListView, basename="dw-denial-on-applications"
+    "denial-match-on-applications",
+    application_views.DenialMatchOnApplicationListView,
+    basename="dw-denial-match-on-applications",
 )
 router_v1.register(
     "control-list-entries", staticdata_views.ControlListEntriesListView, basename="dw-control-list-entries"
