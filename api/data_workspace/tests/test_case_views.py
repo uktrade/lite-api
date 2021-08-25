@@ -25,16 +25,6 @@ class DataWorkspaceTests(DataTestClient):
     def test_case_assignment(self):
         url = reverse("data_workspace:dw-case-assignment-list")
 
-        # Check GET
-        expected_fields = {"user", "case"}
-        expected_user_fields = {"id", "first_name", "last_name", "email", "team"}
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.json()["results"]
-        self.assertGreater(len(results), 0)
-        self.assertEqual(set(results[0].keys()), expected_fields)
-        self.assertEqual(set(results[0]["user"].keys()), expected_user_fields)
-
         # Check OPTIONS
         expected_fields = {"user", "case"}
         expected_case_fields = {"type", "required", "read_only", "label"}
