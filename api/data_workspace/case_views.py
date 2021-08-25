@@ -15,7 +15,7 @@ class CaseAssignmentList(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = CaseAssignmentSerializer
     pagination_class = LimitOffsetPagination
-    queryset = CaseAssignment.objects.all()
+    queryset = CaseAssignment.objects.all().order_by("id")
 
 
 class CaseAssignmentSlaList(viewsets.ReadOnlyModelViewSet):
