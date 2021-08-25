@@ -244,10 +244,6 @@ class CaseQueue(TimestampableModel):
 
 
 class CaseAssignmentSla(models.Model):
-    """
-    Similar to CaseAssignment but tracks time for deadlines inside ECJU
-    and total time (based on ravi's Slack comments)
-    """
     sla_days = models.IntegerField()
     queue = models.ForeignKey(Queue, related_name="slas", on_delete=models.CASCADE)
     case = models.ForeignKey(Case, related_name="slas", on_delete=models.CASCADE)
