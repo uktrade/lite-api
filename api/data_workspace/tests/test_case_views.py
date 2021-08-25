@@ -25,7 +25,7 @@ class DataWorkspaceTests(DataTestClient):
     def test_case_assignment(self):
         url = reverse("data_workspace:dw-case-assignment-list")
 
-        expected_fields = {"user", "case"}
+        expected_fields = {"user", "case", "id", "queue"}
         response = self.client.options(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         payload = response.json()
