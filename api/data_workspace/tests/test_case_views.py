@@ -15,9 +15,9 @@ class DataWorkspaceTests(DataTestClient):
 
         # Create CaseAssignment
         user = GovUserFactory(
-            baseuser_ptr__email="manos@manos.com",
-            baseuser_ptr__first_name="Manos",
-            baseuser_ptr__last_name="Sonam",
+            baseuser_ptr__email="john@dov.uk",
+            baseuser_ptr__first_name="John",
+            baseuser_ptr__last_name="Conam",
             team=self.team,
         )
         CaseAssignment.objects.create(queue=self.queue, case=self.case, user=user)
