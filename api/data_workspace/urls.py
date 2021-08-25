@@ -17,6 +17,11 @@ router_v1.register(
     "good-on-applications", application_views.GoodOnApplicationListView, basename="dw-good-on-applications"
 )
 router_v1.register(
+    "good-on-application-control-list-entries",
+    application_views.GoodOnApplicationControlListEntriesListView,
+    basename="dw-good-on-applications-control-list-entries",
+)
+router_v1.register(
     "party-on-applications", application_views.PartyOnApplicationListView, basename="dw-party-on-applications"
 )
 router_v1.register(
@@ -30,6 +35,9 @@ router_v1.register(
 router_v1.register("countries", staticdata_views.CountriesListView, basename="dw-countries")
 router_v1.register("case-statuses", staticdata_views.CaseStatusListView, basename="dw-case-statuses")
 router_v1.register("goods", good_views.GoodListView, basename="dw-goods")
+router_v1.register(
+    "good-control-list-entries", good_views.GoodControlListEntryListView, basename="dw-good-control-list-entries"
+)
 router_v1.register("licences", license_views.LicencesList, basename="dw-licences")
 router_v1.register("good-on-licences", license_views.GoodOnLicenceList, basename="dw-good-on-licences")
 router_v1.register("organisations", views.OrganisationListView, basename="dw-organisations")

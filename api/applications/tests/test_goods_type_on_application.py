@@ -40,9 +40,9 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         response_data = response.json()["good"]
         self.assertEqual(response_data["description"], "Widget")
         self.assertEqual(response_data["is_good_controlled"], True)
-        self.assertEqual(
-            response_data["control_list_entries"], [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}]
-        )
+        self.assertEqual(len(response_data["control_list_entries"]), 1)
+        self.assertEqual(response_data["control_list_entries"][0]["rating"], "ML1a")
+        self.assertEqual(response_data["control_list_entries"][0]["text"], get_control_list_entry("ML1a").text)
         self.assertEqual(response_data["is_good_incorporated"], True)
 
     def test_create_goodstype_multiple_clcs_on_open_application_as_exporter_user_success(self):
@@ -53,13 +53,11 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         response_data = response.json()["good"]
         self.assertEqual(response_data["description"], "Widget")
         self.assertEqual(response_data["is_good_controlled"], True)
-        self.assertEqual(
-            sorted(response_data["control_list_entries"], key=lambda i: i["rating"]),
-            [
-                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
-                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
-            ],
-        )
+        self.assertEqual(len(response_data["control_list_entries"]), len(self.data["control_list_entries"]))
+        for item in response_data["control_list_entries"]:
+            actual_rating = item["rating"]
+            self.assertTrue(actual_rating in self.data["control_list_entries"])
+            self.assertEqual(item["text"], get_control_list_entry(actual_rating).text)
         self.assertEqual(response_data["is_good_incorporated"], True)
 
     def test_create_goodstype_on_open_application_as_exporter_user_failure(self):

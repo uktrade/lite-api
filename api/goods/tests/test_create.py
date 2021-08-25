@@ -60,9 +60,10 @@ def _assert_response_data(self, response_data, request_data):
 
     if request_data["is_good_controlled"] == True:
         self.assertEqual(response_data["is_good_controlled"]["key"], "True")
-        self.assertEqual(
-            response_data["control_list_entries"], [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}]
-        )
+        clc_entries = response_data["control_list_entries"]
+        self.assertEqual(len(response_data["control_list_entries"]), 1)
+        self.assertEqual(clc_entries[0]["rating"], "ML1a")
+        self.assertEqual(clc_entries[0]["text"], get_control_list_entry("ML1a").text)
 
     if request_data["is_pv_graded"] == GoodPvGraded.YES:
         self.assertEqual(response_data["is_pv_graded"]["key"], GoodPvGraded.YES)
@@ -1127,11 +1128,13 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         self.request_data["control_list_entries"] = ["ML1a", "ML1b"]
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
-        response_data = response.json()["good"]["control_list_entries"]
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue({"rating": "ML1a", "text": get_control_list_entry("ML1a").text} in response_data)
-        self.assertTrue({"rating": "ML1b", "text": get_control_list_entry("ML1b").text} in response_data)
+        response_data = response.json()["good"]["control_list_entries"]
+        self.assertEqual(len(response_data), len(self.request_data["control_list_entries"]))
+        for item in response_data:
+            actual_rating = item["rating"]
+            self.assertTrue(actual_rating in self.request_data["control_list_entries"])
+            self.assertEqual(item["text"], get_control_list_entry(actual_rating).text)
         self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_an_invalid_control_list_entries_then_bad_request_response_is_returned(self):
