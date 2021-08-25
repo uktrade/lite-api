@@ -10,4 +10,4 @@ class ExternalDataDenialView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = DenialSerializer
     pagination_class = LimitOffsetPagination
-    queryset = models.Denial.objects.all()
+    queryset = models.Denial.objects.all().order_by("id")
