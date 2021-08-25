@@ -76,6 +76,8 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
         fields = (
             "case",
             "user",
+            "id",
+            "queue",
         )
 
 

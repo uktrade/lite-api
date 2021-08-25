@@ -1,8 +1,9 @@
 from django.urls import reverse
 from rest_framework import status
 
-from api.cases.models import CaseAssignmentSla
+from api.cases.models import CaseAssignmentSla, CaseAssignment
 from test_helpers.clients import DataTestClient
+from api.users.tests.factories import GovUserFactory
 
 
 class DataWorkspaceTests(DataTestClient):
@@ -11,6 +12,25 @@ class DataWorkspaceTests(DataTestClient):
         self.case = self.create_standard_application_case(self.organisation, "Example Application")
         self.queue.cases.add(self.case)
         CaseAssignmentSla.objects.create(sla_days=4, queue=self.queue, case=self.case)
+
+        # Create CaseAssignment
+        user = GovUserFactory(
+            baseuser_ptr__email="john@dov.uk",
+            baseuser_ptr__first_name="John",
+            baseuser_ptr__last_name="Conam",
+            team=self.team,
+        )
+        CaseAssignment.objects.create(queue=self.queue, case=self.case, user=user)
+
+    def test_case_assignment(self):
+        url = reverse("data_workspace:dw-case-assignment-list")
+
+        expected_fields = {"user", "case", "id", "queue"}
+        response = self.client.options(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        actions_get = payload["actions"]["GET"]
+        self.assertEqual(set(actions_get.keys()), expected_fields)
 
     def test_case_assignment_slas(self):
         url = reverse("data_workspace:dw-case-assignment-sla-list")
