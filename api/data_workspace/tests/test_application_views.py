@@ -27,6 +27,9 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
             test_host, reverse("data_workspace:dw-good-on-applications-control-list-entries-list")
         )
         self.party_on_applications = parse.urljoin(test_host, reverse("data_workspace:dw-party-on-applications-list"))
+        self.denial_on_applications = parse.urljoin(
+            test_host, reverse("data_workspace:dw-denial-match-on-applications-list")
+        )
 
     def test_dw_standard_application_views(self):
         data = {
@@ -128,3 +131,15 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
             "controllistentry",
         )
         self.assertEqual(tuple(actual_keys), expected_keys)
+
+    def test_dw_denial_on_application_views(self):
+        response = self.client.options(self.denial_on_applications)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        actual_keys = response.json()["actions"]["GET"].keys()
+        expected_keys = {
+            "id",
+            "denial",
+            "application",
+            "category",
+        }
+        self.assertEqual(expected_keys, actual_keys)
