@@ -1,7 +1,15 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from api.data_workspace import application_views, case_views, good_views, license_views, views, staticdata_views
+from api.data_workspace import (
+    application_views,
+    case_views,
+    good_views,
+    license_views,
+    views,
+    staticdata_views,
+    external_data_views,
+)
 
 app_name = "data_workspace"
 
@@ -42,6 +50,7 @@ router_v1.register("teams", views.TeamListView, basename="dw-teams")
 router_v1.register("case-assignment-slas", case_views.CaseAssignmentSlaList, basename="dw-case-assignment-sla")
 router_v1.register("case-types", case_views.CaseTypeList, basename="dw-case-type")
 router_v1.register("case-queues", case_views.CaseQueueList, basename="dw-case-queue")
+router_v1.register("external-data", external_data_views.ExternalDataDenialView, basename="dw-external-data-denial")
 
 urlpatterns = [
     path("v0/", include(router_v0.urls)),
