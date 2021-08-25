@@ -109,7 +109,6 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
         for key in expected_keys:
             self.assertTrue(key in actual_keys)
 
-    @override_settings(HAWK_AUTHENTICATION_ENABLED=False)
     def test_dw_denial_on_application_views(self):
         response = self.client.options(self.denial_on_applications)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
