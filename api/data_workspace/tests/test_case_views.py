@@ -32,6 +32,10 @@ class DataWorkspaceTests(DataTestClient):
         self.assertGreater(len(results), 0)
         self.assertEqual(set(results[0].keys()), expected_fields)
 
+        # Check user fields
+        expected_user_fields = {"id", "first_name", "last_name", "email", "team"}
+        self.assertEqual(set(results[0]["user"].keys()), expected_user_fields)
+
     def test_case_assignment_slas(self):
         url = reverse("data_workspace:dw-case-assignment-sla-list")
         expected_fields = ("id", "sla_days", "queue", "case")
