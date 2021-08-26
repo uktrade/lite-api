@@ -8,6 +8,7 @@ from api.data_workspace import (
     license_views,
     views,
     staticdata_views,
+    external_data_views,
     users_views,
 )
 
@@ -56,6 +57,9 @@ router_v1.register("case-assignment", case_views.CaseAssignmentList, basename="d
 router_v1.register("case-assignment-slas", case_views.CaseAssignmentSlaList, basename="dw-case-assignment-sla")
 router_v1.register("case-types", case_views.CaseTypeList, basename="dw-case-type")
 router_v1.register("case-queues", case_views.CaseQueueList, basename="dw-case-queue")
+router_v1.register(
+    "external-data-denials", external_data_views.ExternalDataDenialView, basename="dw-external-data-denial"
+)
 router_v1.register("users-base-users", users_views.BaseUserListView, basename="dw-users-base-users")
 router_v1.register("users-gov-users", users_views.GovUserListView, basename="dw-users-gov-users")
 
