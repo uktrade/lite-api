@@ -15,6 +15,7 @@ from api.applications.enums import (
 from api.applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from api.letter_templates.context_generator import EcjuQuerySerializer
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.compliance.tests.factories import (
@@ -35,6 +36,7 @@ from api.goods.enums import (
 )
 from api.goods.tests.factories import GoodFactory, FirearmFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
+from api.cases.tests.factories import EcjuQueryFactory
 from api.letter_templates.context_generator import get_document_context
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import GoodOnLicenceFactory
@@ -926,3 +928,25 @@ class DocumentContextGenerationTests(DataTestClient):
 
         self.assertEqual(context["case_reference"], application.reference_code)
         self._assert_good(context["goods"]["all"][0], goa)
+
+
+class SerializersTests(DataTestClient):
+    def test_EcjuQuerySerializer_format(self):
+        ecju_query = EcjuQueryFactory()
+        serialized = EcjuQuerySerializer(ecju_query)
+
+        assert set(serialized.data.keys()) == {"question", "response"}
+        assert serialized.data['question']['text'] == 'why x in y?'
+        assert serialized.data['question']['user']
+        assert serialized.data['question']['created_at']
+        assert str(serialized.data['question']['raised_by_user']).count('-') == 4  # e.g. '81586396-1b1d-4e06-92f6-592669c62f45'
+        assert serialized.data['question']['question'] == 'why x in y?'
+        assert serialized.data['question']['date']
+        assert serialized.data['question']['time']
+        assert serialized.data['response']['text'] == 'because of z'
+        assert serialized.data['response']['user'] == 'N/A'
+        assert serialized.data['response']['created_at']
+        assert serialized.data['response']['responded_by_user'] == None
+        assert serialized.data['response']['response'] == 'because of z'
+        assert serialized.data['response']['date']
+        assert serialized.data['response']['time']
