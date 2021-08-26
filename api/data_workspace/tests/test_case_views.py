@@ -3,7 +3,9 @@ from rest_framework import status
 
 from api.cases.models import CaseAssignmentSla, CaseAssignment
 from test_helpers.clients import DataTestClient
+from test_helpers.assertions import is_uuid_as_string
 from api.users.tests.factories import GovUserFactory
+from api.cases.tests.factories import EcjuQueryFactory
 
 
 class DataWorkspaceTests(DataTestClient):
@@ -76,3 +78,26 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         options = response.json()["actions"]["OPTIONS"]
         self.assertEqual(tuple(options.keys()), expected_fields)
+
+    def test_ecju_queries(self):
+        EcjuQueryFactory()
+        url = reverse("data_workspace:dw-ecju-query-list")
+        expected_fields = {"raised_by_user", "id", "updated_at", "question", "response", "query_type",
+                           "case", "team", "responded_by_user", "responded_at", "created_at"}
+        allowed_actions = {"HEAD", "OPTIONS", "GET"}
+
+        # Test GET
+        payload = self.client.get(url).json()
+        assert payload['count'] == 1
+        first_result = payload['results'][0]
+        assert set(first_result.keys()) == expected_fields
+
+        # Ensure keys are UUIDs
+        assert is_uuid_as_string(first_result["case"])
+        assert is_uuid_as_string(first_result["team"])
+        assert is_uuid_as_string(first_result["raised_by_user"])
+
+        # Test schema actions advertised are correct
+        options = self.client.options(url).json()
+        assert set(options["actions"].keys()) == allowed_actions
+        assert set(options["actions"]["GET"].keys()) == expected_fields
