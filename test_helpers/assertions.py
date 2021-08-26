@@ -1,6 +1,6 @@
 import re
 
-RE_UUID = re.compile('^\w*-\w*-\w*-\w*-\w*$')
+RE_UUID = re.compile("^\w*-\w*-\w*-\w*-\w*$")
 
 
 def is_uuid_as_string(value):

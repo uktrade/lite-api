@@ -936,17 +936,19 @@ class SerializersTests(DataTestClient):
         serialized = EcjuQuerySerializer(ecju_query)
 
         assert set(serialized.data.keys()) == {"question", "response"}
-        assert serialized.data['question']['text'] == 'why x in y?'
-        assert serialized.data['question']['user']
-        assert serialized.data['question']['created_at']
-        assert str(serialized.data['question']['raised_by_user']).count('-') == 4  # e.g. '81586396-1b1d-4e06-92f6-592669c62f45'
-        assert serialized.data['question']['question'] == 'why x in y?'
-        assert serialized.data['question']['date']
-        assert serialized.data['question']['time']
-        assert serialized.data['response']['text'] == 'because of z'
-        assert serialized.data['response']['user'] == 'N/A'
-        assert serialized.data['response']['created_at']
-        assert serialized.data['response']['responded_by_user'] == None
-        assert serialized.data['response']['response'] == 'because of z'
-        assert serialized.data['response']['date']
-        assert serialized.data['response']['time']
+        assert serialized.data["question"]["text"] == "why x in y?"
+        assert serialized.data["question"]["user"]
+        assert serialized.data["question"]["created_at"]
+        assert (
+            str(serialized.data["question"]["raised_by_user"]).count("-") == 4
+        )  # e.g. '81586396-1b1d-4e06-92f6-592669c62f45'
+        assert serialized.data["question"]["question"] == "why x in y?"
+        assert serialized.data["question"]["date"]
+        assert serialized.data["question"]["time"]
+        assert serialized.data["response"]["text"] == "because of z"
+        assert serialized.data["response"]["user"] == "N/A"
+        assert serialized.data["response"]["created_at"]
+        assert serialized.data["response"]["responded_by_user"] == None
+        assert serialized.data["response"]["response"] == "because of z"
+        assert serialized.data["response"]["date"]
+        assert serialized.data["response"]["time"]

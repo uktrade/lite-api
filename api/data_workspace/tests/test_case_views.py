@@ -82,14 +82,25 @@ class DataWorkspaceTests(DataTestClient):
     def test_ecju_queries(self):
         EcjuQueryFactory()
         url = reverse("data_workspace:dw-ecju-query-list")
-        expected_fields = {"raised_by_user", "id", "updated_at", "question", "response", "query_type",
-                           "case", "team", "responded_by_user", "responded_at", "created_at"}
+        expected_fields = {
+            "raised_by_user",
+            "id",
+            "updated_at",
+            "question",
+            "response",
+            "query_type",
+            "case",
+            "team",
+            "responded_by_user",
+            "responded_at",
+            "created_at",
+        }
         allowed_actions = {"HEAD", "OPTIONS", "GET"}
 
         # Test GET
         payload = self.client.get(url).json()
-        assert payload['count'] == 1
-        first_result = payload['results'][0]
+        assert payload["count"] == 1
+        first_result = payload["results"][0]
         assert set(first_result.keys()) == expected_fields
 
         # Ensure keys are UUIDs
