@@ -4,6 +4,7 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.users import models
 from api.users.enums import UserType, UserStatuses
 from api.users.models import Role, UserOrganisationRelationship
+from api.teams.tests.factories import TeamFactory
 
 
 class BaseUserFactory(factory.django.DjangoModelFactory):
@@ -17,6 +18,7 @@ class BaseUserFactory(factory.django.DjangoModelFactory):
 
 class GovUserFactory(factory.django.DjangoModelFactory):
     baseuser_ptr = factory.SubFactory(BaseUserFactory, type=UserType.INTERNAL)
+    team = factory.SubFactory(TeamFactory)
 
     class Meta:
         model = models.GovUser
