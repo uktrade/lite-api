@@ -34,18 +34,15 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
     def test_dw_users_gov_users(self):
         response = self.client.options(self.users_gov_users)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        actual_keys = response.json()["actions"]["GET"].keys()
         expected_keys = {
             "id",
-            "created_at",
-            "updated_at",
             "first_name",
             "last_name",
-            "date_joined",
             "email",
-            "type",
-            "phone_number",
-            "groups",
-            "user_permissions",
+            "status",
+            "team",
+            "role",
+            "default_queue",
         }
+        actual_keys = response.json()["actions"]["GET"].keys()
         self.assertEqual(expected_keys, actual_keys)
