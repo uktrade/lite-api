@@ -38,4 +38,4 @@ class DenialMatchOnApplicationListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = denial.DenialMatchOnApplicationViewSerializer
     pagination_class = LimitOffsetPagination
-    queryset = models.PartyOnApplication.objects.all().order_by("id")
+    queryset = models.DenialMatchOnApplication.objects.all().order_by("id")
