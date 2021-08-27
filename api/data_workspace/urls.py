@@ -9,6 +9,7 @@ from api.data_workspace import (
     views,
     staticdata_views,
     external_data_views,
+    users_views,
 )
 
 app_name = "data_workspace"
@@ -59,6 +60,8 @@ router_v1.register("case-queues", case_views.CaseQueueList, basename="dw-case-qu
 router_v1.register(
     "external-data-denials", external_data_views.ExternalDataDenialView, basename="dw-external-data-denial"
 )
+router_v1.register("users-base-users", users_views.BaseUserListView, basename="dw-users-base-users")
+router_v1.register("users-gov-users", users_views.GovUserListView, basename="dw-users-gov-users")
 
 urlpatterns = [
     path("v0/", include(router_v0.urls)),
