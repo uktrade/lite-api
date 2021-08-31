@@ -160,8 +160,11 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
     advice = serializers.SerializerMethodField()
 
     def get_advice(self, instance):
-        advice = instance.good.good.advice.get(level=AdviceLevel.FINAL, case_id=instance.licence.case_id)
-        return SimpleAdviceSerializer(instance=advice).data
+        try:
+            advice = instance.good.good.advice.get(level=AdviceLevel.FINAL, case_id=instance.licence.case_id)
+            return SimpleAdviceSerializer(instance=advice).data
+        except Exception:
+            pass
 
     def get_applied_for_value_per_item(self, instance):
         if instance.good.value and instance.good.quantity:
@@ -352,6 +355,7 @@ class LicenceListSerializer(serializers.ModelSerializer):
             "reference_code",
             "status",
             "application",
+            "case",
             "goods",
         )
         read_only_fields = fields
