@@ -353,6 +353,7 @@ class LicenceListSerializer(serializers.ModelSerializer):
             "status",
             "application",
             "goods",
+            "case",
         )
         read_only_fields = fields
         ordering = ["created_at"]
