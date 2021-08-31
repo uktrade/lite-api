@@ -2,13 +2,14 @@ from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.cases.models import CaseAssignment, CaseAssignmentSla, CaseType, CaseQueue
+from api.cases.models import CaseAssignment, CaseAssignmentSla, CaseType, CaseQueue, EcjuQuery
 from api.cases.serializers import (
     CaseAssignmentSerializer,
     CaseAssignmentSlaSerializer,
     CaseTypeSerializer,
     CaseQueueSerializer,
 )
+from api.data_workspace.serializers import EcjuQuerySerializer
 
 
 class CaseAssignmentList(viewsets.ReadOnlyModelViewSet):
@@ -37,3 +38,10 @@ class CaseQueueList(viewsets.ReadOnlyModelViewSet):
     serializer_class = CaseQueueSerializer
     pagination_class = LimitOffsetPagination
     queryset = CaseQueue.objects.all()
+
+
+class EcjuQueryList(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    serializer_class = EcjuQuerySerializer
+    pagination_class = LimitOffsetPagination
+    queryset = EcjuQuery.objects.all().order_by("id")

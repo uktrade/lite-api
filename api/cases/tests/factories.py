@@ -1,9 +1,19 @@
 import factory
 
 from api.cases.enums import AdviceLevel, AdviceType
-from api.cases.models import Advice, GoodCountryDecision
+from api.cases.models import (
+    Advice,
+    Case,
+    CaseStatus,
+    CaseType,
+    EcjuQuery,
+    GoodCountryDecision,
+)
+from api.organisations.tests.factories import OrganisationFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.staticdata.countries.factories import CountryFactory
+from api.teams.tests.factories import TeamFactory
+from api.users.tests.factories import GovUserFactory
 
 
 class UserAdviceFactory(factory.django.DjangoModelFactory):
@@ -43,3 +53,23 @@ class GoodCountryDecisionFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = GoodCountryDecision
+
+
+class CaseFactory(factory.django.DjangoModelFactory):
+    case_type = factory.Iterator(CaseType.objects.all())
+    status = factory.Iterator(CaseStatus.objects.all())
+    organisation = factory.SubFactory(OrganisationFactory)
+
+    class Meta:
+        model = Case
+
+
+class EcjuQueryFactory(factory.django.DjangoModelFactory):
+    question = "why x in y?"
+    response = "because of z"
+    case = factory.SubFactory(CaseFactory)
+    team = factory.SubFactory(TeamFactory)
+    raised_by_user = factory.SubFactory(GovUserFactory)
+
+    class Meta:
+        model = EcjuQuery

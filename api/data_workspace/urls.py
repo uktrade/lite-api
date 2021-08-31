@@ -57,6 +57,7 @@ router_v1.register("case-assignment", case_views.CaseAssignmentList, basename="d
 router_v1.register("case-assignment-slas", case_views.CaseAssignmentSlaList, basename="dw-case-assignment-sla")
 router_v1.register("case-types", case_views.CaseTypeList, basename="dw-case-type")
 router_v1.register("case-queues", case_views.CaseQueueList, basename="dw-case-queue")
+router_v1.register("ecju-queries", case_views.EcjuQueryList, basename="dw-ecju-query")
 router_v1.register(
     "external-data-denials", external_data_views.ExternalDataDenialView, basename="dw-external-data-denial"
 )
