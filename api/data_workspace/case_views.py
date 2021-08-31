@@ -44,4 +44,4 @@ class EcjuQueryList(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = EcjuQuerySerializer
     pagination_class = LimitOffsetPagination
-    queryset = EcjuQuery.objects.all()
+    queryset = EcjuQuery.objects.all().order_by("id")
