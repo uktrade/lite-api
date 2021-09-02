@@ -81,7 +81,11 @@ A p12 file is also required. Please see https://uktrade.atlassian.net/wiki/space
 
 ER Diagrams can be viewed in docs/entity-relation-diagrams/.
 
-To regenerate the diagrams run `pipenv run ./manage.py create_er_diagrams`
+You'll need to install any dev [graphviz](https://graphviz.org/) dependencies (on ubuntu `sudo apt install libgraphviz-dev`) and then `pygraphviz`.
+
+Gegenerate diagrams
+
+    DJANGO_SETTINGS_MODULE=api.conf.settings_dev pipenv run ./manage.py create_er_diagrams
 
 ## Running Tests
 
