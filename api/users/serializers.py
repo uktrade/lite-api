@@ -25,12 +25,21 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def to_representation(self, instance):
-        instance = get_user_by_pk(instance.id)
+        try:
+            # Attempt to load the concrete instance
+            instance = get_user_by_pk(instance.pk)
 
-        if isinstance(instance, ExporterUser):
-            return ExporterUserViewSerializer(instance=instance).data
-        else:
-            return GovUserViewSerializer(instance=instance).data
+            if isinstance(instance, ExporterUser):
+                data = ExporterUserViewSerializer(instance=instance).data
+            else:
+                data = GovUserViewSerializer(instance=instance).data
+        except NotFoundError:
+            # No concrete instance, so render as system
+            data = SystemUserViewSerializer(instance=instance).data
+
+        data["type"] = instance.type
+
+        return data
 
 
 class ExporterUserViewSerializer(serializers.ModelSerializer):
@@ -184,4 +193,15 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
         fields = (
             "status",
             "role",
+        )
+
+
+class SystemUserViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseUser
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
         )
