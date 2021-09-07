@@ -163,6 +163,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if settings.TIME_TESTS:
             self.tick = timezone.localtime()
 
+    def setup_exporter_headers(self, exporter_user):
+        """
+        Sets exporter_headers for given exporter user
+        """
+        self.exporter_headers = {
+            "HTTP_EXPORTER_USER_TOKEN": user_to_token(exporter_user.baseuser_ptr),
+            "HTTP_ORGANISATION_ID": str(exporter_user.organisation.id),
+        }
+
     def tearDown(self):
         """
         Print output time for tests if settings.TIME_TESTS is set to True
