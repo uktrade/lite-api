@@ -12,15 +12,39 @@ from api.cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations
 from api.organisations.tests.factories import SiteFactory
 from api.staticdata.countries.helpers import get_country
+from api.addresses.tests.factories import AddressFactory
+from api.users.tests.factories import ExporterUserFactory
+from api.users.models import UserOrganisationRelationship
+from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+
+
+def AddressFactoryGB():
+    return AddressFactory(country=get_country(pk="GB"))
 
 
 class SitesOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.primary_site = self.organisation.primary_site
+
+        # Make organisation in GB
+        # NOTE: This was introduced to resolve some hard-coded test factories. Probably there's a more
+        #       elegant solution to this setup
+        site_gb = SiteFactory(address=AddressFactoryGB())
+        self.organisation = OrganisationFactory(primary_site=site_gb)
+        self.exporter_user = ExporterUserFactory()
+        user_organisation_relationship = UserOrganisationRelationship(
+            organisation=self.organisation, user=self.exporter_user,
+        )
+        user_organisation_relationship.save()
+        self.exporter_user.organisation = self.organisation
+        self.exporter_user.save()
         self.application = self.create_draft_standard_application(self.organisation)
+        self.primary_site = site_gb
+
+        # Finally update exporter headers to login in with the updated setup
+        self.setup_exporter_headers(self.exporter_user)
 
         self.url = reverse("applications:application_sites", kwargs={"pk": self.application.id})
 
@@ -97,7 +121,9 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(ExternalLocationOnApplication.objects.filter(application=draft).count(), 0)
 
     def test_add_site_to_a_submitted_application_success(self):
-        site_to_add = SiteFactory(organisation=self.organisation)
+
+        site_to_add = SiteFactory(organisation=self.organisation, address=AddressFactoryGB())
+
         data = {"sites": [self.primary_site.id, site_to_add.id]}
         self.submit_application(self.application)
 
@@ -177,8 +203,14 @@ class SitesOnDraftTests(DataTestClient):
         """
         Assert that it isn't possible to add sites based in GB to transhipment & trade control applications
         """
-        site = SiteFactory(organisation=self.organisation)
+
+        # Organisation is on GB site
+        site = SiteFactory(organisation=self.organisation, address=AddressFactoryGB())
+        assert site.address.country.id == "GB"  # assumption
+
+        # Organisation is on GB site
         transhipment = create_function(self, organisation=self.organisation, case_type_id=case_type_id)
+        assert transhipment.organisation.primary_site.address.country.id == "GB"  # assumption
 
         url = reverse("applications:application_sites", kwargs={"pk": transhipment.id})
         data = {"sites": [site.id]}
