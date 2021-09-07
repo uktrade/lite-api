@@ -113,6 +113,7 @@ def authorised_to_view_application(user_type: Union[Type[GovUser], Type[Exporter
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
+            # TODO: Wrong function signature. Should be (self, request, ..)
             base_user = request.request.user
             user = base_user
             if hasattr(base_user, "govuser"):
