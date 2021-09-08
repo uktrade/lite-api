@@ -1,3 +1,5 @@
+import pytest
+
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -53,6 +55,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertIsNotNone(Advice.objects.get())
         self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
 
+    @pytest.mark.xfail(reason="This test was set up incorrectly so never worked as intended")
     def test_cannot_create_advice_for_two_items(self):
         """
         Tests that a gov user cannot create a piece of advice for more than one item
@@ -62,6 +65,8 @@ class CreateCaseAdviceTests(DataTestClient):
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
             "end_user": str(self.application.end_user.party.id),
+            # this passes the GoodOnApplication id to the Advice model which is why we get a 400 here
+            # NOT because the user is trying to create advice for two different items
             "good": str(self.application.goods.first().id),
         }
 
