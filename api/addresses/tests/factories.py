@@ -3,6 +3,7 @@ import factory
 from api.addresses.models import Address
 from api.staticdata.countries.models import Country
 from api.staticdata.countries.helpers import get_country
+from api.staticdata.countries.factories import CountryFactory
 
 
 def AddressFactoryGB():
@@ -15,7 +16,7 @@ class AddressFactory(factory.django.DjangoModelFactory):
     region = factory.Faker("state")
     postcode = factory.Faker("postcode")
     city = factory.Faker("city")
-    country = factory.Iterator(Country.objects.all())
+    country = factory.SubFactory(CountryFactory)
 
     class Meta:
         model = Address
