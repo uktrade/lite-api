@@ -2,6 +2,11 @@ import factory
 
 from api.addresses.models import Address
 from api.staticdata.countries.models import Country
+from api.staticdata.countries.helpers import get_country
+
+
+def AddressFactoryGB():
+    return AddressFactory(country=get_country(pk="GB"))
 
 
 class AddressFactory(factory.django.DjangoModelFactory):
