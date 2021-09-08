@@ -22,6 +22,50 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.standard_case_url = reverse("cases:user_advice", kwargs={"pk": self.case.id})
 
+    def test_create_advice_good(self):
+        data = {
+            "user": self.gov_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.APPROVE,
+            "level": "user",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": [],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(Advice.objects.get())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
+
+    def test_create_advice_good_on_application(self):
+        data = {
+            "user": self.gov_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().id),
+            "text": "Text",
+            "type": AdviceType.APPROVE,
+            "level": "user",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": [],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(Advice.objects.get())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
+
     @parameterized.expand(
         [
             [AdviceType.APPROVE],
