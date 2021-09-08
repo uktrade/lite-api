@@ -12,39 +12,16 @@ from api.cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations
 from api.organisations.tests.factories import SiteFactory
 from api.staticdata.countries.helpers import get_country
-from api.addresses.tests.factories import AddressFactory
-from api.users.tests.factories import ExporterUserFactory
-from api.users.models import UserOrganisationRelationship
-from api.organisations.tests.factories import OrganisationFactory
+from api.addresses.tests.factories import AddressFactoryGB
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-
-
-def AddressFactoryGB():
-    return AddressFactory(country=get_country(pk="GB"))
 
 
 class SitesOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
-
-        # Make organisation in GB
-        # NOTE: This was introduced to resolve some hard-coded test factories. Probably there's a more
-        #       elegant solution to this setup
-        site_gb = SiteFactory(address=AddressFactoryGB())
-        self.organisation = OrganisationFactory(primary_site=site_gb)
-        self.exporter_user = ExporterUserFactory()
-        user_organisation_relationship = UserOrganisationRelationship(
-            organisation=self.organisation, user=self.exporter_user,
-        )
-        user_organisation_relationship.save()
-        self.exporter_user.organisation = self.organisation
-        self.exporter_user.save()
+        self.primary_site = self.organisation.primary_site
         self.application = self.create_draft_standard_application(self.organisation)
-        self.primary_site = site_gb
-
-        # Finally update exporter headers to login in with the updated setup
-        self.setup_exporter_headers(self.exporter_user)
 
         self.url = reverse("applications:application_sites", kwargs={"pk": self.application.id})
 
