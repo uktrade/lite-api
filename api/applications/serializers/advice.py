@@ -6,6 +6,7 @@ from api.cases.models import Advice
 from api.core.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from api.flags.enums import FlagStatuses
 from api.goods.models import Good
+from api.applications.models import GoodOnApplication
 from api.goodstype.models import GoodsType
 from api.gov_users.serializers import GovUserListSerializer
 from lite_content.lite_api import strings
@@ -16,6 +17,20 @@ from api.staticdata.denial_reasons.models import DenialReason
 from api.teams.models import Team
 from api.teams.serializers import TeamReadOnlySerializer
 from api.users.models import GovUser
+
+
+class GoodField(serializers.Field):
+    def to_representation(self, instance):
+        return str(instance.id)
+
+    def to_internal_value(self, value):
+        try:
+            return Good.objects.get(pk=value)
+        except Good.DoesNotExist:
+            try:
+                return GoodOnApplication.objects.get(pk=value).good
+            except GoodOnApplication.DoesNotExist:
+                return None
 
 
 class AdviceViewSerializer(serializers.Serializer):
@@ -30,7 +45,7 @@ class AdviceViewSerializer(serializers.Serializer):
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     created_at = serializers.DateTimeField()
 
-    good = serializers.UUIDField(source="good_id")
+    good = GoodField()
     goods_type = serializers.UUIDField(source="goods_type_id")
     country = serializers.UUIDField(source="country_id")
     end_user = serializers.UUIDField(source="end_user_id")
@@ -60,7 +75,7 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
         queryset=Team.objects.all(), required=False, serializer=TeamReadOnlySerializer
     )
 
-    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
+    good = GoodField(required=False)
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
     end_user = serializers.PrimaryKeyRelatedField(
