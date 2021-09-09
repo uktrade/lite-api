@@ -2,6 +2,12 @@ import factory
 
 from api.addresses.models import Address
 from api.staticdata.countries.models import Country
+from api.staticdata.countries.helpers import get_country
+from api.staticdata.countries.factories import CountryFactory
+
+
+def AddressFactoryGB():
+    return AddressFactory(country=get_country(pk="GB"))
 
 
 class AddressFactory(factory.django.DjangoModelFactory):
@@ -10,8 +16,7 @@ class AddressFactory(factory.django.DjangoModelFactory):
     region = factory.Faker("state")
     postcode = factory.Faker("postcode")
     city = factory.Faker("city")
-    # This is intentional as CircleCI fails to find the Country table otherwise
-    country = factory.Iterator(Country.objects.filter(id="GB"))
+    country = factory.SubFactory(CountryFactory)
 
     class Meta:
         model = Address

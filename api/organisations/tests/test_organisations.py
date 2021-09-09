@@ -27,6 +27,8 @@ from api.users.libraries.get_user import get_users_from_organisation
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import UserOrganisationRelationship
 from api.users.tests.factories import UserOrganisationRelationshipFactory
+from api.addresses.tests.factories import AddressFactoryGB
+from api.organisations.tests.factories import SiteFactory
 
 
 class GetOrganisationTests(DataTestClient):
@@ -458,7 +460,12 @@ class EditOrganisationTests(DataTestClient):
         """
         Organisations based in the UK need to provide all details about themselves
         """
+
         organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        site = organisation.site.last()
+        site.address = AddressFactoryGB()
+        site.save()
+
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {
             "eori_number": None,

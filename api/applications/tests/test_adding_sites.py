@@ -12,6 +12,7 @@ from api.cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations
 from api.organisations.tests.factories import SiteFactory
 from api.staticdata.countries.helpers import get_country
+from api.addresses.tests.factories import AddressFactoryGB
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -97,7 +98,9 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(ExternalLocationOnApplication.objects.filter(application=draft).count(), 0)
 
     def test_add_site_to_a_submitted_application_success(self):
-        site_to_add = SiteFactory(organisation=self.organisation)
+
+        site_to_add = SiteFactory(organisation=self.organisation, address=AddressFactoryGB())
+
         data = {"sites": [self.primary_site.id, site_to_add.id]}
         self.submit_application(self.application)
 
@@ -177,8 +180,14 @@ class SitesOnDraftTests(DataTestClient):
         """
         Assert that it isn't possible to add sites based in GB to transhipment & trade control applications
         """
-        site = SiteFactory(organisation=self.organisation)
+
+        # Organisation is on GB site
+        site = SiteFactory(organisation=self.organisation, address=AddressFactoryGB())
+        assert site.address.country.id == "GB"  # assumption
+
+        # Organisation is on GB site
         transhipment = create_function(self, organisation=self.organisation, case_type_id=case_type_id)
+        assert transhipment.organisation.primary_site.address.country.id == "GB"  # assumption
 
         url = reverse("applications:application_sites", kwargs={"pk": transhipment.id})
         data = {"sites": [site.id]}

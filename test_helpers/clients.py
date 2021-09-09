@@ -49,6 +49,7 @@ from api.conf.urls import urlpatterns
 from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
+from api.addresses.tests.factories import AddressFactoryGB
 from api.goods.enums import (
     GoodControlled,
     GoodPvGraded,
@@ -162,6 +163,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if settings.TIME_TESTS:
             self.tick = timezone.localtime()
+
+    def setup_exporter_headers(self, exporter_user):
+        """
+        Sets exporter_headers for given exporter user
+        """
+        self.exporter_headers = {
+            "HTTP_EXPORTER_USER_TOKEN": user_to_token(exporter_user.baseuser_ptr),
+            "HTTP_ORGANISATION_ID": str(exporter_user.organisation.id),
+        }
 
     def tearDown(self):
         """
@@ -631,7 +641,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_organisation_with_exporter_user(
         self, name="Organisation", org_type=OrganisationType.COMMERCIAL, exporter_user=None
     ) -> Tuple[Organisation, ExporterUser]:
-        organisation = OrganisationFactory(name=name, type=org_type)
+        site_gb = SiteFactory(address=AddressFactoryGB())
+        organisation = OrganisationFactory(name=name, type=org_type, primary_site=site_gb)
 
         if not exporter_user:
             exporter_user = self.create_exporter_user(organisation)

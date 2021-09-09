@@ -4,11 +4,13 @@ from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.models import (
     Advice,
     Case,
+    CaseAssignment,
     CaseStatus,
     CaseType,
     EcjuQuery,
     GoodCountryDecision,
 )
+from api.queues.tests.factories import QueueFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.staticdata.countries.factories import CountryFactory
@@ -62,6 +64,16 @@ class CaseFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Case
+
+
+class CaseAssignmentFactory(factory.django.DjangoModelFactory):
+
+    case = factory.SubFactory(CaseFactory)
+    user = factory.SubFactory(GovUserFactory)
+    queue = factory.SubFactory(QueueFactory)
+
+    class Meta:
+        model = CaseAssignment
 
 
 class EcjuQueryFactory(factory.django.DjangoModelFactory):
