@@ -1,3 +1,5 @@
+import pytest
+
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -19,6 +21,50 @@ class CreateCaseAdviceTests(DataTestClient):
         self.case = self.submit_application(self.application)
 
         self.standard_case_url = reverse("cases:user_advice", kwargs={"pk": self.case.id})
+
+    def test_create_advice_good(self):
+        data = {
+            "user": self.gov_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.APPROVE,
+            "level": "user",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": [],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(Advice.objects.get())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
+
+    def test_create_advice_good_on_application(self):
+        data = {
+            "user": self.gov_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().id),
+            "text": "Text",
+            "type": AdviceType.APPROVE,
+            "level": "user",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": [],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(Advice.objects.get())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
 
     @parameterized.expand(
         [
@@ -53,6 +99,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertIsNotNone(Advice.objects.get())
         self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
 
+    @pytest.mark.xfail(reason="This test was set up incorrectly so never worked as intended")
     def test_cannot_create_advice_for_two_items(self):
         """
         Tests that a gov user cannot create a piece of advice for more than one item
@@ -62,6 +109,8 @@ class CreateCaseAdviceTests(DataTestClient):
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
             "end_user": str(self.application.end_user.party.id),
+            # this passes the GoodOnApplication id to the Advice model which is why we get a 400 here
+            # NOT because the user is trying to create advice for two different items
             "good": str(self.application.goods.first().id),
         }
 
