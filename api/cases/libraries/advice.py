@@ -77,6 +77,17 @@ def construct_coalesced_advice_values(
             if getattr(advice, field):
                 fields[field].add(getattr(advice, field))
 
+    advice_types = set([a.type for a in deduplicated_advice])
+
+    if len(advice_types) == 1:
+        advice_type = deduplicated_advice[0].type
+    elif advice_types == {AdviceType.NO_LICENCE_REQUIRED, AdviceType.APPROVE}:
+        advice_type = AdviceType.NO_LICENCE_REQUIRED
+    elif advice_types == {AdviceType.PROVISO, AdviceType.APPROVE}:
+        advice_type = AdviceType.PROVISO
+    else:
+        advice_type = AdviceType.CONFLICTING
+
     pv_grading = (
         break_text.join([PvGrading.to_str(pv_grading) for pv_grading in fields["pv_grading"]])
         if fields["pv_grading"]
