@@ -2,6 +2,7 @@ from datetime import time, datetime
 from unittest import mock
 from unittest.mock import patch
 
+import pytest
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -20,6 +21,8 @@ from api.cases.tasks import (
     HMRC_QUERY_TARGET_DAYS,
 )
 from api.cases.models import CaseAssignmentSla
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 HOUR_BEFORE_CUTOFF = time(SLA_UPDATE_CUTOFF_TIME.hour - 1, 0, 0)
