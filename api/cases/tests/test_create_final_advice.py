@@ -17,7 +17,7 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 from api.teams.models import Team
 from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
-from api.users.models import GovUser, Role
+from api.users.models import Role
 
 
 class CreateCaseAdviceTests(DataTestClient):
@@ -52,6 +52,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.gov_user_3 = GovUserFactory(baseuser_ptr__email="users@email.com", team=team_3, role=role)
 
         self.standard_case_url = reverse("cases:case_final_advice", kwargs={"pk": self.standard_case.id})
+        self.standard_case_finalise_url = reverse("applications:finalise", kwargs={"pk": self.standard_case.id})
 
     def test_advice_is_concatenated_when_final_advice_first_created(self):
         """
@@ -94,6 +95,32 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertEqual(response_data.get("type").get("key"), "conflicting")
         self.assertEqual(response_data.get("proviso"), "I am easy to proviso")
         self.assertCountEqual(["1a", "1b", "1c"], response_data["denial_reasons"])
+
+    def test_create_final_advice_nlr_overrides_approval(self):
+        """
+        NLR decision overrides approval
+        """
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.TEAM)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()["advice"][0]
+
+        self.assertEqual(response_data.get("type").get("key"), "no_licence_required")
+
+    def test_return_final_advice(self):
+        """
+        Check the correct advice is returned
+        """
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.TEAM)
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.FINAL)
+        self.create_advice(self.gov_user_2, self.standard_case, "end_user", AdviceType.APPROVE, AdviceLevel.FINAL)
+
+        response = self.client.get(self.standard_case_finalise_url, **self.gov_headers)
+        final_advice_on_goods = response.json()["goods"]
+
+        self.assertEqual(len(final_advice_on_goods), 1)
 
     def test_create_final_advice_same_advice_type_different_pv_gradings(self):
         """

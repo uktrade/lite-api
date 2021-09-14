@@ -232,7 +232,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
             self.standard_application,
             "good",
             AdviceType.APPROVE,
-            AdviceLevel.USER,
+            AdviceLevel.FINAL,
             advice_text=advice_text,
         )
 
@@ -245,7 +245,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
             self.standard_application,
             "",
             AdviceType.REFUSE,
-            AdviceLevel.USER,
+            AdviceLevel.FINAL,
             good=second_good_on_app.good,
         )
 
@@ -258,7 +258,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
             self.standard_application,
             "",
             AdviceType.NO_LICENCE_REQUIRED,
-            AdviceLevel.USER,
+            AdviceLevel.FINAL,
             good=third_good_on_app.good,
         )
 
@@ -266,7 +266,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
         data = response.json()["goods"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(data), 1)
+        self.assertEqual(len(data), 2)
         self.assertEqual(data[0]["id"], str(self.good_on_application.id))
         self.assertEqual(data[0]["good"]["id"], str(self.good_on_application.good.id))
         self.assertEqual(data[0]["good"]["description"], self.good_on_application.good.description)
@@ -278,7 +278,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
     def test_get_proviso_goods_success(self):
         # Proviso the existing good
         advice = self.create_advice(
-            self.gov_user, self.standard_application, "good", AdviceType.PROVISO, AdviceLevel.USER
+            self.gov_user, self.standard_application, "good", AdviceType.PROVISO, AdviceLevel.FINAL
         )
 
         response = self.client.get(self.url, **self.gov_headers)
