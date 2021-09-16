@@ -13,6 +13,8 @@ from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import Case, CaseAssignmentSla, CaseQueue
 from api.cases.models import EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 
 # DST safe version of midnight
 SLA_UPDATE_TASK_TIME = time(22, 30, 0)
@@ -92,11 +94,16 @@ def update_cases_sla():
             # Lock with select_for_update()
             # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
             active_ecju_query_cases = get_case_ids_with_active_ecju_queries(date)
-            cases = Case.objects.filter(
-                submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=tz(settings.TIME_ZONE)),
-                last_closed_at__isnull=True,
-                sla_remaining_days__isnull=False,
-            ).exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
+            terminal_case_status = CaseStatus.objects.filter(status__in=CaseStatusEnum.terminal_statuses())
+            cases = (
+                Case.objects.filter(
+                    submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=tz(settings.TIME_ZONE)),
+                    last_closed_at__isnull=True,
+                    sla_remaining_days__isnull=False,
+                )
+                .exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
+                .exclude(status__in=terminal_case_status)
+            )
             with transaction.atomic():
                 for assignment in CaseQueue.objects.filter(case__in=cases):
                     try:

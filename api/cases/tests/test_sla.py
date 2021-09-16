@@ -2,6 +2,7 @@ from datetime import time, datetime
 from unittest import mock
 from unittest.mock import patch
 
+import pytest
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -20,6 +21,8 @@ from api.cases.tasks import (
     HMRC_QUERY_TARGET_DAYS,
 )
 from api.cases.models import CaseAssignmentSla
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 HOUR_BEFORE_CUTOFF = time(SLA_UPDATE_CUTOFF_TIME.hour - 1, 0, 0)
@@ -540,3 +543,32 @@ class SlaHmrcCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
         self.assertNotIn("sla_hours_since_raised", response_data[0])
+
+
+class TerminalCaseSlaTests(DataTestClient):
+    @mock.patch("api.cases.tasks.is_weekend")
+    @mock.patch("api.cases.tasks.is_bank_holiday")
+    def test_sla_not_update_for_terminal(
+        self, mock_is_weekend, mock_is_bank_holiday,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.create_draft_standard_application(self.organisation)
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, STANDARD_APPLICATION_TARGET_DAYS - 1)
+
+        for case_status in CaseStatusEnum.terminal_statuses():
+            application.status = get_case_status_by_status(case_status)
+            application.save()
+
+            results = update_cases_sla.now()
+            case.refresh_from_db()
+            self.assertEqual(results, 0)
+            self.assertEqual(case.sla_days, 1)
+            self.assertEqual(case.sla_remaining_days, STANDARD_APPLICATION_TARGET_DAYS - 1)
