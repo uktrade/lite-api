@@ -12,6 +12,8 @@ class Team(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, unique=True)
     part_of_ecju = models.BooleanField(default=None, null=True)
+    parent = models.ForeignKey("self", default=None, null=True, on_delete=models.SET_NULL)
+    is_department = models.BooleanField(default=False)
 
     objects = TeamManager()
 
