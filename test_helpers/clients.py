@@ -30,6 +30,7 @@ from api.applications.models import (
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import (
@@ -208,7 +209,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
-        base_user = BaseUser(first_name=first_name, last_name=last_name, email=self.faker.email(),)
+        base_user = BaseUser(first_name=first_name, last_name=last_name, email=self.faker.email())
         base_user.save()
         exporter_user = ExporterUser(baseuser_ptr=base_user)
         exporter_user.organisation = organisation
@@ -232,7 +233,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_external_location(name, org, country="GB"):
         external_location = ExternalLocation(
-            name=name, address="20 Questions Road, Enigma", country=get_country(country), organisation=org,
+            name=name, address="20 Questions Road, Enigma", country=get_country(country), organisation=org
         )
         external_location.save()
         return external_location
@@ -269,10 +270,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return party
 
     @staticmethod
-    def create_case_note(
-        case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False,
-    ):
-        case_note = CaseNote(case=case, text=text, user=user, is_visible_to_exporter=is_visible_to_exporter,)
+    def create_case_note(case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
+        case_note = CaseNote(case=case, text=text, user=user, is_visible_to_exporter=is_visible_to_exporter)
         case_note.save()
         return case_note
 
@@ -376,7 +375,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_document_for_party(party: Party, name="document_name.pdf", safe=True):
         document = PartyDocument(
-            party=party, name=name, s3_key="s3_keykey.pdf", size=123456, virus_scanned_at=None, safe=safe,
+            party=party, name=name, s3_key="s3_keykey.pdf", size=123456, virus_scanned_at=None, safe=safe
         )
         document.save()
         return document
@@ -384,7 +383,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_document_for_goods_type(goods_type: GoodsType, name="document_name.pdf", safe=True):
         document = GoodsTypeDocument(
-            goods_type=goods_type, name=name, s3_key="s3_keykey.pdf", size=123456, virus_scanned_at=None, safe=safe,
+            goods_type=goods_type, name=name, s3_key="s3_keykey.pdf", size=123456, virus_scanned_at=None, safe=safe
         )
         document.save()
         return document
@@ -618,7 +617,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_good_on_application(application, good):
         return GoodOnApplication.objects.create(
-            good=good, application=application, quantity=10, unit=Units.NAR, value=500,
+            good=good, application=application, quantity=10, unit=Units.NAR, value=500
         )
 
     @staticmethod
@@ -799,7 +798,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
-            is_good_controlled=True, organisation=self.organisation, description="a good", part_number="123456",
+            is_good_controlled=True, organisation=self.organisation, description="a good", part_number="123456"
         )
 
         GoodOnApplication.objects.create(
@@ -814,13 +813,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_standard_application_with_incorporated_good(
-        self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
+        self, organisation: Organisation, reference_name="Standard Draft", safe_document=True
     ):
 
         application = self.create_draft_standard_application(organisation, reference_name, safe_document)
 
         GoodOnApplication(
-            good=GoodFactory(is_good_controlled=True, organisation=self.organisation,),
+            good=GoodFactory(is_good_controlled=True, organisation=self.organisation),
             application=application,
             quantity=17,
             value=18,
@@ -878,7 +877,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.submit_application(draft, self.exporter_user)
 
     def create_hmrc_query(
-        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True, have_goods_departed=False,
+        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True, have_goods_departed=False
     ):
         application = HmrcQuery(
             name=reference_name,
@@ -1062,6 +1061,29 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         rule.save()
         return rule
+
+    def create_audit(
+        self,
+        actor,
+        verb,
+        action_object=None,
+        target=None,
+        payload=None,
+        ignore_case_status=False,
+        send_notification=True,
+    ):
+        if not payload:
+            payload = {}
+
+        return Audit.objects.create(
+            actor=actor,
+            verb=verb.value,
+            action_object=action_object,
+            target=target,
+            payload=payload,
+            ignore_case_status=ignore_case_status,
+            send_notification=send_notification,
+        )
 
 
 @pytest.mark.performance
