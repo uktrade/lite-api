@@ -52,7 +52,7 @@ from api.applications.serializers.generic_application import (
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
 from api.cases.helpers import can_set_status
@@ -509,7 +509,8 @@ class ApplicationFinaliseView(APIView):
         approved_goods_on_application = (
             GoodOnApplication.objects.filter(
                 application_id=pk,
-                good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
+                good__advice__level=AdviceLevel.FINAL,
+                good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO, AdviceType.NO_LICENCE_REQUIRED],
                 good__advice__case_id=pk,
                 good__advice__good_id__isnull=False,
             )

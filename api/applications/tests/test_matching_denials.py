@@ -1,5 +1,6 @@
 import csv
 import io
+import pytest
 
 from django.urls import reverse
 from faker import Faker
@@ -34,6 +35,9 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(models.Denial.objects.count(), 5)
 
+    @pytest.mark.xfail(reason="This test is flaky and should be rewritten")
+    # Occasionally causes this error:
+    # django.db.utils.IntegrityError: duplicate key value violates unique constraint "external_data_denial_reference_05842cee_uniq"
     def test_adding_denials_to_application(self):
         data = [
             {"application": self.application.id, "denial": denial.id, "category": "exact" if (index % 2) else "partial"}
