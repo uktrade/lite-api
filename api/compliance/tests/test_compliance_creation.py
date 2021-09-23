@@ -78,9 +78,7 @@ class ComplianceCreateTests(DataTestClient):
     def tests_siel_no_compliance_feature_flag_off(self):
         case = self.create_standard_application_case(self.organisation)
 
-        good = GoodFactory(
-            organisation=self.organisation, is_good_controlled=True, control_list_entries=["ML22"],
-        )
+        good = GoodFactory(organisation=self.organisation, is_good_controlled=True, control_list_entries=["ML22"],)
         GoodOnLicenceFactory(
             good=GoodOnApplicationFactory(application=case, good=good),
             licence=LicenceFactory(case=case),

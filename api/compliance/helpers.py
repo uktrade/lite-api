@@ -41,13 +41,11 @@ def get_compliance_site_case(pk):
 def case_meets_conditions_for_compliance(case: Case):
     if case.case_type.id == CaseTypeEnum.SIEL.id:
         if settings.FEATURE_SIEL_COMPLIANCE_ENABLED:
-            if (
-                Good.objects.filter(
-                    goods_on_application__application_id=case.id,
-                    control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-                    goods_on_application__licence__quantity__isnull=False,
-                ).exists()
-            ):
+            if Good.objects.filter(
+                goods_on_application__application_id=case.id,
+                control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
+                goods_on_application__licence__quantity__isnull=False,
+            ).exists():
                 return True
         return False
     elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS]:
