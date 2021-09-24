@@ -5,6 +5,7 @@ from rest_framework import status
 
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.models import GoodOnApplication
+from api.audit_trail.models import Audit, AuditType
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.models import Good, FirearmGoodDetails
@@ -88,6 +89,8 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         self.assertEqual(
             Good.objects.get(pk=good_on_application2.good.pk).status, GoodStatus.SUBMITTED,
         )
+        audit_event = Audit.objects.first()
+        self.assertEqual(audit_event.verb, AuditType.REMOVE_GOOD_FROM_APPLICATION)
 
     def test_remove_a_good_that_does_not_exist_from_draft(self):
         """

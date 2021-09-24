@@ -5,6 +5,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from api.audit_trail.models import AuditType, Audit
 from api.cases.models import CaseAssignment
 from gov_notify.enums import TemplateType
 from api.licences.enums import LicenceStatus
@@ -57,6 +58,9 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING))
+        audit_event = Audit.objects.first()
+        self.assertEqual(audit_event.verb, AuditType.UPDATED_STATUS)
+        self.assertEqual(audit_event.payload, {"status": {"new": "Applicant editing", "old": "Submitted"}})
 
     def test_exporter_set_application_status_withdrawn_when_application_not_terminal_success(self):
         self.submit_application(self.standard_application)
