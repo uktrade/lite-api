@@ -29,7 +29,8 @@ class FlagsCreateTest(DataTestClient):
         self.assertEqual(response_data["colour"], FlagColours.ORANGE)
         self.assertEqual(response_data["label"], "This is label")
         self.assertEqual(
-            response_data["team"], {"id": str(self.team.id), "name": self.team.name, "part_of_ecju": None},
+            response_data["team"],
+            {"id": str(self.team.id), "name": self.team.name, "part_of_ecju": None, "department": None},
         )
 
     @parameterized.expand(
