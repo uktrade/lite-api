@@ -1,5 +1,6 @@
 from api.audit_trail.models import Audit
-from api.cases.models import CaseAssignment, EcjuQuery
+from api.teams.models import Department
+from api.cases.models import CaseAssignment, EcjuQuery, DepartmentSLA
 from api.queues.models import Queue
 
 from rest_framework import serializers
@@ -43,3 +44,15 @@ class AuditMoveCaseSerializer(serializers.ModelSerializer):
         if queue:
             return queue.pk
         return None
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    sla_days = serializers.SerializerMethodField()
+
+    def get_sla_days(self, instance):
+        # TODO: Figure out calculating SLA for department
+        pass
+
+    class Meta:
+        model = Department
+        fields = ("id", "name", "sla_days")
