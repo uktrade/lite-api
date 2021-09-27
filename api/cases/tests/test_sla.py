@@ -2,7 +2,6 @@ from datetime import time, datetime
 from unittest import mock
 from unittest.mock import patch
 
-import pytest
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -20,9 +19,10 @@ from api.cases.tasks import (
     SLA_UPDATE_CUTOFF_TIME,
     HMRC_QUERY_TARGET_DAYS,
 )
-from api.cases.models import CaseAssignmentSla
+from api.cases.models import CaseAssignmentSla, CaseQueue, DepartmentSLA
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.teams.models import Department
 from test_helpers.clients import DataTestClient
 
 HOUR_BEFORE_CUTOFF = time(SLA_UPDATE_CUTOFF_TIME.hour - 1, 0, 0)
@@ -572,3 +572,31 @@ class TerminalCaseSlaTests(DataTestClient):
             self.assertEqual(results, 0)
             self.assertEqual(case.sla_days, 1)
             self.assertEqual(case.sla_remaining_days, STANDARD_APPLICATION_TARGET_DAYS - 1)
+
+
+class DepartmentSlaTests(DataTestClient):
+    @mock.patch("api.cases.tasks.is_weekend")
+    @mock.patch("api.cases.tasks.is_bank_holiday")
+    def test_department_sla_updated(
+        self, mock_is_weekend, mock_is_bank_holiday,
+    ):
+        # The following is to ensure that this test doesn't fail on
+        # non-working days.
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        # Create & submit an application
+        application = self.create_draft_standard_application(self.organisation)
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+        # Assign the application to our team
+        CaseQueue.objects.create(case=case, queue=self.queue)
+        # Create a test department
+        test_department = Department(name="test")
+        test_department.save()
+        # In order to move the department SLA counter, we need to assign
+        # our team to a department
+        self.team.department = test_department
+        self.team.save()
+        update_cases_sla.now()
+        department_sla = DepartmentSLA.objects.get(department=test_department)
+        self.assertEqual(department_sla.sla_days, 1)

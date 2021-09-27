@@ -426,3 +426,7 @@ if FEATURE_EMAIL_REPORTS_ENABLED:
     LITE_OPS_EMAIL = env.str("LITE_OPS_EMAIL")
     LITE_REPORTS_RECIPIENTS = env.list("LITE_REPORTS_RECIPIENTS", default=[])
     LITE_REPORTS_EMAIL_TEMPLATE_ID = env.str("LITE_REPORTS_EMAIL_TEMPLATE_ID", default="reports-email-template_id")
+
+# Controls whether a ComplianceSiteCase is automatically created when a SIEL licence is issued that has goods with certain control codes
+# See LTD-1159
+FEATURE_SIEL_COMPLIANCE_ENABLED = env.bool("FEATURE_SIEL_COMPLIANCE_ENABLED", False)

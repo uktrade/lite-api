@@ -13,13 +13,14 @@ class TeamReadOnlySerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(read_only=True)
     part_of_ecju = serializers.BooleanField(read_only=True)
+    is_ogd = serializers.BooleanField(read_only=True)
 
 
 class TeamSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         max_length=50,
         validators=[
-            UniqueValidator(queryset=Team.objects.all(), lookup="iexact", message=strings.Teams.NOT_UNIQUE_NAME,)
+            UniqueValidator(queryset=Team.objects.all(), lookup="iexact", message=strings.Teams.NOT_UNIQUE_NAME)
         ],
         error_messages={"blank": strings.Teams.BLANK_NAME},
     )
@@ -28,6 +29,9 @@ class TeamSerializer(serializers.ModelSerializer):
             "null": "Select yes if the team is part of ECJU",
             "required": "Select yes if the team is part of ECJU",
         }
+    )
+    is_ogd = serializers.BooleanField(
+        error_messages={"null": "Select yes if the team is an OGD", "required": "Select yes if the team is an OGD"}
     )
 
     class Meta:
@@ -39,5 +43,8 @@ class TeamSerializer(serializers.ModelSerializer):
 
         if "part_of_ecju" not in validated_data:
             raise serializers.ValidationError({"part_of_ecju": "Select yes if the team is part of ECJU"})
+
+        if "is_ogd" not in validated_data:
+            raise serializers.ValidationError({"is_ogd": "Select yes if the team is an OGD"})
 
         return validated_data

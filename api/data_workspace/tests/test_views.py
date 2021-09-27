@@ -92,7 +92,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_teams(self):
         url = reverse("data_workspace:dw-teams-list")
-        expected_fields = ("id", "name", "part_of_ecju")
+        expected_fields = ("id", "name", "part_of_ecju", "is_ogd")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.json()["results"]

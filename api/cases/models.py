@@ -34,7 +34,7 @@ from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import CaseStatus
-from api.teams.models import Team
+from api.teams.models import Team, Department
 from api.users.models import (
     BaseUser,
     ExporterUser,
@@ -247,6 +247,12 @@ class CaseAssignmentSla(models.Model):
     sla_days = models.IntegerField()
     queue = models.ForeignKey(Queue, related_name="slas", on_delete=models.CASCADE)
     case = models.ForeignKey(Case, related_name="slas", on_delete=models.CASCADE)
+
+
+class DepartmentSLA(models.Model):
+    sla_days = models.IntegerField()
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="department_slas")
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="department_slas")
 
 
 class CaseReferenceCode(models.Model):
