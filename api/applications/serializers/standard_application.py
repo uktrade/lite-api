@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -17,10 +18,13 @@ from api.applications.serializers.denial import DenialMatchOnApplicationViewSeri
 from api.applications.serializers.good import GoodOnApplicationViewSerializer
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from api.applications.serializers.serializer_helper import validate_field
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum
 from api.core.serializers import KeyValueChoiceField
 from api.licences.models import Licence
 from lite_content.lite_api import strings
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
@@ -34,6 +38,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
     sanction_matches = serializers.SerializerMethodField()
+    is_amended = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -69,6 +74,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "trade_control_activity",
                 "trade_control_product_categories",
                 "sanction_matches",
+                "is_amended",
             )
         )
 
@@ -98,6 +104,32 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     def get_denial_matches(self, instance):
         denial_matches = DenialMatchOnApplication.objects.filter(application=instance, denial__is_revoked=False)
         return DenialMatchOnApplicationViewSerializer(denial_matches, many=True).data
+
+    def get_is_amended(self, instance):
+        """Determines whether an application is major/minor edited using Audit logs
+        and returns True if either of the amends are done, False otherwise"""
+        audit_qs = Audit.objects.filter(target_object_id=instance.id)
+        is_reference_name_updated = audit_qs.filter(verb=AuditType.UPDATED_APPLICATION_NAME).exists()
+        is_product_removed = audit_qs.filter(verb=AuditType.REMOVE_GOOD_FROM_APPLICATION).exists()
+        app_letter_ref_updated = audit_qs.filter(
+            Q(
+                verb__in=[
+                    AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
+                    AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
+                    AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                ]
+            )
+        )
+        # in case of doing major edits then the status is set as "Applicant editing"
+        # Here we are detecting the transition from "Submitted" -> "Applicant editing"
+        for item in audit_qs.filter(verb=AuditType.UPDATED_STATUS):
+            status = item.payload["status"]
+            if status["old"] == CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED) and status[
+                "new"
+            ] == CaseStatusEnum.get_text(CaseStatusEnum.APPLICANT_EDITING):
+                return True
+
+        return any([is_reference_name_updated, app_letter_ref_updated, is_product_removed])
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):

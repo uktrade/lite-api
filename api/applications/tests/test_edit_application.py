@@ -56,6 +56,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(application.name, self.data["name"])
         self.assertNotEqual(application.updated_at, updated_at)
         self.assertEqual(audit_qs.count(), 2)
+        self.assertEqual(audit_object.verb, AuditType.UPDATED_APPLICATION_NAME)
         self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
 
     @parameterized.expand(get_case_statuses(read_only=True))

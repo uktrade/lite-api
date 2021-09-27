@@ -70,6 +70,7 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
             "destinations",
             "denial_matches",
             "licence",
+            "is_amended",
         )
         for key in expected_keys:
             self.assertTrue(key in actual_keys)
