@@ -1,6 +1,8 @@
+from django.test import override_settings
+
 from parameterized import parameterized
 
-from api.applications.models import SiteOnApplication, GoodOnApplication
+from api.applications.models import SiteOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
@@ -10,7 +12,6 @@ from api.goods.tests.factories import GoodFactory
 from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from api.organisations.tests.factories import SiteFactory
-from api.staticdata.control_list_entries.factories import ControlListEntriesFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -55,6 +56,7 @@ class ComplianceCreateTests(DataTestClient):
     @parameterized.expand(
         [("ML21", True), ("ML22", True), ("ML2", False), ("0D", True),]
     )
+    @override_settings(FEATURE_SIEL_COMPLIANCE_ENABLED=True)
     def tests_siel_good_control_code(self, control_code, exists):
         case = self.create_standard_application_case(self.organisation)
 
@@ -71,6 +73,22 @@ class ComplianceCreateTests(DataTestClient):
         generate_compliance_site_case(case)
 
         self.assertEqual(ComplianceSiteCase.objects.exists(), exists)
+
+    @override_settings(FEATURE_SIEL_COMPLIANCE_ENABLED=False)
+    def tests_siel_no_compliance_feature_flag_off(self):
+        case = self.create_standard_application_case(self.organisation)
+
+        good = GoodFactory(organisation=self.organisation, is_good_controlled=True, control_list_entries=["ML22"],)
+        GoodOnLicenceFactory(
+            good=GoodOnApplicationFactory(application=case, good=good),
+            licence=LicenceFactory(case=case),
+            quantity=100,
+            value=1,
+        )
+
+        generate_compliance_site_case(case)
+
+        self.assertEqual(ComplianceSiteCase.objects.exists(), False)
 
     def test_multiple_cases_creates_one_compliance_case(self):
         # Both cases uses the organisation primary site by default on creation
