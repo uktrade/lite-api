@@ -54,10 +54,12 @@ router_v1.register("organisations", views.OrganisationListView, basename="dw-org
 router_v1.register("parties", views.PartyListView, basename="dw-parties")
 router_v1.register("queues", views.QueueListView, basename="dw-queues")
 router_v1.register("teams", views.TeamListView, basename="dw-teams")
+router_v1.register("departments", views.DepartmentListView, basename="dw-departments")
 router_v1.register("case-assignment", case_views.CaseAssignmentList, basename="dw-case-assignment")
 router_v1.register("case-assignment-slas", case_views.CaseAssignmentSlaList, basename="dw-case-assignment-sla")
 router_v1.register("case-types", case_views.CaseTypeList, basename="dw-case-type")
 router_v1.register("case-queues", case_views.CaseQueueList, basename="dw-case-queue")
+router_v1.register("case-deparments-sla", case_views.CaseDepartmentList, basename="dw-case-deparments-sla")
 router_v1.register("ecju-queries", case_views.EcjuQueryList, basename="dw-ecju-query")
 router_v1.register(
     "external-data-denials", external_data_views.ExternalDataDenialView, basename="dw-external-data-denial"
