@@ -28,6 +28,7 @@ from api.cases.models import (
     GoodCountryDecision,
     CaseType,
     CaseReviewDate,
+    DepartmentSLA,
 )
 from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase
 from api.compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
@@ -90,6 +91,12 @@ class CaseAssignmentSlaSerializer(serializers.ModelSerializer):
 class CaseQueueSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseQueue
+        fields = "__all__"
+
+
+class CaseDepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DepartmentSLA
         fields = "__all__"
 
 
