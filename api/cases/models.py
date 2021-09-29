@@ -249,7 +249,7 @@ class CaseAssignmentSla(models.Model):
     case = models.ForeignKey(Case, related_name="slas", on_delete=models.CASCADE)
 
 
-class DepartmentSLA(models.Model):
+class DepartmentSla(models.Model):
     sla_days = models.IntegerField()
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="department_slas")
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="department_slas")

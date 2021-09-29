@@ -10,7 +10,7 @@ from django.utils import timezone
 from pytz import timezone as tz
 
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import Case, CaseAssignmentSla, CaseQueue, DepartmentSLA
+from api.cases.models import Case, CaseAssignmentSla, CaseQueue, DepartmentSla
 from api.cases.models import EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -117,11 +117,11 @@ def update_cases_sla():
                     department = assignment.queue.team.department
                     if department is not None:
                         try:
-                            department_sla = DepartmentSLA.objects.get(department=department, case=assignment.case)
+                            department_sla = DepartmentSla.objects.get(department=department, case=assignment.case)
                             department_sla.sla_days += 1
                             department_sla.save()
-                        except DepartmentSLA.DoesNotExist:
-                            DepartmentSLA.objects.create(department=department, case=assignment.case, sla_days=1)
+                        except DepartmentSla.DoesNotExist:
+                            DepartmentSla.objects.create(department=department, case=assignment.case, sla_days=1)
 
                 results = cases.select_for_update().update(
                     sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date,

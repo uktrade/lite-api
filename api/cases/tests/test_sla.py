@@ -19,7 +19,7 @@ from api.cases.tasks import (
     SLA_UPDATE_CUTOFF_TIME,
     HMRC_QUERY_TARGET_DAYS,
 )
-from api.cases.models import CaseAssignmentSla, CaseQueue, DepartmentSLA
+from api.cases.models import CaseAssignmentSla, CaseQueue, DepartmentSla
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.models import Department
@@ -598,5 +598,5 @@ class DepartmentSlaTests(DataTestClient):
         self.team.department = test_department
         self.team.save()
         update_cases_sla.now()
-        department_sla = DepartmentSLA.objects.get(department=test_department)
+        department_sla = DepartmentSla.objects.get(department=test_department)
         self.assertEqual(department_sla.sla_days, 1)
