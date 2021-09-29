@@ -68,7 +68,7 @@ class CaseFactory(factory.django.DjangoModelFactory):
 
 
 class DepartmentSlaFactory(factory.django.DjangoModelFactory):
-    sla_days = factory.Faker('pyint', min_value=0, max_value=30)
+    sla_days = factory.Faker("pyint", min_value=0, max_value=30)
     case = factory.SubFactory(CaseFactory)
     department = factory.SubFactory(DepartmentFactory)
 
