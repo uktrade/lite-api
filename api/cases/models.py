@@ -244,12 +244,18 @@ class CaseQueue(TimestampableModel):
 
 
 class CaseAssignmentSla(models.Model):
+    """
+    Keeps track of days passed since case assigned to a team
+    """
     sla_days = models.IntegerField()
     queue = models.ForeignKey(Queue, related_name="slas", on_delete=models.CASCADE)
     case = models.ForeignKey(Case, related_name="slas", on_delete=models.CASCADE)
 
 
 class DepartmentSla(models.Model):
+    """
+    Keeps track of days passed since application received in department
+    """
     sla_days = models.IntegerField()
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="department_slas")
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="department_slas")
