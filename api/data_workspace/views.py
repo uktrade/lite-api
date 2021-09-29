@@ -9,7 +9,8 @@ from api.parties.serializers import PartyViewSerializer
 from api.queues.models import Queue
 from api.queues.serializers import QueueListSerializer
 from api.teams.models import Team, Department
-from api.teams.serializers import TeamReadOnlySerializer, DepartmentSerializer
+from api.teams.serializers import TeamReadOnlySerializer
+from api.data_workspace.serializers import DepartmentSerializer
 
 
 class OrganisationListView(viewsets.ReadOnlyModelViewSet):

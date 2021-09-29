@@ -2,7 +2,7 @@ from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from api.teams.models import Team, Department
+from api.teams.models import Team
 
 
 class TeamReadOnlySerializer(serializers.Serializer):
@@ -48,9 +48,3 @@ class TeamSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"is_ogd": "Select yes if the team is an OGD"})
 
         return validated_data
-
-
-class DepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Department
-        fields = "__all__"

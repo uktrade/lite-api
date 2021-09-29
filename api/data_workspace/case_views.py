@@ -7,11 +7,11 @@ from api.cases.serializers import (
     CaseAssignmentSlaSerializer,
     CaseTypeSerializer,
     CaseQueueSerializer,
-    CaseDepartmentSerializer,
 )
 from api.data_workspace.serializers import (
     EcjuQuerySerializer,
     CaseAssignmentSerializer,
+    DepartmentSlaSerializer,
 )
 
 
@@ -45,7 +45,7 @@ class CaseQueueList(viewsets.ReadOnlyModelViewSet):
 
 class CaseDepartmentList(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = CaseDepartmentSerializer
+    serializer_class = DepartmentSlaSerializer
     pagination_class = LimitOffsetPagination
     queryset = DepartmentSla.objects.all()
 
