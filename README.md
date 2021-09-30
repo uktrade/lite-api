@@ -5,6 +5,7 @@
 
 Service for handling backend calls in LITE.
 
+
 ## Running the service with docker
 
 - Download the repository:
