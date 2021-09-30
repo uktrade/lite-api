@@ -9,7 +9,7 @@ from api.cases.models import (
     CaseType,
     EcjuQuery,
     GoodCountryDecision,
-    DepartmentSla,
+    DepartmentSLA,
 )
 from api.queues.tests.factories import QueueFactory
 from api.organisations.tests.factories import OrganisationFactory
@@ -67,13 +67,13 @@ class CaseFactory(factory.django.DjangoModelFactory):
         model = Case
 
 
-class DepartmentSlaFactory(factory.django.DjangoModelFactory):
+class DepartmentSLAFactory(factory.django.DjangoModelFactory):
     sla_days = factory.Faker("pyint", min_value=0, max_value=30)
     case = factory.SubFactory(CaseFactory)
     department = factory.SubFactory(DepartmentFactory)
 
     class Meta:
-        model = DepartmentSla
+        model = DepartmentSLA
 
 
 class CaseAssignmentFactory(factory.django.DjangoModelFactory):

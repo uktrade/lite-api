@@ -10,7 +10,7 @@ from django.utils import timezone
 from pytz import timezone as tz
 
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import Case, CaseAssignmentSla, CaseQueue, DepartmentSla
+from api.cases.models import Case, CaseAssignmentSLA, CaseQueue, DepartmentSLA
 from api.cases.models import EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -108,20 +108,20 @@ def update_cases_sla():
                 for assignment in CaseQueue.objects.filter(case__in=cases):
                     # Update team SLAs
                     try:
-                        assignment_sla = CaseAssignmentSla.objects.get(queue=assignment.queue, case=assignment.case)
+                        assignment_sla = CaseAssignmentSLA.objects.get(queue=assignment.queue, case=assignment.case)
                         assignment_sla.sla_days += 1
                         assignment_sla.save()
-                    except CaseAssignmentSla.DoesNotExist:
-                        CaseAssignmentSla.objects.create(queue=assignment.queue, case=assignment.case, sla_days=1)
+                    except CaseAssignmentSLA.DoesNotExist:
+                        CaseAssignmentSLA.objects.create(queue=assignment.queue, case=assignment.case, sla_days=1)
                     # Update department SLAs
                     department = assignment.queue.team.department
                     if department is not None:
                         try:
-                            department_sla = DepartmentSla.objects.get(department=department, case=assignment.case)
+                            department_sla = DepartmentSLA.objects.get(department=department, case=assignment.case)
                             department_sla.sla_days += 1
                             department_sla.save()
-                        except DepartmentSla.DoesNotExist:
-                            DepartmentSla.objects.create(department=department, case=assignment.case, sla_days=1)
+                        except DepartmentSLA.DoesNotExist:
+                            DepartmentSLA.objects.create(department=department, case=assignment.case, sla_days=1)
 
                 results = cases.select_for_update().update(
                     sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date,

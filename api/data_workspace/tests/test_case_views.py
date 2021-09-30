@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from api.cases.models import CaseAssignmentSla, CaseAssignment
+from api.cases.models import CaseAssignmentSLA, CaseAssignment
 from test_helpers.clients import DataTestClient
 from test_helpers.assertions import is_uuid_as_string
 from api.users.tests.factories import GovUserFactory
@@ -13,7 +13,7 @@ class DataWorkspaceTests(DataTestClient):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation, "Example Application")
         self.queue.cases.add(self.case)
-        CaseAssignmentSla.objects.create(sla_days=4, queue=self.queue, case=self.case)
+        CaseAssignmentSLA.objects.create(sla_days=4, queue=self.queue, case=self.case)
 
         # Create CaseAssignment
         user = GovUserFactory(

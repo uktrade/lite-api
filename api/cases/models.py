@@ -243,7 +243,7 @@ class CaseQueue(TimestampableModel):
         db_table = "cases_case_queues"
 
 
-class CaseAssignmentSla(models.Model):
+class CaseAssignmentSLA(models.Model):
     """
     Keeps track of days passed since case assigned to a team
     """
@@ -253,7 +253,7 @@ class CaseAssignmentSla(models.Model):
     case = models.ForeignKey(Case, related_name="slas", on_delete=models.CASCADE)
 
 
-class DepartmentSla(models.Model):
+class DepartmentSLA(models.Model):
     """
     Keeps track of days passed since application received in department
     """

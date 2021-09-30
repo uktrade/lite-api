@@ -1,6 +1,6 @@
 from api.audit_trail.models import Audit
 from api.teams.models import Department
-from api.cases.models import CaseAssignment, EcjuQuery, DepartmentSla
+from api.cases.models import CaseAssignment, EcjuQuery, DepartmentSLA
 from api.queues.models import Queue
 
 from rest_framework import serializers
@@ -26,9 +26,9 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DepartmentSlaSerializer(serializers.ModelSerializer):
+class DepartmentSLASerializer(serializers.ModelSerializer):
     class Meta:
-        model = DepartmentSla
+        model = DepartmentSLA
         fields = "__all__"
 
 

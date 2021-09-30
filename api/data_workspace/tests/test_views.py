@@ -4,7 +4,7 @@ from rest_framework import status
 from api.parties.enums import PartyType
 from test_helpers.clients import DataTestClient
 from api.teams.tests.factories import TeamFactory
-from api.cases.tests.factories import DepartmentSlaFactory
+from api.cases.tests.factories import DepartmentSLAFactory
 from api.teams.models import Department
 
 
@@ -124,7 +124,7 @@ class DataWorkspaceTests(DataTestClient):
         assert set(payload["results"][0].keys()) == expected_fields
 
     def test_case_department_slas(self):
-        department_sla = DepartmentSlaFactory()
+        department_sla = DepartmentSLAFactory()
         url = reverse("data_workspace:dw-case-department-sla-list")
         response = self.client.get(url)
         payload = response.json()
