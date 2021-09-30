@@ -3,6 +3,9 @@ from rest_framework import status
 
 from api.parties.enums import PartyType
 from test_helpers.clients import DataTestClient
+from api.teams.tests.factories import TeamFactory
+from api.cases.tests.factories import DepartmentSLAFactory
+from api.teams.models import Department
 
 
 class DataWorkspaceTests(DataTestClient):
@@ -103,3 +106,35 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         options = response.json()["actions"]["OPTIONS"]
         self.assertEqual(tuple(options.keys()), expected_fields)
+
+    def test_departments(self):
+        team = TeamFactory()
+        url = reverse("data_workspace:dw-departments-list")
+        response = self.client.get(url)
+        payload = response.json()
+
+        # Ensure we get departments and not sth else
+        deps_ids = [d["id"] for d in payload["results"]]
+        assert str(team.department.id) in deps_ids
+        assert not str(team.id) in deps_ids
+        assert len(deps_ids) == Department.objects.count()
+
+        # Ensure we get some expected fields
+        expected_fields = {"id", "name"}
+        assert set(payload["results"][0].keys()) == expected_fields
+
+    def test_case_department_slas(self):
+        department_sla = DepartmentSLAFactory()
+        url = reverse("data_workspace:dw-case-department-sla-list")
+        response = self.client.get(url)
+        payload = response.json()
+        last_result = payload["results"][-1]
+
+        # Ensure we get some expected fields
+        expected_fields = {"id", "sla_days", "department", "case"}
+        assert set(last_result.keys()) == expected_fields
+
+        # Ensure values are correct
+        assert last_result["sla_days"] == department_sla.sla_days
+        assert last_result["case"] == str(department_sla.case.id)
+        assert last_result["department"] == str(department_sla.department.id)
