@@ -19,7 +19,7 @@ from api.cases.tasks import (
     SLA_UPDATE_CUTOFF_TIME,
     HMRC_QUERY_TARGET_DAYS,
 )
-from api.cases.models import CaseAssignmentSla, CaseQueue, DepartmentSLA
+from api.cases.models import CaseAssignmentSLA, CaseQueue, DepartmentSLA
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.models import Department
@@ -138,7 +138,7 @@ class SlaCaseTests(DataTestClient):
             case=application.case_ptr, queue=self.queue,
         )
         results = update_cases_sla.now()
-        sla = CaseAssignmentSla.objects.get()
+        sla = CaseAssignmentSLA.objects.get()
         case.refresh_from_db()
 
         self.assertEqual(sla.sla_days, 1)
@@ -163,7 +163,7 @@ class SlaCaseTests(DataTestClient):
         CaseQueue.objects.create(
             queue=self.queue, case=application.case_ptr,
         )
-        sla = CaseAssignmentSla.objects.create(sla_days=4, queue=self.queue, case=application.case_ptr,)
+        sla = CaseAssignmentSLA.objects.create(sla_days=4, queue=self.queue, case=application.case_ptr,)
         results = update_cases_sla.now()
 
         case.refresh_from_db()
@@ -574,7 +574,7 @@ class TerminalCaseSlaTests(DataTestClient):
             self.assertEqual(case.sla_remaining_days, STANDARD_APPLICATION_TARGET_DAYS - 1)
 
 
-class DepartmentSlaTests(DataTestClient):
+class DepartmentSLATests(DataTestClient):
     @mock.patch("api.cases.tasks.is_weekend")
     @mock.patch("api.cases.tasks.is_bank_holiday")
     def test_department_sla_updated(
