@@ -67,7 +67,7 @@ def get_case_ids_with_active_ecju_queries(date):
     # 2. Responded to in the last working day before cutoff time today
     return (
         EcjuQuery.objects.filter(
-            Q(responded_at__isnull=True, created_at__lt=today(time=SLA_UPDATE_CUTOFF_TIME),)
+            Q(responded_at__isnull=True, created_at__lt=today(time=SLA_UPDATE_CUTOFF_TIME))
             | Q(responded_at__gt=yesterday(time=SLA_UPDATE_CUTOFF_TIME))
         )
         .values("case_id")
@@ -105,6 +105,9 @@ def update_cases_sla():
                 .exclude(status__in=terminal_case_status)
             )
             with transaction.atomic():
+                # Keep track of the department SLA updates.
+                # We only want to update a department SLA once per case assignment per day.
+                department_slas_updated = set()
                 for assignment in CaseQueue.objects.filter(case__in=cases):
                     # Update team SLAs
                     try:
@@ -118,13 +121,17 @@ def update_cases_sla():
                     if department is not None:
                         try:
                             department_sla = DepartmentSLA.objects.get(department=department, case=assignment.case)
-                            department_sla.sla_days += 1
-                            department_sla.save()
+                            if department_sla.id not in department_slas_updated:
+                                department_sla.sla_days += 1
+                                department_sla.save()
                         except DepartmentSLA.DoesNotExist:
-                            DepartmentSLA.objects.create(department=department, case=assignment.case, sla_days=1)
+                            department_sla = DepartmentSLA.objects.create(
+                                department=department, case=assignment.case, sla_days=1
+                            )
+                        department_slas_updated.add(department_sla.id)
 
                 results = cases.select_for_update().update(
-                    sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date,
+                    sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
                 )
 
             logging.info(f"{LOG_PREFIX} SLA Update Successful. Updated {results} cases")
