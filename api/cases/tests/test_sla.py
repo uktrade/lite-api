@@ -134,9 +134,7 @@ class SlaCaseTests(DataTestClient):
         application = self.case_types[application_type]
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-        CaseQueue.objects.create(
-            case=application.case_ptr, queue=self.queue,
-        )
+        CaseQueue.objects.create(case=application.case_ptr, queue=self.queue)
         results = update_cases_sla.now()
         sla = CaseAssignmentSLA.objects.get()
         case.refresh_from_db()
@@ -160,10 +158,8 @@ class SlaCaseTests(DataTestClient):
         application = self.case_types[application_type]
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-        CaseQueue.objects.create(
-            queue=self.queue, case=application.case_ptr,
-        )
-        sla = CaseAssignmentSLA.objects.create(sla_days=4, queue=self.queue, case=application.case_ptr,)
+        CaseQueue.objects.create(queue=self.queue, case=application.case_ptr)
+        sla = CaseAssignmentSLA.objects.create(sla_days=4, queue=self.queue, case=application.case_ptr)
         results = update_cases_sla.now()
 
         case.refresh_from_db()
@@ -196,9 +192,7 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @parameterized.expand(
-        [(CaseTypeSubTypeEnum.GOODS,), (CaseTypeSubTypeEnum.EUA,),]
-    )
+    @parameterized.expand([(CaseTypeSubTypeEnum.GOODS,), (CaseTypeSubTypeEnum.EUA,)])
     def test_sla_doesnt_update_queries(self, query_type):
         query = self.case_types[query_type]
         case = self.submit_application(query)
@@ -218,11 +212,7 @@ class SlaRulesTests(DataTestClient):
     def test_sla_cutoff_window(self, mock_is_weekend, mock_is_bank_holiday):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False
-        times = [
-            HOUR_BEFORE_CUTOFF,
-            SLA_UPDATE_CUTOFF_TIME,
-            HOUR_AFTER_CUTOFF,
-        ]
+        times = [HOUR_BEFORE_CUTOFF, SLA_UPDATE_CUTOFF_TIME, HOUR_AFTER_CUTOFF]
         for submit_time in times:
             application = self.create_draft_standard_application(self.organisation)
             case = self.submit_application(application)
@@ -548,9 +538,7 @@ class SlaHmrcCaseTests(DataTestClient):
 class TerminalCaseSlaTests(DataTestClient):
     @mock.patch("api.cases.tasks.is_weekend")
     @mock.patch("api.cases.tasks.is_bank_holiday")
-    def test_sla_not_update_for_terminal(
-        self, mock_is_weekend, mock_is_bank_holiday,
-    ):
+    def test_sla_not_update_for_terminal(self, mock_is_weekend, mock_is_bank_holiday):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False
         application = self.create_draft_standard_application(self.organisation)
@@ -577,9 +565,7 @@ class TerminalCaseSlaTests(DataTestClient):
 class DepartmentSLATests(DataTestClient):
     @mock.patch("api.cases.tasks.is_weekend")
     @mock.patch("api.cases.tasks.is_bank_holiday")
-    def test_department_sla_updated(
-        self, mock_is_weekend, mock_is_bank_holiday,
-    ):
+    def test_department_sla_updated(self, mock_is_weekend, mock_is_bank_holiday):
         # The following is to ensure that this test doesn't fail on
         # non-working days.
         mock_is_weekend.return_value = False
@@ -600,3 +586,39 @@ class DepartmentSLATests(DataTestClient):
         update_cases_sla.now()
         department_sla = DepartmentSLA.objects.get(department=test_department)
         self.assertEqual(department_sla.sla_days, 1)
+
+    @mock.patch("api.cases.tasks.is_weekend")
+    @mock.patch("api.cases.tasks.is_bank_holiday")
+    def test_department_sla_updated_across_multiple_teams(self, mock_is_weekend, mock_is_bank_holiday):
+        # The following is to ensure that this test doesn't fail on
+        # non-working days.
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        # Create & submit an application
+        application = self.create_draft_standard_application(self.organisation)
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        # Assign the application to our team
+        CaseQueue.objects.create(case=case, queue=self.queue)
+        # Create a test department
+        test_department = Department(name="test_department")
+        test_department.save()
+        # In order to move the department SLA counter, we need to assign
+        # our team to a department
+        self.team.department = test_department
+        self.team.save()
+
+        # Assign the application to another team that belongs to the same department
+        test_team = self.create_team("test_team")
+        test_queue = self.create_queue("test_queue", test_team)
+        test_team.department = test_department
+        test_team.save()
+        CaseQueue.objects.create(case=case, queue=test_queue)
+
+        update_cases_sla.now()
+
+        # We only expect the SLA counter to have been updated once for the two
+        # teams that are both associated with 'test_department'
+        test_department_sla = DepartmentSLA.objects.get(department=test_department)
+        self.assertEqual(test_department_sla.sla_days, 1)
