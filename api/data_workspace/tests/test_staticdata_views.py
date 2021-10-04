@@ -37,7 +37,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_case_statuses(self):
         url = reverse("data_workspace:dw-case-statuses-list")
-        expected_fields = ("id", "key", "value", "priority")
+        expected_fields = ("id", "key", "value", "status", "priority")
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

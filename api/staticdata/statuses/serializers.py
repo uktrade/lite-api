@@ -20,5 +20,6 @@ class CaseStatusSerializer(serializers.ModelSerializer):
             "id",
             "key",
             "value",
+            "status",
             "priority",
         )
