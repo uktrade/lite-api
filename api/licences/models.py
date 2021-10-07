@@ -22,6 +22,9 @@ class HMRCIntegrationUsageData(TimestampableModel):
 
 
 class Licence(TimestampableModel):
+    """
+    A licence issued to an exporter application
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
@@ -79,6 +82,7 @@ class Licence(TimestampableModel):
         send_status_change_to_hmrc = kwargs.pop("send_status_change_to_hmrc", False)
         super(Licence, self).save(*args, **kwargs)
 
+        # Immediately notify HMRC if needed
         if LITE_HMRC_INTEGRATION_ENABLED and send_status_change_to_hmrc and self.status != LicenceStatus.DRAFT:
             self.send_to_hmrc_integration()
 
