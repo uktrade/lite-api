@@ -1,4 +1,5 @@
 import logging
+import urllib
 from uuid import UUID
 
 from django.db import transaction
@@ -10,7 +11,7 @@ from rest_framework.exceptions import APIException
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
-from api.core.requests import post
+from api.core.requests import get, post
 from api.conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT, HAWK_LITE_API_CREDENTIALS
 from api.licences.enums import HMRCIntegrationActionEnum, hmrc_integration_action_to_licence_status
 from api.licences.helpers import get_approved_goods_types
@@ -28,6 +29,7 @@ SEND_LICENCE_ENDPOINT = "/mail/update-licence/"
 
 class HMRCIntegrationException(APIException):
     """Exceptions to raise when sending requests to the HMRC Integration service."""
+
     pass
 
 
@@ -52,6 +54,21 @@ def send_licence(licence: Licence, action: str):
         licence.save()
 
     logging.info(f"Successfully sent licence '{licence.id}', action '{action}' to HMRC Integration")
+
+
+def get_mail_status(licence: Licence):
+    """Get mail status for given licence"""
+
+    url_params = urllib.parse.urlencode({"id": licence.reference_code})
+    url = f"{LITE_HMRC_INTEGRATION_URL}/mail/licence/?{url_params}"
+    response = get(url, hawk_credentials=HAWK_LITE_API_CREDENTIALS, timeout=LITE_HMRC_REQUEST_TIMEOUT)
+
+    if response.status_code != status.HTTP_200_OK:
+        raise HMRCIntegrationException(
+            f"Got {response.status_code} when trying to get status of licence '{licence.reference_code}'. ULR used: '{url}'"
+        )
+
+    return response.json()["status"]
 
 
 def save_licence_usage_updates(usage_data_id: UUID, valid_licences: list):
