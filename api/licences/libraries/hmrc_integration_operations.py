@@ -21,11 +21,14 @@ from api.licences.serializers.hmrc_integration import (
     HMRCIntegrationUsageDataLicenceSerializer,
 )
 
+
+# This is the endpoint used for sending new issued licences
 SEND_LICENCE_ENDPOINT = "/mail/update-licence/"
 
 
 class HMRCIntegrationException(APIException):
     """Exceptions to raise when sending requests to the HMRC Integration service."""
+    pass
 
 
 def send_licence(licence: Licence, action: str):
