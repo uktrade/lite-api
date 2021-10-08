@@ -10,7 +10,7 @@ from api.data_workspace import (
     views,
     staticdata_views,
     external_data_views,
-    users_views,
+    users_views, advice_views,
 )
 
 app_name = "data_workspace"
@@ -67,5 +67,6 @@ router_v1.register(
 router_v1.register("users-base-users", users_views.BaseUserListView, basename="dw-users-base-users")
 router_v1.register("users-gov-users", users_views.GovUserListView, basename="dw-users-gov-users")
 router_v1.register("audit-move-case", audit_views.AuditMoveCaseListView, basename="dw-audit-move-case")
+router_v1.register("advice", advice_views.AdviceListView, basename="dw-advice")
 
 urlpatterns = [path("v0/", include(router_v0.urls)), path("v1/", include(router_v1.urls))]
