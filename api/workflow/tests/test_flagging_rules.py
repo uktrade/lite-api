@@ -107,6 +107,7 @@ class FlaggingRulesAutomation(DataTestClient):
         self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
         data = {
             "objects": [good.id],
+            "current_object": good.id,
             "comment": "Update rating to match with flag excluded value",
             "report_summary": "test report summary",
             "control_list_entries": ["ML8b"],
