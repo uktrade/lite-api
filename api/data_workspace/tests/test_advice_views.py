@@ -4,7 +4,7 @@ from api.cases.enums import AdviceType, AdviceLevel
 from test_helpers.clients import DataTestClient
 
 
-class DataWorkspaceTests(DataTestClient):
+class AdviceDataWorkspaceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
