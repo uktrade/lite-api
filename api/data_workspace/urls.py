@@ -23,6 +23,7 @@ router_v1 = DefaultRouter()
 router_v1.register(
     "standard-applications", application_views.StandardApplicationListView, basename="dw-standard-applications"
 )
+router_v1.register("open-applications", application_views.OpenApplicationListView, basename="dw-open-applications")
 router_v1.register(
     "good-on-applications", application_views.GoodOnApplicationListView, basename="dw-good-on-applications"
 )
