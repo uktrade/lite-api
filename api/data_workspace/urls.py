@@ -10,7 +10,8 @@ from api.data_workspace import (
     views,
     staticdata_views,
     external_data_views,
-    users_views, advice_views,
+    users_views,
+    advice_views,
 )
 
 app_name = "data_workspace"
