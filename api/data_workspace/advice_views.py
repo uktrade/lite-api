@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
-from api.cases.serializers import SimpleAdviceSerializer, AdviceSerializer
+from api.cases.serializers import AdviceSerializer
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.applications.serializers.advice import Advice
 
