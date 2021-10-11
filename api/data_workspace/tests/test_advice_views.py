@@ -18,7 +18,7 @@ class AdviceDataWorkspaceTests(DataTestClient):
         )
 
     def test_advice(self):
-        url = reverse("data_workspace:dw-advice")
+        url = reverse("data_workspace:dw-advice-list")
         response = self.client.get(url)
         payload = response.json()
         last_result = payload["results"][-1]
