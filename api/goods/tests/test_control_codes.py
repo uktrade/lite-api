@@ -2,6 +2,8 @@ from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.applications.models import GoodOnApplication
 from api.core import constants
 from api.flags.enums import FlagLevels
@@ -56,6 +58,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
+            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],
@@ -78,6 +81,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         data = {
             "objects": [self.good_1.pk],
+            "current_object": self.good_on_application_1.pk,
             "control_list_entries": ["ML1a"],
             "is_precedent": False,
             "is_good_controlled": True,
@@ -98,6 +102,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
+            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],
@@ -116,6 +121,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         # given one of the good pk is invalid
         data = {
             "objects": [self.team.pk, self.good_1.pk],
+            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "is_good_controlled": False,
@@ -162,6 +168,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
     def test_is_precedent_is_set(self, input, expected_is_precedent):
         defaults = {
             "objects": [self.good_1.pk],
+            "current_object": self.good_on_application_1.pk,
             "report_summary": self.report_summary.text,
         }
         data = {**defaults, **input}
@@ -180,6 +187,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
+            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "is_good_controlled": True,
@@ -199,6 +207,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
+            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "is_good_controlled": True,
@@ -237,6 +246,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         data = {
             "objects": self.good_1.pk,
+            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": "ML1a",
@@ -245,6 +255,46 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_report_summary_updates_same_product_added_twice(self):
+        self.product_on_application1 = GoodOnApplication.objects.create(
+            good=self.good_1,
+            application=self.application,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+            report_summary="Rifles (10)",
+        )
+        self.product_on_application2 = GoodOnApplication.objects.create(
+            good=self.good_1,
+            application=self.application,
+            quantity=5,
+            unit=Units.NAR,
+            value=500,
+            report_summary="Rifles (5)",
+        )
+        data = {
+            "objects": [self.good_1.pk],
+            "current_object": self.product_on_application1.pk,
+            "control_list_entries": ["ML1a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": "Sniper rifles (10)",
+            "comment": "report summary update test",
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.product_on_application1.refresh_from_db()
+
+        self.assertEqual(self.product_on_application1.report_summary, "Sniper rifles (10)")
+        self.assertEqual(self.product_on_application2.report_summary, "Rifles (5)")
+        audit_qs = Audit.objects.filter(verb=AuditType.REPORT_SUMMARY_UPDATED)
+        self.assertEqual(audit_qs.count(), 1)
+        audit_payload = audit_qs.first().payload
+        self.assertEqual(audit_payload["old_report_summary"], "Rifles (10)")
+        self.assertEqual(audit_payload["report_summary"], "Sniper rifles (10)")
 
 
 class GoodsVerifiedTestsOpenApplication(DataTestClient):
@@ -276,6 +326,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         """
         data = {
             "objects": self.good_1.pk,
+            "current_object": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "is_good_controlled": True,
@@ -300,6 +351,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.good_1.save()
         data = {
             "objects": self.good_1.pk,
+            "current_object": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],
@@ -322,6 +374,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
 
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
+            "current_object": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["invalid"],
