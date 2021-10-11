@@ -24,5 +24,29 @@ class AdviceDataWorkspaceTests(DataTestClient):
         last_result = payload["results"][-1]
 
         # Ensure we get some expected fields
-        expected_fields = {"id", "case", "user", "team"}
+        expected_fields = {
+            "id",
+            "type",
+            "created_at",
+            "updated_at",
+            "text",
+            "note",
+            "level",
+            "footnote",
+            "footnote_required",
+            "proviso",
+            "pv_grading",
+            "collated_pv_grading",
+            "case",
+            "user",
+            "team",
+            "good",
+            "goods_type",
+            "country",
+            "end_user",
+            "ultimate_end_user",
+            "consignee",
+            "third_party",
+            "denial_reasons",
+        }
         assert set(last_result.keys()) == expected_fields
