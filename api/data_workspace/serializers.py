@@ -56,3 +56,26 @@ class AuditMoveCaseSerializer(serializers.ModelSerializer):
         if queue:
             return queue.pk
         return None
+
+
+class AuditUpdatedCaseStatusSerializer(serializers.ModelSerializer):
+
+    user = serializers.SerializerMethodField()
+    case = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Audit
+        fields = ("created_at", "user", "case", "status")
+
+    def get_user(self, instance):
+        if instance.actor:
+            return instance.actor.pk
+        return None
+
+    def get_case(self, instance):
+        return instance.target_object_id or None
+
+    def get_status(self, instance):
+        status = instance.payload["status"]["new"]
+        return status

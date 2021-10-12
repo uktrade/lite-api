@@ -55,3 +55,36 @@ class DataWorkspaceAuditMoveCaseTests(DataTestClient):
         # The record with multiple queues should have been split into separate entries.
         self.assertEqual(results[1]["queue"], str(queue1.pk))
         self.assertEqual(results[2]["queue"], str(queue2.pk))
+
+
+class DataWorkspaceUpdatedCaseStatusTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.url = reverse("data_workspace:dw-audit-updated-status-list")
+        case = self.create_standard_application_case(self.organisation, "Test Application")
+        # Audit events are only created for non-draft cases
+        case.status = get_case_status_by_status(CaseStatusEnum.OPEN)
+        # This will generate an updated status audit entry.
+        case.save()
+        self.create_audit = partial(
+            super().create_audit, verb=AuditType.UPDATED_STATUS, actor=self.gov_user, target=case.get_case()
+        )
+
+        self.create_audit(verb=AuditType.CREATED_USER_ADVICE)
+
+    def test_audit_updated_status(self):
+        expected_fields = ("created_at", "user", "case", "status")
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(tuple(results[0].keys()), expected_fields)
+        self.assertEqual(results[0]["status"], "Submitted")
+
+        response = self.client.options(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        options = response.json()["actions"]["GET"]
+        self.assertEqual(tuple(options.keys()), expected_fields)

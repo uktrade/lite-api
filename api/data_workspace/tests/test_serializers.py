@@ -1,6 +1,11 @@
 from api.audit_trail.models import AuditType
 from api.audit_trail.tests.factories import AuditFactory
-from api.data_workspace.serializers import AuditMoveCaseSerializer, CaseAssignmentSerializer, EcjuQuerySerializer
+from api.data_workspace.serializers import (
+    AuditMoveCaseSerializer,
+    CaseAssignmentSerializer,
+    EcjuQuerySerializer,
+    AuditUpdatedCaseStatusSerializer,
+)
 from api.cases.tests.factories import EcjuQueryFactory, CaseAssignmentFactory
 
 
@@ -24,4 +29,13 @@ def test_AuditMoveCaseSerializer(db):
     audit.queue = "test_queue_1"
     serialized = AuditMoveCaseSerializer(audit)
     expected_fields = {"created_at", "user", "case", "queue"}
+    assert set(serialized.data.keys()) == expected_fields
+
+
+def test_AuditUpdatedCaseStatusSerializer(db):
+    audit = AuditFactory(
+        verb=AuditType.UPDATED_STATUS, payload={"status": {"new": "finalised", "old": "under_final_review"}}
+    )
+    serialized = AuditUpdatedCaseStatusSerializer(audit)
+    expected_fields = {"created_at", "user", "case", "status"}
     assert set(serialized.data.keys()) == expected_fields
