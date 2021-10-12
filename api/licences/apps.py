@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
+from django.conf import settings
 
-from api.conf.settings import LITE_HMRC_INTEGRATION_ENABLED, BACKGROUND_TASK_ENABLED
 from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 
 
@@ -11,7 +11,7 @@ class LicencesConfig(AppConfig):
     def initialize_background_tasks(self, **kwargs):
         self.schedule_expire_licences_task()
 
-        if LITE_HMRC_INTEGRATION_ENABLED:
+        if settings.LITE_HMRC_INTEGRATION_ENABLED:
             self.schedule_not_sent_licences()
 
     @staticmethod
@@ -41,5 +41,5 @@ class LicencesConfig(AppConfig):
             )
 
     def ready(self):
-        if BACKGROUND_TASK_ENABLED:
+        if settings.BACKGROUND_TASK_ENABLED:
             post_migrate.connect(self.initialize_background_tasks, sender=self)
