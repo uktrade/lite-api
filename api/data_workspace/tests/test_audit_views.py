@@ -57,7 +57,7 @@ class DataWorkspaceAuditMoveCaseTests(DataTestClient):
         self.assertEqual(results[2]["queue"], str(queue2.pk))
 
 
-class DataWorkspaceUpdatedStatusTests(DataTestClient):
+class DataWorkspaceUpdatedCaseStatusTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.url = reverse("data_workspace:dw-audit-updated-status-list")
@@ -86,5 +86,5 @@ class DataWorkspaceUpdatedStatusTests(DataTestClient):
         response = self.client.options(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        options = response.json()["actions"]["OPTIONS"]
+        options = response.json()["actions"]["GET"]
         self.assertEqual(tuple(options.keys()), expected_fields)

@@ -7,7 +7,7 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.models import Case
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.data_workspace.serializers import AuditMoveCaseSerializer, AuditUpdatedStatusSerializer
+from api.data_workspace.serializers import AuditMoveCaseSerializer, AuditUpdatedCaseStatusSerializer
 
 
 class AuditMoveCaseListView(viewsets.ReadOnlyModelViewSet):
@@ -46,12 +46,12 @@ class AuditMoveCaseListView(viewsets.ReadOnlyModelViewSet):
         )
 
 
-class AuditUpdatedStatusListView(viewsets.ReadOnlyModelViewSet):
+class AuditUpdatedCaseStatusListView(viewsets.ReadOnlyModelViewSet):
     """Expose 'updated status' audit events to data workspace."""
 
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = AuditUpdatedStatusSerializer
+    serializer_class = AuditUpdatedCaseStatusSerializer
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
-        return Audit.objects.filter(verb=AuditType.UPDATED_STATUS)
+        return Audit.objects.filter(verb=AuditType.UPDATED_STATUS).order_by("created_at")

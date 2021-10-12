@@ -58,7 +58,7 @@ class AuditMoveCaseSerializer(serializers.ModelSerializer):
         return None
 
 
-class AuditUpdatedStatusSerializer(serializers.ModelSerializer):
+class AuditUpdatedCaseStatusSerializer(serializers.ModelSerializer):
 
     user = serializers.SerializerMethodField()
     case = serializers.SerializerMethodField()
