@@ -6,6 +6,7 @@ from django.db.models import F
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import APIException
+from django.conf import settings
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -33,7 +34,7 @@ def send_licence(licence: Licence, action: str):
 
     logging.info(f"Sending licence '{licence.id}', action '{action}' to HMRC Integration")
 
-    url = f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
+    url = f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
     data = {"licence": HMRCIntegrationLicenceSerializer(licence).data}
 
     response = post(url, data, hawk_credentials=HAWK_LITE_API_CREDENTIALS, timeout=LITE_HMRC_REQUEST_TIMEOUT)
