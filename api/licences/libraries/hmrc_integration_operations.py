@@ -37,7 +37,9 @@ def send_licence(licence: Licence, action: str):
     url = f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
     data = {"licence": HMRCIntegrationLicenceSerializer(licence).data}
 
-    response = post(url, data, hawk_credentials=HAWK_LITE_API_CREDENTIALS, timeout=LITE_HMRC_REQUEST_TIMEOUT)
+    response = post(
+        url, data, hawk_credentials=settings.HAWK_LITE_API_CREDENTIALS, timeout=settings.LITE_HMRC_REQUEST_TIMEOUT
+    )
 
     if response.status_code not in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
         raise HMRCIntegrationException(
