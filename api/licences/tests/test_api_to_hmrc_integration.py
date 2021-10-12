@@ -5,13 +5,15 @@ from django.urls import reverse
 from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
+from django.test import override_settings
+from django.conf import settings
 
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
 from api.cases.models import CaseType
 from api.cases.tests.factories import GoodCountryDecisionFactory
 from api.core.constants import GovPermissions
 from api.core.helpers import add_months
-from api.conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
+from api.conf.settings import MAX_ATTEMPTS, LITE_HMRC_REQUEST_TIMEOUT
 from api.licences.apps import LicencesConfig
 from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action
 from api.licences.helpers import get_approved_goods_types, get_approved_countries
@@ -72,7 +74,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             [LicenceStatus.SURRENDERED],
             [LicenceStatus.REVOKED],
             [LicenceStatus.CANCELLED],
-        ],
+        ]
     )
     def test_standard_application(self, status):
         action = licence_status_to_hmrc_integration_action.get(status)
@@ -104,7 +106,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             [LicenceStatus.SURRENDERED],
             [LicenceStatus.REVOKED],
             [LicenceStatus.CANCELLED],
-        ],
+        ]
     )
     def test_open_application(self, status):
         action = licence_status_to_hmrc_integration_action.get(status)
@@ -134,7 +136,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             [LicenceStatus.SURRENDERED],
             [LicenceStatus.REVOKED],
             [LicenceStatus.CANCELLED],
-        ],
+        ]
     )
     def test_ogl_application(self, status):
         action = licence_status_to_hmrc_integration_action.get(status)
@@ -291,7 +293,7 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         self.assertIsNone(self.standard_licence.hmrc_integration_sent_at)
 
 
-@mock.patch("api.licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
+@override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
 class HMRCIntegrationLicenceTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -306,7 +308,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence.save(send_status_change_to_hmrc=True)
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
     @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
@@ -326,7 +328,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence.surrender()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
     @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
@@ -336,7 +338,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence.cancel()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
     @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
@@ -346,7 +348,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence.revoke()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
     @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
@@ -356,7 +358,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence.revoke()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
     @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
@@ -366,7 +368,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence.exhaust()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
 
@@ -379,20 +381,18 @@ class HMRCIntegrationTasksTests(DataTestClient):
         self.hmrc_integration_status = licence_status_to_hmrc_integration_action.get(status)
         self.standard_licence = self.create_licence(self.standard_application, status=status)
 
-    @mock.patch("api.licences.tasks.BACKGROUND_TASK_ENABLED", False)
+    @override_settings(BACKGROUND_TASK_ENABLED=False)
     @mock.patch("api.licences.tasks.send_licence_to_hmrc_integration.now")
     def test_schedule_licence_for_hmrc_integration(self, send_licence_to_hmrc_integration_now):
         send_licence_to_hmrc_integration_now.return_value = None
 
-        schedule_licence_for_hmrc_integration(
-            str(self.standard_licence.id), self.hmrc_integration_status,
-        )
+        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence_to_hmrc_integration_now.assert_called_with(
-            str(self.standard_licence.id), self.hmrc_integration_status, scheduled_as_background_task=False,
+            str(self.standard_licence.id), self.hmrc_integration_status, scheduled_as_background_task=False
         )
 
-    @mock.patch("api.licences.tasks.BACKGROUND_TASK_ENABLED", True)
+    @override_settings(BACKGROUND_TASK_ENABLED=True)
     @mock.patch("api.licences.tasks.send_licence_to_hmrc_integration")
     @mock.patch("api.licences.tasks.Task.objects.filter")
     def test_schedule_licence_for_hmrc_integration_as_background_task(
@@ -409,7 +409,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         )
         send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id), self.hmrc_integration_status)
 
-    @mock.patch("api.licences.tasks.BACKGROUND_TASK_ENABLED", True)
+    @override_settings(BACKGROUND_TASK_ENABLED=True)
     @mock.patch("api.licences.tasks.send_licence_to_hmrc_integration")
     @mock.patch("api.licences.tasks.Task.objects.filter")
     def test_schedule_licence_for_hmrc_integration_as_background_task_already_existing(
@@ -443,7 +443,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
 
         # Note: Using `.now()` operation to test code synchronously
         send_licence_to_hmrc_integration.now(
-            str(self.standard_licence.id), self.hmrc_integration_status, scheduled_as_background_task=False,
+            str(self.standard_licence.id), self.hmrc_integration_status, scheduled_as_background_task=False
         )
 
         send_licence.assert_called_with(self.standard_licence, self.hmrc_integration_status)
@@ -496,9 +496,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
 
         with self.assertRaises(Exception) as error:
             # Note: Using `.now()` operation to test code synchronously
-            send_licence_to_hmrc_integration.now(
-                str(self.standard_licence.id), self.hmrc_integration_status,
-            )
+            send_licence_to_hmrc_integration.now(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence.assert_called_once()
         task_get.assert_called_with(
@@ -506,7 +504,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
             task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
         )
         schedule_max_tried_task_as_new_task.assert_called_with(
-            str(self.standard_licence.id), self.hmrc_integration_status,
+            str(self.standard_licence.id), self.hmrc_integration_status
         )
         self.assertEqual(
             str(error.exception),
@@ -536,8 +534,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         )
 
 
-@mock.patch("api.licences.tasks.BACKGROUND_TASK_ENABLED", False)
-@mock.patch("api.licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
+@override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
 class HMRCIntegrationTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -558,7 +555,7 @@ class HMRCIntegrationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         request.assert_called_once_with(
             "POST",
-            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
             json={"licence": expected_insert_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
@@ -577,7 +574,7 @@ class HMRCIntegrationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         request.assert_called_once_with(
             "POST",
-            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
             json={"licence": expected_insert_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
@@ -603,7 +600,7 @@ class HMRCIntegrationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         request.assert_called_once_with(
             "POST",
-            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
             json={"licence": expected_insert_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
@@ -631,7 +628,7 @@ class HMRCIntegrationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         request.assert_called_once_with(
             "POST",
-            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
             json={"licence": expected_insert_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
@@ -652,7 +649,7 @@ class HMRCIntegrationTests(DataTestClient):
 
         request.assert_called_with(
             "POST",
-            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
             json={"licence": expected_insert_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
@@ -688,7 +685,7 @@ class HMRCIntegrationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         request.assert_called_once_with(
             "POST",
-            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
             json={"licence": expected_reinstate_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
