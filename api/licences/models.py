@@ -1,12 +1,12 @@
 import uuid
 
 from django.db import models
+from django.conf import settings
 
 from api.applications.models import GoodOnApplication
 from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.core.helpers import add_months
-from api.conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 from api.licences.managers import LicenceManager
 from api.staticdata.decisions.models import Decision
@@ -79,7 +79,8 @@ class Licence(TimestampableModel):
         send_status_change_to_hmrc = kwargs.pop("send_status_change_to_hmrc", False)
         super(Licence, self).save(*args, **kwargs)
 
-        if LITE_HMRC_INTEGRATION_ENABLED and send_status_change_to_hmrc and self.status != LicenceStatus.DRAFT:
+        # Immediately notify HMRC if needed
+        if settings.LITE_HMRC_INTEGRATION_ENABLED and send_status_change_to_hmrc and self.status != LicenceStatus.DRAFT:
             self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
