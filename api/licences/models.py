@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 from api.applications.models import GoodOnApplication
 from api.cases.models import Case
@@ -48,7 +49,7 @@ class Licence(TimestampableModel):
         from api.licences.libraries.hmrc_integration_operations import get_mail_status
 
         if not settings.LITE_HMRC_INTEGRATION_ENABLED:
-            raise Exception("Did you forget to switch on LITE_HMRC_INTEGRATION_ENABLED?")
+            raise ImproperlyConfigured("Did you forget to switch on LITE_HMRC_INTEGRATION_ENABLED?")
         return get_mail_status(self)
 
     def surrender(self, send_status_change_to_hmrc=True):
