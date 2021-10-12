@@ -47,7 +47,8 @@ class Licence(TimestampableModel):
         """
         from api.licences.libraries.hmrc_integration_operations import get_mail_status
 
-        assert settings.LITE_HMRC_INTEGRATION_ENABLED, "Did you forget to switch on LITE_HMRC_INTEGRATION_ENABLED?"
+        if not settings.LITE_HMRC_INTEGRATION_ENABLED:
+            raise Exception("Did you forget to switch on LITE_HMRC_INTEGRATION_ENABLED?")
         return get_mail_status(self)
 
     def surrender(self, send_status_change_to_hmrc=True):
