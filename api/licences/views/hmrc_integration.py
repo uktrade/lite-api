@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.generics import UpdateAPIView
+from rest_framework.response import Response
+from rest_framework.generics import UpdateAPIView, RetrieveAPIView
 from rest_framework.status import HTTP_208_ALREADY_REPORTED
 
 from api.core.authentication import HMRCIntegrationOnlyAuthentication
@@ -8,8 +9,24 @@ from api.licences.libraries.hmrc_integration_operations import (
     validate_licence_usage_updates,
     save_licence_usage_updates,
 )
-from api.licences.models import HMRCIntegrationUsageData
+from api.licences.models import HMRCIntegrationUsageData, Licence
 from api.licences.serializers.hmrc_integration import HMRCIntegrationUsageDataLicencesSerializer
+
+
+class HMRCIntegrationRetrieveView(RetrieveAPIView):
+    authentication_classes = (HMRCIntegrationOnlyAuthentication,)
+
+    def get(self, request, pk, *args, **kwargs):
+        """
+        Get info for a specific licence
+        """
+        try:
+            licence = Licence.objects.get(id=pk)
+        except Licence.DoesNotExist:
+            return Response({"status": "No matching licence"}, status.HTTP_400_BAD_REQUEST)
+
+        hmrc_mail_status = licence.hmrc_mail_status()
+        return Response({"hmrc_mail_status": hmrc_mail_status}, status.HTTP_200_OK)
 
 
 class HMRCIntegration(UpdateAPIView):
