@@ -67,7 +67,7 @@ def get_mail_status(licence: Licence):
 
     if response.status_code != status.HTTP_200_OK:
         raise HMRCIntegrationException(
-            f"Got {response.status_code} when trying to get status of licence '{licence.reference_code}'. ULR used: '{url}'"
+            f"Got {response.status_code} when trying to get status of licence '{licence.reference_code}'. URL used: '{url}'"
         )
 
     return response.json()["status"]
