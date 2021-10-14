@@ -73,6 +73,17 @@ def get_mail_status(licence: Licence):
     return response.json()["status"]
 
 
+def force_mail_push():
+    """Force task manager at LITE-HMRC to process queued items (items
+    since it's not exactly emails yet)"""
+
+    url = f"{settings.LITE_HMRC_INTEGRATION_URL}/mail/send-licence-updates-to-hmrc/"
+    response = get(url, hawk_credentials=settings.HAWK_LITE_API_CREDENTIALS, timeout=settings.LITE_HMRC_REQUEST_TIMEOUT)
+
+    if response.status_code != status.HTTP_200_OK:
+        raise HMRCIntegrationException(f"Got {response.status_code} when trying to force-mail-push. URL used: '{url}'")
+
+
 def save_licence_usage_updates(usage_data_id: UUID, valid_licences: list):
     """Updates Usage figures on Goods on Licences and creates an HMRCIntegrationUsageUpdate"""
 

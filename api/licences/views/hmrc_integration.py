@@ -1,16 +1,26 @@
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 from rest_framework.generics import UpdateAPIView, RetrieveAPIView
 from rest_framework.status import HTTP_208_ALREADY_REPORTED
 
 from api.core.authentication import HMRCIntegrationOnlyAuthentication
+from api.licences.libraries import hmrc_integration_operations
 from api.licences.libraries.hmrc_integration_operations import (
     validate_licence_usage_updates,
     save_licence_usage_updates,
 )
 from api.licences.models import HMRCIntegrationUsageData, Licence
 from api.licences.serializers.hmrc_integration import HMRCIntegrationUsageDataLicencesSerializer
+
+
+@api_view(["GET", "POST"])
+@authentication_classes([HMRCIntegrationOnlyAuthentication])
+def force_mail_push(request):
+    """ Cascade push of mail by task manager at LITE-HMRC"""
+    hmrc_integration_operations.force_mail_push()
+    return Response(status=status.HTTP_200_OK)
 
 
 class HMRCIntegrationRetrieveView(RetrieveAPIView):
