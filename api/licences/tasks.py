@@ -8,7 +8,6 @@ from django.db import transaction
 from django.utils import timezone
 from pytz import timezone as tz
 
-from api.conf.settings import MAX_ATTEMPTS, BACKGROUND_TASK_ENABLED
 from api.licences.enums import LicenceStatus
 from api.licences.libraries import hmrc_integration_operations
 from api.licences.models import Licence
@@ -49,6 +48,7 @@ def expire_licences():
 def send_licence_to_hmrc_integration(licence_id, action, scheduled_as_background_task=True):
     """
     Sends licence details to HMRC Integration
+
     :param licence_id:
     :param licence_reference:
     :param scheduled_as_background_task: Has this function has been scheduled as a task (used for error handling)
@@ -72,7 +72,7 @@ def send_licence_to_hmrc_integration(licence_id, action, scheduled_as_background
 
 
 def schedule_licence_for_hmrc_integration(licence_id, action):
-    if BACKGROUND_TASK_ENABLED:
+    if settings.BACKGROUND_TASK_ENABLED:
         logging.info(f"Scheduling licence '{licence_id}', action '{action}' for HMRC Integration")
         task = Task.objects.filter(queue=HMRC_INTEGRATION_QUEUE, task_params=f'[["{licence_id}", "{action}"], {{}}]')
 
@@ -91,7 +91,7 @@ def schedule_max_tried_task_as_new_task(licence_id, action):
     This function was abstracted from 'send_licence_to_hmrc_integration' to enable unit testing of a recursive operation
     """
     logging.warning(
-        f"Maximum attempts of {MAX_ATTEMPTS} for licence '{licence_id}', action '{action}' has been reached"
+        f"Maximum attempts of {settings.MAX_ATTEMPTS} for licence '{licence_id}', action '{action}' has been reached"
     )
 
     schedule_datetime = timezone.localtime() + timedelta(seconds=TASK_BACK_OFF)
@@ -118,7 +118,7 @@ def _handle_exception(message, licence_id, action, scheduled_as_background_task)
             # HMRC Integration tasks need to be resilient and keep retrying post-failure indefinitely.
             # This logic will make MAX_ATTEMPTS attempts to send licence changes according to the Django Background Task
             # Runner scheduling, then wait TASK_BACK_OFF seconds before starting the process again.
-            if current_attempt >= MAX_ATTEMPTS:
+            if current_attempt >= settings.MAX_ATTEMPTS:
                 schedule_max_tried_task_as_new_task(licence_id, action)
 
         # Raise an exception

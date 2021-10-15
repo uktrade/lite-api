@@ -6,12 +6,12 @@ from django.db.models import F
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import APIException
+from django.conf import settings
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
 from api.core.requests import post
-from api.conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT, HAWK_LITE_API_CREDENTIALS
 from api.licences.enums import HMRCIntegrationActionEnum, hmrc_integration_action_to_licence_status
 from api.licences.helpers import get_approved_goods_types
 from api.licences.models import Licence, HMRCIntegrationUsageData, GoodOnLicence
@@ -33,10 +33,12 @@ def send_licence(licence: Licence, action: str):
 
     logging.info(f"Sending licence '{licence.id}', action '{action}' to HMRC Integration")
 
-    url = f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
+    url = f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
     data = {"licence": HMRCIntegrationLicenceSerializer(licence).data}
 
-    response = post(url, data, hawk_credentials=HAWK_LITE_API_CREDENTIALS, timeout=LITE_HMRC_REQUEST_TIMEOUT)
+    response = post(
+        url, data, hawk_credentials=settings.HAWK_LITE_API_CREDENTIALS, timeout=settings.LITE_HMRC_REQUEST_TIMEOUT
+    )
 
     if response.status_code not in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
         raise HMRCIntegrationException(

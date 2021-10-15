@@ -4,6 +4,7 @@ from unittest import mock
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_207_MULTI_STATUS, HTTP_208_ALREADY_REPORTED
+from django.test import override_settings
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -343,7 +344,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             ).exists()
         )
 
-    @mock.patch("api.licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
     def test_update_usages_all_goods_exhausted_when_action_is_exhaust_doesnt_create_task_to_inform_hmrc_of_licence(
         self, schedule_licence_for_hmrc_integration
@@ -384,7 +385,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         # task to inform HMRC that the status has changed
         schedule_licence_for_hmrc_integration.assert_not_called()
 
-    @mock.patch("api.licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
     def test_update_usages_all_goods_exhausted_when_action_is_open_does_inform_hmrc_of_licence(
         self, schedule_licence_for_hmrc_integration
