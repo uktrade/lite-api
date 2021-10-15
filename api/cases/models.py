@@ -364,6 +364,9 @@ class Advice(TimestampableModel):
     type = models.CharField(choices=AdviceType.choices, max_length=30)
     text = models.TextField(default=None, blank=True, null=True)
     note = models.TextField(default=None, blank=True, null=True)
+    countersign = models.ForeignKey(
+        GovUser, related_name="countersigns", default=None, null=True, blank=True, on_delete=models.PROTECT
+    )
     team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True)
     level = models.CharField(choices=AdviceLevel.choices, max_length=30)
 
