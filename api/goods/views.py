@@ -92,11 +92,40 @@ class GoodsListControlCode(APIView):
         case = get_case(case_pk)
 
         for good in self.get_queryset():
-            serializer = self.get_serializer(good)
+            data = request.data.copy()
+            serializer_class = self.get_serializer_class()
+            if data["report_summary"] != good.report_summary and str(good.id) != data.get(
+                "current_object", str(good.id)
+            ):
+                data["report_summary"] = good.report_summary
+
+            serializer = serializer_class(good, data=data)
             serializer.is_valid(raise_exception=True)
             old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
             old_is_controlled = good.is_good_controlled
-            serializer.save()
+            old_report_summary = good.report_summary
+
+            obj = serializer.save()
+
+            if request.data["report_summary"] != old_report_summary:
+                if str(good.id) == request.data.get("current_object", str(good.id)):
+                    if isinstance(good, GoodsType):
+                        name = good.description
+                    else:
+                        name = good.name
+
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REPORT_SUMMARY_UPDATED,
+                        action_object=obj,
+                        target=case,
+                        payload={
+                            "good_name": name,
+                            "old_report_summary": old_report_summary,
+                            "report_summary": obj.report_summary,
+                        },
+                    )
+
             if "control_list_entries" in serializer.data or "is_good_controlled" in serializer.data:
                 new_control_list_entries = [item.rating for item in serializer.validated_data["control_list_entries"]]
                 new_is_controlled = serializer.validated_data["is_good_controlled"]

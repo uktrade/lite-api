@@ -117,6 +117,7 @@ class AuditType(LiteEnum):
     OGEL_REISSUED = autostr()
     LICENCE_UPDATED_STATUS = autostr()
     DOCUMENT_ON_ORGANISATION_CREATE = autostr()
+    REPORT_SUMMARY_UPDATED = autostr()
 
     def human_readable(self):
         """

@@ -356,6 +356,14 @@ class SimpleAdviceSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class AdviceSerializer(serializers.ModelSerializer):
+    type = KeyValueChoiceField(choices=AdviceType.choices)
+
+    class Meta:
+        model = Advice
+        fields = "__all__"
+
+
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
     raised_by_user_name = serializers.SerializerMethodField()
     responded_by_user_name = serializers.SerializerMethodField()
