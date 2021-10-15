@@ -43,6 +43,7 @@ class AdviceViewSerializer(serializers.Serializer):
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True)
     footnote = serializers.CharField()
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
+    countersign = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     created_at = serializers.DateTimeField()
 
     good = GoodField()
@@ -71,6 +72,7 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
     )
 
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
+    countersign = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     team = PrimaryKeyRelatedSerializerField(
         queryset=Team.objects.all(), required=False, serializer=TeamReadOnlySerializer
     )
