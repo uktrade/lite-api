@@ -12,6 +12,11 @@ urlpatterns = [
         "hmrc-integration/force-mail-push/", hmrc_integration.force_mail_push, name="hmrc_integration_force_mail_push"
     ),
     path(
+        "hmrc-integration/mark-emails-as-processed/",
+        hmrc_integration.mark_emails_as_processed,
+        name="hmrc_integration_mark_emails_as_processed",
+    ),
+    path(
         "hmrc-integration/<uuid:pk>/",
         hmrc_integration.HMRCIntegrationRetrieveView.as_view(),
         name="hmrc_integration_retrieve",

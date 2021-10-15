@@ -73,6 +73,18 @@ def get_mail_status(licence: Licence):
     return response.json()["status"]
 
 
+def mark_emails_as_processed():
+    """Mark emails as processed"""
+
+    url = f"{settings.LITE_HMRC_INTEGRATION_URL}/mail/set-all-to-reply-sent/"
+    response = get(url, hawk_credentials=settings.HAWK_LITE_API_CREDENTIALS, timeout=settings.LITE_HMRC_REQUEST_TIMEOUT)
+
+    if response.status_code != status.HTTP_200_OK:
+        raise HMRCIntegrationException(
+            f"Got {response.status_code} when trying to mark-emails-as-processed. URL used: '{url}'"
+        )
+
+
 def force_mail_push():
     """Force task manager at LITE-HMRC to process queued items (items
     since it's not exactly emails yet)"""
