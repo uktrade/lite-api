@@ -125,4 +125,5 @@ audit_type_format = {
     AuditType.OGEL_REISSUED: strings.Audit.OGEL_REISSUED,
     AuditType.LICENCE_UPDATED_STATUS: strings.Audit.LICENCE_UPDATED_STATUS,
     AuditType.DOCUMENT_ON_ORGANISATION_CREATE: "added {document_type} '{file_name}' to organization",
+    AuditType.REPORT_SUMMARY_UPDATED: "updated ARS for {good_name} from {old_report_summary} to {report_summary}",
 }
