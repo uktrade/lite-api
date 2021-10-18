@@ -1,4 +1,5 @@
 import logging
+import urllib
 from uuid import UUID
 
 from django.db import transaction
@@ -11,7 +12,7 @@ from django.conf import settings
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
-from api.core.requests import post
+from api.core.requests import get, post
 from api.licences.enums import HMRCIntegrationActionEnum, hmrc_integration_action_to_licence_status
 from api.licences.helpers import get_approved_goods_types
 from api.licences.models import Licence, HMRCIntegrationUsageData, GoodOnLicence
@@ -21,11 +22,15 @@ from api.licences.serializers.hmrc_integration import (
     HMRCIntegrationUsageDataLicenceSerializer,
 )
 
+
+# This is the endpoint used for sending new issued licences
 SEND_LICENCE_ENDPOINT = "/mail/update-licence/"
 
 
 class HMRCIntegrationException(APIException):
     """Exceptions to raise when sending requests to the HMRC Integration service."""
+
+    pass
 
 
 def send_licence(licence: Licence, action: str):
@@ -51,6 +56,44 @@ def send_licence(licence: Licence, action: str):
         licence.save()
 
     logging.info(f"Successfully sent licence '{licence.id}', action '{action}' to HMRC Integration")
+
+
+def get_mail_status(licence: Licence):
+    """Get mail status for given licence"""
+
+    url_params = urllib.parse.urlencode({"id": licence.reference_code})
+    url = f"{settings.LITE_HMRC_INTEGRATION_URL}/mail/licence/?{url_params}"
+    response = get(url, hawk_credentials=settings.HAWK_LITE_API_CREDENTIALS, timeout=settings.LITE_HMRC_REQUEST_TIMEOUT)
+
+    if response.status_code != status.HTTP_200_OK:
+        raise HMRCIntegrationException(
+            f"Got {response.status_code} when trying to get status of licence '{licence.reference_code}'. URL used: '{url}'"
+        )
+
+    return response.json()["status"]
+
+
+def mark_emails_as_processed():
+    """Mark emails as processed"""
+
+    url = f"{settings.LITE_HMRC_INTEGRATION_URL}/mail/set-all-to-reply-sent/"
+    response = get(url, hawk_credentials=settings.HAWK_LITE_API_CREDENTIALS, timeout=settings.LITE_HMRC_REQUEST_TIMEOUT)
+
+    if response.status_code != status.HTTP_200_OK:
+        raise HMRCIntegrationException(
+            f"Got {response.status_code} when trying to mark-emails-as-processed. URL used: '{url}'"
+        )
+
+
+def force_mail_push():
+    """Force task manager at LITE-HMRC to process queued items (items
+    since it's not exactly emails yet)"""
+
+    url = f"{settings.LITE_HMRC_INTEGRATION_URL}/mail/send-licence-updates-to-hmrc/"
+    response = get(url, hawk_credentials=settings.HAWK_LITE_API_CREDENTIALS, timeout=settings.LITE_HMRC_REQUEST_TIMEOUT)
+
+    if response.status_code != status.HTTP_200_OK:
+        raise HMRCIntegrationException(f"Got {response.status_code} when trying to force-mail-push. URL used: '{url}'")
 
 
 def save_licence_usage_updates(usage_data_id: UUID, valid_licences: list):

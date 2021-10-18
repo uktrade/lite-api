@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 from api.applications.models import GoodOnApplication
 from api.cases.models import Case
@@ -22,6 +23,10 @@ class HMRCIntegrationUsageData(TimestampableModel):
 
 
 class Licence(TimestampableModel):
+    """
+    A licence issued to an exporter application
+    """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
@@ -36,6 +41,16 @@ class Licence(TimestampableModel):
     )  # Usage Update IDs from from HMRC Integration
 
     objects = LicenceManager()
+
+    def hmrc_mail_status(self):
+        """
+        Fetch mail status from HRMC-integration server
+        """
+        from api.licences.libraries.hmrc_integration_operations import get_mail_status
+
+        if not settings.LITE_HMRC_INTEGRATION_ENABLED:
+            raise ImproperlyConfigured("Did you forget to switch on LITE_HMRC_INTEGRATION_ENABLED?")
+        return get_mail_status(self)
 
     def surrender(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.SURRENDERED

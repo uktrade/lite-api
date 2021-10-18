@@ -1,6 +1,10 @@
 from decimal import Decimal
+import urllib
 
 from django.utils import timezone
+from django.test import override_settings
+from django.conf import settings
+import requests_mock
 
 from api.applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
 from api.goods.tests.factories import GoodFactory
@@ -33,6 +37,15 @@ class GetCaseLicenceTests(DataTestClient):
             value=20,
             licence=self.licence,
         )
+
+    @override_settings(LITE_HMRC_INTEGRATION_URL="http://localhost:8000", LITE_HMRC_INTEGRATION_ENABLED=True)
+    def test_hmrc_mail_status(self):
+        url_params = urllib.parse.urlencode({"id": self.licence.reference_code})
+        url = f"{settings.LITE_HMRC_INTEGRATION_URL}/mail/licence/?{url_params}"
+
+        with requests_mock.Mocker() as m:
+            m.register_uri("GET", url, json={"status": "reply_sent"})
+            assert self.licence.hmrc_mail_status() == "reply_sent"
 
     def test_get_application_licences(self):
         data = get_case_licences(self.application)[0]
