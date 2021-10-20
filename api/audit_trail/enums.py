@@ -51,6 +51,7 @@ class AuditType(LiteEnum):
     CREATED_TEAM_ADVICE = autostr()
     CLEARED_TEAM_ADVICE = autostr()
     CREATED_USER_ADVICE = autostr()
+    CLEARED_USER_ADVICE = autostr()
     ADD_PARTY = autostr()
     REMOVE_PARTY = autostr()
     UPLOAD_PARTY_DOCUMENT = autostr()

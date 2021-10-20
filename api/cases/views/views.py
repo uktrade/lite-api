@@ -249,6 +249,14 @@ class UserAdvice(APIView):
         """
         return post_advice(request, self.case, AdviceLevel.USER)
 
+    def delete(self, request, pk):
+        """
+        Delete user level advice on a case for the current user.
+        """
+        self.advice.filter(user=request.user.govuser).delete()
+        audit_trail_service.create(actor=request.user, verb=AuditType.CLEARED_USER_ADVICE, target=self.case)
+        return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
+
 
 class TeamAdviceView(APIView):
     authentication_classes = (GovAuthentication,)

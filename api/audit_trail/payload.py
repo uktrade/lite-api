@@ -59,6 +59,7 @@ audit_type_format = {
     AuditType.CREATED_TEAM_ADVICE: strings.Audit.CREATED_TEAM_ADVICE,
     AuditType.CLEARED_TEAM_ADVICE: strings.Audit.CLEARED_TEAM_ADVICE,
     AuditType.CREATED_USER_ADVICE: strings.Audit.CREATED_USER_ADVICE,
+    AuditType.CLEARED_USER_ADVICE: "cleared user advice",
     AuditType.ADD_PARTY: strings.Audit.ADD_PARTY,
     AuditType.REMOVE_PARTY: strings.Audit.REMOVE_PARTY,
     AuditType.UPLOAD_PARTY_DOCUMENT: strings.Audit.UPLOAD_PARTY_DOCUMENT,
