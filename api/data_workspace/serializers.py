@@ -77,5 +77,5 @@ class AuditUpdatedCaseStatusSerializer(serializers.ModelSerializer):
         return instance.target_object_id or None
 
     def get_status(self, instance):
-        status = instance.payload["status"]["new"]
+        status = instance.payload["status"]["new"].lower()
         return status
