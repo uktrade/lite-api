@@ -28,7 +28,7 @@ class Licence(TimestampableModel):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reference_code = models.CharField(max_length=30, unique=True, editable=False)
+    reference_code = models.TextField(unique=True, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
     status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
     start_date = models.DateField(blank=False, null=False)
