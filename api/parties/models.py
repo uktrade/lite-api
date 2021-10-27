@@ -32,8 +32,11 @@ class PartyManager(models.Manager):
             "organisation",
             "sub_type",
             "sub_type_other",
+            "copy_of",
         )
         values = dict(qs.get(pk=pk))
+        if not values["copy_of"]:
+            values["copy_of"] = str(pk)
         values["organisation"] = str(values.get("organisation", ""))
         if "signatory_name_euu" in values:
             values["signatory_name_euu"] = ""
@@ -64,6 +67,7 @@ class Party(TimestampableModel):
     )
     descriptors = models.CharField(max_length=256, null=True, help_text="Clearance descriptors, caveats and codewords")
     # FK is self referencing
+    copy_of = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
     phone_number = models.CharField(null=True, blank=True, max_length=50)
     email = models.EmailField(null=True, blank=True)
     details = models.TextField(null=True, blank=True, max_length=256)
