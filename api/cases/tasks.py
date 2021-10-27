@@ -9,10 +9,27 @@ from django.db.models import Q
 from django.utils import timezone
 from pytz import timezone as tz
 
-from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import Case, CaseAssignmentSLA, CaseQueue, DepartmentSLA
-from api.cases.models import EcjuQuery
+from gov_notify import service as gov_notify_service
+from gov_notify.enums import TemplateType
+from gov_notify.payloads import EcjuComplianceCreatedEmailData
+
+from api.cases.models import (
+    EcjuQuery,
+    Case,
+    CaseQueue,
+    CaseAssignmentSLA,
+    DepartmentSLA
+)
+from api.compliance.models import ComplianceVisitCase
+from api.organisations.models import Site
+
 from api.common.dates import is_weekend, is_bank_holiday
+
+from api.cases.enums import (
+    CaseTypeSubTypeEnum,
+    CaseTypeTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 
@@ -20,6 +37,7 @@ from api.staticdata.statuses.models import CaseStatus
 SLA_UPDATE_TASK_TIME = time(22, 30, 0)
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
 LOG_PREFIX = "update_cases_sla background task:"
+EMAIL_NOTIFICATION_QUEUE = "email_notification_queue"
 
 STANDARD_APPLICATION_TARGET_DAYS = 20
 OPEN_APPLICATION_TARGET_DAYS = 60
@@ -142,3 +160,43 @@ def update_cases_sla():
 
     logging.info(f"{LOG_PREFIX} SLA Update Not Performed. Non-working day")
     return False
+
+
+@background(queue=EMAIL_NOTIFICATION_QUEUE, schedule=0)
+def send_ecju_query_emails(pk, serializer):
+
+    # Send an email to the user(s) that submitted the application
+    case_info = (
+        Case.objects.annotate(email=F("submitted_by__baseuser_ptr__email"), name=F("baseapplication__name"))
+        .values("id", "email", "name", "reference_code", "case_type__type", "case_type__reference")
+        .get(id=pk)
+    )
+
+    # For each licence in a compliance case, email the user that submitted the application
+    if case_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
+        emails = set()
+        case_id = case_info["id"]
+        link = f"{settings.EXPORTER_BASE_URL}/compliance/{pk}/ecju-queries/"
+
+        if case_info["case_type__reference"] == CaseTypeReferenceEnum.COMP_VISIT:
+            # If the case is a compliance visit case, use the parent compliance site case ID instead
+            case_id = ComplianceVisitCase.objects.get(pk=case_id).site_case_id
+            link = f"{settings.EXPORTER_BASE_URL}/compliance/{case_id}/visit/{pk}/ecju-queries/"
+
+        site = Site.objects.get(compliance__id=case_id)
+
+        for licence in Case.objects.filter_for_cases_related_to_compliance_case(case_id):
+            emails.add(licence.submitted_by.email)
+
+        for email in emails:
+            gov_notify_service.send_email(
+                email_address=email,
+                template_type=TemplateType.ECJU_COMPLIANCE_CREATED,
+                data=EcjuComplianceCreatedEmailData(
+                    query=serializer.data["question"],
+                    case_reference=case_info["reference_code"],
+                    site_name=site.name,
+                    site_address=str(site.address),
+                    link=link,
+                ),
+            )
