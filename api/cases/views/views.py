@@ -946,15 +946,17 @@ class CountersignAdvice(APIView):
             )
 
         data = request.data
-        gov_user = request.user.govuser
-        ids = [item["id"] for item in data]
+        advice_ids = [advice["id"] for advice in data]
 
         serializer = CountersignedAdviceUpdateSerializer(
-            Advice.objects.filter(id__in=ids), data=data, many=True, partial=True
+            Advice.objects.filter(id__in=advice_ids), data=data, many=True, partial=True
         )
         if not serializer.is_valid():
             return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save()
+        audit_trail_service.create(
+            actor=request.user, verb=AuditType.COUNTERSIGN_ADVICE, target=case, payload={},
+        )
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
