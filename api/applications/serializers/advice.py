@@ -52,6 +52,8 @@ class AdviceViewSerializer(serializers.Serializer):
     ultimate_end_user = serializers.UUIDField(source="ultimate_end_user_id")
     consignee = serializers.UUIDField(source="consignee_id")
     third_party = serializers.UUIDField(source="third_party_id")
+    countersigned_by = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
+    comments = serializers.CharField()
 
 
 class AdviceCreateSerializer(serializers.ModelSerializer):
@@ -151,6 +153,20 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
             for i in range(0, len(self.initial_data)):
                 self.initial_data[i]["footnote"] = None
                 self.initial_data[i]["footnote_required"] = None
+
+
+class AdviceUpdateListSerializer(serializers.ListSerializer):
+    def update(self, instances, validated_data):
+        instance_map = {index: instance for index, instance in enumerate(instances)}
+        result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
+        return result
+
+
+class CountersignedAdviceUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Advice
+        fields = ("id", "countersigned_by", "countersign_comments")
+        list_serializer_class = AdviceUpdateListSerializer
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):

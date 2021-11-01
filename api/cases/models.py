@@ -388,6 +388,14 @@ class Advice(TimestampableModel):
     pv_grading = models.CharField(choices=PvGrading.choices, null=True, max_length=30)
     # This is to store the collated security grading(s) for display purposes
     collated_pv_grading = models.TextField(default=None, blank=True, null=True)
+    countersign_comments = models.TextField(
+        blank=True,
+        default="",
+        help_text="Reasons provided by the countersigner when they agree/disagree with the advice during countersigning",
+    )
+    countersigned_by = models.ForeignKey(
+        GovUser, on_delete=models.DO_NOTHING, related_name="countersigned_by", blank=True, null=True
+    )
 
     objects = AdviceManager()
 
