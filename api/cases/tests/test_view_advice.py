@@ -27,7 +27,6 @@ class ViewCaseAdviceTests(DataTestClient):
         self.assertEqual(data["user"]["first_name"], self.gov_user.first_name)
         self.assertEqual(data["user"]["last_name"], self.gov_user.last_name)
         self.assertEqual(data["user"]["team"]["name"], self.gov_user.team.name)
-        self.assertEqual(data["created_at"], date_to_drf_date(advice.created_at))
         self.assertEqual(data["good"], str(self.good.id))
 
     def test_view_all_advice(self):
