@@ -47,21 +47,12 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
     issuing_authority = serializers.CharField(allow_blank=False, allow_null=False)
     reference = serializers.CharField(allow_blank=False, allow_null=False)
     date_of_issue = serializers.DateField(
-        allow_null=False,
-        error_messages={"invalid": "Enter the products date of issue and include a day, month, year."},
+        allow_null=False, error_messages={"invalid": "Enter the products date of issue and include a day, month, year."}
     )
 
     class Meta:
         model = PvGradingDetails
-        fields = (
-            "grading",
-            "custom_grading",
-            "prefix",
-            "suffix",
-            "issuing_authority",
-            "reference",
-            "date_of_issue",
-        )
+        fields = ("grading", "custom_grading", "prefix", "suffix", "issuing_authority", "reference", "date_of_issue")
 
     def validate(self, data):
         validated_data = super(PvGradingDetailsSerializer, self).validate(data)
@@ -106,7 +97,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         },
     )
     calibre = serializers.CharField(
-        allow_blank=True, required=False, error_messages={"null": strings.Goods.FIREARM_GOOD_NO_CALIBRE,}
+        allow_blank=True, required=False, error_messages={"null": strings.Goods.FIREARM_GOOD_NO_CALIBRE}
     )
     is_sporting_shotgun = serializers.BooleanField(allow_null=True, required=False)
     is_replica = serializers.BooleanField(allow_null=True, required=False)
@@ -122,7 +113,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     section_certificate_date_of_expiry = serializers.DateField(
         allow_null=True, required=False, error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE}
     )
-    has_identification_markings = serializers.BooleanField(allow_null=True, required=False,)
+    has_identification_markings = serializers.BooleanField(allow_null=True, required=False)
     no_identification_markings_details = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2000
     )
@@ -133,7 +124,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     number_of_items = serializers.IntegerField(
         allow_null=False,
         required=False,
-        error_messages={"null": "Enter the number of items", "invalid": "Number of items must be valid",},
+        error_messages={"null": "Enter the number of items", "invalid": "Number of items must be valid"},
     )
     serial_numbers = serializers.ListField(child=serializers.CharField(allow_blank=True), required=False)
 
@@ -350,7 +341,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         choices=ItemCategory.choices, error_messages={"required": strings.Goods.FORM_NO_ITEM_CATEGORY_SELECTED}
     )
     is_military_use = KeyValueChoiceField(choices=MilitaryUse.choices, required=False)
-    is_component = KeyValueChoiceField(choices=Component.choices, allow_null=True, allow_blank=True, required=False,)
+    is_component = KeyValueChoiceField(choices=Component.choices, allow_null=True, allow_blank=True, required=False)
     uses_information_security = serializers.BooleanField(allow_null=True, required=False, default=None)
     modified_military_use_details = serializers.CharField(
         allow_null=True, required=False, allow_blank=True, max_length=2000
@@ -552,7 +543,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             firearm_details = validated_data.get("firearm_details")
             if firearm_details:
                 instance.firearm_details = GoodCreateSerializer._update_firearm_details(
-                    firearm_details=firearm_details, instance=instance.firearm_details,
+                    firearm_details=firearm_details, instance=instance.firearm_details
                 )
 
         instance.save()
@@ -585,7 +576,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     @staticmethod
     def _update_pv_grading_details(pv_grading_details, instance):
         return PvGradingDetailsSerializer.update(
-            PvGradingDetailsSerializer(), validated_data=pv_grading_details, instance=instance,
+            PvGradingDetailsSerializer(), validated_data=pv_grading_details, instance=instance
         )
 
     @staticmethod
@@ -600,26 +591,20 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     @staticmethod
     def _update_firearm_details(firearm_details, instance):
         return FirearmDetailsSerializer.update(
-            FirearmDetailsSerializer(), validated_data=firearm_details, instance=instance,
+            FirearmDetailsSerializer(), validated_data=firearm_details, instance=instance
         )
 
 
 class GoodDocumentAvailabilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Good
-        fields = (
-            "id",
-            "is_document_available",
-        )
+        fields = ("id", "is_document_available", "no_document_comments")
 
 
 class GoodDocumentSensitivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Good
-        fields = (
-            "id",
-            "is_document_sensitive",
-        )
+        fields = ("id", "is_document_sensitive")
 
 
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):
@@ -632,10 +617,7 @@ class GoodMissingDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Good
-        fields = (
-            "id",
-            "missing_document_reason",
-        )
+        fields = ("id", "missing_document_reason")
 
 
 class GoodDocumentCreateSerializer(serializers.ModelSerializer):
@@ -645,15 +627,7 @@ class GoodDocumentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodDocument
-        fields = (
-            "name",
-            "s3_key",
-            "user",
-            "organisation",
-            "size",
-            "good",
-            "description",
-        )
+        fields = ("name", "s3_key", "user", "organisation", "size", "good", "description")
 
     def create(self, validated_data):
         good_document = super(GoodDocumentCreateSerializer, self).create(validated_data)
@@ -678,13 +652,7 @@ class GoodDocumentViewSerializer(serializers.Serializer):
 class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodDocument
-        fields = (
-            "id",
-            "name",
-            "description",
-            "size",
-            "safe",
-        )
+        fields = ("id", "name", "description", "size", "safe")
 
 
 class GoodsFlagSerializer(serializers.Serializer):
