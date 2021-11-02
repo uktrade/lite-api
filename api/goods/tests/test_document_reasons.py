@@ -16,7 +16,9 @@ class GoodDocumentAvaiabilityandSensitivityTests(DataTestClient):
         self.document_availability_url = reverse("goods:good_document_availability", kwargs={"pk": self.good.id})
         self.document_sensitivity_url = reverse("goods:good_document_sensitivity", kwargs={"pk": self.good.id})
 
-    @parameterized.expand([[{"is_document_available": "yes"}], [{"is_document_available": "no"}]])
+    @parameterized.expand(
+        [[{"is_document_available": "yes"}], [{"is_document_available": "no", "no_document_comments": "yada yada"}]]
+    )
     def test_document_available_to_upload(self, data):
         response = self.client.post(self.document_availability_url, data, **self.exporter_headers)
 
