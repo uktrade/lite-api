@@ -73,5 +73,9 @@ router_v1.register("advice", advice_views.AdviceListView, basename="dw-advice")
 router_v1.register(
     "audit-updated-status", audit_views.AuditUpdatedCaseStatusListView, basename="dw-audit-updated-status"
 )
-
+router_v1.register(
+    "audit-licence-updated-status",
+    audit_views.AuditUpdatedLicenceStatusListView,
+    basename="dw-audit-licence-updated-status",
+)
 urlpatterns = [path("v0/", include(router_v0.urls)), path("v1/", include(router_v1.urls))]
