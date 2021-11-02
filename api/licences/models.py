@@ -5,8 +5,6 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from api.applications.models import GoodOnApplication
-from api.audit_trail import service as audit_trail_service
-from api.audit_trail.enums import AuditType
 from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.core.helpers import add_months
@@ -94,22 +92,11 @@ class Licence(TimestampableModel):
     def save(self, *args, **kwargs):
         self.end_date = add_months(self.start_date, self.duration, "%Y-%m-%d")
         send_status_change_to_hmrc = kwargs.pop("send_status_change_to_hmrc", False)
-        # We flag this save operation as auditable when there is no existing licence
-        # with the current id and status in the db.
-        auditable = not Licence.objects.filter(id=self.id or "", status=self.status).exists()
         super(Licence, self).save(*args, **kwargs)
 
         # Immediately notify HMRC if needed
         if settings.LITE_HMRC_INTEGRATION_ENABLED and send_status_change_to_hmrc and self.status != LicenceStatus.DRAFT:
             self.send_to_hmrc_integration()
-
-        if auditable:
-            audit_trail_service.create_system_user_audit(
-                verb=AuditType.LICENCE_UPDATED_STATUS,
-                action_object=self,
-                target=self.case.get_case(),
-                payload={"licence": self.reference_code, "status": self.status},
-            )
 
     def send_to_hmrc_integration(self):
         from api.licences.tasks import schedule_licence_for_hmrc_integration
