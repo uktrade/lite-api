@@ -52,8 +52,10 @@ class AdviceViewSerializer(serializers.Serializer):
     ultimate_end_user = serializers.UUIDField(source="ultimate_end_user_id")
     consignee = serializers.UUIDField(source="consignee_id")
     third_party = serializers.UUIDField(source="third_party_id")
-    countersigned_by = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
-    comments = serializers.CharField()
+    countersigned_by = PrimaryKeyRelatedSerializerField(
+        queryset=GovUser.objects.all(), serializer=GovUserListSerializer
+    )
+    countersign_comments = serializers.CharField()
 
 
 class AdviceCreateSerializer(serializers.ModelSerializer):

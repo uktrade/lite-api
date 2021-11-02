@@ -48,5 +48,7 @@ class AdviceDataWorkspaceTests(DataTestClient):
             "consignee",
             "third_party",
             "denial_reasons",
+            "countersigned_by",
+            "countersign_comments",
         }
         assert set(last_result.keys()) == expected_fields
