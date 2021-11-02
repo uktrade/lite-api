@@ -11,7 +11,6 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.core.authentication import EXPORTER_USER_TOKEN_HEADER
 from api.core.constants import Roles, GovPermissions
-from api.core.helpers import date_to_drf_date
 from gov_notify.enums import TemplateType
 from lite_content.lite_api.strings import Organisations
 from api.organisations.constants import UK_VAT_VALIDATION_REGEX, UK_EORI_VALIDATION_REGEX
@@ -28,7 +27,6 @@ from api.users.libraries.user_to_token import user_to_token
 from api.users.models import UserOrganisationRelationship
 from api.users.tests.factories import UserOrganisationRelationshipFactory
 from api.addresses.tests.factories import AddressFactoryGB
-from api.organisations.tests.factories import SiteFactory
 
 
 class GetOrganisationTests(DataTestClient):
@@ -40,7 +38,6 @@ class GetOrganisationTests(DataTestClient):
         response_data = next(data for data in response.json()["results"] if data["id"] == str(organisation.id))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         expected_fields = {
             "id",
             "name",
