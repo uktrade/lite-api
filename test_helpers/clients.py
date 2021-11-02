@@ -1,6 +1,7 @@
 import timeit
 import uuid
 import warnings
+import sys
 from django.utils import timezone
 from typing import Optional, List, Tuple
 
@@ -120,6 +121,16 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def setUpClass(cls):
         """ Run seed operations ONCE for the entire test suite. """
         if not Static.seeded:
+
+            # HACK: Don't seed if we already seeeded and use --reuse-db or similar
+            if "--reuse-db" in sys.argv or "--keepdb" in sys.argv:
+                from django.contrib.auth import get_user_model
+
+                user_model = get_user_model()
+                if user_model.objects.count():
+                    Static.seeded = True
+                    return
+
             seedall.Command.seed_list(SEED_COMMANDS["Tests"])
             Static.seeded = True
 
