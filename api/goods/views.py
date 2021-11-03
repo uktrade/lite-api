@@ -293,6 +293,8 @@ class GoodDocumentAvailabilityCheck(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+            # TODO: Poor implementation? Is there a reason we don't use the serialized data? Add comment or fix this.
+            good.no_document_comments = data.get("no_document_comments")
             good.save()
             good_data = GoodCreateSerializer(good).data
             return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
