@@ -79,3 +79,28 @@ class AuditUpdatedCaseStatusSerializer(serializers.ModelSerializer):
     def get_status(self, instance):
         status = instance.payload["status"]["new"].lower()
         return status
+
+
+class AuditUpdatedLicenceStatusSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    case = serializers.SerializerMethodField()
+    licence = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Audit
+        fields = ("created_at", "user", "case", "licence", "status")
+
+    def get_user(self, instance):
+        if instance.actor:
+            return instance.actor.pk
+        return None
+
+    def get_case(self, instance):
+        return instance.target_object_id
+
+    def get_licence(self, instance):
+        return instance.action_object_object_id
+
+    def get_status(self, instance):
+        return instance.payload["status"].lower()
