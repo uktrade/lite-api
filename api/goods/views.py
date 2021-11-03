@@ -287,7 +287,10 @@ class GoodDocumentAvailabilityCheck(APIView):
             # If no document is attached, then we require reasoning comments from exporter
             if not good.is_document_available and not data.get("no_document_comments"):
                 return JsonResponse(
-                    data={"errors": {"no_document_comments": ["Required field"]}}, status=status.HTTP_400_BAD_REQUEST
+                    data={
+                        "errors": {"no_document_comments": ["Enter a reason why you cannot upload a product document"]}
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             good.save()
