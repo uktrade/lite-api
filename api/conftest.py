@@ -52,7 +52,7 @@ fixture_names = []
 for factory_name, factory in collected_factories.items():
     fixture_name = camelcase_to_underscore(factory_name)
     fixture_names.append(fixture_name)
-    exec(
+    exec(  # nosec
         f"""
 @pytest.fixture
 def {fixture_name}(db):
