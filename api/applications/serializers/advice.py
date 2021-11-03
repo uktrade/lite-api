@@ -157,18 +157,18 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
                 self.initial_data[i]["footnote_required"] = None
 
 
-class AdviceUpdateListSerializer(serializers.ListSerializer):
+class CountersignAdviceListSerializer(serializers.ListSerializer):
     def update(self, instances, validated_data):
         instance_map = {index: instance for index, instance in enumerate(instances)}
         result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
         return result
 
 
-class CountersignedAdviceUpdateSerializer(serializers.ModelSerializer):
+class CountersignAdviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advice
         fields = ("id", "countersigned_by", "countersign_comments")
-        list_serializer_class = AdviceUpdateListSerializer
+        list_serializer_class = CountersignAdviceListSerializer
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):

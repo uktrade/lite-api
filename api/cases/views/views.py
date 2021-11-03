@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.views import APIView
-from api.applications.serializers.advice import CountersignedAdviceUpdateSerializer, CountryWithFlagsSerializer
+from api.applications.serializers.advice import CountersignAdviceSerializer, CountryWithFlagsSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
@@ -948,7 +948,7 @@ class CountersignAdvice(APIView):
         data = request.data
         advice_ids = [advice["id"] for advice in data]
 
-        serializer = CountersignedAdviceUpdateSerializer(
+        serializer = CountersignAdviceSerializer(
             Advice.objects.filter(id__in=advice_ids), data=data, many=True, partial=True
         )
         if not serializer.is_valid():
@@ -956,7 +956,7 @@ class CountersignAdvice(APIView):
 
         serializer.save()
         audit_trail_service.create(
-            actor=request.user, verb=AuditType.COUNTERSIGN_ADVICE, target=case, payload={},
+            actor=request.user, verb=AuditType.COUNTERSIGN_ADVICE, target=case, payload={"advice_ids": advice_ids},
         )
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
