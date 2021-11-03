@@ -13,7 +13,7 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
 from api.core.requests import get, post
-from api.licences.enums import HMRCIntegrationActionEnum, hmrc_integration_action_to_licence_status
+from api.licences.enums import HMRCIntegrationActionEnum
 from api.licences.helpers import get_approved_goods_types
 from api.licences.models import Licence, HMRCIntegrationUsageData, GoodOnLicence
 from api.licences.serializers.hmrc_integration import (
@@ -216,19 +216,11 @@ def _update_licence(validated_data: dict) -> str:
         # If all Goods have been Exhausted; Exhaust the Licence
         if not licence.goods.filter(usage__lt=F("quantity")).exists():
             send_status_change_to_hmrc = action == HMRCIntegrationActionEnum.OPEN
-            action = HMRCIntegrationActionEnum.EXHAUST
             change_status = licence.exhaust
 
     if change_status:
+        # Changing the licence status will trigger an auditlog entry
         change_status(send_status_change_to_hmrc=send_status_change_to_hmrc)
-        audit_trail_service.create_system_user_audit(
-            verb=AuditType.LICENCE_UPDATED_STATUS,
-            target=licence.case.get_case(),
-            payload={
-                "licence": licence.reference_code,
-                "status": hmrc_integration_action_to_licence_status.get(action),
-            },
-        )
 
     return licence.id
 
