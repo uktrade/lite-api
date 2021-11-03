@@ -36,6 +36,7 @@ from api.cases.libraries.post_advice import (
     check_if_final_advice_exists,
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
+    update_advice_completed_flag,
 )
 from api.cases.models import (
     CaseDocument,
@@ -254,6 +255,7 @@ class UserAdvice(APIView):
         Delete user level advice on a case for the current user.
         """
         self.advice.filter(user=request.user.govuser).delete()
+        update_advice_completed_flag(self.case)
         audit_trail_service.create(actor=request.user, verb=AuditType.CLEARED_USER_ADVICE, target=self.case)
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 

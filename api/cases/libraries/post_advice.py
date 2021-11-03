@@ -88,6 +88,7 @@ def post_advice(request, case, level, team=False):
         serializer.save()
         if not team:
             # Only applies at user level advice
+            update_advice_completed_flag(case)
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_USER_ADVICE, target=case,
             )
@@ -126,3 +127,26 @@ def case_advice_contains_refusal(case_id):
     if not refuse_advice_found:
         if flag in case.flags.all():
             case.flags.remove(flag)
+
+
+def update_advice_completed_flag(case):
+    """If all the destination on a case are covered by advice,
+    we set the "Advice Completed" flag. Otherwise, we unset this
+    flag. This is useful because for FCDO, we will be writing
+    routing rules that will move the case to countersigning
+    queue when this flag is set.
+    """
+    # Get all the destinations for the case
+    case_destinations = {case.end_user.party.country}
+    for user in case.ultimate_end_users:
+        case_destinations.add(user.party.country)
+    # Get all destinations for which advice has been given
+    advice_destinations = {advice.end_user.party.country for advice in case.advice.all()}
+    for advice in case.advice.all():
+        advice_destinations = advice_destinations | {user.party.country for user in advice.ultimate_end_users}
+    # If advice covers all destinations, set the flag, unset otherwise
+    flag = Flag.objects.get(id=SystemFlags.ADVICE_COMPLETED_ID)
+    if advice_destinations - case_destinations == {}:
+        case.flags.add(flag)
+    else:
+        case.flags.remove(flag)
