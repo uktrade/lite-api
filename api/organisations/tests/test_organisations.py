@@ -38,16 +38,27 @@ class GetOrganisationTests(DataTestClient):
         response_data = next(data for data in response.json()["results"] if data["id"] == str(organisation.id))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["id"], str(organisation.id))
-        self.assertEqual(response_data["name"], organisation.name)
-        self.assertEqual(response_data["sic_number"], organisation.sic_number)
-        self.assertEqual(response_data["eori_number"], organisation.eori_number)
-        self.assertEqual(response_data["type"], generate_key_value_pair(organisation.type, OrganisationType.choices))
-        self.assertEqual(response_data["registration_number"], organisation.registration_number)
-        self.assertEqual(response_data["vat_number"], organisation.vat_number)
-        self.assertEqual(
-            response_data["status"], generate_key_value_pair(organisation.status, OrganisationStatus.choices)
-        )
+        expected_fields = {
+            "id",
+            "name",
+            "sic_number",
+            "eori_number",
+            "type",
+            "registration_number",
+            "vat_number",
+            "status",
+            "created_at",
+        }
+        assert response_data.keys() == expected_fields
+        assert response_data["id"] == str(organisation.id)
+        assert response_data["name"] == organisation.name
+        assert response_data["sic_number"] == organisation.sic_number
+        assert response_data["eori_number"] == organisation.eori_number
+        assert response_data["type"] == generate_key_value_pair(organisation.type, OrganisationType.choices)
+        assert response_data["registration_number"] == organisation.registration_number
+        assert response_data["vat_number"] == organisation.vat_number
+        assert response_data["status"] == generate_key_value_pair(organisation.status, OrganisationStatus.choices)
+        assert response_data["created_at"]
 
     @parameterized.expand(
         [
