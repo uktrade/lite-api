@@ -100,11 +100,7 @@ class Good(TimestampableModel):
     is_document_available = models.BooleanField(default=None, null=True)
     is_document_sensitive = models.BooleanField(default=None, null=True)
     no_document_comments = models.TextField(
-        default=None,
-        blank=True,
-        null=True,
-        max_length=2000,
-        help_text="Comments from applicant reasoning why no document is uploaded",
+        default=None, blank=True, null=True, help_text="Comments from applicant reasoning why no document is uploaded"
     )
     item_category = models.CharField(choices=ItemCategory.choices, null=True, max_length=20)
     is_military_use = models.CharField(choices=MilitaryUse.choices, null=True, max_length=15)
