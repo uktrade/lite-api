@@ -692,6 +692,7 @@ class GoodSerializerInternal(serializers.Serializer):
     information_security_details = serializers.CharField()
     is_document_available = serializers.BooleanField()
     is_document_sensitive = serializers.BooleanField()
+    no_document_comments = serializers.CharField()
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
     is_precedent = serializers.BooleanField(required=False, default=False)
