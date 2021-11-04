@@ -47,7 +47,8 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
     issuing_authority = serializers.CharField(allow_blank=False, allow_null=False)
     reference = serializers.CharField(allow_blank=False, allow_null=False)
     date_of_issue = serializers.DateField(
-        allow_null=False, error_messages={"invalid": "Enter the products date of issue and include a day, month, year."}
+        allow_null=False,
+        error_messages={"invalid": "Enter the product's date of issue and include a day, month, year."},
     )
 
     class Meta:
