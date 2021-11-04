@@ -372,6 +372,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "pv_grading_details",
             "is_document_available",
             "is_document_sensitive",
+            "no_document_comments",
             "comment",
             "report_summary",
             "item_category",
