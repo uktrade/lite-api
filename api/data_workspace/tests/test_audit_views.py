@@ -3,6 +3,7 @@ from functools import partial
 from rest_framework import status
 
 from api.audit_trail.enums import AuditType
+from api.licences.models import LicenceStatus
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -82,6 +83,31 @@ class DataWorkspaceAuditUpdatedCaseStatusTests(DataTestClient):
         self.assertEqual(len(results), 1)
         self.assertEqual(tuple(results[0].keys()), expected_fields)
         self.assertEqual(results[0]["status"], "submitted")
+
+        response = self.client.options(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        options = response.json()["actions"]["GET"]
+        self.assertEqual(tuple(options.keys()), expected_fields)
+
+
+class DataWorkspaceAuditUpdatedLicenceStatusTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.url = reverse("data_workspace:dw-audit-licence-updated-status-list")
+        case = self.create_standard_application_case(self.organisation, "Test Application")
+        licence = self.create_licence(case, LicenceStatus.ISSUED)
+
+    def test_audit_updated_status(self):
+        expected_fields = ("created_at", "user", "case", "licence", "status")
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(tuple(results[0].keys()), expected_fields)
+        self.assertEqual(results[0]["status"], "issued")
 
         response = self.client.options(self.url)
 

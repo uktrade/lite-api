@@ -5,6 +5,7 @@ from api.data_workspace.serializers import (
     CaseAssignmentSerializer,
     EcjuQuerySerializer,
     AuditUpdatedCaseStatusSerializer,
+    AuditUpdatedLicenceStatusSerializer,
 )
 from api.cases.tests.factories import EcjuQueryFactory, CaseAssignmentFactory
 
@@ -38,4 +39,13 @@ def test_AuditUpdatedCaseStatusSerializer(db):
     )
     serialized = AuditUpdatedCaseStatusSerializer(audit)
     expected_fields = {"created_at", "user", "case", "status"}
+    assert set(serialized.data.keys()) == expected_fields
+
+
+def test_AuditUpdatedLicenceStatusSerializer(db):
+    audit = AuditFactory(
+        verb=AuditType.LICENCE_UPDATED_STATUS, payload={"status": "issued", "licence": "GBSIEL/2021/0000711/P"}
+    )
+    serialized = AuditUpdatedLicenceStatusSerializer(audit)
+    expected_fields = {"created_at", "user", "case", "licence", "status"}
     assert set(serialized.data.keys()) == expected_fields

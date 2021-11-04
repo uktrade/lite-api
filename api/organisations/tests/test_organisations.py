@@ -11,7 +11,6 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.core.authentication import EXPORTER_USER_TOKEN_HEADER
 from api.core.constants import Roles, GovPermissions
-from api.core.helpers import date_to_drf_date
 from gov_notify.enums import TemplateType
 from lite_content.lite_api.strings import Organisations
 from api.organisations.constants import UK_VAT_VALIDATION_REGEX, UK_EORI_VALIDATION_REGEX
@@ -28,7 +27,6 @@ from api.users.libraries.user_to_token import user_to_token
 from api.users.models import UserOrganisationRelationship
 from api.users.tests.factories import UserOrganisationRelationshipFactory
 from api.addresses.tests.factories import AddressFactoryGB
-from api.organisations.tests.factories import SiteFactory
 
 
 class GetOrganisationTests(DataTestClient):
@@ -40,20 +38,27 @@ class GetOrganisationTests(DataTestClient):
         response_data = next(data for data in response.json()["results"] if data["id"] == str(organisation.id))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response_data,
-            {
-                "id": str(organisation.id),
-                "name": organisation.name,
-                "sic_number": organisation.sic_number,
-                "eori_number": organisation.eori_number,
-                "type": generate_key_value_pair(organisation.type, OrganisationType.choices),
-                "registration_number": organisation.registration_number,
-                "vat_number": organisation.vat_number,
-                "status": generate_key_value_pair(organisation.status, OrganisationStatus.choices),
-                "created_at": date_to_drf_date(organisation.created_at),
-            },
-        )
+        expected_fields = {
+            "id",
+            "name",
+            "sic_number",
+            "eori_number",
+            "type",
+            "registration_number",
+            "vat_number",
+            "status",
+            "created_at",
+        }
+        assert response_data.keys() == expected_fields
+        assert response_data["id"] == str(organisation.id)
+        assert response_data["name"] == organisation.name
+        assert response_data["sic_number"] == organisation.sic_number
+        assert response_data["eori_number"] == organisation.eori_number
+        assert response_data["type"] == generate_key_value_pair(organisation.type, OrganisationType.choices)
+        assert response_data["registration_number"] == organisation.registration_number
+        assert response_data["vat_number"] == organisation.vat_number
+        assert response_data["status"] == generate_key_value_pair(organisation.status, OrganisationStatus.choices)
+        assert response_data["created_at"]
 
     @parameterized.expand(
         [
@@ -449,11 +454,7 @@ class EditOrganisationTests(DataTestClient):
                 previous_value = previous_eori_number
                 new_value = organisation.eori_number
 
-            payload = {
-                "key": org_field,
-                "old": previous_value,
-                "new": new_value,
-            }
+            payload = {"key": org_field, "old": previous_value, "new": new_value}
             self.assertEqual(audit.payload, payload)
 
     def test_set_org_details_to_none_uk_address_failure(self):
@@ -467,12 +468,7 @@ class EditOrganisationTests(DataTestClient):
         site.save()
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
-        data = {
-            "eori_number": None,
-            "sic_number": None,
-            "vat_number": None,
-            "registration_number": None,
-        }
+        data = {"eori_number": None, "sic_number": None, "vat_number": None, "registration_number": None}
 
         response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
         organisation.refresh_from_db()
@@ -490,15 +486,10 @@ class EditOrganisationTests(DataTestClient):
         all details about themselves
         """
         organisation = OrganisationFactory(
-            type=OrganisationType.COMMERCIAL, primary_site__address=ForeignAddressFactory(),
+            type=OrganisationType.COMMERCIAL, primary_site__address=ForeignAddressFactory()
         )
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
-        data = {
-            "eori_number": None,
-            "sic_number": None,
-            "vat_number": None,
-            "registration_number": None,
-        }
+        data = {"eori_number": None, "sic_number": None, "vat_number": None, "registration_number": None}
 
         response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
         organisation.refresh_from_db()
@@ -722,7 +713,7 @@ class EditOrganisationStatusTests(DataTestClient):
         mock_notify_client.send_email.assert_called_with(
             email_address=self.exporter_user.email,
             template_id=TemplateType.ORGANISATION_STATUS.template_id,
-            data={"organisation_name": self.organisation.name,},
+            data={"organisation_name": self.organisation.name},
         )
 
     def test_set_organisation_status__without_permission_failure(self):
