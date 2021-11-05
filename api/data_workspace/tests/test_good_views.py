@@ -39,6 +39,7 @@ class DataWorkspaceTests(DataTestClient):
             "information_security_details",
             "is_document_available",
             "is_document_sensitive",
+            "no_document_comments",
             "software_or_technology_details",
             "firearm_details",
             "is_precedent",
@@ -60,11 +61,7 @@ class DataWorkspaceTests(DataTestClient):
         clc_entry = ControlListEntry.objects.first()
         GoodControlListEntry.objects.create(good=self.good, controllistentry=clc_entry)
         url = reverse("data_workspace:dw-good-control-list-entries-list")
-        expected_fields = (
-            "id",
-            "good",
-            "controllistentry",
-        )
+        expected_fields = ("id", "good", "controllistentry")
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
