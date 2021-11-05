@@ -1,3 +1,4 @@
+import random
 import timeit
 import uuid
 import warnings
@@ -679,6 +680,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         add_a_good=True,
         user: ExporterUser = None,
         good=None,
+        num_products=1,
     ):
         if not user:
             user = UserOrganisationRelationship.objects.filter(organisation_id=organisation.id).first().user
@@ -708,14 +710,24 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.save()
 
         if add_a_good:
-            # Add a good to the standard application
-            self.good_on_application = GoodOnApplication.objects.create(
-                good=good if good else GoodFactory(organisation=organisation, is_good_controlled=True),
-                application=application,
-                quantity=10,
-                unit=Units.NAR,
-                value=500,
-            )
+            if num_products == 1:
+                # Add a good to the standard application
+                self.good_on_application = GoodOnApplication.objects.create(
+                    good=good if good else GoodFactory(organisation=organisation, is_good_controlled=True),
+                    application=application,
+                    quantity=10,
+                    unit=Units.NAR,
+                    value=500,
+                )
+            else:
+                for _ in range(num_products):
+                    GoodOnApplication.objects.create(
+                        good=GoodFactory(organisation=organisation, is_good_controlled=True),
+                        application=application,
+                        quantity=random.randint(1, 50),
+                        unit=Units.NAR,
+                        value=random.randint(100, 5000),
+                    )
 
         if parties:
             self.create_party("End User", organisation, PartyType.END_USER, application)
@@ -927,13 +939,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_standard_application_case(
-        self, organisation: Organisation, reference_name="Standard Application Case", parties=True, site=True, user=None
+        self,
+        organisation: Organisation,
+        reference_name="Standard Application Case",
+        parties=True,
+        site=True,
+        user=None,
+        num_products=1,
     ):
         """
         Creates a complete standard application case
         """
         draft = self.create_draft_standard_application(
-            organisation, reference_name, parties=parties, site=site, user=user
+            organisation, reference_name, parties=parties, site=site, user=user, num_products=num_products
         )
 
         return self.submit_application(draft, self.exporter_user)

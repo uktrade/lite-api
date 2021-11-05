@@ -996,7 +996,7 @@ def _get_good_on_licence_context(good_on_licence):
 
 
 def _get_goods_context(application, final_advice, licence=None):
-    goods_on_application = application.goods.all().order_by("good__description")
+    goods_on_application = application.goods.all().order_by("created_at")
     final_advice = final_advice.filter(good_id__isnull=False)
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
 
@@ -1006,7 +1006,7 @@ def _get_goods_context(application, final_advice, licence=None):
     goods_context["all"] = GoodOnApplicationSerializer(goods_on_application, many=True).data
 
     if licence:
-        goods_on_licence = licence.goods.all().order_by("good__good__description")
+        goods_on_licence = licence.goods.all().order_by("created_at")
         if goods_on_licence.exists():
             goods_context[AdviceType.APPROVE] = [
                 _get_good_on_licence_context(good_on_licence) for good_on_licence in goods_on_licence

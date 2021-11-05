@@ -117,7 +117,11 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
     def get_goods(self, instance):
         if instance.goods.exists():
-            return HMRCIntegrationGoodOnLicenceSerializer(instance.goods, many=True).data
+            """The order in which we send to HMRC matters and the line number is the common reference
+            which is used to refer the products when usage data is reported.
+            We also list the products in the same order in licence pdf which is used by exporters
+            when declaring goods at the customs check"""
+            return HMRCIntegrationGoodOnLicenceSerializer(instance.goods.order_by("created_at"), many=True).data
         elif hasattr(instance.case, "baseapplication") and instance.case.baseapplication.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance.case.baseapplication)
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data

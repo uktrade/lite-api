@@ -15,6 +15,7 @@ from api.applications.enums import (
 from api.applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from api.cases.models import Advice
 from api.letter_templates.context_generator import EcjuQuerySerializer
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
@@ -426,14 +427,26 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_addressee(context["addressee"], addressee)
 
     def test_generate_context_with_goods(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        application = self.create_standard_application_case(self.organisation, user=self.exporter_user, num_products=10)
+        for product in application.goods.all():
+            self.create_advice(
+                self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL, good=product.good
+            )
 
-        context = get_document_context(case)
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        for product in application.goods.all():
+            GoodOnLicenceFactory(
+                good=product, licence=licence, quantity=product.quantity, usage=0.0, value=product.value,
+            )
+
+        context = get_document_context(application)
+        # Ensure products order in generated template matches with the order in application
+        order_in_application = [product.good.name for product in application.goods.all()]
+        order_in_licence_template = [product["good"]["name"] for product in context["goods"]["approve"]]
+        self.assertEqual(order_in_application, order_in_licence_template)
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
-        self._assert_good(context["goods"]["all"][0], case.goods.all()[0])
+        self.assertEqual(context["case_reference"], application.reference_code)
+        self.assertEqual(context["case_officer_name"], application.get_case_officer_name())
 
     def test_generate_context_with_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
