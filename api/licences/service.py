@@ -8,6 +8,7 @@ from rest_framework import serializers
 class GoodOnLicenceSerializer(serializers.ModelSerializer):
     control_list_entries = serializers.SerializerMethodField()
     is_good_controlled = serializers.SerializerMethodField()
+    name = serializers.CharField(source="good.good.name")
     description = serializers.CharField(source="good.good.description")
 
     # instance.good is good_on_application
@@ -26,6 +27,7 @@ class GoodOnLicenceSerializer(serializers.ModelSerializer):
         fields = (
             "control_list_entries",
             "is_good_controlled",
+            "name",
             "description",
             "quantity",
             "usage",
