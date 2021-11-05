@@ -7,6 +7,7 @@ from api.staticdata.control_list_entries.helpers import get_control_list_entry
 
 
 class GoodFactory(factory.django.DjangoModelFactory):
+    name = factory.Faker("word")
     description = factory.Faker("word")
     is_good_controlled = False
     part_number = factory.Faker("ean13")
