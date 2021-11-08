@@ -6,15 +6,7 @@ from django.db import models
 from api.common.models import TimestampableModel
 from api.documents.models import Document
 from api.flags.models import Flag
-from api.goods.enums import (
-    GoodStatus,
-    PvGrading,
-    GoodPvGraded,
-    ItemCategory,
-    MilitaryUse,
-    Component,
-    FirearmGoodType,
-)
+from api.goods.enums import GoodStatus, PvGrading, GoodPvGraded, ItemCategory, MilitaryUse, Component, FirearmGoodType
 
 from api.organisations.models import Organisation
 from api.staticdata.control_list_entries.models import ControlListEntry
@@ -56,7 +48,7 @@ class FirearmGoodDetails(models.Model):
     number_of_items = models.PositiveSmallIntegerField(blank=True, null=True)
     serial_numbers = ArrayField(models.TextField(default=""), default=list)
     has_proof_mark = models.BooleanField(
-        help_text="Has been proofed (by a proof house) indicating it is safe to be used.", null=True,
+        help_text="Has been proofed (by a proof house) indicating it is safe to be used.", null=True
     )
     no_proof_mark_details = models.TextField(
         help_text="The reason why `has_proof_mark` is False (which should normally be True).", blank=True, default=""
@@ -107,6 +99,9 @@ class Good(TimestampableModel):
     flags = models.ManyToManyField(Flag, related_name="goods")
     is_document_available = models.BooleanField(default=None, null=True)
     is_document_sensitive = models.BooleanField(default=None, null=True)
+    no_document_comments = models.TextField(
+        default="", blank=True, null=False, help_text="Comments from applicant reasoning why no document is uploaded"
+    )
     item_category = models.CharField(choices=ItemCategory.choices, null=True, max_length=20)
     is_military_use = models.CharField(choices=MilitaryUse.choices, null=True, max_length=15)
     modified_military_use_details = models.TextField(default=None, blank=True, null=True, max_length=2000)

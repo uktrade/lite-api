@@ -267,6 +267,10 @@ class GoodList(ListCreateAPIView):
 
 
 class GoodDocumentAvailabilityCheck(APIView):
+    """
+    Check document is attached to application good/product
+    """
+
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
@@ -279,12 +283,24 @@ class GoodDocumentAvailabilityCheck(APIView):
         data = request.data
         if data.get("is_document_available"):
             good.is_document_available = str_to_bool(data["is_document_available"])
+
+            # If no document is attached, then we require reasoning comments from exporter
+            if not good.is_document_available and not data.get("no_document_comments"):
+                return JsonResponse(
+                    data={
+                        "errors": {"no_document_comments": ["Enter a reason why you cannot upload a product document"]}
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # TODO: Poor implementation? Is there a reason we don't use the serialized data? Add comment or fix this.
+            good.no_document_comments = data.get("no_document_comments", "")
             good.save()
             good_data = GoodCreateSerializer(good).data
             return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
         else:
             return JsonResponse(
-                data={"errors": {"is_document_available": ["Select yes or no"]}}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": {"is_document_available": ["Select yes or no"]}}, status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -306,7 +322,7 @@ class GoodDocumentCriteriaCheck(APIView):
             return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
         else:
             return JsonResponse(
-                data={"errors": {"is_document_sensitive": ["Select yes or no"]}}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": {"is_document_sensitive": ["Select yes or no"]}}, status=status.HTTP_400_BAD_REQUEST
             )
 
 

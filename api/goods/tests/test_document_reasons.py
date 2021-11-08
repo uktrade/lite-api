@@ -17,7 +17,10 @@ class GoodDocumentAvaiabilityandSensitivityTests(DataTestClient):
         self.document_sensitivity_url = reverse("goods:good_document_sensitivity", kwargs={"pk": self.good.id})
 
     @parameterized.expand(
-        [[{"is_document_available": "yes"}], [{"is_document_available": "no"}],]
+        [
+            [{"is_document_available": "yes"}],
+            [{"is_document_available": "no", "no_document_comments": "My dog ate the spreadsheet"}],
+        ]
     )
     def test_document_available_to_upload(self, data):
         response = self.client.post(self.document_availability_url, data, **self.exporter_headers)
@@ -34,9 +37,22 @@ class GoodDocumentAvaiabilityandSensitivityTests(DataTestClient):
         self.assertTrue("is_document_available" in errors)
         self.assertEqual(errors["is_document_available"][0], "Select yes or no")
 
-    @parameterized.expand(
-        [[{"is_document_sensitive": "yes"}], [{"is_document_sensitive": "no"}],]
-    )
+    def test_no_document_comments_required_when_no_document_attached(self):
+
+        # Missing no_document_comments
+        data = {"is_document_available": "no"}
+        response = self.client.post(self.document_availability_url, data, **self.exporter_headers)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        data = {"is_document_available": "no", "no_document_comments": ""}
+        response = self.client.post(self.document_availability_url, data, **self.exporter_headers)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Given no_document_comments
+        data = {"is_document_available": "no", "no_document_comments": "My dog ate the spreadsheet"}
+        response = self.client.post(self.document_availability_url, data, **self.exporter_headers)
+        assert response.status_code == status.HTTP_200_OK
+
+    @parameterized.expand([[{"is_document_sensitive": "yes"}], [{"is_document_sensitive": "no"}]])
     def test_document_sensitive(self, data):
         response = self.client.post(self.document_sensitivity_url, data, **self.exporter_headers)
 
