@@ -746,6 +746,7 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     documents = serializers.SerializerMethodField()
     is_document_available = serializers.BooleanField()
     is_document_sensitive = serializers.BooleanField()
+    no_document_comments = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     query = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()
