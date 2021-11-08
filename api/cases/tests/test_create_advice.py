@@ -217,3 +217,53 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["footnote"], "footnote")
         self.assertEqual(Advice.objects.filter(footnote_required=True, footnote=data["footnote"]).count(), 1)
+
+
+class CountersignAdviceTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_draft_standard_application(self.organisation)
+        self.case = self.submit_application(self.application)
+
+        self.url = reverse("cases:countersign_advice", kwargs={"pk": self.case.id})
+
+    def test_countersign_advice_terminal_status_failure(self):
+        """Ensure we cannot countersign a case that is in one of the terminal state"""
+        case_url = reverse("cases:case", kwargs={"pk": self.case.id})
+        data = {"status": CaseStatusEnum.WITHDRAWN, "note": "test"}
+        response = self.client.patch(case_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.put(self.url, **self.gov_headers, data=[])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_countersign_advice_success(self):
+        """Ensure we can countersign a case with advice given by multiple users and it
+        emits an audit log"""
+        all_advice = [
+            Advice.objects.create(
+                **{
+                    "user": self.gov_user,
+                    "good": self.application.goods.first().good,
+                    "team": self.team,
+                    "case": self.case,
+                    "note": f"Advice {i}",
+                }
+            )
+            for i in range(4)
+        ]
+
+        data = [
+            {
+                "id": advice.id,
+                "countersigned_by": self.gov_user.baseuser_ptr.id,
+                "comments": "Agree with recommendation",
+            }
+            for advice in all_advice
+        ]
+
+        response = self.client.put(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        audit_qs = Audit.objects.filter(verb=AuditType.COUNTERSIGN_ADVICE)
+        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.first().actor, self.gov_user)
