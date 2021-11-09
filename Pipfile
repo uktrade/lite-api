@@ -67,6 +67,7 @@ whitenoise = "~=5.0"
 django-audit-log-middleware = "*"
 django-extensions = "*"
 ipython = "*"
+importlib-metadata = "==4.8.1"  # Not needed for Python3.8+
 
 [requires]
 python_version = "3.7"
