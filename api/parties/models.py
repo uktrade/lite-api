@@ -46,14 +46,14 @@ class PartyManager(models.Manager):
 
 class Party(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(default=None, blank=True, max_length=100)
+    name = models.TextField(default=None, blank=True)
     address = models.TextField(default=None, blank=True, max_length=256)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     website = models.URLField(default=None, blank=True, null=True)
     signatory_name_euu = models.TextField(blank=True)
     type = models.CharField(choices=PartyType.choices, max_length=20)
     organisation = models.ForeignKey(
-        Organisation, blank=True, null=True, related_name="organisation_party", on_delete=models.DO_NOTHING,
+        Organisation, blank=True, null=True, related_name="organisation_party", on_delete=models.DO_NOTHING
     )
     flags = models.ManyToManyField(Flag, related_name="parties")
     role = models.CharField(
