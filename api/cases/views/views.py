@@ -7,8 +7,7 @@ from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.views import APIView
-
-from api.applications.serializers.advice import CountryWithFlagsSerializer
+from api.applications.serializers.advice import CountersignAdviceSerializer, CountryWithFlagsSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
@@ -89,6 +88,7 @@ from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_by_pk
+from lite_content.lite_api import strings
 
 
 class CaseDetail(APIView):
@@ -931,3 +931,32 @@ class NextReviewDate(APIView):
                 )
 
             return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class CountersignAdvice(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def put(self, request, **kwargs):
+        case = get_case(kwargs["pk"])
+
+        if CaseStatusEnum.is_terminal(case.status.status):
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = request.data
+        advice_ids = [advice["id"] for advice in data]
+
+        serializer = CountersignAdviceSerializer(
+            Advice.objects.filter(id__in=advice_ids), data=data, many=True, partial=True
+        )
+        if not serializer.is_valid():
+            return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        audit_trail_service.create(
+            actor=request.user, verb=AuditType.COUNTERSIGN_ADVICE, target=case, payload={"advice_ids": advice_ids},
+        )
+
+        return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)

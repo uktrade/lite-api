@@ -119,6 +119,7 @@ class AuditType(LiteEnum):
     LICENCE_UPDATED_STATUS = autostr()
     DOCUMENT_ON_ORGANISATION_CREATE = autostr()
     REPORT_SUMMARY_UPDATED = autostr()
+    COUNTERSIGN_ADVICE = autostr()
 
     def human_readable(self):
         """

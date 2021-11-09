@@ -57,4 +57,6 @@ urlpatterns = [
     path("<uuid:pk>/reissue-ogl/", case_actions.OpenGeneralLicenceReissue.as_view(), name="reissue_ogl"),
     path("<uuid:pk>/rerun-routing-rules/", case_actions.RerunRoutingRules.as_view(), name="rerun_routing_rules"),
     path("<uuid:pk>/review-date/", views.NextReviewDate.as_view(), name="review_date"),
+    # Advice2.0
+    path("<uuid:pk>/countersign-advice/", views.CountersignAdvice.as_view(), name="countersign_advice"),
 ]
