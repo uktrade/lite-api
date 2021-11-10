@@ -65,6 +65,9 @@ phonenumbers = "~=8.12"
 django-log-formatter-ecs = "==0.0.5"
 whitenoise = "~=5.0"
 django-audit-log-middleware = "*"
+django-extensions = "*"
+ipython = "*"
+importlib-metadata = "==4.8.1"  # Not needed for Python3.8+
 
 [requires]
 python_version = "3.7"
