@@ -106,6 +106,8 @@ class EndUserOnDraftTests(DataTestClient):
             "name": "document_name.pdf",
             "s3_key": "s3_keykey.pdf",
             "size": 123456,
+            "is_content_english": True,
+            "includes_company_letterhead": False,
         }
 
     @parameterized.expand([SubType.GOVERNMENT, SubType.COMMERCIAL, SubType.OTHER])
@@ -126,7 +128,7 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         party_on_application = PartyOnApplication.objects.get(
-            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True,
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         )
 
         self.draft.refresh_from_db()
@@ -188,7 +190,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             PartyOnApplication.objects.filter(
-                party__type=PartyType.END_USER, application=self.draft, deleted_at__isnull=True,
+                party__type=PartyType.END_USER, application=self.draft, deleted_at__isnull=True
             ).count(),
             1,
         )
