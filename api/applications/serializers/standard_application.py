@@ -39,6 +39,8 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     trade_control_product_categories = serializers.SerializerMethodField()
     sanction_matches = serializers.SerializerMethodField()
     is_amended = serializers.SerializerMethodField()
+    sent_from_gb_or_ni = serializers.CharField()
+    who_are_goods_going_to = serializers.CharField()
 
     class Meta:
         model = StandardApplication
@@ -75,6 +77,8 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "trade_control_product_categories",
                 "sanction_matches",
                 "is_amended",
+                "sent_from_gb_or_ni",
+                "who_are_goods_going_to",
             )
         )
 
@@ -133,9 +137,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
-    export_type = KeyValueChoiceField(
-        choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
-    )
+    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, required=False)
     have_you_been_informed = KeyValueChoiceField(
         choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
     )
@@ -192,15 +194,21 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
+    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, required=False)
+    sent_from_gb_or_ni = serializers.CharField()
+    who_are_goods_going_to = serializers.CharField()
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = StandardApplication
         fields = GenericApplicationUpdateSerializer.Meta.fields + (
+            "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
             "is_shipped_waybill_or_lading",
             "non_waybill_or_lading_route_details",
+            "sent_from_gb_or_ni",
+            "who_are_goods_going_to",
         )
 
     def __init__(self, *args, **kwargs):

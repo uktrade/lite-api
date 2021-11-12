@@ -130,15 +130,6 @@ def get_application_end_use_details_update_serializer(application: BaseApplicati
         )
 
 
-def get_temp_export_details_update_serializer(export_type):
-    if export_type == ApplicationExportType.TEMPORARY:
-        return TemporaryExportDetailsUpdateSerializer
-    else:
-        raise BadRequestError(
-            {f"get_temp_export_details_update_serializer does " f"not support this export type: {export_type}"}
-        )
-
-
 def validate_and_create_goods_on_licence(application_id, licence_id, data):
     errors = {}
     good_on_applications = (

@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.generics import UpdateAPIView
 
-from api.applications.helpers import get_temp_export_details_update_serializer
+from api.applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from api.applications.libraries.edit_applications import save_and_audit_temporary_export_details
 from api.applications.libraries.get_applications import get_application
 from api.cases.enums import CaseTypeSubTypeEnum
@@ -23,8 +23,7 @@ class TemporaryExportDetails(UpdateAPIView):
     @application_in_state(is_major_editable=True)
     def put(self, request, pk):
         application = get_application(pk)
-        serializer = get_temp_export_details_update_serializer(application.export_type)
-        serializer = serializer(application, data=request.data, partial=True)
+        serializer = TemporaryExportDetailsUpdateSerializer(application, data=request.data, partial=True)
 
         if serializer.is_valid(raise_exception=True):
             save_and_audit_temporary_export_details(request, application, serializer)
