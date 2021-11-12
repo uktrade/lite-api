@@ -6,7 +6,7 @@ import pytest  # noqa
 from django.conf import settings
 from rest_framework.test import APIClient
 
-from api.users.models import ExporterUser, GovUser, UserOrganisationRelationship, UserStatuses
+from api.users.models import ExporterUser, GovUser, UserOrganisationRelationship
 from api.users.libraries.user_to_token import user_to_token
 
 
