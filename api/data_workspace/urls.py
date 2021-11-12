@@ -71,6 +71,9 @@ router_v1.register("users-gov-users", users_views.GovUserListView, basename="dw-
 router_v1.register("audit-move-case", audit_views.AuditMoveCaseListView, basename="dw-audit-move-case")
 router_v1.register("advice", advice_views.AdviceListView, basename="dw-advice")
 router_v1.register(
+    "advice-denial-reasons", advice_views.AdviceDenialReasonListView, basename="dw-advice-denial-reasons"
+)
+router_v1.register(
     "audit-updated-status", audit_views.AuditUpdatedCaseStatusListView, basename="dw-audit-updated-status"
 )
 router_v1.register(
