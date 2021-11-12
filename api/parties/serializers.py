@@ -137,20 +137,22 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PartyDocument
-        fields = (
-            "id",
-            "name",
-            "s3_key",
-            "size",
-            "party",
-            "safe",
-        )
+        fields = ("id", "name", "s3_key", "size", "party", "safe", "is_content_english", "includes_company_letterhead")
 
     def create(self, validated_data):
         document = super(PartyDocumentSerializer, self).create(validated_data)
         document.save()
         process_document(document)
         return document
+
+    def validate(self, attrs):
+        validated_data = super().validate(attrs)
+        if attrs["party"].is_end_user:
+            if "is_content_english" not in attrs:
+                raise serializers.ValidationError({"is_content_english": "Required field"})
+            if "includes_company_letterhead" not in attrs:
+                raise serializers.ValidationError({"includes_company_letterhead": "Required field"})
+        return validated_data
 
 
 class AdditionalContactSerializer(serializers.ModelSerializer):
@@ -165,17 +167,7 @@ class AdditionalContactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Party
-        fields = (
-            "id",
-            "name",
-            "phone_number",
-            "email",
-            "details",
-            "address",
-            "country",
-            "type",
-            "organisation",
-        )
+        fields = ("id", "name", "phone_number", "email", "details", "address", "country", "type", "organisation")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
