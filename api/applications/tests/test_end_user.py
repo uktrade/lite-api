@@ -14,7 +14,10 @@ from test_helpers.clients import DataTestClient
 
 
 class TestEndUserDocument:
-    def test_requires_extra_fields_for_end_user(self, end_user, exporter_client_with_standard_application):
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    def test_requires_extra_fields_for_end_user(
+        self, scan_document_for_viruses_function, end_user, exporter_client_with_standard_application
+    ):
         """
         For end-user we require to know if the content is in English and
         if company letterhead is there (LTD-1368)
