@@ -72,3 +72,13 @@ def end_user(party_factory):
     from api.parties.enums import PartyType
 
     return party_factory(type=PartyType.END_USER)
+
+
+@pytest.fixture
+def standard_application(standard_application_factory):
+    return standard_application_factory()
+
+
+@pytest.fixture
+def open_application(open_application_factory):
+    return open_application_factory()
