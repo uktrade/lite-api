@@ -62,3 +62,13 @@ def {fixture_name}(db):
 if settings.DEBUG:
     for fixture_name in sorted(fixture_names):
         print(f"pytest.fixture: {fixture_name}")
+
+
+# -------------------------- Fixtures ---------------------------
+
+
+@pytest.fixture
+def end_user(party_factory):
+    from api.parties.enums import PartyType
+
+    return party_factory(type=PartyType.END_USER)
