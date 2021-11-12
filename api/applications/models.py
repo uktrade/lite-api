@@ -179,7 +179,23 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
 # Licence Applications
 class StandardApplication(BaseApplication):
-    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
+    GB = "GB"
+    NI = "NI"
+    GOODS_STARTING_POINT_CHOICES = [
+        (GB, "Great Britain"),
+        (NI, "Northern Ireland"),
+    ]
+    DIRECT_TO_END_USER = "direct_to_end_user"
+    VIA_CONSIGNEE = "via_consignee"
+    VIA_CONSIGNEE_AND_THIRD_PARTIES = "via_consignee_and_third_parties"
+
+    GOODS_RECIPIENTS_CHOICES = [
+        (DIRECT_TO_END_USER, "Directly to the end-user"),
+        (VIA_CONSIGNEE, "To an end-user via a consignee"),
+        (VIA_CONSIGNEE_AND_THIRD_PARTIES, "To an end-user via a consignee, with additional third parties"),
+    ]
+
+    export_type = models.CharField(choices=ApplicationExportType.choices, blank=True, default="", max_length=50)
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, blank=True, null=True, default=None, max_length=50,
@@ -197,6 +213,8 @@ class StandardApplication(BaseApplication):
     trade_control_product_categories = SeparatedValuesField(
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
+    goods_recipients = models.CharField(choices=GOODS_RECIPIENTS_CHOICES, default="", max_length=100)
+    goods_starting_point = models.CharField(choices=GOODS_STARTING_POINT_CHOICES, default="", max_length=2)
 
 
 class OpenApplication(BaseApplication):
