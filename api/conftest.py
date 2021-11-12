@@ -72,13 +72,17 @@ if settings.DEBUG:
 
 
 class LiteClient(APIClient):
+    """
+    APIClient from rest_framework with appropriate headers when we login()
+    """
+
     def __init__(self, *args, **kwargs):
         self.headers = {}
         super().__init__(*args, **kwargs)
 
     def login(self, user, organisation=None):
         """
-        Set headers appropriately for given user
+        Set headers appropriately for exporter and gov user
 
         If no organisation given for exporter, an existing one will be used
         """
@@ -108,7 +112,8 @@ class LiteClient(APIClient):
             }
 
         elif isinstance(user, GovUser):
-            assert not organisation, "No organisation required for gov user"
+            if organisation:
+                raise Exception("No organisation required for gov user")
             self.headers = {"HTTP_GOV_USER_TOKEN": user_to_token(user)}
         else:
             raise Exception(f"Unknown user type: {user}")
