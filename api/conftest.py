@@ -68,10 +68,10 @@ if settings.DEBUG:
 
 
 @pytest.fixture
-def end_user(party_factory):
+def end_user(party_factory, party_on_application_factory):
     from api.parties.enums import PartyType
 
-    return party_factory(type=PartyType.END_USER)
+    return party_on_application_factory(party=party_factory(type=PartyType.END_USER))
 
 
 @pytest.fixture
