@@ -77,6 +77,10 @@ class Party(TimestampableModel):
     def __repr__(self):
         return f"<{self.__class__.__name__} ({self.type}): {self.pk}>"
 
+    @property
+    def is_end_user(self):
+        return self.type == PartyType.END_USER
+
     class Meta:
         ordering = ["name"]
 
