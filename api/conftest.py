@@ -135,6 +135,20 @@ class LiteClient(APIClient):
         return super().options(*args, **kwargs, **self.headers)
 
 
+@pytest.fixture
+def exporter_client_with_standard_application(exporter_user_factory, standard_application_factory):
+    """
+    Return: A client logged-in as exporter and their application
+    """
+    exporter_user = exporter_user_factory()
+    relation = UserOrganisationRelationship.objects.get(user=exporter_user)
+    organisation = relation.organisation
+    standard_application = standard_application_factory(organisation=organisation)
+    client = LiteClient()
+    client.login(exporter_user, organisation)
+    return client, standard_application
+
+
 # -------------------------- Fixtures ---------------------------
 
 
