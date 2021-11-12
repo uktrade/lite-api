@@ -60,7 +60,13 @@ class EndUserOnDraftTests(DataTestClient):
             "applications:party_document", kwargs={"pk": self.draft.id, "party_pk": self.draft.end_user.party.id}
         )
 
-        self.new_document_data = {"name": "document_name.pdf", "s3_key": "s3_keykey.pdf", "size": 123456}
+        self.new_document_data = {
+            "name": "document_name.pdf",
+            "s3_key": "s3_keykey.pdf",
+            "size": 123456,
+            "is_content_english": True,
+            "includes_company_letterhead": False,
+        }
 
     @parameterized.expand([SubType.GOVERNMENT, SubType.COMMERCIAL, SubType.OTHER])
     def test_set_end_user_on_draft_standard_application_successful(self, data_type):
