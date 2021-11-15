@@ -45,6 +45,25 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertEqual(StandardApplication.objects.count(), 1)
 
+    def test_create_draft_standard_individual_export_application_empty_export_type_successful(self):
+        """
+        Ensure we can create a new standard individual export application draft without the export_type field populated
+        """
+        data = {
+            "name": "Test",
+            "application_type": CaseTypeReferenceEnum.SIEL,
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "123",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
+        standard_application = StandardApplication.objects.get()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["id"], str(standard_application.id))
+        self.assertEqual(StandardApplication.objects.count(), 1)
+
     def test_create_draft_exhibition_clearance_application_successful(self):
         """
         Ensure we can create a new Exhibition Clearance draft object
