@@ -206,7 +206,9 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         update_serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()
-        serializer = update_serializer(application, data=data, context=get_request_user_organisation(request), partial=True)
+        serializer = update_serializer(
+            application, data=data, context=get_request_user_organisation(request), partial=True
+        )
 
         # Prevent minor edits of the clearance level
         if not application.is_major_editable() and request.data.get("clearance_level"):
