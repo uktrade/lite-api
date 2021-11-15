@@ -181,7 +181,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
 class StandardApplication(BaseApplication):
     GB = "GB"
     NI = "NI"
-    SENT_FROM_GB_OR_NI_CHOICES = [
+    GOODS_STARTING_POINT_CHOICES = [
         (GB, "Great Britain"),
         (NI, "Northern Ireland"),
     ]
@@ -214,7 +214,7 @@ class StandardApplication(BaseApplication):
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
     who_are_goods_going_to = models.CharField(choices=WHO_ARE_GOODS_GOING_TO_CHOICES, default="", max_length=100)
-    sent_from_gb_or_ni = models.CharField(choices=SENT_FROM_GB_OR_NI_CHOICES, default="", max_length=2)
+    goods_starting_point = models.CharField(choices=GOODS_STARTING_POINT_CHOICES, default="", max_length=2)
 
 
 class OpenApplication(BaseApplication):

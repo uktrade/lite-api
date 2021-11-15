@@ -39,7 +39,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     trade_control_product_categories = serializers.SerializerMethodField()
     sanction_matches = serializers.SerializerMethodField()
     is_amended = serializers.SerializerMethodField()
-    sent_from_gb_or_ni = serializers.CharField()
+    goods_starting_point = serializers.CharField()
     who_are_goods_going_to = serializers.CharField()
 
     class Meta:
@@ -77,7 +77,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "trade_control_product_categories",
                 "sanction_matches",
                 "is_amended",
-                "sent_from_gb_or_ni",
+                "goods_starting_point",
                 "who_are_goods_going_to",
             )
         )
@@ -195,7 +195,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, required=False)
-    sent_from_gb_or_ni = serializers.CharField()
+    goods_starting_point = serializers.CharField()
     who_are_goods_going_to = serializers.CharField()
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
@@ -207,7 +207,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "reference_number_on_information_form",
             "is_shipped_waybill_or_lading",
             "non_waybill_or_lading_route_details",
-            "sent_from_gb_or_ni",
+            "goods_starting_point",
             "who_are_goods_going_to",
         )
 
