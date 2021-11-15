@@ -195,7 +195,7 @@ class StandardApplication(BaseApplication):
         (VIA_CONSIGNEE_AND_THIRD_PARTIES, "To an end-user via a consignee, with additional third parties"),
     ]
 
-    export_type = models.CharField(choices=ApplicationExportType.choices, null=True, blank=True, default=None, max_length=50)
+    export_type = models.CharField(choices=ApplicationExportType.choices, blank=True, default="", max_length=50)
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, blank=True, null=True, default=None, max_length=50,
