@@ -40,7 +40,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     sanction_matches = serializers.SerializerMethodField()
     is_amended = serializers.SerializerMethodField()
     goods_starting_point = serializers.CharField()
-    who_are_goods_going_to = serializers.CharField()
+    goods_recipients = serializers.CharField()
 
     class Meta:
         model = StandardApplication
@@ -78,7 +78,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "sanction_matches",
                 "is_amended",
                 "goods_starting_point",
-                "who_are_goods_going_to",
+                "goods_recipients",
             )
         )
 
@@ -196,7 +196,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, required=False)
     goods_starting_point = serializers.CharField()
-    who_are_goods_going_to = serializers.CharField()
+    goods_recipients = serializers.CharField()
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
@@ -208,7 +208,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "is_shipped_waybill_or_lading",
             "non_waybill_or_lading_route_details",
             "goods_starting_point",
-            "who_are_goods_going_to",
+            "goods_recipients",
         )
 
     def __init__(self, *args, **kwargs):

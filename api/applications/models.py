@@ -189,7 +189,7 @@ class StandardApplication(BaseApplication):
     VIA_CONSIGNEE = "via_consignee"
     VIA_CONSIGNEE_AND_THIRD_PARTIES = "via_consignee_and_third_parties"
 
-    WHO_ARE_GOODS_GOING_TO_CHOICES = [
+    GOODS_RECIPIENTS_CHOICES = [
         (DIRECT_TO_END_USER, "Directly to the end-user"),
         (VIA_CONSIGNEE, "To an end-user via a consignee"),
         (VIA_CONSIGNEE_AND_THIRD_PARTIES, "To an end-user via a consignee, with additional third parties"),
@@ -213,7 +213,7 @@ class StandardApplication(BaseApplication):
     trade_control_product_categories = SeparatedValuesField(
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
-    who_are_goods_going_to = models.CharField(choices=WHO_ARE_GOODS_GOING_TO_CHOICES, default="", max_length=100)
+    goods_recipients = models.CharField(choices=GOODS_RECIPIENTS_CHOICES, default="", max_length=100)
     goods_starting_point = models.CharField(choices=GOODS_STARTING_POINT_CHOICES, default="", max_length=2)
 
 
