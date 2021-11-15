@@ -82,7 +82,7 @@ class DraftTests(DataTestClient):
 
     def test_create_draft_gifting_clearance_application_successful(self):
         """
-        Ensure we can create a new Exhibition Clearance draft object
+        Ensure we can create a new Gifting Clearance draft object
         """
         self.assertEqual(GiftingClearanceApplication.objects.count(), 0)
 
@@ -101,7 +101,7 @@ class DraftTests(DataTestClient):
 
     def test_create_draft_f680_clearance_application_successful(self):
         """
-        Ensure we can create a new Exhibition Clearance draft object
+        Ensure we can create a new F680 Clearance draft object
         """
         self.assertEqual(F680ClearanceApplication.objects.count(), 0)
 
