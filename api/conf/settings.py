@@ -113,6 +113,9 @@ INSTALLED_APPS = [
     "django_audit_log_middleware",
 ]
 
+if DEBUG:
+    INSTALLED_APPS += ["django_extensions"]
+
 MIDDLEWARE = [
     "allow_cidr.middleware.AllowCIDRMiddleware",
     "django.middleware.security.SecurityMiddleware",
