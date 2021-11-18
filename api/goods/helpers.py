@@ -67,17 +67,6 @@ def validate_information_security(data):
         )
 
 
-def get_sporting_shortgun_errormsg(firearm_type):
-    error = {
-        "firearms": "Select yes if the product is a sporting shotgun",
-        "ammunition": "Select yes if the product is sporting shotgun ammunition",
-        "components_for_firearms": "Select yes if the product is a component of a sporting shotgun",
-        "components_for_ammunition": "Select yes if the product is a component of sporting shotgun ammunition",
-    }
-
-    return error.get(firearm_type, "Invalid firearm product type")
-
-
 def validate_identification_markings(validated_data):
 
     if "type" in validated_data and validated_data.get("type") not in FIREARMS_CORE_TYPES:
@@ -201,7 +190,7 @@ def check_if_unsupported_fields_edited_on_firearm_good(data):
 
 def has_valid_certificate(organisation_id, document_type):
     certificate_exists = DocumentOnOrganisation.objects.filter(
-        organisation=organisation_id, document_type=document_type,
+        organisation=organisation_id, document_type=document_type
     ).first()
 
     if certificate_exists and timezone.now().date() < certificate_exists.expiry_date:

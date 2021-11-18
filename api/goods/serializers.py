@@ -25,7 +25,6 @@ from api.goods.helpers import (
     validate_identification_markings,
     validate_firearms_act_section,
     validate_firearms_act_certificate_expiry_date,
-    get_sporting_shortgun_errormsg,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails, GoodControlListEntry
 from api.gov_users.serializers import GovUserSimpleSerializer
@@ -100,7 +99,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     calibre = serializers.CharField(
         allow_blank=True, required=False, error_messages={"null": strings.Goods.FIREARM_GOOD_NO_CALIBRE}
     )
-    is_sporting_shotgun = serializers.BooleanField(allow_null=True, required=False)
     is_replica = serializers.BooleanField(allow_null=True, required=False)
     replica_description = serializers.CharField(allow_blank=True, required=False)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
@@ -135,7 +133,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "type",
             "year_of_manufacture",
             "calibre",
-            "is_sporting_shotgun",
             "is_replica",
             "replica_description",
             "is_covered_by_firearm_act_section_one_two_or_five",
@@ -193,11 +190,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
         # Identification markings - mandatory question
         validate_identification_markings(validated_data)
-
-        if "is_sporting_shotgun" in validated_data and validated_data.get("is_sporting_shotgun") is None:
-            raise serializers.ValidationError(
-                {"is_sporting_shotgun": [get_sporting_shortgun_errormsg(validated_data.get("type"))]}
-            )
 
         if validated_data.get("has_proof_mark") is False and validated_data.get("no_proof_mark_details") == "":
             raise serializers.ValidationError({"no_proof_mark_details": ["This field is required"]})
@@ -288,8 +280,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
         instance.serial_numbers = validated_data.get("serial_numbers", instance.serial_numbers)
 
-        instance.is_sporting_shotgun = validated_data.get("is_sporting_shotgun", instance.is_sporting_shotgun)
-
         if instance.type != "firearms":
             instance.is_replica = None
             instance.replica_description = ""
@@ -297,7 +287,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         if instance.type not in FIREARMS_CORE_TYPES:
             instance.is_covered_by_firearm_act_section_one_two_or_five = ""
             instance.has_identification_markings = None
-            instance.is_sporting_shotgun = None
             instance.year_of_manufacture = None
             instance.calibre = ""
             instance.section_certificate_number = ""
