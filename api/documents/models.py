@@ -3,6 +3,7 @@ import uuid
 
 from django.db import models
 from django.utils.timezone import now
+from django.conf import settings
 
 from api.common.models import TimestampableModel
 from api.documents.libraries import s3_operations, av_operations
@@ -26,6 +27,12 @@ class Document(TimestampableModel):
 
     def scan_for_viruses(self):
         """Retrieves the document's file from S3 and scans it for viruses."""
+
+        if settings.FAKE_ANTIVIRUS:
+            self.safe = True
+            self.virus_scanned_at = now()
+            self.save()
+            return self.safe
 
         file = s3_operations.get_object(self.id, self.s3_key)
 

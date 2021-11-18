@@ -32,6 +32,7 @@ env = Env(
     EXPORTER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
+    FAKE_ANTIVIRUS=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -250,6 +251,7 @@ S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180
 STREAMING_CHUNK_SIZE = 8192
 
 # AV
+FAKE_ANTIVIRUS = env("FAKE_ANTIVIRUS")
 AV_SERVICE_URL = env("AV_SERVICE_URL")
 AV_SERVICE_USERNAME = env("AV_SERVICE_USERNAME")
 AV_SERVICE_PASSWORD = env("AV_SERVICE_PASSWORD")
