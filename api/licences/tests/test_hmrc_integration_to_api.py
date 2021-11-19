@@ -88,29 +88,31 @@ class HMRCIntegrationUsageTests(DataTestClient):
     )
     def test_update_usages_accepted_licence_standard_applications(self, create_licence):
         licence = create_licence(self)
-        original_usage = licence.goods.first().usage
+        gol_first = licence.goods.first()
+        original_usage = gol_first.usage
         usage_data_id = str(uuid.uuid4())
         usage_data = 10
         licence_update = {
             "id": str(licence.id),
             "action": HMRCIntegrationActionEnum.OPEN,
-            "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_data}],
+            "goods": [{"id": str(gol_first.good.id), "usage": usage_data}],
         }
 
         response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
+        gol_first.refresh_from_db()
         self.assertEqual(
             response.json()["licences"]["accepted"], [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
-        self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
+        self.assertEqual(gol_first.usage, original_usage + usage_data)
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
         self.assertTrue(
             Audit.objects.filter(
                 verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
                 payload={
-                    "good_description": licence.goods.first().good.good.description,
+                    "good_description": gol_first.good.good.name or gol_first.good.good.description,
                     "usage": original_usage + usage_data,
                     "licence": licence.reference_code,
                 },
@@ -288,7 +290,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence_update = {
             "id": str(licence.id),
             "action": HMRCIntegrationActionEnum.OPEN,
-            "goods": [{"id": str(gol.good.good.id), "usage": usage_data}],
+            "goods": [{"id": str(gol.good.id), "usage": usage_data}],
         }
 
         response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
@@ -323,7 +325,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence_update = {
             "id": str(licence.id),
             "action": HMRCIntegrationActionEnum.EXHAUST,
-            "goods": [{"id": str(gol.good.good.id), "usage": usage_data}],
+            "goods": [{"id": str(gol.good.id), "usage": usage_data}],
         }
 
         response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
@@ -360,7 +362,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence_update = {
             "id": str(licence.id),
             "action": HMRCIntegrationActionEnum.EXHAUST,
-            "goods": [{"id": str(gol.good.good.id), "usage": usage_data}],
+            "goods": [{"id": str(gol.good.id), "usage": usage_data}],
         }
 
         response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
@@ -401,7 +403,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence_update = {
             "id": str(licence.id),
             "action": HMRCIntegrationActionEnum.OPEN,
-            "goods": [{"id": str(gol.good.good.id), "usage": usage_data}],
+            "goods": [{"id": str(gol.good.id), "usage": usage_data}],
         }
 
         response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
@@ -435,7 +437,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence_update = {
             "id": str(licence.id),
             "action": HMRCIntegrationActionEnum.OPEN,
-            "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_data}],
+            "goods": [{"id": str(licence.goods.first().good.id), "usage": usage_data}],
         }
         self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
         original_usage = licence.goods.first().usage
@@ -461,7 +463,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
                     {
                         "id": str(licence.id),
                         "action": HMRCIntegrationActionEnum.OPEN,
-                        "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_data}],
+                        "goods": [{"id": str(licence.goods.first().good.id), "usage": usage_data}],
                     }
                 ],
             },
@@ -500,7 +502,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         usage_data = 10
         licence_update = {
             "action": HMRCIntegrationActionEnum.OPEN,
-            "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_data}],
+            "goods": [{"id": str(licence.goods.first().good.id), "usage": usage_data}],
         }
 
         response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
@@ -527,7 +529,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
                     {
                         "action": HMRCIntegrationActionEnum.OPEN,
                         "id": str(uuid.uuid4()),
-                        "goods": [{"id": str(licence.goods.first().good.good.id), "usage": 10}],
+                        "goods": [{"id": str(licence.goods.first().good.id), "usage": 10}],
                     }
                 ],
             },
@@ -552,7 +554,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {
                 "usage_data_id": usage_data_id,
                 "licences": [
-                    {"id": str(licence.id), "goods": [{"id": str(licence.goods.first().good.good.id), "usage": 10}],}
+                    {"id": str(licence.id), "goods": [{"id": str(licence.goods.first().good.id), "usage": 10}],}
                 ],
             },
         )
@@ -579,7 +581,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
                     {
                         "id": str(licence.id),
                         "action": "i_am_invalid",
-                        "goods": [{"id": str(licence.goods.first().good.good.id), "usage": 10}],
+                        "goods": [{"id": str(licence.goods.first().good.id), "usage": 10}],
                     }
                 ],
             },
@@ -685,7 +687,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
                     {
                         "id": str(licence.id),
                         "action": HMRCIntegrationActionEnum.OPEN,
-                        "goods": [{"id": str(licence.goods.first().good.good.id)}],
+                        "goods": [{"id": str(licence.goods.first().good.id)}],
                     }
                 ],
             },
@@ -713,12 +715,12 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {
                 "id": str(licence.id),
                 "action": HMRCIntegrationActionEnum.OPEN,
-                "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_data}],
+                "goods": [{"id": str(licence.goods.first().good.id), "usage": usage_data}],
             },
             {
                 "id": invalid_licence_id,
                 "action": HMRCIntegrationActionEnum.OPEN,
-                "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_data}],
+                "goods": [{"id": str(licence.goods.first().good.id), "usage": usage_data}],
             },
         ]
 
@@ -748,7 +750,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {
                 "id": str(licence_1.id),
                 "action": HMRCIntegrationActionEnum.OPEN,
-                "goods": [{"id": str(licence_1.goods.first().good.good.id), "usage": usage_data}],
+                "goods": [{"id": str(licence_1.goods.first().good.id), "usage": usage_data}],
             },
             {
                 "id": str(licence_2.id),
@@ -779,7 +781,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         original_usage = licence.goods.first().usage
         usage_data_id = str(uuid.uuid4())
         usage_data = 10
-        accepted_good = {"id": str(licence.goods.first().good.good.id), "usage": usage_data}
+        accepted_good = {"id": str(licence.goods.first().good.id), "usage": usage_data}
         rejected_good = {"id": str(uuid.uuid4()), "usage": usage_data}
 
         response = self.client.put(
@@ -817,13 +819,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence_1 = create_licence(self)
         licence_1_original_usage = licence_1.goods.first().usage
         licence_2 = create_licence(self)
-        expected_accepted_good = {"id": str(licence_2.goods.first().good.good.id), "usage": usage_data}
+        expected_accepted_good = {"id": str(licence_2.goods.first().good.id), "usage": usage_data}
         expected_rejected_good = {"id": str(uuid.uuid4()), "usage": usage_data}
         licence_updates = [
             {
                 "id": str(licence_1.id),
                 "action": HMRCIntegrationActionEnum.OPEN,
-                "goods": [{"id": str(licence_1.goods.first().good.good.id), "usage": usage_data}],
+                "goods": [{"id": str(licence_1.goods.first().good.id), "usage": usage_data}],
             },
             {
                 "id": str(licence_2.id),
@@ -846,3 +848,41 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(licence_1.goods.first().usage, licence_1_original_usage + usage_data)
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence_1).exists())
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence_2).exists())
+
+    def test_licence_usage_updated_with_same_product_added_multiple_times(self):
+        standard_application = self.create_standard_application_case(self.organisation, num_products=5, reuse_good=True)
+        self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        licence = self.create_licence(standard_application, status=LicenceStatus.ISSUED)
+        self._create_good_on_licence(licence, standard_application.goods.first())
+
+        quantity_used = 1
+        original_usage = [gol.usage for gol in licence.goods.all()]
+        usage_data_id = str(uuid.uuid4())
+        licence_update = {
+            "id": str(licence.id),
+            "action": HMRCIntegrationActionEnum.OPEN,
+            "goods": [{"id": str(gol.good.id), "usage": 1} for gol in licence.goods.all()],
+        }
+
+        response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
+
+        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
+        self.assertEqual(
+            response.json()["licences"]["accepted"], [licence_update],
+        )
+        self.assertEqual(response.json()["licences"]["rejected"], [])
+        self.assertEqual(
+            [gol.usage for gol in licence.goods.all()], [prev_usage + quantity_used for prev_usage in original_usage]
+        )
+        self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
+        for index, gol in enumerate(licence.goods.all()):
+            self.assertTrue(
+                Audit.objects.filter(
+                    verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
+                    payload={
+                        "good_description": gol.good.good.name or gol.good.good.description,
+                        "usage": original_usage[index] + quantity_used,
+                        "licence": licence.reference_code,
+                    },
+                ).exists()
+            )

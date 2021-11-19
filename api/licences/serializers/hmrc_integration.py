@@ -48,7 +48,7 @@ class HMRCIntegrationEndUserSerializer(serializers.Serializer):
 
 
 class HMRCIntegrationGoodOnLicenceSerializer(serializers.Serializer):
-    id = serializers.UUIDField(source="good.good.id")
+    id = serializers.UUIDField(source="good.id")
     usage = serializers.FloatField()
     name = serializers.CharField(source="good.good.name")
     description = serializers.CharField(source="good.good.description")
