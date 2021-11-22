@@ -681,6 +681,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         user: ExporterUser = None,
         good=None,
         num_products=1,
+        reuse_good=False,
     ):
         if not user:
             user = UserOrganisationRelationship.objects.filter(organisation_id=organisation.id).first().user
@@ -720,9 +721,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                     value=500,
                 )
             else:
+                if reuse_good:
+                    good = GoodFactory(organisation=organisation, is_good_controlled=True)
                 for _ in range(num_products):
                     GoodOnApplication.objects.create(
-                        good=GoodFactory(organisation=organisation, is_good_controlled=True),
+                        good=good if reuse_good else GoodFactory(organisation=organisation, is_good_controlled=True),
                         application=application,
                         quantity=random.randint(1, 50),
                         unit=Units.NAR,
@@ -946,12 +949,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         site=True,
         user=None,
         num_products=1,
+        reuse_good=False,
     ):
         """
         Creates a complete standard application case
         """
         draft = self.create_draft_standard_application(
-            organisation, reference_name, parties=parties, site=site, user=user, num_products=num_products
+            organisation,
+            reference_name,
+            parties=parties,
+            site=site,
+            user=user,
+            num_products=num_products,
+            reuse_good=reuse_good,
         )
 
         return self.submit_application(draft, self.exporter_user)
