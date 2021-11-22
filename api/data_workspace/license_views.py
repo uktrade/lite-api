@@ -44,7 +44,7 @@ class OpenGeneralLicenceListDW(viewsets.ReadOnlyModelViewSet):
 
 class GoodOnLicenceList(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = serializers.GoodOnLicenceViewSerializer
+    serializer_class = serializers.GoodOnLicenceReportsViewSerializer
     pagination_class = LimitOffsetPagination
     queryset = models.GoodOnLicence.objects.all()
 
