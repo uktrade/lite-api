@@ -104,3 +104,9 @@ class AuditUpdatedLicenceStatusSerializer(serializers.ModelSerializer):
 
     def get_status(self, instance):
         return instance.payload["status"].lower()
+
+
+class AdviceDenialReasonSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    advice_id = serializers.UUIDField()
+    denialreason_id = serializers.CharField()

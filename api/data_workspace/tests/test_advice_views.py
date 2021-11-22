@@ -52,3 +52,27 @@ class AdviceDataWorkspaceTests(DataTestClient):
             "countersign_comments",
         }
         assert set(last_result.keys()) == expected_fields
+
+
+class AdviceDenialReasonsDataWorkspaceTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.standard_application = self.create_standard_application_case(self.organisation)
+        self.create_advice(
+            self.gov_user,
+            self.standard_application,
+            "good",
+            AdviceType.REFUSE,
+            AdviceLevel.FINAL,
+            advice_text="advice_text",
+        )
+
+    def test_advice_denial_reason(self):
+        url = reverse("data_workspace:dw-advice-denial-reasons-list")
+        response = self.client.get(url)
+        payload = response.json()
+        last_result = payload["results"][-1]
+
+        # Ensure we get some expected fields
+        expected_fields = {"id", "advice_id", "denialreason_id"}
+        assert set(last_result.keys()) == expected_fields
