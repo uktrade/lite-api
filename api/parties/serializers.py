@@ -149,9 +149,13 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         validated_data = super().validate(attrs)
         if attrs["party"].is_end_user:
             if "is_content_english" not in attrs:
-                raise serializers.ValidationError({"is_content_english": "Required field"})
+                raise serializers.ValidationError({"is_content_english": "Select if the document is in English"})
             if "includes_company_letterhead" not in attrs:
-                raise serializers.ValidationError({"includes_company_letterhead": "Required field"})
+                raise serializers.ValidationError(
+                    {
+                        "includes_company_letterhead": "Select if the document includes at least one page on company letterhead"
+                    }
+                )
         return validated_data
 
 
