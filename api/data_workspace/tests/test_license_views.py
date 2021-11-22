@@ -77,6 +77,8 @@ class DataWorkspaceTests(DataTestClient):
             "licenced_value_per_item",
             "control_list_entries",
             "advice",
+            "id",
+            "licence_id",
         )
 
         response = self.client.get(url)

@@ -172,6 +172,12 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
             return float(instance.value) / instance.quantity
 
 
+class GoodOnLicenceReportsViewSerializer(GoodOnLicenceViewSerializer):
+    id = serializers.UUIDField()
+    good_on_application_id = serializers.UUIDField(source="good.id")
+    licence_id = serializers.UUIDField(source="licence.id")
+
+
 class LicenceSerializer(serializers.ModelSerializer):
     application = ApplicationLicenceSerializer(source="case.baseapplication")
     goods = serializers.SerializerMethodField()
