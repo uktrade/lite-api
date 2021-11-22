@@ -113,7 +113,10 @@ def _validate_consignee(draft, errors, is_mandatory):
     (with a document if is_document_mandatory)
     """
 
-    if draft.goods_recipients == StandardApplication.VIA_CONSIGNEE or draft.goods_recipients == StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES:
+    if (
+        draft.goods_recipients == StandardApplication.VIA_CONSIGNEE
+        or draft.goods_recipients == StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES
+    ):
         consignee_errors = check_party_error(
             draft.consignee.party if draft.consignee else None,
             object_not_found_error=strings.Applications.Standard.NO_CONSIGNEE_SET,
