@@ -7,7 +7,6 @@ from api.applications.models import (
     CountryOnApplication,
     GoodOnApplication,
     SiteOnApplication,
-    ExternalLocationOnApplication,
     StandardApplication,
 )
 from api.cases.enums import CaseTypeSubTypeEnum
