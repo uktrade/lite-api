@@ -213,8 +213,8 @@ class StandardApplication(BaseApplication):
     trade_control_product_categories = SeparatedValuesField(
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
-    goods_recipients = models.CharField(choices=GOODS_RECIPIENTS_CHOICES, default="", max_length=100)
-    goods_starting_point = models.CharField(choices=GOODS_STARTING_POINT_CHOICES, default="", max_length=2)
+    goods_recipients = models.TextField(choices=GOODS_RECIPIENTS_CHOICES, default="", max_length=100)
+    goods_starting_point = models.TextField(choices=GOODS_STARTING_POINT_CHOICES, default="", max_length=2)
 
 
 class OpenApplication(BaseApplication):
