@@ -30,12 +30,6 @@ class ExporterUserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ExporterUser
 
-    @factory.post_generation
-    def add_organisation(exporter_user, create, extracted, **kwargs):
-        if create:
-            organisation = kwargs.get("organisation", OrganisationFactory())
-            UserOrganisationRelationshipFactory(user=exporter_user, organisation=organisation)
-
 
 class RoleFactory(factory.django.DjangoModelFactory):
     name = "fake_role"

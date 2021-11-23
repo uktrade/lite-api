@@ -16,11 +16,6 @@ class Document(TimestampableModel):
     virus_scanned_at = models.DateTimeField(null=True, blank=True)
     safe = models.NullBooleanField()
 
-    is_content_english = models.BooleanField(null=True, help_text="Is the document in English?")
-    includes_company_letterhead = models.BooleanField(
-        null=True, help_text="Does the document include at least one page on company letterhead?"
-    )
-
     def __str__(self):
         return self.name
 

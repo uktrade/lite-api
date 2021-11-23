@@ -113,11 +113,6 @@ INSTALLED_APPS = [
     "django_audit_log_middleware",
 ]
 
-
-if DEBUG:
-    INSTALLED_APPS += ["django_extensions"]
-
-
 MIDDLEWARE = [
     "allow_cidr.middleware.AllowCIDRMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -293,7 +288,9 @@ ELASTICSEARCH_APPLICATION_INDEX_ALIAS = env.str("ELASTICSEARCH_APPLICATION_INDEX
 # Elasticsearch configuration
 LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
 if LITE_API_ENABLE_ES:
-    ELASTICSEARCH_DSL = {"default": {"hosts": env.str("ELASTICSEARCH_HOST")}}
+    ELASTICSEARCH_DSL = {
+        "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
+    }
 
     ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
 
@@ -306,7 +303,10 @@ if LITE_API_ENABLE_ES:
         ELASTICSEARCH_APPLICATION_INDEXES["SPIRE"] = SPIRE_APPLICATION_INDEX_NAME
         ELASTICSEARCH_PRODUCT_INDEXES["SPIRE"] = SPIRE_PRODUCT_INDEX_NAME
 
-    INSTALLED_APPS += ["django_elasticsearch_dsl", "django_elasticsearch_dsl_drf"]
+    INSTALLED_APPS += [
+        "django_elasticsearch_dsl",
+        "django_elasticsearch_dsl_drf",
+    ]
 
 
 if "test" not in sys.argv:
@@ -389,7 +389,10 @@ SIGNING_REASON = env("SIGNING_REASON")
 if DEBUG and "django_extensions" in sys.modules:
     INSTALLED_APPS.append("django_extensions")
 
-    GRAPH_MODELS = {"all_applications": False, "group_models": True}
+    GRAPH_MODELS = {
+        "all_applications": False,
+        "group_models": True,
+    }
 
 
 # SSO config
