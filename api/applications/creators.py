@@ -7,6 +7,7 @@ from api.applications.models import (
     CountryOnApplication,
     GoodOnApplication,
     SiteOnApplication,
+    ExternalLocationOnApplication,
     StandardApplication,
 )
 from api.cases.enums import CaseTypeSubTypeEnum
@@ -20,12 +21,25 @@ from api.parties.models import PartyDocument
 
 
 def _validate_locations(application, errors):
+    """ Site & External location errors """
+    if (
+        not SiteOnApplication.objects.filter(application=application).exists()
+        and not ExternalLocationOnApplication.objects.filter(application=application).exists()
+        and not getattr(application, "have_goods_departed", False)
+        and not getattr(application, "goodstype_category", None) == GoodsTypeCategory.CRYPTOGRAPHIC
+    ):
+        errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
+
+    return errors
+
+
+def _validate_siel_locations(application, errors):
     """ Location errors """
     if (
         not getattr(application, "export_type")
-        and not getattr(application, "is_shipped_waybill_or_lading")
-        and not getattr(application, "goods_recipients")
-        and not getattr(application, "goods_starting_point")
+        or not getattr(application, "is_shipped_waybill_or_lading")
+        or not getattr(application, "goods_recipients")
+        or not getattr(application, "goods_starting_point")
     ):
         errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
 
@@ -331,7 +345,7 @@ def _validate_exhibition_details(draft, errors):
 def _validate_standard_licence(draft, errors):
     """ Checks that a standard licence has all party types & goods """
 
-    errors = _validate_locations(draft, errors)
+    errors = _validate_siel_locations(draft, errors)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
