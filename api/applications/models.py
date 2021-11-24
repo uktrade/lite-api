@@ -195,7 +195,7 @@ class StandardApplication(BaseApplication):
         (VIA_CONSIGNEE_AND_THIRD_PARTIES, "To an end-user via a consignee, with additional third parties"),
     ]
 
-    export_type = models.CharField(choices=ApplicationExportType.choices, blank=True, default="", max_length=50)
+    export_type = models.TextField(choices=ApplicationExportType.choices, blank=True, default="")
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, blank=True, null=True, default=None, max_length=50,
@@ -213,8 +213,8 @@ class StandardApplication(BaseApplication):
     trade_control_product_categories = SeparatedValuesField(
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
-    goods_recipients = models.TextField(choices=GOODS_RECIPIENTS_CHOICES, default="", max_length=100)
-    goods_starting_point = models.TextField(choices=GOODS_STARTING_POINT_CHOICES, default="", max_length=2)
+    goods_recipients = models.TextField(choices=GOODS_RECIPIENTS_CHOICES, default="")
+    goods_starting_point = models.TextField(choices=GOODS_STARTING_POINT_CHOICES, default="")
 
 
 class OpenApplication(BaseApplication):
