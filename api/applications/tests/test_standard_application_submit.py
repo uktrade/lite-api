@@ -61,6 +61,9 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_submit_standard_application_without_location_info_failure(self):
+        self.draft.goods_recipients = ""
+        self.draft.goods_starting_point = ""
+        self.draft.save()
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)

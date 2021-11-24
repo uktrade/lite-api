@@ -689,6 +689,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application = StandardApplication(
             name=reference_name,
             export_type=ApplicationExportType.PERMANENT,
+            goods_recipients=StandardApplication.VIA_CONSIGNEE,
+            goods_starting_point=StandardApplication.GB,
             case_type_id=case_type_id,
             have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
             reference_number_on_information_form="",
