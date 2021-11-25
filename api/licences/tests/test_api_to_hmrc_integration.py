@@ -233,7 +233,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         data = data["goods"]
         for i in range(len(goods)):
             good_on_licence = goods[i]
-            self.assertEqual(data[i]["id"], str(good_on_licence.good.good.id))
+            self.assertEqual(data[i]["id"], str(good_on_licence.good.id))
             self.assertEqual(data[i]["usage"], good_on_licence.usage)
             self.assertEqual(data[i]["description"], good_on_licence.good.good.description)
             self.assertEqual(data[i]["unit"], good_on_licence.good.unit)
