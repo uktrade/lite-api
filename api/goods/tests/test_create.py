@@ -439,34 +439,6 @@ class CreateGoodTests(DataTestClient):
             errors["software_or_technology_details"], ["Ensure this field has no more than 2000 characters."]
         )
 
-    @parameterized.expand(
-        [
-            ["firearms", "Select yes if the product is a sporting shotgun"],
-            ["ammunition", "Select yes if the product is sporting shotgun ammunition"],
-            ["components_for_firearms", "Select yes if the product is a component of a sporting shotgun"],
-            ["components_for_ammunition", "Select yes if the product is a component of sporting shotgun ammunition"],
-            ["firearms_accessory", "Invalid firearm product type"],
-            ["software_related_to_firearms", "Invalid firearm product type"],
-            ["technology_related_to_firearms", "Invalid firearm product type"],
-        ]
-    )
-    def test_add_firearms_type_sporting_shotgun_status_not_selected(self, firearm_type, error_msg):
-        data = {
-            "name": "Rifle",
-            "description": "Firearm product",
-            "is_good_controlled": False,
-            "is_pv_graded": GoodPvGraded.NO,
-            "item_category": ItemCategory.GROUP2_FIREARMS,
-            "validate_only": True,
-            "firearm_details": {"type": firearm_type, "is_sporting_shotgun": None},
-        }
-
-        response = self.client.post(URL, data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["is_sporting_shotgun"], [error_msg])
-
     def test_add_category_two_good_no_type_selected_failure(self):
         data = {
             "name": "Rifle",

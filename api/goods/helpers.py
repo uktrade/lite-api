@@ -67,17 +67,6 @@ def validate_information_security(data):
         )
 
 
-def get_sporting_shortgun_errormsg(firearm_type):
-    error = {
-        "firearms": "Select yes if the product is a sporting shotgun",
-        "ammunition": "Select yes if the product is sporting shotgun ammunition",
-        "components_for_firearms": "Select yes if the product is a component of a sporting shotgun",
-        "components_for_ammunition": "Select yes if the product is a component of sporting shotgun ammunition",
-    }
-
-    return error.get(firearm_type, "Invalid firearm product type")
-
-
 def validate_identification_markings(validated_data):
 
     if "type" in validated_data and validated_data.get("type") not in FIREARMS_CORE_TYPES:
