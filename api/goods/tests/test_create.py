@@ -6,7 +6,15 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from api.goods.enums import GoodPvGraded, PvGrading, GoodStatus, ItemCategory, MilitaryUse, Component, FirearmGoodType
+from api.goods.enums import (
+    GoodPvGraded,
+    PvGrading,
+    GoodStatus,
+    ItemCategory,
+    MilitaryUse,
+    Component,
+    FirearmGoodType,
+)
 from api.goods.models import Good
 from lite_content.lite_api import strings
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
@@ -101,7 +109,9 @@ class CreateGoodTests(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"is_pv_graded": ["This field may not be null."]})
+        self.assertEqual(
+            response.json()["errors"], {"is_pv_graded": ["This field may not be null."]},
+        )
         self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_validate_only_then_ok_response_is_returned_and_good_is_not_created(self,):
@@ -804,7 +814,7 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            errors["section_certificate_date_of_expiry"], ["Enter the expiry date and include a day, month and year"]
+            errors["section_certificate_date_of_expiry"], ["Enter the expiry date and include a day, month and year"],
         )
 
     def test_add_category_two_good_certificate_details_not_set_on_no_success(self):
@@ -1059,7 +1069,9 @@ class CreateGoodTests(DataTestClient):
             errors["no_identification_markings_details"], ["Ensure this field has no more than 2000 characters."]
         )
 
-    @parameterized.expand([["no"], ["yes"]])
+    @parameterized.expand(
+        [["no"], ["yes"],]
+    )
     def test_create_good_with_and_without_document(self, is_document_available):
         self.request_data["is_document_available"] = is_document_available
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -1149,7 +1161,9 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"custom_grading": [strings.Goods.NO_CUSTOM_GRADING_ERROR]})
+        self.assertEqual(
+            response.json()["errors"], {"custom_grading": [strings.Goods.NO_CUSTOM_GRADING_ERROR]},
+        )
         self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_a_grading_and_custom_grading_then_bad_response_is_returned(self):
@@ -1161,7 +1175,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"custom_grading": [strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR]}
+            response.json()["errors"], {"custom_grading": [strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR]},
         )
         self.assertEqual(Good.objects.all().count(), 0)
 
@@ -1172,7 +1186,9 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"issuing_authority": ["This field may not be null."]})
+        self.assertEqual(
+            response.json()["errors"], {"issuing_authority": ["This field may not be null."]},
+        )
         self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_a_null_reference_then_bad_response_is_returned(self):
@@ -1182,7 +1198,9 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"reference": ["This field may not be null."]})
+        self.assertEqual(
+            response.json()["errors"], {"reference": ["This field may not be null."]},
+        )
         self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_a_null_date_of_issue_then_bad_response_is_returned(self):
@@ -1192,5 +1210,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"date_of_issue": ["This field may not be null."]})
+        self.assertEqual(
+            response.json()["errors"], {"date_of_issue": ["This field may not be null."]},
+        )
         self.assertEqual(Good.objects.all().count(), 0)

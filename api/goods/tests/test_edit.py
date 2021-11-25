@@ -5,7 +5,14 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from api.goods.enums import GoodPvGraded, PvGrading, MilitaryUse, Component, ItemCategory, FirearmGoodType
+from api.goods.enums import (
+    GoodPvGraded,
+    PvGrading,
+    MilitaryUse,
+    Component,
+    ItemCategory,
+    FirearmGoodType,
+)
 from api.goods.models import Good, PvGradingDetails
 from api.goods.tests.factories import GoodFactory
 from lite_content.lite_api import strings
@@ -47,7 +54,10 @@ class GoodsEditDraftGoodTests(DataTestClient):
             self.assertTrue(actual_rating in ratings)
             self.assertEqual(item["text"], get_control_list_entry(actual_rating).text)
 
-        request_data = {"is_military_use": MilitaryUse.YES_DESIGNED, "modified_military_use_details": ""}
+        request_data = {
+            "is_military_use": MilitaryUse.YES_DESIGNED,
+            "modified_military_use_details": "",
+        }
         response = self.client.put(self.url, request_data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         clc_entries = response.json()["good"]["control_list_entries"]
@@ -116,7 +126,10 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 1)
 
     def test_edit_military_use_to_designed_success(self):
-        request_data = {"is_military_use": MilitaryUse.YES_DESIGNED, "modified_military_use_details": ""}
+        request_data = {
+            "is_military_use": MilitaryUse.YES_DESIGNED,
+            "modified_military_use_details": "",
+        }
 
         response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
         good = response.json()["good"]
@@ -497,7 +510,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
-            "firearm_details": {"has_identification_markings": "True", "no_identification_markings_details": ""}
+            "firearm_details": {"has_identification_markings": "True", "no_identification_markings_details": "",}
         }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
@@ -514,7 +527,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
-            "firearm_details": {"has_identification_markings": "False", "no_identification_markings_details": ""}
+            "firearm_details": {"has_identification_markings": "False", "no_identification_markings_details": "",}
         }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
@@ -530,7 +543,9 @@ class GoodsEditDraftGoodTests(DataTestClient):
             errors["no_identification_markings_details"], ["Enter a reason why the product has not been marked"]
         )
 
-    @parameterized.expand([["False", "no_identification_markings_details"]])
+    @parameterized.expand(
+        [["False", "no_identification_markings_details"],]
+    )
     def test_edit_category_two_good_has_markings_details_too_long_failure(
         self, has_identification_markings, details_field
     ):

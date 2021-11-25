@@ -190,7 +190,7 @@ def check_if_unsupported_fields_edited_on_firearm_good(data):
 
 def has_valid_certificate(organisation_id, document_type):
     certificate_exists = DocumentOnOrganisation.objects.filter(
-        organisation=organisation_id, document_type=document_type
+        organisation=organisation_id, document_type=document_type,
     ).first()
 
     if certificate_exists and timezone.now().date() < certificate_exists.expiry_date:
