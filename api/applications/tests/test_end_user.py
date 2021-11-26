@@ -77,16 +77,7 @@ class TestEndUserDocument:
 
         assert end_user.party.partydocument_set.count() == 0
         assert end_user.party.translation_documents.count() == 0
-        response = client.post(
-            url,
-            {
-                "name": "document_name.pdf",
-                "s3_key": "s3_keykey.pdf",
-                "size": 123456,
-                "is_content_english": True,
-                "includes_company_letterhead": False,
-            },
-        )
+        response = client.post(url, {"name": "document_name.pdf", "s3_key": "s3_keykey.pdf", "size": 123456,},)
         assert response.status_code == status.HTTP_201_CREATED
         assert end_user.party.partydocument_set.count() == 0
         assert end_user.party.translation_documents.count() == 1
