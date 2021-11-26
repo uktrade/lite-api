@@ -80,3 +80,7 @@ class Party(TimestampableModel):
 
 class PartyDocument(Document):
     party = models.ForeignKey(Party, on_delete=models.CASCADE)
+
+
+class EndUserTranslationDocument(Document):
+    party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name="translation_documents")
