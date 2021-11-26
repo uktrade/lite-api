@@ -14,6 +14,7 @@ class Command(BaseCommand):
         add a new field, update the data with the existing field's data using this management
         command and finally delete the existing field
     """
+
     def handle(self, *args, **options):
         with transaction.atomic():
             for obj in FirearmGoodDetails.objects.filter(
@@ -32,4 +33,3 @@ class Command(BaseCommand):
                     obj.serial_numbers_available = FirearmGoodDetails.SN_NOT_AVAILABLE
                     obj.no_serial_numbers_reason = obj.no_identification_markings_details
                     obj.save()
-
