@@ -74,6 +74,11 @@ urlpatterns = [
         party_documents.PartyDocumentView.as_view(),
         name="party_document",
     ),
+    path(
+        "<uuid:pk>/end-user/<uuid:party_pk>/document/attach/<int:step>/",
+        party_documents.EndUserDocumentView.as_view(),
+        name="end_user_document",
+    ),
     # Sites, locations and countries
     path("<uuid:pk>/sites/", sites.ApplicationSites.as_view(), name="application_sites"),
     path("<uuid:pk>/contract-types/", countries.ApplicationContractTypes.as_view(), name="contract_types"),

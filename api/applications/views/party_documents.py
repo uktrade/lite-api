@@ -34,3 +34,18 @@ class PartyDocumentView(APIView):
         application = get_application(pk)
         party = application.get_party(party_pk)
         return delete_party_document(party, application, request.user)
+
+
+class EndUserDocumentView(APIView):
+
+    authentication_classes = (ExporterAuthentication,)
+
+    @transaction.atomic
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk, party_pk, step):
+        application = get_application(pk)
+        party = application.get_party(party_pk)
+        if step == 1:
+            return upload_party_document(party, request.data, application, request.user)
+        else:
+            raise Exception(f"Unhandled POST document: {request.path}")
