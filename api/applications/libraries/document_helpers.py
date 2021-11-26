@@ -8,8 +8,8 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.document.serializers import GoodsTypeDocumentSerializer
-from api.parties.models import PartyDocument
-from api.parties.serializers import PartyDocumentSerializer
+from api.parties.models import PartyDocument, EndUserTranslationDocument
+from api.parties import serializers
 
 
 def _get_document(documents):
@@ -90,22 +90,23 @@ def delete_application_document(document_id, application, user):
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
-def upload_party_document(party, data, application, user):
+def upload_party_document(party, data, application, user, document_model=PartyDocument):
     if not party:
         return JsonResponse(data={"error": "No such user"}, status=status.HTTP_404_NOT_FOUND)
 
-    documents = PartyDocument.objects.filter(party=party, safe=True)
+    documents = document_model.objects.filter(party=party, safe=True)
     if documents.exists():
         return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
     data["party"] = party.id
-    serializer = PartyDocumentSerializer(data=data)
+    serializer_model = getattr(serializers, f"{document_model.__name__}Serializer")
+    serializer = serializer_model(data=data)
 
     if not serializer.is_valid():
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     # Delete existing document with a virus if one exists
-    PartyDocument.objects.filter(party=party, safe=False).delete()
+    document_model.objects.filter(party=party, safe=False).delete()
 
     serializer.save()
 

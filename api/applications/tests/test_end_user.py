@@ -8,9 +8,79 @@ from api.applications.models import PartyOnApplication
 from lite_content.lite_api.strings import PartyErrors
 from api.parties.enums import PartyType, SubType
 from api.parties.models import Party
-from api.parties.models import PartyDocument
+from api.parties.models import PartyDocument, EndUserTranslationDocument
 from api.staticdata.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
+
+
+class TestEndUserDocument:
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    def test_requires_extra_fields_for_end_user(
+        self, scan_document_for_viruses_function, end_user, exporter_client_with_standard_application
+    ):
+        """
+        For end-user we require to know if the content is in English and
+        if company letterhead is there (LTD-1368)
+        """
+        client, app = exporter_client_with_standard_application
+        app.add_party(end_user.party)
+        url = reverse("applications:party_document", kwargs={"pk": app.id, "party_pk": end_user.party.id})
+
+        # Missing required fields for end-user
+        response = client.post(url, {"name": "document_name.pdf", "s3_key": "s3_keykey.pdf", "size": 123456})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # With required fields for end-user
+        response = client.post(
+            url,
+            {
+                "name": "document_name.pdf",
+                "s3_key": "s3_keykey.pdf",
+                "size": 123456,
+                "is_content_english": True,
+                "includes_company_letterhead": False,
+            },
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    def test_upload_document_as_step_1(
+        self, scan_document_for_viruses_function, end_user, exporter_client_with_standard_application
+    ):
+        client, app = exporter_client_with_standard_application
+        app.add_party(end_user.party)
+
+        # The main difference is this URL
+        url = reverse("applications:end_user_document", kwargs={"pk": app.id, "party_pk": end_user.party.id, "step": 1})
+
+        assert end_user.party.partydocument_set.count() == 0
+        response = client.post(
+            url,
+            {
+                "name": "document_name.pdf",
+                "s3_key": "s3_keykey.pdf",
+                "size": 123456,
+                "is_content_english": True,
+                "includes_company_letterhead": False,
+            },
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert end_user.party.partydocument_set.count() == 1
+
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    def test_upload_document_as_step_2(
+        self, scan_document_for_viruses_function, end_user, exporter_client_with_standard_application
+    ):
+        client, app = exporter_client_with_standard_application
+        app.add_party(end_user.party)
+        url = reverse("applications:end_user_document", kwargs={"pk": app.id, "party_pk": end_user.party.id, "step": 2})
+
+        assert end_user.party.partydocument_set.count() == 0
+        assert end_user.party.translation_documents.count() == 0
+        response = client.post(url, {"name": "document_name.pdf", "s3_key": "s3_keykey.pdf", "size": 123456,},)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert end_user.party.partydocument_set.count() == 0
+        assert end_user.party.translation_documents.count() == 1
 
 
 class EndUserOnDraftTests(DataTestClient):
