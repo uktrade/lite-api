@@ -5,6 +5,7 @@ from api.applications.libraries.get_applications import get_application
 from api.applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
 from api.core.authentication import ExporterAuthentication
 from api.core.decorators import authorised_to_view_application
+from api.parties.models import EndUserTranslationDocument
 from api.users.models import ExporterUser
 
 
@@ -47,5 +48,9 @@ class EndUserDocumentView(APIView):
         party = application.get_party(party_pk)
         if step == 1:
             return upload_party_document(party, request.data, application, request.user)
+        elif step == 2:
+            return upload_party_document(
+                party, request.data, application, request.user, document_model=EndUserTranslationDocument
+            )
         else:
             raise Exception(f"Unhandled POST document: {request.path}")

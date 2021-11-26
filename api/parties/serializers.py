@@ -10,7 +10,7 @@ from lite_content.lite_api.strings import PartyErrors
 from api.organisations.models import Organisation
 from api.parties.enums import PartyType, SubType, PartyRole
 from api.parties.models import Party
-from api.parties.models import PartyDocument
+from api.parties.models import PartyDocument, EndUserTranslationDocument
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -151,6 +151,12 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         document.save()
         process_document(document)
         return document
+
+
+class EndUserTranslationDocumentSerializer(PartyDocumentSerializer):
+    class Meta:
+        model = EndUserTranslationDocument
+        fields = PartyDocumentSerializer.Meta.fields
 
 
 class AdditionalContactSerializer(serializers.ModelSerializer):
