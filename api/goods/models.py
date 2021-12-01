@@ -27,6 +27,16 @@ class PvGradingDetails(models.Model):
 
 
 class FirearmGoodDetails(models.Model):
+    SN_AVAILABLE = "yes_available"
+    SN_LATER = "yes_later"
+    SN_NOT_AVAILABLE = "no"
+
+    serial_number_choices = [
+        (SN_AVAILABLE, "Yes, I can add serial numbers now"),
+        (SN_LATER, "Yes, I can add serial numbers later"),
+        (SN_NOT_AVAILABLE, "No"),
+    ]
+
     type = models.TextField(choices=FirearmGoodType.choices, blank=False)
     year_of_manufacture = models.PositiveSmallIntegerField(blank=True, null=True)
     calibre = models.TextField(blank=True)
@@ -43,6 +53,8 @@ class FirearmGoodDetails(models.Model):
 
     has_identification_markings = models.BooleanField(null=True)
     no_identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
+    serial_numbers_available = models.TextField(choices=serial_number_choices, blank=True, default="")
+    no_serial_numbers_reason = models.TextField(blank=True, default="")
     serial_number = models.TextField(default="")
     number_of_items = models.PositiveSmallIntegerField(blank=True, null=True)
     serial_numbers = ArrayField(models.TextField(default=""), default=list)

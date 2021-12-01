@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from api.core.exceptions import BadRequestError
 from api.goods.enums import Component, MilitaryUse
+from api.goods.models import FirearmGoodDetails
 from api.organisations.models import DocumentOnOrganisation
 from api.organisations.enums import OrganisationDocumentType
 from lite_content.lite_api import strings
@@ -84,6 +85,14 @@ def validate_identification_markings(validated_data):
     if has_identification_markings is False and not validated_data.get("no_identification_markings_details"):
         raise serializers.ValidationError(
             {"no_identification_markings_details": ["Enter a reason why the product has not been marked"]}
+        )
+
+    serial_numbers_available = validated_data.get("serial_numbers_available")
+    if serial_numbers_available == FirearmGoodDetails.SN_NOT_AVAILABLE and not validated_data.get(
+        "no_serial_numbers_reason"
+    ):
+        raise serializers.ValidationError(
+            {"no_serial_numbers_reason": ["Enter a reason why the product has not been marked"]}
         )
 
     serial_numbers = validated_data.get("serial_numbers")
