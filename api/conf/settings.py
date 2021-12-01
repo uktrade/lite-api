@@ -101,7 +101,6 @@ INSTALLED_APPS = [
     "api.search",
     "api.search.application",
     "api.search.product",
-    "api.reports",
     "api.data_workspace",
     "api.external_data.apps.ExternalDataConfig",
     "api.support",
@@ -412,21 +411,6 @@ if FEATURE_STAFF_SSO_ENABLED:
 
 
 PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
-
-# Email configuration
-FEATURE_EMAIL_REPORTS_ENABLED = env.bool("FEATURE_EMAIL_REPORTS_ENABLED", False)
-if FEATURE_EMAIL_REPORTS_ENABLED:
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = env("EMAIL_HOST")
-    EMAIL_PORT = env("EMAIL_PORT", default=587)
-    EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="email")
-    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="password")
-    EMAIL_USE_TLS = env.bool("EMAIL_HOST_TLS", default=True)
-    EMAIL_TIMEOUT = env("EMAIL_TIMEOUT", default=30)
-
-    LITE_OPS_EMAIL = env.str("LITE_OPS_EMAIL")
-    LITE_REPORTS_RECIPIENTS = env.list("LITE_REPORTS_RECIPIENTS", default=[])
-    LITE_REPORTS_EMAIL_TEMPLATE_ID = env.str("LITE_REPORTS_EMAIL_TEMPLATE_ID", default="reports-email-template_id")
 
 # Controls whether a ComplianceSiteCase is automatically created when a SIEL licence is issued that has goods with certain control codes
 # See LTD-1159
