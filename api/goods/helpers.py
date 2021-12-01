@@ -78,16 +78,16 @@ def validate_identification_markings(validated_data):
         raise serializers.ValidationError({"number_of_items": "Enter the number of items"})
 
     # Mandatory question for firearm goods (Group 2) with conditional details fields based on the answer
-    has_identification_markings = validated_data.get("has_identification_markings")
-    if "has_identification_markings" in validated_data and has_identification_markings is None:
-        raise serializers.ValidationError({"has_identification_markings": [strings.Goods.FIREARM_GOOD_NO_MARKINGS]})
-
-    if has_identification_markings is False and not validated_data.get("no_identification_markings_details"):
+    serial_numbers_available = validated_data.get("serial_numbers_available")
+    if "serial_numbers_available" in validated_data and not serial_numbers_available:
         raise serializers.ValidationError(
-            {"no_identification_markings_details": ["Enter a reason why the product has not been marked"]}
+            {
+                "serial_numbers_available": [
+                    "Select whether you can enter serial numbers now, later or the product does not have them"
+                ]
+            }
         )
 
-    serial_numbers_available = validated_data.get("serial_numbers_available")
     if serial_numbers_available == FirearmGoodDetails.SN_NOT_AVAILABLE and not validated_data.get(
         "no_serial_numbers_reason"
     ):

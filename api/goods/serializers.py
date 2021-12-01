@@ -282,7 +282,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
                     "no_identification_markings_details", instance.no_identification_markings_details
                 )
 
-        if "serial_numbers_available" in validated_data and not validated_data.get("serial_numbers_available"):
+        if "serial_numbers_available" in validated_data:
             instance.serial_numbers_available = validated_data.get("serial_numbers_available")
             if instance.serial_numbers_available in [
                 FirearmGoodDetails.SN_AVAILABLE,
