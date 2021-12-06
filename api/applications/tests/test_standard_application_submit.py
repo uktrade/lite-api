@@ -5,7 +5,7 @@ from rest_framework import status
 from uuid import UUID
 
 from api.applications.enums import ApplicationExportType
-from api.applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication, StandardApplication
+from api.applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, CaseDocumentState
@@ -60,10 +60,8 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_submit_standard_application_without_location_info_failure(self):
-        self.draft.goods_recipients = ""
-        self.draft.goods_starting_point = ""
-        self.draft.save()
+    def test_submit_standard_application_without_site_or_external_location_failure(self):
+        SiteOnApplication.objects.get(application=self.draft).delete()
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
@@ -96,17 +94,16 @@ class StandardApplicationTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_submit_standard_application_without_consignee_success(self):
-        # Consignee is optional if goods_recipients is DIRECT_TO_END_USER
+    def test_submit_standard_application_without_consignee_failure(self):
         self.draft.delete_party(self.draft.consignee)
-        self.draft.goods_recipients = StandardApplication.DIRECT_TO_END_USER
-        self.draft.save()
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(
+            response, text=strings.Applications.Standard.NO_CONSIGNEE_SET, status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     def test_submit_standard_application_without_consignee_document_success(self):
         # Consignee document is optional
