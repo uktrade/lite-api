@@ -8,7 +8,6 @@ from api.applications.models import (
     GoodOnApplication,
     SiteOnApplication,
     ExternalLocationOnApplication,
-    StandardApplication,
 )
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.helpers import str_to_bool
@@ -27,19 +26,6 @@ def _validate_locations(application, errors):
         and not ExternalLocationOnApplication.objects.filter(application=application).exists()
         and not getattr(application, "have_goods_departed", False)
         and not getattr(application, "goodstype_category", None) == GoodsTypeCategory.CRYPTOGRAPHIC
-    ):
-        errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
-
-    return errors
-
-
-def _validate_siel_locations(application, errors):
-    """ Location errors """
-    if (
-        not getattr(application, "export_type")
-        or not getattr(application, "is_shipped_waybill_or_lading")
-        or not getattr(application, "goods_recipients")
-        or not getattr(application, "goods_starting_point")
     ):
         errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
 
@@ -122,23 +108,16 @@ def _validate_end_user(draft, errors, is_mandatory, open_application=False):
 
 
 def _validate_consignee(draft, errors, is_mandatory):
-    """
-    Checks there is an consignee if goods_recipients is set to VIA_CONSIGNEE or VIA_CONSIGNEE_AND_THIRD_PARTIES
-    (with a document if is_document_mandatory)
-    """
+    """ Checks there is an consignee (with a document if is_document_mandatory) """
 
-    if (
-        draft.goods_recipients == StandardApplication.VIA_CONSIGNEE
-        or draft.goods_recipients == StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES
-    ):
-        consignee_errors = check_party_error(
-            draft.consignee.party if draft.consignee else None,
-            object_not_found_error=strings.Applications.Standard.NO_CONSIGNEE_SET,
-            is_mandatory=is_mandatory,
-            is_document_mandatory=False,
-        )
-        if consignee_errors:
-            errors["consignee"] = [consignee_errors]
+    consignee_errors = check_party_error(
+        draft.consignee.party if draft.consignee else None,
+        object_not_found_error=strings.Applications.Standard.NO_CONSIGNEE_SET,
+        is_mandatory=is_mandatory,
+        is_document_mandatory=False,
+    )
+    if consignee_errors:
+        errors["consignee"] = [consignee_errors]
 
     return errors
 
@@ -345,7 +324,7 @@ def _validate_exhibition_details(draft, errors):
 def _validate_standard_licence(draft, errors):
     """ Checks that a standard licence has all party types & goods """
 
-    errors = _validate_siel_locations(draft, errors)
+    errors = _validate_locations(draft, errors)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
