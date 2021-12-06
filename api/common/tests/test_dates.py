@@ -28,7 +28,7 @@ class DatesTests(DataTestClient):
             "england-and-wales": {
                 "division": "england-and-wales",
                 "events": [
-                    {"title": "New Year’s Day", "date": "2016-01-01", "notes": "", "bunting": True},
+                    {"title": "New Year’s Day", "date": "2021-01-01", "notes": "", "bunting": True},
                     {"title": "Good Friday", "date": "2016-03-25", "notes": "", "bunting": False},
                 ],
             }
@@ -36,9 +36,9 @@ class DatesTests(DataTestClient):
         with requests_mock.Mocker() as m:
             m.get(BANK_HOLIDAY_API, json=data)
 
-        test_date = date(2016, 1, 1)
-        result = is_bank_holiday(test_date)
-        self.assertTrue(result)
+            test_date = date(2021, 1, 1)
+            result = is_bank_holiday(test_date)
+            self.assertTrue(result)
 
     @parameterized.expand(
         [
