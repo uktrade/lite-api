@@ -56,6 +56,8 @@ class GetLicencesTests(DataTestClient):
 
         for application, licence in self.licences.items():
             for good in application.goods.all():
+                good.is_good_controlled = True
+                good.save()
                 FinalAdviceFactory(user=self.gov_user, good=good.good, case=application)
                 GoodOnLicenceFactory(licence=licence, good=good, quantity=good.quantity, value=good.value)
             for goods_type in application.goods_type.all():
