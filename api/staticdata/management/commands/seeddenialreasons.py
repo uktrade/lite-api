@@ -22,4 +22,3 @@ class Command(SeedCommand):
             {"id": row["id"], "deprecated": row["deprecated"], "description": row["description"]} for row in csv
         ]
         self.update_or_create(DenialReason, filtered_csv)
-        self.delete_unused_objects(DenialReason, filtered_csv)
