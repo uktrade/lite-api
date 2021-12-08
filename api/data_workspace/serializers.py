@@ -1,6 +1,7 @@
 from api.audit_trail.models import Audit
 from api.teams.models import Department
 from api.cases.models import CaseAssignment, EcjuQuery, DepartmentSLA
+from api.licences.serializers.view_licence import LicenceListSerializer
 from api.queues.models import Queue
 
 from rest_framework import serializers
@@ -110,3 +111,9 @@ class AdviceDenialReasonSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     advice_id = serializers.UUIDField()
     denialreason_id = serializers.CharField()
+
+
+class LicenceWithoutGoodsSerializer(LicenceListSerializer):
+    def get_goods(self, instance):
+        # Good are not required by reporting
+        return []
