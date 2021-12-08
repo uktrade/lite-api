@@ -177,6 +177,10 @@ class GoodOnLicenceReportsViewSerializer(GoodOnLicenceViewSerializer):
     good_on_application_id = serializers.UUIDField(source="good.id")
     licence_id = serializers.UUIDField(source="licence.id")
 
+    def get_advice(self, instance):
+        # Reports do not require nested advice.
+        return None
+
 
 class LicenceSerializer(serializers.ModelSerializer):
     application = ApplicationLicenceSerializer(source="case.baseapplication")
