@@ -24,7 +24,13 @@ class PartyListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = PartyViewSerializer
     pagination_class = LimitOffsetPagination
-    queryset = Party.objects.all()
+    # We ensure that parties with the same name always come out
+    # in the same order by additionally ordering by created_at
+    # and by id. If just name is used, the order is non-deterministic
+    # when multiple parties have the same name. This can mean the
+    # same party being emitted on different pages, causing
+    # primary key violations in Data Workspace.
+    queryset = Party.objects.order_by("name", "created_at", "id")
 
 
 class QueueListView(viewsets.ReadOnlyModelViewSet):
