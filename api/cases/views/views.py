@@ -99,7 +99,7 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         gov_user = request.user.govuser
-        case = get_case(pk)
+        case = get_case(pk, prefetch_related=["advice__countersigned_by", "advice__denial_reasons", "advice__user",])
         data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data
 
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
