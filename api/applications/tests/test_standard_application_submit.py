@@ -60,11 +60,32 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_submit_standard_application_without_location_info_failure(self):
+    def test_submit_standard_application_old_location_info_success(self):
+        SiteOnApplication(site=self.organisation.primary_site, application=self.draft).save()
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+
+        response = self.client.put(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_submit_standard_application_with_new_location_info_success(self):
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        SiteOnApplication.objects.filter(application_id=self.draft.id).delete()
+        self.draft.goods_recipients = StandardApplication.DIRECT_TO_END_USER
+        self.draft.goods_starting_point = StandardApplication.GB
+
+        response = self.client.put(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_submit_standard_application_with_no_new_or_old_location_info_failure(self):
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        SiteOnApplication.objects.filter(application_id=self.draft.id).delete()
+        self.draft.export_type = ""
         self.draft.goods_recipients = ""
         self.draft.goods_starting_point = ""
+        self.draft.is_shipped_waybill_or_lading = None
         self.draft.save()
-        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
 

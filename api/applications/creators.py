@@ -34,13 +34,21 @@ def _validate_locations(application, errors):
 
 
 def _validate_siel_locations(application, errors):
-    """ Location errors """
-    if (
-        not getattr(application, "export_type")
-        or not getattr(application, "is_shipped_waybill_or_lading")
-        or not getattr(application, "goods_recipients")
-        or not getattr(application, "goods_starting_point")
-    ):
+    old_locations_invalid = (
+        not SiteOnApplication.objects.filter(application=application).exists()
+        and not ExternalLocationOnApplication.objects.filter(application=application).exists()
+        and not getattr(application, "have_goods_departed", False)
+        and not getattr(application, "goodstype_category", None) == GoodsTypeCategory.CRYPTOGRAPHIC
+    )
+
+    new_locations_invalid = (
+        not getattr(application, "export_type", False)
+        and not getattr(application, "goods_recipients", False)
+        and not getattr(application, "goods_starting_point", False)
+        and getattr(application, "is_shipped_waybill_or_lading") is None
+    )
+
+    if old_locations_invalid and new_locations_invalid:
         errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
 
     return errors
@@ -127,10 +135,8 @@ def _validate_consignee(draft, errors, is_mandatory):
     (with a document if is_document_mandatory)
     """
 
-    if (
-        draft.goods_recipients == StandardApplication.VIA_CONSIGNEE
-        or draft.goods_recipients == StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES
-    ):
+    # This logic includes old style applications where the goods_recipients field will be ""
+    if draft.goods_recipients != StandardApplication.DIRECT_TO_END_USER:
         consignee_errors = check_party_error(
             draft.consignee.party if draft.consignee else None,
             object_not_found_error=strings.Applications.Standard.NO_CONSIGNEE_SET,
