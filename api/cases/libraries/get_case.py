@@ -3,15 +3,25 @@ from api.core.exceptions import NotFoundError
 from lite_content.lite_api import strings
 
 
-def get_case(pk, include_draft=False):
+def get_case(pk, include_draft=False, prefetch_related=None):
     """
-    Returns a case or returns a 404 on failure
+    Returns a case or returns a 404 on failure.
+
+    Lookups for related objects can be passed via prefetch_related
+    as a list of strings.
     """
     try:
         if include_draft:
-            return Case.objects.all().get(pk=pk)
+            qs = Case.objects.all()
         else:
-            return Case.objects.submitted().get(pk=pk)
+            qs = Case.objects.submitted()
+
+        if prefetch_related:
+            for lookup in prefetch_related:
+                qs = qs.prefetch_related(lookup)
+
+        return qs.get(pk=pk)
+
     except Case.DoesNotExist:
         raise NotFoundError({"case": strings.Cases.CASE_NOT_FOUND})
 
