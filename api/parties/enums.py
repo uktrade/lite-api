@@ -9,7 +9,7 @@ class PartyType:
 
     choices = [
         (CONSIGNEE, "Consignee"),
-        (END_USER, "End user"),
+        (END_USER, "End-user"),
         (ULTIMATE_END_USER, "Ultimate end user"),
         (THIRD_PARTY, "Third party"),
         (ADDITIONAL_CONTACT, "Additional contact"),
