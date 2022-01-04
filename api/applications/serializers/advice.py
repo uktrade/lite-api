@@ -59,13 +59,13 @@ class AdviceViewSerializer(serializers.Serializer):
 
 
 class AdviceCreateSerializer(serializers.ModelSerializer):
-    text = serializers.CharField(required=True, max_length=5000, error_messages={"blank": strings.Advice.TEXT})
-    note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
+    text = serializers.CharField(required=True, error_messages={"blank": strings.Advice.TEXT})
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     type = KeyValueChoiceField(
         choices=AdviceType.choices, required=True, error_messages={"required": strings.Advice.TYPE}
     )
     level = serializers.CharField()
-    proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000,)
+    proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
     footnote = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, error_messages={"blank": strings.Advice.FOOTNOTE}
