@@ -20,6 +20,7 @@ class PartySerializer(serializers.ModelSerializer):
     website = serializers.CharField(required=False, allow_blank=True)
     signatory_name_euu = serializers.CharField(allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices, error_messages=PartyErrors.TYPE)
+    type_display_value = serializers.SerializerMethodField()
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
     role = KeyValueChoiceField(choices=PartyRole.choices, error_messages=PartyErrors.ROLE, required=False)
@@ -46,6 +47,7 @@ class PartySerializer(serializers.ModelSerializer):
             "website",
             "signatory_name_euu",
             "type",
+            "type_display_value",
             "organisation",
             "document",
             "sub_type",
@@ -124,6 +126,9 @@ class PartySerializer(serializers.ModelSerializer):
     def get_document(self, instance):
         docs = PartyDocument.objects.filter(party=instance)
         return docs.values()[0] if docs.exists() else None
+
+    def get_type_display_value(self, instance):
+        return instance.get_type_display()
 
 
 class PartyViewSerializer(serializers.ModelSerializer):
