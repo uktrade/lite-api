@@ -53,7 +53,7 @@ class CreateFirearmGoodTests(DataTestClient):
         url = reverse("organisations:documents", kwargs={"pk": self.organisation.pk})
         data = {
             "document": {"name": name, "s3_key": name, "size": 476},
-            "expiry_date": "2022-01-01",
+            "expiry_date": (now() + timedelta(days=365)).date().isoformat(),
             "reference_code": "123",
             "document_type": document_type,
         }

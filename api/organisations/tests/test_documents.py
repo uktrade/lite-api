@@ -12,7 +12,7 @@ class OrganisationDocumentViewTests(DataTestClient):
         url = reverse("organisations:documents", kwargs={"pk": self.organisation.pk})
         data = {
             "document": {"name": name, "s3_key": name, "size": 476},
-            "expiry_date": "2022-01-01",
+            "expiry_date": "2026-01-01",
             "reference_code": "123",
             "document_type": OrganisationDocumentType.FIREARM_SECTION_FIVE,
         }
@@ -31,7 +31,7 @@ class OrganisationDocumentViewTests(DataTestClient):
         self.assertEqual(instance.document.s3_key, "some-document")
         self.assertEqual(instance.reference_code, "123")
         self.assertEqual(instance.document.size, 476)
-        self.assertEqual(instance.expiry_date, datetime.date(2022, 1, 1))
+        self.assertEqual(instance.expiry_date, datetime.date(2026, 1, 1))
         self.assertEqual(instance.document_type, OrganisationDocumentType.FIREARM_SECTION_FIVE)
         self.assertEqual(instance.organisation, self.organisation)
 
@@ -67,7 +67,7 @@ class OrganisationDocumentViewTests(DataTestClient):
             response.json(),
             {
                 "id": document_on_application_pk,
-                "expiry_date": "01 January 2022",
+                "expiry_date": "01 January 2026",
                 "document_type": "section-five-certificate",
                 "organisation": str(self.organisation.id),
                 "is_expired": False,
