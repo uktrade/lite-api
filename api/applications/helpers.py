@@ -3,6 +3,7 @@ from django.conf import settings
 from elasticsearch_dsl import Search, Q
 from elasticsearch.exceptions import NotFoundError
 
+from api.applications.enums import ApplicationExportType
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.applications.serializers.end_use_details import (
     F680EndUseDetailsUpdateSerializer,
@@ -40,6 +41,7 @@ from api.applications.serializers.standard_application import (
     StandardApplicationViewSerializer,
 )
 from api.applications.serializers.good import GoodOnStandardLicenceSerializer
+from api.applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType, AdviceLevel
 from api.core.exceptions import BadRequestError
 from api.documents.models import Document
@@ -125,6 +127,15 @@ def get_application_end_use_details_update_serializer(application: BaseApplicati
                 f"get_application_end_use_details_update_serializer does "
                 f"not support this application type: {application.case_type.sub_type}"
             }
+        )
+
+
+def get_temp_export_details_update_serializer(export_type):
+    if export_type == ApplicationExportType.TEMPORARY:
+        return TemporaryExportDetailsUpdateSerializer
+    else:
+        raise BadRequestError(
+            {f"get_temp_export_details_update_serializer does " f"not support this export type: {export_type}"}
         )
 
 

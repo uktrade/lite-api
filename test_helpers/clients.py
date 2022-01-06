@@ -40,6 +40,7 @@ from api.cases.models import (
     Case,
     CaseDocument,
     CaseAssignment,
+    GoodCountryDecision,
     EcjuQuery,
     CaseType,
     Advice,
@@ -53,10 +54,12 @@ from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
 from api.addresses.tests.factories import AddressFactoryGB
 from api.goods.enums import (
+    GoodControlled,
     GoodPvGraded,
     PvGrading,
     ItemCategory,
     MilitaryUse,
+    Component,
     FirearmGoodType,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
@@ -94,7 +97,7 @@ from api.staticdata.urls import urlpatterns as static_urlpatterns
 from api.teams.models import Team
 from api.users.tests.factories import GovUserFactory
 from test_helpers import colours
-from api.users.enums import SystemUser, UserType
+from api.users.enums import UserStatuses, SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
