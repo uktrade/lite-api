@@ -28,7 +28,7 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.json()["errors"],
-            {"temp_export_details": ["Cannot update temporary export details for a permanent export type"]},
+            ["{'get_temp_export_details_update_serializer does not support this export type: permanent'}"],
         )
 
     def test_perform_action_on_non_open_or_standard_applications_failure(self):

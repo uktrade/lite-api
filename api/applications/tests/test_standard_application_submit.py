@@ -5,7 +5,7 @@ from rest_framework import status
 from uuid import UUID
 
 from api.applications.enums import ApplicationExportType
-from api.applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication, StandardApplication
+from api.applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, CaseDocumentState
@@ -60,32 +60,9 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_submit_standard_application_old_location_info_success(self):
-        SiteOnApplication(site=self.organisation.primary_site, application=self.draft).save()
+    def test_submit_standard_application_without_site_or_external_location_failure(self):
+        SiteOnApplication.objects.get(application=self.draft).delete()
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
-
-        response = self.client.put(url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_submit_standard_application_with_new_location_info_success(self):
-        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
-        SiteOnApplication.objects.filter(application_id=self.draft.id).delete()
-        self.draft.goods_recipients = StandardApplication.DIRECT_TO_END_USER
-        self.draft.goods_starting_point = StandardApplication.GB
-
-        response = self.client.put(url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_submit_standard_application_with_no_new_or_old_location_info_failure(self):
-        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
-        SiteOnApplication.objects.filter(application_id=self.draft.id).delete()
-        self.draft.export_type = ""
-        self.draft.goods_recipients = ""
-        self.draft.goods_starting_point = ""
-        self.draft.is_shipped_waybill_or_lading = None
-        self.draft.save()
 
         response = self.client.put(url, **self.exporter_headers)
 
@@ -117,17 +94,16 @@ class StandardApplicationTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_submit_standard_application_without_consignee_success(self):
-        # Consignee is optional if goods_recipients is DIRECT_TO_END_USER
+    def test_submit_standard_application_without_consignee_failure(self):
         self.draft.delete_party(self.draft.consignee)
-        self.draft.goods_recipients = StandardApplication.DIRECT_TO_END_USER
-        self.draft.save()
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(
+            response, text=strings.Applications.Standard.NO_CONSIGNEE_SET, status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     def test_submit_standard_application_without_consignee_document_success(self):
         # Consignee document is optional
