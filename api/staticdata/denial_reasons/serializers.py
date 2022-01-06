@@ -10,4 +10,5 @@ class DenialReasonSerializer(serializers.ModelSerializer):
             "id",
             "deprecated",
             "description",
+            "display_value",
         )
