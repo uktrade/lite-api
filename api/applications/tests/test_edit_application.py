@@ -38,46 +38,6 @@ class EditStandardApplicationTests(DataTestClient):
         # Unsubmitted (draft) applications should not create audit entries when edited
         self.assertEqual(Audit.objects.count(), 0)
 
-    def test_edit_unsubmitted_application_export_type_success(self):
-        """ Test edit the application export_type of an unsubmitted application. An unsubmitted application
-        has the 'draft' status.
-        """
-        application = self.create_draft_standard_application(self.organisation)
-        # export_type is set to permanent in create_draft_standard_application
-
-        url = reverse("applications:application", kwargs={"pk": application.id})
-        updated_at = application.updated_at
-
-        response = self.client.put(url, {"export_type": "temporary"}, **self.exporter_headers)
-
-        application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(application.export_type, "temporary")
-        self.assertGreater(application.updated_at, updated_at)
-        # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.count(), 0)
-
-    def test_edit_unsubmitted_application_locations_success(self):
-        application = self.create_draft_standard_application(self.organisation)
-
-        url = reverse("applications:application", kwargs={"pk": application.id})
-        updated_at = application.updated_at
-
-        data = {
-            "goods_starting_point": "GB",
-            "goods_recipients": "via_consignee",
-        }
-
-        response = self.client.put(url, data, **self.exporter_headers)
-
-        application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(application.goods_starting_point, "GB")
-        self.assertEqual(application.goods_recipients, "via_consignee")
-        self.assertGreater(application.updated_at, updated_at)
-        # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.count(), 0)
-
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
         old_name = "Old Name"

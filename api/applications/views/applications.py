@@ -203,12 +203,10 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Update an application instance
         """
         application = get_application(pk)
-        update_serializer = get_application_update_serializer(application)
+        serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()
-        serializer = update_serializer(
-            application, data=data, context=get_request_user_organisation(request), partial=True
-        )
+        serializer = serializer(application, data=data, context=get_request_user_organisation(request), partial=True)
 
         # Prevent minor edits of the clearance level
         if not application.is_major_editable() and request.data.get("clearance_level"):
@@ -280,7 +278,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             save_and_audit_have_you_been_informed_ref(request, application, serializer)
-            serializer.save()
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
