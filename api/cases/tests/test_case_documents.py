@@ -44,7 +44,7 @@ class CaseDocumentDownloadTests(DataTestClient):
         get_object_function.assert_called_once()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(isinstance(response, StreamingHttpResponse))
-        self.assertTrue(f'filename="{self.file.name}"' in response._headers["content-disposition"][1])
+        self.assertEqual(response.headers["content-disposition"], 'attachment; filename="Test"')
 
     def test_download_case_document_invalid_organisation_failure(self):
         # Create an application with a document for a different organisation
