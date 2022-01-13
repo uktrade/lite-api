@@ -130,7 +130,10 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
             self._footnote_fields_setup()
 
             # Only require a reason for the advice decision if it is of type refuse
-            if self.initial_data[0].get("type") != AdviceType.REFUSE:
+            if (
+                self.initial_data[0].get("type") != AdviceType.REFUSE
+                or self.initial_data[0].get("type") != AdviceType.NO_LICENCE_REQUIRED
+            ):
                 self.fields["text"].required = False
                 self.fields["text"].allow_null = True
                 self.fields["text"].allow_blank = True
