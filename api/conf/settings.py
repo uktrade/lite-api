@@ -53,8 +53,8 @@ ALLOWED_CIDR_NETS = ["10.0.0.0/8"]
 # Application definition
 INSTALLED_APPS = [
     "api.addresses",
-    "api.applications.apps.ApplicationsConfig",
-    "api.audit_trail.apps.ApplicationsConfig",
+    "api.applications",
+    "api.audit_trail",
     "background_task",
     "api.cases",
     "api.cases.generated_documents",
@@ -102,7 +102,7 @@ INSTALLED_APPS = [
     "api.search.application",
     "api.search.product",
     "api.data_workspace",
-    "api.external_data.apps.ExternalDataConfig",
+    "api.external_data",
     "api.support",
     "health_check",
     "health_check.db",
