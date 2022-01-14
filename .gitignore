@@ -167,3 +167,5 @@ test-results
 bank-holidays.csv
 /test_helpers/test_endpoints/results/*.csv
 *.p12
+
+.python-version
