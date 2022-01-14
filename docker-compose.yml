@@ -28,6 +28,9 @@ services:
     command: ./manage.py runserver 0.0.0.0:${PORT:-8100}
     networks:
       - lite
+    stdin_open: true
+    tty: true
+
   # Elasticsearch Docker Images: https://www.docker.elastic.co/
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
