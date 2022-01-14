@@ -1018,8 +1018,9 @@ def _get_goods_context(application, final_advice, licence=None):
         final_advice = final_advice.exclude(type=AdviceType.APPROVE)
 
     for advice in final_advice:
-        good_on_application = goods_on_application_dict[advice.good_id]
-        goods_context[advice.type].append(_get_good_on_application_context_with_advice(good_on_application, advice))
+        if advice.good_id in goods_on_application_dict:
+            good_on_application = goods_on_application_dict[advice.good_id]
+            goods_context[advice.type].append(_get_good_on_application_context_with_advice(good_on_application, advice))
 
     # Because we append goods that are approved with proviso to the approved goods below
     # we need to remove them from the approved goods list otherwise they are duplicated

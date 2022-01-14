@@ -465,6 +465,35 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
 
+    def test_generate_context_with_advice_on_goods_missing(self):
+        """This tests the scenario where advice had been given on a good, but then that
+        good was subsequently removed from the application.
+        """
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        good = self.create_good_on_application(
+            case, GoodFactory(organisation=self.organisation, is_good_controlled=True)
+        )
+        self.create_advice(
+            self.gov_user,
+            case,
+            "good",
+            AdviceType.REFUSE,
+            AdviceLevel.FINAL,
+            advice_text="abc",
+            good=case.goods.first().good,
+        )
+        final_advice = self.create_advice(
+            self.gov_user, case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, advice_text="abc", good=good.good
+        )
+        case.goods.first().delete()  # Remove the first good from the application
+
+        context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
+        self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
+
     def test_generate_context_with_proviso_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
