@@ -3,8 +3,7 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Case as DjangoCase
-from django.db.models import Count, F, Q, When, UUIDField
+from django.db.models import Count, F
 from django.db.models import Value
 from django.db.models.functions import Concat
 from django.utils import timezone
@@ -85,45 +84,37 @@ def populate_destinations_flags(cases: List[Dict]):
     from api.flags.models import Flag
 
     case_ids = [case["id"] for case in cases]
-    flags = Flag.objects.filter(
-        Q(parties__parties_on_application__application_id__in=case_ids)
-        | Q(
+
+    flags = Flag.objects.filter(parties__parties_on_application__application_id__in=case_ids).annotate(
+        case_id=F("parties__parties_on_application__application_id")
+    )
+    flags = flags.union(
+        Flag.objects.filter(
             parties__parties_on_application__application_id__in=case_ids,
             parties__parties_on_application__deleted_at__isnull=True,
+        ).annotate(case_id=F("parties__parties_on_application__application_id"))
+    )
+    flags = flags.union(
+        Flag.objects.filter(countries_on_applications__application_id__in=case_ids).annotate(
+            case_id=F("countries_on_applications__application_id")
         )
-        | Q(countries_on_applications__application_id__in=case_ids)
-        | Q(countries__countries_on_application__application_id__in=case_ids)
-        | Q(parties_on_application__application__pk__in=case_ids)
-    ).annotate(
-        case_id=DjangoCase(
-            When(
-                parties__parties_on_application__application_id__in=case_ids,
-                then=F("parties__parties_on_application__application_id"),
-            ),
-            When(
-                parties__parties_on_application__application_id__in=case_ids,
-                then=F("parties__parties_on_application__application_id"),
-            ),
-            When(
-                countries_on_applications__application_id__in=case_ids,
-                then=F("countries_on_applications__application_id"),
-            ),
-            When(
-                countries__countries_on_application__application_id__in=case_ids,
-                then=F("countries__countries_on_application__application_id"),
-            ),
-            When(
-                parties_on_application__application__pk__in=case_ids, then=F("parties_on_application__application_id")
-            ),
-            default=None,
-            output_field=UUIDField(),
+    )
+    flags = flags.union(
+        Flag.objects.filter(countries__countries_on_application__application_id__in=case_ids).annotate(
+            case_id=F("countries__countries_on_application__application_id")
+        )
+    )
+    flags = flags.union(
+        Flag.objects.filter(parties_on_application__application__pk__in=case_ids).annotate(
+            case_id=F("parties_on_application__application_id")
         )
     )
 
     for case in cases:
-        case["destinations_flags"] = CaseListFlagSerializer(
-            {flag for flag in flags if str(flag.case_id) == str(case["id"])}, many=True
-        ).data
+        # It would seem sensible here to do flags.filter(case_id=case["id"]) however one cannot do further filtering on
+        # union queries
+        case_flags = {flag for flag in flags if str(flag.case_id) == str(case["id"])}
+        case["destinations_flags"] = CaseListFlagSerializer(case_flags, many=True).data
 
     return cases
 
