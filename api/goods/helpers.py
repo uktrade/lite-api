@@ -69,7 +69,6 @@ def validate_information_security(data):
 
 
 def validate_identification_markings(validated_data):
-
     if "type" in validated_data and validated_data.get("type") not in FIREARMS_CORE_TYPES:
         return
 
@@ -97,13 +96,8 @@ def validate_identification_markings(validated_data):
 
     serial_numbers = validated_data.get("serial_numbers")
     if "serial_numbers" in validated_data:
-        errors = {}
-
-        for index, item in enumerate(serial_numbers):
-            if item == "":
-                errors[f"serial_number_input_{index}"] = "Enter serial number"
-
-        if errors:
+        is_missing_serial_numbers = any(not serial_number for serial_number in serial_numbers)
+        if is_missing_serial_numbers:
             raise serializers.ValidationError({"serial_numbers": "Enter serial number in every row"})
 
 
