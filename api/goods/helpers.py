@@ -96,9 +96,9 @@ def validate_identification_markings(validated_data):
 
     serial_numbers = validated_data.get("serial_numbers")
     if "serial_numbers" in validated_data:
-        is_missing_serial_numbers = any(not serial_number for serial_number in serial_numbers)
-        if is_missing_serial_numbers:
-            raise serializers.ValidationError({"serial_numbers": "Enter serial number in every row"})
+        is_missing_all_serial_numbers = all(not serial_number for serial_number in serial_numbers)
+        if is_missing_all_serial_numbers:
+            raise serializers.ValidationError({"serial_numbers": "Enter at least one serial number"})
 
 
 def validate_firearms_act_section(validated_data):
