@@ -9,6 +9,16 @@ class HMRCIntegrationCountrySerializer(serializers.Serializer):
     id = serializers.CharField()
     name = serializers.CharField()
 
+    def strip_territory_code(self, country_code):
+        """Does nothing for "GB" but transforms "AE-DU" to "AE".
+        """
+        return country_code.split("-")[0]
+
+    def to_representation(self, data):
+        data = super().to_representation(data)
+        data["id"] = self.strip_territory_code(data["id"])
+        return data
+
 
 class HMRCIntegrationAddressSerializer(serializers.Serializer):
     line_1 = serializers.SerializerMethodField()
