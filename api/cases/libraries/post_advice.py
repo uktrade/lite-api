@@ -89,12 +89,13 @@ def post_advice(request, case, level, team=False):
 
         audit_verbs = {
             AdviceLevel.USER: AuditType.CREATED_USER_ADVICE,
-            AdviceLevel.TEAM: AuditType.CREATED_TEAM_ADVICE,
+            AdviceLevel.TEAM: AuditType.REVIEW_COMBINE_ADVICE,
             AdviceLevel.FINAL: AuditType.CREATED_FINAL_ADVICE,
         }
 
+        team_name = request.user.govuser.team.name
         audit_trail_service.create(
-            actor=request.user, verb=audit_verbs[level], target=case,
+            actor=request.user, verb=audit_verbs[level], target=case, payload={"team_name": team_name}
         )
 
         if level == AdviceLevel.FINAL:
