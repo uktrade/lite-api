@@ -58,7 +58,7 @@ audit_type_format = {
     AuditType.CLEARED_FINAL_ADVICE: "cleared their decision",
     AuditType.CREATED_TEAM_ADVICE: strings.Audit.CREATED_TEAM_ADVICE,
     AuditType.CLEARED_TEAM_ADVICE: strings.Audit.CLEARED_TEAM_ADVICE,
-    AuditType.REVIEW_COMBINE_ADVICE: "reviewed and combined MOD recommendations",
+    AuditType.REVIEW_COMBINE_ADVICE: "reviewed and combined {department} recommendations",
     AuditType.CREATED_USER_ADVICE: "added a recommendation",
     AuditType.CLEARED_USER_ADVICE: "cleared their recommendation",
     AuditType.ADD_PARTY: strings.Audit.ADD_PARTY,
@@ -128,5 +128,5 @@ audit_type_format = {
     AuditType.LICENCE_UPDATED_STATUS: strings.Audit.LICENCE_UPDATED_STATUS,
     AuditType.DOCUMENT_ON_ORGANISATION_CREATE: "added {document_type} '{file_name}' to organization",
     AuditType.REPORT_SUMMARY_UPDATED: "updated ARS for {good_name} from {old_report_summary} to {report_summary}",
-    AuditType.COUNTERSIGN_ADVICE: "countersigned all FCDO recommendations",
+    AuditType.COUNTERSIGN_ADVICE: "countersigned all {department} recommendations",
 }

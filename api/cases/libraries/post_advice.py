@@ -93,9 +93,15 @@ def post_advice(request, case, level, team=False):
             AdviceLevel.FINAL: AuditType.CREATED_FINAL_ADVICE,
         }
 
-        team_name = request.user.govuser.team.name
+        department = request.user.govuser.team.department
+
+        if department is not None:
+            department = department.name
+        else:
+            department = "department"
+
         audit_trail_service.create(
-            actor=request.user, verb=audit_verbs[level], target=case, payload={"team_name": team_name}
+            actor=request.user, verb=audit_verbs[level], target=case, payload={"department": department}
         )
 
         if level == AdviceLevel.FINAL:
