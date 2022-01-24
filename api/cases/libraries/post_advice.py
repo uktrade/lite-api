@@ -86,11 +86,17 @@ def post_advice(request, case, level, team=False):
 
     if serializer.is_valid() and not refusal_error:
         serializer.save()
-        if not team:
-            # Only applies at user level advice
-            audit_trail_service.create(
-                actor=request.user, verb=AuditType.CREATED_USER_ADVICE, target=case,
-            )
+
+        audit_verbs = {
+            AdviceLevel.USER: AuditType.CREATED_USER_ADVICE,
+            AdviceLevel.TEAM: AuditType.CREATED_TEAM_ADVICE,
+            AdviceLevel.FINAL: AuditType.CREATED_FINAL_ADVICE,
+        }
+
+        audit_trail_service.create(
+            actor=request.user, verb=audit_verbs[level], target=case,
+        )
+
         if level == AdviceLevel.FINAL:
             # Remove GoodCountryDecision if changing approve decision for applicable country/goods type
             update_good_country_decisions(data)
