@@ -3,6 +3,7 @@ from copy import deepcopy
 from unittest import mock
 
 from django.utils.timezone import now
+from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -86,6 +87,36 @@ class CreateFirearmGoodTests(DataTestClient):
         data["firearm_details"]["serial_numbers"] = ["serial1", "serial2", "serial3"]
         response = self.client.post(URL, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @parameterized.expand(
+        [
+            (["12345", "", ""],),
+            (["", "12345", ""],),
+            (["", "", "12345"],),
+            (["12345", "", "12345"],),
+            (["12345", "12345", ""],),
+            (["", "12345", "12345"],),
+        ]
+    )
+    def test_firearm_some_missing_serial_numbers_success(self, serial_numbers):
+        data = good_rifle()
+        data["firearm_details"]["number_of_items"] = 3
+        data["firearm_details"]["has_identification_markings"] = True
+        data["firearm_details"]["no_identification_markings_details"] = ""
+        data["firearm_details"]["serial_numbers"] = serial_numbers
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_firearm_missing_serial_numbers_invalid(self):
+        data = good_rifle()
+        data["firearm_details"]["number_of_items"] = 3
+        data["firearm_details"]["has_identification_markings"] = True
+        data["firearm_details"]["no_identification_markings_details"] = ""
+        data["firearm_details"]["serial_numbers"] = ["", "", ""]
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()["errors"]
+        self.assertEqual(response["serial_numbers"], ["Enter at least one serial number"])
 
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
     def test_firearms_act_user_is_rfd(self):
