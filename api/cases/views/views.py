@@ -955,8 +955,16 @@ class CountersignAdvice(APIView):
             return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save()
+
+        department = request.user.govuser.team.department
+
+        if department is not None:
+            department = department.name
+        else:
+            department = "department"
+
         audit_trail_service.create(
-            actor=request.user, verb=AuditType.COUNTERSIGN_ADVICE, target=case, payload={"advice_ids": advice_ids},
+            actor=request.user, verb=AuditType.COUNTERSIGN_ADVICE, target=case, payload={"department": department},
         )
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)

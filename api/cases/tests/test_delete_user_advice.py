@@ -35,4 +35,4 @@ class DeleteUserAdviceTests(DataTestClient):
         response = self.client.get(reverse("cases:activity", kwargs={"pk": self.application.id}), **self.gov_headers)
         audit_entries = response.json()["activity"]
         self.assertEqual(len(audit_entries), 2)  # one entry for case creation, one entry for advice deletion
-        self.assertEqual(len([a for a in audit_entries if a["text"] == "cleared user advice."]), 1)
+        self.assertEqual(len([a for a in audit_entries if a["text"] == "cleared their recommendation."]), 1)
