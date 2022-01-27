@@ -19,8 +19,12 @@ class DefaultValueParameterFormatter(Formatter):
                 return kwds[key]
             except KeyError:
                 try:
-                    return key.split("|")[1].strip()
-                except IndexError:
+                    key, val = key.split("|")
+                    try:
+                        return kwds[key.strip()]
+                    except KeyError:
+                        return val.strip()
+                except ValueError:
                     raise KeyError(f"Payload does not contain parameter '{key}' and message specifies no default value")
         else:
             return Formatter.get_value(key, args, kwds)
