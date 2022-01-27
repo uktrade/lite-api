@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='team',
             name='alias',
-            field=models.TextField(default=None, help_text='fixed static field for reference', null=True, unique=True),
+            field=models.TextField(default="", help_text='fixed static field for reference', unique=True),
         ),
     ]
