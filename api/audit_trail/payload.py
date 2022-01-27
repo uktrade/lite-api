@@ -1,9 +1,34 @@
+from string import Formatter
+
 from api.audit_trail.enums import AuditType
 from lite_content.lite_api import strings
 
 
+class DefaultValueParameterFormatter(Formatter):
+    """String formatter that allows strings to specify a default value
+    for substitution parameters. The default is used when the parameter
+    is not found in the substitution parameters dictionary (payload).
+
+    Example: "the sky is {colour|blue}"
+    Without default: "the sky is {colour}"
+    """
+
+    def get_value(self, key, args, kwds):
+        if isinstance(key, str):
+            try:
+                return kwds[key]
+            except KeyError:
+                try:
+                    return key.split("|")[1].strip()
+                except IndexError:
+                    raise KeyError(f"Payload does not contain parameter '{key}' and message specifies no default value")
+        else:
+            return Formatter.get_value(key, args, kwds)
+
+
 def format_payload(audit_type, payload):
-    text = audit_type_format[audit_type].format(**payload)
+    fmt = DefaultValueParameterFormatter()
+    text = fmt.format(audit_type_format[audit_type], **payload)
     if text[-1] not in [":", ".", "?"]:
         return f"{text}."
 
@@ -128,5 +153,5 @@ audit_type_format = {
     AuditType.LICENCE_UPDATED_STATUS: strings.Audit.LICENCE_UPDATED_STATUS,
     AuditType.DOCUMENT_ON_ORGANISATION_CREATE: "added {document_type} '{file_name}' to organization",
     AuditType.REPORT_SUMMARY_UPDATED: "updated ARS for {good_name} from {old_report_summary} to {report_summary}",
-    AuditType.COUNTERSIGN_ADVICE: "countersigned all {department} recommendations",
+    AuditType.COUNTERSIGN_ADVICE: "countersigned all {department|FCDO} recommendations",
 }
