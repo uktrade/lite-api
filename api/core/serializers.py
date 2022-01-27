@@ -102,10 +102,8 @@ class KeyValueChoiceField(Field):
         super(KeyValueChoiceField, self).__init__(**kwargs)
 
     def to_internal_value(self, data):
-        if data == "":
-            if self.allow_blank:
-                return ""
-            self.fail("null", input=data)
+        if data == "" and self.allow_blank:
+            return ""
 
         try:
             return self.choice_strings_to_values[six.text_type(data)]
