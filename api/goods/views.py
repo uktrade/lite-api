@@ -261,7 +261,10 @@ class GoodList(ListCreateAPIView):
                     ):
                         data["firearm_details"]["firearms_act_section"] = "firearms_act_section5"
 
-        serializer = GoodCreateSerializer(data=data)
+        if data.get("validate_only"):
+            serializer = GoodCreateSerializer(data=data, partial=True)
+        else:
+            serializer = GoodCreateSerializer(data=data)
 
         return create_or_update_good(serializer, data, is_created=True)
 

@@ -27,7 +27,7 @@ def create_or_update_good(serializer, data, is_created):
         return JsonResponse(data={"errors": flattened_errors}, status=status.HTTP_400_BAD_REQUEST)
 
     if str_to_bool(data.get("validate_only")):
-        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     serializer.save()
 
