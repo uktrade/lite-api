@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='queue',
             name='alias',
-            field=models.TextField(default="", help_text='fixed static field for reference', unique=True),
+            field=models.TextField(default=None, null=True, unique=True, help_text='fixed static field for reference'),
         ),
     ]

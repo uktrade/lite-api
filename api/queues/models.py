@@ -13,7 +13,7 @@ class QueueManager(models.Manager):
 class Queue(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default="Untitled Queue")
-    alias = models.TextField(default="", unique=True, help_text="fixed static field for reference")
+    alias = models.TextField(default=None, null=True, unique=True, help_text="fixed static field for reference")
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     countersigning_queue = models.ForeignKey("self", on_delete=models.DO_NOTHING, null=True)
 
