@@ -36,7 +36,7 @@ class FlagsCreateTest(DataTestClient):
                 "part_of_ecju": None,
                 "department": None,
                 "is_ogd": False,
-                "alias": None
+                "alias": None,
             },
         )
 
