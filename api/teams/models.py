@@ -16,7 +16,7 @@ class TeamManager(models.Manager):
 class Team(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, unique=True)
-    alias = models.TextField(default=None, unique=True, null=True, help_text="fixed static field for reference")
+    alias = models.TextField(default="", unique=True, help_text="fixed static field for reference")
     department = models.ForeignKey(
         Department, null=True, blank=True, default=None, on_delete=models.SET_NULL, related_name="teams"
     )
