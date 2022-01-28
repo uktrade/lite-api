@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-def populate_alias(apps, schema_editor):
+def populate_queue_alias_flags(apps, schema_editor):
     flags = {
         'f458094c-1fed-4222-ac70-ff5fa20ff649': 'FCDO_CASES_TO_REVIEW',
         '5e772575-9ae4-4a16-b55b-7e1476d810c4': 'FCDO_COUNTER_SIGNING',
@@ -27,5 +27,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-         migrations.RunPython(populate_alias, migrations.RunPython.noop),
+         migrations.RunPython(populate_queue_alias_flags, migrations.RunPython.noop),
     ]

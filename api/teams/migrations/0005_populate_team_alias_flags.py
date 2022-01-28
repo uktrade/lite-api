@@ -3,7 +3,7 @@
 from django.db import migrations
 
 
-def populate_alias(apps, schema_editor):
+def populate_team_alias(apps, schema_editor):
     flags = {
         '67b9a4a3-6f3d-4511-8a19-23ccff221a74': 'FCO',
         '58e77e47-42c8-499f-a58d-94f94541f8c6': 'LICENSING_UNIT',
@@ -27,5 +27,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(populate_alias, migrations.RunPython.noop),
+        migrations.RunPython(populate_team_alias, migrations.RunPython.noop),
     ]
