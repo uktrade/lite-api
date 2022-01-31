@@ -16,6 +16,8 @@ class TestPayload(DataTestClient):
                 {"file_name": "file.png", "party_type": "Party", "party_name": "Name"},
                 "uploaded the document file.png for Party Name.",
             ],
+            [AuditType.COUNTERSIGN_ADVICE, {"department": "Test Dept"}, "countersigned all Test Dept recommendations."],
+            [AuditType.COUNTERSIGN_ADVICE, {}, "countersigned all  recommendations."],
         ]
     )
     def test_audit_type_formatter_success(self, verb, payload, expected_text):
