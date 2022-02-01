@@ -165,6 +165,7 @@ class FlagAssignmentSerializer(serializers.Serializer):
 class CaseListFlagSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField()
+    alias = serializers.CharField()
     label = serializers.CharField()
     colour = serializers.CharField()
     priority = serializers.IntegerField()

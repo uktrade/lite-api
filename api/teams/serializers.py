@@ -12,6 +12,7 @@ class TeamReadOnlySerializer(serializers.Serializer):
 
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(read_only=True)
+    alias = serializers.CharField(read_only=True)
     part_of_ecju = serializers.BooleanField(read_only=True)
     is_ogd = serializers.BooleanField(read_only=True)
 
