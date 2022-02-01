@@ -1,40 +1,36 @@
-from datetime import datetime
-from django.utils import timezone
+from api.cases.enums import CaseTypeReferenceEnum
 
-from api.applications.enums import ApplicationExportType
-from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 
-LICENCE_APPLICATION_PREFIX = "GB"
-SEPARATOR = "/"
+CASE_TYPE_MAP = {
+    CaseTypeReferenceEnum.SIEL: "SIE",
+    CaseTypeReferenceEnum.SITL: "SIE",
+    CaseTypeReferenceEnum.OIEL: "OIE",
+    CaseTypeReferenceEnum.OGEL: "OGE",
+    CaseTypeReferenceEnum.OICL: "OIT",
+    CaseTypeReferenceEnum.OGTCL: "OGT",
+    CaseTypeReferenceEnum.SICL: "SIT",
+    CaseTypeReferenceEnum.F680: "MDF",
+    CaseTypeReferenceEnum.GIFT: "GFT",
+    CaseTypeReferenceEnum.EXHC: "EXC",
+    CaseTypeReferenceEnum.EUA: "AEU",
+    CaseTypeReferenceEnum.GQY: "ECL",
+    CaseTypeReferenceEnum.CRE: "CRE",
+    CaseTypeReferenceEnum.COMP_SITE: "CSC",
+    CaseTypeReferenceEnum.COMP_VISIT: "CVC",
+}
 
 
 def generate_reference_code(case):
+    """
+    Function that generates the case/application reference code
+    as per the new referencing scheme
+    """
     from api.cases.models import CaseReferenceCode
 
-    # Case Reference
-    if case.case_type.id in [CaseTypeEnum.COMPLIANCE_SITE.id, CaseTypeEnum.COMPLIANCE_VISIT.id]:
-        compliance_prefix, compliance_suffix = case.case_type.reference.split("_")
-        reference_code = compliance_prefix + SEPARATOR
-    else:
-        reference_code = case.case_type.reference + SEPARATOR
+    try:
+        case_type = CASE_TYPE_MAP[case.case_type.reference]
+    except KeyError as err:
+        raise Exception("Application type currently not supported") from err
 
-    # Year
-    reference_code += str(timezone.make_aware(datetime.now()).year) + SEPARATOR
-
-    # Int
-    value = CaseReferenceCode.objects.create()
-    reference_code += str(value.reference_number).zfill(7)
-
-    # Licence Applications
-    if case.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
-        reference_code = LICENCE_APPLICATION_PREFIX + reference_code
-
-        # Export type
-        if hasattr(case, "export_type"):
-            if case.export_type in [ApplicationExportType.TEMPORARY, ApplicationExportType.PERMANENT]:
-                reference_code += SEPARATOR + case.export_type[0]
-
-    if case.case_type.id in [CaseTypeEnum.COMPLIANCE_SITE.id, CaseTypeEnum.COMPLIANCE_VISIT.id]:
-        reference_code += SEPARATOR + compliance_suffix
-
-    return reference_code.upper()
+    ref_code = CaseReferenceCode.objects.create()
+    return f"{case_type}{str(ref_code.year)[-2:]}-{str(ref_code.reference_number).zfill(7)}-01"

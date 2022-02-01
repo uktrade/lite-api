@@ -2,26 +2,18 @@ from datetime import datetime
 
 from api.applications.enums import ApplicationExportType
 from api.cases.enums import CaseTypeEnum
-from api.cases.libraries.reference_code import LICENCE_APPLICATION_PREFIX, SEPARATOR
+from api.cases.libraries.reference_code import CASE_TYPE_MAP
 from test_helpers.clients import DataTestClient
 
 PERMANENT = "P"
 TEMPORARY = "T"
 
 
-def build_expected_reference(case_reference, is_licence_type=False, export_type=None):
+def build_expected_reference(case_reference):
     reference_number = "0000001"
     year = str(datetime.now().year)
 
-    expected_reference = case_reference.upper() + SEPARATOR + year + SEPARATOR + reference_number
-
-    if is_licence_type:
-        expected_reference = LICENCE_APPLICATION_PREFIX + expected_reference
-
-    if export_type:
-        expected_reference += SEPARATOR + export_type
-
-    return expected_reference
+    return f"{CASE_TYPE_MAP[case_reference]}{year[-2:]}-{reference_number}-01"
 
 
 class ReferenceCode(DataTestClient):
@@ -29,9 +21,7 @@ class ReferenceCode(DataTestClient):
         standard_application = self.create_draft_standard_application(self.organisation)
         standard_application = self.submit_application(standard_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SIEL.reference, is_licence_type=True, export_type=PERMANENT
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.SIEL.reference)
         self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_standard_individual_transhipment_application_reference_code(self):
@@ -40,18 +30,14 @@ class ReferenceCode(DataTestClient):
         )
         standard_application = self.submit_application(standard_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SITL.reference, is_licence_type=True, export_type=PERMANENT
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.SITL.reference)
         self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_open_application_reference_code(self):
         open_application = self.create_draft_open_application(self.organisation)
         open_application = self.submit_application(open_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.OIEL.reference, is_licence_type=True, export_type=PERMANENT
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.OIEL.reference)
         self.assertEqual(open_application.reference_code, expected_reference)
 
     def test_exhibition_clearance_reference_code(self):
@@ -101,9 +87,7 @@ class ReferenceCode(DataTestClient):
         standard_application.export_type = ApplicationExportType.TEMPORARY
         self.submit_application(standard_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SIEL.reference, is_licence_type=True, export_type=TEMPORARY
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.SIEL.reference)
         self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_trade_control_application_reference_code(self):
@@ -112,9 +96,7 @@ class ReferenceCode(DataTestClient):
         )
         standard_application = self.submit_application(standard_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SICL.reference, is_licence_type=True, export_type=PERMANENT
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.SICL.reference)
         self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_draft_applications_dont_have_reference_codes(self):
