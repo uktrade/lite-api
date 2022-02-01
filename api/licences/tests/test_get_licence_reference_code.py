@@ -1,4 +1,4 @@
-from string import ascii_uppercase
+from string import ascii_lowercase
 
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code
@@ -20,9 +20,9 @@ class GetLicenceReferenceCodeTests(DataTestClient):
 
     def test_get_amended_licence_reference_code(self):
         """
-        Check all amended licences get suffix /A -> /Z
+        Check all amended licences get suffix '-a' -> '-z'
         """
-        for letter in ascii_uppercase:
+        for letter in ascii_lowercase:
             self.create_licence(self.application, status=LicenceStatus.ISSUED)
             reference_code = get_licence_reference_code(self.application.reference_code)
-            self.assertEqual(reference_code, self.application.reference_code + "/" + letter)
+            self.assertEqual(reference_code, f"{self.application.reference_code}-{letter}")
