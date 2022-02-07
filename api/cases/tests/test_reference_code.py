@@ -114,3 +114,16 @@ class ReferenceCode(DataTestClient):
         self.assertEqual(
             case_2.reference_code, build_expected_reference(CaseTypeEnum.GOODS.reference, "0000002"),
         )
+
+    def test_change_of_year_resets(self):
+        last_year = datetime.now().year - 1
+        case_reference_code = CaseReferenceCode(year=last_year, reference_number=50)
+        case_reference_code.save()
+        case_reference_code.refresh_from_db()
+        self.assertEqual(case_reference_code.year, last_year)
+        self.assertEqual(case_reference_code.reference_number, 50)
+
+        clc_query = self.create_clc_query("", self.organisation)
+
+        expected_reference = build_expected_reference(CaseTypeEnum.GOODS.reference)
+        self.assertEqual(clc_query.reference_code, expected_reference)
