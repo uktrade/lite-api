@@ -1,4 +1,6 @@
+import logging
 import uuid
+
 from collections import defaultdict
 from typing import Optional
 
@@ -42,6 +44,9 @@ from api.users.models import (
     UserOrganisationRelationship,
     ExporterNotification,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class CaseTypeManager(models.Manager):
@@ -418,7 +423,7 @@ class Advice(TimestampableModel):
             self.proviso = None
         try:
             if self.level == AdviceLevel.TEAM:
-                Advice.objects.get(
+                old_advice = Advice.objects.get(
                     case=self.case,
                     team=self.team,
                     level=AdviceLevel.TEAM,
@@ -429,7 +434,16 @@ class Advice(TimestampableModel):
                     ultimate_end_user=self.ultimate_end_user,
                     consignee=self.consignee,
                     third_party=self.third_party,
-                ).delete()
+                )
+                if old_advice.denial_reasons.exists():
+                    denial_reasons = old_advice.denial_reasons.values_list("pk", flat=True)
+                    logger.warning(
+                        "Deleting advice object that had denial reasons: %s (%s) - %s",
+                        old_advice,
+                        old_advice.pk,
+                        denial_reasons,
+                    )
+                old_advice.delete()
             elif self.level == AdviceLevel.FINAL:
                 old_advice = Advice.objects.get(
                     case=self.case,
@@ -444,9 +458,17 @@ class Advice(TimestampableModel):
                 )
                 self.footnote = old_advice.footnote
                 self.footnote_required = old_advice.footnote_required
+                if old_advice.denial_reasons.exists():
+                    denial_reasons = old_advice.denial_reasons.values_list("pk", flat=True)
+                    logger.warning(
+                        "Deleting advice object that had denial reasons: %s (%s) - %s",
+                        old_advice,
+                        old_advice.pk,
+                        denial_reasons,
+                    )
                 old_advice.delete()
             elif self.level == AdviceLevel.USER:
-                Advice.objects.get(
+                old_advice = Advice.objects.get(
                     case=self.case,
                     good=self.good,
                     user=self.user,
@@ -457,7 +479,16 @@ class Advice(TimestampableModel):
                     ultimate_end_user=self.ultimate_end_user,
                     consignee=self.consignee,
                     third_party=self.third_party,
-                ).delete()
+                )
+                if old_advice.denial_reasons.exists():
+                    denial_reasons = old_advice.denial_reasons.values_list("pk", flat=True)
+                    logger.warning(
+                        "Deleting advice object that had denial reasons: %s (%s) - %s",
+                        old_advice,
+                        old_advice.pk,
+                        denial_reasons,
+                    )
+                old_advice.delete()
         except Advice.DoesNotExist:
             pass
 
