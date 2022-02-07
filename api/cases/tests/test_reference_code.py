@@ -3,14 +3,14 @@ from datetime import datetime
 from api.applications.enums import ApplicationExportType
 from api.cases.enums import CaseTypeEnum
 from api.cases.libraries.reference_code import CASE_TYPE_MAP
+from api.cases.models import CaseReferenceCode
 from test_helpers.clients import DataTestClient
 
 PERMANENT = "P"
 TEMPORARY = "T"
 
 
-def build_expected_reference(case_reference):
-    reference_number = "0000001"
+def build_expected_reference(case_reference, reference_number="0000001"):
     year = str(datetime.now().year)
 
     return f"{CASE_TYPE_MAP[case_reference]}{year[-2:]}-{reference_number}-01"
@@ -108,5 +108,9 @@ class ReferenceCode(DataTestClient):
         case_1 = self.create_clc_query("", self.organisation)
         case_2 = self.create_clc_query("", self.organisation)
 
-        self.assertIn("1", case_1.reference_code)
-        self.assertIn("2", case_2.reference_code)
+        self.assertEqual(
+            case_1.reference_code, build_expected_reference(CaseTypeEnum.GOODS.reference, "0000001"),
+        )
+        self.assertEqual(
+            case_2.reference_code, build_expected_reference(CaseTypeEnum.GOODS.reference, "0000002"),
+        )
