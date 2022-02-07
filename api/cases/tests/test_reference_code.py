@@ -2,8 +2,9 @@ from datetime import datetime
 
 from api.applications.enums import ApplicationExportType
 from api.cases.enums import CaseTypeEnum
-from api.cases.libraries.reference_code import CASE_TYPE_MAP
+from api.cases.libraries.reference_code import CASE_TYPE_MAP, generate_reference_code, UnknownApplicationTypeError
 from api.cases.models import CaseReferenceCode
+from api.cases.tests.factories import CaseFactory, CaseTypeFactory
 from test_helpers.clients import DataTestClient
 
 PERMANENT = "P"
@@ -127,3 +128,9 @@ class ReferenceCode(DataTestClient):
 
         expected_reference = build_expected_reference(CaseTypeEnum.GOODS.reference)
         self.assertEqual(clc_query.reference_code, expected_reference)
+
+    def test_raises_exception_on_unknown_application_type(self):
+        case_type = CaseTypeFactory.create(reference="madeup")
+        case = CaseFactory.create(case_type=case_type)
+        with self.assertRaises(UnknownApplicationTypeError):
+            generate_reference_code(case)

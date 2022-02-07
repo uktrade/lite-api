@@ -20,6 +20,10 @@ CASE_TYPE_MAP = {
 }
 
 
+class UnknownApplicationTypeError(ValueError):
+    pass
+
+
 def generate_reference_code(case):
     """
     Function that generates the case/application reference code
@@ -30,7 +34,9 @@ def generate_reference_code(case):
     try:
         case_type = CASE_TYPE_MAP[case.case_type.reference]
     except KeyError as err:
-        raise Exception("Application type currently not supported") from err
+        raise UnknownApplicationTypeError(
+            f"Application type {case.case_type.reference} currently not supported"
+        ) from err
 
     ref_code = CaseReferenceCode.objects.create()
     return f"{case_type}{str(ref_code.year)[-2:]}-{str(ref_code.reference_number).zfill(7)}-01"
