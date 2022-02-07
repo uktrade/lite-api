@@ -4,6 +4,7 @@ import uuid
 from collections import defaultdict
 from typing import Optional
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
@@ -46,7 +47,7 @@ from api.users.models import (
 )
 
 
-logger = logging.getLogger(__name__)
+denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
 
 
 class CaseTypeManager(models.Manager):
@@ -437,7 +438,7 @@ class Advice(TimestampableModel):
                 )
                 if old_advice.denial_reasons.exists():
                     denial_reasons = old_advice.denial_reasons.values_list("pk", flat=True)
-                    logger.warning(
+                    denial_reasons_logger.warning(
                         "Deleting advice object that had denial reasons: %s (%s) - %s",
                         old_advice,
                         old_advice.pk,
@@ -460,7 +461,7 @@ class Advice(TimestampableModel):
                 self.footnote_required = old_advice.footnote_required
                 if old_advice.denial_reasons.exists():
                     denial_reasons = old_advice.denial_reasons.values_list("pk", flat=True)
-                    logger.warning(
+                    denial_reasons_logger.warning(
                         "Deleting advice object that had denial reasons: %s (%s) - %s",
                         old_advice,
                         old_advice.pk,
@@ -482,7 +483,7 @@ class Advice(TimestampableModel):
                 )
                 if old_advice.denial_reasons.exists():
                     denial_reasons = old_advice.denial_reasons.values_list("pk", flat=True)
-                    logger.warning(
+                    denial_reasons_logger.warning(
                         "Deleting advice object that had denial reasons: %s (%s) - %s",
                         old_advice,
                         old_advice.pk,

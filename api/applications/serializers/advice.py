@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -21,7 +22,7 @@ from api.teams.serializers import TeamReadOnlySerializer
 from api.users.models import GovUser
 
 
-logger = logging.getLogger(__name__)
+denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
 
 
 class GoodField(serializers.Field):
@@ -168,7 +169,9 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
         instance = super().create(*args, **kwargs)
 
         if not instance.denial_reasons.exists():
-            logger.warning("Creating advice object with no denial reasons: %s (%s)", instance, instance.pk)
+            denial_reasons_logger.warning(
+                "Creating advice object with no denial reasons: %s (%s)", instance, instance.pk
+            )
 
         return instance
 
@@ -178,7 +181,7 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
 
         if not instance.denial_reasons.exists():
-            logger.warning(
+            denial_reasons_logger.warning(
                 "Updating advice object with no denial reasons: %s (%s) - %s",
                 instance,
                 instance.pk,

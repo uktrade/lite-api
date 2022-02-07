@@ -2,12 +2,14 @@ import logging
 
 from collections import defaultdict
 
+from django.conf import settings
+
 from api.cases.enums import AdviceType
 from api.cases.models import Advice
 from api.goods.enums import PvGrading
 
 
-logger = logging.getLogger(__name__)
+denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
 
 
 def group_advice(case, advice, user, new_level):
@@ -37,7 +39,7 @@ def collate_advice(entity_field, new_level, collection, case, user):
         previous_denial_reasons = list(advice.denial_reasons.values_list("pk", flat=True))
         advice.denial_reasons.set(denial_reasons)
         if not denial_reasons:
-            logger.warning(
+            denial_reasons_logger.warning(
                 "Removing denial reasons in `collate_advice` for: %s (%s) - %s",
                 advice,
                 advice.pk,
