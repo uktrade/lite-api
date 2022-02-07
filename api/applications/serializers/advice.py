@@ -1,3 +1,6 @@
+import logging
+
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -17,6 +20,9 @@ from api.staticdata.denial_reasons.models import DenialReason
 from api.teams.models import Team
 from api.teams.serializers import TeamReadOnlySerializer
 from api.users.models import GovUser
+
+
+denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
 
 
 class GoodField(serializers.Field):
@@ -158,6 +164,32 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
             for i in range(0, len(self.initial_data)):
                 self.initial_data[i]["footnote"] = None
                 self.initial_data[i]["footnote_required"] = None
+
+    def create(self, *args, **kwargs):
+        instance = super().create(*args, **kwargs)
+
+        if not instance.denial_reasons.exists():
+            denial_reasons_logger.warning(
+                "Creating advice object with no denial reasons: %s (%s)", instance, instance.pk, exc_info=True,
+            )
+
+        return instance
+
+    def update(self, instance, validated_data):
+        previous_denial_reasons = list(instance.denial_reasons.values_list("pk", flat=True))
+
+        instance = super().update(instance, validated_data)
+
+        if not instance.denial_reasons.exists():
+            denial_reasons_logger.warning(
+                "Updating advice object with no denial reasons: %s (%s) - %s",
+                instance,
+                instance.pk,
+                previous_denial_reasons,
+                exc_info=True,
+            )
+
+        return instance
 
 
 class CountersignAdviceListSerializer(serializers.ListSerializer):
