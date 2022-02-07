@@ -7,9 +7,6 @@ from api.cases.models import CaseReferenceCode
 from api.cases.tests.factories import CaseFactory, CaseTypeFactory
 from test_helpers.clients import DataTestClient
 
-PERMANENT = "P"
-TEMPORARY = "T"
-
 
 def build_expected_reference(case_reference, reference_number="0000001"):
     year = str(datetime.now().year)
