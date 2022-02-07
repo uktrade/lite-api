@@ -170,7 +170,7 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
 
         if not instance.denial_reasons.exists():
             denial_reasons_logger.warning(
-                "Creating advice object with no denial reasons: %s (%s)", instance, instance.pk
+                "Creating advice object with no denial reasons: %s (%s)", instance, instance.pk, exc_info=True,
             )
 
         return instance
@@ -186,6 +186,7 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
                 instance,
                 instance.pk,
                 previous_denial_reasons,
+                exc_info=True,
             )
 
         return instance

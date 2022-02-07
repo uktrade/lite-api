@@ -443,6 +443,7 @@ class Advice(TimestampableModel):
                         old_advice,
                         old_advice.pk,
                         denial_reasons,
+                        exc_info=True,
                     )
                 old_advice.delete()
             elif self.level == AdviceLevel.FINAL:
@@ -466,6 +467,7 @@ class Advice(TimestampableModel):
                         old_advice,
                         old_advice.pk,
                         denial_reasons,
+                        exc_info=True,
                     )
                 old_advice.delete()
             elif self.level == AdviceLevel.USER:
@@ -488,6 +490,7 @@ class Advice(TimestampableModel):
                         old_advice,
                         old_advice.pk,
                         denial_reasons,
+                        exc_info=True,
                     )
                 old_advice.delete()
         except Advice.DoesNotExist:

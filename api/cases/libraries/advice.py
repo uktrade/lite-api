@@ -44,6 +44,7 @@ def collate_advice(entity_field, new_level, collection, case, user):
                 advice,
                 advice.pk,
                 previous_denial_reasons,
+                exc_info=True,
             )
 
 
