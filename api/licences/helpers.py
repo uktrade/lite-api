@@ -1,6 +1,6 @@
 from django.db import transaction
 from rest_framework.exceptions import ParseError
-from string import ascii_lowercase, ascii_uppercase
+from string import ascii_lowercase
 
 from api.applications.models import GoodOnApplication
 from api.applications.serializers.good import GoodOnApplicationViewSerializer
@@ -39,18 +39,18 @@ def get_licence_reference_code(application_reference):
         Licence.objects.filter(reference_code__icontains=application_reference).select_for_update().count()
     )
 
-    """
-    If licence reference already exists then we are re-issuing it so for each
-    re-issue/amendment we add a suffix to the original reference
-    """
-    if total_reference_codes:
-        # suffix differs as per the application reference naming scheme
-        if application_reference.startswith("GB"):
-            return f"{application_reference}/{ascii_uppercase[total_reference_codes-1]}"
-        else:
-            return f"{application_reference}-{ascii_lowercase[total_reference_codes-1]}"
+    if not total_reference_codes:
+        return application_reference
 
-    return application_reference
+    # If licence reference already exists then we are re-issuing it so for each
+    # re-issue/amendment we add a suffix to the original reference
+    letter = ascii_lowercase[total_reference_codes - 1]
+    # suffix differs as per the application reference naming scheme
+    if application_reference.startswith("GB"):
+        suffix = f"/{letter.upper()}"
+    else:
+        suffix = f"-{letter}"
+    return f"{application_reference}{suffix}"
 
 
 def serialize_goods_on_licence(licence):
