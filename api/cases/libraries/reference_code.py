@@ -39,4 +39,4 @@ def generate_reference_code(case):
         ) from err
 
     ref_code = CaseReferenceCode.objects.create()
-    return f"{case_type}{str(ref_code.year)[-2:]}-{str(ref_code.reference_number).zfill(7)}-01"
+    return f"{case_type}{str(ref_code.year)[-2:]}-{str(ref_code.reference_number).zfill(7)}"

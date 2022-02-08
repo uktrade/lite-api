@@ -11,7 +11,7 @@ from test_helpers.clients import DataTestClient
 def build_expected_reference(case_reference, reference_number="0000001"):
     year = str(datetime.now().year)
 
-    return f"{CASE_TYPE_MAP[case_reference]}{year[-2:]}-{reference_number}-01"
+    return f"{CASE_TYPE_MAP[case_reference]}{year[-2:]}-{reference_number}"
 
 
 class ReferenceCode(DataTestClient):
