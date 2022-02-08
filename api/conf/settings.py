@@ -378,8 +378,12 @@ EXPORTER_BASE_URL = (
 LITE_API_DEMO_FLAGS_CSV = env.str(
     "LITE_API_DEMO_FLAGS_CSV", default="team_name,level,name,alias\nteam1,level1,name1,NAME1\n", multiline=True
 )
-LITE_API_DEMO_QUEUES_CSV = env.str("LITE_API_DEMO_QUEUES_CSV", default="team_name,name,alias\nteam1,name1,NAME1\n", multiline=True)
-LITE_API_DEMO_TEAMS_CSV = env.str("LITE_API_DEMO_TEAMS_CSV", default="name,alias\nteam1,TEAM1\nteam2,TEAM2", multiline=True)
+LITE_API_DEMO_QUEUES_CSV = env.str(
+    "LITE_API_DEMO_QUEUES_CSV", default="team_name,name,alias\nteam1,name1,NAME1\n", multiline=True
+)
+LITE_API_DEMO_TEAMS_CSV = env.str(
+    "LITE_API_DEMO_TEAMS_CSV", default="name,alias\nteam1,TEAM1\nteam2,TEAM2", multiline=True
+)
 
 
 # Document signing

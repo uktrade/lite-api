@@ -109,7 +109,9 @@ class SeedingTests(SeedCommandTest):
             self.assertTrue(Team.objects.filter(alias=team["alias"]).exists(), f"Team {team['alias']} does not exist")
         for queue in deserialize_csv_from_string(settings.LITE_API_DEMO_QUEUES_CSV):
             self.assertTrue(Queue.objects.filter(name=queue["name"]).exists(), f"Queue {queue['name']} does not exist")
-            self.assertTrue(Queue.objects.filter(alias=queue["alias"]).exists(), f"Queue {queue['alias']} does not exist")
+            self.assertTrue(
+                Queue.objects.filter(alias=queue["alias"]).exists(), f"Queue {queue['alias']} does not exist"
+            )
         for flag in deserialize_csv_from_string(settings.LITE_API_DEMO_FLAGS_CSV):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
             self.assertTrue(Flag.objects.filter(alias=flag["alias"]).exists(), f"Flag {flag['alias']} does not exist")
