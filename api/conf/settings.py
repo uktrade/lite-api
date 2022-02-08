@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 
@@ -308,6 +309,9 @@ if LITE_API_ENABLE_ES:
     ]
 
 
+DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
+
+
 if "test" not in sys.argv:
     LOGGING = {
         "version": 1,
@@ -319,8 +323,10 @@ if "test" not in sys.argv:
         "handlers": {
             "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
             "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
+            "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
         },
         "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
+        "loggers": {DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},},
     }
 else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}
