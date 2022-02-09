@@ -65,7 +65,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["case"], str(self.standard_application.id))
-        self.assertEqual(response_data["reference_code"], self.standard_application.reference_code + "-a")
+        self.assertEqual(response_data["reference_code"], self.standard_application.reference_code + "-01")
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
         self.assertEqual(response_data["status"], LicenceStatus.DRAFT)

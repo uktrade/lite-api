@@ -32,9 +32,9 @@ class GetLicenceReferenceCodeTests(DataTestClient):
 
     def test_get_amended_licence_reference_code(self):
         """
-        Check all amended licences get suffix '-a' -> '-z'
+        Check all amended licences get suffix '-01', '-02', '-03' etc.
         """
-        for letter in ascii_lowercase:
+        for number in range(100, 1):
             self.create_licence(self.application, status=LicenceStatus.ISSUED)
             reference_code = get_licence_reference_code(self.application.reference_code)
-            self.assertEqual(reference_code, f"{self.application.reference_code}-{letter}")
+            self.assertEqual(reference_code, f"{self.application.reference_code}-{number:02}")
