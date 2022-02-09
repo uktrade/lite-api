@@ -148,7 +148,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
 class LicenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Licence
-        fields = ["duration", "start_date", "end_date"]
+        fields = ["duration", "start_date", "end_date", "reference_code"]
 
     start_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
     end_date = serializers.SerializerMethodField()
