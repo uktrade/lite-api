@@ -89,6 +89,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["start_date"], licence.start_date.strftime(DATE_FORMAT))
         self.assertEqual(context["duration"], licence.duration)
         self.assertEqual(context["end_date"], add_months(licence.start_date, licence.duration))
+        self.assertEqual(context["reference_code"], licence.reference_code)
 
     def _assert_party(self, context, party):
         self.assertEqual(context["name"], party.name)
