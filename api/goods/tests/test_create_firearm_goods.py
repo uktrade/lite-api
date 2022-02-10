@@ -117,7 +117,7 @@ class CreateFirearmGoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = response.json()["errors"]
         self.assertEqual(response["serial_numbers"], ["Enter at least one serial number"])
-    
+
     def test_firearm_missing_serial_numbers_no_identification_valid(self):
         data = good_rifle()
         data["firearm_details"]["number_of_items"] = 3
