@@ -95,7 +95,8 @@ def validate_identification_markings(validated_data):
         )
 
     serial_numbers = validated_data.get("serial_numbers")
-    if "serial_numbers" in validated_data:
+
+    if "serial_numbers" in validated_data and has_identification_markings:
         is_missing_all_serial_numbers = all(not serial_number for serial_number in serial_numbers)
         if is_missing_all_serial_numbers:
             raise serializers.ValidationError({"serial_numbers": "Enter at least one serial number"})
