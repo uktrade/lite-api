@@ -158,6 +158,7 @@ class CaseCopyOfSerializer(serializers.ModelSerializer):
 class CaseDetailSerializer(serializers.ModelSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
+    queue_details = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
@@ -180,6 +181,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "flags",
             "queues",
             "queue_names",
+            "queue_details",
             "assigned_users",
             "has_advice",
             "advice",
@@ -219,10 +221,14 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             return ComplianceVisitSerializer(compliance).data
 
     def get_flags(self, instance):
-        return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))
+        return list(instance.flags.all().values("id", "name", "colour", "label", "priority", "alias"))
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))
+
+    def get_queue_details(self, instance):
+        # This should supersede queue/queue_names to make payload and DB query more efficient
+        return list(instance.queues.values("id", "name", "alias"))
 
     def get_assigned_users(self, instance):
         return instance.get_assigned_users()
