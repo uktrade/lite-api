@@ -119,13 +119,7 @@ class ApplicationGoodsOnApplication(APIView):
                     data["firearm_details"]["firearms_act_section"] = "firearms_act_section5"
 
             serializer = GoodOnApplicationCreateSerializer(data=data)
-            print('*****************')
-            print('ApplicationGoodsOnApplication post serializer')
-            print('*****************')
             if serializer.is_valid():
-                print('*****************')
-                print('ApplicationGoodsOnApplication post serializer.is_valid()')
-                print('*****************')
                 serializer.save()
 
                 audit_trail_service.create(
