@@ -53,6 +53,7 @@ def _validate_siel_locations(application, errors):
 
     return errors
 
+
 def _get_document_errors(documents, processing_error, virus_error):
     document_statuses = documents.values_list("safe", flat=True)
 

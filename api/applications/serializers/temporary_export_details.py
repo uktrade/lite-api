@@ -35,7 +35,7 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
             data, "temp_export_details", strings.Generic.TemporaryExportDetails.Error.TEMPORARY_EXPORT_DETAILS
         )
         is_temp_direct_control_value = validate_field(
-            data, "is_temp_direct_control", strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL
+            data, "is_temp_direct_control", strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL, required=True
         )
 
         # Only validate temp_direct_control_details if its parent is_temp_direct_control is False
