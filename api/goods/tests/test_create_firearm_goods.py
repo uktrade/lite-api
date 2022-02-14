@@ -118,6 +118,15 @@ class CreateFirearmGoodTests(DataTestClient):
         response = response.json()["errors"]
         self.assertEqual(response["serial_numbers"], ["Enter at least one serial number"])
 
+    def test_firearm_missing_serial_numbers_no_identification_valid(self):
+        data = good_rifle()
+        data["firearm_details"]["number_of_items"] = 3
+        data["firearm_details"]["has_identification_markings"] = False
+        data["firearm_details"]["no_identification_markings_details"] = "No Serial no"
+        data["firearm_details"]["serial_numbers"] = ["", "", ""]
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
     def test_firearms_act_user_is_rfd(self):
         """ Test that checks that if the user organisation does not have a valid RFD then

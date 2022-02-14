@@ -42,6 +42,9 @@ class Licence(TimestampableModel):
 
     objects = LicenceManager()
 
+    def __str__(self):
+        return self.reference_code
+
     def hmrc_mail_status(self):
         """
         Fetch mail status from HRMC-integration server

@@ -2,26 +2,16 @@ from datetime import datetime
 
 from api.applications.enums import ApplicationExportType
 from api.cases.enums import CaseTypeEnum
-from api.cases.libraries.reference_code import LICENCE_APPLICATION_PREFIX, SEPARATOR
+from api.cases.libraries.reference_code import CASE_TYPE_MAP, generate_reference_code, UnknownApplicationTypeError
+from api.cases.models import CaseReferenceCode
+from api.cases.tests.factories import CaseFactory, CaseTypeFactory
 from test_helpers.clients import DataTestClient
 
-PERMANENT = "P"
-TEMPORARY = "T"
 
-
-def build_expected_reference(case_reference, is_licence_type=False, export_type=None):
-    reference_number = "0000001"
+def build_expected_reference(case_reference, reference_number="0000001"):
     year = str(datetime.now().year)
 
-    expected_reference = case_reference.upper() + SEPARATOR + year + SEPARATOR + reference_number
-
-    if is_licence_type:
-        expected_reference = LICENCE_APPLICATION_PREFIX + expected_reference
-
-    if export_type:
-        expected_reference += SEPARATOR + export_type
-
-    return expected_reference
+    return f"{CASE_TYPE_MAP[case_reference]}{year[-2:]}-{reference_number}"
 
 
 class ReferenceCode(DataTestClient):
@@ -29,9 +19,7 @@ class ReferenceCode(DataTestClient):
         standard_application = self.create_draft_standard_application(self.organisation)
         standard_application = self.submit_application(standard_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SIEL.reference, is_licence_type=True, export_type=PERMANENT
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.SIEL.reference)
         self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_standard_individual_transhipment_application_reference_code(self):
@@ -40,18 +28,14 @@ class ReferenceCode(DataTestClient):
         )
         standard_application = self.submit_application(standard_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SITL.reference, is_licence_type=True, export_type=PERMANENT
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.SITL.reference)
         self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_open_application_reference_code(self):
         open_application = self.create_draft_open_application(self.organisation)
         open_application = self.submit_application(open_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.OIEL.reference, is_licence_type=True, export_type=PERMANENT
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.OIEL.reference)
         self.assertEqual(open_application.reference_code, expected_reference)
 
     def test_exhibition_clearance_reference_code(self):
@@ -101,9 +85,7 @@ class ReferenceCode(DataTestClient):
         standard_application.export_type = ApplicationExportType.TEMPORARY
         self.submit_application(standard_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SIEL.reference, is_licence_type=True, export_type=TEMPORARY
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.SIEL.reference)
         self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_trade_control_application_reference_code(self):
@@ -112,9 +94,7 @@ class ReferenceCode(DataTestClient):
         )
         standard_application = self.submit_application(standard_application)
 
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.SICL.reference, is_licence_type=True, export_type=PERMANENT
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.SICL.reference)
         self.assertEqual(standard_application.reference_code, expected_reference)
 
     def test_draft_applications_dont_have_reference_codes(self):
@@ -126,5 +106,28 @@ class ReferenceCode(DataTestClient):
         case_1 = self.create_clc_query("", self.organisation)
         case_2 = self.create_clc_query("", self.organisation)
 
-        self.assertIn("1", case_1.reference_code)
-        self.assertIn("2", case_2.reference_code)
+        self.assertEqual(
+            case_1.reference_code, build_expected_reference(CaseTypeEnum.GOODS.reference, "0000001"),
+        )
+        self.assertEqual(
+            case_2.reference_code, build_expected_reference(CaseTypeEnum.GOODS.reference, "0000002"),
+        )
+
+    def test_change_of_year_resets(self):
+        last_year = datetime.now().year - 1
+        case_reference_code = CaseReferenceCode(year=last_year, reference_number=50)
+        case_reference_code.save()
+        case_reference_code.refresh_from_db()
+        self.assertEqual(case_reference_code.year, last_year)
+        self.assertEqual(case_reference_code.reference_number, 50)
+
+        clc_query = self.create_clc_query("", self.organisation)
+
+        expected_reference = build_expected_reference(CaseTypeEnum.GOODS.reference)
+        self.assertEqual(clc_query.reference_code, expected_reference)
+
+    def test_raises_exception_on_unknown_application_type(self):
+        case_type = CaseTypeFactory.create(reference="madeup")
+        case = CaseFactory.create(case_type=case_type)
+        with self.assertRaises(UnknownApplicationTypeError):
+            generate_reference_code(case)
