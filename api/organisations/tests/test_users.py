@@ -135,7 +135,7 @@ class OrganisationUsersCreateTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(len(UserOrganisationRelationship.objects.all()), 2)
+        self.assertEqual(len(UserOrganisationRelationship.objects.all()), 2)
 
     def test_add_user_to_another_organisation_success(self):
         """
@@ -176,7 +176,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             response_data["errors"]["email"][0],
             data["email"] + " isn't valid",
         )
-        self.assertTrue(len(UserOrganisationRelationship.objects.all()), 1)
+        self.assertEqual(len(UserOrganisationRelationship.objects.all()), 1)
 
     def test_cannot_add_user_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
