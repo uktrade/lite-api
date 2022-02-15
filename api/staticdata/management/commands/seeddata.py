@@ -92,7 +92,11 @@ class ActionBase:
         while idx < 100:
             try:
                 organisation, _, _, _ = OrgCommand.seed_organisation(
-                    org_name, OrganisationType.COMMERCIAL, random.randint(org_site_min, org_site_max), 1, org_primary,
+                    org_name,
+                    OrganisationType.COMMERCIAL,
+                    random.randint(org_site_min, org_site_max),
+                    1,
+                    org_primary,
                 )
                 return organisation
             except ValueError:
@@ -123,7 +127,11 @@ class ActionBase:
 
     @staticmethod
     def app_factory(org, applications_to_add, max_goods_to_use):
-        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use,)
+        _, submitted_applications, _ = AppCommand.seed_siel_applications(
+            org,
+            applications_to_add,
+            max_goods_to_use,
+        )
         return len(submitted_applications)
 
     @staticmethod
@@ -340,7 +348,12 @@ class ActionOiel(ActionBase):
             for result in self.get_mapper(mt)(
                 ActionBase.do_work,
                 [
-                    (ActionOiel.create_media_oiel_draft, organisation, f"OIEL application #{idx}", app_type,)
+                    (
+                        ActionOiel.create_media_oiel_draft,
+                        organisation,
+                        f"OIEL application #{idx}",
+                        app_type,
+                    )
                     for organisation, apps_to_add in applications_to_add_per_org
                     for idx in range(apps_to_add)
                 ],

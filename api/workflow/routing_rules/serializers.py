@@ -78,7 +78,9 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
         allow_empty=True,
     )
     country = CountrySerializerField(
-        required=False, allow_null=True, error_messages={"required": strings.RoutingRules.Errors.NO_COUNTRY},
+        required=False,
+        allow_null=True,
+        error_messages={"required": strings.RoutingRules.Errors.NO_COUNTRY},
     )
 
     class Meta:

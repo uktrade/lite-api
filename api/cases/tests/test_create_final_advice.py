@@ -275,7 +275,9 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_can_submit_user_level_advice_if_final_advice_has_been_cleared_for_that_team_on_that_case(self,):
+    def test_can_submit_user_level_advice_if_final_advice_has_been_cleared_for_that_team_on_that_case(
+        self,
+    ):
         """
         No residual data is left to block lower tier advice being submitted after a clear
         """
@@ -296,7 +298,9 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_cannot_submit_team_level_advice_if_final_advice_exists_for_that_team_on_that_case(self,):
+    def test_cannot_submit_team_level_advice_if_final_advice_exists_for_that_team_on_that_case(
+        self,
+    ):
         """
         Logically blocks the submission of lower tier advice if higher tier advice exists
         """
@@ -315,7 +319,9 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_can_submit_team_level_advice_if_final_advice_has_been_cleared_for_that_team_on_that_case(self,):
+    def test_can_submit_team_level_advice_if_final_advice_has_been_cleared_for_that_team_on_that_case(
+        self,
+    ):
         """
         No residual data is left to block lower tier advice being submitted after a clear
         """
@@ -336,7 +342,9 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(self,):
+    def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(
+        self,
+    ):
         """
         Audit trail is created when clearing or combining advice
         """
@@ -353,7 +361,9 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(len(response.json()["activity"]), 3)
 
-    def test_creating_final_advice_does_not_overwrite_user_level_advice_or_team_level_advice(self,):
+    def test_creating_final_advice_does_not_overwrite_user_level_advice_or_team_level_advice(
+        self,
+    ):
         """
         Because of the shared parent class, make sure the parent class "save" method is overridden by the child class
         """
@@ -409,10 +419,15 @@ class CreateCaseAdviceTests(DataTestClient):
     def test_updating_final_advice_removes_draft_decision_documents(self):
         good = self.standard_application.goods.first().good
         FinalAdviceFactory(
-            user=self.gov_user, team=self.team, case=self.standard_case, good=good, type=AdviceType.APPROVE,
+            user=self.gov_user,
+            team=self.team,
+            case=self.standard_case,
+            good=good,
+            type=AdviceType.APPROVE,
         )
         template = self.create_letter_template(
-            case_types=[self.standard_case.case_type], decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
+            case_types=[self.standard_case.case_type],
+            decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
         self.create_generated_case_document(
             self.standard_case, template, advice_type=AdviceType.APPROVE, visible_to_exporter=False
@@ -433,13 +448,19 @@ class CreateCaseAdviceTests(DataTestClient):
 class CreateFinalAdviceOpenApplicationTests(DataTestClient):
     def test_change_approve_final_advice_deletes_good_country_decisions(self):
         self.gov_user.role.permissions.set(
-            [constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,]
+            [
+                constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
+            ]
         )
         case = self.create_open_application_case(self.organisation)
         url = reverse("cases:case_final_advice", kwargs={"pk": case.id})
         goods_type = GoodsTypeFactory(application=case)
         FinalAdviceFactory(
-            user=self.gov_user, team=self.team, case=case, goods_type=goods_type, type=AdviceType.APPROVE,
+            user=self.gov_user,
+            team=self.team,
+            case=case,
+            goods_type=goods_type,
+            type=AdviceType.APPROVE,
         )
         GoodCountryDecisionFactory(case=case, goods_type=goods_type, country=Country.objects.first())
 

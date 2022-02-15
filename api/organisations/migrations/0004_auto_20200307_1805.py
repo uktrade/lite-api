@@ -10,7 +10,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(name="organisation", options={"ordering": ["name"]},),
+        migrations.AlterModelOptions(
+            name="organisation",
+            options={"ordering": ["name"]},
+        ),
         migrations.AlterField(
             model_name="organisation",
             name="status",

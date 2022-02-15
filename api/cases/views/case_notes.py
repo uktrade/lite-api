@@ -19,7 +19,7 @@ class CaseNoteList(APIView):
     serializer = CaseNoteSerializer
 
     def get(self, request, pk):
-        """ Gets all case notes. """
+        """Gets all case notes."""
         is_user_exporter = hasattr(request.user, "exporteruser")
         case_notes = get_case_notes_from_case(pk, only_show_notes_visible_to_exporter=is_user_exporter)
 
@@ -34,7 +34,7 @@ class CaseNoteList(APIView):
         return JsonResponse(data={"case_notes": serializer.data})
 
     def post(self, request, pk):
-        """ Create a case note on a case. """
+        """Create a case note on a case."""
         case = get_case(pk, hasattr(request.user, "exporteruser"))
 
         if CaseStatusEnum.is_terminal(case.status.status) and hasattr(request.user, "exporteruser"):

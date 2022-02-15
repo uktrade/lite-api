@@ -45,5 +45,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(forward_step, backwards_step),
-        migrations.AlterUniqueTogether(name="caseassignment", unique_together={("case", "user", "queue")},),
+        migrations.AlterUniqueTogether(
+            name="caseassignment",
+            unique_together={("case", "user", "queue")},
+        ),
     ]

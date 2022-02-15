@@ -224,7 +224,7 @@ class GoodList(ListCreateAPIView):
         return super().get_paginated_response(data)
 
     def post(self, request, *args, **kwargs):
-        """ Add a good to to an organisation. """
+        """Add a good to to an organisation."""
         data = request.data
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
@@ -341,7 +341,7 @@ class GoodTAUDetails(APIView):
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
-        """ Edit the TAU details of a good. This includes military use, component and information security use. """
+        """Edit the TAU details of a good. This includes military use, component and information security use."""
         good = get_good(pk)
         data = request.data.copy()
 
@@ -412,7 +412,7 @@ class GoodOverview(APIView):
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
-        """ Edit details of a good. This includes description, control codes and PV grading. """
+        """Edit details of a good. This includes description, control codes and PV grading."""
         good = get_good(pk)
 
         if good.organisation_id != get_request_user_organisation_id(request):

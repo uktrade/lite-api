@@ -63,19 +63,27 @@ class GoodViewTests(DataTestClient):
 
     def test_view_good__query_filter_by_part_number_and_combinations(self):
         GoodFactory(
-            description="car1", part_number="cl500", organisation=self.organisation,
+            description="car1",
+            part_number="cl500",
+            organisation=self.organisation,
         )
 
         GoodFactory(
-            description="Car2", part_number="CL300", organisation=self.organisation,
+            description="Car2",
+            part_number="CL300",
+            organisation=self.organisation,
         )
 
         GoodFactory(
-            description="car3", part_number="ML500", organisation=self.organisation,
+            description="car3",
+            part_number="ML500",
+            organisation=self.organisation,
         )
 
         GoodFactory(
-            description="Truck", part_number="CL1000", organisation=self.organisation,
+            description="Truck",
+            part_number="CL1000",
+            organisation=self.organisation,
         )
 
         url = reverse("goods:goods") + "?part_number=cl"

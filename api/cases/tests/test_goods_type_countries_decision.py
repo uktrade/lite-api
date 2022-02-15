@@ -140,7 +140,8 @@ class GoodsCountriesDecisionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
-            response_data["good_country_decisions"], [f"{self.approved_goods_type.id}.{self.approved_country.id}"],
+            response_data["good_country_decisions"],
+            [f"{self.approved_goods_type.id}.{self.approved_country.id}"],
         )
         self.assertEqual(
             GoodCountryDecision.objects.filter(
@@ -164,7 +165,8 @@ class GoodsCountriesDecisionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
-            response_data["good_country_decisions"], [f"{self.approved_goods_type.id}.{self.approved_country.id}"],
+            response_data["good_country_decisions"],
+            [f"{self.approved_goods_type.id}.{self.approved_country.id}"],
         )
         self.assertEqual(
             GoodCountryDecision.objects.filter(

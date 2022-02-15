@@ -66,7 +66,11 @@ def deduplicate_advice(advice_list):
 
 
 def construct_coalesced_advice_values(
-    deduplicated_advice, case, user, denial_reasons, advice_type=None,
+    deduplicated_advice,
+    case,
+    user,
+    denial_reasons,
+    advice_type=None,
 ):
     fields = {
         "text": set(),

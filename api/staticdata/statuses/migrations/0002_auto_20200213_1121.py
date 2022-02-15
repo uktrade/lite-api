@@ -19,6 +19,9 @@ class Migration(migrations.Migration):
                 default=None, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to="cases.CaseType"
             ),
         ),
-        migrations.AlterUniqueTogether(name="casestatuscasetype", unique_together={("case_type", "status")},),
+        migrations.AlterUniqueTogether(
+            name="casestatuscasetype",
+            unique_together={("case_type", "status")},
+        ),
         migrations.RemoveField(model_name="casestatuscasetype", name="type"),
     ]

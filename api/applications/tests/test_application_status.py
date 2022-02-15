@@ -110,9 +110,18 @@ class ApplicationManageStatusTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (CaseStatusEnum.SUSPENDED, LicenceStatus.SUSPENDED,),
-            (CaseStatusEnum.SURRENDERED, LicenceStatus.SURRENDERED,),
-            (CaseStatusEnum.REVOKED, LicenceStatus.REVOKED,),
+            (
+                CaseStatusEnum.SUSPENDED,
+                LicenceStatus.SUSPENDED,
+            ),
+            (
+                CaseStatusEnum.SURRENDERED,
+                LicenceStatus.SURRENDERED,
+            ),
+            (
+                CaseStatusEnum.REVOKED,
+                LicenceStatus.REVOKED,
+            ),
         ]
     )
     def test_certain_case_statuses_changes_licence_status(self, case_status, licence_status):
@@ -161,7 +170,7 @@ class ApplicationManageStatusTests(DataTestClient):
         ]
     )
     def test_exporter_set_application_status_failure(self, new_status):
-        """ Test failure in setting application status to any status other than 'Applicant Editing' and 'Withdrawn'
+        """Test failure in setting application status to any status other than 'Applicant Editing' and 'Withdrawn'
         as an exporter user.
         """
         self.submit_application(self.standard_application)
@@ -195,7 +204,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SURRENDERED))
 
     def test_exporter_set_application_status_surrendered_no_licence_failure(self):
-        """ Test failure in exporter user setting a case status to surrendered when the case
+        """Test failure in exporter user setting a case status to surrendered when the case
         does not have a licence duration
         """
         self.standard_application.licences.update(duration=None)
@@ -214,7 +223,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
 
     def test_exporter_set_application_status_surrendered_not_finalised_failure(self):
-        """ Test failure in exporter user setting a case status to surrendered when the case was not
+        """Test failure in exporter user setting a case status to surrendered when the case was not
         previously finalised.
         """
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
@@ -246,7 +255,8 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json().get("errors")[0], strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS)
         self.assertEqual(
-            self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            self.standard_application.status,
+            get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
 
     @parameterized.expand(
@@ -358,5 +368,6 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json().get("errors")["status"][0], strings.Statuses.BAD_STATUS)
         self.assertEqual(
-            self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            self.standard_application.status,
+            get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )

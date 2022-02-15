@@ -12,9 +12,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="case", name="type",),
-        migrations.RemoveField(model_name="casetype", name="id",),
-        migrations.RemoveField(model_name="casetype", name="name",),
+        migrations.RemoveField(
+            model_name="case",
+            name="type",
+        ),
+        migrations.RemoveField(
+            model_name="casetype",
+            name="id",
+        ),
+        migrations.RemoveField(
+            model_name="casetype",
+            name="name",
+        ),
         migrations.AddField(
             model_name="casetype",
             name="reference",

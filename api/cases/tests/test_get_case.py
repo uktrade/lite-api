@@ -34,7 +34,8 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self._assert_party(
-            self.standard_application.third_parties.last().party, response_data["case"]["data"]["third_parties"][0],
+            self.standard_application.third_parties.last().party,
+            response_data["case"]["data"]["third_parties"][0],
         )
         self._assert_party(self.standard_application.consignee.party, response_data["case"]["data"]["consignee"])
 
@@ -49,7 +50,8 @@ class CaseGetTests(DataTestClient):
         sub_type = actual["sub_type"]
         # sub_type is not always a dict.
         self.assertEqual(
-            str(expected.sub_type), sub_type["key"] if isinstance(sub_type, dict) else sub_type,
+            str(expected.sub_type),
+            sub_type["key"] if isinstance(sub_type, dict) else sub_type,
         )
 
     def test_case_returns_expected_goods_flags(self):
@@ -217,9 +219,11 @@ class CaseGetTests(DataTestClient):
         # Third parties and ultimate end users are ordered by destination flag priority and for
         # parties of these types without flags, they are alphabetised
         self.assertEqual(
-            ordered_third_parties, [str(first_tp.party.id), str(second_tp.id), str(fourth_tp.id), str(third_tp.id)],
+            ordered_third_parties,
+            [str(first_tp.party.id), str(second_tp.id), str(fourth_tp.id), str(third_tp.id)],
         )
 
         self.assertEqual(
-            ordered_ultimate_end_users, [str(first_ueu.id), str(second_ueu.id), str(fourth_ueu.id), str(third_ueu.id)],
+            ordered_ultimate_end_users,
+            [str(first_ueu.id), str(second_ueu.id), str(fourth_ueu.id), str(third_ueu.id)],
         )

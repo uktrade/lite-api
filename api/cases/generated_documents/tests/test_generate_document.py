@@ -330,7 +330,10 @@ class GetGeneratedDocumentsTests(DataTestClient):
         self.letter_template = self.create_letter_template(name="SIEL", case_types=[CaseTypeEnum.SIEL.id])
         self.case = self.create_standard_application_case(self.organisation)
         self.generated_case_document = self.create_generated_case_document(self.case, template=self.letter_template)
-        self.url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)},)
+        self.url = reverse(
+            "cases:generated_documents:generated_documents",
+            kwargs={"pk": str(self.case.pk)},
+        )
 
     def test_get_generated_document_gov_user_success(self):
         url = reverse(

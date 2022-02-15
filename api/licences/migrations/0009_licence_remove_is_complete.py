@@ -14,5 +14,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="licence", name="is_complete",),
+        migrations.RemoveField(
+            model_name="licence",
+            name="is_complete",
+        ),
     ]

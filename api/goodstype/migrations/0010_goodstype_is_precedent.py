@@ -10,5 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(model_name="goodstype", name="is_precedent", field=models.BooleanField(default=False),),
+        migrations.AddField(
+            model_name="goodstype",
+            name="is_precedent",
+            field=models.BooleanField(default=False),
+        ),
     ]

@@ -97,9 +97,25 @@ class EndUserAdvisoryCreateTests(DataTestClient):
 
     @parameterized.expand(
         [
-            ("com", "person", "http://gov.co.uk", "place street", "GB", "", "",),  # invalid end user type
+            (
+                "com",
+                "person",
+                "http://gov.co.uk",
+                "place street",
+                "GB",
+                "",
+                "",
+            ),  # invalid end user type
             ("commercial", "", "", "nowhere", "GB", "", ""),  # name is empty
-            ("government", "abc", "abc", "nowhere", "GB", "", "",),  # invalid web address
+            (
+                "government",
+                "abc",
+                "abc",
+                "nowhere",
+                "GB",
+                "",
+                "",
+            ),  # invalid web address
             ("government", "abc", "", "", "GB", "", ""),  # empty address
             ("government", "abc", "", "nowhere", "ALP", "", ""),  # invalid country code
             ("", "", "", "", "", "", ""),  # empty dataset

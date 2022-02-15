@@ -10,6 +10,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.DeleteModel(name="FinalAdvice",),
-        migrations.DeleteModel(name="TeamAdvice",),
+        migrations.DeleteModel(
+            name="FinalAdvice",
+        ),
+        migrations.DeleteModel(
+            name="TeamAdvice",
+        ),
     ]

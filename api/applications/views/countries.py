@@ -40,7 +40,7 @@ class ApplicationCountries(APIView):
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     @authorised_to_view_application(ExporterUser)
     def post(self, request, pk):
-        """ Add countries to an open licence application. """
+        """Add countries to an open licence application."""
         application = get_application(pk)
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")

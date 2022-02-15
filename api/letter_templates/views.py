@@ -215,7 +215,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                         actor=request.user,
                         verb=AuditType.ADDED_LETTER_TEMPLATE_PARAGRAPHS,
                         target=serializer.instance,
-                        payload={"new_paragraphs": [p[1] for p in new_paragraphs],},
+                        payload={
+                            "new_paragraphs": [p[1] for p in new_paragraphs],
+                        },
                     )
                 else:
                     audit_trail_service.create(

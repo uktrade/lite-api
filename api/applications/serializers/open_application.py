@@ -110,7 +110,8 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         error_messages={"required": strings.Applications.Generic.OIEL_GOODSTYPE_CATEGORY_ERROR},
     )
     export_type = KeyValueChoiceField(
-        choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
+        choices=ApplicationExportType.choices,
+        error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
     )
     trade_control_activity = KeyValueChoiceField(
         choices=TradeControlActivity.choices,

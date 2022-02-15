@@ -10,8 +10,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="standardapplication", name="goods_recipients",),
-        migrations.RemoveField(model_name="standardapplication", name="goods_starting_point",),
+        migrations.RemoveField(
+            model_name="standardapplication",
+            name="goods_recipients",
+        ),
+        migrations.RemoveField(
+            model_name="standardapplication",
+            name="goods_starting_point",
+        ),
         migrations.AlterField(
             model_name="standardapplication",
             name="export_type",

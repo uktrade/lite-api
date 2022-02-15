@@ -23,7 +23,11 @@ class DataWorkspaceTests(DataTestClient):
         self.ogl_list = parse.urljoin(test_host, reverse("data_workspace:dw-ogl-only-list"))
         # Set up fixtures for testing.
         case = self.create_standard_application_case(self.organisation)
-        good = GoodFactory(organisation=self.organisation, is_good_controlled=True, control_list_entries=["ML21"],)
+        good = GoodFactory(
+            organisation=self.organisation,
+            is_good_controlled=True,
+            control_list_entries=["ML21"],
+        )
         good_advice = FinalAdviceFactory(
             user=self.gov_user, team=self.team, case=case, good=good, type=AdviceType.APPROVE
         )

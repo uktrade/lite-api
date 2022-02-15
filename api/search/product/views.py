@@ -67,8 +67,14 @@ class ProductDocumentView(DocumentViewSet):
                     "inner_hits": {
                         "size": 200,
                         "name": "related",
-                        "collapse": {"field": "context",},
-                        "highlight": {"fields": {"rating_comment": self.highlight_fields["*"]["options"],}},
+                        "collapse": {
+                            "field": "context",
+                        },
+                        "highlight": {
+                            "fields": {
+                                "rating_comment": self.highlight_fields["*"]["options"],
+                            }
+                        },
                     },
                 }
             }
@@ -94,7 +100,10 @@ class ProductSuggestDocumentView(APIView):
                     "prefix": q,
                     "completion": {"field": "organisation.suggest", "skip_duplicates": True},
                 },
-                "destination": {"prefix": q, "completion": {"field": "destination.suggest", "skip_duplicates": True},},
+                "destination": {
+                    "prefix": q,
+                    "completion": {"field": "destination.suggest", "skip_duplicates": True},
+                },
             },
             "_source": False,
             "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},

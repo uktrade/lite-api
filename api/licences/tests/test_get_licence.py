@@ -18,7 +18,10 @@ class GetLicenceTests(DataTestClient):
     def test_get_licence_gov_view(self):
         application = StandardApplicationFactory()
         licence = LicenceFactory(
-            case=application, start_date=timezone.now().date(), status=LicenceStatus.ISSUED, duration=100,
+            case=application,
+            start_date=timezone.now().date(),
+            status=LicenceStatus.ISSUED,
+            duration=100,
         )
         self.url = reverse("cases:licences", kwargs={"pk": application.id})
 

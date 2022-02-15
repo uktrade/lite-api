@@ -41,6 +41,8 @@ class Migration(migrations.Migration):
                 ),
                 ("status", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="statuses.CaseStatus")),
             ],
-            options={"unique_together": {("type", "status")},},
+            options={
+                "unique_together": {("type", "status")},
+            },
         ),
     ]

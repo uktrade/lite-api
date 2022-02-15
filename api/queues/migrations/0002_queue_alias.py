@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('queues', '0001_squashed_0003_auto_20201210_1649'),
+        ("queues", "0001_squashed_0003_auto_20201210_1649"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='queue',
-            name='alias',
-            field=models.TextField(default=None, null=True, unique=True, help_text='fixed static field for reference'),
+            model_name="queue",
+            name="alias",
+            field=models.TextField(default=None, null=True, unique=True, help_text="fixed static field for reference"),
         ),
     ]

@@ -119,7 +119,11 @@ class KeyValueChoiceField(Field):
         """
         Helper method for use with templates rendering select widgets.
         """
-        return iter_options(self.grouped_choices, cutoff=self.html_cutoff, cutoff_text=self.html_cutoff_text,)
+        return iter_options(
+            self.grouped_choices,
+            cutoff=self.html_cutoff,
+            cutoff_text=self.html_cutoff_text,
+        )
 
     def _get_choices(self):
         return self._choices

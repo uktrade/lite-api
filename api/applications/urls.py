@@ -24,11 +24,19 @@ urlpatterns = [
     path("existing/", applications.ApplicationExisting.as_view(), name="existing"),
     path("<uuid:pk>/activity/", activities.ActivityView.as_view(), name="activities"),
     path("<uuid:pk>/route-of-goods/", applications.ApplicationRouteOfGoods.as_view(), name="route_of_goods"),
-    path("<uuid:pk>/submit/", applications.ApplicationSubmission.as_view(), name="application_submit",),
+    path(
+        "<uuid:pk>/submit/",
+        applications.ApplicationSubmission.as_view(),
+        name="application_submit",
+    ),
     path("<uuid:pk>/final-decision/", applications.ApplicationFinaliseView.as_view(), name="finalise"),
     path("<uuid:pk>/duration/", applications.ApplicationDurationView.as_view(), name="duration"),
     path("<uuid:pk>/status/", applications.ApplicationManageStatus.as_view(), name="manage_status"),
-    path("<uuid:pk>/copy/", applications.ApplicationCopy.as_view(), name="copy",),
+    path(
+        "<uuid:pk>/copy/",
+        applications.ApplicationCopy.as_view(),
+        name="copy",
+    ),
     path("<uuid:pk>/end-use-details/", end_use_details.EndUseDetails.as_view(), name="end_use_details"),
     path(
         "<uuid:pk>/temporary-export-details/",
@@ -38,7 +46,9 @@ urlpatterns = [
     # Goods
     path("<uuid:pk>/goods/", goods.ApplicationGoodsOnApplication.as_view(), name="application_goods"),
     path(
-        "good-on-application/<uuid:obj_pk>/", goods.ApplicationGoodOnApplication.as_view(), name="good_on_application",
+        "good-on-application/<uuid:obj_pk>/",
+        goods.ApplicationGoodOnApplication.as_view(),
+        name="good_on_application",
     ),
     path(
         "<uuid:pk>/goods/<uuid:good_pk>/documents/",
@@ -53,7 +63,9 @@ urlpatterns = [
     # Goods types
     path("<uuid:pk>/goodstypes/", goods.ApplicationGoodsTypes.as_view(), name="application_goodstypes"),
     path(
-        "<uuid:pk>/goodstype/<uuid:goodstype_pk>/", goods.ApplicationGoodsType.as_view(), name="application_goodstype",
+        "<uuid:pk>/goodstype/<uuid:goodstype_pk>/",
+        goods.ApplicationGoodsType.as_view(),
+        name="application_goodstype",
     ),
     path(
         "<uuid:pk>/goodstype/<uuid:goods_type_pk>/document/",

@@ -32,7 +32,10 @@ class RoleSerializer(serializers.ModelSerializer):
     permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True, required=False)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False, allow_null=True)
     type = serializers.ChoiceField(choices=UserType.non_system_choices())
-    name = serializers.CharField(max_length=30, error_messages={"blank": strings.Roles.BLANK_NAME},)
+    name = serializers.CharField(
+        max_length=30,
+        error_messages={"blank": strings.Roles.BLANK_NAME},
+    )
     statuses = PrimaryKeyRelatedSerializerField(
         queryset=CaseStatus.objects.all(), many=True, required=False, serializer=CaseStatusSerializer
     )

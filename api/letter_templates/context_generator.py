@@ -366,7 +366,7 @@ class FlattenedF680ClearanceApplicationSerializer(serializers.ModelSerializer):
 
 class TemporaryExportDetailsSerializer(serializers.Serializer):
     """
-        Serializes both OpenApplication and StandardApplication
+    Serializes both OpenApplication and StandardApplication
     """
 
     temp_export_details = serializers.CharField()
@@ -804,7 +804,7 @@ class ComplianceSiteLicenceSerializer(serializers.ModelSerializer):
 
 class ComplianceSiteSerializer(serializers.Serializer):
     """
-        Serializes a Case object
+    Serializes a Case object
     """
 
     reference_code = serializers.CharField()
@@ -970,7 +970,12 @@ def _get_third_parties_context(third_parties):
 
 def format_quantity(quantity, unit):
     if quantity and unit:
-        return " ".join([intcomma(quantity), pluralise_unit(Units.to_str(unit), quantity),])
+        return " ".join(
+            [
+                intcomma(quantity),
+                pluralise_unit(Units.to_str(unit), quantity),
+            ]
+        )
     elif unit:
         return "0 " + pluralise_unit(Units.to_str(unit), quantity)
 

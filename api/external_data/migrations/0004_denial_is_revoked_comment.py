@@ -10,5 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(model_name="denial", name="is_revoked_comment", field=models.TextField(default=""),),
+        migrations.AddField(
+            model_name="denial",
+            name="is_revoked_comment",
+            field=models.TextField(default=""),
+        ),
     ]

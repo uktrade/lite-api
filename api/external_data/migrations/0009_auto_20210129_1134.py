@@ -15,5 +15,9 @@ class Migration(migrations.Migration):
             name="is_revoked",
             field=models.BooleanField(default=False, help_text="If true do not include in search results"),
         ),
-        migrations.AddField(model_name="sanctionmatch", name="is_revoked_comment", field=models.TextField(default=""),),
+        migrations.AddField(
+            model_name="sanctionmatch",
+            name="is_revoked_comment",
+            field=models.TextField(default=""),
+        ),
     ]

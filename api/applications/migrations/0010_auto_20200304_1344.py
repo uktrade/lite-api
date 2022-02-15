@@ -21,7 +21,9 @@ class Migration(migrations.Migration):
             field=models.TextField(blank=True, default=None, max_length=100, null=True),
         ),
         migrations.AddField(
-            model_name="exhibitionclearanceapplication", name="required_by_date", field=models.DateField(null=True),
+            model_name="exhibitionclearanceapplication",
+            name="required_by_date",
+            field=models.DateField(null=True),
         ),
         migrations.AddField(
             model_name="exhibitionclearanceapplication",

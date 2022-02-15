@@ -6,9 +6,9 @@ from django.db import migrations
 def populate_system_alias_flags(apps, schema_editor):
     flags = {
         "bbf29b42-0aae-4ebc-b77a-e502ddea30a8": "LU_COUNTER_REQUIRED",
-        "3e30f39c-ed82-41e9-b180-493a9fd0f169": "LU_SENIOR_MANAGER_CHECK_REQUIRED"
+        "3e30f39c-ed82-41e9-b180-493a9fd0f169": "LU_SENIOR_MANAGER_CHECK_REQUIRED",
     }
-    Team = apps.get_model('flags', 'Flag')
+    Team = apps.get_model("flags", "Flag")
     for f in flags.keys():
         team = Team.objects.filter(id=f)
         if team.exists():
@@ -18,11 +18,10 @@ def populate_system_alias_flags(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flags', '0003_flag_alias'),
+        ("flags", "0003_flag_alias"),
     ]
 
+    operations = []
     operations = [
-    ]
-    operations = [
-         migrations.RunPython(populate_system_alias_flags, migrations.RunPython.noop),
+        migrations.RunPython(populate_system_alias_flags, migrations.RunPython.noop),
     ]

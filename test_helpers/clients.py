@@ -120,7 +120,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @classmethod
     def setUpClass(cls):
-        """ Run seed operations ONCE for the entire test suite. """
+        """Run seed operations ONCE for the entire test suite."""
         if not Static.seeded:
 
             # HACK: Don't seed if we already seeeded and use --reuse-db or similar
@@ -137,7 +137,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """ tearDownClass is required if `super()` isn't called within `setUpClass` """
+        """tearDownClass is required if `super()` isn't called within `setUpClass`"""
         pass
 
     def setUp(self):
@@ -210,7 +210,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def assertEqualIgnoreType(self, first, second, msg=None):
         """Fail if the two objects (as strings) are unequal as determined by the '=='
-           operator.
+        operator.
         """
         first = str(first)
         second = str(second)

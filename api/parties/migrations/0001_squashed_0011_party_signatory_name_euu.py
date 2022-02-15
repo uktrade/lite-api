@@ -26,88 +26,202 @@ def reverse_reduce_field_length(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('parties', '0001_initial'), ('parties', '0002_auto_20200224_1111'), ('parties', '0003_auto_20200225_1620'), ('parties', '0004_auto_20200226_1218'), ('parties', '0005_auto_20200303_1516'), ('parties', '0006_auto_20200311_1124'), ('parties', '0007_auto_20200317_1730'), ('parties', '0008_reduce_field_length'), ('parties', '0009_auto_20200626_0958'), ('parties', '0010_auto_20200722_1339'), ('parties', '0011_party_signatory_name_euu')]
+    replaces = [
+        ("parties", "0001_initial"),
+        ("parties", "0002_auto_20200224_1111"),
+        ("parties", "0003_auto_20200225_1620"),
+        ("parties", "0004_auto_20200226_1218"),
+        ("parties", "0005_auto_20200303_1516"),
+        ("parties", "0006_auto_20200311_1124"),
+        ("parties", "0007_auto_20200317_1730"),
+        ("parties", "0008_reduce_field_length"),
+        ("parties", "0009_auto_20200626_0958"),
+        ("parties", "0010_auto_20200722_1339"),
+        ("parties", "0011_party_signatory_name_euu"),
+    ]
 
     initial = True
 
     dependencies = [
-        ('flags', '0001_initial'),
-        ('documents', '0001_initial'),
-        ('countries', '0001_initial'),
-        ('organisations', '0001_initial'),
+        ("flags", "0001_initial"),
+        ("documents", "0001_initial"),
+        ("countries", "0001_initial"),
+        ("organisations", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Party',
+            name="Party",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(blank=True, default=None)),
-                ('address', models.TextField(blank=True, default=None)),
-                ('website', models.URLField(blank=True, default=None, null=True)),
-                ('type', models.CharField(choices=[('consignee', 'Consignee'), ('end_user', 'End user'), ('ultimate_end_user', 'Ultimate end user'), ('third_party', 'Third party'), ('additional_contact', 'Additional contact')], max_length=20)),
-                ('sub_type', models.CharField(choices=[('government', 'Government'), ('commercial', 'Commercial Organisation'), ('individual', 'Individual'), ('other', 'Other')], default='other', max_length=20)),
-                ('role', models.CharField(choices=[('intermediate_consignee', 'Intermediate Consignee'), ('additional_end_user', 'Additional End User'), ('agent', 'Agent'), ('submitter', 'Authorised Submitter'), ('consultant', 'Consultant'), ('contact', 'Contact'), ('exporter', 'Exporter'), ('customer', 'Customer'), ('other', 'Other')], default='other', help_text='Third party type only', max_length=22, null=True)),
-                ('copy_of', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='parties.party')),
-                ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='countries.country')),
-                ('flags', models.ManyToManyField(related_name='parties', to='flags.Flag')),
-                ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='organisation_party', to='organisations.organisation')),
-                ('clearance_level', models.CharField(choices=[('uk_unclassified', 'UK UNCLASSIFIED'), ('uk_official', 'UK OFFICIAL'), ('uk_official_sensitive', 'UK OFFICIAL - SENSITIVE'), ('uk_secret', 'UK SECRET'), ('uk_top_secret', 'UK TOP SECRET'), ('nato_unclassified', 'NATO UNCLASSIFIED'), ('nato_confidential', 'NATO CONFIDENTIAL'), ('nato_restricted', 'NATO RESTRICTED'), ('nato_secret', 'NATO SECRET'), ('occar_unclassified', 'OCCAR UNCLASSIFIED'), ('occar_confidential', 'OCCAR CONFIDENTIAL'), ('occar_restricted', 'OCCAR RESTRICTED'), ('occar_secret', 'OCCAR SECRET')], help_text='Only relevant to F680 applications', max_length=30, null=True)),
-                ('descriptors', models.CharField(help_text='Clearance descriptors, caveats and codewords', max_length=256, null=True)),
-                ('details', models.TextField(blank=True, null=True)),
-                ('email', models.EmailField(blank=True, max_length=254, null=True)),
-                ('phone_number', models.CharField(blank=True, max_length=50, null=True)),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.TextField(blank=True, default=None)),
+                ("address", models.TextField(blank=True, default=None)),
+                ("website", models.URLField(blank=True, default=None, null=True)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("consignee", "Consignee"),
+                            ("end_user", "End user"),
+                            ("ultimate_end_user", "Ultimate end user"),
+                            ("third_party", "Third party"),
+                            ("additional_contact", "Additional contact"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "sub_type",
+                    models.CharField(
+                        choices=[
+                            ("government", "Government"),
+                            ("commercial", "Commercial Organisation"),
+                            ("individual", "Individual"),
+                            ("other", "Other"),
+                        ],
+                        default="other",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[
+                            ("intermediate_consignee", "Intermediate Consignee"),
+                            ("additional_end_user", "Additional End User"),
+                            ("agent", "Agent"),
+                            ("submitter", "Authorised Submitter"),
+                            ("consultant", "Consultant"),
+                            ("contact", "Contact"),
+                            ("exporter", "Exporter"),
+                            ("customer", "Customer"),
+                            ("other", "Other"),
+                        ],
+                        default="other",
+                        help_text="Third party type only",
+                        max_length=22,
+                        null=True,
+                    ),
+                ),
+                (
+                    "copy_of",
+                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to="parties.party"),
+                ),
+                ("country", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="countries.country")),
+                ("flags", models.ManyToManyField(related_name="parties", to="flags.Flag")),
+                (
+                    "organisation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="organisation_party",
+                        to="organisations.organisation",
+                    ),
+                ),
+                (
+                    "clearance_level",
+                    models.CharField(
+                        choices=[
+                            ("uk_unclassified", "UK UNCLASSIFIED"),
+                            ("uk_official", "UK OFFICIAL"),
+                            ("uk_official_sensitive", "UK OFFICIAL - SENSITIVE"),
+                            ("uk_secret", "UK SECRET"),
+                            ("uk_top_secret", "UK TOP SECRET"),
+                            ("nato_unclassified", "NATO UNCLASSIFIED"),
+                            ("nato_confidential", "NATO CONFIDENTIAL"),
+                            ("nato_restricted", "NATO RESTRICTED"),
+                            ("nato_secret", "NATO SECRET"),
+                            ("occar_unclassified", "OCCAR UNCLASSIFIED"),
+                            ("occar_confidential", "OCCAR CONFIDENTIAL"),
+                            ("occar_restricted", "OCCAR RESTRICTED"),
+                            ("occar_secret", "OCCAR SECRET"),
+                        ],
+                        help_text="Only relevant to F680 applications",
+                        max_length=30,
+                        null=True,
+                    ),
+                ),
+                (
+                    "descriptors",
+                    models.CharField(
+                        help_text="Clearance descriptors, caveats and codewords", max_length=256, null=True
+                    ),
+                ),
+                ("details", models.TextField(blank=True, null=True)),
+                ("email", models.EmailField(blank=True, max_length=254, null=True)),
+                ("phone_number", models.CharField(blank=True, max_length=50, null=True)),
             ],
             options={
-                'abstract': False,
-                'ordering': ['name'],
+                "abstract": False,
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='PartyDocument',
+            name="PartyDocument",
             fields=[
-                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='documents.document')),
-                ('party', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='parties.party')),
+                (
+                    "document_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="documents.document",
+                    ),
+                ),
+                ("party", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="parties.party")),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=('documents.document',),
+            bases=("documents.document",),
         ),
         migrations.RunPython(
             code=reduce_field_length,
             reverse_code=reverse_reduce_field_length,
         ),
         migrations.AlterField(
-            model_name='party',
-            name='address',
+            model_name="party",
+            name="address",
             field=models.TextField(blank=True, default=None, max_length=256),
         ),
         migrations.AlterField(
-            model_name='party',
-            name='details',
+            model_name="party",
+            name="details",
             field=models.TextField(blank=True, max_length=256, null=True),
         ),
         migrations.AlterField(
-            model_name='party',
-            name='name',
+            model_name="party",
+            name="name",
             field=models.CharField(blank=True, default=None, max_length=100),
         ),
         migrations.AddField(
-            model_name='party',
-            name='role_other',
+            model_name="party",
+            name="role_other",
             field=models.CharField(default=None, max_length=75, null=True),
         ),
         migrations.AddField(
-            model_name='party',
-            name='sub_type_other',
+            model_name="party",
+            name="sub_type_other",
             field=models.CharField(default=None, max_length=75, null=True),
         ),
         migrations.AddField(
-            model_name='party',
-            name='signatory_name_euu',
+            model_name="party",
+            name="signatory_name_euu",
             field=models.TextField(blank=True),
         ),
     ]

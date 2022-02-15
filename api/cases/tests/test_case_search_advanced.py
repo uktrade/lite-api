@@ -104,7 +104,9 @@ class FilterAndSortTests(DataTestClient):
     def test_filter_by_good_control_list_entry(self):
         application_1 = StandardApplicationFactory()
         good = GoodFactory(
-            organisation=application_1.organisation, is_good_controlled=True, control_list_entries=["ML1a"],
+            organisation=application_1.organisation,
+            is_good_controlled=True,
+            control_list_entries=["ML1a"],
         )
         GoodOnApplicationFactory(application=application_1, good=good)
 
@@ -133,7 +135,8 @@ class FilterAndSortTests(DataTestClient):
         application_3.flags.add(flag_2)
         application_4 = StandardApplicationFactory()
         GoodOnApplicationFactory(
-            good=GoodFactory(organisation=application_4.organisation, flags=[flag_3]), application=application_4,
+            good=GoodFactory(organisation=application_4.organisation, flags=[flag_3]),
+            application=application_4,
         )
 
         qs_1 = Case.objects.search(flags=[flag_1.id])

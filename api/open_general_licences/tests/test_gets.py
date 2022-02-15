@@ -73,7 +73,9 @@ class ExporterListTests(DataTestClient):
             organisation=self.organisation,
         )
         self.open_general_licence_case_2 = OpenGeneralLicenceCaseFactory(
-            open_general_licence=self.open_general_licence, site=self.site, organisation=self.organisation,
+            open_general_licence=self.open_general_licence,
+            site=self.site,
+            organisation=self.organisation,
         )
 
     def test_exporter_view_licences_success(self):

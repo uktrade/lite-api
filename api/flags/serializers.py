@@ -47,13 +47,16 @@ class FlagSerializer(serializers.ModelSerializer):
     )
     colour = serializers.ChoiceField(choices=FlagColours.choices, default=FlagColours.DEFAULT)
     level = serializers.ChoiceField(
-        choices=FlagLevels.choices, error_messages={"invalid_choice": "Select a parameter"},
+        choices=FlagLevels.choices,
+        error_messages={"invalid_choice": "Select a parameter"},
     )
     label = serializers.CharField(
         max_length=15,
         required=False,
         allow_blank=True,
-        error_messages={"blank": strings.Flags.ValidationErrors.LABEL_MISSING,},
+        error_messages={
+            "blank": strings.Flags.ValidationErrors.LABEL_MISSING,
+        },
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     priority = serializers.IntegerField(
@@ -70,10 +73,14 @@ class FlagSerializer(serializers.ModelSerializer):
     blocks_finalising = serializers.BooleanField(
         required=True,
         allow_null=False,
-        error_messages={"required": strings.Flags.ValidationErrors.BLOCKING_APPROVAL_MISSING,},
+        error_messages={
+            "required": strings.Flags.ValidationErrors.BLOCKING_APPROVAL_MISSING,
+        },
     )
     removable_by = serializers.ChoiceField(
-        choices=FlagPermissions.choices, default=FlagPermissions.DEFAULT, allow_null=False,
+        choices=FlagPermissions.choices,
+        default=FlagPermissions.DEFAULT,
+        allow_null=False,
     )
 
     def __init__(self, *args, **kwargs):
@@ -154,7 +161,13 @@ class FlagAssignmentSerializer(serializers.Serializer):
 
             raise serializers.ValidationError(f"You do not have permission to remove the following flags: {flags_list}")
 
-        team_flags = list(Flag.objects.filter(level=level, team=team, status=FlagStatuses.ACTIVE,))
+        team_flags = list(
+            Flag.objects.filter(
+                level=level,
+                team=team,
+                status=FlagStatuses.ACTIVE,
+            )
+        )
 
         if not set(flags).issubset(list(team_flags)):
             raise serializers.ValidationError("You can only assign flags that are available to your team.")
@@ -175,7 +188,11 @@ class CaseListFlagSerializer(serializers.Serializer):
 class FlaggingRuleSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
     level = serializers.ChoiceField(
-        choices=FlagLevels.choices, error_messages={"required": "Select a parameter", "null": "Select a parameter",},
+        choices=FlagLevels.choices,
+        error_messages={
+            "required": "Select a parameter",
+            "null": "Select a parameter",
+        },
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     flag = PrimaryKeyRelatedField(queryset=Flag.objects.all(), error_messages={"null": strings.FlaggingRules.NO_FLAG})

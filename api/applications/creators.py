@@ -20,7 +20,7 @@ from api.parties.models import PartyDocument
 
 
 def _validate_locations(application, errors):
-    """ Site & External location errors """
+    """Site & External location errors"""
     if (
         not SiteOnApplication.objects.filter(application=application).exists()
         and not ExternalLocationOnApplication.objects.filter(application=application).exists()
@@ -66,7 +66,7 @@ def check_party_document(party, is_mandatory):
 
 
 def check_parties_documents(parties, is_mandatory=True):
-    """ Check a given list of parties all have documents if is_mandatory. Also checks all documents are safe """
+    """Check a given list of parties all have documents if is_mandatory. Also checks all documents are safe"""
 
     for poa in parties:
         error = check_party_document(poa.party, is_mandatory)
@@ -76,7 +76,7 @@ def check_parties_documents(parties, is_mandatory=True):
 
 
 def check_party_error(party, object_not_found_error, is_mandatory, is_document_mandatory=True):
-    """ Check a given party exists and has a document if is_document_mandatory """
+    """Check a given party exists and has a document if is_document_mandatory"""
 
     if is_mandatory and not party:
         return object_not_found_error
@@ -87,7 +87,7 @@ def check_party_error(party, object_not_found_error, is_mandatory, is_document_m
 
 
 def _validate_end_user(draft, errors, is_mandatory, open_application=False):
-    """ Validates end user. If a document is mandatory, this is also validated. """
+    """Validates end user. If a document is mandatory, this is also validated."""
 
     # Document is only mandatory if application is standard permanent or HMRC query
     is_document_mandatory = (
@@ -108,7 +108,7 @@ def _validate_end_user(draft, errors, is_mandatory, open_application=False):
 
 
 def _validate_consignee(draft, errors, is_mandatory):
-    """ Checks there is an consignee (with a document if is_document_mandatory) """
+    """Checks there is an consignee (with a document if is_document_mandatory)"""
 
     consignee_errors = check_party_error(
         draft.consignee.party if draft.consignee else None,
@@ -123,7 +123,7 @@ def _validate_consignee(draft, errors, is_mandatory):
 
 
 def _validate_countries(draft, errors, is_mandatory):
-    """ Checks there are countries for the draft """
+    """Checks there are countries for the draft"""
 
     if is_mandatory:
         results = CountryOnApplication.objects.filter(application=draft)
@@ -139,7 +139,7 @@ def _validate_countries(draft, errors, is_mandatory):
 
 
 def _validate_goods_types(draft, errors, is_mandatory):
-    """ Checks there are GoodsTypes for the draft """
+    """Checks there are GoodsTypes for the draft"""
 
     goods_types = GoodsType.objects.filter(application=draft)
 
@@ -220,7 +220,7 @@ def _validate_end_use_details(draft, errors, application_type):
 
 
 def _validate_agree_to_declaration(request, errors):
-    """ Checks the exporter has agreed to the T&Cs of the licence """
+    """Checks the exporter has agreed to the T&Cs of the licence"""
 
     if "agreed_to_foi" in request.data and str_to_bool(request.data["agreed_to_foi"]):
         if "foi_reason" not in request.data or request.data["foi_reason"] == "":
@@ -270,7 +270,7 @@ def _validate_temporary_export_details(draft, errors):
 
 
 def _validate_third_parties(draft, errors, is_mandatory):
-    """ Checks all third parties have documents if is_mandatory is True """
+    """Checks all third parties have documents if is_mandatory is True"""
 
     third_parties_documents_error = check_parties_documents(draft.third_parties.all(), is_mandatory)
     if third_parties_documents_error:
@@ -280,7 +280,7 @@ def _validate_third_parties(draft, errors, is_mandatory):
 
 
 def _validate_goods(draft, errors, is_mandatory):
-    """ Checks Goods """
+    """Checks Goods"""
 
     goods_on_application = GoodOnApplication.objects.filter(application=draft)
 
@@ -303,7 +303,7 @@ def _validate_goods(draft, errors, is_mandatory):
 
 
 def _validate_has_clearance_level(draft, errors, is_mandatory):
-    """ Checks draft has clearance level """
+    """Checks draft has clearance level"""
 
     if is_mandatory:
         if not draft.clearance_level:
@@ -313,7 +313,7 @@ def _validate_has_clearance_level(draft, errors, is_mandatory):
 
 
 def _validate_exhibition_details(draft, errors):
-    """ Checks that an exhibition clearance has details """
+    """Checks that an exhibition clearance has details"""
 
     if not all(getattr(draft, attribute) for attribute in ["title", "first_exhibition_date", "required_by_date"]):
         errors["details"] = [strings.Applications.Exhibition.Error.NO_DETAILS]
@@ -322,7 +322,7 @@ def _validate_exhibition_details(draft, errors):
 
 
 def _validate_standard_licence(draft, errors):
-    """ Checks that a standard licence has all party types & goods """
+    """Checks that a standard licence has all party types & goods"""
 
     errors = _validate_locations(draft, errors)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
@@ -338,7 +338,7 @@ def _validate_standard_licence(draft, errors):
 
 
 def _validate_exhibition_clearance(draft, errors):
-    """ Checks that an exhibition clearance has goods, locations and details """
+    """Checks that an exhibition clearance has goods, locations and details"""
 
     errors = _validate_exhibition_details(draft, errors)
     errors = _validate_goods(draft, errors, is_mandatory=True)
@@ -348,7 +348,7 @@ def _validate_exhibition_clearance(draft, errors):
 
 
 def _validate_gifting_clearance(draft, errors):
-    """ Checks that a gifting clearance has an end_user and goods """
+    """Checks that a gifting clearance has an end_user and goods"""
 
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
@@ -367,7 +367,7 @@ def _validate_gifting_clearance(draft, errors):
 
 
 def _validate_f680_clearance(draft, errors):
-    """ F680 require goods and at least 1 end user or third party """
+    """F680 require goods and at least 1 end user or third party"""
 
     errors = _validate_has_clearance_level(draft, errors, is_mandatory=True)
     errors = _validate_goods(draft, errors, is_mandatory=True)
@@ -395,7 +395,7 @@ def _validate_f680_clearance(draft, errors):
 
 
 def _validate_open_licence(draft, errors):
-    """ Open licences require countries & goods types """
+    """Open licences require countries & goods types"""
 
     errors = _validate_locations(draft, errors)
     errors = _validate_countries(draft, errors, is_mandatory=True)
@@ -432,7 +432,7 @@ def _validate_route_of_goods(draft, errors):
 
 
 def _validate_hmrc_query(draft, errors):
-    """ HMRC queries require goods types & an end user """
+    """HMRC queries require goods types & an end user"""
 
     errors = _validate_locations(draft, errors)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
@@ -442,7 +442,7 @@ def _validate_hmrc_query(draft, errors):
 
 
 def _validate_additional_documents(draft, errors):
-    """ Validate additional documents """
+    """Validate additional documents"""
     documents = ApplicationDocument.objects.filter(application=draft)
 
     if documents:

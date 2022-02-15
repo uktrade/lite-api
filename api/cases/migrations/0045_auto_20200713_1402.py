@@ -12,9 +12,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameField(model_name="goodcountrydecision", old_name="good", new_name="goods_type",),
-        migrations.AlterUniqueTogether(
-            name="goodcountrydecision", unique_together={("case", "goods_type", "country")},
+        migrations.RenameField(
+            model_name="goodcountrydecision",
+            old_name="good",
+            new_name="goods_type",
         ),
-        migrations.RemoveField(model_name="goodcountrydecision", name="decision",),
+        migrations.AlterUniqueTogether(
+            name="goodcountrydecision",
+            unique_together={("case", "goods_type", "country")},
+        ),
+        migrations.RemoveField(
+            model_name="goodcountrydecision",
+            name="decision",
+        ),
     ]

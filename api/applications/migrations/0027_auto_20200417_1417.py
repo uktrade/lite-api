@@ -10,5 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(model_name="goodonapplication", name="usage", field=models.FloatField(default=0),),
+        migrations.AlterField(
+            model_name="goodonapplication",
+            name="usage",
+            field=models.FloatField(default=0),
+        ),
     ]

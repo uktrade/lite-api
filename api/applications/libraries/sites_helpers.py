@@ -113,7 +113,9 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
             actor=user,
             verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
             target=case,
-            payload={"sites": [site.site.name for site in removed_sites],},
+            payload={
+                "sites": [site.site.name for site in removed_sites],
+            },
         )
 
     if removed_locations:
@@ -134,5 +136,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
             actor=user,
             verb=AuditType.ADD_SITES_TO_APPLICATION,
             target=case,
-            payload={"sites": [site.name for site in added_sites],},
+            payload={
+                "sites": [site.name for site in added_sites],
+            },
         )

@@ -27,7 +27,13 @@ class HmrcQueryViewSerializer(PartiesSerializerMixin, GenericApplicationViewSeri
         fields = (
             GenericApplicationViewSerializer.Meta.fields
             + PartiesSerializerMixin.Meta.fields
-            + ("goods_types", "hmrc_organisation", "reasoning", "supporting_documentation", "have_goods_departed",)
+            + (
+                "goods_types",
+                "hmrc_organisation",
+                "reasoning",
+                "supporting_documentation",
+                "have_goods_departed",
+            )
         )
 
     def get_goods_types(self, instance):
@@ -43,7 +49,8 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     hmrc_organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     case_type = PrimaryKeyRelatedField(
-        queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
+        queryset=CaseType.objects.all(),
+        error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
     )
 
     def __init__(self, case_type_id, **kwargs):

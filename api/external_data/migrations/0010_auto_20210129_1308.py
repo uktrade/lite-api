@@ -11,9 +11,15 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="sanctionmatch", name="list_name", field=models.TextField(default=""), preserve_default=False,
+            model_name="sanctionmatch",
+            name="list_name",
+            field=models.TextField(default=""),
+            preserve_default=False,
         ),
         migrations.AddField(
-            model_name="sanctionmatch", name="name", field=models.TextField(default=""), preserve_default=False,
+            model_name="sanctionmatch",
+            name="name",
+            field=models.TextField(default=""),
+            preserve_default=False,
         ),
     ]

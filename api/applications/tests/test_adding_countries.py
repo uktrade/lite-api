@@ -42,7 +42,8 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         response = self.client.post(self.url, self.data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            CountryOnApplication.objects.filter(application=self.draft).count(), countries_on_app_before,
+            CountryOnApplication.objects.filter(application=self.draft).count(),
+            countries_on_app_before,
         )
 
     def test_remove_countries_from_a_submitted_application_success(self):
@@ -54,7 +55,8 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
-            CountryOnApplication.objects.filter(application=self.draft).count(), countries_on_app_before - 1,
+            CountryOnApplication.objects.filter(application=self.draft).count(),
+            countries_on_app_before - 1,
         )
 
     def test_add_countries_to_a_draft_standard_application_failure(self):
@@ -68,7 +70,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         self.assertEqual(CountryOnApplication.objects.all().count(), pre_test_country_count)
 
     def test_add_countries_to_a_draft_failure(self):
-        """ Test failure in adding a country that does not exist. """
+        """Test failure in adding a country that does not exist."""
         data = {"countries": ["1234"]}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -105,11 +107,15 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @parameterized.expand(
-        [CaseStatusEnum.RESUBMITTED, CaseStatusEnum.INITIAL_CHECKS, CaseStatusEnum.SUBMITTED,]
+        [
+            CaseStatusEnum.RESUBMITTED,
+            CaseStatusEnum.INITIAL_CHECKS,
+            CaseStatusEnum.SUBMITTED,
+        ]
     )
     def test_add_countries_to_application_in_editable_status_failure(self, editable_status):
-        """ Test failure in adding a country to an application in a minor editable status. Major editing
-         status of APPLICANT_EDITING is removed from the case status list. """
+        """Test failure in adding a country to an application in a minor editable status. Major editing
+        status of APPLICANT_EDITING is removed from the case status list."""
         application = self.create_draft_open_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()

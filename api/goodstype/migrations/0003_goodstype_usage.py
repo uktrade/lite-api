@@ -10,5 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(model_name="goodstype", name="usage", field=models.FloatField(default=0),),
+        migrations.AddField(
+            model_name="goodstype",
+            name="usage",
+            field=models.FloatField(default=0),
+        ),
     ]

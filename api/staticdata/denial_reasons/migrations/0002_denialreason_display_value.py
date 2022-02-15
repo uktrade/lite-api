@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('denial_reasons', '0001_squashed_0004_denialreason_description'),
+        ("denial_reasons", "0001_squashed_0004_denialreason_description"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='denialreason',
-            name='display_value',
-            field=models.TextField(default=''),
+            model_name="denialreason",
+            name="display_value",
+            field=models.TextField(default=""),
         ),
     ]

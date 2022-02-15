@@ -14,7 +14,10 @@ class GoodsTypeOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.open_application = self.create_draft_open_application(self.organisation)
-        self.url = reverse("applications:application_goodstypes", kwargs={"pk": self.open_application.id},)
+        self.url = reverse(
+            "applications:application_goodstypes",
+            kwargs={"pk": self.open_application.id},
+        )
         self.data = {
             "description": "Widget",
             "is_good_controlled": True,
@@ -25,7 +28,10 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.hmrc_query = self.create_hmrc_query(self.organisation)
         self.document_url = reverse(
             "applications:goods_type_document",
-            kwargs={"pk": self.hmrc_query.id, "goods_type_pk": GoodsType.objects.get(application=self.hmrc_query).id,},
+            kwargs={
+                "pk": self.hmrc_query.id,
+                "goods_type_pk": GoodsType.objects.get(application=self.hmrc_query).id,
+            },
         )
         self.new_document_data = {
             "name": "document_name.pdf",
@@ -163,7 +169,10 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         """
         url = reverse(
             "applications:application_goodstype",
-            kwargs={"pk": self.hmrc_query.id, "goodstype_pk": GoodsType.objects.get(application=self.hmrc_query).id,},
+            kwargs={
+                "pk": self.hmrc_query.id,
+                "goodstype_pk": GoodsType.objects.get(application=self.hmrc_query).id,
+            },
         )
         goods_type_count = GoodsType.objects.count()
         goods_type_doc_count = GoodsTypeDocument.objects.count()

@@ -11,6 +11,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="denial", name="end_use", field=models.TextField(default=""), preserve_default=False,
+            model_name="denial",
+            name="end_use",
+            field=models.TextField(default=""),
+            preserve_default=False,
         ),
     ]

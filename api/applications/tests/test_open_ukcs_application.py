@@ -41,7 +41,8 @@ class OpenUKCSTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
-            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(), 1,
+            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(),
+            1,
         )
         self.assertEqual(
             CountryOnApplication.objects.get(application=OpenApplication.objects.first()).country,

@@ -50,10 +50,14 @@ class Command(SeedCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--essential", action="store_true", help="Executes: " + ", ".join(SEED_COMMANDS["Essential"]),
+            "--essential",
+            action="store_true",
+            help="Executes: " + ", ".join(SEED_COMMANDS["Essential"]),
         )
         parser.add_argument(
-            "--dev", action="store_true", help="Executes: " + ", ".join(SEED_COMMANDS["Dev"]),
+            "--dev",
+            action="store_true",
+            help="Executes: " + ", ".join(SEED_COMMANDS["Dev"]),
         )
 
     @staticmethod

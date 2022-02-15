@@ -23,7 +23,11 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
     def test_add_a_good_to_a_draft(self):
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
 
         data = {
@@ -51,15 +55,47 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"value": "", "quantity": "", "expected_value": "0.00", "expected_quantity": 1.0,}],
-            [{"value": 100, "quantity": 10, "expected_value": "100.00", "expected_quantity": 10.0,}],
-            [{"value": "", "quantity": 5, "expected_value": "0.00", "expected_quantity": 5.0,}],
-            [{"value": 123.0, "quantity": "", "expected_value": "123.00", "expected_quantity": 1.0,}],
+            [
+                {
+                    "value": "",
+                    "quantity": "",
+                    "expected_value": "0.00",
+                    "expected_quantity": 1.0,
+                }
+            ],
+            [
+                {
+                    "value": 100,
+                    "quantity": 10,
+                    "expected_value": "100.00",
+                    "expected_quantity": 10.0,
+                }
+            ],
+            [
+                {
+                    "value": "",
+                    "quantity": 5,
+                    "expected_value": "0.00",
+                    "expected_quantity": 5.0,
+                }
+            ],
+            [
+                {
+                    "value": 123.0,
+                    "quantity": "",
+                    "expected_value": "123.00",
+                    "expected_quantity": 1.0,
+                }
+            ],
         ]
     )
     def test_add_an_intangible_good_to_a_draft(self, data):
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
 
         expected_value = data["expected_value"]
@@ -95,7 +131,11 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         organisation_2, _ = self.create_organisation_with_exporter_user()
         good = self.create_good(good_name, organisation_2)
         self.create_good_document(
-            good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
         data = {"good_id": good.id, "quantity": 1200, "unit": Units.KGM, "value": 50000}
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
@@ -114,15 +154,43 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"value": "123.45", "quantity": "1123423.901234", "response": status.HTTP_201_CREATED,}],
-            [{"value": "123.45", "quantity": "1234.12341341", "response": status.HTTP_400_BAD_REQUEST,}],
-            [{"value": "2123.45", "quantity": "1234", "response": status.HTTP_201_CREATED,}],
-            [{"value": "123.4523", "quantity": "1234", "response": status.HTTP_400_BAD_REQUEST,}],
+            [
+                {
+                    "value": "123.45",
+                    "quantity": "1123423.901234",
+                    "response": status.HTTP_201_CREATED,
+                }
+            ],
+            [
+                {
+                    "value": "123.45",
+                    "quantity": "1234.12341341",
+                    "response": status.HTTP_400_BAD_REQUEST,
+                }
+            ],
+            [
+                {
+                    "value": "2123.45",
+                    "quantity": "1234",
+                    "response": status.HTTP_201_CREATED,
+                }
+            ],
+            [
+                {
+                    "value": "123.4523",
+                    "quantity": "1234",
+                    "response": status.HTTP_400_BAD_REQUEST,
+                }
+            ],
         ]
     )
     def test_adding_goods_with_different_number_formats(self, data):
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
 
         post_data = {
@@ -148,7 +216,11 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         draft = self.create_draft_open_application(self.organisation)
         pre_test_good_count = GoodOnApplication.objects.all().count()
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
 
         data = {
@@ -170,7 +242,11 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         application = self.create_draft_standard_application(self.organisation)
         self.submit_application(application)
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
         data = {
             "good_id": self.good.id,
@@ -187,7 +263,14 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"value": "123.45", "quantity": "1123423.901234", "validate_only": True, "response": status.HTTP_200_OK,}],
+            [
+                {
+                    "value": "123.45",
+                    "quantity": "1123423.901234",
+                    "validate_only": True,
+                    "response": status.HTTP_200_OK,
+                }
+            ],
             [
                 {
                     "good_id": uuid.uuid4(),
@@ -205,8 +288,22 @@ class AddingGoodsOnApplicationTests(DataTestClient):
                     "response": status.HTTP_400_BAD_REQUEST,
                 }
             ],
-            [{"value": "123.45", "quantity": "100.00", "validate_only": 1, "response": status.HTTP_400_BAD_REQUEST,}],
-            [{"value": "123.45", "quantity": "asd", "validate_only": True, "response": status.HTTP_400_BAD_REQUEST,}],
+            [
+                {
+                    "value": "123.45",
+                    "quantity": "100.00",
+                    "validate_only": 1,
+                    "response": status.HTTP_400_BAD_REQUEST,
+                }
+            ],
+            [
+                {
+                    "value": "123.45",
+                    "quantity": "asd",
+                    "validate_only": True,
+                    "response": status.HTTP_400_BAD_REQUEST,
+                }
+            ],
         ]
     )
     def test_adding_good_validate_only(self, data):
@@ -259,7 +356,11 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.create_draft_standard_application(self.organisation)
         self.create_good("A good", self.organisation)
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
         data = {
             "good_id": self.good.id,
@@ -299,12 +400,24 @@ class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
                 },
                 True,
             ),
-            ({"quantity": 1, "unit": Units.NAR, "value": 1, "is_good_incorporated": True,}, False,),
+            (
+                {
+                    "quantity": 1,
+                    "unit": Units.NAR,
+                    "value": 1,
+                    "is_good_incorporated": True,
+                },
+                False,
+            ),
         ]
     )
     def test_add_a_good_to_a_draft_with_firearms_details(self, data, firearm_details_created):
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
 
         data["good_id"] = self.good.id
@@ -338,7 +451,11 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
 
     def test_add_a_good_to_a_exhibition_draft_choice(self):
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
 
         data = {"good_id": self.good.id, "item_type": ItemType.VIDEO}
@@ -373,7 +490,11 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
 
     def test_add_a_good_to_a_exhibition_other(self):
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
         other_value = "abcde"
         data = {"good_id": self.good.id, "item_type": ItemType.OTHER, "other_item_type": other_value}
@@ -407,7 +528,11 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
 
     def test_add_a_good_to_a_exhibition_other_blank_failure(self):
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
 
         data = {"good_id": self.good.id, "item_type": ItemType.OTHER, "other_item_type": ""}
@@ -430,7 +555,11 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
 
     def test_add_a_good_to_a_exhibition_no_data_failure(self):
         self.create_good_document(
-            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
         )
 
         data = {"good_id": self.good.id}

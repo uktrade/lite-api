@@ -33,7 +33,10 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
             actor=request.user,
             verb=AuditType.DOCUMENT_ON_ORGANISATION_CREATE,
             target=organisation,
-            payload={"file_name": request.data["document"]["name"], "document_type": request.data["document_type"],},
+            payload={
+                "file_name": request.data["document"]["name"],
+                "document_type": request.data["document_type"],
+            },
         )
 
         serializer.save()

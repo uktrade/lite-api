@@ -125,7 +125,9 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(SiteOnApplication.objects.filter(application=self.application).count(), 1)
 
-    def test_adding_site_to_submitted_application_when_external_locations_already_on_application_failure(self,):
+    def test_adding_site_to_submitted_application_when_external_locations_already_on_application_failure(
+        self,
+    ):
         SiteOnApplication.objects.filter(application=self.application).delete()
         external_location = self.create_external_location("storage facility", self.organisation)
         ExternalLocationOnApplication(application=self.application, external_location=external_location).save()
@@ -138,7 +140,8 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(SiteOnApplication.objects.filter(application=self.application).count(), 0)
         self.assertEqual(
-            ExternalLocationOnApplication.objects.filter(application=self.application).count(), 1,
+            ExternalLocationOnApplication.objects.filter(application=self.application).count(),
+            1,
         )
 
     @parameterized.expand(get_case_statuses(read_only=True))

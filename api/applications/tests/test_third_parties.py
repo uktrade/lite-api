@@ -152,7 +152,9 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(audit_qs.count(), 0)
 
-    def test_delete_third_party_on_standard_application_when_application_has_no_third_parties_failure(self,):
+    def test_delete_third_party_on_standard_application_when_application_has_no_third_parties_failure(
+        self,
+    ):
         """
         Given a draft standard application
         When I try to delete a third party from the application
@@ -224,7 +226,10 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then 200 OK
         """
         poa = self.draft.third_parties.first()
-        remove_tp_url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": poa.party.id},)
+        remove_tp_url = reverse(
+            "applications:party",
+            kwargs={"pk": self.draft.id, "party_pk": poa.party.id},
+        )
 
         self.assertIsNone(poa.deleted_at)  # Not marked as deleted
 
@@ -310,7 +315,8 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         # Delete existing third party to enable easy assertion of copied third party
         delete_url = reverse(
-            "applications:party", kwargs={"pk": self.draft.id, "party_pk": self.draft.third_parties.first().party.id},
+            "applications:party",
+            kwargs={"pk": self.draft.id, "party_pk": self.draft.third_parties.first().party.id},
         )
         self.client.delete(delete_url, **self.exporter_headers)
 

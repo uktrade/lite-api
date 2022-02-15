@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('letter_templates', '0001_squashed_0005_lettertemplate_include_digital_signature'),
+        ("letter_templates", "0001_squashed_0005_lettertemplate_include_digital_signature"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='lettertemplate',
-            name='include_digital_signature',
+            model_name="lettertemplate",
+            name="include_digital_signature",
             field=models.BooleanField(),
         ),
         migrations.AlterField(
-            model_name='lettertemplate',
-            name='visible_to_exporter',
+            model_name="lettertemplate",
+            name="visible_to_exporter",
             field=models.BooleanField(),
         ),
     ]

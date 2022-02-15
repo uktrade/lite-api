@@ -14,7 +14,13 @@ class ApplicationGoodOnApplicationDocumentViewTests(DataTestClient):
         application = self.create_draft_standard_application(organisation=self.organisation, user=self.exporter_user)
         good = self.create_good("A good", self.organisation)
 
-        url = reverse("applications:application-goods-documents", kwargs={"pk": application.pk, "good_pk": good.pk,})
+        url = reverse(
+            "applications:application-goods-documents",
+            kwargs={
+                "pk": application.pk,
+                "good_pk": good.pk,
+            },
+        )
 
         data = {
             "name": "section5.png",

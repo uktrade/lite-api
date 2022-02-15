@@ -53,39 +53,100 @@ class ApplicationDocumentView(DocumentViewSet):
     }
 
     filter_fields = {
-        "organisation": {"enabled": True, "field": "organisation.raw",},
-        "case_reference": {"enabled": True, "field": "reference_code.raw",},
-        "case_status": {"enabled": True, "field": "status.raw",},
-        "case_type": {"enabled": True, "field": "case_type.raw",},
-        "case_subtype": {"enabled": True, "field": "case_subtype.raw",},
+        "organisation": {
+            "enabled": True,
+            "field": "organisation.raw",
+        },
+        "case_reference": {
+            "enabled": True,
+            "field": "reference_code.raw",
+        },
+        "case_status": {
+            "enabled": True,
+            "field": "status.raw",
+        },
+        "case_type": {
+            "enabled": True,
+            "field": "case_type.raw",
+        },
+        "case_subtype": {
+            "enabled": True,
+            "field": "case_subtype.raw",
+        },
         "created": {
             "enabled": True,
             "field": "created",
-            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_GT, LOOKUP_QUERY_GTE, LOOKUP_QUERY_LT, LOOKUP_QUERY_LTE,],
+            "lookups": [
+                LOOKUP_FILTER_RANGE,
+                LOOKUP_QUERY_GT,
+                LOOKUP_QUERY_GTE,
+                LOOKUP_QUERY_LT,
+                LOOKUP_QUERY_LTE,
+            ],
         },
         "updated": {
             "enabled": True,
             "field": "updated",
-            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_GT, LOOKUP_QUERY_GTE, LOOKUP_QUERY_LT, LOOKUP_QUERY_LTE,],
+            "lookups": [
+                LOOKUP_FILTER_RANGE,
+                LOOKUP_QUERY_GT,
+                LOOKUP_QUERY_GTE,
+                LOOKUP_QUERY_LT,
+                LOOKUP_QUERY_LTE,
+            ],
         },
         "wildcard": {
             "field": "wildcard",
-            "lookups": [LOOKUP_FILTER_TERMS, LOOKUP_FILTER_PREFIX, LOOKUP_FILTER_WILDCARD,],
+            "lookups": [
+                LOOKUP_FILTER_TERMS,
+                LOOKUP_FILTER_PREFIX,
+                LOOKUP_FILTER_WILDCARD,
+            ],
         },
     }
 
     nested_filter_fields = {
-        "clc_rating": {"field": "goods.control_list_entries.rating.raw", "path": "goods.control_list_entries",},
-        "clc_category": {"field": "goods.control_list_entries.category.raw", "path": "goods.control_list_entries",},
-        "party_country": {"field": "parties.country.raw", "path": "parties",},
+        "clc_rating": {
+            "field": "goods.control_list_entries.rating.raw",
+            "path": "goods.control_list_entries",
+        },
+        "clc_category": {
+            "field": "goods.control_list_entries.category.raw",
+            "path": "goods.control_list_entries",
+        },
+        "party_country": {
+            "field": "parties.country.raw",
+            "path": "parties",
+        },
         "party_type": {"field": "parties.type.raw", "path": "parties"},
-        "part": {"field": "goods.part_number.raw", "path": "goods",},
-        "incorporated": {"field": "goods.incorporated", "path": "goods",},
-        "report_summary": {"field": "goods.report_summary.raw", "path": "goods",},
-        "queue": {"field": "queues.name.raw", "path": "queues",},
-        "team": {"field": "queues.team.raw", "path": "queues",},
-        "case_officer_username": {"field": "case_officer.username.raw", "path": "case_officer",},
-        "case_officer_email": {"field": "case_officer.email.raw", "path": "case_officer",},
+        "part": {
+            "field": "goods.part_number.raw",
+            "path": "goods",
+        },
+        "incorporated": {
+            "field": "goods.incorporated",
+            "path": "goods",
+        },
+        "report_summary": {
+            "field": "goods.report_summary.raw",
+            "path": "goods",
+        },
+        "queue": {
+            "field": "queues.name.raw",
+            "path": "queues",
+        },
+        "team": {
+            "field": "queues.team.raw",
+            "path": "queues",
+        },
+        "case_officer_username": {
+            "field": "case_officer.username.raw",
+            "path": "case_officer",
+        },
+        "case_officer_email": {
+            "field": "case_officer.email.raw",
+            "path": "case_officer",
+        },
     }
 
     highlight_fields = {"*": {"enabled": True, "options": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}}}
@@ -121,7 +182,10 @@ class ApplicationSuggestDocumentView(APIView):
                     "prefix": q,
                     "completion": {"field": "parties.country.suggest", "skip_duplicates": True},
                 },
-                "party_type": {"prefix": q, "completion": {"field": "parties.type.suggest", "skip_duplicates": True},},
+                "party_type": {
+                    "prefix": q,
+                    "completion": {"field": "parties.type.suggest", "skip_duplicates": True},
+                },
                 "clc_rating": {
                     "prefix": q,
                     "completion": {"field": "goods.control_list_entries.rating.suggest", "skip_duplicates": True},
@@ -134,18 +198,30 @@ class ApplicationSuggestDocumentView(APIView):
                     "prefix": q,
                     "completion": {"field": "goods.report_summary.suggest", "skip_duplicates": True},
                 },
-                "part": {"prefix": q, "completion": {"field": "goods.part_number.suggest", "skip_duplicates": True},},
+                "part": {
+                    "prefix": q,
+                    "completion": {"field": "goods.part_number.suggest", "skip_duplicates": True},
+                },
                 "organisation": {
                     "prefix": q,
                     "completion": {"field": "organisation.suggest", "skip_duplicates": True},
                 },
-                "case_status": {"prefix": q, "completion": {"field": "status.suggest", "skip_duplicates": True},},
+                "case_status": {
+                    "prefix": q,
+                    "completion": {"field": "status.suggest", "skip_duplicates": True},
+                },
                 "case_reference": {
                     "prefix": q,
                     "completion": {"field": "reference_code.suggest", "skip_duplicates": True},
                 },
-                "queue": {"prefix": q, "completion": {"field": "queues.name.suggest", "skip_duplicates": True},},
-                "team": {"prefix": q, "completion": {"field": "queues.team.suggest", "skip_duplicates": True},},
+                "queue": {
+                    "prefix": q,
+                    "completion": {"field": "queues.name.suggest", "skip_duplicates": True},
+                },
+                "team": {
+                    "prefix": q,
+                    "completion": {"field": "queues.team.suggest", "skip_duplicates": True},
+                },
                 "case_officer_username": {
                     "prefix": q,
                     "completion": {"field": "case_officer.username.suggest", "skip_duplicates": True},
@@ -154,7 +230,10 @@ class ApplicationSuggestDocumentView(APIView):
                     "prefix": q,
                     "completion": {"field": "case_officer.email.suggest", "skip_duplicates": True},
                 },
-                "case_type": {"prefix": q, "completion": {"field": "case_type.suggest", "skip_duplicates": True},},
+                "case_type": {
+                    "prefix": q,
+                    "completion": {"field": "case_type.suggest", "skip_duplicates": True},
+                },
                 "case_subtype": {
                     "prefix": q,
                     "completion": {"field": "case_subtype.suggest", "skip_duplicates": True},

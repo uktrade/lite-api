@@ -38,7 +38,9 @@ class Migration(migrations.Migration):
                             ),
                         ),
                     ],
-                    options={"db_table": "applications_goodonapplication_control_list_entries",},
+                    options={
+                        "db_table": "applications_goodonapplication_control_list_entries",
+                    },
                 ),
                 migrations.AlterField(
                     model_name="goodonapplication",

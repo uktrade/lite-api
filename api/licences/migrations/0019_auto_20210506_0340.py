@@ -10,5 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameModel(old_name="HMRCIntegrationUsageUpdate", new_name="HMRCIntegrationUsageData",),
+        migrations.RenameModel(
+            old_name="HMRCIntegrationUsageUpdate",
+            new_name="HMRCIntegrationUsageData",
+        ),
     ]

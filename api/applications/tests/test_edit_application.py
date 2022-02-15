@@ -21,7 +21,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.data = {"name": "new app name!"}
 
     def test_edit_unsubmitted_application_name_success(self):
-        """ Test edit the application name of an unsubmitted application. An unsubmitted application
+        """Test edit the application name of an unsubmitted application. An unsubmitted application
         has the 'draft' status.
         """
         application = self.create_draft_standard_application(self.organisation)
@@ -71,7 +71,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_edit_submitted_application_reference_number(self):
-        """ Test successful editing of an application's reference number when the application's status
+        """Test successful editing of an application's reference number when the application's status
         is non read-only.
         """
         application = self.create_draft_standard_application(self.organisation)
@@ -92,7 +92,8 @@ class EditStandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            application.reference_number_on_information_form, data["reference_number_on_information_form"],
+            application.reference_number_on_information_form,
+            data["reference_number_on_information_form"],
         )
         self.assertNotEqual(application.updated_at, updated_at)
 
@@ -133,7 +134,12 @@ class EditStandardApplicationTests(DataTestClient):
 
 
 @parameterized_class(
-    "case_type", [(CaseTypeEnum.EXHIBITION,), (CaseTypeEnum.GIFTING,), (CaseTypeEnum.F680,),],
+    "case_type",
+    [
+        (CaseTypeEnum.EXHIBITION,),
+        (CaseTypeEnum.GIFTING,),
+        (CaseTypeEnum.F680,),
+    ],
 )
 class EditMODClearanceApplicationsTests(DataTestClient):
     def setUp(self):
@@ -208,7 +214,7 @@ class EditF680ApplicationsTests(DataTestClient):
         self.assertEqual(self.application.clearance_level, level)
 
     def test_edit_submitted_application_clearance_level_minor_fail(self):
-        """ Test successful editing of an application's reference number when the application's status
+        """Test successful editing of an application's reference number when the application's status
         is non read-only.
         """
         application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
@@ -225,7 +231,7 @@ class EditF680ApplicationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_edit_submitted_application_clearance_level_major_success(self):
-        """ Test successful editing of an application's reference number when the application's status
+        """Test successful editing of an application's reference number when the application's status
         is non read-only.
         """
         application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
@@ -295,7 +301,8 @@ class EditF680ApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"types": [strings.Applications.F680.NO_CLEARANCE_TYPE]},
+            response.json()["errors"],
+            {"types": [strings.Applications.F680.NO_CLEARANCE_TYPE]},
         )
 
     def test_add_party_to_f680_success(self):
@@ -438,7 +445,8 @@ class EditExhibitionApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response_data["required_by_date"][0], strings.Applications.Exhibition.Error.BLANK_REQUIRED_BY_DATE,
+            response_data["required_by_date"][0],
+            strings.Applications.Exhibition.Error.BLANK_REQUIRED_BY_DATE,
         )
 
     def test_edit_exhibition_required_by_date_draft_failure_not_given(self):
@@ -453,7 +461,8 @@ class EditExhibitionApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response_data["required_by_date"][0], strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
+            response_data["required_by_date"][0],
+            strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
         )
 
     def test_edit_exhibition_required_by_date_draft_failure_none(self):
@@ -469,7 +478,8 @@ class EditExhibitionApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response_data["required_by_date"][0], strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
+            response_data["required_by_date"][0],
+            strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
         )
 
     def test_edit_exhibition_first_exhibition_date_draft_success(self):
@@ -518,7 +528,8 @@ class EditExhibitionApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response_data, [strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR],
+            response_data,
+            [strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR],
         )
 
     def test_can_edit_exhibition_details_in_major_edit(self):

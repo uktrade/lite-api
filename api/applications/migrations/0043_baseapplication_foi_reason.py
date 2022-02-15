@@ -11,6 +11,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="baseapplication", name="foi_reason", field=models.TextField(blank=True, default=""),
+            model_name="baseapplication",
+            name="foi_reason",
+            field=models.TextField(blank=True, default=""),
         ),
     ]

@@ -298,7 +298,11 @@ class CaseRoutingAutomationTests(DataTestClient):
         queue_2.save()
         under_review = CaseStatus.objects.get(status="under_review")
         self.create_routing_rule(
-            team_id=self.team.id, queue_id=queue_2.id, tier=6, status_id=under_review.id, additional_rules=[],
+            team_id=self.team.id,
+            queue_id=queue_2.id,
+            tier=6,
+            status_id=under_review.id,
+            additional_rules=[],
         )
 
         case = self.create_open_application_case(organisation=self.organisation)

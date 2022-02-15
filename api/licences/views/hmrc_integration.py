@@ -18,7 +18,7 @@ from api.licences.serializers.hmrc_integration import HMRCIntegrationUsageDataLi
 @api_view(["GET", "POST"])
 @authentication_classes([HMRCIntegrationOnlyAuthentication])
 def mark_emails_as_processed(request):
-    """ Mark emails at LITE-HMRC as already processed so they won't be processed further by mail task
+    """Mark emails at LITE-HMRC as already processed so they won't be processed further by mail task
 
     This is used mainly as a workaround in certain cases in testing when in setup we want
     process only an individual email so we mark everything as already processed prior to that.
@@ -30,7 +30,7 @@ def mark_emails_as_processed(request):
 @api_view(["GET", "POST"])
 @authentication_classes([HMRCIntegrationOnlyAuthentication])
 def force_mail_push(request):
-    """ Cascade push of mail by task manager at LITE-HMRC"""
+    """Cascade push of mail by task manager at LITE-HMRC"""
     hmrc_integration_operations.force_mail_push()
     return Response(status=status.HTTP_200_OK)
 

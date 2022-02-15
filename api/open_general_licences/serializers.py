@@ -72,7 +72,11 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         error_messages={"required": OpenGeneralLicences.serializerErrors.REQUIRED_COUNTRIES},
         serializer=CountrySerializer,
     )
-    control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=False,)
+    control_list_entries = ControlListEntryField(
+        many=True,
+        required=True,
+        allow_empty=False,
+    )
     registration_required = serializers.BooleanField(
         required=True,
         allow_null=False,
@@ -104,11 +108,16 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
                                     "city": case.site.address.city,
                                     "region": case.site.address.region,
                                     "postcode": case.site.address.postcode,
-                                    "country": {"name": "United Kingdom",},
+                                    "country": {
+                                        "name": "United Kingdom",
+                                    },
                                 },
                                 "records_located_at": {"name": case.records_located_at_name},
                             },
-                            "status": {"key": licence.status, "value": LicenceStatus.to_str(licence.status),},
+                            "status": {
+                                "key": licence.status,
+                                "value": LicenceStatus.to_str(licence.status),
+                            },
                             "submitted_at": case.submitted_at,
                         }
                     )

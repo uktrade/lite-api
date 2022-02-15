@@ -35,223 +35,415 @@ def update_permission_values(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('users', '0001_initial'), ('users', '0002_auto_20200211_1101'), ('users', '0003_auto_20200311_1124'), ('users', '0004_auto_20200319_2300'), ('users', '0005_auto_20200322_1547'), ('users', '0006_auto_20200424_1136'), ('users', '0007_govuser_default_queue'), ('users', '0008_auto_20200501_1329'), ('users', '0009_auto_20200505_0942'), ('users', '0010_auto_20200603_1252'), ('users', '0011_auto_20200721_1318'), ('users', '0012_auto_20200907_1229'), ('users', '0013_auto_20200907_1231'), ('users', '0014_auto_20200907_1234'), ('users', '0015_auto_20210212_1620'), ('users', '0016_auto_20210223_1214'), ('users', '0017_auto_20210309_1521'), ('users', '0018_baseuser_phone_number')]
+    replaces = [
+        ("users", "0001_initial"),
+        ("users", "0002_auto_20200211_1101"),
+        ("users", "0003_auto_20200311_1124"),
+        ("users", "0004_auto_20200319_2300"),
+        ("users", "0005_auto_20200322_1547"),
+        ("users", "0006_auto_20200424_1136"),
+        ("users", "0007_govuser_default_queue"),
+        ("users", "0008_auto_20200501_1329"),
+        ("users", "0009_auto_20200505_0942"),
+        ("users", "0010_auto_20200603_1252"),
+        ("users", "0011_auto_20200721_1318"),
+        ("users", "0012_auto_20200907_1229"),
+        ("users", "0013_auto_20200907_1231"),
+        ("users", "0014_auto_20200907_1234"),
+        ("users", "0015_auto_20210212_1620"),
+        ("users", "0016_auto_20210223_1214"),
+        ("users", "0017_auto_20210309_1521"),
+        ("users", "0018_baseuser_phone_number"),
+    ]
 
     initial = True
 
     dependencies = [
-        ('teams', '0001_initial'),
-        ('statuses', '0001_initial'),
-        ('contenttypes', '0002_remove_content_type_name'),
-        ('auth', '0011_update_proxy_permissions'),
-        ('organisations', '0001_initial'),
-        ('cases', '0002_auto_20200210_1326'),
+        ("teams", "0001_initial"),
+        ("statuses", "0001_initial"),
+        ("contenttypes", "0002_remove_content_type_name"),
+        ("auth", "0011_update_proxy_permissions"),
+        ("organisations", "0001_initial"),
+        ("cases", "0002_auto_20200210_1326"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BaseUser',
+            name="BaseUser",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('first_name', models.CharField(blank=True, max_length=30, verbose_name='first name')),
-                ('last_name', models.CharField(blank=True, max_length=150, verbose_name='last name')),
-                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('email', models.EmailField(blank=True, default=None, max_length=254)),
-                ('type', models.CharField(choices=[('exporter', 'Exporter'), ('internal', 'Internal'), ('system', 'System')], max_length=8)),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.Permission', verbose_name='user permissions')),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("first_name", models.CharField(blank=True, max_length=30, verbose_name="first name")),
+                ("last_name", models.CharField(blank=True, max_length=150, verbose_name="last name")),
+                ("date_joined", models.DateTimeField(default=django.utils.timezone.now, verbose_name="date joined")),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("email", models.EmailField(blank=True, default=None, max_length=254)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[("exporter", "Exporter"), ("internal", "Internal"), ("system", "System")], max_length=8
+                    ),
+                ),
+                (
+                    "groups",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.Group",
+                        verbose_name="groups",
+                    ),
+                ),
+                (
+                    "user_permissions",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.Permission",
+                        verbose_name="user permissions",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('email', 'type')},
-                'ordering': ['first_name', 'last_name', 'created_at'],
+                "unique_together": {("email", "type")},
+                "ordering": ["first_name", "last_name", "created_at"],
             },
             managers=[
-                ('objects', api.users.models.CustomUserManager()),
+                ("objects", api.users.models.CustomUserManager()),
             ],
         ),
         migrations.CreateModel(
-            name='BaseNotification',
+            name="BaseNotification",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('object_id', models.UUIDField(default=uuid.uuid4)),
-                ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='cases.case')),
-                ('content_type', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("object_id", models.UUIDField(default=uuid.uuid4)),
+                ("case", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="cases.case")),
+                (
+                    "content_type",
+                    models.ForeignKey(
+                        default=None, on_delete=django.db.models.deletion.CASCADE, to="contenttypes.contenttype"
+                    ),
+                ),
+                ("user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
-            name='Permission',
+            name="Permission",
             fields=[
-                ('id', models.CharField(editable=False, max_length=35, primary_key=True, serialize=False)),
-                ('name', models.CharField(default='permission - FIX', max_length=80)),
-                ('type', models.CharField(choices=[('exporter', 'Exporter'), ('internal', 'Internal')], default='internal', max_length=8)),
+                ("id", models.CharField(editable=False, max_length=35, primary_key=True, serialize=False)),
+                ("name", models.CharField(default="permission - FIX", max_length=80)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[("exporter", "Exporter"), ("internal", "Internal")], default="internal", max_length=8
+                    ),
+                ),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='Role',
+            name="Role",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, default=None, max_length=30, null=True)),
-                ('type', models.CharField(choices=[('exporter', 'Exporter'), ('internal', 'Internal')], default='internal', max_length=8)),
-                ('organisation', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='organisations.organisation')),
-                ('permissions', models.ManyToManyField(related_name='roles', to='users.Permission')),
-                ('statuses', models.ManyToManyField(related_name='roles_statuses', to='statuses.CaseStatus')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(blank=True, default=None, max_length=30, null=True)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[("exporter", "Exporter"), ("internal", "Internal")], default="internal", max_length=8
+                    ),
+                ),
+                (
+                    "organisation",
+                    models.ForeignKey(
+                        null=True, on_delete=django.db.models.deletion.CASCADE, to="organisations.organisation"
+                    ),
+                ),
+                ("permissions", models.ManyToManyField(related_name="roles", to="users.Permission")),
+                ("statuses", models.ManyToManyField(related_name="roles_statuses", to="statuses.CaseStatus")),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='ExporterUser',
+            name="ExporterUser",
             fields=[
-                ('baseuser_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+                (
+                    "baseuser_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'user',
-                'verbose_name_plural': 'users',
-                'abstract': False,
-            },
-            managers=[
-                ('objects', api.users.models.CustomUserManager()),
-            ],
-        ),
-        migrations.CreateModel(
-            name='GovNotification',
-            fields=[
-                ('basenotification_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='users.basenotification')),
-            ],
-            bases=('users.basenotification',),
-        ),
-        migrations.CreateModel(
-            name='ExporterNotification',
-            fields=[
-                ('basenotification_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='users.basenotification')),
-                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='organisations.organisation')),
-            ],
-            bases=('users.basenotification',),
-        ),
-        migrations.CreateModel(
-            name='GovUser',
-            fields=[
-                ('baseuser_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
-                ('status', models.CharField(choices=[('Active', 'Active'), ('Deactivated', 'Deactivated')], default='Active', max_length=20)),
-                ('role', models.ForeignKey(default=uuid.UUID('00000000-0000-0000-0000-000000000001'), on_delete=django.db.models.deletion.PROTECT, related_name='role', to='users.role')),
-                ('team', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='users', to='teams.team')),
-                ('default_queue', models.UUIDField(default=uuid.UUID('00000000-0000-0000-0000-000000000001'))),
-            ],
-            options={
-                'verbose_name': 'user',
-                'verbose_name_plural': 'users',
-                'abstract': False,
+                "verbose_name": "user",
+                "verbose_name_plural": "users",
+                "abstract": False,
             },
             managers=[
-                ('objects', api.users.models.CustomUserManager()),
+                ("objects", api.users.models.CustomUserManager()),
             ],
         ),
         migrations.CreateModel(
-            name='UserOrganisationRelationship',
+            name="GovNotification",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('status', models.CharField(choices=[('Active', 'Active'), ('Deactivated', 'Deactivated')], default='Active', max_length=20)),
-                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='users', to='organisations.organisation')),
-                ('role', models.ForeignKey(default=uuid.UUID('00000000-0000-0000-0000-000000000004'), on_delete=django.db.models.deletion.PROTECT, related_name='exporter_role', to='users.role')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='relationship', to='users.exporteruser')),
+                (
+                    "basenotification_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="users.basenotification",
+                    ),
+                ),
+            ],
+            bases=("users.basenotification",),
+        ),
+        migrations.CreateModel(
+            name="ExporterNotification",
+            fields=[
+                (
+                    "basenotification_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="users.basenotification",
+                    ),
+                ),
+                (
+                    "organisation",
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="organisations.organisation"),
+                ),
+            ],
+            bases=("users.basenotification",),
+        ),
+        migrations.CreateModel(
+            name="GovUser",
+            fields=[
+                (
+                    "baseuser_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20
+                    ),
+                ),
+                (
+                    "role",
+                    models.ForeignKey(
+                        default=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="role",
+                        to="users.role",
+                    ),
+                ),
+                (
+                    "team",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT, related_name="users", to="teams.team"
+                    ),
+                ),
+                ("default_queue", models.UUIDField(default=uuid.UUID("00000000-0000-0000-0000-000000000001"))),
             ],
             options={
-                'abstract': False,
-                'default_related_name': 'relationship',
+                "verbose_name": "user",
+                "verbose_name_plural": "users",
+                "abstract": False,
+            },
+            managers=[
+                ("objects", api.users.models.CustomUserManager()),
+            ],
+        ),
+        migrations.CreateModel(
+            name="UserOrganisationRelationship",
+            fields=[
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20
+                    ),
+                ),
+                (
+                    "organisation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="users",
+                        to="organisations.organisation",
+                    ),
+                ),
+                (
+                    "role",
+                    models.ForeignKey(
+                        default=uuid.UUID("00000000-0000-0000-0000-000000000004"),
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="exporter_role",
+                        to="users.role",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="relationship",
+                        to="users.exporteruser",
+                    ),
+                ),
+            ],
+            options={
+                "abstract": False,
+                "default_related_name": "relationship",
             },
         ),
         migrations.AlterModelManagers(
-            name='baseuser',
+            name="baseuser",
             managers=[
-                ('objects', django.contrib.auth.models.UserManager()),
+                ("objects", django.contrib.auth.models.UserManager()),
             ],
         ),
         migrations.AlterModelManagers(
-            name='exporteruser',
+            name="exporteruser",
             managers=[
-                ('objects', django.contrib.auth.models.UserManager()),
+                ("objects", django.contrib.auth.models.UserManager()),
             ],
         ),
         migrations.AlterModelManagers(
-            name='govuser',
+            name="govuser",
             managers=[
-                ('objects', django.contrib.auth.models.UserManager()),
+                ("objects", django.contrib.auth.models.UserManager()),
             ],
         ),
         migrations.AlterField(
-            model_name='exporteruser',
-            name='baseuser_ptr',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL),
+            model_name="exporteruser",
+            name="baseuser_ptr",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                parent_link=True,
+                primary_key=True,
+                serialize=False,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='govuser',
-            name='baseuser_ptr',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL),
+            model_name="govuser",
+            name="baseuser_ptr",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                parent_link=True,
+                primary_key=True,
+                serialize=False,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterModelOptions(
-            name='exporteruser',
+            name="exporteruser",
             options={},
         ),
         migrations.AlterModelOptions(
-            name='govuser',
+            name="govuser",
             options={},
         ),
         migrations.AlterModelManagers(
-            name='exporteruser',
-            managers=[
-            ],
+            name="exporteruser",
+            managers=[],
         ),
         migrations.AlterModelManagers(
-            name='govuser',
-            managers=[
-            ],
+            name="govuser",
+            managers=[],
         ),
         migrations.AlterField(
-            model_name='exporteruser',
-            name='baseuser_ptr',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL),
+            model_name="exporteruser",
+            name="baseuser_ptr",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                primary_key=True,
+                serialize=False,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='govuser',
-            name='baseuser_ptr',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL),
+            model_name="govuser",
+            name="baseuser_ptr",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                primary_key=True,
+                serialize=False,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.RunPython(
             code=update_permission_values,
             reverse_code=django.db.migrations.operations.special.RunPython.noop,
         ),
         migrations.AlterField(
-            model_name='baseuser',
-            name='first_name',
-            field=models.CharField(blank=True, max_length=150, verbose_name='first name'),
+            model_name="baseuser",
+            name="first_name",
+            field=models.CharField(blank=True, max_length=150, verbose_name="first name"),
         ),
         migrations.AlterField(
-            model_name='permission',
-            name='id',
+            model_name="permission",
+            name="id",
             field=models.TextField(editable=False, max_length=100, primary_key=True, serialize=False),
         ),
         migrations.AlterField(
-            model_name='permission',
-            name='name',
-            field=models.TextField(default='permission - FIX', max_length=100),
+            model_name="permission",
+            name="name",
+            field=models.TextField(default="permission - FIX", max_length=100),
         ),
         migrations.AlterField(
-            model_name='role',
-            name='name',
-            field=models.CharField(blank=True, default='', max_length=100),
+            model_name="role",
+            name="name",
+            field=models.CharField(blank=True, default="", max_length=100),
         ),
         migrations.AddField(
-            model_name='baseuser',
-            name='phone_number',
-            field=phonenumber_field.modelfields.PhoneNumberField(default='', max_length=128, region=None),
+            model_name="baseuser",
+            name="phone_number",
+            field=phonenumber_field.modelfields.PhoneNumberField(default="", max_length=128, region=None),
         ),
     ]

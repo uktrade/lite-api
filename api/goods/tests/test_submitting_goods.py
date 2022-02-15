@@ -100,7 +100,13 @@ class GoodTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [["I AGREE"], ["i AGREE"], ["i agree"], ["i AgrEE"], ["I aGrEe"],]
+        [
+            ["I AGREE"],
+            ["i AGREE"],
+            ["i agree"],
+            ["i AgrEE"],
+            ["I aGrEe"],
+        ]
     )
     def test_agreed_to_declaration_case_insensitive(self, declaration_text):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)

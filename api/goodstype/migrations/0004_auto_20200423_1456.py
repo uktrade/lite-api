@@ -11,12 +11,21 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(name="goodstype", options={"ordering": ["-created_at"]},),
-        migrations.RemoveField(model_name="goodstype", name="control_code",),
+        migrations.AlterModelOptions(
+            name="goodstype",
+            options={"ordering": ["-created_at"]},
+        ),
+        migrations.RemoveField(
+            model_name="goodstype",
+            name="control_code",
+        ),
         migrations.AddField(
             model_name="goodstype",
             name="control_list_entries",
             field=models.ManyToManyField(related_name="goods_types", to="control_list_entries.ControlListEntry"),
         ),
-        migrations.AlterModelTable(name="goodstype", table="goods_type",),
+        migrations.AlterModelTable(
+            name="goodstype",
+            table="goods_type",
+        ),
     ]

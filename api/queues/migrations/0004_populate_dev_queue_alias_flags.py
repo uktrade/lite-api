@@ -2,18 +2,19 @@
 
 from django.db import migrations
 
+
 def populate_dev_queue_alias_flags(apps, schema_editor):
     flags = {
-        'FCO Cases to Review': 'FCDO_CASES_TO_REVIEW',
-        'FCO Counter-signing': 'FCDO_COUNTER_SIGNING',
-        'MOD Cases to Review': 'MOD_CASES_TO_REVIEW',
-        'MOD-DI Cases to Review': 'MOD_DI_CASES_TO_REVIEW',
-        'MOD-DSR Cases to Review': 'MOD_DSR_CASES_TO_REVIEW',
-        'MOD-DSTL Cases to Review': 'MOD_DSTL_CASES_TO_REVIEW',
-        'MOD-WECA Cases to Review': 'MOD_WECA_CASES_TO_REVIEW',
-        'Licensing Unit Post-circulation Cases to Finalise': 'LU_POST_CIRC_FINALISE'
+        "FCO Cases to Review": "FCDO_CASES_TO_REVIEW",
+        "FCO Counter-signing": "FCDO_COUNTER_SIGNING",
+        "MOD Cases to Review": "MOD_CASES_TO_REVIEW",
+        "MOD-DI Cases to Review": "MOD_DI_CASES_TO_REVIEW",
+        "MOD-DSR Cases to Review": "MOD_DSR_CASES_TO_REVIEW",
+        "MOD-DSTL Cases to Review": "MOD_DSTL_CASES_TO_REVIEW",
+        "MOD-WECA Cases to Review": "MOD_WECA_CASES_TO_REVIEW",
+        "Licensing Unit Post-circulation Cases to Finalise": "LU_POST_CIRC_FINALISE",
     }
-    Queue = apps.get_model('queues', 'Queue')
+    Queue = apps.get_model("queues", "Queue")
     for f in flags.keys():
         team = Queue.objects.filter(name__iexact=f).exclude(alias__isnull=False)
         if team.exists():
@@ -23,9 +24,9 @@ def populate_dev_queue_alias_flags(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('queues', '0003_populate_queue_alias_flags'),
+        ("queues", "0003_populate_queue_alias_flags"),
     ]
 
     operations = [
-         migrations.RunPython(populate_dev_queue_alias_flags, migrations.RunPython.noop),
+        migrations.RunPython(populate_dev_queue_alias_flags, migrations.RunPython.noop),
     ]

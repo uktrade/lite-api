@@ -78,7 +78,8 @@ class GovUserViewTests(DataTestClient):
 
     def test_filter_users_by_email(self):
         response = self.client.get(
-            reverse("gov_users:gov_users") + "?email=" + self.gov_user.email, **self.gov_headers,
+            reverse("gov_users:gov_users") + "?email=" + self.gov_user.email,
+            **self.gov_headers,
         )
         response_data = response.json()["results"]
 

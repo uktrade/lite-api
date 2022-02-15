@@ -182,7 +182,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         # Team 2's advice would conflict with team 1's if both were brought in
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_can_submit_user_level_advice_if_team_advice_exists(self,):
+    def test_can_submit_user_level_advice_if_team_advice_exists(
+        self,
+    ):
         """
         Can submit lower tier advice if higher tier advice exists
         """
@@ -201,7 +203,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_can_submit_user_level_advice_if_team_advice_has_been_cleared_for_that_team_on_that_case(self,):
+    def test_can_submit_user_level_advice_if_team_advice_has_been_cleared_for_that_team_on_that_case(
+        self,
+    ):
         """
         No residual data is left to block lower tier advice being submitted after a clear
         """
@@ -222,7 +226,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(self,):
+    def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(
+        self,
+    ):
         """
         Audit trail is created when clearing or combining advice
         """
@@ -349,7 +355,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             PvGrading.to_str(pv_grading), Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
         )
 
-    def test_when_user_advice_exists_combine_team_advice_with_confirm_own_advice_success(self,):
+    def test_when_user_advice_exists_combine_team_advice_with_confirm_own_advice_success(
+        self,
+    ):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
 
@@ -359,7 +367,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_when_user_advice_exists_clear_team_advice_with_confirm_own_advice_success(self,):
+    def test_when_user_advice_exists_clear_team_advice_with_confirm_own_advice_success(
+        self,
+    ):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
 
@@ -369,7 +379,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_when_user_advice_exists_create_team_advice_with_confirm_own_advice_success(self,):
+    def test_when_user_advice_exists_create_team_advice_with_confirm_own_advice_success(
+        self,
+    ):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
         data = {

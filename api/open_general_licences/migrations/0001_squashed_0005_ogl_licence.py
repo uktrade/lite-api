@@ -30,65 +30,125 @@ def reverse_add_ogl_licence(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('open_general_licences', '0001_initial'), ('open_general_licences', '0002_auto_20200522_1410'), ('open_general_licences', '0003_opengenerallicencecase'), ('open_general_licences', '0004_auto_20200610_1547'), ('open_general_licences', '0005_ogl_licence')]
+    replaces = [
+        ("open_general_licences", "0001_initial"),
+        ("open_general_licences", "0002_auto_20200522_1410"),
+        ("open_general_licences", "0003_opengenerallicencecase"),
+        ("open_general_licences", "0004_auto_20200610_1547"),
+        ("open_general_licences", "0005_ogl_licence"),
+    ]
 
     initial = True
 
     dependencies = [
-        ('cases', '0027_auto_20200522_0945'),
-        ('control_list_entries', '0005_auto_20200519_1617'),
-        ('licences', '0015_auto_20200715_1529'),
-        ('cases', '0032_auto_20200608_1433'),
-        ('countries', '0001_initial'),
-        ('organisations', '0008_auto_20200601_0814'),
+        ("cases", "0027_auto_20200522_0945"),
+        ("control_list_entries", "0005_auto_20200519_1617"),
+        ("licences", "0015_auto_20200715_1529"),
+        ("cases", "0032_auto_20200608_1433"),
+        ("countries", "0001_initial"),
+        ("organisations", "0008_auto_20200601_0814"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OpenGeneralLicence',
+            name="OpenGeneralLicence",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=250, unique=True)),
-                ('description', models.TextField()),
-                ('url', models.URLField(default=None)),
-                ('registration_required', models.BooleanField()),
-                ('status', models.CharField(choices=[('active', 'Active'), ('deactivated', 'Deactivated')], default='active', max_length=20)),
-                ('case_type', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='OpenGeneralLicence', to='cases.casetype')),
-                ('control_list_entries', models.ManyToManyField(related_name='OpenGeneralLicence', to='control_list_entries.ControlListEntry')),
-                ('countries', models.ManyToManyField(default=[], related_name='OpenGeneralLicence', to='countries.Country')),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(max_length=250, unique=True)),
+                ("description", models.TextField()),
+                ("url", models.URLField(default=None)),
+                ("registration_required", models.BooleanField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("active", "Active"), ("deactivated", "Deactivated")], default="active", max_length=20
+                    ),
+                ),
+                (
+                    "case_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="OpenGeneralLicence",
+                        to="cases.casetype",
+                    ),
+                ),
+                (
+                    "control_list_entries",
+                    models.ManyToManyField(
+                        related_name="OpenGeneralLicence", to="control_list_entries.ControlListEntry"
+                    ),
+                ),
+                (
+                    "countries",
+                    models.ManyToManyField(default=[], related_name="OpenGeneralLicence", to="countries.Country"),
+                ),
             ],
             options={
-                'db_table': 'open_general_licence',
-                'ordering': ['name'],
+                "db_table": "open_general_licence",
+                "ordering": ["name"],
             },
         ),
         migrations.AddIndex(
-            model_name='opengenerallicence',
-            index=models.Index(fields=['status', 'name'], name='open_genera_status_80e1d9_idx'),
+            model_name="opengenerallicence",
+            index=models.Index(fields=["status", "name"], name="open_genera_status_80e1d9_idx"),
         ),
         migrations.AlterField(
-            model_name='opengenerallicence',
-            name='countries',
-            field=models.ManyToManyField(related_name='OpenGeneralLicence', to='countries.Country'),
+            model_name="opengenerallicence",
+            name="countries",
+            field=models.ManyToManyField(related_name="OpenGeneralLicence", to="countries.Country"),
         ),
         migrations.AlterField(
-            model_name='opengenerallicence',
-            name='url',
+            model_name="opengenerallicence",
+            name="url",
             field=models.URLField(),
         ),
         migrations.CreateModel(
-            name='OpenGeneralLicenceCase',
+            name="OpenGeneralLicenceCase",
             fields=[
-                ('case_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='cases.case')),
-                ('open_general_licence', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cases', to='open_general_licences.opengenerallicence')),
-                ('site', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='open_general_licence_cases', to='organisations.site')),
+                (
+                    "case_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="cases.case",
+                    ),
+                ),
+                (
+                    "open_general_licence",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cases",
+                        to="open_general_licences.opengenerallicence",
+                    ),
+                ),
+                (
+                    "site",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="open_general_licence_cases",
+                        to="organisations.site",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'open_general_licence_case',
+                "db_table": "open_general_licence_case",
             },
-            bases=('cases.case',),
+            bases=("cases.case",),
         ),
         migrations.RunPython(
             code=add_ogl_licence,

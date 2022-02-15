@@ -26,7 +26,7 @@ from api.users.models import ExporterUser
 
 
 class ApplicationExternalLocations(APIView):
-    """ View sites belonging to a draft or add them. """
+    """View sites belonging to a draft or add them."""
 
     authentication_classes = (ExporterAuthentication,)
 

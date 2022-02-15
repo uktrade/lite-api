@@ -65,7 +65,9 @@ class ExporterUserNotificationTests(DataTestClient):
         case = create_case_func(self)
 
         case_notification_count = ExporterNotification.objects.filter(
-            user_id=self.exporter_user.pk, organisation=self.exporter_user.organisation, case=case,
+            user_id=self.exporter_user.pk,
+            organisation=self.exporter_user.organisation,
+            case=case,
         ).count()
         case_case_note_notification_count = ExporterNotification.objects.filter(
             user_id=self.exporter_user.pk,
@@ -174,7 +176,8 @@ class ExporterUserNotificationTests(DataTestClient):
         self._create_end_user_advisory_query_with_notifications()
 
         response = self.client.get(
-            reverse_lazy("queries:end_user_advisories:end_user_advisories"), **self.exporter_headers,
+            reverse_lazy("queries:end_user_advisories:end_user_advisories"),
+            **self.exporter_headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

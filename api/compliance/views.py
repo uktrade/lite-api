@@ -300,7 +300,10 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
 
         # if people present is passed forward, we wish to validate and replace the current data
         if request.data.get("people_present"):
-            serializer = self.get_serializer(data=request.data.get("people_present"), many=True,)
+            serializer = self.get_serializer(
+                data=request.data.get("people_present"),
+                many=True,
+            )
             serializer.is_valid(raise_exception=True)
             # We wish to replace the current people present with the new list of people present
             CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"]).delete()
@@ -327,12 +330,18 @@ class ComplianceVisitPersonPresentView(RetrieveUpdateDestroyAPIView):
             actor=self.request.user,
             verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_UPDATED,
             action_object=case,
-            payload={"name": person.name, "job_title": person.job_title,},
+            payload={
+                "name": person.name,
+                "job_title": person.job_title,
+            },
         )
 
     def perform_destroy(self, instance):
         instance.delete()
         case = get_case(instance.visit_case_id)
         audit_trail_service.create(
-            actor=self.request.user, verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_DELETED, action_object=case, payload={},
+            actor=self.request.user,
+            verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_DELETED,
+            action_object=case,
+            payload={},
         )

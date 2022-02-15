@@ -51,7 +51,9 @@ class Migration(migrations.Migration):
                 ("note", models.TextField(blank=True, default=None, null=True)),
                 ("proviso", models.TextField(blank=True, default=None, null=True)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="Case",
@@ -88,7 +90,9 @@ class Migration(migrations.Migration):
                 ),
                 ("submitted_at", models.DateTimeField(blank=True, null=True)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="CaseAssignment",
@@ -107,7 +111,9 @@ class Migration(migrations.Migration):
                 ),
                 ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="CaseDocument",
@@ -133,7 +139,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("documents.document",),
         ),
         migrations.CreateModel(
@@ -155,7 +163,9 @@ class Migration(migrations.Migration):
                 ("text", models.TextField(blank=True, default=None, max_length=2200, null=True)),
                 ("is_visible_to_exporter", models.BooleanField(default=False)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="CaseReferenceCode",
@@ -204,7 +214,9 @@ class Migration(migrations.Migration):
                 ("response", models.CharField(max_length=2200, null=True)),
                 ("responded_at", models.DateTimeField(blank=True, null=True)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="FinalAdvice",
@@ -221,7 +233,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("cases.advice",),
         ),
         migrations.CreateModel(
@@ -239,7 +253,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("cases.advice",),
         ),
         migrations.CreateModel(
@@ -275,6 +291,8 @@ class Migration(migrations.Migration):
                 ("case", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="cases.Case")),
                 ("country", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="countries.Country")),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
     ]

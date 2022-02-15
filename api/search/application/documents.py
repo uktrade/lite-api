@@ -10,7 +10,13 @@ from api.applications import models
 
 
 address_analyzer = analysis.analyzer(
-    "address_analyzer", tokenizer="whitespace", filter=["lowercase", "asciifolding", "trim",],
+    "address_analyzer",
+    tokenizer="whitespace",
+    filter=[
+        "lowercase",
+        "asciifolding",
+        "trim",
+    ],
 )
 
 part_number_analyzer = analysis.analyzer(
@@ -43,7 +49,10 @@ email_analyzer = analysis.analyzer(
     "email_analyzer",
     type="custom",
     tokenizer=analysis.tokenizer(
-        "case_officer_email", "pattern", pattern="([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\\.[a-zA-Z]{2,})", group=1,
+        "case_officer_email",
+        "pattern",
+        pattern="([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\\.[a-zA-Z]{2,})",
+        group=1,
     ),
     filter=["lowercase"],
 )
@@ -51,7 +60,10 @@ email_analyzer = analysis.analyzer(
 
 class Country(InnerDoc):
     name = fields.KeywordField(
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         attr="country.name",
         normalizer=lowercase_normalizer,
     )
@@ -59,13 +71,23 @@ class Country(InnerDoc):
 
 class Party(InnerDoc):
     name = fields.TextField(attr="party.name", copy_to="wildcard", analyzer=descriptive_text_analyzer)
-    address = fields.TextField(attr="party.address", copy_to="wildcard", analyzer=address_analyzer,)
+    address = fields.TextField(
+        attr="party.address",
+        copy_to="wildcard",
+        analyzer=address_analyzer,
+    )
     type = fields.KeywordField(
         attr="party.type",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
     )
     country = fields.KeywordField(
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         attr="party.country.name",
     )
 
@@ -77,12 +99,18 @@ class CLCEntryParent(InnerDoc):
 
 class CLCEntry(InnerDoc):
     rating = fields.KeywordField(
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         copy_to="wildcard",
     )
     text = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer)
     category = fields.KeywordField(
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
     )
     parent = fields.ObjectField(doc_class=CLCEntryParent)
 
@@ -92,12 +120,23 @@ class Product(InnerDoc):
     value = fields.KeywordField()
     unit = fields.KeywordField()
     incorporated = fields.BooleanField(attr="is_good_incorporated")
-    name = fields.TextField(attr="good.name", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
-    description = fields.TextField(attr="good.description", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
+    name = fields.TextField(
+        attr="good.name",
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer,
+    )
+    description = fields.TextField(
+        attr="good.description",
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer,
+    )
     comment = fields.TextField(attr="good.comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
     part_number = fields.TextField(
         attr="good.part_number",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         analyzer=part_number_analyzer,
         copy_to="wildcard",
     )
@@ -105,7 +144,10 @@ class Product(InnerDoc):
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=CLCEntry)
     report_summary = fields.TextField(
         attr="good.report_summary",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         analyzer=descriptive_text_analyzer,
         copy_to="wildcard",
     )
@@ -114,13 +156,19 @@ class Product(InnerDoc):
 class User(InnerDoc):
     username = fields.TextField(
         attr="baseuser_ptr.username",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         analyzer=descriptive_text_analyzer,
         copy_to="wildcard",
     )
     email = fields.TextField(
         attr="baseuser_ptr.email",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         analyzer=email_analyzer,
         copy_to="wildcard",
     )
@@ -129,14 +177,20 @@ class User(InnerDoc):
 class Queue(InnerDoc):
     id = fields.KeywordField()
     name = fields.TextField(
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         analyzer=descriptive_text_analyzer,
         copy_to="wildcard",
     )
     team = fields.TextField(
         attr="team.name",
         copy_to="wildcard",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         analyzer=descriptive_text_analyzer,
     )
 
@@ -151,17 +205,26 @@ class ApplicationDocumentType(Document):
     reference_code = fields.TextField(
         copy_to="wildcard",
         analyzer=reference_code_analyzer,
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
     )
     organisation = fields.TextField(
         copy_to="wildcard",
         attr="organisation.name",
         analyzer=descriptive_text_analyzer,
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
     )
     status = fields.KeywordField(
         attr="status.status",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
     )
     submitted_by = fields.ObjectField(doc_class=User)
     case_officer = fields.NestedField(doc_class=User)
@@ -172,11 +235,17 @@ class ApplicationDocumentType(Document):
     updated = fields.DateField(attr="updated_at")
     case_type = fields.KeywordField(
         attr="case_type.type",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
     )
     case_subtype = fields.KeywordField(
         attr="case_type.sub_type",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
     )
 
     class Index:

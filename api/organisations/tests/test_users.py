@@ -100,10 +100,12 @@ class OrganisationUsersViewTests(DataTestClient):
         site = response.json()["sites"][0]
 
         self.assertEqual(
-            site["id"], str(self.organisation.primary_site.id),
+            site["id"],
+            str(self.organisation.primary_site.id),
         )
         self.assertEqual(
-            site["name"], str(self.organisation.primary_site.name),
+            site["name"],
+            str(self.organisation.primary_site.name),
         )
 
 
@@ -191,7 +193,8 @@ class OrganisationUsersUpdateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.url = reverse(
-            "organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.pk},
+            "organisations:user",
+            kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.pk},
         )
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 

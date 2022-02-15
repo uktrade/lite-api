@@ -128,7 +128,9 @@ class RerunRoutingRules(APIView):
         case = get_case(pk)
 
         audit_trail_service.create(
-            actor=request.user, verb=AuditType.RERUN_ROUTING_RULES, target=case,
+            actor=request.user,
+            verb=AuditType.RERUN_ROUTING_RULES,
+            target=case,
         )
 
         run_routing_rules(case)

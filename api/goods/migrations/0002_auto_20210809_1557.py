@@ -36,7 +36,9 @@ class Migration(migrations.Migration):
                             ),
                         ),
                     ],
-                    options={"db_table": "good_control_list_entries",},
+                    options={
+                        "db_table": "good_control_list_entries",
+                    },
                 ),
                 migrations.AlterField(
                     model_name="good",

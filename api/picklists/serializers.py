@@ -32,13 +32,24 @@ class PicklistListSerializer(TinyPicklistSerializer):
 
     class Meta:
         model = PicklistItem
-        fields = TinyPicklistSerializer.Meta.fields + ("team", "type", "status",)
+        fields = TinyPicklistSerializer.Meta.fields + (
+            "team",
+            "type",
+            "status",
+        )
 
 
 class PicklistUpdateCreateSerializer(ModelSerializer):
-    name = CharField(allow_blank=False, required=True, error_messages={"blank": strings.Picklists.BLANK_NAME},)
+    name = CharField(
+        allow_blank=False,
+        required=True,
+        error_messages={"blank": strings.Picklists.BLANK_NAME},
+    )
     text = CharField(
-        allow_blank=False, max_length=5000, required=True, error_messages={"blank": strings.Picklists.BLANK_TEXT},
+        allow_blank=False,
+        max_length=5000,
+        required=True,
+        error_messages={"blank": strings.Picklists.BLANK_TEXT},
     )
     type = KeyValueChoiceField(
         choices=PicklistType.choices,
@@ -48,7 +59,8 @@ class PicklistUpdateCreateSerializer(ModelSerializer):
         allow_blank=False,
     )
     status = KeyValueChoiceField(
-        choices=PickListStatus.choices, error_messages={"invalid_choice": strings.Picklists.BLANK_STATUS},
+        choices=PickListStatus.choices,
+        error_messages={"invalid_choice": strings.Picklists.BLANK_STATUS},
     )
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     team_name = SerializerMethodField()

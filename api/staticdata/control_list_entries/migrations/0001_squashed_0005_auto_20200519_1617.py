@@ -18,44 +18,63 @@ def reverse_migration(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('control_list_entries', '0001_initial'), ('control_list_entries', '0002_auto_20200419_1827'), ('control_list_entries', '0003_auto_20200519_1048'), ('control_list_entries', '0004_remove_decontrolled_entries'), ('control_list_entries', '0005_auto_20200519_1617')]
+    replaces = [
+        ("control_list_entries", "0001_initial"),
+        ("control_list_entries", "0002_auto_20200419_1827"),
+        ("control_list_entries", "0003_auto_20200519_1048"),
+        ("control_list_entries", "0004_remove_decontrolled_entries"),
+        ("control_list_entries", "0005_auto_20200519_1617"),
+    ]
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='ControlListEntry',
+            name="ControlListEntry",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('rating', models.CharField(max_length=100, unique=True)),
-                ('text', models.TextField()),
-                ('is_decontrolled', models.BooleanField(default=False)),
-                ('parent', models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='control_list_entries.controllistentry')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("rating", models.CharField(max_length=100, unique=True)),
+                ("text", models.TextField()),
+                ("is_decontrolled", models.BooleanField(default=False)),
+                (
+                    "parent",
+                    models.ForeignKey(
+                        default=None,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="control_list_entries.controllistentry",
+                    ),
+                ),
             ],
         ),
         migrations.AlterModelTable(
-            name='controllistentry',
-            table='control_list_entry',
+            name="controllistentry",
+            table="control_list_entry",
         ),
         migrations.AlterField(
-            model_name='controllistentry',
-            name='parent',
-            field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='control_list_entries.controllistentry'),
+            model_name="controllistentry",
+            name="parent",
+            field=models.ForeignKey(
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="children",
+                to="control_list_entries.controllistentry",
+            ),
         ),
         migrations.RunPython(
             code=forward_migration,
             reverse_code=reverse_migration,
         ),
         migrations.RemoveField(
-            model_name='controllistentry',
-            name='is_decontrolled',
+            model_name="controllistentry",
+            name="is_decontrolled",
         ),
         migrations.AddField(
-            model_name='controllistentry',
-            name='category',
-            field=models.CharField(default='', max_length=100),
+            model_name="controllistentry",
+            name="category",
+            field=models.CharField(default="", max_length=100),
         ),
     ]

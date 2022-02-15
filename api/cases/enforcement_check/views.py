@@ -35,7 +35,9 @@ class EnforcementCheckView(APIView):
 
         for case in cases:
             audit_trail_service.create(
-                actor=request.user, verb=AuditType.ENFORCEMENT_CHECK, target=case,
+                actor=request.user,
+                verb=AuditType.ENFORCEMENT_CHECK,
+                target=case,
             )
 
         return HttpResponse(xml, content_type="text/xml")

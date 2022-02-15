@@ -5,15 +5,15 @@ from django.db import migrations
 
 def populate_dev_team_alias(apps, schema_editor):
     flags = {
-        'FCO': 'FCO',
-        'Licensing Unit': 'LICENSING_UNIT',
-        'MOD-ECJU': 'MOD_ECJU',
-        'MOD-DI': 'MOD_DI',
-        'MOD-DSR': 'MOD_DSR',
-        'MOD-DSTL': 'MOD_DSTL',
-        'MOD-WECA': 'MOD_WECA',
+        "FCO": "FCO",
+        "Licensing Unit": "LICENSING_UNIT",
+        "MOD-ECJU": "MOD_ECJU",
+        "MOD-DI": "MOD_DI",
+        "MOD-DSR": "MOD_DSR",
+        "MOD-DSTL": "MOD_DSTL",
+        "MOD-WECA": "MOD_WECA",
     }
-    Team = apps.get_model('teams', 'Team')
+    Team = apps.get_model("teams", "Team")
     for f in flags.keys():
         team = Team.objects.filter(name__iexact=f).exclude(alias__isnull=False)
         if team.exists():
@@ -23,7 +23,7 @@ def populate_dev_team_alias(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('teams', '0005_populate_team_alias_flags'),
+        ("teams", "0005_populate_team_alias_flags"),
     ]
 
     operations = [

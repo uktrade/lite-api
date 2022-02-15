@@ -93,7 +93,10 @@ class ApplicationPartyView(APIView):
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
             target=application.get_case(),
-            payload={"party_type": poa.party.type.replace("_", " "), "party_name": poa.party.name,},
+            payload={
+                "party_type": poa.party.type.replace("_", " "),
+                "party_name": poa.party.name,
+            },
         )
 
         return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)

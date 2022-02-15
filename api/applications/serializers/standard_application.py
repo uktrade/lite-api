@@ -134,10 +134,12 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     export_type = KeyValueChoiceField(
-        choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
+        choices=ApplicationExportType.choices,
+        error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
     )
     have_you_been_informed = KeyValueChoiceField(
-        choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
+        choices=ApplicationExportLicenceOfficialType.choices,
+        error_messages={"required": strings.Goods.INFORMED},
     )
     reference_number_on_information_form = CharField(allow_blank=True)
     trade_control_activity = KeyValueChoiceField(
@@ -225,7 +227,8 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         instance.have_you_been_informed = validated_data.pop("have_you_been_informed", instance.have_you_been_informed)
 
         reference_number_on_information_form = validated_data.pop(
-            "reference_number_on_information_form", instance.reference_number_on_information_form,
+            "reference_number_on_information_form",
+            instance.reference_number_on_information_form,
         )
 
         if instance.have_you_been_informed == YesNoChoiceType.YES:

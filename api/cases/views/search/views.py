@@ -46,7 +46,11 @@ class CasesSearchView(generics.ListAPIView):
 
         page = self.paginate_queryset(
             Case.objects.search(
-                queue_id=queue_id, is_work_queue=is_work_queue, user=user, include_hidden=include_hidden, **filters,
+                queue_id=queue_id,
+                is_work_queue=is_work_queue,
+                user=user,
+                include_hidden=include_hidden,
+                **filters,
             ).annotate(
                 next_review_date=django.db.models.Case(
                     When(

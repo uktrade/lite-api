@@ -18,6 +18,8 @@ class Migration(migrations.Migration):
                 ("name", models.TextField()),
                 ("filename", models.TextField()),
             ],
-            options={"ordering": ["name"],},
+            options={
+                "ordering": ["name"],
+            },
         ),
     ]

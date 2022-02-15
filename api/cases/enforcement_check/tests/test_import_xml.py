@@ -148,7 +148,15 @@ class ImportXML(DataTestClient):
 
     def test_import_xml_invalid_id_failure(self):
         # ID's that don't exist
-        xml = self._build_test_xml([{"code1": str(get_enforcement_id(self.case.pk)), "code2": 101, "flag": "Y",}])
+        xml = self._build_test_xml(
+            [
+                {
+                    "code1": str(get_enforcement_id(self.case.pk)),
+                    "code2": 101,
+                    "flag": "Y",
+                }
+            ]
+        )
 
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

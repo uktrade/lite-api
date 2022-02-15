@@ -15,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=Audit)
 def emit_audit_log(sender, instance, **kwargs):
-    """Emit log entry when an Audit instance is saved to the DB.
-    """
+    """Emit log entry when an Audit instance is saved to the DB."""
     text = str(instance)
     extra = AuditSerializer(instance).data
     logger.info(text, extra={"audit": extra})

@@ -182,7 +182,11 @@ class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
     have_you_been_informed = models.CharField(
-        choices=ApplicationExportLicenceOfficialType.choices, blank=True, null=True, default=None, max_length=50,
+        choices=ApplicationExportLicenceOfficialType.choices,
+        blank=True,
+        null=True,
+        default=None,
+        max_length=50,
     )
     is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
     non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
@@ -279,7 +283,9 @@ class SiteOnApplication(models.Model):
 class ApplicationDenialReason(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(
-        BaseApplication, related_name="application_denial_reason", on_delete=models.CASCADE,
+        BaseApplication,
+        related_name="application_denial_reason",
+        on_delete=models.CASCADE,
     )
     reasons = models.ManyToManyField(DenialReason)
     reason_details = models.TextField(default=None, blank=True, null=True, max_length=2200)
@@ -288,10 +294,14 @@ class ApplicationDenialReason(models.Model):
 class ExternalLocationOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     external_location = models.ForeignKey(
-        ExternalLocation, related_name="external_locations_on_application", on_delete=models.CASCADE,
+        ExternalLocation,
+        related_name="external_locations_on_application",
+        on_delete=models.CASCADE,
     )
     application = models.ForeignKey(
-        BaseApplication, related_name="external_application_sites", on_delete=models.CASCADE,
+        BaseApplication,
+        related_name="external_application_sites",
+        on_delete=models.CASCADE,
     )
 
 

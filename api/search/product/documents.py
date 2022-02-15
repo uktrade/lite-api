@@ -8,7 +8,13 @@ from api.applications import models
 
 
 address_analyzer = analysis.analyzer(
-    "address_analyzer", tokenizer="whitespace", filter=["lowercase", "asciifolding", "trim",],
+    "address_analyzer",
+    tokenizer="whitespace",
+    filter=[
+        "lowercase",
+        "asciifolding",
+        "trim",
+    ],
 )
 
 part_number_analyzer = analysis.analyzer(
@@ -41,7 +47,10 @@ email_analyzer = analysis.analyzer(
     "email_analyzer",
     type="custom",
     tokenizer=analysis.tokenizer(
-        "case_officer_email", "pattern", pattern="([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\\.[a-zA-Z]{2,})", group=1,
+        "case_officer_email",
+        "pattern",
+        pattern="([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\\.[a-zA-Z]{2,})",
+        group=1,
     ),
     filter=["lowercase"],
 )
@@ -49,10 +58,16 @@ email_analyzer = analysis.analyzer(
 
 class Rating(InnerDoc):
     rating = fields.KeywordField(
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         copy_to="wildcard",
     )
-    text = fields.TextField(copy_to="wildcard", analyzer=descriptive_text_analyzer,)
+    text = fields.TextField(
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer,
+    )
 
 
 class ApplicationOnProduct(InnerDoc):
@@ -77,7 +92,11 @@ class Queue(InnerDoc):
 
 class ProductDocumentType(Document):
     # purposefully not DED field - this is just for collecting other field values for wilcard search
-    wildcard = Text(analyzer=ngram_analyzer, search_analyzer=whitespace_analyzer, store=True,)
+    wildcard = Text(
+        analyzer=ngram_analyzer,
+        search_analyzer=whitespace_analyzer,
+        store=True,
+    )
     # purposefully not DED field - this is just for collecting other field values for grouping purposes in ES
     context = fields.Keyword()
 
@@ -86,7 +105,11 @@ class ProductDocumentType(Document):
 
     # base details. iteration 1
     id = fields.KeywordField()
-    description = fields.TextField(attr="good.description", copy_to="wildcard", analyzer=descriptive_text_analyzer,)
+    description = fields.TextField(
+        attr="good.description",
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer,
+    )
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=Rating)
     queues = fields.NestedField(doc_class=Queue, attr="application.queues")
 
@@ -94,7 +117,10 @@ class ProductDocumentType(Document):
         copy_to="wildcard",
         attr="good.organisation.name",
         analyzer=descriptive_text_analyzer,
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
     )
 
     # does not exist yet). needs to be here for data shape parity with SPIRE
@@ -102,17 +128,26 @@ class ProductDocumentType(Document):
     # not mapped yet
     destination = fields.KeywordField(
         attr="application.end_user.party.country.name",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         normalizer=lowercase_normalizer,
     )
     end_use = fields.TextField(attr="application.intended_end_use")
-    end_user_type = fields.KeywordField(attr="application.end_user.party.sub_type", normalizer=lowercase_normalizer,)
+    end_user_type = fields.KeywordField(
+        attr="application.end_user.party.sub_type",
+        normalizer=lowercase_normalizer,
+    )
 
     organisation = fields.TextField(
         copy_to="wildcard",
         attr="good.organisation.name",
         analyzer=descriptive_text_analyzer,
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
     )
     date = fields.DateField(attr="application.submitted_at")
 
@@ -122,14 +157,20 @@ class ProductDocumentType(Document):
 
     report_summary = fields.TextField(
         attr="good.report_summary",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         analyzer=descriptive_text_analyzer,
         copy_to="wildcard",
     )
 
     part_number = fields.TextField(
         attr="good.part_number",
-        fields={"raw": fields.KeywordField(normalizer=lowercase_normalizer), "suggest": fields.CompletionField(),},
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
         analyzer=part_number_analyzer,
         copy_to="wildcard",
     )

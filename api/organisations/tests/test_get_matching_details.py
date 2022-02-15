@@ -42,7 +42,9 @@ class MatchingOrganisationsTests(DataTestClient):
         self.assertEqual(response.json()["matching_properties"], [expected_match])
 
     def test_get_matching_organisation_uk_address(self):
-        OrganisationFactory(primary_site=SiteFactory(address=AddressFactory(address_line_1="abc")),)
+        OrganisationFactory(
+            primary_site=SiteFactory(address=AddressFactory(address_line_1="abc")),
+        )
 
         response = self.client.get(self.url, **self.exporter_headers)
 
@@ -50,7 +52,9 @@ class MatchingOrganisationsTests(DataTestClient):
         self.assertEqual(response.json()["matching_properties"], ["Address"])
 
     def test_get_matching_organisation_non_uk_address(self):
-        OrganisationFactory(primary_site=SiteFactory(address=AddressFactory(address="abc")),)
+        OrganisationFactory(
+            primary_site=SiteFactory(address=AddressFactory(address="abc")),
+        )
 
         response = self.client.get(self.url, **self.exporter_headers)
 

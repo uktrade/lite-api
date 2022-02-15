@@ -27,7 +27,8 @@ class PicklistItemUpdate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response_data["picklist_item"]["status"], {"key": PickListStatus.DEACTIVATED, "value": "Deactivated"},
+            response_data["picklist_item"]["status"],
+            {"key": PickListStatus.DEACTIVATED, "value": "Deactivated"},
         )
         self.assertEqual(
             picklist["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.DEACTIVATE_PICKLIST]}."
@@ -47,7 +48,8 @@ class PicklistItemUpdate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response_data["picklist_item"]["status"], {"key": PickListStatus.ACTIVE, "value": "Active"},
+            response_data["picklist_item"]["status"],
+            {"key": PickListStatus.ACTIVE, "value": "Active"},
         )
         self.assertEqual(
             picklist["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.REACTIVATE_PICKLIST]}."
@@ -66,7 +68,8 @@ class PicklistItemUpdate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response_data["picklist_item"]["name"], new_name,
+            response_data["picklist_item"]["name"],
+            new_name,
         )
 
         self.assertEqual(
@@ -87,7 +90,8 @@ class PicklistItemUpdate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response_data["picklist_item"]["text"], new_text,
+            response_data["picklist_item"]["text"],
+            new_text,
         )
 
         self.assertEqual(

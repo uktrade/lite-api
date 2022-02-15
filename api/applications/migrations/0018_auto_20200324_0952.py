@@ -16,7 +16,9 @@ class Migration(migrations.Migration):
             field=models.NullBooleanField(default=None),
         ),
         migrations.AddField(
-            model_name="f680clearanceapplication", name="expedited", field=models.NullBooleanField(default=None),
+            model_name="f680clearanceapplication",
+            name="expedited",
+            field=models.NullBooleanField(default=None),
         ),
         migrations.AddField(
             model_name="f680clearanceapplication",

@@ -110,7 +110,10 @@ def _validate_linked_fields(data, linked_field, error):
         linked_reference_field_name = linked_field + "_ref"
 
         validate_field(
-            data, linked_reference_field_name, strings.Generic.EndUseDetails.Error.MISSING_DETAILS, required=True,
+            data,
+            linked_reference_field_name,
+            strings.Generic.EndUseDetails.Error.MISSING_DETAILS,
+            required=True,
         )
 
 

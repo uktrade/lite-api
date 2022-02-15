@@ -84,12 +84,14 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(ultimate_end_users[0]["id"], str(ultimate_end_user.pk))
         self.assertEqual(ultimate_end_users[0]["name"], str(ultimate_end_user.name))
         self.assertEqual(
-            ultimate_end_users[0]["country"]["name"], str(ultimate_end_user.country.name),
+            ultimate_end_users[0]["country"]["name"],
+            str(ultimate_end_user.country.name),
         )
         self.assertEqual(ultimate_end_users[0]["website"], str(ultimate_end_user.website))
         self.assertEqual(ultimate_end_users[0]["type"], str(ultimate_end_user.type))
         self.assertEqual(
-            ultimate_end_users[0]["organisation"], str(ultimate_end_user.organisation.id),
+            ultimate_end_users[0]["organisation"],
+            str(ultimate_end_user.organisation.id),
         )
         self.assertEqual(ultimate_end_users[0]["sub_type"]["key"], str(ultimate_end_user.sub_type))
 
@@ -118,7 +120,9 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE_END_USER).count(), pre_test_ueu_count)
 
-    def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(self,):
+    def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(
+        self,
+    ):
         """
         Given a draft standard application
         When I try to delete an ultimate end user from the application
@@ -126,7 +130,10 @@ class UltimateEndUsersOnDraft(DataTestClient):
         """
         ultimate_end_user = self.draft.ultimate_end_users.first().party
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
-        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.pk},)
+        url = reverse(
+            "applications:party",
+            kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.pk},
+        )
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -199,7 +206,9 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             PartyOnApplication.objects.filter(
-                application=self.draft, party__type=PartyType.ULTIMATE_END_USER, deleted_at__isnull=False,
+                application=self.draft,
+                party__type=PartyType.ULTIMATE_END_USER,
+                deleted_at__isnull=False,
             ).count(),
             1,
         )

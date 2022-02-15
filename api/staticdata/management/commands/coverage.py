@@ -19,7 +19,9 @@ class Command(BaseCommand):
 
         # Named (optional) arguments
         parser.add_argument(
-            "--html", help="String representing if the report generated should be in HTML format", type=str,
+            "--html",
+            help="String representing if the report generated should be in HTML format",
+            type=str,
         )
 
         parser.add_argument(

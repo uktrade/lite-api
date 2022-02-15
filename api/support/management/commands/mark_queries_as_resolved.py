@@ -20,7 +20,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "case_reference", type=str, help="Reference number of the application",
+            "case_reference",
+            type=str,
+            help="Reference number of the application",
         )
         parser.add_argument(
             "--dry_run", action="store_true", help="Print out what action will happen without applying any changes"

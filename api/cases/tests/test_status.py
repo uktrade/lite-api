@@ -34,9 +34,18 @@ class ChangeStatusTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (CaseStatusEnum.SUSPENDED, LicenceStatus.SUSPENDED,),
-            (CaseStatusEnum.SURRENDERED, LicenceStatus.SURRENDERED,),
-            (CaseStatusEnum.REVOKED, LicenceStatus.REVOKED,),
+            (
+                CaseStatusEnum.SUSPENDED,
+                LicenceStatus.SUSPENDED,
+            ),
+            (
+                CaseStatusEnum.SURRENDERED,
+                LicenceStatus.SURRENDERED,
+            ),
+            (
+                CaseStatusEnum.REVOKED,
+                LicenceStatus.REVOKED,
+            ),
         ]
     )
     def test_certain_case_statuses_changes_licence_status(self, case_status, licence_status):
@@ -59,7 +68,10 @@ class EndUserAdvisoryUpdate(DataTestClient):
         self.end_user_advisory = self.create_end_user_advisory_case(
             "end_user_advisory", "my reasons", organisation=self.organisation
         )
-        self.url = reverse("cases:case", kwargs={"pk": self.end_user_advisory.id},)
+        self.url = reverse(
+            "cases:case",
+            kwargs={"pk": self.end_user_advisory.id},
+        )
 
         self.end_user_advisory.case_officer = self.gov_user
         self.end_user_advisory.save()

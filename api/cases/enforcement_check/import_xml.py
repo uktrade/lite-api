@@ -99,7 +99,9 @@ def _trigger_workflow(data, queue):
     for case in cases_to_apply_workflow:
         user_queue_assignment_workflow([queue], case)
         audit_trail_service.create(
-            actor=system_user, verb=AuditType.UNASSIGNED, target=case,
+            actor=system_user,
+            verb=AuditType.UNASSIGNED,
+            target=case,
         )
 
 

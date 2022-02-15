@@ -44,12 +44,14 @@ class ApplicationResponseTests(EndPointTests):
 
     def test_application_goods(self):
         self.call_endpoint(
-            self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/goods/",
+            self.get_exporter_headers(),
+            self.url + self.get_standard_application()["id"] + "/goods/",
         )
 
     def test_applications_goodstype_list(self):
         self.call_endpoint(
-            self.get_exporter_headers(), self.url + self.get_open_application()["id"] + "/goodstypes/",
+            self.get_exporter_headers(),
+            self.url + self.get_open_application()["id"] + "/goodstypes/",
         )
 
     def test_applications_goodstype_detail(self):
@@ -72,7 +74,8 @@ class ApplicationResponseTests(EndPointTests):
 
     def test_application_parties_list(self):
         self.call_endpoint(
-            self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/parties/",
+            self.get_exporter_headers(),
+            self.url + self.get_standard_application()["id"] + "/parties/",
         )
 
     def test_application_parties_details(self):

@@ -119,7 +119,7 @@ class FlaggingRulesAutomation(DataTestClient):
         self.assertEqual(good.flags.count(), 0)
 
     def test_adding_goods_type_flag_from_case_with_verified_only_rule_failure(self):
-        """ Test flag not applied to good when flagging rule is for verified goods only. """
+        """Test flag not applied to good when flagging rule is for verified goods only."""
         flag = self.create_flag(name="for verified good flag", level=FlagLevels.GOOD, team=self.team)
         case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(case)
@@ -139,7 +139,7 @@ class FlaggingRulesAutomation(DataTestClient):
         self.assertFalse(flag in good_flags)
 
     def test_adding_goods_type_flag_from_case_with_verified_only_rule_success(self):
-        """ Test flag is applied to verified good when the flagging rule is applicable to only verified goods. """
+        """Test flag is applied to verified good when the flagging rule is applicable to only verified goods."""
         flag = self.create_flag(name="for verified good flag", level=FlagLevels.GOOD, team=self.team)
         case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(case)
@@ -233,7 +233,10 @@ class FlaggingRulesAutomation(DataTestClient):
 
         deactivated_flag = self.create_flag(name="good flag 2", level=FlagLevels.GOOD, team=self.team)
         self.create_flagging_rule(
-            level=FlagLevels.GOOD, team=self.team, flag=deactivated_flag, matching_values=["abc"],
+            level=FlagLevels.GOOD,
+            team=self.team,
+            flag=deactivated_flag,
+            matching_values=["abc"],
         )
         deactivated_flag.status = FlagStatuses.DEACTIVATED
         deactivated_flag.save()
@@ -271,7 +274,10 @@ class FlaggingRulesAutomation(DataTestClient):
 
         deactivated_flag = self.create_flag(name="good flag 2", level=FlagLevels.DESTINATION, team=self.team)
         self.create_flagging_rule(
-            level=FlagLevels.DESTINATION, team=self.team, flag=deactivated_flag, matching_values=["abc"],
+            level=FlagLevels.DESTINATION,
+            team=self.team,
+            flag=deactivated_flag,
+            matching_values=["abc"],
         )
         deactivated_flag.status = FlagStatuses.DEACTIVATED
         deactivated_flag.save()
@@ -305,7 +311,10 @@ class FlaggingRulesAutomation(DataTestClient):
 
         deactivated_flag = self.create_flag(name="good flag 2", level=FlagLevels.CASE, team=self.team)
         self.create_flagging_rule(
-            level=FlagLevels.CASE, team=self.team, flag=deactivated_flag, matching_values=["abc"],
+            level=FlagLevels.CASE,
+            team=self.team,
+            flag=deactivated_flag,
+            matching_values=["abc"],
         )
         deactivated_flag.status = FlagStatuses.DEACTIVATED
         deactivated_flag.save()
@@ -337,7 +346,7 @@ class FlaggingRulesAutomation(DataTestClient):
             self.assertIn(flag, case.flags.all())
 
     def test_apply_verified_goods_only_flagging_rule_to_open_cases_failure(self):
-        """ Test flag not applied to good when flagging rule is for verified goods only. """
+        """Test flag not applied to good when flagging rule is for verified goods only."""
         case = self.create_standard_application_case(self.organisation)
 
         flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)

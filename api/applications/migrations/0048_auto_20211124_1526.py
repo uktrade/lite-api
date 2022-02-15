@@ -6,23 +6,35 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0047_auto_20210809_1557'),
+        ("applications", "0047_auto_20210809_1557"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='standardapplication',
-            name='goods_recipients',
-            field=models.TextField(choices=[('direct_to_end_user', 'Directly to the end-user'), ('via_consignee', 'To an end-user via a consignee'), ('via_consignee_and_third_parties', 'To an end-user via a consignee, with additional third parties')], default=''),
+            model_name="standardapplication",
+            name="goods_recipients",
+            field=models.TextField(
+                choices=[
+                    ("direct_to_end_user", "Directly to the end-user"),
+                    ("via_consignee", "To an end-user via a consignee"),
+                    (
+                        "via_consignee_and_third_parties",
+                        "To an end-user via a consignee, with additional third parties",
+                    ),
+                ],
+                default="",
+            ),
         ),
         migrations.AddField(
-            model_name='standardapplication',
-            name='goods_starting_point',
-            field=models.TextField(choices=[('GB', 'Great Britain'), ('NI', 'Northern Ireland')], default=''),
+            model_name="standardapplication",
+            name="goods_starting_point",
+            field=models.TextField(choices=[("GB", "Great Britain"), ("NI", "Northern Ireland")], default=""),
         ),
         migrations.AlterField(
-            model_name='standardapplication',
-            name='export_type',
-            field=models.TextField(blank=True, choices=[('permanent', 'Permanent'), ('temporary', 'Temporary')], default=''),
+            model_name="standardapplication",
+            name="export_type",
+            field=models.TextField(
+                blank=True, choices=[("permanent", "Permanent"), ("temporary", "Temporary")], default=""
+            ),
         ),
     ]
