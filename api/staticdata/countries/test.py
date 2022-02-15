@@ -1,5 +1,8 @@
+from django.apps import apps
+
 from rest_framework import status
 from rest_framework.reverse import reverse
+import pytest
 
 from api.staticdata.countries.models import Country
 from test_helpers.clients import DataTestClient
@@ -52,3 +55,13 @@ class CountriesResponseTests(EndPointTests):
 
     def test_countries(self):
         self.call_endpoint(self.get_exporter_headers(), self.url)
+
+
+@pytest.mark.django_db
+def test_rename_countries_migration(migration):
+    old_apps = migration.before([("countries", "0001_squashed_0003_auto_20210105_1058")])
+    Country = apps.get_model("countries", "Country")
+    assert Country.objects.filter(name="United Kingdom").first().name == "United Kingdom"
+    # executing migration
+    new_apps = migration.apply("countries", "0002_rename_countries")
+    assert Country.objects.filter(name="Great Britain").first().name == "Great Britain"
