@@ -125,7 +125,7 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
         by checking that the request is correctly Hawk signed
         """
 
-        return AnonymousUser, _authenticate(request, _lookup_credentials)
+        return AnonymousUser(), _authenticate(request, _lookup_credentials)
 
 
 class HMRCIntegrationOnlyAuthentication(authentication.BaseAuthentication):
@@ -140,7 +140,7 @@ class HMRCIntegrationOnlyAuthentication(authentication.BaseAuthentication):
             logging.error(f"Failed HAWK authentication {e}")
             raise e
 
-        return AnonymousUser, hawk_receiver
+        return AnonymousUser(), hawk_receiver
 
 
 class DataWorkspaceOnlyAuthentication(authentication.BaseAuthentication):
@@ -155,7 +155,7 @@ class DataWorkspaceOnlyAuthentication(authentication.BaseAuthentication):
             logging.error(f"Failed HAWK authentication {e}")
             raise e
 
-        return AnonymousUser, hawk_receiver
+        return AnonymousUser(), hawk_receiver
 
 
 class GovAuthentication(authentication.BaseAuthentication):
@@ -211,7 +211,7 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
         elif organisation is not None and organisation != "None":
             return HmrcExporterAuthentication().authenticate(request)
         else:
-            return AnonymousUser, _authenticate(request, _lookup_credentials)
+            return AnonymousUser(), _authenticate(request, _lookup_credentials)
 
 
 def _authenticate(request, lookup_credentials):
