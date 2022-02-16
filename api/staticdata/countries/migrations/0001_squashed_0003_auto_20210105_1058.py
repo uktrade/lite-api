@@ -59,24 +59,31 @@ def forwards(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('countries', '0001_initial'), ('countries', '0002_country_report_name'), ('countries', '0003_auto_20210105_1058')]
+    replaces = [
+        ("countries", "0001_initial"),
+        ("countries", "0002_country_report_name"),
+        ("countries", "0003_auto_20210105_1058"),
+    ]
 
     initial = True
 
     dependencies = [
-        ('flags', '0001_initial'),
+        ("flags", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Country',
+            name="Country",
             fields=[
-                ('id', models.CharField(editable=False, max_length=10, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=100)),
-                ('type', models.CharField(max_length=100)),
-                ('is_eu', models.BooleanField()),
-                ('flags', models.ManyToManyField(related_name='countries', to='flags.Flag')),
-                ('report_name', models.TextField(default='', help_text='Name to use in reports, to harmonize with SPIRE')),
+                ("id", models.CharField(editable=False, max_length=10, primary_key=True, serialize=False)),
+                ("name", models.CharField(max_length=100)),
+                ("type", models.CharField(max_length=100)),
+                ("is_eu", models.BooleanField()),
+                ("flags", models.ManyToManyField(related_name="countries", to="flags.Flag")),
+                (
+                    "report_name",
+                    models.TextField(default="", help_text="Name to use in reports, to harmonize with SPIRE"),
+                ),
             ],
         ),
         migrations.RunPython(

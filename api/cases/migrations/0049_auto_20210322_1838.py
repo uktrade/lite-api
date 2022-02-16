@@ -9,29 +9,37 @@ import model_utils.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('queues', '0003_auto_20201210_1649'),
-        ('cases', '0048_auto_20210322_1413'),
+        ("queues", "0003_auto_20201210_1649"),
+        ("cases", "0048_auto_20210322_1413"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='casequeue',
-            name='created_at',
-            field=model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at'),
+            model_name="casequeue",
+            name="created_at",
+            field=model_utils.fields.AutoCreatedField(
+                default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+            ),
         ),
         migrations.AddField(
-            model_name='casequeue',
-            name='updated_at',
-            field=model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at'),
+            model_name="casequeue",
+            name="updated_at",
+            field=model_utils.fields.AutoLastModifiedField(
+                default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+            ),
         ),
         migrations.AlterField(
-            model_name='casequeue',
-            name='case',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='casequeues', to='cases.case'),
+            model_name="casequeue",
+            name="case",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING, related_name="casequeues", to="cases.case"
+            ),
         ),
         migrations.AlterField(
-            model_name='casequeue',
-            name='queue',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='casequeues', to='queues.queue'),
+            model_name="casequeue",
+            name="queue",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING, related_name="casequeues", to="queues.queue"
+            ),
         ),
     ]

@@ -110,11 +110,14 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"is_pv_graded": ["This field may not be null."]},
+            response.json()["errors"],
+            {"is_pv_graded": ["This field may not be null."]},
         )
         self.assertEqual(Good.objects.all().count(), 0)
 
-    def test_when_creating_a_good_with_validate_only_then_ok_response_is_returned_and_good_is_not_created(self,):
+    def test_when_creating_a_good_with_validate_only_then_ok_response_is_returned_and_good_is_not_created(
+        self,
+    ):
         self.request_data["is_good_controlled"] = False
         self.request_data["is_pv_graded"] = GoodPvGraded.NO
         self.request_data["validate_only"] = True
@@ -124,7 +127,9 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Good.objects.all().count(), 0)
 
-    def test_when_creating_a_good_that_is_not_controlled_success(self,):
+    def test_when_creating_a_good_that_is_not_controlled_success(
+        self,
+    ):
         self.request_data["is_good_controlled"] = False
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -211,7 +216,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(errors["is_military_use"], [strings.Goods.FORM_NO_MILITARY_USE_SELECTED])
 
     def test_add_good_modified_military_use_answer_selected_no_details_provided_failure(self):
-        """ Test failure when modified for military use is selected but no modification details are provided."""
+        """Test failure when modified for military use is selected but no modification details are provided."""
         data = {
             "name": "Firearm",
             "description": "Firearm product",
@@ -259,7 +264,7 @@ class CreateGoodTests(DataTestClient):
         ]
     )
     def test_add_good_component_not_details_provided_failure(self, component, details_field, details_error):
-        """Test failure 'yes' component answer selected but no component details provided. """
+        """Test failure 'yes' component answer selected but no component details provided."""
         data = {
             "name": "Firearm",
             "description": "Firearm product",
@@ -814,7 +819,8 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            errors["section_certificate_date_of_expiry"], ["Enter the expiry date and include a day, month and year"],
+            errors["section_certificate_date_of_expiry"],
+            ["Enter the expiry date and include a day, month and year"],
         )
 
     def test_add_category_two_good_certificate_details_not_set_on_no_success(self):
@@ -957,7 +963,7 @@ class CreateGoodTests(DataTestClient):
         self.assertTrue(good["firearm_details"]["has_identification_markings"])
 
     def test_add_category_two_good_only_correct_markings_details_set_success(self):
-        """ If details are provided for both answers, ensure that only the details for the given answer are stored. """
+        """If details are provided for both answers, ensure that only the details for the given answer are stored."""
         data = {
             "name": "Rifle",
             "description": "Firearm product",
@@ -1070,7 +1076,10 @@ class CreateGoodTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [["no"], ["yes"],]
+        [
+            ["no"],
+            ["yes"],
+        ]
     )
     def test_create_good_with_and_without_document(self, is_document_available):
         self.request_data["is_document_available"] = is_document_available
@@ -1162,7 +1171,8 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"custom_grading": [strings.Goods.NO_CUSTOM_GRADING_ERROR]},
+            response.json()["errors"],
+            {"custom_grading": [strings.Goods.NO_CUSTOM_GRADING_ERROR]},
         )
         self.assertEqual(Good.objects.all().count(), 0)
 
@@ -1175,7 +1185,8 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"custom_grading": [strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR]},
+            response.json()["errors"],
+            {"custom_grading": [strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR]},
         )
         self.assertEqual(Good.objects.all().count(), 0)
 
@@ -1187,7 +1198,8 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"issuing_authority": ["This field may not be null."]},
+            response.json()["errors"],
+            {"issuing_authority": ["This field may not be null."]},
         )
         self.assertEqual(Good.objects.all().count(), 0)
 
@@ -1199,7 +1211,8 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"reference": ["This field may not be null."]},
+            response.json()["errors"],
+            {"reference": ["This field may not be null."]},
         )
         self.assertEqual(Good.objects.all().count(), 0)
 
@@ -1211,6 +1224,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"date_of_issue": ["This field may not be null."]},
+            response.json()["errors"],
+            {"date_of_issue": ["This field may not be null."]},
         )
         self.assertEqual(Good.objects.all().count(), 0)

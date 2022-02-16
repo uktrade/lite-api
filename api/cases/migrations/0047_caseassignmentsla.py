@@ -7,18 +7,28 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('queues', '0003_auto_20201210_1649'),
-        ('cases', '0046_auto_20201105_1026'),
+        ("queues", "0003_auto_20201210_1649"),
+        ("cases", "0046_auto_20201105_1026"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CaseAssignmentSla',
+            name="CaseAssignmentSla",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sla_days', models.IntegerField()),
-                ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='slas', to='cases.case')),
-                ('queue', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='slas', to='queues.queue')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("sla_days", models.IntegerField()),
+                (
+                    "case",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="slas", to="cases.case"
+                    ),
+                ),
+                (
+                    "queue",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="slas", to="queues.queue"
+                    ),
+                ),
             ],
         ),
     ]

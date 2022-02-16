@@ -129,9 +129,9 @@ class CreateFirearmGoodTests(DataTestClient):
 
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
     def test_firearms_act_user_is_rfd(self):
-        """ Test that checks that if the user organisation does not have a valid RFD then
+        """Test that checks that if the user organisation does not have a valid RFD then
         the firearms section act selection is required and when the user has a valid RFD then
-        the firearms section act is assumed as Section5 """
+        the firearms section act is assumed as Section5"""
 
         # without RFD, we need to provide the firearms act selected otherwise it is an error
         future_expiry_date = (now() + timedelta(days=365)).date().isoformat()

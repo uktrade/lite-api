@@ -10,8 +10,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="denial", name="authority",),
-        migrations.RemoveField(model_name="denial", name="denied_name",),
+        migrations.RemoveField(
+            model_name="denial",
+            name="authority",
+        ),
+        migrations.RemoveField(
+            model_name="denial",
+            name="denied_name",
+        ),
         migrations.AddField(
             model_name="denial",
             name="address",

@@ -18,6 +18,12 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.DO_NOTHING, related_name="site", to="addresses.Address"
             ),
         ),
-        migrations.AlterModelTable(name="organisation", table="organisation",),
-        migrations.AlterModelTable(name="site", table="site",),
+        migrations.AlterModelTable(
+            name="organisation",
+            table="organisation",
+        ),
+        migrations.AlterModelTable(
+            name="site",
+            table="site",
+        ),
     ]

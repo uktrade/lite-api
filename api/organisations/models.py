@@ -22,8 +22,16 @@ from api.users.models import UserOrganisationRelationship
 class Organisation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
-    type = models.CharField(choices=OrganisationType.choices, default=OrganisationType.COMMERCIAL, max_length=20,)
-    status = models.CharField(choices=OrganisationStatus.choices, default=OrganisationStatus.IN_REVIEW, max_length=20,)
+    type = models.CharField(
+        choices=OrganisationType.choices,
+        default=OrganisationType.COMMERCIAL,
+        max_length=20,
+    )
+    status = models.CharField(
+        choices=OrganisationStatus.choices,
+        default=OrganisationStatus.IN_REVIEW,
+        max_length=20,
+    )
     eori_number = models.TextField(default=None, blank=True, null=True)
     sic_number = models.TextField(default=None, blank=True, null=True)
     vat_number = models.TextField(default=None, blank=True, null=True)
@@ -31,7 +39,12 @@ class Organisation(TimestampableModel):
     phone_number = PhoneNumberField(default="")
     website = models.URLField(blank=True, default="")
     primary_site = models.ForeignKey(
-        "Site", related_name="organisation_primary_site", on_delete=models.CASCADE, blank=True, null=True, default=None,
+        "Site",
+        related_name="organisation_primary_site",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        default=None,
     )
     flags = models.ManyToManyField(Flag, related_name="organisations")
 
@@ -124,7 +137,8 @@ class SiteManager(models.Manager):
     def get_by_user_organisation_relationship(self, exporter_user_organisation_relationship):
         # Users with Administer Sites permission have access to all sites
         if exporter_user_organisation_relationship.user.has_permission(
-            ExporterPermissions.ADMINISTER_SITES, exporter_user_organisation_relationship.organisation,
+            ExporterPermissions.ADMINISTER_SITES,
+            exporter_user_organisation_relationship.organisation,
         ):
             return self.get_by_organisation(exporter_user_organisation_relationship.organisation)
 
@@ -135,7 +149,11 @@ class Site(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
     organisation = models.ForeignKey(
-        Organisation, blank=True, null=True, related_name="site", on_delete=models.CASCADE,
+        Organisation,
+        blank=True,
+        null=True,
+        related_name="site",
+        on_delete=models.CASCADE,
     )
     users = models.ManyToManyField(UserOrganisationRelationship, related_name="sites")
     address = models.ForeignKey(Address, related_name="site", on_delete=models.DO_NOTHING)
@@ -155,6 +173,15 @@ class ExternalLocation(TimestampableModel):
     address = models.TextField(default=None, blank=False)
     country = models.ForeignKey(Country, blank=True, null=True, on_delete=models.CASCADE)
     organisation = models.ForeignKey(
-        Organisation, blank=True, null=True, related_name="external_location", on_delete=models.CASCADE,
+        Organisation,
+        blank=True,
+        null=True,
+        related_name="external_location",
+        on_delete=models.CASCADE,
     )
-    location_type = models.CharField(choices=LocationType.choices, null=True, blank=True, max_length=20,)
+    location_type = models.CharField(
+        choices=LocationType.choices,
+        null=True,
+        blank=True,
+        max_length=20,
+    )

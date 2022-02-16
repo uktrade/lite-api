@@ -34,7 +34,7 @@ class AuditMoveCaseListView(viewsets.ReadOnlyModelViewSet):
             """
             with audit_move_case as (
               select *,
-                case when jsonb_typeof(payload->'queues') = 'array' 
+                case when jsonb_typeof(payload->'queues') = 'array'
                 then payload->'queues'
                 else jsonb_build_array(payload->'queues')
                 end as queues

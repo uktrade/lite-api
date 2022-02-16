@@ -11,7 +11,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelTable(name="advice", table="advice",),
+        migrations.AlterModelTable(
+            name="advice",
+            table="advice",
+        ),
         migrations.AddField(
             model_name="advice",
             name="level",
@@ -20,7 +23,11 @@ class Migration(migrations.Migration):
             ),
             preserve_default=False,
         ),
-        migrations.RenameField(model_name="teamadvice", old_name="team", new_name="old_team",),
+        migrations.RenameField(
+            model_name="teamadvice",
+            old_name="team",
+            new_name="old_team",
+        ),
         migrations.AddField(
             model_name="advice",
             name="team",

@@ -5,23 +5,27 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [('denial_reasons', '0001_initial'), ('denial_reasons', '0002_auto_20200502_1849'), ('denial_reasons', '0003_auto_20210322_1457'), ('denial_reasons', '0004_denialreason_description')]
+    replaces = [
+        ("denial_reasons", "0001_initial"),
+        ("denial_reasons", "0002_auto_20200502_1849"),
+        ("denial_reasons", "0003_auto_20210322_1457"),
+        ("denial_reasons", "0004_denialreason_description"),
+    ]
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='DenialReason',
+            name="DenialReason",
             fields=[
-                ('id', models.TextField(editable=False, primary_key=True, serialize=False)),
-                ('deprecated', models.BooleanField(default=False)),
-                ('description', models.TextField(default='')),
+                ("id", models.TextField(editable=False, primary_key=True, serialize=False)),
+                ("deprecated", models.BooleanField(default=False)),
+                ("description", models.TextField(default="")),
             ],
             options={
-                'ordering': ['id'],
+                "ordering": ["id"],
             },
         ),
     ]

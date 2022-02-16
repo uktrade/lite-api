@@ -12,7 +12,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="denialmatchonapplication", name="denial",),
+        migrations.RemoveField(
+            model_name="denialmatchonapplication",
+            name="denial",
+        ),
         migrations.AddField(
             model_name="denialmatchonapplication",
             name="denial",

@@ -44,7 +44,9 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=strings.Applications.Generic.NO_LOCATION_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=strings.Applications.Generic.NO_LOCATION_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_open_application_without_goods_type_failure(self):
@@ -53,7 +55,9 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=strings.Applications.Open.NO_GOODS_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=strings.Applications.Open.NO_GOODS_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_with_unprocessed_goods_type_documents_failure(self):
@@ -63,7 +67,8 @@ class OpenApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING]},
+            response.json()["errors"],
+            {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING]},
         )
 
     def test_submit_standard_application_with_infected_goods_type_documents_failure(self):
@@ -73,7 +78,8 @@ class OpenApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_INFECTED]},
+            response.json()["errors"],
+            {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_INFECTED]},
         )
 
     def test_submit_open_application_without_destination_failure(self):
@@ -82,7 +88,9 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=strings.Applications.Open.NO_COUNTRIES_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=strings.Applications.Open.NO_COUNTRIES_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_open_application_without_end_use_details_failure(self):
@@ -92,7 +100,9 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=strings.Applications.Generic.NO_END_USE_DETAILS,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")

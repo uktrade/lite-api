@@ -247,7 +247,11 @@ class CaseManager(models.Manager):
         case_qs = (
             self.submitted()
             .select_related("status", "case_type")
-            .prefetch_related("case_assignments", "case_assignments__user", "case_assignments__queue",)
+            .prefetch_related(
+                "case_assignments",
+                "case_assignments__user",
+                "case_assignments__queue",
+            )
         )
 
         if not include_hidden and user:
@@ -439,7 +443,9 @@ class CaseManager(models.Manager):
 
         queryset = queryset.filter(
             case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS]
-        ) | queryset.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
+        ) | queryset.filter(
+            baseapplication__goods__id__in=approved_goods_on_licence,
+        )
 
         return queryset.distinct()
 

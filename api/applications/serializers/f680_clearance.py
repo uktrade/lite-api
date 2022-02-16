@@ -142,7 +142,10 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         fields = (
             GenericApplicationUpdateSerializer.Meta.fields
             + constants.F680.ADDITIONAL_INFORMATION_FIELDS
-            + ("types", "clearance_level",)
+            + (
+                "types",
+                "clearance_level",
+            )
         )
 
     def __init__(self, *args, **kwargs):

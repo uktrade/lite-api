@@ -11,6 +11,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="casereferencecode", name="year", field=models.IntegerField(editable=False, unique=True),
+            model_name="casereferencecode",
+            name="year",
+            field=models.IntegerField(editable=False, unique=True),
         ),
     ]

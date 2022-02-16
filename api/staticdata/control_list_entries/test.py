@@ -82,7 +82,11 @@ class CLCTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.parent_rating = ControlListEntriesFactory(rating="Xyz123", text="Parent rating")
-        self.child_rating = ControlListEntriesFactory(rating="Xyz123b", text="Child 1", parent=self.parent_rating,)
+        self.child_rating = ControlListEntriesFactory(
+            rating="Xyz123b",
+            text="Child 1",
+            parent=self.parent_rating,
+        )
         self.url = "staticdata:control_list_entries:control_list_entry"
 
     def _validate_clc(self, response_data, object):
@@ -90,7 +94,10 @@ class CLCTests(DataTestClient):
         self.assertEqual(response_data["text"], object.text)
 
     def test_get_clc_with_parent(self):
-        url = reverse(self.url, kwargs={"rating": self.child_rating.rating},)
+        url = reverse(
+            self.url,
+            kwargs={"rating": self.child_rating.rating},
+        )
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["control_list_entry"]
 
@@ -101,7 +108,10 @@ class CLCTests(DataTestClient):
     def test_get_clc_with_children(self):
         child_2 = ControlListEntriesFactory(rating="ML1e1", text="Child 2-1", parent=self.parent_rating)
 
-        url = reverse(self.url, kwargs={"rating": self.parent_rating.rating},)
+        url = reverse(
+            self.url,
+            kwargs={"rating": self.parent_rating.rating},
+        )
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["control_list_entry"]
 

@@ -96,7 +96,8 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"][attributes["key"]], [attributes["error"]],
+            response.json()["errors"][attributes["key"]],
+            [attributes["error"]],
         )
 
         attribute = getattr(self.draft, attributes["key"])
@@ -257,7 +258,8 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(attribute, old_attribute)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"][attributes["key"]], [attributes["error"]],
+            response.json()["errors"][attributes["key"]],
+            [attributes["error"]],
         )
 
 
@@ -322,7 +324,8 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"][attributes["key"]], [attributes["error"]],
+            response.json()["errors"][attributes["key"]],
+            [attributes["error"]],
         )
 
         attribute = getattr(self.draft, attributes["key"])
@@ -483,5 +486,6 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.assertEqual(attribute, old_attribute)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"][attributes["key"]], [attributes["error"]],
+            response.json()["errors"][attributes["key"]],
+            [attributes["error"]],
         )

@@ -140,7 +140,11 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         [
             (
                 # legacy where frontend doesn't send is_precedent
-                {"comment": "I Am Easy to Find", "is_good_controlled": False, "control_list_entries": [],},
+                {
+                    "comment": "I Am Easy to Find",
+                    "is_good_controlled": False,
+                    "control_list_entries": [],
+                },
                 False,
             ),
             (

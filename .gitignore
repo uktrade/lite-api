@@ -169,3 +169,6 @@ bank-holidays.csv
 *.p12
 
 .python-version
+
+# pii file
+.pii-secret-hook

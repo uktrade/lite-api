@@ -79,7 +79,10 @@ class ApplicationGoodsOnApplication(APIView):
         rfd_status = False
 
         if "validate_only" in data and not isinstance(data["validate_only"], bool):
-            return JsonResponse(data={"error": strings.Goods.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
+            return JsonResponse(
+                data={"error": strings.Goods.VALIDATE_ONLY_ERROR},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if "validate_only" in data and data["validate_only"] is True:
             # validate the value, quantity, and units relating to a good on an application.
@@ -89,7 +92,10 @@ class ApplicationGoodsOnApplication(APIView):
                 return JsonResponse(status=status.HTTP_200_OK, data={})
         else:
             if "good_id" not in data:
-                return JsonResponse(data={"error": strings.Goods.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
+                return JsonResponse(
+                    data={"error": strings.Goods.GOOD_ID_ERROR},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             data["good"] = data["good_id"]
 
@@ -136,7 +142,7 @@ class ApplicationGoodsOnApplication(APIView):
 
 
 class ApplicationGoodOnApplication(APIView):
-    """ Good on a standard application. """
+    """Good on a standard application."""
 
     authentication_classes = (SharedAuthentication,)
     serializer_class = GoodOnApplicationViewSerializer
@@ -155,12 +161,14 @@ class ApplicationGoodOnApplication(APIView):
 
         if application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(
-                data={"errors": [strings.Applications.Generic.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": [strings.Applications.Generic.READ_ONLY]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if good_on_application.application.organisation.id != get_request_user_organisation_id(request):
             return JsonResponse(
-                data={"errors": strings.Applications.Generic.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
+                data={"errors": strings.Applications.Generic.INVALID_ORGANISATION},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         if (
@@ -212,7 +220,8 @@ class ApplicationGoodOnApplicationDocumentView(APIView):
         application = self.get_object()
         if application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(
-                data={"errors": [strings.Applications.Generic.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": [strings.Applications.Generic.READ_ONLY]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         data["good"] = good_pk
@@ -262,7 +271,7 @@ class ApplicationGoodOnApplicationDocumentDetailView(APIView):
 
 
 class ApplicationGoodsTypes(APIView):
-    """ Goodstypes belonging to an open application. """
+    """Goodstypes belonging to an open application."""
 
     authentication_classes = (ExporterAuthentication,)
 
@@ -390,7 +399,10 @@ class ApplicationGoodsTypeCountries(APIView):
                     verb=AuditType.REMOVED_COUNTRIES_FROM_GOOD,
                     action_object=good,
                     target=Case.objects.get(id=application.id),
-                    payload={"good_type_name": good.description, "countries": ", ".join(removed_countries),},
+                    payload={
+                        "good_type_name": good.description,
+                        "countries": ", ".join(removed_countries),
+                    },
                 )
 
             if added_countries:
@@ -399,7 +411,10 @@ class ApplicationGoodsTypeCountries(APIView):
                     verb=AuditType.ASSIGNED_COUNTRIES_TO_GOOD,
                     action_object=good,
                     target=Case.objects.get(id=application.id),
-                    payload={"good_type_name": good.description, "countries": ", ".join(added_countries),},
+                    payload={
+                        "good_type_name": good.description,
+                        "countries": ", ".join(added_countries),
+                    },
                 )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)

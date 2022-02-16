@@ -14,7 +14,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="baseapplication", name="licence_duration",),
+        migrations.RemoveField(
+            model_name="baseapplication",
+            name="licence_duration",
+        ),
         migrations.CreateModel(
             name="Licence",
             fields=[
@@ -43,6 +46,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
     ]

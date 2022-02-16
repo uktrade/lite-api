@@ -12,7 +12,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="goodstype", options={"default_related_name": "goods_type", "ordering": ["-created_at"]},
+            name="goodstype",
+            options={"default_related_name": "goods_type", "ordering": ["-created_at"]},
         ),
         migrations.AlterField(
             model_name="goodstype",

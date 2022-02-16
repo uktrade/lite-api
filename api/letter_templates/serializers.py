@@ -19,7 +19,9 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         max_length=35,
         validators=[
             UniqueValidator(
-                queryset=LetterTemplate.objects.all(), lookup="iexact", message=strings.LetterTemplates.UNIQUE_NAME,
+                queryset=LetterTemplate.objects.all(),
+                lookup="iexact",
+                message=strings.LetterTemplates.UNIQUE_NAME,
             )
         ],
         error_messages={"blank": strings.LetterTemplates.NAME_REQUIRED},
@@ -40,10 +42,14 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         queryset=Decision.objects.all(), serializer=DecisionSerializer, required=False, many=True
     )
     visible_to_exporter = serializers.BooleanField(
-        required=True, allow_null=False, error_messages={"required": strings.LetterTemplates.VISIBLE_TO_EXPORTER},
+        required=True,
+        allow_null=False,
+        error_messages={"required": strings.LetterTemplates.VISIBLE_TO_EXPORTER},
     )
     include_digital_signature = serializers.BooleanField(
-        required=True, allow_null=False, error_messages={"required": strings.LetterTemplates.INCLUDE_DIGITAL_SIGNATURE},
+        required=True,
+        allow_null=False,
+        error_messages={"required": strings.LetterTemplates.INCLUDE_DIGITAL_SIGNATURE},
     )
 
     class Meta:

@@ -46,10 +46,17 @@ custom_ascii_folding_filter = analysis.token_filter(
 
 
 name_analyzer = analysis.analyzer(
-    "name_analyzer", tokenizer="standard", filter=["lowercase", "trim", custom_ascii_folding_filter],
+    "name_analyzer",
+    tokenizer="standard",
+    filter=["lowercase", "trim", custom_ascii_folding_filter],
 )
 
-postcode_filter = analysis.char_filter("postcode_filter", type="pattern_replace", pattern="\\s+", replacement=" ",)
+postcode_filter = analysis.char_filter(
+    "postcode_filter",
+    type="pattern_replace",
+    pattern="\\s+",
+    replacement=" ",
+)
 
 ngram_filter = analysis.token_filter("ngram_filter", type="ngram", min_gram=2, max_gram=10)
 
@@ -81,7 +88,10 @@ address_analyzer = analysis.analyzer(
 )
 
 postcode_normalizer = analysis.normalizer(
-    "postcode_normalizer", type="custom", char_filter=[postcode_filter], filter=["lowercase", "asciifolding"],
+    "postcode_normalizer",
+    type="custom",
+    char_filter=[postcode_filter],
+    filter=["lowercase", "asciifolding"],
 )
 
 
@@ -96,7 +106,11 @@ class SanctionDocumentType(Document):
     data = fields.Object(
         properties={
             "listed_on": fields.TextField(),
-            "individual_date_of_birth": fields.Object(properties={"date": fields.TextField(),}),
+            "individual_date_of_birth": fields.Object(
+                properties={
+                    "date": fields.TextField(),
+                }
+            ),
         }
     )
 

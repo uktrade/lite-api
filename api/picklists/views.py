@@ -38,7 +38,9 @@ class PickListsView(OptionalPaginationView):
         """
         Returns a list of all picklist items, filtered by type and by show_deactivated
         """
-        picklist_items = PicklistItem.objects.filter(team=self.request.user.govuser.team,)
+        picklist_items = PicklistItem.objects.filter(
+            team=self.request.user.govuser.team,
+        )
 
         picklist_type = self.request.GET.get("type")
         name = self.request.GET.get("name")
@@ -72,7 +74,9 @@ class PickListsView(OptionalPaginationView):
         if serializer.is_valid():
             serializer.save()
             audit_trail_service.create(
-                actor=request.user, verb=AuditType.CREATED_PICKLIST, target=serializer.instance,
+                actor=request.user,
+                verb=AuditType.CREATED_PICKLIST,
+                target=serializer.instance,
             )
             return JsonResponse(data={"picklist_item": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -103,7 +107,10 @@ class PicklistItemDetail(APIView):
         picklist_item = get_picklist_item(pk)
 
         if request.user.govuser.team != picklist_item.team:
-            return JsonResponse(data={"errors": strings.Picklists.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN,)
+            return JsonResponse(
+                data={"errors": strings.Picklists.FORBIDDEN},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         serializer = PicklistUpdateCreateSerializer(instance=picklist_item, data=request.data, partial=True)
 
@@ -114,7 +121,10 @@ class PicklistItemDetail(APIView):
                         actor=request.user,
                         verb=AuditType.UPDATED_PICKLIST_TEXT,
                         target=serializer.instance,
-                        payload={"old_text": picklist_item.text, "new_text": serializer.validated_data["text"],},
+                        payload={
+                            "old_text": picklist_item.text,
+                            "new_text": serializer.validated_data["text"],
+                        },
                     )
 
             if serializer.validated_data.get("name"):
@@ -123,7 +133,10 @@ class PicklistItemDetail(APIView):
                         actor=request.user,
                         verb=AuditType.UPDATED_PICKLIST_NAME,
                         target=serializer.instance,
-                        payload={"old_name": picklist_item.name, "new_name": serializer.validated_data["name"],},
+                        payload={
+                            "old_name": picklist_item.name,
+                            "new_name": serializer.validated_data["name"],
+                        },
                     )
 
             if serializer.validated_data.get("status"):
@@ -131,11 +144,15 @@ class PicklistItemDetail(APIView):
                 if picklist_item.status != picklist_status:
                     if picklist_status == PickListStatus.DEACTIVATED:
                         audit_trail_service.create(
-                            actor=request.user, verb=AuditType.DEACTIVATE_PICKLIST, target=serializer.instance,
+                            actor=request.user,
+                            verb=AuditType.DEACTIVATE_PICKLIST,
+                            target=serializer.instance,
                         )
                     else:
                         audit_trail_service.create(
-                            actor=request.user, verb=AuditType.REACTIVATE_PICKLIST, target=serializer.instance,
+                            actor=request.user,
+                            verb=AuditType.REACTIVATE_PICKLIST,
+                            target=serializer.instance,
                         )
 
             serializer.save()

@@ -42,8 +42,14 @@ class CaseAssignmentTests(DataTestClient):
     def test_can_assign_many_users_to_many_cases(self):
         data = {
             "case_assignments": [
-                {"case_id": self.case.id, "users": [self.gov_user.pk, self.gov_user_2.pk, self.gov_user_3.pk],},
-                {"case_id": self.case_2.id, "users": [self.gov_user.pk, self.gov_user_2.pk, self.gov_user_3.pk],},
+                {
+                    "case_id": self.case.id,
+                    "users": [self.gov_user.pk, self.gov_user_2.pk, self.gov_user_3.pk],
+                },
+                {
+                    "case_id": self.case_2.id,
+                    "users": [self.gov_user.pk, self.gov_user_2.pk, self.gov_user_3.pk],
+                },
             ]
         }
 

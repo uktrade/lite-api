@@ -99,7 +99,14 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         gov_user = request.user.govuser
-        case = get_case(pk, prefetch_related=["advice__countersigned_by", "advice__denial_reasons", "advice__user",])
+        case = get_case(
+            pk,
+            prefetch_related=[
+                "advice__countersigned_by",
+                "advice__denial_reasons",
+                "advice__user",
+            ],
+        )
         data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data
 
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
@@ -288,7 +295,9 @@ class TeamAdviceView(APIView):
             case_advice_contains_refusal(pk)
 
             audit_trail_service.create(
-                actor=request.user, verb=AuditType.CREATED_TEAM_ADVICE, target=self.case,
+                actor=request.user,
+                verb=AuditType.CREATED_TEAM_ADVICE,
+                target=self.case,
             )
 
             team_advice = Advice.objects.filter(case=self.case, team_id=team_id).order_by("-created_at")
@@ -364,7 +373,10 @@ class FinalAdviceDocuments(APIView):
 
         # Get other decision documents
         generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
-        generated_advice_documents = AdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
+        generated_advice_documents = AdviceDocumentGovSerializer(
+            generated_advice_documents,
+            many=True,
+        ).data
         for document in generated_advice_documents:
             advice_documents[document["advice_type"]["key"]]["document"] = document
 
@@ -395,7 +407,9 @@ class FinalAdvice(APIView):
             group_advice(self.case, self.team_advice, request.user, AdviceLevel.FINAL)
 
             audit_trail_service.create(
-                actor=request.user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case,
+                actor=request.user,
+                verb=AuditType.CREATED_FINAL_ADVICE,
+                target=self.case,
             )
             final_advice = Advice.objects.filter(case=self.case).order_by("-created_at")
         else:
@@ -420,7 +434,9 @@ class FinalAdvice(APIView):
         # Delete GoodCountryDecisions as final advice is no longer applicable
         GoodCountryDecision.objects.filter(case_id=pk).delete()
         audit_trail_service.create(
-            actor=request.user, verb=AuditType.CLEARED_FINAL_ADVICE, target=self.case,
+            actor=request.user,
+            verb=AuditType.CLEARED_FINAL_ADVICE,
+            target=self.case,
         )
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
@@ -656,7 +672,9 @@ class GoodsCountriesDecisions(APIView):
             )
 
         audit_trail_service.create(
-            actor=request.user, verb=AuditType.UPDATED_GOOD_ON_DESTINATION_MATRIX, target=get_case(pk),
+            actor=request.user,
+            verb=AuditType.UPDATED_GOOD_ON_DESTINATION_MATRIX,
+            target=get_case(pk),
         )
 
         return JsonResponse(
@@ -964,7 +982,10 @@ class CountersignAdvice(APIView):
             department = "department"
 
         audit_trail_service.create(
-            actor=request.user, verb=AuditType.COUNTERSIGN_ADVICE, target=case, payload={"department": department},
+            actor=request.user,
+            verb=AuditType.COUNTERSIGN_ADVICE,
+            target=case,
+            payload={"department": department},
         )
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)

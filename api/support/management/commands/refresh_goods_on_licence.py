@@ -29,7 +29,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "licence_reference", type=str, help="Reference number of the licence generated",
+            "licence_reference",
+            type=str,
+            help="Reference number of the licence generated",
         )
 
     def handle(self, *args, **options):

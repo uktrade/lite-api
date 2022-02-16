@@ -53,16 +53,22 @@ class Migration(migrations.Migration):
                     models.IntegerField(default=None, help_text="Set when application finalised", null=True),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=(api.applications.models.ApplicationPartyMixin, "cases.case"),
         ),
         migrations.CreateModel(
             name="CountryOnApplication",
-            fields=[("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),],
+            fields=[
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+            ],
         ),
         migrations.CreateModel(
             name="ExternalLocationOnApplication",
-            fields=[("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),],
+            fields=[
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+            ],
         ),
         migrations.CreateModel(
             name="GoodOnApplication",
@@ -100,7 +106,9 @@ class Migration(migrations.Migration):
                 ("value", models.DecimalField(decimal_places=2, max_digits=256)),
                 ("is_good_incorporated", models.BooleanField(default=False)),
             ],
-            options={"ordering": ["created_at"],},
+            options={
+                "ordering": ["created_at"],
+            },
         ),
         migrations.CreateModel(
             name="PartyOnApplication",
@@ -120,7 +128,9 @@ class Migration(migrations.Migration):
                 ),
                 ("deleted_at", models.DateTimeField(default=None, null=True)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="ExhibitionClearanceApplication",
@@ -137,7 +147,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("applications.baseapplication",),
         ),
         migrations.CreateModel(
@@ -157,7 +169,9 @@ class Migration(migrations.Migration):
                 ("reasoning", models.CharField(blank=True, default=None, max_length=1000, null=True)),
                 ("have_goods_departed", models.BooleanField(default=False)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("applications.baseapplication",),
         ),
         migrations.CreateModel(
@@ -181,7 +195,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("applications.baseapplication",),
         ),
         migrations.CreateModel(
@@ -210,7 +226,9 @@ class Migration(migrations.Migration):
                     models.CharField(choices=[("yes", "Yes"), ("no", "No")], default=None, max_length=50),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("applications.baseapplication",),
         ),
         migrations.CreateModel(

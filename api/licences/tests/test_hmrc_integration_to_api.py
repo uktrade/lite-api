@@ -69,7 +69,10 @@ class HMRCIntegrationUsageTests(DataTestClient):
         country = Country.objects.first()
         for good in goods:
             GoodCountryDecisionFactory(
-                case=open_application, country=country, goods_type=good, approve=True,
+                case=open_application,
+                country=country,
+                goods_type=good,
+                approve=True,
             )
         licence = self.create_licence(open_application, status=LicenceStatus.ISSUED)
         return licence
@@ -103,7 +106,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         gol_first.refresh_from_db()
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(gol_first.usage, original_usage + usage_data)
@@ -136,7 +140,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(good.usage, original_usage + usage_data)
@@ -171,7 +176,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
@@ -202,7 +208,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
@@ -233,7 +240,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
@@ -264,7 +272,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
@@ -298,7 +307,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
@@ -333,7 +343,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
@@ -370,7 +381,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
@@ -411,7 +423,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
@@ -471,7 +484,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["usage_data_id"], ["This field is required."],
+            response.json()["errors"]["usage_data_id"],
+            ["This field is required."],
         )
         self.assertEqual(licence.goods.first().usage, original_usage)
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(licences=licence).exists())
@@ -488,7 +502,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["licences"], ["This field is required."],
+            response.json()["errors"]["licences"],
+            ["This field is required."],
         )
         self.assertEqual(licence.goods.first().usage, original_usage)
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
@@ -510,7 +525,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(response.json()["licences"]["accepted"], [])
         self.assertEqual(
-            response.json()["licences"]["rejected"][0]["errors"], {"id": ["This field is required."]},
+            response.json()["licences"]["rejected"][0]["errors"],
+            {"id": ["This field is required."]},
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
@@ -538,7 +554,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(response.json()["licences"]["accepted"], [])
         self.assertEqual(
-            response.json()["licences"]["rejected"][0]["errors"], {"id": ["Licence not found."]},
+            response.json()["licences"]["rejected"][0]["errors"],
+            {"id": ["Licence not found."]},
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
@@ -554,7 +571,10 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {
                 "usage_data_id": usage_data_id,
                 "licences": [
-                    {"id": str(licence.id), "goods": [{"id": str(licence.goods.first().good.id), "usage": 10}],}
+                    {
+                        "id": str(licence.id),
+                        "goods": [{"id": str(licence.goods.first().good.id), "usage": 10}],
+                    }
                 ],
             },
         )
@@ -562,7 +582,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(response.json()["licences"]["accepted"], [])
         self.assertEqual(
-            response.json()["licences"]["rejected"][0]["errors"], {"action": ["This field is required."]},
+            response.json()["licences"]["rejected"][0]["errors"],
+            {"action": ["This field is required."]},
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
@@ -613,7 +634,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(response.json()["licences"]["accepted"], [])
         self.assertEqual(
-            response.json()["licences"]["rejected"][0]["errors"], {"goods": ["This field is required."]},
+            response.json()["licences"]["rejected"][0]["errors"],
+            {"goods": ["This field is required."]},
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
@@ -728,7 +750,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_updates[0]],
+            response.json()["licences"]["accepted"],
+            [licence_updates[0]],
         )
         self.assertEqual(response.json()["licences"]["rejected"][0]["errors"], {"id": ["Licence not found."]})
         self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
@@ -763,7 +786,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_updates[0]],
+            response.json()["licences"]["accepted"],
+            [licence_updates[0]],
         )
         self.assertEqual(
             response.json()["licences"]["rejected"][0]["goods"]["rejected"][0]["errors"],
@@ -801,7 +825,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(response.json()["licences"]["accepted"], [])
         self.assertEqual(
-            response.json()["licences"]["rejected"][0]["goods"]["accepted"], [accepted_good],
+            response.json()["licences"]["rejected"][0]["goods"]["accepted"],
+            [accepted_good],
         )
         self.assertEqual(
             response.json()["licences"]["rejected"][0]["goods"]["rejected"][0]["errors"],
@@ -839,7 +864,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(response.json()["licences"]["accepted"], [licence_updates[0]])
         self.assertEqual(
-            response.json()["licences"]["rejected"][0]["goods"]["accepted"], [expected_accepted_good],
+            response.json()["licences"]["rejected"][0]["goods"]["accepted"],
+            [expected_accepted_good],
         )
         self.assertEqual(
             response.json()["licences"]["rejected"][0]["goods"]["rejected"][0]["errors"],
@@ -868,7 +894,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
-            response.json()["licences"]["accepted"], [licence_update],
+            response.json()["licences"]["accepted"],
+            [licence_update],
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(

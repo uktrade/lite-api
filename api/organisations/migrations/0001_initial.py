@@ -35,7 +35,9 @@ class Migration(migrations.Migration):
                 ("name", models.TextField(default=None)),
                 ("address", models.TextField(default=None)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="Organisation",
@@ -71,7 +73,9 @@ class Migration(migrations.Migration):
                 ("vat_number", models.TextField(blank=True, default=None, null=True)),
                 ("registration_number", models.TextField(blank=True, default=None, null=True)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="Site",
@@ -107,6 +111,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"ordering": ["name"],},
+            options={
+                "ordering": ["name"],
+            },
         ),
     ]

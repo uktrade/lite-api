@@ -51,12 +51,14 @@ class CasesResponseTests(EndPointTests):
 
     def test_cases_documents_detail(self):
         self.call_endpoint(
-            self.get_gov_headers(), self.url + self.get_case_id() + "/documents/" + self.get_case_document()["s3_key"],
+            self.get_gov_headers(),
+            self.url + self.get_case_id() + "/documents/" + self.get_case_document()["s3_key"],
         )
 
     def test_cases_documents_download(self):
         self.call_endpoint(
-            self.get_gov_headers(), self.url + self.get_case_id() + "/documents/" + self.get_case_document()["id"],
+            self.get_gov_headers(),
+            self.url + self.get_case_id() + "/documents/" + self.get_case_document()["id"],
         )
 
     def test_cases_ecju_queries(self):
@@ -64,10 +66,12 @@ class CasesResponseTests(EndPointTests):
 
     def test_cases_ecju_query(self):
         self.call_endpoint(
-            self.get_gov_headers(), self.url + self.get_case_id() + "/ecju-queries/" + self.get_case_ecju_query_id(),
+            self.get_gov_headers(),
+            self.url + self.get_case_id() + "/ecju-queries/" + self.get_case_ecju_query_id(),
         )
 
     def test_export_enforcement_xml(self):
         self.call_endpoint(
-            self.get_gov_headers(), self.url + "enforcement-check/" + self.get_queue_id(),
+            self.get_gov_headers(),
+            self.url + "enforcement-check/" + self.get_queue_id(),
         )

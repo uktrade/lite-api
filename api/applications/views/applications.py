@@ -169,7 +169,11 @@ class ApplicationExisting(APIView):
             return JsonResponse(data={"queries": has_queries})
         else:
             has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
-            return JsonResponse(data={"applications": has_applications,})
+            return JsonResponse(
+                data={
+                    "applications": has_applications,
+                }
+            )
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
@@ -496,7 +500,10 @@ class ApplicationManageStatus(APIView):
         if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             data["destinations"] = get_destinations(application.id, user_type=request.user.type)
 
-        return JsonResponse(data={"data": data}, status=status.HTTP_200_OK,)
+        return JsonResponse(
+            data={"data": data},
+            status=status.HTTP_200_OK,
+        )
 
 
 class ApplicationFinaliseView(APIView):
@@ -891,7 +898,10 @@ class ExhibitionDetails(ListCreateAPIView):
                     actor=request.user,
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_TITLE,
                     target=case,
-                    payload={"old_title": old_title, "new_title": validated_data["title"],},
+                    payload={
+                        "old_title": old_title,
+                        "new_title": validated_data["title"],
+                    },
                 )
 
             if validated_data["first_exhibition_date"] != old_first_exhibition_date:
@@ -943,7 +953,7 @@ class ApplicationRouteOfGoods(UpdateAPIView):
     @application_in_state(is_major_editable=True)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
     def put(self, request, pk):
-        """ Update an application instance with route of goods data. """
+        """Update an application instance with route of goods data."""
 
         application = get_application(pk)
         serializer = get_application_update_serializer(application)

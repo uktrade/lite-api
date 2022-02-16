@@ -67,7 +67,9 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=strings.Applications.Generic.NO_LOCATION_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=strings.Applications.Generic.NO_LOCATION_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_end_user_failure(self):
@@ -78,7 +80,9 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=strings.Applications.Standard.NO_END_USER_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=strings.Applications.Standard.NO_END_USER_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_end_user_document_failure(self):
@@ -102,7 +106,9 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=strings.Applications.Standard.NO_CONSIGNEE_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=strings.Applications.Standard.NO_CONSIGNEE_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_consignee_document_success(self):
@@ -113,7 +119,8 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertNotContains(
-            response, text=strings.Applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
+            response,
+            text=strings.Applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
         )
 
     def test_submit_standard_application_without_good_failure(self):
@@ -123,7 +130,9 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=strings.Applications.Standard.NO_GOODS_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=strings.Applications.Standard.NO_GOODS_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_with_unprocessed_good_documents_failure(self):
@@ -174,7 +183,8 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertNotContains(
-            response, text=strings.Applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
+            response,
+            text=strings.Applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
         )
 
     def test_submit_draft_without_third_party_documents_success(self):
@@ -261,7 +271,8 @@ class StandardApplicationTests(DataTestClient):
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(
-            standard_application.status.status, CaseStatusEnum.APPLICANT_EDITING,
+            standard_application.status.status,
+            CaseStatusEnum.APPLICANT_EDITING,
         )
         self.assertFalse(standard_application.status.is_terminal)
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
@@ -294,7 +305,8 @@ class StandardApplicationTests(DataTestClient):
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            standard_application.status, get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS),
+            standard_application.status,
+            get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS),
         )
         self.assertEqual(standard_application.submitted_at, previous_submitted_at)
 
@@ -323,7 +335,9 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=strings.Applications.Generic.NO_END_USE_DETAILS,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")

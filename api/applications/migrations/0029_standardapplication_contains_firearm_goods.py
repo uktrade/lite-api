@@ -38,7 +38,10 @@ class Migration(migrations.Migration):
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.RunPython(convert_goods_categories, reverse_code=reverse_goods_categories),
-        migrations.RemoveField(model_name="standardapplication", name="goods_categories",),
+        migrations.RemoveField(
+            model_name="standardapplication",
+            name="goods_categories",
+        ),
         migrations.AddField(
             model_name="openapplication",
             name="contains_firearm_goods",

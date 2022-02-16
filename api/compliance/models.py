@@ -15,7 +15,11 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 
 
 class ComplianceSiteCase(Case):
-    site = models.OneToOneField("organisations.Site", related_name="compliance", on_delete=models.DO_NOTHING,)
+    site = models.OneToOneField(
+        "organisations.Site",
+        related_name="compliance",
+        on_delete=models.DO_NOTHING,
+    )
 
     def create_visit_case(self):
         """
@@ -47,7 +51,11 @@ class ComplianceVisitCase(Case):
     overall_risk_value = models.CharField(
         choices=ComplianceRiskValues.choices, max_length=10, blank=True, null=True, default=None
     )
-    licence_risk_value = models.PositiveSmallIntegerField(blank=True, null=True, default=None,)  # value between 1 and 5
+    licence_risk_value = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        default=None,
+    )  # value between 1 and 5
 
     overview = models.TextField(default=None, null=True)
     inspection = models.TextField(default=None, null=True)

@@ -474,7 +474,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertTrue(errors["section_certificate_number"], ["Enter the certificate number"])
 
     def test_edit_category_two_section_question_and_invalid_expiry_date_failure(self):
-        """Test editing section of firearms question failure by providing an expiry date not in the future. """
+        """Test editing section of firearms question failure by providing an expiry date not in the future."""
         good = self.create_good(
             "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
         )
@@ -510,7 +510,10 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
-            "firearm_details": {"has_identification_markings": "True", "no_identification_markings_details": "",}
+            "firearm_details": {
+                "has_identification_markings": "True",
+                "no_identification_markings_details": "",
+            }
         }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
@@ -527,7 +530,10 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
-            "firearm_details": {"has_identification_markings": "False", "no_identification_markings_details": "",}
+            "firearm_details": {
+                "has_identification_markings": "False",
+                "no_identification_markings_details": "",
+            }
         }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
@@ -544,7 +550,9 @@ class GoodsEditDraftGoodTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [["False", "no_identification_markings_details"],]
+        [
+            ["False", "no_identification_markings_details"],
+        ]
     )
     def test_edit_category_two_good_has_markings_details_too_long_failure(
         self, has_identification_markings, details_field

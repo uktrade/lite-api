@@ -46,7 +46,10 @@ class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
         required=True,
         allow_null=False,
         min_value=0,
-        error_messages={"null": strings.Licence.NULL_VALUE_ERROR, "min_value": strings.Licence.NEGATIVE_VALUE_ERROR,},
+        error_messages={
+            "null": strings.Licence.NULL_VALUE_ERROR,
+            "min_value": strings.Licence.NEGATIVE_VALUE_ERROR,
+        },
     )
 
     class Meta:

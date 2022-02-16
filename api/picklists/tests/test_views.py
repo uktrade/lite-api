@@ -26,14 +26,18 @@ class PicklistsViews(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["results"]), 4)
 
-    def test_gov_user_can_see_all_their_teams_picklist_items_excluding_deactivated(self,):
+    def test_gov_user_can_see_all_their_teams_picklist_items_excluding_deactivated(
+        self,
+    ):
         response = self.client.get(self.url + "?show_deactivated=False", **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["results"]), 3)
 
-    def test_gov_user_can_see_all_their_teams_picklist_items_filter_by_name(self,):
+    def test_gov_user_can_see_all_their_teams_picklist_items_filter_by_name(
+        self,
+    ):
         response = self.client.get(self.url + "?name=3", **self.gov_headers)
         response_data = response.json()
 

@@ -19,7 +19,10 @@ class TestAdviceHelpers(DataTestClient):
         advice_queryset = case.advice.all()
         # when the advice is collated
         advice.group_advice(
-            case=case, advice=advice_queryset, user=self.base_user, new_level="team",
+            case=case,
+            advice=advice_queryset,
+            user=self.base_user,
+            new_level="team",
         )
 
         # then there is no conflict
@@ -41,7 +44,10 @@ class TestAdviceHelpers(DataTestClient):
 
         # when the advice is collated
         advice.group_advice(
-            case=case, advice=case.advice.all(), user=self.base_user, new_level="team",
+            case=case,
+            advice=case.advice.all(),
+            user=self.base_user,
+            new_level="team",
         )
 
         # then there is no conflict
@@ -62,7 +68,10 @@ class TestAdviceHelpers(DataTestClient):
 
         # when the advice is collated
         advice.group_advice(
-            case=case, advice=case.advice.all(), user=self.base_user, new_level="team",
+            case=case,
+            advice=case.advice.all(),
+            user=self.base_user,
+            new_level="team",
         )
 
         # then there is a conflict
@@ -83,7 +92,10 @@ class TestAdviceHelpers(DataTestClient):
         factories.UserAdviceFactory.create(type=AdviceType.APPROVE, case=case, user=self.gov_user, good=good)
         factories.UserAdviceFactory.create(type=AdviceType.REFUSE, case=case, user=other_user, good=good)
         advice.group_advice(
-            case=case, advice=case.advice.all(), user=self.gov_user.baseuser_ptr, new_level="team",
+            case=case,
+            advice=case.advice.all(),
+            user=self.gov_user.baseuser_ptr,
+            new_level="team",
         )
 
         # another user from a different team can still give advice
@@ -95,7 +107,10 @@ class TestAdviceHelpers(DataTestClient):
 
         # user from another team can also combine their team's advice
         advice.group_advice(
-            case=case, advice=case.advice.all(), user=other_teams_user.baseuser_ptr, new_level="team",
+            case=case,
+            advice=case.advice.all(),
+            user=other_teams_user.baseuser_ptr,
+            new_level="team",
         )
 
         case.refresh_from_db()

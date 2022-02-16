@@ -24,7 +24,8 @@ class ReferenceCode(DataTestClient):
 
     def test_standard_individual_transhipment_application_reference_code(self):
         standard_application = self.create_draft_standard_application(
-            self.organisation, case_type_id=CaseTypeEnum.SITL.id,
+            self.organisation,
+            case_type_id=CaseTypeEnum.SITL.id,
         )
         standard_application = self.submit_application(standard_application)
 
@@ -107,10 +108,12 @@ class ReferenceCode(DataTestClient):
         case_2 = self.create_clc_query("", self.organisation)
 
         self.assertEqual(
-            case_1.reference_code, build_expected_reference(CaseTypeEnum.GOODS.reference, "0000001"),
+            case_1.reference_code,
+            build_expected_reference(CaseTypeEnum.GOODS.reference, "0000001"),
         )
         self.assertEqual(
-            case_2.reference_code, build_expected_reference(CaseTypeEnum.GOODS.reference, "0000002"),
+            case_2.reference_code,
+            build_expected_reference(CaseTypeEnum.GOODS.reference, "0000002"),
         )
 
     def test_change_of_year_resets(self):

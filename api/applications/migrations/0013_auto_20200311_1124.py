@@ -10,5 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(name="baseapplication", options={"ordering": ["created_at"]},),
+        migrations.AlterModelOptions(
+            name="baseapplication",
+            options={"ordering": ["created_at"]},
+        ),
     ]

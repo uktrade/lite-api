@@ -24,7 +24,10 @@ def _get_application_id(request: APIView, kwargs):
     elif "application" in request.request.data:
         return request.request.data["application"]
     else:
-        return JsonResponse(data={"errors": ["Application was not found"]}, status=status.HTTP_404_NOT_FOUND,)
+        return JsonResponse(
+            data={"errors": ["Application was not found"]},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
 
 def _get_application(request: APIView, kwargs):

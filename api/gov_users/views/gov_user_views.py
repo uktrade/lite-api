@@ -124,7 +124,8 @@ class GovUserDetail(APIView):
         if "status" in data.keys():
             if gov_user.pk == request.user.pk:
                 return JsonResponse(
-                    data={"errors": "A user cannot change their own status"}, status=status.HTTP_400_BAD_REQUEST,
+                    data={"errors": "A user cannot change their own status"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             elif gov_user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID and data["status"] == "Deactivated":
                 raise PermissionDenied()

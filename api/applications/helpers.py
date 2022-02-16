@@ -174,7 +174,8 @@ def validate_and_create_goods_on_licence(application_id, licence_id, data):
             good_data["licence"] = licence_id
             good_data["good"] = goa["id"]
             serializer = GoodOnStandardLicenceSerializer(
-                data=good_data, context={"applied_for_quantity": goa["quantity"]},
+                data=good_data,
+                context={"applied_for_quantity": goa["quantity"]},
             )
 
         if not serializer.is_valid():

@@ -105,7 +105,10 @@ def generate_compliance_site_case(case: Case):
         comp_case.save()
         audits.append(
             Audit(
-                actor=system_user, verb=AuditType.COMPLIANCE_SITE_CASE_CREATE, target=comp_case.get_case(), payload={},
+                actor=system_user,
+                verb=AuditType.COMPLIANCE_SITE_CASE_CREATE,
+                target=comp_case.get_case(),
+                payload={},
             )
         )
 

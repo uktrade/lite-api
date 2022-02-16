@@ -6,7 +6,7 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 
 
 def get_case_statuses(read_only):
-    """ Get a list of the case statuses that are read-only. """
+    """Get a list of the case statuses that are read-only."""
     if read_only:
         return CaseStatusEnum.read_only_statuses()
     else:

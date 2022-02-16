@@ -113,7 +113,7 @@ class GoodQueryCLCResponse(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
-        """ Respond to a control list classification."""
+        """Respond to a control list classification."""
         assert_user_has_permission(request.user.govuser, constants.GovPermissions.REVIEW_GOODS)
 
         query = get_exporter_query(pk)
@@ -165,7 +165,10 @@ class GoodQueryCLCResponse(APIView):
                 apply_flagging_rules_to_case(query)
 
                 audit_trail_service.create(
-                    actor=request.user, verb=AuditType.CLC_RESPONSE, action_object=query.good, target=query.get_case(),
+                    actor=request.user,
+                    verb=AuditType.CLC_RESPONSE,
+                    action_object=query.good,
+                    target=query.get_case(),
                 )
 
                 # Send a notification to the user
@@ -190,7 +193,7 @@ class GoodQueryPVGradingResponse(APIView):
 
     @transaction.atomic
     def put(self, request, pk):
-        """ Respond to a control list classification."""
+        """Respond to a control list classification."""
         assert_user_has_permission(request.user.govuser, constants.GovPermissions.RESPOND_PV_GRADING)
 
         query = get_exporter_query(pk)
@@ -215,7 +218,8 @@ class GoodQueryPVGradingResponse(APIView):
                     user_relationship.send_notification(content_object=query, case=query)
 
                 return JsonResponse(
-                    data={"pv_grading_query": pv_grading_good_serializer.data}, status=status.HTTP_200_OK,
+                    data={"pv_grading_query": pv_grading_good_serializer.data},
+                    status=status.HTTP_200_OK,
                 )
 
             return JsonResponse(data={"pv_grading_query": data}, status=status.HTTP_200_OK)

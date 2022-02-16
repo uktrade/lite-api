@@ -4,7 +4,7 @@ How to release
 Figure out the version of the release
 -------------------------------------
 
-1. Go [here](https://github.com/uktrade/lite-api/compare). 
+1. Go [here](https://github.com/uktrade/lite-api/compare).
 2. Choose the last release tag and master.
 3. This will give you a summary of all the changes that have been merged to master since the last release.
 
@@ -40,5 +40,5 @@ Deploy to Prod
 
 1. When product approves the release, go [here](https://jenkins.ci.uktrade.digital/job/lite-api-PROD/).
 2. Hit `Build with Parameters`, choose `Tag version` and hit `Build`.
-3. When the build is finished, keep an eye on Sentry for a while to make sure nothing funny is happening. 
+3. When the build is finished, keep an eye on Sentry for a while to make sure nothing funny is happening.
 4. Under the previous message on Teams channel, type - "LITE API v<your-version> is now on prod".

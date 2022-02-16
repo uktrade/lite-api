@@ -146,7 +146,9 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
 
     def get_exporter_user_notification_count(self, instance):
         return get_exporter_user_notification_individual_count(
-            exporter_user=self.exporter_user, organisation_id=self.organisation_id, case=instance,
+            exporter_user=self.exporter_user,
+            organisation_id=self.organisation_id,
+            case=instance,
         )
 
     def get_is_major_editable(self, instance):
@@ -194,7 +196,8 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     case_type = PrimaryKeyRelatedField(
-        queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
+        queryset=CaseType.objects.all(),
+        error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
     )
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 

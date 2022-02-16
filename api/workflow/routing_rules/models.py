@@ -31,8 +31,16 @@ class RoutingRuleManager(models.Manager):
 class RoutingRule(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     team = models.ForeignKey(Team, related_name="routing_rules", on_delete=models.CASCADE)
-    queue = models.ForeignKey(Queue, related_name="routing_rules", on_delete=models.DO_NOTHING,)
-    status = models.ForeignKey(CaseStatus, related_name="routing_rules", on_delete=models.DO_NOTHING,)
+    queue = models.ForeignKey(
+        Queue,
+        related_name="routing_rules",
+        on_delete=models.DO_NOTHING,
+    )
+    status = models.ForeignKey(
+        CaseStatus,
+        related_name="routing_rules",
+        on_delete=models.DO_NOTHING,
+    )
     tier = models.PositiveSmallIntegerField()  # positive whole number, that decides order routing rules are applied
     additional_rules = SeparatedValuesField(
         choices=RoutingRulesAdditionalFields.choices, max_length=100, blank=True, null=True, default=None

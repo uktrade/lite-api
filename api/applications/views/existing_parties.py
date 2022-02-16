@@ -62,7 +62,7 @@ class ExistingParties(generics.ListCreateAPIView):
 
     @staticmethod
     def get_newest_copied_parties(organisation, params):
-        """ Get the newest copied parties for each group.
+        """Get the newest copied parties for each group.
 
         Build a query set using a Django window function to find the most recent parties that are copies.
         Essentially, we group copied parties by name and copy_of_id and for each grouping, get the id of the newest
@@ -73,7 +73,9 @@ class ExistingParties(generics.ListCreateAPIView):
             Party.objects.filter(organisation=organisation, copy_of_id__isnull=False, **params)
             .annotate(
                 first_party_id=Window(
-                    expression=FirstValue("id"), partition_by=["name", "copy_of_id"], order_by=F("created_at").desc(),
+                    expression=FirstValue("id"),
+                    partition_by=["name", "copy_of_id"],
+                    order_by=F("created_at").desc(),
                 )
             )
             .values_list("first_party_id")

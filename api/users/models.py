@@ -155,7 +155,11 @@ class BaseUserCompatMixin:
 
 class ExporterUser(models.Model, BaseUserCompatMixin):
 
-    baseuser_ptr = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True,)
+    baseuser_ptr = models.OneToOneField(
+        BaseUser,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
     type = UserType.EXPORTER
 
     def send_notification(self, organisation, content_object, case):
@@ -178,7 +182,11 @@ class ExporterUser(models.Model, BaseUserCompatMixin):
 
 class GovUser(models.Model, BaseUserCompatMixin):
 
-    baseuser_ptr = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True,)
+    baseuser_ptr = models.OneToOneField(
+        BaseUser,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
 
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
     team = models.ForeignKey(Team, related_name="users", on_delete=models.PROTECT)

@@ -49,7 +49,12 @@ class DocumentPreviewError(Exception):
 
 
 def generate_preview(
-    layout: str, text: str, case=None, additional_contact=None, include_digital_signature=False, include_css=True,
+    layout: str,
+    text: str,
+    case=None,
+    additional_contact=None,
+    include_digital_signature=False,
+    include_css=True,
 ):
     template_name = f"letter_templates/{layout}.html"
 

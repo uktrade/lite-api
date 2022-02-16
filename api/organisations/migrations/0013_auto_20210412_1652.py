@@ -7,18 +7,18 @@ import phonenumber_field.modelfields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0012_auto_20210211_1410'),
+        ("organisations", "0012_auto_20210211_1410"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='organisation',
-            name='phone_number',
-            field=phonenumber_field.modelfields.PhoneNumberField(default='', max_length=128, region=None),
+            model_name="organisation",
+            name="phone_number",
+            field=phonenumber_field.modelfields.PhoneNumberField(default="", max_length=128, region=None),
         ),
         migrations.AddField(
-            model_name='organisation',
-            name='website',
-            field=models.URLField(blank=True, default=''),
+            model_name="organisation",
+            name="website",
+            field=models.URLField(blank=True, default=""),
         ),
     ]

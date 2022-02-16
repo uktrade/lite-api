@@ -214,7 +214,10 @@ class AssignFlags(APIView):
                 actor=user,
                 verb=AuditType.ADD_FLAGS,
                 target=case,
-                payload={"added_flags": added_flags, "additional_text": note,},
+                payload={
+                    "added_flags": added_flags,
+                    "additional_text": note,
+                },
             )
 
         if removed_flags:
@@ -239,7 +242,10 @@ class AssignFlags(APIView):
         payload = {"flag_name": flags, "additional_text": note}
 
         audit_trail_service.create(
-            actor=user, verb=verb, target=organisation, payload=payload,
+            actor=user,
+            verb=verb,
+            target=organisation,
+            payload=payload,
         )
 
     def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
@@ -250,7 +256,11 @@ class AssignFlags(APIView):
                 verb=AuditType.GOOD_ADD_FLAGS,
                 action_object=good,
                 target=case,
-                payload={"added_flags": added_flags, "good_name": good.description, "additional_text": note,},
+                payload={
+                    "added_flags": added_flags,
+                    "good_name": good.description,
+                    "additional_text": note,
+                },
             )
 
         if removed_flags:

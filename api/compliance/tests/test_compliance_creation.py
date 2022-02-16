@@ -54,14 +54,21 @@ class ComplianceCreateTests(DataTestClient):
         self.assertFalse(ComplianceSiteCase.objects.exists())
 
     @parameterized.expand(
-        [("ML21", True), ("ML22", True), ("ML2", False), ("0D", True),]
+        [
+            ("ML21", True),
+            ("ML22", True),
+            ("ML2", False),
+            ("0D", True),
+        ]
     )
     @override_settings(FEATURE_SIEL_COMPLIANCE_ENABLED=True)
     def tests_siel_good_control_code(self, control_code, exists):
         case = self.create_standard_application_case(self.organisation)
 
         good = GoodFactory(
-            organisation=self.organisation, is_good_controlled=True, control_list_entries=[control_code],
+            organisation=self.organisation,
+            is_good_controlled=True,
+            control_list_entries=[control_code],
         )
         GoodOnLicenceFactory(
             good=GoodOnApplicationFactory(application=case, good=good),
@@ -78,7 +85,11 @@ class ComplianceCreateTests(DataTestClient):
     def tests_siel_no_compliance_feature_flag_off(self):
         case = self.create_standard_application_case(self.organisation)
 
-        good = GoodFactory(organisation=self.organisation, is_good_controlled=True, control_list_entries=["ML22"],)
+        good = GoodFactory(
+            organisation=self.organisation,
+            is_good_controlled=True,
+            control_list_entries=["ML22"],
+        )
         GoodOnLicenceFactory(
             good=GoodOnApplicationFactory(application=case, good=good),
             licence=LicenceFactory(case=case),

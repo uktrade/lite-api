@@ -69,7 +69,9 @@ def populate_goods_flags(cases: List[Dict]):
     qs2 = Flag.objects.filter(goods_type__application_id__in=case_ids).annotate(
         case_id=F("goods_type__application_id"),
     )
-    qs3 = Flag.objects.filter(goods__good__id__in=case_ids).annotate(case_id=F("goods__good__id"),)
+    qs3 = Flag.objects.filter(goods__good__id__in=case_ids).annotate(
+        case_id=F("goods__good__id"),
+    )
     flags = qs1.union(qs2, qs3)
 
     for case in cases:

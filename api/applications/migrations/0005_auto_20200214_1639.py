@@ -27,7 +27,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("applications.baseapplication",),
         ),
         migrations.CreateModel(
@@ -45,7 +47,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("applications.baseapplication",),
         ),
         migrations.AddField(

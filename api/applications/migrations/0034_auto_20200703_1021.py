@@ -11,7 +11,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="goodonapplication", name="licenced_quantity",),
-        migrations.RemoveField(model_name="goodonapplication", name="licenced_value",),
-        migrations.RemoveField(model_name="goodonapplication", name="usage",),
+        migrations.RemoveField(
+            model_name="goodonapplication",
+            name="licenced_quantity",
+        ),
+        migrations.RemoveField(
+            model_name="goodonapplication",
+            name="licenced_value",
+        ),
+        migrations.RemoveField(
+            model_name="goodonapplication",
+            name="usage",
+        ),
     ]

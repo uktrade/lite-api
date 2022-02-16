@@ -95,7 +95,12 @@ class SitesList(APIView):
             if "validate_only" not in data or data["validate_only"] == "False":
                 site = serializer.save()
                 audit_trail_service.create(
-                    actor=request.user, verb=AuditType.CREATED_SITE, target=site, payload={"site_name": site.name,},
+                    actor=request.user,
+                    verb=AuditType.CREATED_SITE,
+                    target=site,
+                    payload={
+                        "site_name": site.name,
+                    },
                 )
                 return JsonResponse(data={"site": SiteViewSerializer(site).data}, status=status.HTTP_201_CREATED)
             return JsonResponse(data={})

@@ -48,10 +48,12 @@ class LetterTemplateCreateTests(DataTestClient):
         self.assertEqual(letter_template.visible_to_exporter, bool(data["visible_to_exporter"]))
         self.assertEqual(letter_template.layout.id, data["layout"])
         self.assertIn(
-            CaseTypeEnum.GOODS.reference, letter_template.case_types.values_list("reference", flat=True),
+            CaseTypeEnum.GOODS.reference,
+            letter_template.case_types.values_list("reference", flat=True),
         )
         self.assertIn(
-            CaseTypeEnum.EUA.reference, letter_template.case_types.values_list("reference", flat=True),
+            CaseTypeEnum.EUA.reference,
+            letter_template.case_types.values_list("reference", flat=True),
         )
 
     def test_create_letter_templates_no_letter_paragraphs_success(self):

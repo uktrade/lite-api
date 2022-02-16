@@ -55,7 +55,9 @@ class Migration(migrations.Migration):
                 ("countries", models.ManyToManyField(default=[], related_name="goods_type", to="countries.Country")),
                 ("flags", models.ManyToManyField(related_name="goods_type", to="flags.Flag")),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="GoodsTypeDocument",
@@ -77,7 +79,9 @@ class Migration(migrations.Migration):
                     models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="goodstype.GoodsType"),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("documents.document",),
         ),
     ]

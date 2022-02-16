@@ -90,7 +90,8 @@ class OpenMediaTests(DataTestClient):
         goodstype = GoodsTypeFactory(application=application)
         initial_goods_count = GoodsType.objects.all().count()
         url = reverse(
-            "applications:application_goodstype", kwargs={"pk": application.id, "goodstype_pk": goodstype.id},
+            "applications:application_goodstype",
+            kwargs={"pk": application.id, "goodstype_pk": goodstype.id},
         )
 
         response = self.client.delete(url, **self.exporter_headers)

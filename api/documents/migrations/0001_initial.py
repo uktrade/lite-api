@@ -35,6 +35,8 @@ class Migration(migrations.Migration):
                 ("virus_scanned_at", models.DateTimeField(blank=True, null=True)),
                 ("safe", models.NullBooleanField()),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
     ]

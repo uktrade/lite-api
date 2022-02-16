@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flags', '0002_auto_20210518_1615'),
+        ("flags", "0002_auto_20210518_1615"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='flag',
-            name='alias',
-            field=models.TextField(default=None, null=True, unique=True, help_text='fixed static field for reference'),
+            model_name="flag",
+            name="alias",
+            field=models.TextField(default=None, null=True, unique=True, help_text="fixed static field for reference"),
         ),
     ]

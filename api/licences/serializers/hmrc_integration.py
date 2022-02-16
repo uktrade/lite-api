@@ -10,8 +10,7 @@ class HMRCIntegrationCountrySerializer(serializers.Serializer):
     name = serializers.CharField()
 
     def strip_territory_code(self, country_code):
-        """Does nothing for "GB" but transforms "AE-DU" to "AE".
-        """
+        """Does nothing for "GB" but transforms "AE-DU" to "AE"."""
         return country_code.split("-")[0]
 
     def to_representation(self, data):
@@ -123,7 +122,10 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         else:
             countries = instance.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
 
-        return HMRCIntegrationCountrySerializer(countries, many=True,).data
+        return HMRCIntegrationCountrySerializer(
+            countries,
+            many=True,
+        ).data
 
     def get_goods(self, instance):
         if instance.goods.exists():

@@ -37,7 +37,7 @@ class DraftDocumentTests(DataTestClient):
 
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_upload_document_on_unsubmitted_application(self, mock_prepare_doc):
-        """ Test success in adding a document to an unsubmitted application. """
+        """Test success in adding a document to an unsubmitted application."""
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
 
         response = self.client.get(self.url_draft, **self.exporter_headers)
@@ -56,7 +56,7 @@ class DraftDocumentTests(DataTestClient):
 
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     def test_upload_multiple_documents_on_unsubmitted_application(self, mock_prepare_doc):
-        """ Test success in adding multiple documents to an unsubmitted application. """
+        """Test success in adding multiple documents to an unsubmitted application."""
         data = [self.data, self.data2]
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
         self.client.post(self.url_draft, data=self.data2, **self.exporter_headers)
@@ -79,13 +79,16 @@ class DraftDocumentTests(DataTestClient):
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     @mock.patch("api.documents.models.Document.delete_s3")
     def test_delete_individual_draft_document(self, mock_delete_s3, mock_prepare_doc):
-        """ Test success in deleting a document from an unsubmitted application. """
+        """Test success in deleting a document from an unsubmitted application."""
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
         response = self.client.get(self.url_draft, **self.exporter_headers)
 
         url = reverse(
             "applications:application_document",
-            kwargs={"pk": self.draft.id, "doc_pk": response.json()["documents"][0]["id"],},
+            kwargs={
+                "pk": self.draft.id,
+                "doc_pk": response.json()["documents"][0]["id"],
+            },
         )
 
         self.client.delete(url, **self.exporter_headers)
@@ -95,10 +98,11 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(len(response.json()["documents"]), 1)
 
     def test_get_individual_draft_document(self):
-        """ Test success in downloading a document from an unsubmitted application. """
+        """Test success in downloading a document from an unsubmitted application."""
         application_document = self.draft.applicationdocument_set.first()
         url = reverse(
-            "applications:application_document", kwargs={"pk": self.draft.id, "doc_pk": application_document.id},
+            "applications:application_document",
+            kwargs={"pk": self.draft.id, "doc_pk": application_document.id},
         )
 
         response = self.client.get(url, **self.exporter_headers)
@@ -131,7 +135,10 @@ class DraftDocumentTests(DataTestClient):
 
         url = reverse(
             "applications:application_document",
-            kwargs={"pk": application.id, "doc_pk": application.applicationdocument_set.first().id,},
+            kwargs={
+                "pk": application.id,
+                "doc_pk": application.applicationdocument_set.first().id,
+            },
         )
 
         response = self.client.delete(url, **self.exporter_headers)
@@ -161,7 +168,10 @@ class DraftDocumentTests(DataTestClient):
         application.status = get_case_status_by_status(read_only_status)
         application.save()
 
-        url = reverse("applications:application_document", kwargs={"pk": application.id, "doc_pk": uuid.uuid4()},)
+        url = reverse(
+            "applications:application_document",
+            kwargs={"pk": application.id, "doc_pk": uuid.uuid4()},
+        )
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

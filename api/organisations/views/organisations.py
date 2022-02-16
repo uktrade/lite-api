@@ -37,7 +37,7 @@ class OrganisationsList(generics.ListCreateAPIView):
     serializer_class = OrganisationListSerializer
 
     def get_queryset(self):
-        """ List all organisations. """
+        """List all organisations."""
         if (
             hasattr(self.request.user, "exporteruser")
             and get_request_user_organisation(self.request).type != OrganisationType.HMRC
@@ -64,7 +64,7 @@ class OrganisationsList(generics.ListCreateAPIView):
 
     @transaction.atomic
     def post(self, request):
-        """ Create a new organisation. """
+        """Create a new organisation."""
         data = request.data.copy()
         validate_only = request.data.get("validate_only", False)
 
@@ -105,19 +105,23 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
     serializer_class = OrganisationDetailSerializer
 
     def put(self, request, pk):
-        """ Edit details of an organisation. """
+        """Edit details of an organisation."""
         data = request.data.copy()
         organisation = get_organisation_by_pk(pk)
         org_name_changed = False
 
         if not check_user_has_permission(request.user.govuser, GovPermissions.MANAGE_ORGANISATIONS):
-            return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST,)
+            return JsonResponse(
+                data={"errors": Organisations.NO_PERM_TO_EDIT},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if request.data.get("name", organisation.name) != organisation.name:
             org_name_changed = True
             if not check_user_has_permission(request.user.govuser, GovPermissions.REOPEN_CLOSED_CASES):
                 return JsonResponse(
-                    data={"errors": Organisations.NO_PERM_TO_EDIT_NAME}, status=status.HTTP_400_BAD_REQUEST,
+                    data={"errors": Organisations.NO_PERM_TO_EDIT_NAME},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
         serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=data, partial=True)

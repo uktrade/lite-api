@@ -35,7 +35,8 @@ class ApplicationDenialMatchesOnApplication(APIView):
 
         if application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(
-                data={"errors": [strings.Applications.Generic.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": [strings.Applications.Generic.READ_ONLY]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         for obj in DenialMatchOnApplication.objects.filter(id__in=request.data.get("objects", [])):

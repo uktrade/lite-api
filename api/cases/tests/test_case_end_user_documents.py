@@ -31,8 +31,10 @@ class CaseEndUserDocumentTests(DataTestClient):
 
         self.assertIsNotNone(data["case"]["data"]["destinations"]["data"]["document"])
         self.assertEqual(
-            "document_name.pdf", data["case"]["data"]["destinations"]["data"]["document"]["name"],
+            "document_name.pdf",
+            data["case"]["data"]["destinations"]["data"]["document"]["name"],
         )
         self.assertEqual(
-            True, data["case"]["data"]["destinations"]["data"]["document"]["safe"],
+            True,
+            data["case"]["data"]["destinations"]["data"]["document"]["safe"],
         )

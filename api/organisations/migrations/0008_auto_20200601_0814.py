@@ -36,7 +36,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="site", name="is_used_on_application", field=models.BooleanField(default=None, null=True),
+            model_name="site",
+            name="is_used_on_application",
+            field=models.BooleanField(default=None, null=True),
         ),
         migrations.AddField(
             model_name="site",

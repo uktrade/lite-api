@@ -34,6 +34,8 @@ class Migration(migrations.Migration):
                 ),
                 ("team", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="teams.Team")),
             ],
-            options={"unique_together": {("case", "team")},},
+            options={
+                "unique_together": {("case", "team")},
+            },
         ),
     ]

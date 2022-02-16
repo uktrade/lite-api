@@ -11,6 +11,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="baseapplication", name="name", field=models.TextField(default=None, null=True),
+            model_name="baseapplication",
+            name="name",
+            field=models.TextField(default=None, null=True),
         ),
     ]

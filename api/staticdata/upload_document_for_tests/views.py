@@ -17,10 +17,15 @@ class UploadDocumentForTests(APIView):
 
         if not upload_document_endpoint_enabled or upload_document_endpoint_enabled.lower() != "true":
             return JsonResponse(
-                data={"errors": "This endpoint is not enabled"}, status=status.HTTP_405_METHOD_NOT_ALLOWED,
+                data={"errors": "This endpoint is not enabled"},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-        s3 = boto3.client("s3", aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY,)
+        s3 = boto3.client(
+            "s3",
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        )
         s3_key = "lite-e2e-test-file.txt"
 
         file_to_upload_abs_path = os.path.abspath(

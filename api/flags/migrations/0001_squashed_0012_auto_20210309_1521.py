@@ -10,138 +10,252 @@ import uuid
 
 class Migration(migrations.Migration):
 
-    replaces = [('flags', '0001_initial'), ('flags', '0002_auto_20200227_1130'), ('flags', '0003_flaggingrule'), ('flags', '0004_auto_20200326_1548'), ('flags', '0005_flaggingrule_is_for_verified_goods_only'), ('flags', '0006_auto_20200407_1437'), ('flags', '0007_flag_blocks_approval'), ('flags', '0008_auto_20201223_2340'), ('flags', '0009_auto_20201229_1454'), ('flags', '0010_flaggingrule_excluded_values'), ('flags', '0011_auto_20210128_1102'), ('flags', '0012_auto_20210309_1521')]
+    replaces = [
+        ("flags", "0001_initial"),
+        ("flags", "0002_auto_20200227_1130"),
+        ("flags", "0003_flaggingrule"),
+        ("flags", "0004_auto_20200326_1548"),
+        ("flags", "0005_flaggingrule_is_for_verified_goods_only"),
+        ("flags", "0006_auto_20200407_1437"),
+        ("flags", "0007_flag_blocks_approval"),
+        ("flags", "0008_auto_20201223_2340"),
+        ("flags", "0009_auto_20201229_1454"),
+        ("flags", "0010_flaggingrule_excluded_values"),
+        ("flags", "0011_auto_20210128_1102"),
+        ("flags", "0012_auto_20210309_1521"),
+    ]
 
     initial = True
 
     dependencies = [
-        ('teams', '0001_initial'),
+        ("teams", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Flag',
+            name="Flag",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(default='Untitled Flag', max_length=25, unique=True)),
-                ('level', models.CharField(choices=[('Case', 'Case'), ('Organisation', 'Organisation'), ('Good', 'Good'), ('Destination', 'Destination')], max_length=20)),
-                ('status', models.CharField(choices=[('Active', 'Active'), ('Deactivated', 'Deactivated')], default='Active', max_length=20)),
-                ('team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='teams.team')),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(default="Untitled Flag", max_length=25, unique=True)),
+                (
+                    "level",
+                    models.CharField(
+                        choices=[
+                            ("Case", "Case"),
+                            ("Organisation", "Organisation"),
+                            ("Good", "Good"),
+                            ("Destination", "Destination"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20
+                    ),
+                ),
+                ("team", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="teams.team")),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='FlaggingRule',
+            name="FlaggingRule",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('level', models.CharField(choices=[('Case', 'Case'), ('Organisation', 'Organisation'), ('Good', 'Good'), ('Destination', 'Destination')], max_length=20)),
-                ('status', models.CharField(choices=[('Active', 'Active'), ('Deactivated', 'Deactivated')], default='Active', max_length=20)),
-                ('matching_value', models.CharField(max_length=100)),
-                ('flag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='flags.flag')),
-                ('team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='teams.team')),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "level",
+                    models.CharField(
+                        choices=[
+                            ("Case", "Case"),
+                            ("Organisation", "Organisation"),
+                            ("Good", "Good"),
+                            ("Destination", "Destination"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20
+                    ),
+                ),
+                ("matching_value", models.CharField(max_length=100)),
+                ("flag", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="flags.flag")),
+                ("team", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="teams.team")),
             ],
             options={
-                'abstract': False,
-                'ordering': ['team__name', '-created_at'],
+                "abstract": False,
+                "ordering": ["team__name", "-created_at"],
             },
         ),
         migrations.AddIndex(
-            model_name='flaggingrule',
-            index=models.Index(fields=['created_at'], name='flags_flagg_created_0d8cd4_idx'),
+            model_name="flaggingrule",
+            index=models.Index(fields=["created_at"], name="flags_flagg_created_0d8cd4_idx"),
         ),
         migrations.AddField(
-            model_name='flaggingrule',
-            name='is_for_verified_goods_only',
+            model_name="flaggingrule",
+            name="is_for_verified_goods_only",
             field=models.BooleanField(blank=True, null=True),
         ),
         migrations.AlterModelOptions(
-            name='flag',
-            options={'ordering': ['team']},
+            name="flag",
+            options={"ordering": ["team"]},
         ),
         migrations.RemoveIndex(
-            model_name='flaggingrule',
-            name='flags_flagg_created_0d8cd4_idx',
+            model_name="flaggingrule",
+            name="flags_flagg_created_0d8cd4_idx",
         ),
         migrations.AddField(
-            model_name='flag',
-            name='colour',
-            field=models.CharField(choices=[('default', 'Default'), ('red', 'Red'), ('yellow', 'Yellow'), ('green', 'Green'), ('blue', 'Blue'), ('purple', 'Purple'), ('orange', 'Orange'), ('brown', 'Brown'), ('turquoise', 'Turquoise'), ('pink', 'Pink')], default='default', max_length=20),
+            model_name="flag",
+            name="colour",
+            field=models.CharField(
+                choices=[
+                    ("default", "Default"),
+                    ("red", "Red"),
+                    ("yellow", "Yellow"),
+                    ("green", "Green"),
+                    ("blue", "Blue"),
+                    ("purple", "Purple"),
+                    ("orange", "Orange"),
+                    ("brown", "Brown"),
+                    ("turquoise", "Turquoise"),
+                    ("pink", "Pink"),
+                ],
+                default="default",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='flag',
-            name='label',
+            model_name="flag",
+            name="label",
             field=models.CharField(blank=True, max_length=15, null=True),
         ),
         migrations.AddField(
-            model_name='flag',
-            name='priority',
+            model_name="flag",
+            name="priority",
             field=models.PositiveSmallIntegerField(default=0),
         ),
         migrations.AddIndex(
-            model_name='flaggingrule',
-            index=models.Index(fields=['created_at'], name='flagging_ru_created_7400b0_idx'),
+            model_name="flaggingrule",
+            index=models.Index(fields=["created_at"], name="flagging_ru_created_7400b0_idx"),
         ),
         migrations.AlterModelTable(
-            name='flag',
-            table='flag',
+            name="flag",
+            table="flag",
         ),
         migrations.AlterModelTable(
-            name='flaggingrule',
-            table='flagging_rule',
+            name="flaggingrule",
+            table="flagging_rule",
         ),
         migrations.AddField(
-            model_name='flag',
-            name='blocks_approval',
+            model_name="flag",
+            name="blocks_approval",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='flaggingrule',
-            name='matching_groups',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(default=''), default=list, size=None),
+            model_name="flaggingrule",
+            name="matching_groups",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.TextField(default=""), default=list, size=None
+            ),
         ),
         migrations.AddField(
-            model_name='flaggingrule',
-            name='matching_values',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(default=''), default=list, size=None),
+            model_name="flaggingrule",
+            name="matching_values",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.TextField(default=""), default=list, size=None
+            ),
         ),
         migrations.RemoveField(
-            model_name='flaggingrule',
-            name='matching_value',
+            model_name="flaggingrule",
+            name="matching_value",
         ),
         migrations.AlterField(
-            model_name='flaggingrule',
-            name='flag',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='flagging_rules', to='flags.flag'),
+            model_name="flaggingrule",
+            name="flag",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="flagging_rules", to="flags.flag"
+            ),
         ),
         migrations.AddField(
-            model_name='flaggingrule',
-            name='excluded_values',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(default=''), default=list, size=None),
+            model_name="flaggingrule",
+            name="excluded_values",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.TextField(default=""), default=list, size=None
+            ),
         ),
         migrations.AlterField(
-            model_name='flag',
-            name='level',
-            field=models.CharField(choices=[('Case', 'Case'), ('Organisation', 'Organisation'), ('Good', 'Good'), ('Destination', 'Destination'), ('PartyOnApplication', 'PartyOnApplication')], max_length=20),
+            model_name="flag",
+            name="level",
+            field=models.CharField(
+                choices=[
+                    ("Case", "Case"),
+                    ("Organisation", "Organisation"),
+                    ("Good", "Good"),
+                    ("Destination", "Destination"),
+                    ("PartyOnApplication", "PartyOnApplication"),
+                ],
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='flaggingrule',
-            name='level',
-            field=models.CharField(choices=[('Case', 'Case'), ('Organisation', 'Organisation'), ('Good', 'Good'), ('Destination', 'Destination'), ('PartyOnApplication', 'PartyOnApplication')], max_length=20),
+            model_name="flaggingrule",
+            name="level",
+            field=models.CharField(
+                choices=[
+                    ("Case", "Case"),
+                    ("Organisation", "Organisation"),
+                    ("Good", "Good"),
+                    ("Destination", "Destination"),
+                    ("PartyOnApplication", "PartyOnApplication"),
+                ],
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='flag',
-            name='removable_by',
-            field=models.CharField(choices=[('Anyone', 'Anyone'), ('Authorised countersigner', 'Authorised countersigner'), ('Head of Licensing Unit countersigner', 'Head of Licensing Unit countersigner')], default='Anyone', max_length=50),
+            model_name="flag",
+            name="removable_by",
+            field=models.CharField(
+                choices=[
+                    ("Anyone", "Anyone"),
+                    ("Authorised countersigner", "Authorised countersigner"),
+                    ("Head of Licensing Unit countersigner", "Head of Licensing Unit countersigner"),
+                ],
+                default="Anyone",
+                max_length=50,
+            ),
         ),
         migrations.AlterField(
-            model_name='flag',
-            name='name',
-            field=models.CharField(default='Untitled Flag', max_length=100, unique=True),
+            model_name="flag",
+            name="name",
+            field=models.CharField(default="Untitled Flag", max_length=100, unique=True),
         ),
     ]

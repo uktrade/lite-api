@@ -21,7 +21,10 @@ class RetrieveGoodsTests(DataTestClient):
         self.good_on_application.good.status = GoodStatus.VERIFIED
         self.good_on_application.good.save()
 
-        url = reverse("applications:good_on_application", kwargs={"obj_pk": self.good_on_application.id},)
+        url = reverse(
+            "applications:good_on_application",
+            kwargs={"obj_pk": self.good_on_application.id},
+        )
 
         for headers in [self.gov_headers, self.exporter_headers]:
             response = self.client.get(url, **headers)

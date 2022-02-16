@@ -67,7 +67,8 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def _assert_address(self, context, address):
         self.assertEqual(
-            context["address_line_1"], address.address_line_1 or address.address,
+            context["address_line_1"],
+            address.address_line_1 or address.address,
         )
         self.assertEqual(context["address_line_2"], address.address_line_2)
         self.assertEqual(context["postcode"], address.postcode)
@@ -112,7 +113,8 @@ class DocumentContextGenerationTests(DataTestClient):
         good = context["good"]
         self.assertEqual(good["description"], good_on_application.good.description)
         self.assertEqual(
-            good["control_list_entries"], [clc.rating for clc in good_on_application.good.control_list_entries.all()],
+            good["control_list_entries"],
+            [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         )
         self.assertEqual(good["is_controlled"], GoodControlled.to_str(good_on_application.good.is_good_controlled))
         self.assertEqual(good["part_number"], good_on_application.good.part_number)
@@ -137,7 +139,8 @@ class DocumentContextGenerationTests(DataTestClient):
             if good_on_application.good.is_component != Component.NO:
                 self.assertEqual(good["component_details"], good_on_application.good.component_details)
             self.assertEqual(
-                good["uses_information_security"], friendly_boolean(good_on_application.good.uses_information_security),
+                good["uses_information_security"],
+                friendly_boolean(good_on_application.good.uses_information_security),
             )
             if good_on_application.good.uses_information_security:
                 self.assertEqual(
@@ -176,7 +179,8 @@ class DocumentContextGenerationTests(DataTestClient):
                 good["software_or_technology_details"], good_on_application.good.software_or_technology_details
             )
             self.assertEqual(
-                good["uses_information_security"], friendly_boolean(good_on_application.good.uses_information_security),
+                good["uses_information_security"],
+                friendly_boolean(good_on_application.good.uses_information_security),
             )
             self.assertEqual(
                 good["information_security_details"], good_on_application.good.information_security_details
@@ -244,7 +248,8 @@ class DocumentContextGenerationTests(DataTestClient):
     def _assert_note(self, context, note):
         self.assertEqual(context["text"], note.text)
         self.assertEqual(
-            context["user"], " ".join([note.user.first_name, note.user.last_name]),
+            context["user"],
+            " ".join([note.user.first_name, note.user.last_name]),
         )
         self.assertIsNotNone(context["date"])
         self.assertIsNotNone(context["time"])
@@ -437,7 +442,11 @@ class DocumentContextGenerationTests(DataTestClient):
         licence = self.create_licence(application, status=LicenceStatus.ISSUED)
         for product in application.goods.all():
             GoodOnLicenceFactory(
-                good=product, licence=licence, quantity=product.quantity, usage=0.0, value=product.value,
+                good=product,
+                licence=licence,
+                quantity=product.quantity,
+                usage=0.0,
+                value=product.value,
             )
 
         context = get_document_context(application)
@@ -452,7 +461,12 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
-            self.gov_user, case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, advice_text="abc",
+            self.gov_user,
+            case,
+            "good",
+            AdviceType.REFUSE,
+            AdviceLevel.FINAL,
+            advice_text="abc",
         )
         good = case.goods.first()
         good.licenced_quantity = 10
@@ -498,7 +512,12 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_proviso_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
-            self.gov_user, case, "good", AdviceType.PROVISO, AdviceLevel.FINAL, advice_text="abc",
+            self.gov_user,
+            case,
+            "good",
+            AdviceType.PROVISO,
+            AdviceLevel.FINAL,
+            advice_text="abc",
         )
         good = case.goods.first()
         good.licenced_quantity = 15

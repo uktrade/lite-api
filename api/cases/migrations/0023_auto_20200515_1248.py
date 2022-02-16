@@ -11,7 +11,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="advice", name="footnote", field=models.TextField(blank=True, default=None, null=True),
+            model_name="advice",
+            name="footnote",
+            field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
             model_name="advice",

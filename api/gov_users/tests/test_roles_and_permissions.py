@@ -138,7 +138,8 @@ class RolesAndPermissionsTests(DataTestClient):
             str(Role.objects.get(name=constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name).id), str(response_data)
         )
         self.assertIn(
-            str(Role.objects.get(name=constants.GovPermissions.REVIEW_GOODS.name).id), str(response_data),
+            str(Role.objects.get(name=constants.GovPermissions.REVIEW_GOODS.name).id),
+            str(response_data),
         )
 
     def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_mid(self):

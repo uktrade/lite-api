@@ -51,7 +51,8 @@ class OrganisationExternalLocationsTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["country"][0], strings.Addresses.NULL_COUNTRY,
+            response.json()["errors"]["country"][0],
+            strings.Addresses.NULL_COUNTRY,
         )
         self.assertEqual(ExternalLocation.objects.all().count(), 1)
 
@@ -91,6 +92,7 @@ class OrganisationExternalLocationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["location_type"][0], strings.ExternalLocations.Errors.LOCATION_TYPE,
+            response.json()["errors"]["location_type"][0],
+            strings.ExternalLocations.Errors.LOCATION_TYPE,
         )
         self.assertEqual(ExternalLocation.objects.all().count(), 1)

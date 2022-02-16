@@ -56,7 +56,9 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         party_on_application = PartyOnApplication.objects.get(
-            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True,
+            application=self.draft,
+            party__type=PartyType.END_USER,
+            deleted_at__isnull=True,
         )
 
         self.draft.refresh_from_db()
@@ -118,7 +120,9 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             PartyOnApplication.objects.filter(
-                party__type=PartyType.END_USER, application=self.draft, deleted_at__isnull=True,
+                party__type=PartyType.END_USER,
+                application=self.draft,
+                deleted_at__isnull=True,
             ).count(),
             1,
         )
@@ -145,7 +149,9 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertNotEqual(poa.id, new_poa.id)
         delete_s3_function.assert_not_called()
 
-    def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self,):
+    def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(
+        self,
+    ):
         """
         Given a draft standard application
         When I try to delete an end user from the application

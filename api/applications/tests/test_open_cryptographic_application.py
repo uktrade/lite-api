@@ -67,7 +67,8 @@ class OpenCryptographicTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
-            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(), 213,
+            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(),
+            213,
         )
 
     def test_cannot_add_goodstypes_on_cryptographic_application(self):
@@ -90,7 +91,8 @@ class OpenCryptographicTests(DataTestClient):
         goodstype = GoodsTypeFactory(application=application)
         initial_goods_count = GoodsType.objects.all().count()
         url = reverse(
-            "applications:application_goodstype", kwargs={"pk": application.id, "goodstype_pk": goodstype.id},
+            "applications:application_goodstype",
+            kwargs={"pk": application.id, "goodstype_pk": goodstype.id},
         )
 
         response = self.client.delete(url, **self.exporter_headers)

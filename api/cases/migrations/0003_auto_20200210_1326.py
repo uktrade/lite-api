@@ -97,7 +97,9 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, to="users.GovUser"),
         ),
         migrations.AddField(
-            model_name="case", name="flags", field=models.ManyToManyField(related_name="cases", to="flags.Flag"),
+            model_name="case",
+            name="flags",
+            field=models.ManyToManyField(related_name="cases", to="flags.Flag"),
         ),
         migrations.AddField(
             model_name="case",
@@ -105,7 +107,9 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="organisations.Organisation"),
         ),
         migrations.AddField(
-            model_name="case", name="queues", field=models.ManyToManyField(related_name="cases", to="queues.Queue"),
+            model_name="case",
+            name="queues",
+            field=models.ManyToManyField(related_name="cases", to="queues.Queue"),
         ),
         migrations.AddField(
             model_name="case",
@@ -136,7 +140,9 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="countries.Country"),
         ),
         migrations.AddField(
-            model_name="advice", name="denial_reasons", field=models.ManyToManyField(to="denial_reasons.DenialReason"),
+            model_name="advice",
+            name="denial_reasons",
+            field=models.ManyToManyField(to="denial_reasons.DenialReason"),
         ),
         migrations.AddField(
             model_name="advice",

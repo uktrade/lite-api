@@ -16,7 +16,9 @@ class Migration(migrations.Migration):
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name="openapplication", name="proposed_return_date", field=models.DateField(blank=True, null=True),
+            model_name="openapplication",
+            name="proposed_return_date",
+            field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
             model_name="openapplication",

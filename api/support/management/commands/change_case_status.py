@@ -22,10 +22,14 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "case_reference", type=str, help="Reference number of the application",
+            "case_reference",
+            type=str,
+            help="Reference number of the application",
         )
         parser.add_argument(
-            "status", type=str, help="Required status of the application after update",
+            "status",
+            type=str,
+            help="Required status of the application after update",
         )
         parser.add_argument(
             "--dry_run", action="store_true", help="Print out what action will happen without applying any changes"
@@ -61,7 +65,13 @@ class Command(BaseCommand):
                 actor=system_user,
                 verb=AuditType.UPDATED_STATUS,
                 target=application.get_case(),
-                payload={"status": {"new": status, "old": prev_status,}, "additional_text": "",},
+                payload={
+                    "status": {
+                        "new": status,
+                        "old": prev_status,
+                    },
+                    "additional_text": "",
+                },
             )
 
         logging.info(f"Case {case_reference} status changed from {prev_status} to {status}")

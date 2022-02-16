@@ -21,6 +21,8 @@ class Migration(migrations.Migration):
             field=models.DecimalField(blank=True, decimal_places=2, default=None, max_digits=256, null=True),
         ),
         migrations.AddField(
-            model_name="goodonapplication", name="usage", field=models.FloatField(blank=True, default=None, null=True),
+            model_name="goodonapplication",
+            name="usage",
+            field=models.FloatField(blank=True, default=None, null=True),
         ),
     ]

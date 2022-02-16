@@ -46,7 +46,9 @@ class ConsigneeOnDraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         party_on_application = PartyOnApplication.objects.get(
-            application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True,
+            application=self.draft,
+            party__type=PartyType.CONSIGNEE,
+            deleted_at__isnull=True,
         )
 
         self.draft.refresh_from_db()
@@ -154,7 +156,9 @@ class ConsigneeOnDraftTests(DataTestClient):
             0,
         )
 
-    def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(self,):
+    def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(
+        self,
+    ):
         """
         Given a draft standard application
         When I try to delete an consignee from the application

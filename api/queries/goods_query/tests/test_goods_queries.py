@@ -62,7 +62,8 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         goods_query = GoodsQuery.objects.get()
         self.assertEqual(goods_query.status.status, CaseStatusEnum.CLC)
         self.assertEqual(
-            [str(id) for id in goods_query.flags.values_list("id", flat=True)], [SystemFlags.GOOD_CLC_QUERY_ID],
+            [str(id) for id in goods_query.flags.values_list("id", flat=True)],
+            [SystemFlags.GOOD_CLC_QUERY_ID],
         )
         self.assertEqual(goods_query.submitted_by, self.exporter_user)
 
@@ -71,7 +72,9 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         response = self.client.post(self.url, self.data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(strings.GoodsQuery.A_QUERY_ALREADY_EXISTS_FOR_THIS_GOOD_ERROR in response.json()["errors"],)
+        self.assertTrue(
+            strings.GoodsQuery.A_QUERY_ALREADY_EXISTS_FOR_THIS_GOOD_ERROR in response.json()["errors"],
+        )
         self.assertEqual(GoodsQuery.objects.count(), 1)
         self.assertEqual(GoodsQuery.objects.get().status.status, CaseStatusEnum.CLC)
 
@@ -230,7 +233,8 @@ class PvGradingQueryCreateTests(DataTestClient):
         self.assertEqual(goods_query.status.status, CaseStatusEnum.PV)
         self.assertEqual(goods_query.pv_grading_raised_reasons, pv_grading_raised_reasons)
         self.assertEqual(
-            [str(id) for id in goods_query.flags.values_list("id", flat=True)], [SystemFlags.GOOD_PV_GRADING_QUERY_ID],
+            [str(id) for id in goods_query.flags.values_list("id", flat=True)],
+            [SystemFlags.GOOD_PV_GRADING_QUERY_ID],
         )
 
     def test_given_a_pv_graded_good_exists_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
@@ -251,7 +255,8 @@ class PvGradingQueryCreateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], [strings.GoodsQuery.GOOD_CLC_UNSURE_OR_PV_REQUIRED_ERROR],
+            response.json()["errors"],
+            [strings.GoodsQuery.GOOD_CLC_UNSURE_OR_PV_REQUIRED_ERROR],
         )
         self.assertEqual(GoodsQuery.objects.count(), 0)
 
@@ -273,7 +278,8 @@ class PvGradingQueryCreateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], [strings.GoodsQuery.GOOD_CLC_UNSURE_OR_PV_REQUIRED_ERROR],
+            response.json()["errors"],
+            [strings.GoodsQuery.GOOD_CLC_UNSURE_OR_PV_REQUIRED_ERROR],
         )
         self.assertEqual(GoodsQuery.objects.count(), 0)
 

@@ -7,34 +7,41 @@ import uuid
 
 class Migration(migrations.Migration):
 
-    replaces = [('queues', '0001_initial'), ('queues', '0002_auto_20200429_1018'), ('queues', '0003_auto_20201210_1649')]
+    replaces = [
+        ("queues", "0001_initial"),
+        ("queues", "0002_auto_20200429_1018"),
+        ("queues", "0003_auto_20201210_1649"),
+    ]
 
     initial = True
 
     dependencies = [
-        ('teams', '0001_initial'),
-        ('teams', '0002_auto_20200307_1805'),
+        ("teams", "0001_initial"),
+        ("teams", "0002_auto_20200307_1805"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Queue',
+            name="Queue",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(default='Untitled Queue')),
-                ('team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='teams.team')),
-                ('countersigning_queue', models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='queues.queue')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.TextField(default="Untitled Queue")),
+                ("team", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="teams.team")),
+                (
+                    "countersigning_queue",
+                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, to="queues.queue"),
+                ),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.AlterModelTable(
-            name='queue',
-            table='queue',
+            name="queue",
+            table="queue",
         ),
         migrations.AlterUniqueTogether(
-            name='queue',
-            unique_together={('name', 'team')},
+            name="queue",
+            unique_together={("name", "team")},
         ),
     ]

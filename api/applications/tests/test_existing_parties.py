@@ -53,7 +53,12 @@ class GetExistingPartiesTests(DataTestClient):
         self.assertNotIn(str(party.id), response_data_ids)
 
     @parameterized.expand(
-        [("name", "Abc", 2), ("name", "blah", 0), ("address", "123 abc st.", 1), ("address", "456 abc st.", 1),]
+        [
+            ("name", "Abc", 2),
+            ("name", "blah", 0),
+            ("address", "123 abc st.", 1),
+            ("address", "456 abc st.", 1),
+        ]
     )
     def test_get_existing_parties_with_filters(self, key, value, expected_results):
         params = f"?{key}={value}"

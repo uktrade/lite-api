@@ -31,9 +31,15 @@ class Migration(migrations.Migration):
                 ),
                 ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
-        migrations.RenameField(model_name="licence", old_name="sent_at", new_name="hmrc_integration_sent_at",),
+        migrations.RenameField(
+            model_name="licence",
+            old_name="sent_at",
+            new_name="hmrc_integration_sent_at",
+        ),
         migrations.AlterField(
             model_name="licence",
             name="application",

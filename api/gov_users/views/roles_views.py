@@ -34,7 +34,7 @@ class RolesViews(APIView):
         return JsonResponse(data={"roles": serializer.data})
 
     def post(self, request):
-        """ Create a role """
+        """Create a role"""
         assert_user_has_permission(request.user.govuser, constants.GovPermissions.ADMINISTER_ROLES)
         data = JSONParser().parse(request)
         data["type"] = UserType.INTERNAL

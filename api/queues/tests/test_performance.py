@@ -18,7 +18,13 @@ class QueuesPerformanceTests(PerformanceTestClient):
         self.assertTrue(response.status_code == status.HTTP_200_OK)
 
     @parameterized.expand(
-        [(1, 1, 1, 1), (25, 25, 25, 25), (25, 0, 25, 0), (25, 0, 0, 25), (25, 0, 25, 25),]
+        [
+            (1, 1, 1, 1),
+            (25, 25, 25, 25),
+            (25, 0, 25, 0),
+            (25, 0, 0, 25),
+            (25, 0, 25, 25),
+        ]
     )
     def test_queue_case_ordering_performance(
         self, std_cases, open_cases, hmrc_queries_goods_gone, hmrc_queries_goods_in_uk

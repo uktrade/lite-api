@@ -326,7 +326,9 @@ if "test" not in sys.argv:
             "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
         },
         "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
-        "loggers": {DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},},
+        "loggers": {
+            DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
+        },
     }
 else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}

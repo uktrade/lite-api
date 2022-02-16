@@ -36,4 +36,7 @@ class ExternalLocationList(APIView):
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return JsonResponse(data={"external_location": serializer.data}, status=status.HTTP_201_CREATED,)
+            return JsonResponse(
+                data={"external_location": serializer.data},
+                status=status.HTTP_201_CREATED,
+            )

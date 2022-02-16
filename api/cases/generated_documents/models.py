@@ -13,7 +13,10 @@ class GeneratedCaseDocument(CaseDocument):
     template = models.ForeignKey(LetterTemplate, on_delete=models.DO_NOTHING)
     text = models.TextField(blank=True)
 
-    notifications = GenericRelation(ExporterNotification, related_query_name="generated_case_document",)
+    notifications = GenericRelation(
+        ExporterNotification,
+        related_query_name="generated_case_document",
+    )
     advice_type = models.CharField(choices=AdviceType.choices, max_length=30, null=True, blank=False)
     licence = models.ForeignKey(Licence, null=True, on_delete=models.DO_NOTHING)
 

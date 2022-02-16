@@ -37,7 +37,9 @@ class Migration(migrations.Migration):
                 ),
                 ("description", models.TextField(blank=True, default=None, max_length=280, null=True)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
             bases=("documents.document",),
         ),
     ]

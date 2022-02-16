@@ -72,7 +72,9 @@ class Command(SeedCommand):
                 org.save()
 
                 cls.print_created_or_updated(
-                    Organisation, {"name": organisation["name"], "type": organisation["type"]}, is_created=True,
+                    Organisation,
+                    {"name": organisation["name"], "type": organisation["type"]},
+                    is_created=True,
                 )
 
     @classmethod
@@ -159,6 +161,7 @@ class Command(SeedCommand):
             user_org.save()
 
             user_org_data = dict(
-                user=exporter_user.email, organisation=dict(name=org.name, type=org.type, role=role.name),
+                user=exporter_user.email,
+                organisation=dict(name=org.name, type=org.type, role=role.name),
             )
             cls.print_created_or_updated(UserOrganisationRelationship, user_org_data, is_created=created)

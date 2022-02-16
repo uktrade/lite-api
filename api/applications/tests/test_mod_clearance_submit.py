@@ -22,7 +22,12 @@ from test_helpers.clients import DataTestClient
 
 
 @parameterized_class(
-    "case_type", [(CaseTypeEnum.EXHIBITION,), (CaseTypeEnum.GIFTING,), (CaseTypeEnum.F680,),],
+    "case_type",
+    [
+        (CaseTypeEnum.EXHIBITION,),
+        (CaseTypeEnum.GIFTING,),
+        (CaseTypeEnum.F680,),
+    ],
 )
 class MODClearanceTests(DataTestClient):
     """

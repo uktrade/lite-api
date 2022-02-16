@@ -101,7 +101,9 @@ class OpenGeneralLicenceList(ListCreateAPIView):
             instance = serializer.save()
 
             audit_trail_service.create(
-                actor=self.request.user, verb=AuditType.OGL_CREATED, action_object=instance,
+                actor=self.request.user,
+                verb=AuditType.OGL_CREATED,
+                action_object=instance,
             )
 
 

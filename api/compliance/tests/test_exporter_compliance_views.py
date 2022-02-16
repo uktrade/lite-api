@@ -29,12 +29,16 @@ class ComplianceExporterViewTests(DataTestClient):
 
         site_2 = SiteFactory(organisation=self.organisation)
         comp_case_2 = ComplianceSiteCaseFactory(
-            organisation=self.organisation, site=site_2, status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation,
+            site=site_2,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
         site_3 = SiteFactory(organisation=self.organisation)
         comp_case_3 = ComplianceSiteCaseFactory(
-            organisation=self.organisation, site=site_3, status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation,
+            site=site_3,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
@@ -75,12 +79,16 @@ class ComplianceExporterViewTests(DataTestClient):
         site_2 = SiteFactory(organisation=self.organisation)
         site_2.users.add(user_org_relationship)
         comp_case_2 = ComplianceSiteCaseFactory(
-            organisation=self.organisation, site=site_2, status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation,
+            site=site_2,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
         site_3 = SiteFactory(organisation=self.organisation)
         comp_case_3 = ComplianceSiteCaseFactory(
-            organisation=self.organisation, site=site_3, status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation,
+            site=site_3,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
         url = reverse("compliance:exporter_site_list")

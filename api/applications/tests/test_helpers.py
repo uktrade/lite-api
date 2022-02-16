@@ -105,7 +105,7 @@ class AbstractAutoMatchTests:
 
     @pytest.mark.elasticsearch
     def test_auto_match_sanctions_match_name_similar(self):
-        """ This test exposes the fact that ES tokenization etc. would mean
+        """This test exposes the fact that ES tokenization etc. would mean
         that the following names will be matched to "Jeremy Jackson". There is
         no simple way around this.
         """

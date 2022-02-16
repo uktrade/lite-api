@@ -60,7 +60,11 @@ class CaseType(models.Model):
     type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35)
     sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35)
     reference = models.CharField(
-        choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=6,
+        choices=CaseTypeReferenceEnum.choices,
+        unique=True,
+        null=False,
+        blank=False,
+        max_length=6,
     )
 
     objects = CaseTypeManager()
@@ -83,7 +87,11 @@ class Case(TimestampableModel):
     submitted_at = models.DateTimeField(blank=True, null=True)
     submitted_by = models.ForeignKey(ExporterUser, null=True, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(
-        CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
+        CaseStatus,
+        related_name="query_status",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
     )
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
     copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
@@ -223,14 +231,16 @@ class Case(TimestampableModel):
             self.queues.clear()
 
             audit_trail_service.create_system_user_audit(
-                verb=AuditType.REMOVE_CASE_FROM_ALL_QUEUES, action_object=case,
+                verb=AuditType.REMOVE_CASE_FROM_ALL_QUEUES,
+                action_object=case,
             )
 
         if assigned_cases.exists():
             assigned_cases.delete()
 
             audit_trail_service.create_system_user_audit(
-                verb=AuditType.REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS, action_object=case,
+                verb=AuditType.REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS,
+                action_object=case,
             )
 
     def get_case_officer_name(self):
@@ -287,7 +297,13 @@ class CaseNote(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="case_notes", on_delete=models.CASCADE)
-    user = models.ForeignKey(BaseUser, related_name="case_notes", on_delete=models.CASCADE, default=None, null=False,)
+    user = models.ForeignKey(
+        BaseUser,
+        related_name="case_notes",
+        on_delete=models.CASCADE,
+        default=None,
+        null=False,
+    )
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
@@ -526,10 +542,18 @@ class EcjuQuery(TimestampableModel):
     team = models.ForeignKey(Team, null=True, on_delete=models.CASCADE)
     responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
     raised_by_user = models.ForeignKey(
-        GovUser, related_name="govuser_ecju_query", on_delete=models.CASCADE, default=None, null=False,
+        GovUser,
+        related_name="govuser_ecju_query",
+        on_delete=models.CASCADE,
+        default=None,
+        null=False,
     )
     responded_by_user = models.ForeignKey(
-        ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
+        ExporterUser,
+        related_name="exportuser_ecju_query",
+        on_delete=models.CASCADE,
+        default=None,
+        null=True,
     )
     query_type = models.CharField(
         choices=ECJUQueryType.choices, max_length=50, default=ECJUQueryType.ECJU, null=False, blank=False

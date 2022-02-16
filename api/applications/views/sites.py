@@ -14,7 +14,7 @@ from api.users.models import ExporterUser
 
 
 class ApplicationSites(APIView):
-    """ View sites belonging to an application or add them. """
+    """View sites belonging to an application or add them."""
 
     authentication_classes = (ExporterAuthentication,)
 

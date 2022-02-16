@@ -20,7 +20,7 @@ def optional_str_to_bool(optional_string: str):
 
 
 def can_status_be_set_by_exporter_user(original_status: str, new_status: str) -> bool:
-    """ Check that a status can be set by an exporter user. Exporter users cannot withdraw an application
+    """Check that a status can be set by an exporter user. Exporter users cannot withdraw an application
     that is already in a terminal state and they cannot set an application to `Applicant editing` if the
     application is read only.
     """

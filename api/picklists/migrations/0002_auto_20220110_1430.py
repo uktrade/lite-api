@@ -6,13 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('picklists', '0001_squashed_0003_auto_20200325_1544'),
+        ("picklists", "0001_squashed_0003_auto_20200325_1544"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='picklistitem',
-            name='type',
-            field=models.CharField(choices=[('proviso', 'Proviso'), ('ecju_query', 'Standard ECJU Query'), ('letter_paragraph', 'Letter Paragraph'), ('report_summary', 'Report Summary'), ('standard_advice', 'Standard Advice'), ('refusal_reason', 'Refusal reason'), ('footnotes', 'Footnotes'), ('pre_visit_questionnaire', 'Pre-Visit Questionnaire questions (ECJU Query)'), ('compliance_actions', 'Compliance Actions (ECJU Query)')], max_length=50),
+            model_name="picklistitem",
+            name="type",
+            field=models.CharField(
+                choices=[
+                    ("proviso", "Proviso"),
+                    ("ecju_query", "Standard ECJU Query"),
+                    ("letter_paragraph", "Letter Paragraph"),
+                    ("report_summary", "Report Summary"),
+                    ("standard_advice", "Standard Advice"),
+                    ("refusal_reason", "Refusal reason"),
+                    ("footnotes", "Footnotes"),
+                    ("pre_visit_questionnaire", "Pre-Visit Questionnaire questions (ECJU Query)"),
+                    ("compliance_actions", "Compliance Actions (ECJU Query)"),
+                ],
+                max_length=50,
+            ),
         ),
     ]

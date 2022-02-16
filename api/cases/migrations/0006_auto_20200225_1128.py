@@ -10,8 +10,24 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(model_name="case", name="last_closed_at", field=models.DateTimeField(null=True),),
-        migrations.AddField(model_name="case", name="sla_days", field=models.PositiveSmallIntegerField(default=0),),
-        migrations.AddField(model_name="case", name="sla_remaining_days", field=models.SmallIntegerField(null=True),),
-        migrations.AddField(model_name="case", name="sla_updated_at", field=models.DateTimeField(null=True),),
+        migrations.AddField(
+            model_name="case",
+            name="last_closed_at",
+            field=models.DateTimeField(null=True),
+        ),
+        migrations.AddField(
+            model_name="case",
+            name="sla_days",
+            field=models.PositiveSmallIntegerField(default=0),
+        ),
+        migrations.AddField(
+            model_name="case",
+            name="sla_remaining_days",
+            field=models.SmallIntegerField(null=True),
+        ),
+        migrations.AddField(
+            model_name="case",
+            name="sla_updated_at",
+            field=models.DateTimeField(null=True),
+        ),
     ]

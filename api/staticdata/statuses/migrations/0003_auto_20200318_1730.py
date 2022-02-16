@@ -11,7 +11,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="casestatus", name="workflow_sequence", field=models.PositiveSmallIntegerField(null=True),
+            model_name="casestatus",
+            name="workflow_sequence",
+            field=models.PositiveSmallIntegerField(null=True),
         ),
-        migrations.AlterField(model_name="casestatus", name="priority", field=models.PositiveSmallIntegerField(),),
+        migrations.AlterField(
+            model_name="casestatus",
+            name="priority",
+            field=models.PositiveSmallIntegerField(),
+        ),
     ]

@@ -10,5 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameField(model_name="sanctionmatch", old_name="list_name", new_name="flag_uuid",),
+        migrations.RenameField(
+            model_name="sanctionmatch",
+            old_name="list_name",
+            new_name="flag_uuid",
+        ),
     ]

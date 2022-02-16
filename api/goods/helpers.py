@@ -14,7 +14,7 @@ FIREARMS_ACCESSORY = ["firearms_accessory"]
 
 
 def validate_component_details(data):
-    """ Validate the accompanying details for the chosen 'yes' component option. """
+    """Validate the accompanying details for the chosen 'yes' component option."""
 
     if "firearm_details" in data and data["firearm_details"].get("type") not in FIREARMS_ACCESSORY:
         return
@@ -46,7 +46,7 @@ def validate_component_details(data):
 
 
 def validate_military_use(data):
-    """ Validate military use selected if category is either Group 1, 2 or 3. """
+    """Validate military use selected if category is either Group 1, 2 or 3."""
     if "firearm_details" in data and data["firearm_details"].get("type") in FIREARMS_CORE_TYPES:
         return
 
@@ -154,7 +154,7 @@ def validate_firearms_act_certificate_expiry_date(validated_data):
 
 
 def check_if_firearm_details_edited_on_unsupported_good(data):
-    """ Return bad request if editing any of the firearm details on a good that is not in group 2 firearms """
+    """Return bad request if editing any of the firearm details on a good that is not in group 2 firearms"""
     firearm_good_specific_details = [
         "type",
         "year_of_manufacture",
@@ -193,7 +193,8 @@ def check_if_unsupported_fields_edited_on_firearm_good(data):
 
 def has_valid_certificate(organisation_id, document_type):
     certificate_exists = DocumentOnOrganisation.objects.filter(
-        organisation=organisation_id, document_type=document_type,
+        organisation=organisation_id,
+        document_type=document_type,
     ).first()
 
     if certificate_exists and timezone.now().date() < certificate_exists.expiry_date:

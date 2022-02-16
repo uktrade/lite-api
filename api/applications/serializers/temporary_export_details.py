@@ -16,7 +16,9 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         required=False, allow_blank=True, allow_null=True, max_length=2200
     )
     proposed_return_date = serializers.DateField(
-        error_messages={"invalid": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_INVALID,},
+        error_messages={
+            "invalid": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_INVALID,
+        },
     )
 
     class Meta:
