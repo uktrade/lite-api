@@ -1,29 +1,27 @@
 from django.db import migrations
 
-from api.staticdata.countries.models import Country
+change_needed = [("United Kingdom", "Great Britain"), ("St Vincent", "St Vincent and the Grenadines")]
 
 
 def rename_countries(apps, schema_editor):
-    change_needed = {"United Kingdom": "Great Britain", "St Vincent": "St Vincent and the Grenadines"}
-
-    for key in change_needed:
-        country_query = Country.objects.filter(name__iexact=key)
+    Country = apps.get_model("countries", "Country")
+    for old_name, new_name in change_needed:
+        country_query = Country.objects.filter(name__iexact=old_name)
 
         if country_query.exists():
             country = country_query.first()
-            country.name = change_needed[key]
+            country.name = new_name
             country.save()
 
 
 def rename_reverse_countries(apps, schema_editor):
-    change_needed = {"Great Britain": "United Kingdom", "St Vincent and the Grenadines": "St Vincent"}
-
-    for key in change_needed:
-        country_query = Country.objects.filter(name__iexact=key)
+    Country = apps.get_model("countries", "Country")
+    for old_name, new_name in change_needed:
+        country_query = Country.objects.filter(name__iexact=new_name)
 
         if country_query.exists():
             country = country_query.first()
-            country.name = change_needed[key]
+            country.name = old_name
             country.save()
 
 
