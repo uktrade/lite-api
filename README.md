@@ -43,7 +43,7 @@ Service for handling backend calls in LITE.
   - run `docker-compose run api ./manage.py seedall`
 
 #### Git Hub pre-commit setup
-- Install pre-commit
+- Install pre-commit (e.g MAC pip install pre-commit)
 - pre-commit install
 * run following to scan all files for issues
   - pre-commit run --all-files
