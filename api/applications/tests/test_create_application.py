@@ -58,9 +58,9 @@ class DraftTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         response_data = response.json()
-        standard_application = StandardApplication.objects.get()
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        standard_application = StandardApplication.objects.get()
         self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertEqual(StandardApplication.objects.count(), 1)
 

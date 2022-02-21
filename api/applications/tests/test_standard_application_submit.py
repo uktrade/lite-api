@@ -122,7 +122,7 @@ class StandardApplicationTests(DataTestClient):
 
     def test_submit_standard_application_without_consignee_failure(self):
         self.draft.delete_party(self.draft.consignee)
-        self.draft.goods_recipients = StandardApplication.DIRECT_TO_END_USER
+        self.draft.goods_recipients = StandardApplication.VIA_CONSIGNEE
         self.draft.save()
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
@@ -134,6 +134,17 @@ class StandardApplicationTests(DataTestClient):
             text=strings.Applications.Standard.NO_CONSIGNEE_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+    def test_submit_standard_application_direct_end_user_without_consignee_success(self):
+        self.draft.delete_party(self.draft.consignee)
+        self.draft.goods_recipients = StandardApplication.DIRECT_TO_END_USER
+        self.draft.save()
+
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+
+        response = self.client.put(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_submit_standard_application_without_consignee_document_success(self):
         # Consignee document is optional
