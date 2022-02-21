@@ -39,7 +39,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(Audit.objects.count(), 0)
 
     def test_edit_unsubmitted_application_export_type_success(self):
-        """ Test edit the application export_type of an unsubmitted application. An unsubmitted application
+        """Test edit the application export_type of an unsubmitted application. An unsubmitted application
         has the 'draft' status.
         """
         application = self.create_draft_standard_application(self.organisation)
