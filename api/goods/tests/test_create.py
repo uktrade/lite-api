@@ -658,7 +658,7 @@ class CreateGoodTests(DataTestClient):
             "Enter the certificate expiry date and include a day, month and year",
         )
 
-    def test_add_firearms_certificate_missing_checks(self):
+    def test_add_firearms_certificate_missing_checks_two(self):
         data = {
             "name": "Rifle",
             "description": "Firearm product",

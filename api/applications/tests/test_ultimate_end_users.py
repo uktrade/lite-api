@@ -216,7 +216,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_ultimate_end_user_success(self, delete_s3_function, scan_document_for_viruses_function):
+    def test_delete_ultimate_end_user_success_two(self, delete_s3_function, scan_document_for_viruses_function):
         self.assertEqual(self.draft.ultimate_end_users.count(), 1)
 
         url = reverse(
