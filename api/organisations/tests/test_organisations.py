@@ -593,8 +593,8 @@ class EditOrganisationTests(DataTestClient):
         self.assertEqual(case_one.status.status, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES)
         self.assertEqual(case_two.status.status, CaseStatusEnum.SUBMITTED)
 
-    def test_vat_number_is_valid(self):
-        valid_vats = [
+    @parameterized.expand(
+        [
             "GB517182944",
             "GB999999973",
             "GB123456789",
@@ -612,58 +612,151 @@ class EditOrganisationTests(DataTestClient):
             "GBH A125",
             "GB GD 123",
             "GB GD123",
-        ]
-        for valid_vat in valid_vats:
-            stripped_vat = re.sub(r"[^A-Z0-9]", "", valid_vat)
-            self.assertTrue(bool(re.match(UK_VAT_VALIDATION_REGEX, stripped_vat)))
+        ],
+    )
+    def test_vat_number_is_valid(self, vat_number):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        self.gov_user.role.permissions.set(
+            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
+        )
 
-    def test_vat_number_is_invalid(self):
-        invalid_vats = [
-            "GB1234567",
-            "GBGD6731890",
-            "GB12345678910111313",
-            "GBHA424GB123456789123",
-            "GB  1234567",
-            "GB GD1378",
-            "GBDG673",
-            "GBAH839",
-            "GB  HA 1324",
-        ]
-        for invalid_vat in invalid_vats:
-            stripped_vat = re.sub(r"[^A-Z0-9]", "", invalid_vat)
-            self.assertFalse(bool(re.match(UK_VAT_VALIDATION_REGEX, stripped_vat)))
+        data = {
+            "name": "regional site",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": "GB123456789000",
+            "sic_number": self.faker.sic_number(),
+            "vat_number": vat_number,
+            "registration_number": self.faker.registration_number(),
+            "phone_number": "+441234567999",
+            "website": "",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                },
+            },
+            "user": {"email": "john@smith.com"},
+        }
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @parameterized.expand(
         [
-            ["GB123456789000", True],
-            ["XI123456789000", True],
-            ["GB1234567890001", False],
-            ["XI1234567890001", False],
-            ["GB12345678900012", False],
-            ["XI12345678900012", False],
-            ["GB123456789000123", True],
-            ["XI123456789000123", True],
-            ["GB12345678900", False],
-            ["XI12345678900", False],
-            ["GB1234567890001234", False],
-            ["XI1234567890001234", False],
-            ["GB-123456789-0", False],
-            ["XI-123456789-0", False],
-            ["GB 123456789 0", False],
-            ["XI 123456789 0", False],
-            ["GB ABCD12345 0", False],
-            ["XI ABCD12345 0", False],
-            ["GB 12345*&-/ 0", False],
-            ["XI 12345*&-/ 0", False],
-            ["123456789", False],
-            ["123456789000", False],
-            ["123456789000123", False],
-            ["GBGBGBGBGB", False],
-            ["XIXIXIXIXI", False],
+            ("GB1234567", ["Invalid UK VAT number"]),
+            ("GBGD6731890", ["Invalid UK VAT number"]),
+            ("GB12345678910111313", ["Standard UK VAT numbers are 9 digits long"]),
+            ("GBHA424GB123456789123", ["Standard UK VAT numbers are 9 digits long"]),
+            ("GB  1234567", ["Invalid UK VAT number"]),
+            ("GB GD1378", ["Invalid UK VAT number"]),
+            ("GBDG673", ["Invalid UK VAT number"]),
+            ("GBAH839", ["Invalid UK VAT number"]),
+            ("GB  HA 1324", ["Invalid UK VAT number"]),
+        ],
+    )
+    def test_vat_number_is_invalid(self, vat_number, expected_errors):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        self.gov_user.role.permissions.set(
+            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
+        )
+
+        data = {
+            "name": "regional site",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": "GB123456789000",
+            "sic_number": self.faker.sic_number(),
+            "vat_number": vat_number,
+            "registration_number": self.faker.registration_number(),
+            "phone_number": "+441234567999",
+            "website": "",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                },
+            },
+            "user": {"email": "john@smith.com"},
+        }
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["vat_number"],
+            expected_errors,
+        )
+
+    @parameterized.expand(
+        [
+            ["GB123456789000", True, None],
+            ["XI123456789000", True, None],
+            ["GB1234567890001", False, ["Invalid UK EORI number"]],
+            ["XI1234567890001", False, ["Invalid UK EORI number"]],
+            ["GB12345678900012", False, ["Invalid UK EORI number"]],
+            ["XI12345678900012", False, ["Invalid UK EORI number"]],
+            ["GB123456789000123", True, None],
+            ["XI123456789000123", True, None],
+            ["GB12345678900", False, ["Invalid UK EORI number"]],
+            ["XI12345678900", False, ["Invalid UK EORI number"]],
+            ["GB1234567890001234", False, ["EORI numbers are 17 characters or less"]],
+            ["XI1234567890001234", False, ["EORI numbers are 17 characters or less"]],
+            ["GB-123456789-0", False, ["Invalid UK EORI number"]],
+            ["XI-123456789-0", False, ["Invalid UK EORI number"]],
+            ["GB 123456789 0", False, ["Invalid UK EORI number"]],
+            ["XI 123456789 0", False, ["Invalid UK EORI number"]],
+            ["GB ABCD12345 0", False, ["Invalid UK EORI number"]],
+            ["XI ABCD12345 0", False, ["Invalid UK EORI number"]],
+            ["GB 12345*&-/ 0", False, ["Invalid UK EORI number"]],
+            ["XI 12345*&-/ 0", False, ["Invalid UK EORI number"]],
+            ["123456789", False, ["Invalid UK EORI number"]],
+            ["123456789000", False, ["Invalid UK EORI number"]],
+            ["123456789000123", False, ["Invalid UK EORI number"]],
+            ["GBGBGBGBGB", False, ["Invalid UK EORI number"]],
+            ["XIXIXIXIXI", False, ["Invalid UK EORI number"]],
         ]
     )
-    def test_eori_number_validity(self, eori, status):
-        self.assertEqual(bool(re.match(UK_EORI_VALIDATION_REGEX, eori)), status)
+    def test_eori_number_validity(self, eori, is_valid, errors):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        self.gov_user.role.permissions.set(
+            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
+        )
+
+        data = {
+            "name": "regional site",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": eori,
+            "sic_number": self.faker.sic_number(),
+            "vat_number": self.faker.vat_number(),
+            "registration_number": self.faker.registration_number(),
+            "phone_number": "+441234567999",
+            "website": "",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                },
+            },
+            "user": {"email": "john@smith.com"},
+        }
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK if is_valid else status.HTTP_400_BAD_REQUEST)
+        if not is_valid:
+            self.assertEqual(
+                response.json()["errors"]["eori_number"],
+                errors,
+            )
 
     def test_edit_organisation_details(self):
         organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
