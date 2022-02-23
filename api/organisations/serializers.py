@@ -18,7 +18,13 @@ from api.documents.libraries.process_document import process_document
 from api.documents.models import Document
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Organisations
-from api.organisations.constants import UK_EORI_VALIDATION_REGEX, UK_VAT_VALIDATION_REGEX
+from api.organisations.constants import (
+    UK_EORI_MAX_LENGTH,
+    UK_EORI_VALIDATION_REGEX,
+    UK_VAT_MAX_LENGTH,
+    UK_VAT_MIN_LENGTH,
+    UK_VAT_VALIDATION_REGEX,
+)
 from api.organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from api.organisations.models import ExternalLocation, Organisation, DocumentOnOrganisation, Site
 from api.staticdata.countries.helpers import get_country
@@ -145,22 +151,19 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages={"blank": Organisations.Create.BLANK_NAME})
     type = KeyValueChoiceField(choices=OrganisationType.choices)
     eori_number = serializers.CharField(
-        max_length=17,
         required=False,
         allow_null=True,
         allow_blank=True,
-        error_messages={"blank": Organisations.Create.BLANK_EORI, "max_length": Organisations.Create.LENGTH_EORI},
+        error_messages={
+            "blank": Organisations.Create.BLANK_EORI,
+        },
     )
     vat_number = serializers.CharField(
-        min_length=7,
-        max_length=17,
         required=False,
         allow_null=True,
         allow_blank=True,
         error_messages={
             "blank": Organisations.Create.BLANK_VAT,
-            "min_length": Organisations.Create.LENGTH_VAT,
-            "max_length": Organisations.Create.LENGTH_VAT,
         },
     )
     sic_number = serializers.CharField(
@@ -247,6 +250,8 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_eori_number(self, value):
         if value:
             eori = re.sub(r"[^A-Z0-9]", "", value)
+            if len(eori) > UK_EORI_MAX_LENGTH:
+                raise serializers.ValidationError(Organisations.Create.LENGTH_EORI)
             if not re.match(UK_EORI_VALIDATION_REGEX, eori):
                 raise serializers.ValidationError("Invalid UK EORI number")
             return eori
@@ -255,6 +260,11 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_vat_number(self, value):
         if value:
             stripped_vat = re.sub(r"[^A-Z0-9]", "", value)
+
+            if len(stripped_vat) < UK_VAT_MIN_LENGTH:
+                raise serializers.ValidationError(Organisations.Create.LENGTH_VAT)
+            if len(stripped_vat) > UK_VAT_MAX_LENGTH:
+                raise serializers.ValidationError(Organisations.Create.LENGTH_VAT)
             if not re.match(UK_VAT_VALIDATION_REGEX, stripped_vat):
                 raise serializers.ValidationError(Organisations.Create.INVALID_VAT)
             return stripped_vat
