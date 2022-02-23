@@ -247,7 +247,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_eori_number(self, value):
         if value:
             eori = re.sub(r"[^A-Z0-9]", "", value)
-            if not re.match(r"%s" % UK_EORI_VALIDATION_REGEX, eori):
+            if not re.match(UK_EORI_VALIDATION_REGEX, eori):
                 raise serializers.ValidationError("Invalid UK EORI number")
             return eori
         return value
@@ -255,7 +255,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_vat_number(self, value):
         if value:
             stripped_vat = re.sub(r"[^A-Z0-9]", "", value)
-            if not re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat):
+            if not re.match(UK_VAT_VALIDATION_REGEX, stripped_vat):
                 raise serializers.ValidationError(Organisations.Create.INVALID_VAT)
             return stripped_vat
         return value
