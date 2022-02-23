@@ -615,7 +615,7 @@ class EditOrganisationTests(DataTestClient):
         ]
         for valid_vat in valid_vats:
             stripped_vat = re.sub(r"[^A-Z0-9]", "", valid_vat)
-            self.assertTrue(bool(re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat)))
+            self.assertTrue(bool(re.match(UK_VAT_VALIDATION_REGEX, stripped_vat)))
 
     def test_vat_number_is_invalid(self):
         invalid_vats = [
@@ -631,28 +631,39 @@ class EditOrganisationTests(DataTestClient):
         ]
         for invalid_vat in invalid_vats:
             stripped_vat = re.sub(r"[^A-Z0-9]", "", invalid_vat)
-            self.assertFalse(bool(re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat)))
+            self.assertFalse(bool(re.match(UK_VAT_VALIDATION_REGEX, stripped_vat)))
 
     @parameterized.expand(
         [
             ["GB123456789000", True],
+            ["XI123456789000", True],
             ["GB1234567890001", False],
+            ["XI1234567890001", False],
             ["GB12345678900012", False],
+            ["XI12345678900012", False],
             ["GB123456789000123", True],
+            ["XI123456789000123", True],
             ["GB12345678900", False],
+            ["XI12345678900", False],
             ["GB1234567890001234", False],
+            ["XI1234567890001234", False],
             ["GB-123456789-0", False],
+            ["XI-123456789-0", False],
             ["GB 123456789 0", False],
+            ["XI 123456789 0", False],
             ["GB ABCD12345 0", False],
+            ["XI ABCD12345 0", False],
             ["GB 12345*&-/ 0", False],
+            ["XI 12345*&-/ 0", False],
             ["123456789", False],
             ["123456789000", False],
             ["123456789000123", False],
             ["GBGBGBGBGB", False],
+            ["XIXIXIXIXI", False],
         ]
     )
     def test_eori_number_validity(self, eori, status):
-        self.assertEqual(bool(re.match(f"{UK_EORI_VALIDATION_REGEX}", eori)), status)
+        self.assertEqual(bool(re.match(UK_EORI_VALIDATION_REGEX, eori)), status)
 
     def test_edit_organisation_details(self):
         organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
