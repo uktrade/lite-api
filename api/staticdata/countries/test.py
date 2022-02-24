@@ -65,3 +65,15 @@ def test_rename_countries_migration(migration):
     # executing migration
     new_apps = migration.apply("countries", "0002_rename_countries")
     assert Country.objects.filter(name="Great Britain").first().name == "Great Britain"
+
+
+@pytest.mark.django_db
+def test_add_gb_nir(migration):
+    old_apps = migration.before([("countries", "0002_rename_countries")])
+    Country = apps.get_model("countries", "Country")
+    Country.objects.create(id="GB", name="Great Britain", type="gov.uk Country", is_eu=True)
+    assert Country.objects.filter(name="Northern Ireland").first() is None
+    # executing migration
+    new_apps = migration.apply("countries", "0003_add_nir")
+    assert Country.objects.filter(name="Northern Ireland").exists() is True
+    assert Country.objects.filter(name="Great Britain").first().is_eu is False
