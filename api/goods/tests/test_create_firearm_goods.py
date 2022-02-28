@@ -1,6 +1,4 @@
 from datetime import timedelta
-from copy import deepcopy
-from unittest import mock
 
 from django.utils.timezone import now
 from parameterized import parameterized
@@ -13,7 +11,6 @@ from api.goods.enums import (
     MilitaryUse,
     FirearmGoodType,
 )
-from api.organisations.enums import OrganisationDocumentType
 from test_helpers.clients import DataTestClient
 
 URL = reverse("goods:goods")
@@ -133,54 +130,3 @@ class CreateFirearmGoodTests(DataTestClient):
         data["firearm_details"]["serial_numbers"] = ["", "", ""]
         response = self.client.post(URL, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
-    def test_firearms_act_user_is_rfd(self):
-        """Test that checks that if the user organisation does not have a valid RFD then
-        the firearms section act selection is required and when the user has a valid RFD then
-        the firearms section act is assumed as Section5"""
-
-        # without RFD, we need to provide the firearms act selected otherwise it is an error
-        future_expiry_date = (now() + timedelta(days=365)).date().isoformat()
-        data = {
-            "name": "Rifle",
-            "description": "Semi-automatic",
-            "is_good_controlled": False,
-            "is_pv_graded": GoodPvGraded.NO,
-            "item_category": ItemCategory.GROUP2_FIREARMS,
-            "validate_only": True,
-            "firearm_details": {
-                "type": FirearmGoodType.FIREARMS,
-                "calibre": "12mm",
-                "year_of_manufacture": "2018",
-                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
-                "section_certificate_number": "Section5_reference_number",
-                "section_certificate_date_of_expiry": future_expiry_date,
-            },
-        }
-        response = self.client.post(URL, data, **self.exporter_headers)
-        errors = response.json()["errors"]
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors["firearms_act_section"][0], "Select which section the product is covered by")
-
-        response = self.create_document_on_organisation(
-            "RFD certificate", OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE
-        )
-        self.assertEqual(response.status_code, 201, msg=response.content)
-        self.assertEqual(self.organisation.document_on_organisations.count(), 1)
-
-        data = deepcopy(data)
-        data["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"] = ""
-        response = self.client.post(URL, data, **self.exporter_headers)
-        errors = response.json()["errors"]
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            errors["is_covered_by_firearm_act_section_one_two_or_five"][0],
-            "Select yes if the product is covered by section 5 of the Firearms Act 1968",
-        )
-
-        data["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"] = "Yes"
-        response = self.client.post(URL, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        firearm_details = response.json()["good"]["firearm_details"]
-        self.assertEqual(firearm_details["firearms_act_section"], "firearms_act_section5")

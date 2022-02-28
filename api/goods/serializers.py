@@ -1,4 +1,3 @@
-from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -19,11 +18,7 @@ from api.applications.models import GoodOnApplication
 from api.flags.enums import SystemFlags
 from api.goods.helpers import (
     FIREARMS_CORE_TYPES,
-    validate_military_use,
-    validate_information_security,
-    validate_component_details,
-    validate_firearms_act_section,
-    validate_firearms_act_certificate_expiry_date,
+    validate_firearms_act_certificate,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails, GoodControlListEntry
 from api.gov_users.serializers import GovUserSimpleSerializer
@@ -158,51 +153,9 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     def validate(self, data):
         validated_data = super(FirearmDetailsSerializer, self).validate(data)
 
-        # Year of manufacture should be in the past and a valid year
-        year_of_manufacture = validated_data.get("year_of_manufacture")
-        if year_of_manufacture:
-            if year_of_manufacture > timezone.now().date().year:
-                raise serializers.ValidationError(
-                    {"year_of_manufacture": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_IN_PAST}
-                )
-            # Oldest firearm/ammunition in the world could date back to the 9th century - do not allow negative years
-            if year_of_manufacture < 800:
-                raise serializers.ValidationError(
-                    {"year_of_manufacture": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_VALID}
-                )
-
-        if "is_replica" in validated_data:
-            if "firearms" == validated_data.get("type"):
-                if validated_data.get("is_replica") is None:
-                    raise serializers.ValidationError({"is_replica": "Select yes if the product is a replica firearm"})
-
-                if validated_data.get("is_replica") is True:
-                    if "replica_description" not in validated_data or validated_data.get("replica_description") is "":
-                        raise serializers.ValidationError({"replica_description": "Enter description"})
-            if validated_data.get("is_replica") is not None and "firearms" != validated_data.get("type"):
-                raise serializers.ValidationError({"is_replica": "Invalid firearm product type"})
-
-        # Firearms act validation - mandatory question
-        if "is_covered_by_firearm_act_section_one_two_or_five" in validated_data:
-            validate_firearms_act_section(validated_data)
-
         if "section_certificate_number" in validated_data:
-            validate_firearms_act_certificate_expiry_date(validated_data)
+            validate_firearms_act_certificate(validated_data)
 
-        if validated_data.get("has_proof_mark") is False and validated_data.get("no_proof_mark_details") == "":
-            raise serializers.ValidationError({"no_proof_mark_details": ["This field is required"]})
-        if validated_data.get("is_deactivated"):
-            if not validated_data.get("date_of_deactivation"):
-                raise serializers.ValidationError({"date_of_deactivation": ["This field is required"]})
-            is_deactivated_to_standard = validated_data.get("is_deactivated_to_standard")
-            if is_deactivated_to_standard is None:
-                raise serializers.ValidationError({"is_deactivated_to_standard": ["This field is required"]})
-            elif is_deactivated_to_standard is True:
-                if not validated_data.get("deactivation_standard"):
-                    raise serializers.ValidationError({"deactivation_standard": ["This field is required"]})
-            elif is_deactivated_to_standard is False:
-                if not validated_data.get("deactivation_standard_other"):
-                    raise serializers.ValidationError({"deactivation_standard_other": ["This field is required"]})
         return validated_data
 
     def create(self, validated_data):
@@ -437,44 +390,14 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        # Get item category from the instance when it is not passed down on editing a good
-        item_category = data.get("item_category") if "item_category" in data else self.instance.item_category
-
-        # NB! The order of validation should match the order of the forms so that the appropriate error is raised if the
-        # user clicks Back
-        # Validate software/technology details for products in group 3
-        if "software_or_technology_details" in data and not data.get("software_or_technology_details"):
-            raise serializers.ValidationError(
-                {
-                    "software_or_technology_details": [
-                        strings.Goods.FORM_NO_SOFTWARE_DETAILS
-                        if item_category == ItemCategory.GROUP3_SOFTWARE
-                        else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
-                    ]
-                }
-            )
-
-        validate_military_use(data)
-
-        # Validate component field on creation (using is_component_step sent by the form), and on editing a good
-        # (using is_component)
-        if (
-            item_category in (ItemCategory.group_one + ItemCategory.group_two)
-            and ("is_component" in data or "is_component_step" in self.initial_data)
-            and not data.get("is_component")
-        ):
-            raise serializers.ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
-
-        # Validate component detail field if the answer was not 'No' using the initial data which contains all details
-        # fields as passed by the form
         if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
-            valid_components = validate_component_details(self.initial_data)
-            if not valid_components["is_valid"]:
-                raise serializers.ValidationError({valid_components["details_field"]: [valid_components["error"]]})
+            component_detail_fields = {
+                Component.YES_DESIGNED: "designed_details",
+                Component.YES_MODIFIED: "modified_details",
+                Component.YES_GENERAL_PURPOSE: "general_details",
+            }
             # Map the specific details field that was filled in to the single component_details field on the model
-            data["component_details"] = self.initial_data[valid_components["details_field"]]
-
-        validate_information_security(data)
+            data["component_details"] = self.initial_data[component_detail_fields[data["is_component"]]]
 
         return super().validate(data)
 
