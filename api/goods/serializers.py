@@ -22,7 +22,6 @@ from api.goods.helpers import (
     validate_military_use,
     validate_information_security,
     validate_component_details,
-    validate_identification_markings,
     validate_firearms_act_section,
     validate_firearms_act_certificate_expiry_date,
 )
@@ -116,8 +115,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     no_identification_markings_details = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2000
     )
-    serial_numbers_available = serializers.CharField(allow_blank=True, required=False)
-    no_serial_numbers_reason = serializers.CharField(required=False, allow_blank=True)
+    serial_numbers_available = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     is_deactivated = serializers.BooleanField(allow_null=True, required=False)
     date_of_deactivation = serializers.DateField(allow_null=True, required=False)
     deactivation_standard = serializers.CharField(allow_blank=True, required=False)
@@ -143,10 +141,9 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "section_certificate_missing_reason",
             "section_certificate_number",
             "section_certificate_date_of_expiry",
-            "has_identification_markings",
             "no_identification_markings_details",
+            "has_identification_markings",
             "serial_numbers_available",
-            "no_serial_numbers_reason",
             "has_proof_mark",
             "no_proof_mark_details",
             "is_deactivated",
@@ -192,9 +189,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         if "section_certificate_number" in validated_data:
             validate_firearms_act_certificate_expiry_date(validated_data)
 
-        # Identification markings - mandatory question
-        validate_identification_markings(validated_data)
-
         if validated_data.get("has_proof_mark") is False and validated_data.get("no_proof_mark_details") == "":
             raise serializers.ValidationError({"no_proof_mark_details": ["This field is required"]})
         if validated_data.get("is_deactivated"):
@@ -210,6 +204,17 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
                 if not validated_data.get("deactivation_standard_other"):
                     raise serializers.ValidationError({"deactivation_standard_other": ["This field is required"]})
         return validated_data
+
+    def create(self, validated_data):
+        if "has_identification_markings" in validated_data:
+            has_identification_markings = validated_data.pop("has_identification_markings")
+            if "serial_numbers_available" not in validated_data:
+                validated_data[
+                    "serial_numbers_available"
+                ] = FirearmGoodDetails.SerialNumberAvailability.convert_has_identification_markings(
+                    has_identification_markings
+                )
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
         instance.type = validated_data.get("type", instance.type)
@@ -270,28 +275,21 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
         instance.number_of_items = validated_data.get("number_of_items", instance.number_of_items)
 
-        if (
-            "has_identification_markings" in validated_data
-            and validated_data.get("has_identification_markings") is not None
-        ):
-            instance.has_identification_markings = validated_data.get("has_identification_markings")
-            if instance.has_identification_markings:
+        if "has_identification_markings" in validated_data and "serial_numbers_available" not in validated_data:
+            has_identification_markings = validated_data.pop("has_identification_markings")
+            validated_data[
+                "serial_numbers_available"
+            ] = FirearmGoodDetails.SerialNumberAvailability.convert_has_identification_markings(
+                has_identification_markings
+            )
+
+        if "serial_numbers_available" in validated_data and validated_data.get("serial_numbers_available") is not None:
+            instance.serial_numbers_available = validated_data.get("serial_numbers_available")
+            if FirearmGoodDetails.SerialNumberAvailability.has_serial_numbers(instance.serial_numbers_available):
                 instance.no_identification_marking_details = ""
             else:
                 instance.no_identification_markings_details = validated_data.get(
                     "no_identification_markings_details", instance.no_identification_markings_details
-                )
-
-        if "serial_numbers_available" in validated_data and not validated_data.get("serial_numbers_available"):
-            instance.serial_numbers_available = validated_data.get("serial_numbers_available")
-            if instance.serial_numbers_available in [
-                FirearmGoodDetails.SN_AVAILABLE,
-                FirearmGoodDetails.SN_LATER,
-            ]:
-                instance.no_serial_numbers_reason = ""
-            else:
-                instance.no_serial_numbers_reason = validated_data.get(
-                    "no_serial_numbers_reason", instance.no_serial_numbers_reason
                 )
 
         instance.serial_numbers = validated_data.get("serial_numbers", instance.serial_numbers)
@@ -302,7 +300,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
         if instance.type not in FIREARMS_CORE_TYPES:
             instance.is_covered_by_firearm_act_section_one_two_or_five = ""
-            instance.has_identification_markings = ""
             instance.serial_numbers_available = ""
             instance.year_of_manufacture = None
             instance.calibre = ""
@@ -421,15 +418,19 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                     if "section_certificate_date_of_expiry" in firearm_details:
                         firearm_details.pop("section_certificate_date_of_expiry")
 
-            if "has_identification_markings" in firearm_details:
-                # Keep only the details relevant for the yes/no answer
-                if str_to_bool(firearm_details.get("has_identification_markings")):
+            if "has_identification_markings" in firearm_details and "serial_numbers_available" not in firearm_details:
+                firearm_details[
+                    "serial_numbers_available"
+                ] = FirearmGoodDetails.SerialNumberAvailability.convert_has_identification_markings(
+                    firearm_details["has_identification_markings"]
+                )
+
+            if "serial_numbers_available" in firearm_details:
+                # Keep only the details relevant for the answer
+                if FirearmGoodDetails.SerialNumberAvailability.has_serial_numbers(
+                    firearm_details["serial_numbers_available"]
+                ):
                     firearm_details.pop("no_identification_markings_details")
-            if (
-                "serial_numbers_available" in firearm_details
-                and firearm_details.get("serial_numbers_available") != FirearmGoodDetails.SN_NOT_AVAILABLE
-            ):
-                firearm_details.pop("no_serial_numbers_reason")
 
         self.goods_query_case = (
             GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
