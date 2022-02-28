@@ -492,7 +492,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 is_covered_by_firearm_act_section_one_two_or_five="No",
                 section_certificate_number=None,
                 section_certificate_date_of_expiry=None,
-                has_identification_markings=True,
+                serial_numbers_available=FirearmGoodDetails.SerialNumberAvailability.AVAILABLE,
                 no_identification_markings_details="",
             )
 
