@@ -53,7 +53,7 @@ class AuthenticateExporterUser(APIView):
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
 
-        if data.get("email"):
+        if not data.get("email"):
             return JsonResponse(
                 data={"errors": [strings.Login.Error.USER_NO_EMAIL]},
                 status=status.HTTP_400_BAD_REQUEST,
