@@ -195,7 +195,9 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
-    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, required=False, allow_blank=True, allow_null=True)
+    export_type = KeyValueChoiceField(
+        choices=ApplicationExportType.choices, required=False, allow_blank=True, allow_null=True
+    )
     goods_starting_point = serializers.CharField()
     goods_recipients = serializers.CharField()
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
