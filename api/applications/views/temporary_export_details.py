@@ -25,7 +25,7 @@ class TemporaryExportDetails(UpdateAPIView):
     @application_in_state(is_major_editable=True)
     def put(self, request, pk):
         application = get_application(pk)
-        if not application.export_type or application.export_type == ApplicationExportType.PERMANENT:
+        if application.export_type == ApplicationExportType.PERMANENT:
             raise ValidationError(
                 {"temp_export_details": ["Cannot update temporary export details for a permanent export type"]}
             )

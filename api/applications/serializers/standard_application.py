@@ -195,7 +195,9 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
-    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, required=False)
+    export_type = KeyValueChoiceField(
+        choices=ApplicationExportType.choices, required=False, allow_blank=True, allow_null=True
+    )
     goods_starting_point = serializers.CharField()
     goods_recipients = serializers.CharField()
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
@@ -244,6 +246,11 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             instance.reference_number_on_information_form = None
 
     def validate(self, data):
+        validate_field(
+            data,
+            "export_type",
+            strings.Applications.Generic.NO_EXPORT_TYPE,
+        )
         validate_field(
             data,
             "is_shipped_waybill_or_lading",
