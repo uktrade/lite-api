@@ -8,10 +8,7 @@ from lite_content.lite_api.strings import Applications as strings
 
 class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
     temp_export_details = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2200)
-    is_temp_direct_control = serializers.BooleanField(
-        required=False,
-        error_messages={"invalid": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL},
-    )
+    is_temp_direct_control = serializers.BooleanField(required=False, allow_null=True)
     temp_direct_control_details = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2200
     )
@@ -35,7 +32,9 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
             data, "temp_export_details", strings.Generic.TemporaryExportDetails.Error.TEMPORARY_EXPORT_DETAILS
         )
         is_temp_direct_control_value = validate_field(
-            data, "is_temp_direct_control", strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL
+            data,
+            "is_temp_direct_control",
+            strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL,
         )
 
         # Only validate temp_direct_control_details if its parent is_temp_direct_control is False
