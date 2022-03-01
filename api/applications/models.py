@@ -179,7 +179,6 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
 # Licence Applications
 class StandardApplication(BaseApplication):
-    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     GB = "GB"
     NI = "NI"
     GOODS_STARTING_POINT_CHOICES = [

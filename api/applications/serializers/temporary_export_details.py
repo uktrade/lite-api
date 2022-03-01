@@ -8,10 +8,7 @@ from lite_content.lite_api.strings import Applications as strings
 
 class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
     temp_export_details = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2200)
-    is_temp_direct_control = serializers.BooleanField(
-        required=False,
-        error_messages={"invalid": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL},
-    )
+    is_temp_direct_control = serializers.BooleanField(required=False, allow_null=True)
     temp_direct_control_details = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2200
     )
