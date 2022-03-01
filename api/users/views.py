@@ -55,7 +55,7 @@ class AuthenticateExporterUser(APIView):
 
         if not data.get("email"):
             return JsonResponse(
-                data={"errors": [strings.Login.Error.USER_NO_EMAIL]},
+                data={"errors": ["No email provided"]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
