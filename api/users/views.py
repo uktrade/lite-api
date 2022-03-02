@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from django.http.response import JsonResponse
-from django.conf import settings
 from rest_framework import status, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, ListAPIView
@@ -50,28 +49,29 @@ class AuthenticateExporterUser(APIView):
         Returns a token which is just our ID for the user
         """
         data = request.data
-        if not settings.FEATURE_FLAG_GOVUK_SIGNIN_ENABLED:
+        # We require this to be feature flagged because no profile is returned for GOV.UK
+        first_name = data.get("user_profile", {}).get("first_name", "")
+        last_name = data.get("user_profile", {}).get("last_name", "")
+
+        # Once we go live with gov.uk we can remove this check
+        if data.get("no_profile_login"):
+            if not data.get("email"):
+                return JsonResponse(
+                    data={"errors": ["No email provided"]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
             user_profile = data.get("user_profile")
             if not user_profile:
                 return JsonResponse(
                     data={"errors": [strings.Login.Error.USER_PROFILE]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
             first_name = data.get("user_profile").get("first_name")
             last_name = data.get("user_profile").get("last_name")
             if not first_name or not last_name:
                 return JsonResponse(
                     data={"errors": [strings.Login.Error.USER_PROFILE]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        else:
-            # We require this to be feature flagged because no profile is returned for GOV.UK
-            first_name = data.get("user_profile", {}).get("first_name", "")
-            last_name = data.get("user_profile", {}).get("last_name", "")
-            if not data.get("email"):
-                return JsonResponse(
-                    data={"errors": ["No email provided"]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         try:
