@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
+from django.test import override_settings
 
 
 class ExporterUserAuthenticateTests(DataTestClient):
@@ -27,6 +28,7 @@ class ExporterUserAuthenticateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    @override_settings(FEATURE_FLAG_GOVUK_SIGNIN_ENABLED=True)
     def test_authenticate_user_with_empty_profile_success(self):
         data = {"email": self.exporter_user.email}
 
