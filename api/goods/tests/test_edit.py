@@ -376,7 +376,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertIsNone(good["firearm_details"]["year_of_manufacture"])
         self.assertEqual(good["firearm_details"]["calibre"], "")
         self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "")
-        self.assertIsNone(good["firearm_details"]["has_identification_markings"])
+        self.assertEqual(good["firearm_details"]["serial_numbers_available"], "")
         # 2 due to creating a new good for this test
         self.assertEqual(Good.objects.all().count(), 2)
 
@@ -511,7 +511,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
             "firearm_details": {
-                "has_identification_markings": "True",
+                "serial_numbers_available": "AVAILABLE",
                 "no_identification_markings_details": "",
             }
         }
@@ -520,10 +520,10 @@ class GoodsEditDraftGoodTests(DataTestClient):
         good = response.json()["good"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(good["firearm_details"]["has_identification_markings"])
+        self.assertEqual(good["firearm_details"]["serial_numbers_available"], "AVAILABLE")
         self.assertEqual(good["firearm_details"]["no_identification_markings_details"], "")
 
-    def test_edit_category_two_no_identification_markings_no_details_provided_failure(self):
+    def test_edit_category_two_identification_markings_details_success_backwards_compatibility(self):
         good = self.create_good(
             "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
         )
@@ -531,58 +531,15 @@ class GoodsEditDraftGoodTests(DataTestClient):
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
             "firearm_details": {
-                "has_identification_markings": "False",
+                "has_identification_markings": False,
                 "no_identification_markings_details": "",
             }
         }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
+        good = response.json()["good"]
 
-        good.refresh_from_db()
-
-        # assert good didn't get edited
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(good.firearm_details.has_identification_markings)
-        self.assertEqual(good.firearm_details.no_identification_markings_details, "")
-        self.assertEqual(
-            errors["no_identification_markings_details"], ["Enter a reason why the product has not been marked"]
-        )
-
-    @parameterized.expand(
-        [
-            ["False", "no_identification_markings_details"],
-        ]
-    )
-    def test_edit_category_two_good_has_markings_details_too_long_failure(
-        self, has_identification_markings, details_field
-    ):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
-
-        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-
-        data = {
-            "description": "coffee",
-            "is_good_controlled": False,
-            "is_pv_graded": GoodPvGraded.NO,
-            "item_category": ItemCategory.GROUP2_FIREARMS,
-            "validate_only": True,
-            "firearm_details": {
-                "type": FirearmGoodType.AMMUNITION,
-                "calibre": "0.5",
-                "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "No",
-                "section_certificate_number": "",
-                "section_certificate_date_of_expiry": "",
-                "has_identification_markings": has_identification_markings,
-                details_field: "A" * 2001,
-            },
-        }
-
-        response = self.client.put(url, data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors[details_field], ["Ensure this field has no more than 2000 characters."])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(good["firearm_details"]["serial_numbers_available"], "NOT_AVAILABLE")
+        self.assertFalse(good["firearm_details"]["has_identification_markings"])
+        self.assertEqual(good["firearm_details"]["no_identification_markings_details"], "")
