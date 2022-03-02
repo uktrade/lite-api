@@ -50,7 +50,7 @@ class FirearmFactory(factory.django.DjangoModelFactory):
     is_covered_by_firearm_act_section_one_two_or_five = True
     section_certificate_number = "section certificate number?"
     section_certificate_date_of_expiry = factory.LazyFunction(timezone.now().date)
-    has_identification_markings = True
+    serial_numbers_available = models.FirearmGoodDetails.SerialNumberAvailability.AVAILABLE
 
     class Meta:
         model = models.FirearmGoodDetails

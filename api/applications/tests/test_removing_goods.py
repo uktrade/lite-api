@@ -188,12 +188,12 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
     def test_delete_firearm_good_from_application_removes_flag_from_case_success(self):
         application = self.create_draft_standard_application(self.organisation)
         goa = application.goods.first()
-        firearm_derails = FirearmGoodDetails.objects.create(
+        firearm_details = FirearmGoodDetails.objects.create(
             year_of_manufacture=timezone.now().year,
-            has_identification_markings=True,
+            serial_numbers_available=FirearmGoodDetails.SerialNumberAvailability.AVAILABLE,
             is_covered_by_firearm_act_section_one_two_or_five=True,
         )
-        goa.good.firearm_derails = firearm_derails
+        goa.good.firearm_details = firearm_details
         goa.good.save()
         application.flags.add(SystemFlags.FIREARMS_ID)
         application.save()

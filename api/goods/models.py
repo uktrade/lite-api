@@ -27,15 +27,21 @@ class PvGradingDetails(models.Model):
 
 
 class FirearmGoodDetails(models.Model):
-    SN_AVAILABLE = "yes_available"
-    SN_LATER = "yes_later"
-    SN_NOT_AVAILABLE = "no"
+    class SerialNumberAvailability(models.TextChoices):
+        AVAILABLE = "AVAILABLE", "Yes, I can add serial numbers now"
+        LATER = "LATER", "Yes, I can add serial numbers later"
+        NOT_AVAILABLE = "NOT_AVAILABLE", "No"
 
-    serial_number_choices = [
-        (SN_AVAILABLE, "Yes, I can add serial numbers now"),
-        (SN_LATER, "Yes, I can add serial numbers later"),
-        (SN_NOT_AVAILABLE, "No"),
-    ]
+        @classmethod
+        def has_serial_numbers(cls, value):
+            return value in [cls.AVAILABLE, cls.LATER]
+
+        @classmethod
+        def convert_has_identification_markings(cls, value):
+            if value is None:
+                return None
+
+            return cls.AVAILABLE if value else cls.NOT_AVAILABLE
 
     type = models.TextField(choices=FirearmGoodType.choices, blank=False)
     year_of_manufacture = models.PositiveSmallIntegerField(blank=True, null=True)
@@ -51,10 +57,13 @@ class FirearmGoodDetails(models.Model):
     section_certificate_number = models.CharField(blank=True, max_length=100, null=True)
     section_certificate_date_of_expiry = models.DateField(blank=True, null=True)
 
-    has_identification_markings = models.BooleanField(null=True)
     no_identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
-    serial_numbers_available = models.TextField(choices=serial_number_choices, blank=True, default="")
-    no_serial_numbers_reason = models.TextField(blank=True, default="")
+    serial_numbers_available = models.CharField(
+        blank=True,
+        choices=SerialNumberAvailability.choices,
+        max_length=255,
+        null=True,
+    )
     serial_number = models.TextField(default="")
     number_of_items = models.PositiveSmallIntegerField(blank=True, null=True)
     serial_numbers = ArrayField(models.TextField(default=""), default=list)
@@ -71,6 +80,14 @@ class FirearmGoodDetails(models.Model):
     date_of_deactivation = models.DateField(blank=True, null=True)
     deactivation_standard = models.TextField(default="")
     deactivation_standard_other = models.TextField(default="")
+
+    @property
+    def has_serial_numbers(self):
+        return self.SerialNumberAvailability.has_serial_numbers(self.serial_numbers_available)
+
+    @property
+    def has_identification_markings(self):
+        return self.has_serial_numbers
 
 
 class GoodControlListEntry(models.Model):
