@@ -427,4 +427,3 @@ PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
 # Controls whether a ComplianceSiteCase is automatically created when a SIEL licence is issued that has goods with certain control codes
 # See LTD-1159
 FEATURE_SIEL_COMPLIANCE_ENABLED = env.bool("FEATURE_SIEL_COMPLIANCE_ENABLED", False)
-FEATURE_FLAG_GOVUK_SIGNIN_ENABLED = env.bool("FEATURE_FLAG_GOVUK_SIGNIN_ENABLED", False)
