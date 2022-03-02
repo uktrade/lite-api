@@ -407,8 +407,14 @@ if DEBUG and "django_extensions" in sys.modules:
         "group_models": True,
     }
 
-
 # SSO config
+LOGIN_URL = reverse_lazy("authbroker_client:login")
+LOGIN_REDIRECT_URL = reverse_lazy("admin:index")
+AUTHBROKER_URL = env.str("STAFF_SSO_AUTHBROKER_URL")
+AUTHBROKER_CLIENT_ID = env.str("STAFF_SSO_AUTHBROKER_CLIENT_ID")
+AUTHBROKER_CLIENT_SECRET = env.str("STAFF_SSO_AUTHBROKER_CLIENT_SECRET")
+ALLOWED_ADMIN_EMAILS = env.list("ALLOWED_ADMIN_EMAILS")
+
 FEATURE_STAFF_SSO_ENABLED = env.bool("FEATURE_STAFF_SSO_ENABLED", False)
 if FEATURE_STAFF_SSO_ENABLED:
     INSTALLED_APPS.append("authbroker_client")
@@ -416,13 +422,6 @@ if FEATURE_STAFF_SSO_ENABLED:
         "django.contrib.auth.backends.ModelBackend",
         "authbroker_client.backends.AuthbrokerBackend",
     ]
-    LOGIN_URL = reverse_lazy("authbroker_client:login")
-    LOGIN_REDIRECT_URL = reverse_lazy("admin:index")
-    AUTHBROKER_URL = env.str("STAFF_SSO_AUTHBROKER_URL")
-    AUTHBROKER_CLIENT_ID = env.str("STAFF_SSO_AUTHBROKER_CLIENT_ID")
-    AUTHBROKER_CLIENT_SECRET = env.str("STAFF_SSO_AUTHBROKER_CLIENT_SECRET")
-    ALLOWED_ADMIN_EMAILS = env.list("ALLOWED_ADMIN_EMAILS")
-
 
 PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
 
