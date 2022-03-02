@@ -167,8 +167,12 @@ class DocumentContextGenerationTests(DataTestClient):
                 good_on_application.firearm_details.section_certificate_date_of_expiry.strftime(DATE_FORMAT),
             )
             self.assertEqual(
-                firearm_details["has_identification_markings"],
-                friendly_boolean(good_on_application.firearm_details.has_identification_markings),
+                firearm_details["has_serial_numbers"],
+                good_on_application.firearm_details.has_serial_numbers,
+            )
+            self.assertEqual(
+                firearm_details["serial_numbers_available"],
+                good_on_application.firearm_details.serial_numbers_available,
             )
         elif good_on_application.good.item_category in ItemCategory.group_three:
             self.assertEqual(good["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))

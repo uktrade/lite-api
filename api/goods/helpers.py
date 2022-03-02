@@ -4,7 +4,6 @@ from rest_framework.exceptions import ValidationError
 
 from api.core.exceptions import BadRequestError
 from api.goods.enums import Component, MilitaryUse
-from api.goods.models import FirearmGoodDetails
 from api.organisations.models import DocumentOnOrganisation
 from api.organisations.enums import OrganisationDocumentType
 from lite_content.lite_api import strings
@@ -68,39 +67,6 @@ def validate_information_security(data):
         )
 
 
-def validate_identification_markings(validated_data):
-    if "type" in validated_data and validated_data.get("type") not in FIREARMS_CORE_TYPES:
-        return
-
-    number_of_items = validated_data.get("number_of_items")
-    if "number_of_items" in validated_data and (number_of_items <= 0 or number_of_items == None):
-        raise serializers.ValidationError({"number_of_items": "Enter the number of items"})
-
-    # Mandatory question for firearm goods (Group 2) with conditional details fields based on the answer
-    has_identification_markings = validated_data.get("has_identification_markings")
-    if "has_identification_markings" in validated_data and has_identification_markings is None:
-        raise serializers.ValidationError({"has_identification_markings": [strings.Goods.FIREARM_GOOD_NO_MARKINGS]})
-
-    if has_identification_markings is False and not validated_data.get("no_identification_markings_details"):
-        raise serializers.ValidationError(
-            {"no_identification_markings_details": ["Enter a reason why the product has not been marked"]}
-        )
-
-    serial_numbers_available = validated_data.get("serial_numbers_available")
-    if serial_numbers_available == FirearmGoodDetails.SN_NOT_AVAILABLE and not validated_data.get(
-        "no_serial_numbers_reason"
-    ):
-        raise serializers.ValidationError(
-            {"no_serial_numbers_reason": ["Enter a reason why the product has not been marked"]}
-        )
-
-    serial_numbers = validated_data.get("serial_numbers")
-    if "serial_numbers" in validated_data and has_identification_markings:
-        is_missing_all_serial_numbers = all(not serial_number for serial_number in serial_numbers)
-        if is_missing_all_serial_numbers:
-            raise serializers.ValidationError({"serial_numbers": "Enter at least one serial number"})
-
-
 def validate_firearms_act_section(validated_data):
     errors = {}
 
@@ -162,7 +128,7 @@ def check_if_firearm_details_edited_on_unsupported_good(data):
         "is_covered_by_firearm_act_section_one_two_or_five",
         "section_certificate_number",
         "section_certificate_date_of_expiry",
-        "has_identification_markings",
+        "serial_numbers_available",
         "no_identification_markings_details",
     ]
     if any(detail in data["firearm_details"] for detail in firearm_good_specific_details):

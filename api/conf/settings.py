@@ -220,6 +220,8 @@ LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "templat
 # Database
 DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 # Background tasks
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
 BACKGROUND_TASK_RUN_ASYNC = True

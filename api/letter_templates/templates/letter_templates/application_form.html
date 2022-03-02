@@ -383,19 +383,25 @@
 							</div>
 						{% endif %}
 
-						{% if good_on_application.has_identification_markings is not None %}
+						{% if good_on_application.has_serial_numbers %}
 							<div class="govuk-summary-list__row">
 								<dt class="govuk-summary-list__key">
 									{% lcs "GoodsDetailSummary.FirearmDetails.IDENTIFICATION_MARKINGS" %}
 								</dt>
 								<dd class="govuk-summary-list__value">
-										{{ good_on_application.has_identification_markings }}
-										<span class="govuk-hint">
-										<br>
-											{% if not good_on_application.has_identification_markings %}
-												{{ good_on_application.no_identification_markings_details|default_na }}
-											{% endif %}
-										</span>
+										{% if good_on_application.serial_numbers_available == "AVAILABLE" %}
+											Yes, I can add serial numbers now
+										{% elif good_on_application.serial_numbers_available == "LATER" %}
+											Yes, I can add serial numbers later
+										{% elif good_on_application.serial_numbers_available == "NOT_AVAILABLE" %}
+											No
+										{% endif %}
+										{% if not good_on_application.has_serial_numbers %}
+											<span class="govuk-hint">
+											<br>
+													{{ good_on_application.no_identification_markings_details|default_na }}
+											</span>
+										{% endif %}
 								</dd>
 							</div>
 						{% endif %}
