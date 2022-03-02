@@ -49,7 +49,6 @@ class AuthenticateExporterUser(APIView):
         Returns a token which is just our ID for the user
         """
         data = request.data
-        # We require this to be feature flagged because no profile is returned for GOV.UK
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
 
