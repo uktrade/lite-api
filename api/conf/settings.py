@@ -220,8 +220,6 @@ LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "templat
 # Database
 DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
-
 # Background tasks
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
 BACKGROUND_TASK_RUN_ASYNC = True
@@ -407,14 +405,8 @@ if DEBUG and "django_extensions" in sys.modules:
         "group_models": True,
     }
 
-# SSO config
-LOGIN_URL = reverse_lazy("authbroker_client:login")
-LOGIN_REDIRECT_URL = reverse_lazy("admin:index")
-AUTHBROKER_URL = env.str("STAFF_SSO_AUTHBROKER_URL")
-AUTHBROKER_CLIENT_ID = env.str("STAFF_SSO_AUTHBROKER_CLIENT_ID")
-AUTHBROKER_CLIENT_SECRET = env.str("STAFF_SSO_AUTHBROKER_CLIENT_SECRET")
-ALLOWED_ADMIN_EMAILS = env.list("ALLOWED_ADMIN_EMAILS")
 
+# SSO config
 FEATURE_STAFF_SSO_ENABLED = env.bool("FEATURE_STAFF_SSO_ENABLED", False)
 if FEATURE_STAFF_SSO_ENABLED:
     INSTALLED_APPS.append("authbroker_client")
@@ -422,6 +414,13 @@ if FEATURE_STAFF_SSO_ENABLED:
         "django.contrib.auth.backends.ModelBackend",
         "authbroker_client.backends.AuthbrokerBackend",
     ]
+    LOGIN_URL = reverse_lazy("authbroker_client:login")
+    LOGIN_REDIRECT_URL = reverse_lazy("admin:index")
+    AUTHBROKER_URL = env.str("STAFF_SSO_AUTHBROKER_URL")
+    AUTHBROKER_CLIENT_ID = env.str("STAFF_SSO_AUTHBROKER_CLIENT_ID")
+    AUTHBROKER_CLIENT_SECRET = env.str("STAFF_SSO_AUTHBROKER_CLIENT_SECRET")
+    ALLOWED_ADMIN_EMAILS = env.list("ALLOWED_ADMIN_EMAILS")
+
 
 PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
 
