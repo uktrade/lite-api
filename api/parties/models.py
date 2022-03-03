@@ -62,6 +62,10 @@ class Party(TimestampableModel):
     role_other = models.CharField(max_length=75, default=None, null=True)
     sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
     sub_type_other = models.CharField(max_length=75, default=None, null=True)
+    end_user_document_available = models.BooleanField(blank=True, null=True)
+    end_user_document_missing_reason = models.TextField(blank=True, default="")
+    document_in_english = models.BooleanField(blank=True, null=True)
+    document_on_letterhead = models.BooleanField(blank=True, null=True)
     clearance_level = models.CharField(
         choices=PvGrading.choices, max_length=30, null=True, help_text="Only relevant to F680 applications"
     )

@@ -21,6 +21,10 @@ class PartySerializer(serializers.ModelSerializer):
     signatory_name_euu = serializers.CharField(allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices, error_messages=PartyErrors.TYPE)
     type_display_value = serializers.SerializerMethodField()
+    end_user_document_available = serializers.BooleanField(allow_null=True, required=False)
+    end_user_document_missing_reason = serializers.CharField(required=False, allow_blank=True)
+    document_in_english = serializers.BooleanField(allow_null=True, required=False)
+    document_on_letterhead = serializers.BooleanField(allow_null=True, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
     role = KeyValueChoiceField(choices=PartyRole.choices, error_messages=PartyErrors.ROLE, required=False)
@@ -52,6 +56,10 @@ class PartySerializer(serializers.ModelSerializer):
             "document",
             "sub_type",
             "sub_type_other",
+            "end_user_document_available",
+            "end_user_document_missing_reason",
+            "document_in_english",
+            "document_on_letterhead",
             "role",
             "role_other",
             "flags",
