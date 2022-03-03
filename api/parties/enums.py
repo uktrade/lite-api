@@ -65,3 +65,17 @@ class PartyRole:
         (CUSTOMER, "Customer"),
         (OTHER, "Other"),
     ]
+
+
+class PartyDocumentType:
+    SUPPORTING_DOCUMENT = "supporting_document"
+    END_USER_UNDERTAKING_DOCUMENT = "end_user_undertaking_document"
+    END_USER_ENGLISH_TRANSLATION_DOCUMENT = "end_user_english_translation_document"
+    END_USER_COMPANY_LETTERHEAD_DOCUMENT = "end_user_company_letterhead_document"
+
+    choices = [
+        (SUPPORTING_DOCUMENT, "Supporting document"),
+        (END_USER_UNDERTAKING_DOCUMENT, "End-user undertaking or stockist undertaking document"),
+        (END_USER_ENGLISH_TRANSLATION_DOCUMENT, "English translation of end-user undertaking document"),
+        (END_USER_COMPANY_LETTERHEAD_DOCUMENT, "End-user document on company letterhead"),
+    ]

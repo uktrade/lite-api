@@ -26,7 +26,7 @@ class PartySerializer(serializers.ModelSerializer):
     document_in_english = serializers.BooleanField(allow_null=True, required=False)
     document_on_letterhead = serializers.BooleanField(allow_null=True, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    document = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
     role = KeyValueChoiceField(choices=PartyRole.choices, error_messages=PartyErrors.ROLE, required=False)
     role_other = serializers.CharField(
         max_length=75, allow_null=True, allow_blank=True, required=False, error_messages=PartyErrors.ROLE_OTHER
@@ -53,7 +53,7 @@ class PartySerializer(serializers.ModelSerializer):
             "type",
             "type_display_value",
             "organisation",
-            "document",
+            "documents",
             "sub_type",
             "sub_type_other",
             "end_user_document_available",
@@ -131,9 +131,9 @@ class PartySerializer(serializers.ModelSerializer):
             # Field is optional so doesn't validate if blank and just saves an empty string
             return ""
 
-    def get_document(self, instance):
-        docs = PartyDocument.objects.filter(party=instance)
-        return docs.values()[0] if docs.exists() else None
+    def get_documents(self, instance):
+        docs = PartyDocument.objects.filter(party=instance, safe=True)
+        return PartyDocumentSerializer(docs, many=True).data
 
     def get_type_display_value(self, instance):
         return instance.get_type_display()
@@ -152,11 +152,13 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         model = PartyDocument
         fields = (
             "id",
+            "type",
             "name",
             "s3_key",
             "size",
             "party",
             "safe",
+            "description",
         )
 
     def create(self, validated_data):

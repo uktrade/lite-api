@@ -8,6 +8,7 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.document.serializers import GoodsTypeDocumentSerializer
+from api.parties.enums import PartyDocumentType, PartyType
 from api.parties.models import PartyDocument
 from api.parties.serializers import PartyDocumentSerializer
 
@@ -96,17 +97,20 @@ def upload_party_document(party, data, application, user):
         return JsonResponse(data={"error": "No such user"}, status=status.HTTP_404_NOT_FOUND)
 
     documents = PartyDocument.objects.filter(party=party, safe=True)
-    if documents.exists():
+    if party.type != PartyType.END_USER and documents.exists():
         return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
     data["party"] = party.id
+    if not data.get("type"):
+        data["type"] = PartyDocumentType.SUPPORTING_DOCUMENT
+
     serializer = PartyDocumentSerializer(data=data)
 
     if not serializer.is_valid():
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Delete existing document with a virus if one exists
-    PartyDocument.objects.filter(party=party, safe=False).delete()
+    # Delete existing document if one exists
+    PartyDocument.objects.filter(party=party, type=data["type"]).delete()
 
     serializer.save()
 

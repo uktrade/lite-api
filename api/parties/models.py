@@ -7,7 +7,7 @@ from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import PvGrading
 from api.organisations.models import Organisation
-from api.parties.enums import PartyType, SubType, PartyRole
+from api.parties.enums import PartyType, SubType, PartyRole, PartyDocumentType
 from api.staticdata.countries.models import Country
 
 
@@ -84,3 +84,5 @@ class Party(TimestampableModel):
 
 class PartyDocument(Document):
     party = models.ForeignKey(Party, on_delete=models.CASCADE)
+    type = models.TextField(choices=PartyDocumentType.choices, default=PartyDocumentType.SUPPORTING_DOCUMENT)
+    description = models.TextField(blank=True, default="")
