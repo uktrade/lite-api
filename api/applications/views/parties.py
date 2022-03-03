@@ -119,6 +119,16 @@ class ApplicationPartyView(APIView):
 
         return JsonResponse(data={key: parties_data})
 
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk, party_pk):
+        """
+        Get party detail
+        """
+        application = get_application(pk)
+        party = application.active_parties.get(party_id=party_pk)
+        party_data = PartySerializer(party.party).data
+        return JsonResponse(data={party_data["type"]: party_data})
+
 
 class CopyPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
