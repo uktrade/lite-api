@@ -93,10 +93,7 @@ class ApplicationPartyView(APIView):
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
             target=application.get_case(),
-            payload={
-                "party_type": poa.party.type.replace("_", " "),
-                "party_name": poa.party.name,
-            },
+            payload={"party_type": poa.party.type.replace("_", " "), "party_name": poa.party.name,},
         )
 
         return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)
@@ -127,6 +124,18 @@ class ApplicationPartyView(APIView):
         application = get_application(pk)
         party = application.active_parties.get(party_id=party_pk)
         party_data = PartySerializer(party.party).data
+        return JsonResponse(data={party_data["type"]: party_data})
+
+    @authorised_to_view_application(ExporterUser)
+    def put(self, request, pk, party_pk):
+        application = get_application(pk)
+        party = application.active_parties.get(party_id=party_pk)
+        serializer = PartySerializer(instance=party.party, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        party_data = serializer.data
         return JsonResponse(data={party_data["type"]: party_data})
 
 
