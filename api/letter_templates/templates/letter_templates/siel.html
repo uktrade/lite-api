@@ -291,7 +291,7 @@
                       <td><strong>Part number:</strong></td>
                       <td>{{ good.part_number|default_na }}</td>
                     </tr>
-                    {% if firearm_details and firearm_details.has_identification_markings == "Yes" %}
+                    {% if firearm_details and firearm_details.has_serial_numbers %}
                       <tr>
                         <td><strong>Serial number:</strong></td>
                         <td>

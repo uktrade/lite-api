@@ -6,6 +6,8 @@ from api.applications.enums import (
     YesNoChoiceType,
     ApplicationExportLicenceOfficialType,
     ApplicationExportType,
+    GoodsStartingPoint,
+    GoodsRecipients,
 )
 from api.applications.mixins.serializers import PartiesSerializerMixin
 from api.applications.models import DenialMatchOnApplication, StandardApplication
@@ -198,8 +200,8 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, required=False, allow_blank=True, allow_null=True
     )
-    goods_starting_point = serializers.CharField()
-    goods_recipients = serializers.CharField()
+    goods_starting_point = KeyValueChoiceField(choices=GoodsStartingPoint.choices, required=False, allow_blank=True)
+    goods_recipients = KeyValueChoiceField(choices=GoodsRecipients.choices, required=False, allow_blank=True)
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
@@ -246,21 +248,32 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             instance.reference_number_on_information_form = None
 
     def validate(self, data):
+        validated_data = super().validate(data)
         validate_field(
-            data,
+            validated_data,
+            "goods_starting_point",
+            "Select if the products will begin their export journey in Great Britain or Northern Ireland",
+        )
+        validate_field(
+            validated_data,
             "export_type",
             strings.Applications.Generic.NO_EXPORT_TYPE,
         )
         validate_field(
-            data,
+            validated_data,
             "is_shipped_waybill_or_lading",
             strings.Applications.Generic.RouteOfGoods.IS_SHIPPED_AIR_WAY_BILL_OR_LADING,
         )
-        if data.get("is_shipped_waybill_or_lading") is False:
+        if validated_data.get("is_shipped_waybill_or_lading") is False:
             validate_field(
-                data,
+                validated_data,
                 "non_waybill_or_lading_route_details",
                 strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS,
                 required=True,
             )
-        return super().validate(data)
+        validate_field(
+            validated_data,
+            "goods_recipients",
+            "Select who the products are going to",
+        )
+        return validated_data

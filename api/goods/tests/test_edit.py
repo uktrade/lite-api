@@ -17,7 +17,6 @@ from api.goods.models import Good, PvGradingDetails
 from api.goods.tests.factories import GoodFactory
 from lite_content.lite_api import strings
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
-from api.staticdata.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 
 
@@ -230,49 +229,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [Component.YES_DESIGNED, "designed_details", strings.Goods.NO_DESIGN_COMPONENT_DETAILS],
-            [Component.YES_MODIFIED, "modified_details", strings.Goods.NO_MODIFIED_COMPONENT_DETAILS],
-            [Component.YES_GENERAL_PURPOSE, "general_details", strings.Goods.NO_GENERAL_COMPONENT_DETAILS],
-        ]
-    )
-    def test_edit_component_to_yes_option_with_no_details_field_failure(self, component, details_field, error):
-        good = self.create_good("a good", self.organisation, is_component=Component.NO)
-        request_data = {"is_component": component, details_field: ""}
-        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-
-        response = self.client.put(url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[details_field], [error])
-        self.assertEqual(good.is_component, Component.NO)
-        self.assertIsNone(good.component_details)
-
-    def test_edit_component_no_selection_failure(self):
-        request_data = {"is_component_step": True}
-
-        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors["is_component"], [strings.Goods.FORM_NO_COMPONENT_SELECTED])
-
-    def test_edit_information_security_no_selection_failure(self):
-        request_data = {"uses_information_security": ""}
-
-        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(
-            errors["uses_information_security"], [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]
-        )
-
-    @parameterized.expand(
-        [
             [ItemCategory.GROUP3_SOFTWARE, "new software details"],
             [ItemCategory.GROUP3_TECHNOLOGY, "new technology details"],
         ]
@@ -291,26 +247,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good["software_or_technology_details"], details)
         # 2 due to creating a new good for this test
         self.assertEqual(Good.objects.all().count(), 2)
-
-    @parameterized.expand(
-        [
-            [ItemCategory.GROUP3_SOFTWARE, strings.Goods.FORM_NO_SOFTWARE_DETAILS],
-            [ItemCategory.GROUP3_TECHNOLOGY, strings.Goods.FORM_NO_TECHNOLOGY_DETAILS],
-        ]
-    )
-    def test_edit_software_or_technology_details_failure(self, category, error):
-        good = self.create_good(
-            "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
-        )
-        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-        request_data = {"is_software_or_technology_step": True, "software_or_technology_details": ""}
-
-        response = self.client.put(url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors["software_or_technology_details"], [error])
 
     def test_cannot_edit_component_and_component_details_of_non_category_one_good_failure(self):
         good = self.create_good(
@@ -376,7 +312,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertIsNone(good["firearm_details"]["year_of_manufacture"])
         self.assertEqual(good["firearm_details"]["calibre"], "")
         self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "")
-        self.assertIsNone(good["firearm_details"]["has_identification_markings"])
+        self.assertEqual(good["firearm_details"]["serial_numbers_available"], "")
         # 2 due to creating a new good for this test
         self.assertEqual(Good.objects.all().count(), 2)
 
@@ -511,7 +447,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
             "firearm_details": {
-                "has_identification_markings": "True",
+                "serial_numbers_available": "AVAILABLE",
                 "no_identification_markings_details": "",
             }
         }
@@ -520,10 +456,10 @@ class GoodsEditDraftGoodTests(DataTestClient):
         good = response.json()["good"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(good["firearm_details"]["has_identification_markings"])
+        self.assertEqual(good["firearm_details"]["serial_numbers_available"], "AVAILABLE")
         self.assertEqual(good["firearm_details"]["no_identification_markings_details"], "")
 
-    def test_edit_category_two_no_identification_markings_no_details_provided_failure(self):
+    def test_edit_category_two_identification_markings_details_success_backwards_compatibility(self):
         good = self.create_good(
             "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
         )
@@ -531,58 +467,15 @@ class GoodsEditDraftGoodTests(DataTestClient):
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
             "firearm_details": {
-                "has_identification_markings": "False",
+                "has_identification_markings": False,
                 "no_identification_markings_details": "",
             }
         }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
+        good = response.json()["good"]
 
-        good.refresh_from_db()
-
-        # assert good didn't get edited
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(good.firearm_details.has_identification_markings)
-        self.assertEqual(good.firearm_details.no_identification_markings_details, "")
-        self.assertEqual(
-            errors["no_identification_markings_details"], ["Enter a reason why the product has not been marked"]
-        )
-
-    @parameterized.expand(
-        [
-            ["False", "no_identification_markings_details"],
-        ]
-    )
-    def test_edit_category_two_good_has_markings_details_too_long_failure(
-        self, has_identification_markings, details_field
-    ):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
-
-        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-
-        data = {
-            "description": "coffee",
-            "is_good_controlled": False,
-            "is_pv_graded": GoodPvGraded.NO,
-            "item_category": ItemCategory.GROUP2_FIREARMS,
-            "validate_only": True,
-            "firearm_details": {
-                "type": FirearmGoodType.AMMUNITION,
-                "calibre": "0.5",
-                "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "No",
-                "section_certificate_number": "",
-                "section_certificate_date_of_expiry": "",
-                "has_identification_markings": has_identification_markings,
-                details_field: "A" * 2001,
-            },
-        }
-
-        response = self.client.put(url, data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors[details_field], ["Ensure this field has no more than 2000 characters."])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(good["firearm_details"]["serial_numbers_available"], "NOT_AVAILABLE")
+        self.assertFalse(good["firearm_details"]["has_identification_markings"])
+        self.assertEqual(good["firearm_details"]["no_identification_markings_details"], "")

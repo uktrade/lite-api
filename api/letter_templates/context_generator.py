@@ -582,16 +582,14 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "firearms_act_section",
             "section_certificate_number",
             "section_certificate_date_of_expiry",
-            "has_identification_markings",
+            "has_serial_numbers",
             "no_identification_markings_details",
             "serial_numbers_available",
-            "no_serial_numbers_reason",
             "number_of_items",
             "serial_numbers",
         ]
 
     section_certificate_date_of_expiry = serializers.DateField(format=DATE_FORMAT, input_formats=None)
-    has_identification_markings = FriendlyBooleanField()
 
 
 class GoodSerializer(serializers.ModelSerializer):
