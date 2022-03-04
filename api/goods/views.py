@@ -35,6 +35,7 @@ from api.goods.serializers import (
     GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
     ControlGoodOnApplicationSerializer,
+    FirearmDetailsSerializer,
     GoodListSerializer,
     GoodSerializerInternal,
     GoodSerializerExporter,
@@ -549,3 +550,32 @@ class GoodDocumentDetail(APIView):
                 good_on_application.delete()
 
         return JsonResponse({"document": "deleted success"})
+
+
+class GoodUpdateSerialNumbers(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def put(self, request, pk):
+        good = get_good(pk)
+
+        if good.status != GoodStatus.SUBMITTED:
+            raise BadRequestError({"non_field_errors": ["This good has not been submitted"]})
+
+        data = request.data.copy()
+
+        serializer = FirearmDetailsSerializer(
+            instance=good.firearm_details,
+            data=data,
+            partial=True,
+        )
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        return JsonResponse(
+            {
+                "serial_numbers": serializer.validated_data["serial_numbers"],
+            },
+            status=status.HTTP_200_OK,
+        )

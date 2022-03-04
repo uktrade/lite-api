@@ -23,6 +23,11 @@ urlpatterns = [
         name="document",
     ),
     path(
+        "<uuid:pk>/update-serial-numbers/",
+        views.GoodUpdateSerialNumbers.as_view(),
+        name="update_serial_numbers",
+    ),
+    path(
         "control-list-entries/<uuid:case_pk>/",
         views.GoodsListControlCode.as_view(),
         name="control_list_entries",
