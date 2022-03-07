@@ -167,7 +167,10 @@ DELTA_VERBS = {
 
 
 # Verbs that remain unchanged
-EXCLUDED = [AuditType.CREATED]
+EXCLUDED = [
+    AuditType.CREATED,
+    AuditType.UPDATED_SERIAL_NUMBERS,
+]
 
 
 def migrate_audit_verbs(apps, schema_editor):
