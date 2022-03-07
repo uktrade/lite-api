@@ -31,6 +31,7 @@ from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.helpers import FIREARMS_CORE_TYPES, has_valid_certificate
 from api.goods.libraries.get_goods import get_good_with_organisation
+from api.goods.serializers import FirearmDetailsSerializer
 from api.goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
@@ -38,6 +39,7 @@ from lite_content.lite_api import strings
 from api.organisations.models import OrganisationDocumentType
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.staticdata.countries.models import Country
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterUser
 
 
@@ -418,3 +420,48 @@ class ApplicationGoodsTypeCountries(APIView):
                 )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+
+class ApplicationGoodOnApplicationUpdateSerialNumbers(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def put(self, request, pk, good_on_application_pk):
+        application = get_application(pk)
+
+        if application.status.status not in [
+            CaseStatusEnum.SUBMITTED,
+            CaseStatusEnum.FINALISED,
+        ]:
+            raise BadRequestError({"non_field_errors": ["Incorrect application status"]})
+
+        good_on_application = GoodOnApplication.objects.get(pk=good_on_application_pk)
+
+        data = request.data.copy()
+
+        serializer = FirearmDetailsSerializer(
+            instance=good_on_application.firearm_details,
+            data=data,
+            partial=True,
+        )
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_SERIAL_NUMBERS,
+            target=application.get_case(),
+            payload={
+                "good_name": good_on_application.good.name,
+            },
+            ignore_case_status=True,
+            send_notification=False,
+        )
+
+        return JsonResponse(
+            {
+                "serial_numbers": serializer.validated_data["serial_numbers"],
+            },
+            status=status.HTTP_200_OK,
+        )

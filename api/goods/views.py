@@ -35,7 +35,6 @@ from api.goods.serializers import (
     GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
     ControlGoodOnApplicationSerializer,
-    FirearmDetailsSerializer,
     GoodListSerializer,
     GoodSerializerInternal,
     GoodSerializerExporter,
@@ -51,7 +50,6 @@ from api.organisations.models import OrganisationDocumentType
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.models import ExporterNotification
 from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
@@ -551,50 +549,3 @@ class GoodDocumentDetail(APIView):
                 good_on_application.delete()
 
         return JsonResponse({"document": "deleted success"})
-
-
-class GoodUpdateSerialNumbers(APIView):
-    authentication_classes = (SharedAuthentication,)
-
-    def put(self, request, pk):
-        good = get_good(pk)
-
-        if good.status != GoodStatus.SUBMITTED:
-            raise BadRequestError({"non_field_errors": ["This good has not been submitted"]})
-
-        data = request.data.copy()
-
-        serializer = FirearmDetailsSerializer(
-            instance=good.firearm_details,
-            data=data,
-            partial=True,
-        )
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save()
-
-        goods_on_applications = good.goods_on_application.exclude(
-            application__status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-        )
-
-        for goods_on_application in goods_on_applications:
-            application = goods_on_application.application
-
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.UPDATED_SERIAL_NUMBERS,
-                target=application.get_case(),
-                payload={
-                    "good_name": good.name,
-                },
-                ignore_case_status=True,
-                send_notification=False,
-            )
-
-        return JsonResponse(
-            {
-                "serial_numbers": serializer.validated_data["serial_numbers"],
-            },
-            status=status.HTTP_200_OK,
-        )

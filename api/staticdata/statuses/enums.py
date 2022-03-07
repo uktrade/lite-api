@@ -177,3 +177,7 @@ class CaseStatusEnum:
         # Exclude the 'Draft' system status
         statuses = CaseStatus.objects.all().order_by("priority").exclude(status="draft")
         return CaseStatusSerializer(statuses, many=True).data
+
+    @classmethod
+    def all(cls):
+        return [k for k, _ in [*cls.choices, (cls.DRAFT, "Draft")]]
