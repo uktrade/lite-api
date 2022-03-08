@@ -607,37 +607,6 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(good["firearm_details"]["serial_numbers_available"], "AVAILABLE")
 
-    def test_add_category_two_good_yes_markings_selected_success_backwards_compatibility(self):
-        data = {
-            "name": "Rifle",
-            "description": "Firearm product",
-            "is_good_controlled": False,
-            "is_pv_graded": GoodPvGraded.NO,
-            "item_category": ItemCategory.GROUP2_FIREARMS,
-            "validate_only": True,
-            "is_military_use": MilitaryUse.NO,
-            "modified_military_use_details": "",
-            "uses_information_security": False,
-            "firearm_details": {
-                "type": FirearmGoodType.AMMUNITION,
-                "calibre": "0.5",
-                "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "No",
-                "firearms_act_section": "firearms_act_section2",
-                "section_certificate_number": "",
-                "section_certificate_date_of_expiry": "",
-                "has_identification_markings": True,
-                "no_identification_markings_details": "",
-            },
-        }
-
-        response = self.client.post(URL, data, **self.exporter_headers)
-        good = response.json()["good"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(good["firearm_details"]["serial_numbers_available"], "AVAILABLE")
-        self.assertTrue(good["firearm_details"]["has_identification_markings"])
-
     def test_add_category_two_good_only_correct_markings_details_set_success(self):
         """If details are provided for both answers, ensure that only the details for the given answer are stored."""
         data = {
@@ -668,39 +637,6 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(good["firearm_details"]["serial_numbers_available"], "AVAILABLE")
-        self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
-
-    def test_add_category_two_good_only_correct_markings_details_set_success_backwards_compatibility(self):
-        """If details are provided for both answers, ensure that only the details for the given answer are stored."""
-        data = {
-            "name": "Rifle",
-            "description": "Firearm product",
-            "is_good_controlled": False,
-            "is_pv_graded": GoodPvGraded.NO,
-            "item_category": ItemCategory.GROUP2_FIREARMS,
-            "validate_only": True,
-            "is_military_use": MilitaryUse.NO,
-            "modified_military_use_details": "",
-            "uses_information_security": False,
-            "firearm_details": {
-                "type": FirearmGoodType.AMMUNITION,
-                "calibre": "0.5",
-                "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "No",
-                "firearms_act_section": "firearms_act_section1",
-                "section_certificate_number": "",
-                "section_certificate_date_of_expiry": "",
-                "has_identification_markings": True,
-                "no_identification_markings_details": "some non marking details",
-            },
-        }
-
-        response = self.client.post(URL, data, **self.exporter_headers)
-        good = response.json()["good"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(good["firearm_details"]["serial_numbers_available"], "AVAILABLE")
-        self.assertTrue(good["firearm_details"]["has_identification_markings"])
         self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
 
     def test_add_category_two_success(self):
@@ -753,59 +689,6 @@ class CreateGoodTests(DataTestClient):
             data["firearm_details"]["section_certificate_date_of_expiry"],
         )
         self.assertEqual(good["firearm_details"]["serial_numbers_available"], "AVAILABLE")
-        self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
-
-    def test_add_category_two_success_backwards_compatibility(self):
-        data = {
-            "name": "Rifle",
-            "description": "Firearm product",
-            "is_good_controlled": False,
-            "is_pv_graded": GoodPvGraded.NO,
-            "item_category": ItemCategory.GROUP2_FIREARMS,
-            "validate_only": True,
-            "is_military_use": MilitaryUse.NO,
-            "modified_military_use_details": "",
-            "uses_information_security": False,
-            "firearm_details": {
-                "type": FirearmGoodType.AMMUNITION,
-                "calibre": "0.5",
-                "year_of_manufacture": "1991",
-                "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
-                "firearms_act_section": "firearms_act_section2",
-                "section_certificate_number": "ABC123",
-                "section_certificate_date_of_expiry": "2022-12-12",
-                "has_identification_markings": True,
-                "no_identification_markings_details": "",
-            },
-        }
-
-        response = self.client.post(URL, data, **self.exporter_headers)
-        good = response.json()["good"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # good details
-        self.assertEqual(good["description"], data["description"])
-        self.assertEqual(good["is_good_controlled"]["key"], str(data["is_good_controlled"]))
-        self.assertEqual(good["is_pv_graded"]["key"], data["is_pv_graded"])
-        self.assertEqual(good["item_category"]["key"], data["item_category"])
-
-        # good's firearm details
-        self.assertEqual(good["firearm_details"]["type"]["key"], data["firearm_details"]["type"])
-        self.assertEqual(good["firearm_details"]["calibre"], data["firearm_details"]["calibre"])
-        self.assertEqual(
-            str(good["firearm_details"]["year_of_manufacture"]), data["firearm_details"]["year_of_manufacture"]
-        )
-        self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "Yes")
-        self.assertEqual(
-            good["firearm_details"]["section_certificate_number"], data["firearm_details"]["section_certificate_number"]
-        )
-        self.assertEqual(
-            good["firearm_details"]["section_certificate_date_of_expiry"],
-            data["firearm_details"]["section_certificate_date_of_expiry"],
-        )
-        self.assertEqual(good["firearm_details"]["serial_numbers_available"], "AVAILABLE")
-        self.assertTrue(good["firearm_details"]["has_identification_markings"])
         self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
 
     def test_add_category_two_good_has_markings_details_too_long_failure(self):
