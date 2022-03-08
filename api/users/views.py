@@ -49,28 +49,37 @@ class AuthenticateExporterUser(APIView):
         Returns a token which is just our ID for the user
         """
         data = request.data
+        first_name = data.get("user_profile", {}).get("first_name", "")
+        last_name = data.get("user_profile", {}).get("last_name", "")
 
-        user_profile = data.get("user_profile")
-        if not user_profile:
-            return JsonResponse(
-                data={"errors": [strings.Login.Error.USER_PROFILE]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        first_name = data.get("user_profile").get("first_name")
-        last_name = data.get("user_profile").get("last_name")
-        if not first_name or not last_name:
-            return JsonResponse(
-                data={"errors": [strings.Login.Error.USER_PROFILE]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
+        # Once we go live with gov.uk we can remove this check
+        if data.get("no_profile_login"):
+            if not data.get("email"):
+                return JsonResponse(
+                    data={"errors": ["No email provided"]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            user_profile = data.get("user_profile")
+            if not user_profile:
+                return JsonResponse(
+                    data={"errors": [strings.Login.Error.USER_PROFILE]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            first_name = data.get("user_profile").get("first_name")
+            last_name = data.get("user_profile").get("last_name")
+            if not first_name or not last_name:
+                return JsonResponse(
+                    data={"errors": [strings.Login.Error.USER_PROFILE]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         try:
             user = ExporterUser.objects.get(baseuser_ptr__email__iexact=data.get("email"))
-            # Update the user's first and last names
-            user.baseuser_ptr.first_name = first_name
-            user.baseuser_ptr.last_name = last_name
-            user.baseuser_ptr.save()
+            if first_name and last_name:
+                # Update the user's first and last names
+                user.baseuser_ptr.first_name = first_name
+                user.baseuser_ptr.last_name = last_name
+                user.baseuser_ptr.save()
         except ExporterUser.DoesNotExist:
             return JsonResponse(
                 data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_401_UNAUTHORIZED
