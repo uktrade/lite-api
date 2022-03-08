@@ -20,6 +20,11 @@ app_name = "applications"
 
 urlpatterns = [
     path("", applications.ApplicationList.as_view(), name="applications"),
+    path(
+        "require-serial-numbers/",
+        applications.ApplicationsRequireSerialNumbersList.as_view(),
+        name="require_serial_numbers",
+    ),
     path("<uuid:pk>/", applications.ApplicationDetail.as_view(), name="application"),
     path("existing/", applications.ApplicationExisting.as_view(), name="existing"),
     path("<uuid:pk>/activity/", activities.ActivityView.as_view(), name="activities"),

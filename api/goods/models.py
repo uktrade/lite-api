@@ -33,8 +33,12 @@ class FirearmGoodDetails(models.Model):
         NOT_AVAILABLE = "NOT_AVAILABLE", "No"
 
         @classmethod
+        def get_has_serial_numbers_values(cls):
+            return [cls.AVAILABLE, cls.LATER]
+
+        @classmethod
         def has_serial_numbers(cls, value):
-            return value in [cls.AVAILABLE, cls.LATER]
+            return value in cls.get_has_serial_numbers_values()
 
         @classmethod
         def convert_has_identification_markings(cls, value):
