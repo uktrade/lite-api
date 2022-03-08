@@ -1,5 +1,6 @@
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from api.cases.models import Advice, GoodCountryDecision
+from api.applications.models import GoodOnApplication
 
 
 def get_required_decision_document_types(case):
@@ -17,6 +18,12 @@ def get_required_decision_document_types(case):
     if AdviceType.PROVISO in required_decisions:
         required_decisions.add(AdviceType.APPROVE)
         required_decisions.remove(AdviceType.PROVISO)
+
+    # Check if no controlled good on application then no approval document required.
+    has_controlled_good = GoodOnApplication.objects.filter(application=case.id, is_good_controlled=True).exists()
+
+    if not has_controlled_good and AdviceType.NO_LICENCE_REQUIRED in required_decisions:
+        required_decisions.discard(AdviceType.APPROVE)
 
     # If Open application, use GoodCountryDecision to override whether approve/refuse is needed.
     if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
