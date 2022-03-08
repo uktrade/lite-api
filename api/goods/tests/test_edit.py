@@ -17,7 +17,6 @@ from api.goods.models import Good, PvGradingDetails
 from api.goods.tests.factories import GoodFactory
 from lite_content.lite_api import strings
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
-from api.staticdata.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 
 
@@ -230,49 +229,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [Component.YES_DESIGNED, "designed_details", strings.Goods.NO_DESIGN_COMPONENT_DETAILS],
-            [Component.YES_MODIFIED, "modified_details", strings.Goods.NO_MODIFIED_COMPONENT_DETAILS],
-            [Component.YES_GENERAL_PURPOSE, "general_details", strings.Goods.NO_GENERAL_COMPONENT_DETAILS],
-        ]
-    )
-    def test_edit_component_to_yes_option_with_no_details_field_failure(self, component, details_field, error):
-        good = self.create_good("a good", self.organisation, is_component=Component.NO)
-        request_data = {"is_component": component, details_field: ""}
-        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-
-        response = self.client.put(url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[details_field], [error])
-        self.assertEqual(good.is_component, Component.NO)
-        self.assertIsNone(good.component_details)
-
-    def test_edit_component_no_selection_failure(self):
-        request_data = {"is_component_step": True}
-
-        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors["is_component"], [strings.Goods.FORM_NO_COMPONENT_SELECTED])
-
-    def test_edit_information_security_no_selection_failure(self):
-        request_data = {"uses_information_security": ""}
-
-        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(
-            errors["uses_information_security"], [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]
-        )
-
-    @parameterized.expand(
-        [
             [ItemCategory.GROUP3_SOFTWARE, "new software details"],
             [ItemCategory.GROUP3_TECHNOLOGY, "new technology details"],
         ]
@@ -291,26 +247,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good["software_or_technology_details"], details)
         # 2 due to creating a new good for this test
         self.assertEqual(Good.objects.all().count(), 2)
-
-    @parameterized.expand(
-        [
-            [ItemCategory.GROUP3_SOFTWARE, strings.Goods.FORM_NO_SOFTWARE_DETAILS],
-            [ItemCategory.GROUP3_TECHNOLOGY, strings.Goods.FORM_NO_TECHNOLOGY_DETAILS],
-        ]
-    )
-    def test_edit_software_or_technology_details_failure(self, category, error):
-        good = self.create_good(
-            "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
-        )
-        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-        request_data = {"is_software_or_technology_step": True, "software_or_technology_details": ""}
-
-        response = self.client.put(url, request_data, **self.exporter_headers)
-        errors = response.json()["errors"]
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors["software_or_technology_details"], [error])
 
     def test_cannot_edit_component_and_component_details_of_non_category_one_good_failure(self):
         good = self.create_good(
