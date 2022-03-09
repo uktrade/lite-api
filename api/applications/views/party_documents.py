@@ -20,49 +20,47 @@ class PartyDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
+    @property
+    def application(self):
+        return get_application(self.kwargs["pk"])
+
+    @property
+    def party(self):
+        return self.application.get_party(self.kwargs["party_pk"])
+
     @authorised_to_view_application(ExporterUser)
-    def get(self, request, pk, party_pk):
-        application = get_application(pk)
-        party = application.get_party(party_pk)
-        return get_party_document(party)
+    def get(self, request, **kwargs):
+        return get_party_document(self.party)
 
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
-    def post(self, request, pk, party_pk):
-        application = get_application(pk)
-        party = application.get_party(party_pk)
-        return upload_party_document(party, request.data, application, request.user)
+    def post(self, request, **kwargs):
+        return upload_party_document(self.party, request.data, self.application, request.user)
 
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
-    def delete(self, request, pk, party_pk):
-        application = get_application(pk)
-        party = application.get_party(party_pk)
-        return delete_party_document(party, application, request.user)
-
-    @transaction.atomic
-    @authorised_to_view_application(ExporterUser)
-    def delete(self, request, pk, party_pk, document_pk):
-        application = get_application(pk)
-        party = application.get_party(party_pk)
-        if not party:
-            return JsonResponse(data={"error": "No such user"}, status=status.HTTP_404_NOT_FOUND)
+    def delete(self, request, **kwargs):
+        document_pk = self.kwargs.get("document_pk")
+        if not document_pk:
+            return delete_party_document(self.party, self.application, request.user)
 
         try:
             document = PartyDocument.objects.get(id=document_pk)
-            document.delete_s3()
-            document.delete()
-
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.DELETE_PARTY_DOCUMENT,
-                target=application.get_case(),
-                payload={"party_type": party.type.replace("_", " "), "party_name": party.name, "file_name": document.name},
-            )
-
-            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
         except PartyDocument.DoesNotExist:
             return JsonResponse(data={"error": "Party document does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
+        document.delete_s3()
+        document.delete()
 
-        return delete_party_document(party, application, request.user)
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.DELETE_PARTY_DOCUMENT,
+            target=self.application.get_case(),
+            payload={
+                "party_type": self.party.type.replace("_", " "),
+                "party_name": self.party.name,
+                "file_name": document.name,
+            },
+        )
+
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)

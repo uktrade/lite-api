@@ -24,6 +24,16 @@ from api.users.models import ExporterUser
 class ApplicationPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
+    @property
+    def application(self):
+        return get_application(self.kwargs["pk"])
+
+    @property
+    def party(self):
+        application = get_application(self.kwargs["pk"])
+        party_on_application = application.active_parties.get(party_id=self.kwargs["party_pk"])
+        return party_on_application.party
+
     @allowed_party_type_for_open_application_goodstype_category()
     @authorised_to_view_application(ExporterUser)
     @application_in_state(is_major_editable=True)
@@ -93,19 +103,27 @@ class ApplicationPartyView(APIView):
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
             target=application.get_case(),
-            payload={"party_type": poa.party.type.replace("_", " "), "party_name": poa.party.name,},
+            payload={
+                "party_type": poa.party.type.replace("_", " "),
+                "party_name": poa.party.name,
+            },
         )
 
         return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)
 
     @authorised_to_view_application(ExporterUser)
-    def get(self, request, pk):
+    def get(self, request, **kwargs):
         """
         Get parties for an application
         """
-        application = get_application(pk)
+        party_pk = self.kwargs.get("party_pk")
+        if party_pk:
+            party_data = PartySerializer(self.party).data
+            return JsonResponse(data={"type": party_data["type"], "data": party_data})
 
-        application_parties = application.active_parties.all().filter(deleted_at__isnull=True).select_related("party")
+        application_parties = (
+            self.application.active_parties.all().filter(deleted_at__isnull=True).select_related("party")
+        )
 
         if "type" in request.GET:
             application_parties = application_parties.filter(party__type=request.GET["type"])
@@ -117,20 +135,8 @@ class ApplicationPartyView(APIView):
         return JsonResponse(data={key: parties_data})
 
     @authorised_to_view_application(ExporterUser)
-    def get(self, request, pk, party_pk):
-        """
-        Get party detail
-        """
-        application = get_application(pk)
-        party = application.active_parties.get(party_id=party_pk)
-        party_data = PartySerializer(party.party).data
-        return JsonResponse(data={party_data["type"]: party_data})
-
-    @authorised_to_view_application(ExporterUser)
-    def put(self, request, pk, party_pk):
-        application = get_application(pk)
-        party = application.active_parties.get(party_id=party_pk)
-        serializer = PartySerializer(instance=party.party, data=request.data, partial=True)
+    def put(self, request, **kwargs):
+        serializer = PartySerializer(instance=self.party, data=request.data, partial=True)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
