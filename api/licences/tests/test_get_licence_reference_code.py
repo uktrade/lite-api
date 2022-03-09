@@ -13,10 +13,11 @@ class GetLicenceReferenceCodeTests(DataTestClient):
     def test_get_first_licence_reference_code(self):
         """
         Check the first licence reference code matches the application reference
+        with a suffix
         """
         reference_code = get_licence_reference_code(self.application.reference_code)
 
-        self.assertEqual(reference_code, self.application.reference_code)
+        self.assertEqual(reference_code, f"{self.application.reference_code}-01")
 
     def test_get_amended_licence_old_reference_code_format(self):
         """
@@ -32,9 +33,9 @@ class GetLicenceReferenceCodeTests(DataTestClient):
 
     def test_get_amended_licence_reference_code(self):
         """
-        Check all amended licences get suffix '-01', '-02', '-03' etc.
+        Check all amended licences get suffix starting from '-02' then '-03', '-04', '-05' etc.
         """
-        for number in range(100, 1):
+        for number in range(100, 2):
             self.create_licence(self.application, status=LicenceStatus.ISSUED)
             reference_code = get_licence_reference_code(self.application.reference_code)
             self.assertEqual(reference_code, f"{self.application.reference_code}-{number:02}")

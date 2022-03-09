@@ -20,6 +20,11 @@ app_name = "applications"
 
 urlpatterns = [
     path("", applications.ApplicationList.as_view(), name="applications"),
+    path(
+        "require-serial-numbers/",
+        applications.ApplicationsRequireSerialNumbersList.as_view(),
+        name="require_serial_numbers",
+    ),
     path("<uuid:pk>/", applications.ApplicationDetail.as_view(), name="application"),
     path("existing/", applications.ApplicationExisting.as_view(), name="existing"),
     path("<uuid:pk>/activity/", activities.ActivityView.as_view(), name="activities"),
@@ -59,6 +64,11 @@ urlpatterns = [
         "<uuid:pk>/goods/<uuid:good_pk>/documents/<uuid:doc_pk>/",
         goods.ApplicationGoodOnApplicationDocumentDetailView.as_view(),
         name="application-goods-document-detail",
+    ),
+    path(
+        "<uuid:pk>/good-on-application/<uuid:good_on_application_pk>/update-serial-numbers/",
+        goods.ApplicationGoodOnApplicationUpdateSerialNumbers.as_view(),
+        name="good_on_application_update_serial_numbers",
     ),
     # Goods types
     path("<uuid:pk>/goodstypes/", goods.ApplicationGoodsTypes.as_view(), name="application_goodstypes"),

@@ -158,4 +158,5 @@ audit_type_format = {
     AuditType.DOCUMENT_ON_ORGANISATION_CREATE: "added {document_type} '{file_name}' to organization",
     AuditType.REPORT_SUMMARY_UPDATED: "updated ARS for {good_name} from {old_report_summary} to {report_summary}",
     AuditType.COUNTERSIGN_ADVICE: "countersigned all {department|} recommendations",
+    AuditType.UPDATED_SERIAL_NUMBERS: "updated serial numbers on '{good_name}'",
 }

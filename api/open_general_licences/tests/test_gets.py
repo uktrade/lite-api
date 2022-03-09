@@ -85,7 +85,7 @@ class ExporterListTests(DataTestClient):
         self.assertEqual(len(response.json()["results"]), 1)
         self.assertEqual(len(response.json()["results"][0]["registrations"]), 2)
         registration = response.json()["results"][0]["registrations"][0]
-        self.assertEqual(registration["reference_code"], self.open_general_licence_case.reference_code)
+        self.assertEqual(registration["reference_code"], f"{self.open_general_licence_case.reference_code}-01")
         self.assertEqual(registration["site"]["id"], str(self.organisation.primary_site.id))
         self.assertEqual(registration["site"]["name"], self.organisation.primary_site.name)
         self.assertEqual(

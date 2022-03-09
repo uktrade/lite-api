@@ -21,6 +21,25 @@ class ApplicationExportType:
     ]
 
 
+class GoodsStartingPoint:
+    choices = [
+        ("GB", "Great Britain"),
+        ("NI", "Northern Ireland"),
+    ]
+
+
+class GoodsRecipients:
+    DIRECT_TO_END_USER = "direct_to_end_user"
+    VIA_CONSIGNEE = "via_consignee"
+    VIA_CONSIGNEE_AND_THIRD_PARTIES = "via_consignee_and_third_parties"
+
+    choices = [
+        (DIRECT_TO_END_USER, "Directly to the end-user"),
+        (VIA_CONSIGNEE, "To an end-user via a consignee"),
+        (VIA_CONSIGNEE_AND_THIRD_PARTIES, "To an end-user via a consignee, with additional third parties"),
+    ]
+
+
 class GoodsTypeCategory:
     MILITARY = "military"
     CRYPTOGRAPHIC = "cryptographic"
