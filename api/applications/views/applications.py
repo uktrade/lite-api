@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError, ParseError
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
 
 from api.applications import constants
@@ -43,6 +43,7 @@ from api.applications.models import (
     CountryOnApplication,
     ExternalLocationOnApplication,
     PartyOnApplication,
+    StandardApplication,
     F680ClearanceApplication,
 )
 from api.applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
@@ -50,6 +51,7 @@ from api.applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
+from api.applications.serializers.standard_application import StandardApplicationViewSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
@@ -71,6 +73,7 @@ from api.core.permissions import assert_user_has_permission
 from api.flags.enums import FlagStatuses, SystemFlags
 from api.flags.models import Flag
 from api.goods.serializers import GoodCreateSerializer
+from api.goods.models import FirearmGoodDetails
 from api.goodstype.models import GoodsType
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code, update_licence_status
@@ -151,6 +154,30 @@ class ApplicationList(ListCreateAPIView):
         if serializer.is_valid(raise_exception=True):
             application = serializer.save()
             return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
+
+
+class ApplicationsRequireSerialNumbersList(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = StandardApplicationViewSerializer
+
+    def get_queryset(self):
+        organisation = get_request_user_organisation(self.request)
+
+        applications = StandardApplication.objects.filter(organisation=organisation).prefetch_related(
+            "goods__firearm_details"
+        )
+        applications = applications.filter(
+            status__in=[
+                get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+                get_case_status_by_status(CaseStatusEnum.FINALISED),
+            ]
+        )
+        applications = applications.filter(
+            goods__firearm_details__serial_numbers_available__in=FirearmGoodDetails.SerialNumberAvailability.get_has_serial_numbers_values(),
+            goods__firearm_details__serial_numbers__len__lt=F("goods__firearm_details__number_of_items"),
+        )
+
+        return applications
 
 
 class ApplicationExisting(APIView):
