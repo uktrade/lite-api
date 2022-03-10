@@ -21,8 +21,13 @@ class PartySerializer(serializers.ModelSerializer):
     signatory_name_euu = serializers.CharField(allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices, error_messages=PartyErrors.TYPE)
     type_display_value = serializers.SerializerMethodField()
+    end_user_document_available = serializers.BooleanField(allow_null=True, required=False)
+    end_user_document_missing_reason = serializers.CharField(required=False, allow_blank=True)
+    document_in_english = serializers.BooleanField(allow_null=True, required=False)
+    document_on_letterhead = serializers.BooleanField(allow_null=True, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
     role = KeyValueChoiceField(choices=PartyRole.choices, error_messages=PartyErrors.ROLE, required=False)
     role_other = serializers.CharField(
         max_length=75, allow_null=True, allow_blank=True, required=False, error_messages=PartyErrors.ROLE_OTHER
@@ -50,8 +55,13 @@ class PartySerializer(serializers.ModelSerializer):
             "type_display_value",
             "organisation",
             "document",
+            "documents",
             "sub_type",
             "sub_type_other",
+            "end_user_document_available",
+            "end_user_document_missing_reason",
+            "document_in_english",
+            "document_on_letterhead",
             "role",
             "role_other",
             "flags",
@@ -127,6 +137,10 @@ class PartySerializer(serializers.ModelSerializer):
         docs = PartyDocument.objects.filter(party=instance)
         return docs.values()[0] if docs.exists() else None
 
+    def get_documents(self, instance):
+        docs = PartyDocument.objects.filter(party=instance)
+        return PartyDocumentSerializer(docs, many=True).data
+
     def get_type_display_value(self, instance):
         return instance.get_type_display()
 
@@ -144,11 +158,13 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         model = PartyDocument
         fields = (
             "id",
+            "type",
             "name",
             "s3_key",
             "size",
             "party",
             "safe",
+            "description",
         )
 
     def create(self, validated_data):

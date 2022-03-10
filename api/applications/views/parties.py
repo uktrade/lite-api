@@ -24,6 +24,16 @@ from api.users.models import ExporterUser
 class ApplicationPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
+    @property
+    def application(self):
+        return get_application(self.kwargs["pk"])
+
+    @property
+    def party(self):
+        application = get_application(self.kwargs["pk"])
+        party_on_application = application.active_parties.get(party_id=self.kwargs["party_pk"])
+        return party_on_application.party
+
     @allowed_party_type_for_open_application_goodstype_category()
     @authorised_to_view_application(ExporterUser)
     @application_in_state(is_major_editable=True)
@@ -102,13 +112,18 @@ class ApplicationPartyView(APIView):
         return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)
 
     @authorised_to_view_application(ExporterUser)
-    def get(self, request, pk):
+    def get(self, request, **kwargs):
         """
         Get parties for an application
         """
-        application = get_application(pk)
+        party_pk = self.kwargs.get("party_pk")
+        if party_pk:
+            party_data = PartySerializer(self.party).data
+            return JsonResponse(data={"type": party_data["type"], "data": party_data})
 
-        application_parties = application.active_parties.all().filter(deleted_at__isnull=True).select_related("party")
+        application_parties = (
+            self.application.active_parties.all().filter(deleted_at__isnull=True).select_related("party")
+        )
 
         if "type" in request.GET:
             application_parties = application_parties.filter(party__type=request.GET["type"])
@@ -118,6 +133,16 @@ class ApplicationPartyView(APIView):
         key = PartyType.api_key_name(request.GET["type"]) if "type" in request.GET else "parties"
 
         return JsonResponse(data={key: parties_data})
+
+    @authorised_to_view_application(ExporterUser)
+    def put(self, request, **kwargs):
+        serializer = PartySerializer(instance=self.party, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        party_data = serializer.data
+        return JsonResponse(data={party_data["type"]: party_data})
 
 
 class CopyPartyView(APIView):

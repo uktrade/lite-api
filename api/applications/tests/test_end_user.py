@@ -33,7 +33,7 @@ class EndUserOnDraftTests(DataTestClient):
         )
 
         self.new_document_data = {
-            "name": "document_name.pdf",
+            "name": "updated_document_name.pdf",
             "s3_key": "s3_keykey.pdf",
             "size": 123456,
         }
@@ -183,7 +183,7 @@ class EndUserOnDraftTests(DataTestClient):
         expected = self.new_document_data
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["name"], expected["name"])
+        self.assertEqual(response_data["name"], "document_name.pdf")
         self.assertEqual(response_data["s3_key"], expected["s3_key"])
         self.assertEqual(response_data["size"], expected["size"])
 
@@ -272,7 +272,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def test_post_end_user_document_when_a_document_already_exists_failure(self, scan_document_for_viruses_function):
+    def test_post_end_user_document_when_a_document_already_exists_success(self, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -280,13 +280,16 @@ class EndUserOnDraftTests(DataTestClient):
         When there is an attempt to post a document
         Then a 400 BAD REQUEST is returned
         """
-        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
         end_user = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         ).party
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(PartyDocument.objects.filter(party=end_user).count(), 1)
+
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        party_documents = PartyDocument.objects.filter(party=end_user)
+        self.assertEqual(party_documents.count(), 1)
+        self.assertEqual(party_documents.first().name, "updated_document_name.pdf")
 
     @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     @mock.patch("api.documents.models.Document.delete_s3")
