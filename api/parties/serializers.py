@@ -23,6 +23,7 @@ class PartySerializer(serializers.ModelSerializer):
     type_display_value = serializers.SerializerMethodField()
     end_user_document_available = serializers.BooleanField(allow_null=True, required=False)
     end_user_document_missing_reason = serializers.CharField(required=False, allow_blank=True)
+    product_differences_note = serializers.CharField(required=False, allow_blank=True)
     document_in_english = serializers.BooleanField(allow_null=True, required=False)
     document_on_letterhead = serializers.BooleanField(allow_null=True, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -60,6 +61,7 @@ class PartySerializer(serializers.ModelSerializer):
             "sub_type_other",
             "end_user_document_available",
             "end_user_document_missing_reason",
+            "product_differences_note",
             "document_in_english",
             "document_on_letterhead",
             "role",
@@ -164,7 +166,6 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
             "size",
             "party",
             "safe",
-            "description",
         )
 
     def create(self, validated_data):
