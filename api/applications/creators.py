@@ -12,7 +12,6 @@ from api.applications.models import (
 )
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.helpers import str_to_bool
-from api.documents.models import Document
 from api.goods.models import GoodDocument
 from api.goodstype.models import GoodsType
 from api.goodstype.document.models import GoodsTypeDocument
@@ -70,21 +69,19 @@ def check_party_document(party, is_mandatory):
     """
     Checks for existence of and status of document (if it is mandatory) and return any errors
     """
-
-    try:
-        document = PartyDocument.objects.get(party=party)
-    except Document.DoesNotExist:
-        document = None
+    documents_qs = PartyDocument.objects.filter(party=party).values_list("safe", flat=True)
+    if not documents_qs.exists():
         if is_mandatory:
             return getattr(strings.Applications.Standard, f"NO_{party.type.upper()}_DOCUMENT_SET")
-
-    if document:
-        if document.safe is None:
-            return getattr(strings.Applications.Standard, f"{party.type.upper()}_DOCUMENT_PROCESSING")
-        elif not document.safe:
-            return getattr(strings.Applications.Standard, f"{party.type.upper()}_DOCUMENT_INFECTED")
         else:
             return None
+
+    if None in documents_qs:
+        return getattr(strings.Applications.Standard, f"{party.type.upper()}_DOCUMENT_PROCESSING")
+    elif False in documents_qs:
+        return getattr(strings.Applications.Standard, f"{party.type.upper()}_DOCUMENT_INFECTED")
+
+    return None
 
 
 def check_parties_documents(parties, is_mandatory=True):
