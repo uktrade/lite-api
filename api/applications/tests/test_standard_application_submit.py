@@ -16,7 +16,7 @@ from api.goods.enums import GoodStatus, ItemCategory
 from api.goods.tests.factories import FirearmFactory, GoodFactory
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
-from api.parties.models import PartyDocument
+from api.parties.models import Party, PartyDocument
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
@@ -107,18 +107,16 @@ class StandardApplicationTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_submit_standard_application_without_end_user_document_failure(self):
+    def test_submit_standard_application_without_end_user_document_success(self):
         PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
+        party = Party.objects.get(id=self.draft.end_user.party_id)
+        party.end_user_document_available = False
+        party.save()
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
-
-        self.assertContains(
-            response,
-            text=strings.Applications.Standard.NO_END_USER_DOCUMENT_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_submit_standard_application_without_consignee_failure(self):
         self.draft.delete_party(self.draft.consignee)
