@@ -17,6 +17,7 @@ from api.goodstype.models import GoodsType
 from api.goodstype.document.models import GoodsTypeDocument
 from lite_content.lite_api import strings
 from api.parties.models import PartyDocument
+from api.parties.enums import PartyType
 
 
 def _validate_locations(application, errors):
@@ -71,6 +72,11 @@ def check_party_document(party, is_mandatory):
     """
     documents_qs = PartyDocument.objects.filter(party=party).values_list("safe", flat=True)
     if not documents_qs.exists():
+        # End-user document is mandatory but we are providing an option to not upload
+        # if there is a valid reason
+        if party.type == PartyType.END_USER and party.end_user_document_available is False:
+            return None
+
         if is_mandatory:
             return getattr(strings.Applications.Standard, f"NO_{party.type.upper()}_DOCUMENT_SET")
         else:

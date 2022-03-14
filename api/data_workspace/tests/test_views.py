@@ -60,6 +60,7 @@ class DataWorkspaceTests(DataTestClient):
             "sub_type_other",
             "end_user_document_available",
             "end_user_document_missing_reason",
+            "product_differences_note",
             "document_in_english",
             "document_on_letterhead",
             "clearance_level",

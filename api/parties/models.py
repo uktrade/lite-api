@@ -64,6 +64,7 @@ class Party(TimestampableModel):
     sub_type_other = models.CharField(max_length=75, default=None, null=True)
     end_user_document_available = models.BooleanField(blank=True, null=True)
     end_user_document_missing_reason = models.TextField(blank=True, default="")
+    product_differences_note = models.TextField(blank=True, default="")
     document_in_english = models.BooleanField(blank=True, null=True)
     document_on_letterhead = models.BooleanField(blank=True, null=True)
     clearance_level = models.CharField(
