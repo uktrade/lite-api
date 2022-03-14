@@ -18,6 +18,9 @@ from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
+from api.applications.libraries.get_applications import get_application
+from api.cases.enums import CaseTypeTypeEnum
+from api.applications.helpers import get_application_view_serializer
 
 
 def get_case_status_list() -> List[Dict]:
@@ -189,3 +192,19 @@ def get_hmrc_sla_hours(cases: List[Dict]):
     for case in cases:
         if case["id"] in hmrc_cases_goods_not_left_country:
             case["sla_hours_since_raised"] = working_hours_in_range(case["submitted_at"], timezone.now())
+
+def populate_destinations(cases: List[Dict]):
+    for case in cases:
+        id = case["id"]
+        case["destinations"] = []
+
+        if case["case_type"]["type"]["key"] == CaseTypeTypeEnum.APPLICATION:
+            application = get_application(id)
+            serializer = get_application_view_serializer(application)
+            data = serializer(application).data
+            end_user = data["end_user"]
+            third_parties = data["third_parties"]
+            consignee = data["consignee"]
+            case["destinations"].extend([end_user, consignee] + third_parties)
+        
+    return cases

@@ -1,3 +1,4 @@
+from black import format_file_contents
 import django
 from django.db.models import F, When, DateField, Exists, OuterRef
 from django.utils import timezone
@@ -22,6 +23,7 @@ class CasesSearchView(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, *args, **kwargs):
+
         user = request.user.govuser
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
@@ -94,6 +96,10 @@ class CasesSearchView(generics.ListAPIView):
         case_types = service.get_case_type_type_list()
         gov_users = service.get_gov_users_list()
         advice_types = service.get_advice_types_list()
+        # Add destinations.
+        service.populate_destinations(cases)
+
+     
 
         return self.get_paginated_response(
             {
