@@ -200,11 +200,11 @@ def populate_destinations(cases: List[Dict]):
 
         if case["case_type"]["type"]["key"] == CaseTypeTypeEnum.APPLICATION:
             for poa in PartyOnApplication.objects.filter(application=id):
-                serializer = PartyOnApplicationSerializer(poa)
-                data = serializer.data
-                destinations.append(data["party"]["country"])
+                if poa.deleted_at is None:
+                    serializer = PartyOnApplicationSerializer(poa)
+                    data = serializer.data
+                    destinations.append(data["party"])
 
-        unique_destinations = {each["id"]: each for each in destinations}.values()
-        case["destinations"] = unique_destinations
+        case["destinations"] = destinations
 
     return cases
