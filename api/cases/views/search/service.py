@@ -8,7 +8,7 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 from django.utils import timezone
 
-from api.applications.models import HmrcQuery
+from api.applications.models import HmrcQuery, PartyOnApplication
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from api.cases.models import Case
@@ -18,9 +18,8 @@ from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
-from api.applications.libraries.get_applications import get_application
 from api.cases.enums import CaseTypeTypeEnum
-from api.applications.helpers import get_application_view_serializer
+from api.applications.serializers.serializers import PartyOnApplicationSerializer
 
 
 def get_case_status_list() -> List[Dict]:
@@ -193,18 +192,19 @@ def get_hmrc_sla_hours(cases: List[Dict]):
         if case["id"] in hmrc_cases_goods_not_left_country:
             case["sla_hours_since_raised"] = working_hours_in_range(case["submitted_at"], timezone.now())
 
+
 def populate_destinations(cases: List[Dict]):
     for case in cases:
         id = case["id"]
-        case["destinations"] = []
+        destinations = []
 
         if case["case_type"]["type"]["key"] == CaseTypeTypeEnum.APPLICATION:
-            application = get_application(id)
-            serializer = get_application_view_serializer(application)
-            data = serializer(application).data
-            end_user = data["end_user"]
-            third_parties = data["third_parties"]
-            consignee = data["consignee"]
-            case["destinations"].extend([end_user, consignee] + third_parties)
-        
+            for poa in PartyOnApplication.objects.filter(application=id):
+                serializer = PartyOnApplicationSerializer(poa)
+                data = serializer.data
+                destinations.append(data["party"]["country"])
+
+        unique_destinations = {each["id"]: each for each in destinations}.values()
+        case["destinations"] = unique_destinations
+
     return cases

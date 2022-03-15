@@ -1,4 +1,3 @@
-from black import format_file_contents
 import django
 from django.db.models import F, When, DateField, Exists, OuterRef
 from django.utils import timezone
@@ -98,8 +97,6 @@ class CasesSearchView(generics.ListAPIView):
         advice_types = service.get_advice_types_list()
         # Add destinations.
         service.populate_destinations(cases)
-
-     
 
         return self.get_paginated_response(
             {
