@@ -6,7 +6,13 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from api.core.authentication import SharedAuthentication
-from api.conf.settings import env, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+from api.conf.settings import (
+    env,
+    AWS_STORAGE_BUCKET_NAME,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    S3_LOCAL_ENDPOINT_URL,
+)
 
 
 class UploadDocumentForTests(APIView):
@@ -25,6 +31,7 @@ class UploadDocumentForTests(APIView):
             "s3",
             aws_access_key_id=AWS_ACCESS_KEY_ID,
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            **({"endpoint_url": S3_LOCAL_ENDPOINT_URL} if S3_LOCAL_ENDPOINT_URL else {}),
         )
         s3_key = "lite-e2e-test-file.txt"
 

@@ -245,6 +245,7 @@ else:
     AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
     AWS_REGION = env("AWS_REGION")
     AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    S3_LOCAL_ENDPOINT_URL = env.str("S3_LOCAL_ENDPOINT_URL", None)
 
 S3_CONNECT_TIMEOUT = 60  # Maximum time, in seconds, to wait for an initial connection
 S3_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
