@@ -53,11 +53,11 @@ def get_case_notifications(data, request):
 
     # add missing serial number cases to notifications
     applications = get_cases_with_missing_serials(request)
-    cases_with_missing_serials = {application.reference_code: 1 for application in applications}
+    cases_with_missing_serials = {str(application.id): 1 for application in applications}
 
     for item in data:
-        if item["reference_code"] in cases_with_missing_serials:
-            item["exporter_user_notification_count"] += cases_with_missing_serials[item["reference_code"]]
+        if item["id"] in cases_with_missing_serials:
+            item["exporter_user_notification_count"] += cases_with_missing_serials[item["id"]]
 
     return data
 
