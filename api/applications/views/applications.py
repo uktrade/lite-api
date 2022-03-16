@@ -162,6 +162,7 @@ class ApplicationsRequireSerialNumbersList(ListAPIView):
 
     def get_queryset(self):
         organisation = get_request_user_organisation(self.request)
+
         applications = StandardApplication.objects.filter(organisation=organisation).prefetch_related(
             "goods__firearm_details"
         )
@@ -175,6 +176,7 @@ class ApplicationsRequireSerialNumbersList(ListAPIView):
             goods__firearm_details__serial_numbers_available__in=FirearmGoodDetails.SerialNumberAvailability.get_has_serial_numbers_values(),
             goods__firearm_details__serial_numbers__len__lt=F("goods__firearm_details__number_of_items"),
         )
+
         return applications
 
 
