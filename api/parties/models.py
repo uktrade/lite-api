@@ -67,6 +67,7 @@ class Party(TimestampableModel):
     product_differences_note = models.TextField(blank=True, default="")
     document_in_english = models.BooleanField(blank=True, null=True)
     document_on_letterhead = models.BooleanField(blank=True, null=True)
+    ec3_missing_reason = models.TextField(blank=True, default="")
     clearance_level = models.CharField(
         choices=PvGrading.choices, max_length=30, null=True, help_text="Only relevant to F680 applications"
     )
