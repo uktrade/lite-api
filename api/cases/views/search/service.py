@@ -19,7 +19,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
 from api.cases.enums import CaseTypeTypeEnum
-from api.applications.serializers.serializers import PartyOnApplicationSerializer
+from api.parties.serializers import PartySerializer
 
 
 def get_case_status_list() -> List[Dict]:
@@ -199,11 +199,10 @@ def populate_destinations(cases: List[Dict]):
         destinations = []
 
         if case["case_type"]["type"]["key"] == CaseTypeTypeEnum.APPLICATION:
-            for poa in PartyOnApplication.objects.filter(application=id):
-                if poa.deleted_at is None:
-                    serializer = PartyOnApplicationSerializer(poa)
-                    data = serializer.data
-                    destinations.append(data["party"])
+            for poa in PartyOnApplication.objects.filter(application=id, deleted_at=None):
+                serializer = PartySerializer(poa.party)
+                data = serializer.data
+                destinations.append(data)
 
         case["destinations"] = destinations
 
