@@ -20,7 +20,21 @@ def get_application(pk, organisation_id=None):
 
     try:
         if application_type == CaseTypeSubTypeEnum.STANDARD:
-            return StandardApplication.objects.get(pk=pk, **kwargs)
+            qs = StandardApplication.objects.select_related(
+                "baseapplication_ptr",
+                "baseapplication_ptr__end_user",
+                "baseapplication_ptr__end_user__party",
+                "case_officer",
+                "case_officer__team",
+                "case_type",
+                "organisation",
+                "organisation__primary_site",
+                "status",
+                "submitted_by",
+                "submitted_by__baseuser_ptr",
+            )
+            obj = qs.get(pk=pk, **kwargs)
+            return obj
         elif application_type == CaseTypeSubTypeEnum.OPEN:
             return OpenApplication.objects.get(pk=pk, **kwargs)
         elif application_type == CaseTypeSubTypeEnum.HMRC:
