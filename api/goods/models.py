@@ -40,13 +40,6 @@ class FirearmGoodDetails(models.Model):
         def has_serial_numbers(cls, value):
             return value in cls.get_has_serial_numbers_values()
 
-        @classmethod
-        def convert_has_identification_markings(cls, value):
-            if value is None:
-                return None
-
-            return cls.AVAILABLE if value else cls.NOT_AVAILABLE
-
     type = models.TextField(choices=FirearmGoodType.choices, blank=False)
     year_of_manufacture = models.PositiveSmallIntegerField(blank=True, null=True)
     calibre = models.TextField(blank=True)
@@ -88,10 +81,6 @@ class FirearmGoodDetails(models.Model):
     @property
     def has_serial_numbers(self):
         return self.SerialNumberAvailability.has_serial_numbers(self.serial_numbers_available)
-
-    @property
-    def has_identification_markings(self):
-        return self.has_serial_numbers
 
 
 class GoodControlListEntry(models.Model):
