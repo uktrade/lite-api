@@ -172,3 +172,5 @@ bank-holidays.csv
 
 # pii file
 .pii-secret-hook
+
+*.prof

@@ -102,9 +102,19 @@ class CaseDetail(APIView):
         case = get_case(
             pk,
             prefetch_related=[
-                "advice__countersigned_by",
-                "advice__denial_reasons",
+                "advice",
                 "advice__user",
+                "advice__user__baseuser_ptr",
+                "advice__user__team",
+                "advice__user__role",
+                "advice__countersigned_by",
+                "advice__countersigned_by__baseuser_ptr",
+                "advice__countersigned_by__team",
+                "advice__countersigned_by__role",
+                "advice__denial_reasons",
+            ],
+            select_related=[
+                "case_type",
             ],
         )
         data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data

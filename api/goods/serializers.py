@@ -605,7 +605,7 @@ class GoodSerializerInternal(serializers.Serializer):
     is_precedent = serializers.BooleanField(required=False, default=False)
 
     def get_documents(self, instance):
-        documents = GoodDocument.objects.filter(good=instance)
+        documents = instance.gooddocument_set.all()
         return SimpleGoodDocumentViewSerializer(documents, many=True).data
 
 
