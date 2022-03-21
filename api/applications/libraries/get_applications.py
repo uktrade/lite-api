@@ -32,6 +32,12 @@ def get_application(pk, organisation_id=None):
                 "status",
                 "submitted_by",
                 "submitted_by__baseuser_ptr",
+            ).prefetch_related(
+                "goods__good",
+                "goods__good__control_list_entries",
+                "goods__good__flags",
+                "goods__good__gooddocument_set",
+                "goods__good__firearm_details",
             )
             obj = qs.get(pk=pk, **kwargs)
             return obj
