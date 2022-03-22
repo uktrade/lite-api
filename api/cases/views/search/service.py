@@ -8,7 +8,7 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 from django.utils import timezone
 
-from api.applications.models import HmrcQuery
+from api.applications.models import HmrcQuery, PartyOnApplication
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from api.cases.models import Case
@@ -18,6 +18,8 @@ from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
+from api.cases.enums import CaseTypeTypeEnum
+from api.parties.serializers import PartySerializer
 
 
 def get_case_status_list() -> List[Dict]:
@@ -189,3 +191,19 @@ def get_hmrc_sla_hours(cases: List[Dict]):
     for case in cases:
         if case["id"] in hmrc_cases_goods_not_left_country:
             case["sla_hours_since_raised"] = working_hours_in_range(case["submitted_at"], timezone.now())
+
+
+def populate_destinations(cases: List[Dict]):
+    for case in cases:
+        id = case["id"]
+        destinations = []
+
+        if case["case_type"]["type"]["key"] == CaseTypeTypeEnum.APPLICATION:
+            for poa in PartyOnApplication.objects.filter(application=id, deleted_at=None):
+                serializer = PartySerializer(poa.party)
+                data = serializer.data
+                destinations.append(data)
+
+        case["destinations"] = destinations
+
+    return cases
