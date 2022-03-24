@@ -5,6 +5,7 @@ from api.core.helpers import str_to_bool
 from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import (
+    FirearmCategory,
     GoodStatus,
     GoodControlled,
     GoodPvGraded,
@@ -82,6 +83,13 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         error_messages={"null": strings.Goods.FIREARM_GOOD_NO_TYPE},
         required=False,
     )
+    category = serializers.ListField(
+        child=KeyValueChoiceField(
+            choices=FirearmCategory.choices,
+        ),
+        allow_null=True,
+        required=False,
+    )
     year_of_manufacture = serializers.IntegerField(
         allow_null=False,
         required=False,
@@ -125,6 +133,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         model = FirearmGoodDetails
         fields = (
             "type",
+            "category",
             "year_of_manufacture",
             "calibre",
             "is_replica",

@@ -425,7 +425,6 @@ class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
         response = self.client.get(url, **self.exporter_headers)
