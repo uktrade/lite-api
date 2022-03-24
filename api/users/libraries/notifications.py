@@ -1,11 +1,7 @@
-from django.db.models import Count, F
+from django.db.models import Count
 
-from api.applications.models import StandardApplication
 from api.cases.models import Case
-from api.goods.models import FirearmGoodDetails
-from api.organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.users.models import ExporterNotification, ExporterUser
 
 
@@ -15,23 +11,6 @@ def get_exporter_user_notification_total_count(exporter_user: ExporterUser, orga
             user_id=exporter_user.pk, organisation_id=organisation_id, case=case
         ).count()
     }
-
-
-def get_cases_with_missing_serials(request):
-    applications = StandardApplication.objects.filter(
-        organisation=get_request_user_organisation(request)
-    ).prefetch_related("goods__firearm_details")
-    applications = applications.filter(
-        status__in=[
-            get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            get_case_status_by_status(CaseStatusEnum.FINALISED),
-        ]
-    )
-    applications = applications.filter(
-        goods__firearm_details__serial_numbers_available__in=FirearmGoodDetails.SerialNumberAvailability.get_has_serial_numbers_values(),
-        goods__firearm_details__serial_numbers__len__lt=F("goods__firearm_details__number_of_items"),
-    )
-    return applications
 
 
 def get_case_notifications(data, request):
@@ -50,14 +29,6 @@ def get_case_notifications(data, request):
             item["exporter_user_notification_count"] = cases_with_notifications[item["id"]]
         else:
             item["exporter_user_notification_count"] = 0
-
-    # add missing serial number cases to notifications
-    applications = get_cases_with_missing_serials(request)
-    cases_with_missing_serials = {str(application.id): 1 for application in applications}
-
-    for item in data:
-        if item["id"] in cases_with_missing_serials:
-            item["exporter_user_notification_count"] += cases_with_missing_serials[item["id"]]
 
     return data
 

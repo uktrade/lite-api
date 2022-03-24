@@ -3,7 +3,7 @@ from api.core.exceptions import NotFoundError
 from lite_content.lite_api import strings
 
 
-def get_case(pk, include_draft=False, prefetch_related=None):
+def get_case(pk, include_draft=False, prefetch_related=None, select_related=None):
     """
     Returns a case or returns a 404 on failure.
 
@@ -17,8 +17,10 @@ def get_case(pk, include_draft=False, prefetch_related=None):
             qs = Case.objects.submitted()
 
         if prefetch_related:
-            for lookup in prefetch_related:
-                qs = qs.prefetch_related(lookup)
+            qs = qs.prefetch_related(*prefetch_related)
+
+        if select_related:
+            qs = qs.select_related(*select_related)
 
         return qs.get(pk=pk)
 

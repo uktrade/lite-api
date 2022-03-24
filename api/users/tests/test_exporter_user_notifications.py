@@ -1,18 +1,11 @@
-from parameterized import parameterized
-
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
-from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory, StandardApplicationFactory
 from api.cases.enums import CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import CaseNote, EcjuQuery
-from api.goods.models import FirearmGoodDetails
-from api.goods.tests.factories import FirearmFactory
-from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterNotification
@@ -204,36 +197,3 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("exporter_user_notification_count", response_data["end_user_advisory"])
         self.assertEqual(len(response_data["end_user_advisory"]["exporter_user_notification_count"]), 3)
-
-    @parameterized.expand(
-        [
-            (CaseStatusEnum.SUBMITTED, FirearmGoodDetails.SerialNumberAvailability.AVAILABLE),
-            (CaseStatusEnum.SUBMITTED, FirearmGoodDetails.SerialNumberAvailability.LATER),
-            (CaseStatusEnum.FINALISED, FirearmGoodDetails.SerialNumberAvailability.AVAILABLE),
-            (CaseStatusEnum.FINALISED, FirearmGoodDetails.SerialNumberAvailability.LATER),
-        ],
-    )
-    def test_notifications_for_missing_application_serial_numbers(self, case_status, serial_numbers_available):
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        application = StandardApplicationFactory(
-            organisation=self.organisation, status=get_case_status_by_status(case_status)
-        )
-        good = GoodFactory(
-            organisation=self.organisation,
-        )
-        firearm_details = FirearmFactory(
-            serial_numbers_available=serial_numbers_available,
-            serial_numbers=[],
-            number_of_items=3,
-        )
-        GoodOnApplicationFactory(
-            application=application,
-            firearm_details=firearm_details,
-            good=good,
-        )
-        response = self.client.get(reverse("applications:applications"), **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        application_response_data = response.json()["results"][0]
-        self.assertIn("exporter_user_notification_count", application_response_data)
-        self.assertEqual(application_response_data["exporter_user_notification_count"], 1)
