@@ -1,3 +1,6 @@
+from django.db import models
+
+
 class GoodStatus:
     DRAFT = "draft"  # Freshly created good, fully editable
     SUBMITTED = "submitted"  # This good is on use in an application
@@ -186,3 +189,12 @@ class FirearmGoodType:
     @classmethod
     def to_str(cls, obj):
         return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
+
+
+class FirearmCategory(models.TextChoices):
+    NON_AUTOMATIC_SHOTGUN = "NON_AUTOMATIC_SHOTGUN", "Non automatic shotgun"
+    NON_AUTOMATIC_RIM_FIRED_RIFLE = "NON_AUTOMATIC_RIM_FIRED_RIFLE", "Non automatic rim-fired rifle"
+    NON_AUTOMATIC_RIM_FIRED_HANDGUN = "NON_AUTOMATIC_RIM_FIRED_HANDGUN", "Non automatic rim-fired handgun"
+    RIFLE_MADE_BEFORE_1938 = "RIFLE_MADE_BEFORE_1938", "Rifle made before 1938"
+    COMBINATION_GUN_MADE_BEFORE_1938 = "COMBINATION_GUN_MADE_BEFORE_1938", "Combination gun made before 1938"
+    NONE = "NONE", "None of the above"

@@ -6,7 +6,16 @@ from django.db import models
 from api.common.models import TimestampableModel
 from api.documents.models import Document
 from api.flags.models import Flag
-from api.goods.enums import GoodStatus, PvGrading, GoodPvGraded, ItemCategory, MilitaryUse, Component, FirearmGoodType
+from api.goods.enums import (
+    Component,
+    FirearmCategory,
+    FirearmGoodType,
+    GoodPvGraded,
+    GoodStatus,
+    ItemCategory,
+    MilitaryUse,
+    PvGrading,
+)
 
 from api.organisations.models import Organisation
 from api.staticdata.control_list_entries.models import ControlListEntry
@@ -41,6 +50,7 @@ class FirearmGoodDetails(models.Model):
             return value in cls.get_has_serial_numbers_values()
 
     type = models.TextField(choices=FirearmGoodType.choices, blank=False)
+    category = ArrayField(models.CharField(choices=FirearmCategory.choices, max_length=255), blank=True, null=True)
     year_of_manufacture = models.PositiveSmallIntegerField(blank=True, null=True)
     calibre = models.TextField(blank=True)
     is_replica = models.BooleanField(blank=True, null=True)
