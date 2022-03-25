@@ -112,7 +112,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
         pv_grading_details.pop("_state")
         pv_grading_details.pop("id")
         pv_grading_details["grading"] = PvGrading.UK_OFFICIAL
-        pv_grading_details["custom_grading"] = None
         pv_grading_details["date_of_issue"] = "2020-01-01"
         request_data = {"is_pv_graded": GoodPvGraded.YES, "pv_grading_details": pv_grading_details}
 
@@ -121,7 +120,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["good"]["pv_grading_details"]["date_of_issue"], "2020-01-01")
         self.assertEqual(response.json()["good"]["pv_grading_details"]["grading"]["key"], PvGrading.UK_OFFICIAL)
-        self.assertEqual(response.json()["good"]["pv_grading_details"]["custom_grading"], None)
         self.assertEqual(Good.objects.all().count(), 1)
 
     def test_edit_military_use_to_designed_success(self):
