@@ -288,7 +288,7 @@ ELASTICSEARCH_PRODUCT_INDEX_ALIAS = env.str("ELASTICSEARCH_PRODUCT_INDEX_ALIAS",
 ELASTICSEARCH_APPLICATION_INDEX_ALIAS = env.str("ELASTICSEARCH_APPLICATION_INDEX_ALIAS", "application-alias")
 
 # Elasticsearch configuration
-LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
+LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", True)
 if LITE_API_ENABLE_ES:
     ELASTICSEARCH_DSL = {
         "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
@@ -429,3 +429,13 @@ PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
 # Controls whether a ComplianceSiteCase is automatically created when a SIEL licence is issued that has goods with certain control codes
 # See LTD-1159
 FEATURE_SIEL_COMPLIANCE_ENABLED = env.bool("FEATURE_SIEL_COMPLIANCE_ENABLED", False)
+
+
+SANCTION_LIST_SOURCES = env.json(
+    "SANCTION_LIST_SOURCES",
+    {
+        "un_sanctions_file": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
+        "office_financial_sanctions_file": "https://ofsistorage.blob.core.windows.net/publishlive/2022format/ConList.html",
+        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/953470/UK_sanctions_list.ods",
+    },
+)

@@ -239,13 +239,13 @@ class PopulateSanctionsTests(DataTestClient):
 
     def test_get_un_sanctions(self):
         with requests_mock.Mocker() as m:
-            m.get("https://scsanctions.un.org/resources/xml/en/consolidated.xml", content=b"<note><to>Tove</to></note>")
+            m.get(settings.SANCTION_LIST_SOURCES["un_sanctions_file"], content=b"<note><to>Tove</to></note>")
             ingest_sanctions.get_un_sanctions()
 
     def test_get_office_financial_sanctions_implementation(self):
         with requests_mock.Mocker() as m:
             m.get(
-                "https://ofsistorage.blob.core.windows.net/publishlive/ConList.xml",
+                settings.SANCTION_LIST_SOURCES["office_financial_sanctions_file"],
                 content=b"<note><to>Tove</to></note>",
             )
             ingest_sanctions.get_office_financial_sanctions_implementation()
