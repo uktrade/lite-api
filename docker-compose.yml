@@ -22,7 +22,7 @@ services:
     ports:
       - "9000:9000"
     entrypoint: sh
-    command: ['-c', 'mkdir -p /data/my-bucket && minio server /data']
+    command: ['-c', 'mkdir -p /data/lite-document-store-test && minio server /data']
 
   api:
     env_file:
