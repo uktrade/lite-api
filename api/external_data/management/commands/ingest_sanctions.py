@@ -14,7 +14,7 @@ from api.flags.enums import SystemFlags
 
 
 def get_un_sanctions():
-    response = requests.get("https://scsanctions.un.org/resources/xml/en/consolidated.xml")
+    response = requests.get(settings.SANCTION_LIST_SOURCES["un_sanctions_file"])
     response.raise_for_status()
     return xmltodict.parse(
         response.content,
@@ -26,7 +26,7 @@ def get_un_sanctions():
 
 
 def get_office_financial_sanctions_implementation():
-    response = requests.get("https://ofsistorage.blob.core.windows.net/publishlive/ConList.xml")
+    response = requests.get(settings.SANCTION_LIST_SOURCES["office_financial_sanctions_file"])
     response.raise_for_status()
     return xmltodict.parse(
         response.content,
@@ -37,9 +37,7 @@ def get_office_financial_sanctions_implementation():
 
 
 def get_uk_sanctions_list():
-    book = pyexcel.get_book(
-        url="https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/953470/UK_sanctions_list.ods"
-    )
+    book = pyexcel.get_book(url=settings.SANCTION_LIST_SOURCES["uk_sanctions_file"])
     return parse_ods(book)
 
 
@@ -68,6 +66,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["rebuild"]:
             self.rebuild_index()
+
         self.populate_united_nations_sanctions()
         self.populate_office_financial_sanctions_implementation()
         self.populate_uk_sanctions_list()
