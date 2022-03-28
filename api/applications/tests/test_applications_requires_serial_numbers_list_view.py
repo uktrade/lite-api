@@ -33,7 +33,9 @@ class ApplicationsRequiresSerialNumbersListTests(DataTestClient):
         )
         firearm_details = FirearmFactory(
             serial_numbers_available=serial_numbers_available,
-            serial_numbers=[],
+            serial_numbers=[]
+            if serial_numbers_available == FirearmGoodDetails.SerialNumberAvailability.LATER
+            else ["", "", ""],
             number_of_items=3,
         )
         GoodOnApplicationFactory(
@@ -46,6 +48,58 @@ class ApplicationsRequiresSerialNumbersListTests(DataTestClient):
         content = response.json()
         self.assertEqual(content["count"], 1)
         self.assertEqual(content["results"][0]["id"], str(application.pk))
+
+    @parameterized.expand(
+        [
+            (CaseStatusEnum.SUBMITTED, FirearmGoodDetails.SerialNumberAvailability.AVAILABLE),
+            (CaseStatusEnum.FINALISED, FirearmGoodDetails.SerialNumberAvailability.AVAILABLE),
+        ],
+    )
+    def test_returned_application_requiring_serial_numbers_partially_filled(
+        self, case_status, serial_numbers_available
+    ):
+        application = StandardApplicationFactory(
+            organisation=self.organisation, status=get_case_status_by_status(case_status)
+        )
+        good = GoodFactory(
+            organisation=self.organisation,
+        )
+        firearm_details = FirearmFactory(
+            serial_numbers_available=serial_numbers_available,
+            serial_numbers=["abc", "", ""],
+            number_of_items=3,
+        )
+        good_application = GoodOnApplicationFactory(
+            application=application,
+            firearm_details=firearm_details,
+            good=good,
+        )
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        content = response.json()
+        self.assertEqual(content["count"], 1)
+        self.assertEqual(content["results"][0]["id"], str(application.pk))
+
+        good_application.firearm_details = FirearmFactory(
+            serial_numbers_available=serial_numbers_available,
+            serial_numbers=["abc", "", "cde"],
+            number_of_items=3,
+        )
+        good_application.save()
+        response = self.client.get(self.url, **self.exporter_headers)
+        content = response.json()
+        self.assertEqual(content["count"], 1)
+        self.assertEqual(content["results"][0]["id"], str(application.pk))
+
+        good_application.firearm_details = FirearmFactory(
+            serial_numbers_available=serial_numbers_available,
+            serial_numbers=["abc", "bcd", "cde"],
+            number_of_items=3,
+        )
+        good_application.save()
+        response = self.client.get(self.url, **self.exporter_headers)
+        content = response.json()
+        self.assertEqual(content["count"], 0)
 
     @parameterized.expand(
         [
