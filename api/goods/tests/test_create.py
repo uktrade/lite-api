@@ -342,7 +342,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(good["firearm_details"]["year_of_manufacture"], year)
 
-    def test_add_firearms_certificate_missing_checks(self):
+    def test_add_firearms_certificate_missing_checks_with_expiry(self):
         data = {
             "name": "Rifle",
             "description": "Firearm product",

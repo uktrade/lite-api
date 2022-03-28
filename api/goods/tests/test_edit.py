@@ -407,7 +407,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(errors["section_certificate_number"], ["Enter the certificate number"])
+        self.assertEqual(errors["section_certificate_number"], ["Enter the certificate number"])
 
     def test_edit_category_two_section_question_and_invalid_expiry_date_failure(self):
         """Test editing section of firearms question failure by providing an expiry date not in the future."""
