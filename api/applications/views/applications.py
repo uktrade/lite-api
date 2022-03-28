@@ -2,7 +2,7 @@ from copy import deepcopy
 from uuid import UUID
 
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
@@ -174,7 +174,10 @@ class ApplicationsRequireSerialNumbersList(ListAPIView):
         )
         applications = applications.filter(
             goods__firearm_details__serial_numbers_available__in=FirearmGoodDetails.SerialNumberAvailability.get_has_serial_numbers_values(),
-            goods__firearm_details__serial_numbers__len__lt=F("goods__firearm_details__number_of_items"),
+        )
+        applications = applications.filter(
+            Q(goods__firearm_details__serial_numbers__len__lt=F("goods__firearm_details__number_of_items"))
+            | Q(goods__firearm_details__serial_numbers__contains=[""])
         )
 
         return applications
