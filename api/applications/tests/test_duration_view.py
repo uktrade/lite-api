@@ -25,7 +25,7 @@ class DurationViewTest(DataTestClient):
 
         self.assertEqual(response.json()["licence_duration"], DefaultDuration.PERMANENT_OPEN.value)
 
-    def test_get_open_licence_duration_non_eu(self):
+    def test_get_open_licence_duration_is_eu(self):
         url = reverse("applications:duration", kwargs={"pk": self.open_application.pk})
 
         country = CountryOnApplication.objects.get(application=self.open_application).country

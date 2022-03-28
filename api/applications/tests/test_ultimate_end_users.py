@@ -196,6 +196,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When there is an attempt to delete the document
         Then 200 OK
         """
+        self.assertEqual(self.draft.ultimate_end_users.count(), 1)
+
         url = reverse(
             "applications:party",
             kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
@@ -212,22 +214,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
             ).count(),
             1,
         )
-        delete_s3_function.assert_not_called()
-
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_ultimate_end_user_success(self, delete_s3_function, scan_document_for_viruses_function):
-        self.assertEqual(self.draft.ultimate_end_users.count(), 1)
-
-        url = reverse(
-            "applications:party",
-            kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
-        )
-
-        response = self.client.delete(url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.draft.ultimate_end_users.count(), 0)
+        delete_s3_function.assert_not_called()
 
     def test_ultimate_end_user_validate_only_success(self):
         """
