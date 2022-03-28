@@ -119,23 +119,30 @@ class OrganisationUsersCreateTests(DataTestClient):
         """
         Ensure that a user can be added to an organisation
         """
+        # We don't actually want to save this user we're just using this to get
+        # some fake data for the user
+        exporter_user = ExporterUserFactory()
+        user = exporter_user.baseuser_ptr
         data = {
-            "first_name": "Matt",
-            "last_name": "Berninger",
-            "email": "matt.berninger@americanmary.com",
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
             "sites": [self.organisation.primary_site.id],
         }
 
-        ExporterUserFactory(
-            baseuser_ptr__first_name=data["first_name"],
-            baseuser_ptr__last_name=data["last_name"],
-            baseuser_ptr__email=data["email"],
+        self.assertFalse(
+            UserOrganisationRelationship.objects.filter(
+                user__baseuser_ptr__email=user.email,
+            ).exists()
         )
-
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(len(UserOrganisationRelationship.objects.all()), 2)
+        self.assertTrue(
+            UserOrganisationRelationship.objects.filter(
+                user__baseuser_ptr__email=user.email,
+            ).exists()
+        )
 
     def test_add_user_to_another_organisation_success(self):
         """
@@ -167,16 +174,17 @@ class OrganisationUsersCreateTests(DataTestClient):
             "sites": [self.organisation.primary_site.id],
         }
 
+        current_count = UserOrganisationRelationship.objects.count()
+
         response = self.client.post(self.url, data, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn(
-            "is already a member of this organisation.",
+        self.assertEqual(
             response_data["errors"]["email"][0],
-            data["email"] + " isn't valid",
+            f"{self.exporter_user.email} is already a member of this organisation.",
         )
-        self.assertTrue(len(UserOrganisationRelationship.objects.all()), 1)
+        self.assertEqual(UserOrganisationRelationship.objects.count(), current_count)
 
     def test_cannot_add_user_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
