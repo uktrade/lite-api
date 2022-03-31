@@ -12,6 +12,7 @@ import xmltodict
 
 from api.external_data import documents
 from api.flags.enums import SystemFlags
+import hashlib
 
 log = logging.getLogger(__name__)
 
@@ -60,6 +61,11 @@ def join_fields(data, fields):
     return " ".join(str(data[field]) for field in fields if data.get(field))
 
 
+def hash_values(data_values):
+    data = "".join([val for val in data_values if val is not None])
+    return hashlib.md5(data.encode()).hexdigest()
+
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--rebuild", default=False, action="store_true")
@@ -72,8 +78,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["rebuild"]:
             self.rebuild_index()
-        self.populate_united_nations_sanctions()
-        self.populate_office_financial_sanctions_implementation()
+        # self.populate_united_nations_sanctions()
+        # self.populate_office_financial_sanctions_implementation()
         self.populate_uk_sanctions_list()
 
     def populate_united_nations_sanctions(self):
@@ -126,7 +132,6 @@ class Command(BaseCommand):
             for item in parsed["arrayoffinancialsanctionstarget"]["financialsanctionstarget"]:
                 try:
                     item.pop("nationality", None)
-                    item.pop("title", None)
                     address = join_fields(
                         item, fields=["address1", "address2", "address3", "address4", "address5", "address6"]
                     )
@@ -135,10 +140,9 @@ class Command(BaseCommand):
                     if postcode not in normalize_address(address):
                         address += " " + postcode
 
-                    # This is a hack since we have lost unique id and atm we only care about name search. we will store
-                    # unique_id as group and name
+                    # We need to hash the data that uniquely identifies records since we have no unique id
+                    unique_id = hash_values([item["groupid"], name, address, postcode, item["regimename"]])
 
-                    unique_id = f'{item["groupid"]}:{name.replace(" ","")}'
                     document = documents.SanctionDocumentType(
                         meta={"id": f"OFSI:{unique_id}"},
                         name=name,
@@ -150,6 +154,7 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
+
                 except:
                     failed += 1
                     log.exception(
@@ -179,14 +184,14 @@ class Command(BaseCommand):
                     postcode = normalize_address(item["Address Postal Code"])
                     if postcode not in normalize_address(address):
                         address += " " + postcode
-
-                    name = join_fields(item, fields=["name1", "name2", "name3", "name4", "name5", "name6"])
+                    name = join_fields(item, fields=["Name 1", "Name 2", "Name 3", "Name 4", "Name 5", "Name 6"])
+                    unique_id = hash_values([item["Unique ID"], name, address, postcode, item["Regime Name"]])
                     document = documents.SanctionDocumentType(
                         name=name,
                         address=address,
                         postcode=postcode,
                         flag_uuid=SystemFlags.SANCTION_UK_MATCH,
-                        reference=item["Unique ID"],
+                        reference=unique_id,
                         data=item,
                     )
                     document.save()

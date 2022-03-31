@@ -42,12 +42,11 @@ class PopulateSanctionsTests(DataTestClient):
                     "IMO number": "N/A",
                     "Last Updated": "N/A",
                     "Length of ship": "N/A",
-                    "Name 1": "N/A",
-                    "Name 2": "",
-                    "Name 3": "",
-                    "Name 4": "",
+                    "Name 1": "HAJI",
+                    "Name 2": "KHAIRULLAH",
+                    "Name 4": "HAJI SATTAR",
                     "Name 5": "",
-                    "Name 6": "N/A",
+                    "Name 6": "MONEY EXCHANGE",
                     "National Identifier number": "N/A",
                     "Nationality(/ies)": "N/A",
                     "OFSI ID": "12703",
@@ -57,7 +56,7 @@ class PopulateSanctionsTests(DataTestClient):
                     "Passport number": "N/A",
                     "Phone number ": "Unknown",
                     "Position": "N/A",
-                    "Postcode": "Unknown",
+                    "Address Postal Code": "Unknown",
                     "Previous flags": "N/A",
                     "Previous owner/operator (s)": "N/A",
                     "Primary Address Country": "Pakistan",
@@ -83,8 +82,8 @@ class PopulateSanctionsTests(DataTestClient):
         )
 
         mock_get_office_financial_sanctions_implementation.return_value = {
-            "arrayofconsolidatedlist": {
-                "consolidatedlist": [
+            "arrayoffinancialsanctionstarget": {
+                "financialsanctionstarget": [
                     {
                         "address1": None,
                         "address2": None,
@@ -109,7 +108,6 @@ class PopulateSanctionsTests(DataTestClient):
                         "fcoid": "AQD0104",
                         "flagofvessel": None,
                         "fulladdress": None,
-                        "fullname": "Haji Agha Abdul Manan",
                         "furtheridentifiyinginformation": "Pakistan. Review pursuant to Security",
                         "gender": None,
                         "groupid": "6897",
@@ -126,12 +124,12 @@ class PopulateSanctionsTests(DataTestClient):
                         "lengthofvessel": None,
                         "listingtype": "UK and UN",
                         "monthofbirth": None,
-                        "name1": "Abdul Manan",
-                        "name2": None,
+                        "name1": "Haji",
+                        "name2": "Agha",
                         "name3": None,
                         "name4": None,
                         "name5": None,
-                        "name6": "Agha",
+                        "name6": "Abdul Manan",
                         "nametitle": "Haji",
                         "nationalidnumber": None,
                         "nationality": None,
@@ -231,11 +229,11 @@ class PopulateSanctionsTests(DataTestClient):
         self.assertEqual(len(results_three.hits), 2)
         self.assertEqual(results_three.hits[0]["name"], "Haji Agha Abdul Manan")
         self.assertEqual(results_three.hits[0]["flag_uuid"], "00000000-0000-0000-0000-000000000040")
-        self.assertEqual(results_three.hits[0]["reference"], "109")
+        self.assertEqual(results_three.hits[0]["reference"], "463709dc5372eef99d7b4045fe5a9b48")
 
         self.assertEqual(results_three.hits[1]["name"], "HAJI KHAIRULLAH HAJI SATTAR MONEY EXCHANGE")
         self.assertEqual(results_three.hits[1]["flag_uuid"], "00000000-0000-0000-0000-000000000041")
-        self.assertEqual(results_three.hits[1]["reference"], "AFG0001")
+        self.assertEqual(results_three.hits[1]["reference"], "065fafc265b611855c3cf06fafbda2de")
 
     def test_get_un_sanctions(self):
         with requests_mock.Mocker() as m:
