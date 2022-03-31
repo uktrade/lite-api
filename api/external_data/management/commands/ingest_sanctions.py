@@ -78,8 +78,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["rebuild"]:
             self.rebuild_index()
-        # self.populate_united_nations_sanctions()
-        # self.populate_office_financial_sanctions_implementation()
+        self.populate_united_nations_sanctions()
+        self.populate_office_financial_sanctions_implementation()
         self.populate_uk_sanctions_list()
 
     def populate_united_nations_sanctions(self):
@@ -154,7 +154,6 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-
                 except:
                     failed += 1
                     log.exception(
