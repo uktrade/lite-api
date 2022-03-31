@@ -70,7 +70,7 @@ from api.goodstype.tests.factories import GoodsTypeFactory
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code
-from api.licences.models import Licence
+from api.licences.models import GoodOnLicence, Licence
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation, ExternalLocation
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
