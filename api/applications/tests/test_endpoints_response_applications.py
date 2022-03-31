@@ -32,7 +32,7 @@ class ApplicationResponseTests(EndPointTests):
     def test_application_existing_parties(self):
         self.call_endpoint(self.get_exporter_headers(), self.url + "existing-parties/")
 
-    def test_application_external_locations(self):
+    def test_application_external_location(self):
         self.call_endpoint(
             self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/external_location/"
         )
@@ -110,9 +110,4 @@ class ApplicationResponseTests(EndPointTests):
     def test_application_external_locations(self):
         self.call_endpoint(
             self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/external_locations/"
-        )
-
-    def test_application_countries(self):
-        self.call_endpoint(
-            self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/countries/"
         )

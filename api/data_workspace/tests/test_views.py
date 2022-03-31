@@ -63,6 +63,7 @@ class DataWorkspaceTests(DataTestClient):
             "product_differences_note",
             "document_in_english",
             "document_on_letterhead",
+            "ec3_missing_reason",
             "clearance_level",
             "descriptors",
             "phone_number",

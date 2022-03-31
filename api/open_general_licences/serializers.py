@@ -109,7 +109,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
                                     "region": case.site.address.region,
                                     "postcode": case.site.address.postcode,
                                     "country": {
-                                        "name": "United Kingdom",
+                                        "name": "Great Britain",
                                     },
                                 },
                                 "records_located_at": {"name": case.records_located_at_name},

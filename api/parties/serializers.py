@@ -26,6 +26,7 @@ class PartySerializer(serializers.ModelSerializer):
     product_differences_note = serializers.CharField(required=False, allow_blank=True)
     document_in_english = serializers.BooleanField(allow_null=True, required=False)
     document_on_letterhead = serializers.BooleanField(allow_null=True, required=False)
+    ec3_missing_reason = serializers.CharField(required=False, allow_blank=True)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
@@ -64,6 +65,7 @@ class PartySerializer(serializers.ModelSerializer):
             "product_differences_note",
             "document_in_english",
             "document_on_letterhead",
+            "ec3_missing_reason",
             "role",
             "role_other",
             "flags",

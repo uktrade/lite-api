@@ -6,7 +6,16 @@ from django.db import models
 from api.common.models import TimestampableModel
 from api.documents.models import Document
 from api.flags.models import Flag
-from api.goods.enums import GoodStatus, PvGrading, GoodPvGraded, ItemCategory, MilitaryUse, Component, FirearmGoodType
+from api.goods.enums import (
+    Component,
+    FirearmCategory,
+    FirearmGoodType,
+    GoodPvGraded,
+    GoodStatus,
+    ItemCategory,
+    MilitaryUse,
+    PvGrading,
+)
 
 from api.organisations.models import Organisation
 from api.staticdata.control_list_entries.models import ControlListEntry
@@ -16,7 +25,9 @@ from api.users.models import ExporterUser
 class PvGradingDetails(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # grading is required if custom_grading is not provided
-    grading = models.CharField(choices=PvGrading.choices, default=None, blank=True, null=True, max_length=30)
+    grading = models.CharField(
+        choices=PvGrading.choices + PvGrading.choices_new, default=None, blank=True, null=True, max_length=30
+    )
     # custom_grading is required if grading is not provided
     custom_grading = models.TextField(blank=True, null=True, max_length=100)
     prefix = models.CharField(blank=True, null=True, max_length=30)
@@ -41,6 +52,7 @@ class FirearmGoodDetails(models.Model):
             return value in cls.get_has_serial_numbers_values()
 
     type = models.TextField(choices=FirearmGoodType.choices, blank=False)
+    category = ArrayField(models.CharField(choices=FirearmCategory.choices, max_length=255), blank=True, null=True)
     year_of_manufacture = models.PositiveSmallIntegerField(blank=True, null=True)
     calibre = models.TextField(blank=True)
     is_replica = models.BooleanField(blank=True, null=True)

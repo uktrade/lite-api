@@ -112,7 +112,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
         pv_grading_details.pop("_state")
         pv_grading_details.pop("id")
         pv_grading_details["grading"] = PvGrading.UK_OFFICIAL
-        pv_grading_details["custom_grading"] = None
         pv_grading_details["date_of_issue"] = "2020-01-01"
         request_data = {"is_pv_graded": GoodPvGraded.YES, "pv_grading_details": pv_grading_details}
 
@@ -121,7 +120,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["good"]["pv_grading_details"]["date_of_issue"], "2020-01-01")
         self.assertEqual(response.json()["good"]["pv_grading_details"]["grading"]["key"], PvGrading.UK_OFFICIAL)
-        self.assertEqual(response.json()["good"]["pv_grading_details"]["custom_grading"], None)
         self.assertEqual(Good.objects.all().count(), 1)
 
     def test_edit_military_use_to_designed_success(self):
@@ -407,7 +405,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(errors["section_certificate_number"], ["Enter the certificate number"])
+        self.assertEqual(errors["section_certificate_number"], ["Enter the certificate number"])
 
     def test_edit_category_two_section_question_and_invalid_expiry_date_failure(self):
         """Test editing section of firearms question failure by providing an expiry date not in the future."""

@@ -5,6 +5,7 @@ from api.core.helpers import str_to_bool
 from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import (
+    FirearmCategory,
     GoodStatus,
     GoodControlled,
     GoodPvGraded,
@@ -33,8 +34,7 @@ from api.users.serializers import ExporterUserSimpleSerializer
 
 
 class PvGradingDetailsSerializer(serializers.ModelSerializer):
-    grading = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, allow_blank=True)
-    custom_grading = serializers.CharField(allow_blank=True, allow_null=True)
+    grading = KeyValueChoiceField(choices=PvGrading.choices + PvGrading.choices_new, allow_null=True, allow_blank=True)
     prefix = serializers.CharField(allow_blank=True, allow_null=True)
     suffix = serializers.CharField(allow_blank=True, allow_null=True)
     issuing_authority = serializers.CharField(allow_blank=False, allow_null=False)
@@ -46,33 +46,7 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PvGradingDetails
-        fields = ("grading", "custom_grading", "prefix", "suffix", "issuing_authority", "reference", "date_of_issue")
-
-    def validate(self, data):
-        validated_data = super(PvGradingDetailsSerializer, self).validate(data)
-        self.valudate_custom_grading(data)
-        return validated_data
-
-    def valudate_custom_grading(self, data):
-        if not data.get("grading") and not data.get("custom_grading"):
-            raise serializers.ValidationError({"custom_grading": [strings.Goods.NO_CUSTOM_GRADING_ERROR]})
-
-        if data.get("grading") and data.get("custom_grading"):
-            raise serializers.ValidationError(
-                {"custom_grading": [strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR]}
-            )
-
-    def to_internal_value(self, data):
-        try:
-            return super().to_internal_value(data)
-        except serializers.ValidationError as error:
-            # vanilla behavior of DRF is when a field-level validation error (such as required) occurs then .validate
-            # is not called. Circumventing this here to benefit the frontend.
-            try:
-                self.valudate_custom_grading(data)
-            except serializers.ValidationError as inner_error:
-                error.detail.update(inner_error.detail)
-            raise error
+        fields = ("grading", "prefix", "suffix", "issuing_authority", "reference", "date_of_issue")
 
 
 class FirearmDetailsSerializer(serializers.ModelSerializer):
@@ -80,6 +54,13 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         choices=FirearmGoodType.choices,
         allow_null=False,
         error_messages={"null": strings.Goods.FIREARM_GOOD_NO_TYPE},
+        required=False,
+    )
+    category = serializers.ListField(
+        child=KeyValueChoiceField(
+            choices=FirearmCategory.choices,
+        ),
+        allow_null=True,
         required=False,
     )
     year_of_manufacture = serializers.IntegerField(
@@ -125,6 +106,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         model = FirearmGoodDetails
         fields = (
             "type",
+            "category",
             "year_of_manufacture",
             "calibre",
             "is_replica",
