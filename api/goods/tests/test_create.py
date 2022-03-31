@@ -32,7 +32,6 @@ REQUEST_DATA = {
     "is_pv_graded": GoodPvGraded.NO,
     "pv_grading_details": {
         "grading": None,
-        "custom_grading": "Custom Grading",
         "prefix": "Prefix",
         "suffix": "Suffix",
         "issuing_authority": "Issuing Authority",
@@ -799,7 +798,6 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
     def test_when_creating_a_good_with_a_grading_then_created_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
-        self.request_data["pv_grading_details"]["custom_grading"] = None
         self.request_data["pv_grading_details"]["grading"] = PvGrading.UK_OFFICIAL
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -807,33 +805,6 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
         self.assertEqual(Good.objects.all().count(), 1)
-
-    def test_when_creating_a_good_with_a_null_grading_and_custom_grading_then_bad_response_is_returned(self):
-        self.request_data["is_pv_graded"] = GoodPvGraded.YES
-        self.request_data["pv_grading_details"]["custom_grading"] = None
-
-        response = self.client.post(URL, self.request_data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"],
-            {"custom_grading": [strings.Goods.NO_CUSTOM_GRADING_ERROR]},
-        )
-        self.assertEqual(Good.objects.all().count(), 0)
-
-    def test_when_creating_a_good_with_a_grading_and_custom_grading_then_bad_response_is_returned(self):
-        self.request_data["is_pv_graded"] = GoodPvGraded.YES
-        self.request_data["pv_grading_details"]["grading"] = PvGrading.UK_OFFICIAL
-        self.request_data["pv_grading_details"]["custom_grading"] = "Custom Grading"
-
-        response = self.client.post(URL, self.request_data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"],
-            {"custom_grading": [strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR]},
-        )
-        self.assertEqual(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_a_null_authority_then_bad_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES

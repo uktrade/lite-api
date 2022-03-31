@@ -12,6 +12,13 @@ class PVGradingsList(APIView):
         return JsonResponse(data={"pv_gradings": [{choice[0]: choice[1]} for choice in PvGrading.choices]})
 
 
+class PVGradingsUpdatedList(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def get(self, request):
+        return JsonResponse(data={"pv_gradings": [{choice[0]: choice[1]} for choice in PvGrading.choices_new]})
+
+
 class GovPVGradingsList(APIView):
     authentication_classes = (SharedAuthentication,)
 
