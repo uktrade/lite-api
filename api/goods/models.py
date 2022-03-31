@@ -25,7 +25,9 @@ from api.users.models import ExporterUser
 class PvGradingDetails(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # grading is required if custom_grading is not provided
-    grading = models.CharField(choices=PvGrading.choices, default=None, blank=True, null=True, max_length=30)
+    grading = models.CharField(
+        choices=PvGrading.choices + PvGrading.choices_new, default=None, blank=True, null=True, max_length=30
+    )
     # custom_grading is required if grading is not provided
     custom_grading = models.TextField(blank=True, null=True, max_length=100)
     prefix = models.CharField(blank=True, null=True, max_length=30)

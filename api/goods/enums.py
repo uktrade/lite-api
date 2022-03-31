@@ -75,6 +75,13 @@ class PvGrading:
     OCCAR_CONFIDENTIAL = "occar_confidential"
     OCCAR_RESTRICTED = "occar_restricted"
     OCCAR_SECRET = "occar_secret"  # nosec # noqa
+    UNCLASSIFIED = "unclassified"
+    OFFICIAL = "official"
+    OFFICIAL_SENSITIVE = "official-sensitive"
+    RESTRICTED = "restricted"
+    CONFIDENTIAL = "confidential"
+    SECRET = "secret"  # nosec # noqa
+    TOP_SECRET = "top secret"  # nosec # noqa
 
     choices = [
         (UK_UNCLASSIFIED, "UK UNCLASSIFIED"),
@@ -90,6 +97,16 @@ class PvGrading:
         (OCCAR_CONFIDENTIAL, "OCCAR CONFIDENTIAL"),
         (OCCAR_RESTRICTED, "OCCAR RESTRICTED"),
         (OCCAR_SECRET, "OCCAR SECRET"),
+    ]
+
+    choices_new = [
+        (UNCLASSIFIED, "Unclassified"),
+        (OFFICIAL, "Official"),
+        (OFFICIAL_SENSITIVE, "Official-sensitive"),
+        (RESTRICTED, "Restricted"),
+        (CONFIDENTIAL, "Confidential"),
+        (SECRET, "Secret"),
+        (TOP_SECRET, "Top secret"),
     ]
 
     gov_choices = [
