@@ -104,7 +104,7 @@ class Command(BaseCommand):
                     document.save()
                     successful += 1
                 except:
-
+                    failed += 1
                     log.exception(
                         "Error loading un sanction record -> %s",
                         exc_info=True,
@@ -113,7 +113,6 @@ class Command(BaseCommand):
                 f"uk sanctions (successful:{successful} failed:{failed})",
             )
         except:
-            failed += 1
             log.exception(
                 "Error loading un sanctions -> %s",
                 exc_info=True,
@@ -151,18 +150,16 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except Exception as exc:  # noqa
+                except:
                     failed += 1
                     log.exception(
                         "Error loading office financial sanction record -> %s",
                         exc_info=True,
                     )
-
             log.info(
                 f"uk sanctions (successful:{successful} failed:{failed})",
             )
         except:
-            failed += 1
             log.exception(
                 "Error office financial sanctions -> %s",
                 exc_info=True,
@@ -194,8 +191,7 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-
-                except Exception:
+                except:
                     failed += 1
                     log.exception(
                         "Error loading uk sanction record -> %s",
