@@ -253,8 +253,8 @@ class PopulateSanctionsTests(DataTestClient):
     def test_get_uk_sanctions_list(self):
         book = pyexcel.get_book(
             bookdict={
-                "Sheet 1": [["a", "b", "c"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]],
-                "Sheet 2": [["x", "y", "z"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+                "Sheet 1": [[], [], ["a", "b", "c"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]],
+                "Sheet 2": [[], [], ["x", "y", "z"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
             }
         )
         with mock.patch.object(pyexcel, "get_book", return_value=book):
