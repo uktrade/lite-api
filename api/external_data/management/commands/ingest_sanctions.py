@@ -63,7 +63,7 @@ def join_fields(data, fields):
 
 def hash_values(data_values):
     data = "".join([val for val in data_values if val is not None])
-    return hashlib.md5(data.encode()).hexdigest()
+    return hashlib.md5(data.encode()).hexdigest()  # nosec
 
 
 class Command(BaseCommand):
