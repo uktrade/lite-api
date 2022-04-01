@@ -140,6 +140,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.type = validated_data.get("type", instance.type)
+        instance.category = validated_data.get("category", instance.category)
         instance.year_of_manufacture = validated_data.get("year_of_manufacture", instance.year_of_manufacture)
         instance.calibre = validated_data.get("calibre", instance.calibre)
 

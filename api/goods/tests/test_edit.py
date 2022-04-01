@@ -12,6 +12,7 @@ from api.goods.enums import (
     Component,
     ItemCategory,
     FirearmGoodType,
+    FirearmCategory,
 )
 from api.goods.models import Good, PvGradingDetails
 from api.goods.tests.factories import GoodFactory
@@ -293,6 +294,21 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good["firearm_details"]["type"]["key"], FirearmGoodType.FIREARMS)
         # 2 due to creating a new good for this test
         self.assertEqual(Good.objects.all().count(), 2)
+
+    def test_edit_category_two_product_category_success(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        expected = [FirearmCategory.NON_AUTOMATIC_SHOTGUN, FirearmCategory.NON_AUTOMATIC_RIM_FIRED_RIFLE]
+        request_data = {"firearm_details": {"category": expected}}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        firearm_details = response.json()["good"]["firearm_details"]
+        actual = [category["key"] for category in firearm_details["category"]]
+        self.assertEqual(actual, expected)
 
     def test_update_firearm_type_invalidates_notapplicable_fields(self):
         good = self.create_good(
