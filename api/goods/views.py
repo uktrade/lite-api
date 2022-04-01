@@ -25,6 +25,7 @@ from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (
     FIREARMS_CORE_TYPES,
     check_if_firearm_details_edited_on_unsupported_good,
+    get_rfd_status,
     has_valid_certificate,
 )
 from api.goods.libraries.get_goods import get_good, get_good_document
@@ -245,10 +246,7 @@ class GoodList(ListCreateAPIView):
             # check if the user is registered firearm dealer
             if item_category == ItemCategory.GROUP2_FIREARMS:
                 if data.get("firearm_details") and data["firearm_details"]["type"] in FIREARMS_CORE_TYPES:
-                    is_rfd = str_to_bool(data.get("is_registered_firearm_dealer")) is True
-                    rfd_status = is_rfd or has_valid_certificate(
-                        str(data["organisation"]), OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE
-                    )
+                    rfd_status = get_rfd_status(data, str(data["organisation"]))
 
                     data["firearm_details"]["rfd_status"] = rfd_status
 

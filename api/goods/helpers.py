@@ -2,6 +2,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.core.exceptions import BadRequestError
+from api.core.helpers import str_to_bool
 from api.organisations.models import DocumentOnOrganisation
 from api.organisations.enums import OrganisationDocumentType
 from lite_content.lite_api import strings
@@ -110,3 +111,21 @@ def update_firearms_certificate_data(organisation_id, firearm_data):
         del firearm_data["section_certificate_number"]
 
     return firearm_data
+
+
+def get_rfd_status(data, organisation_id):
+    is_rfd = str_to_bool(data.get("is_registered_firearm_dealer")) is True
+    is_certificate_valid = has_valid_certificate(
+        organisation_id, OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE
+    )
+    if data["firearm_details"].get("is_rfd_certificate_valid") is not None:
+        if not data["firearm_details"]["is_rfd_certificate_valid"]:
+            # We can disgregard whetherh there is already valid certificate because the user has
+            # explicitly stated it's no longer valid
+            is_certificate_valid = False
+        elif not is_certificate_valid:
+            # If there's a case where the user has said it's valid but in fact we think it's not then
+            # something has gone wrong and we want to bale out
+            raise BadRequestError({"non_field_errors": "Conflicting certificate validity"})
+
+    return is_rfd or is_certificate_valid
