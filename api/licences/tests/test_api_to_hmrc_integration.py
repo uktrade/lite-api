@@ -1,3 +1,5 @@
+import pytest
+
 from unittest import mock
 from unittest.mock import ANY
 
@@ -22,7 +24,7 @@ from api.licences.libraries.hmrc_integration_operations import (
     HMRCIntegrationException,
     SEND_LICENCE_ENDPOINT,
 )
-from api.licences.models import Licence
+from api.licences.models import Licence, GoodOnLicence
 from api.licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
 from api.licences.tasks import (
     send_licence_to_hmrc_integration,
@@ -386,6 +388,14 @@ class HMRCIntegrationTasksTests(DataTestClient):
         status = LicenceStatus.ISSUED
         self.hmrc_integration_status = licence_status_to_hmrc_integration_action.get(status)
         self.standard_licence = self.create_licence(self.standard_application, status=status)
+        for product in self.standard_application.goods.all():
+            GoodOnLicenceFactory(
+                good=product,
+                licence=self.standard_licence,
+                quantity=product.quantity,
+                usage=0.0,
+                value=product.value,
+            )
 
     @override_settings(BACKGROUND_TASK_ENABLED=False)
     @mock.patch("api.licences.tasks.send_licence_to_hmrc_integration.now")
@@ -568,7 +578,25 @@ class HMRCIntegrationTests(DataTestClient):
         )
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
+    @mock.patch("api.licences.libraries.hmrc_integration_operations.send_licence")
+    def test_siel_no_goods_skip_sending_details_to_hmrc(self, send_licence):
+        standard_application, standard_licence = self._create_licence_for_submission(
+            self.create_standard_application_case
+        )
+        expected_insert_json = HMRCIntegrationLicenceSerializer(standard_licence).data
+        expected_insert_json["action"] = HMRCIntegrationActionEnum.INSERT
+        for good_on_licence in standard_licence.goods.all():
+            good_on_licence.delete()
+
+        url = reverse("cases:finalise", kwargs={"pk": standard_application.id})
+        response = self.client.put(url, data={}, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        send_licence.assert_not_called()
+
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
     @mock.patch("api.core.requests.requests.request")
+    @pytest.mark.skip(reason="Currently we don't support open applications")
     def test_approve_open_application_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         open_application, open_licence = self._create_licence_for_submission(self.create_open_application_case)
@@ -646,6 +674,7 @@ class HMRCIntegrationTests(DataTestClient):
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
     @mock.patch("api.core.requests.requests.request")
+    @pytest.mark.skip(reason="Currently we don't support ogel applications")
     def test_create_ogel_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
@@ -706,8 +735,9 @@ class HMRCIntegrationTests(DataTestClient):
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
-        application = application.get_case()
         licence = self.create_licence(application, status=LicenceStatus.DRAFT)
+        for product in application.goods.all():
+            GoodOnLicence.objects.create(good=product, licence=licence, quantity=product.quantity, value=product.value)
         self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         template = self.create_letter_template(
             name=f"{timezone.now()}",
