@@ -78,6 +78,9 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     replica_description = serializers.CharField(allow_blank=True, required=False)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = serializers.CharField(allow_blank=True, required=False)
+    is_covered_by_firearm_act_section_one_two_or_five_explanation = serializers.CharField(
+        allow_blank=True, required=False
+    )
     firearms_act_section = serializers.CharField(allow_blank=True, required=False)
     section_certificate_missing = serializers.BooleanField(allow_null=True, required=False)
     section_certificate_missing_reason = serializers.CharField(allow_blank=True, required=False)
@@ -112,6 +115,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "is_replica",
             "replica_description",
             "is_covered_by_firearm_act_section_one_two_or_five",
+            "is_covered_by_firearm_act_section_one_two_or_five_explanation",
             "firearms_act_section",
             "section_certificate_missing",
             "section_certificate_missing_reason",
@@ -154,6 +158,13 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             instance.is_covered_by_firearm_act_section_one_two_or_five,
         )
         instance.is_covered_by_firearm_act_section_one_two_or_five = is_covered_by_firearms_act
+        is_covered_by_firearm_act_section_one_two_or_five_explanation = validated_data.get(
+            "is_covered_by_firearm_act_section_one_two_or_five_explanation",
+            instance.is_covered_by_firearm_act_section_one_two_or_five_explanation,
+        )
+        instance.is_covered_by_firearm_act_section_one_two_or_five_explanation = (
+            is_covered_by_firearm_act_section_one_two_or_five_explanation
+        )
         instance.firearms_act_section = validated_data.get("firearms_act_section", instance.firearms_act_section)
 
         if is_covered_by_firearms_act == "Yes" and instance.firearms_act_section:
@@ -215,6 +226,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
         if instance.type not in FIREARMS_CORE_TYPES:
             instance.is_covered_by_firearm_act_section_one_two_or_five = ""
+            instance.is_covered_by_firearm_act_section_one_two_or_five_explanation = ""
             instance.serial_numbers_available = ""
             instance.year_of_manufacture = None
             instance.calibre = ""
