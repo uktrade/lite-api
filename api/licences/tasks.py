@@ -8,7 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 from pytz import timezone as tz
 
-from api.licences.enums import LicenceStatus
+from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum
 from api.licences.libraries import hmrc_integration_operations
 from api.licences.models import Licence
 
@@ -53,6 +53,19 @@ def send_licence_to_hmrc_integration(licence_id, action, scheduled_as_background
     :param licence_reference:
     :param scheduled_as_background_task: Has this function has been scheduled as a task (used for error handling)
     """
+
+    licence = Licence.objects.get(id=licence_id)
+    if (
+        licence.status == LicenceStatus.ISSUED
+        and action == HMRCIntegrationActionEnum.INSERT
+        and licence.goods.count() == 0
+    ):
+        logging.info(
+            "Licence reference %s (id: %s) contains no licenceable goods, skipping sending details to lite-hmrc",
+            licence.reference_code,
+            str(licence.id),
+        )
+        return
 
     try:
         with transaction.atomic():
