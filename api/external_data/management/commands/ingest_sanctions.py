@@ -92,6 +92,8 @@ class Command(BaseCommand):
             for item in itertools.chain(individuals, entities):
                 try:
                     item.pop("nationality", None)
+                    item.pop("title", None)
+
                     address_dicts = item.pop("entity_address", {}) or item.pop("individual_address", {})
 
                     addresses = []
@@ -140,16 +142,15 @@ class Command(BaseCommand):
                     if postcode not in normalize_address(address):
                         address += " " + postcode
 
-                    # We need to hash the data that uniquely identifies records since we have no unique id
-                    unique_id = hash_values([item["groupid"], name, address, postcode, item["regimename"]])
-
+                    # We need to hash the data that uniquely identifies records atm we only care about names
+                    unique_id = hash_values([item["groupid"], name])
                     document = documents.SanctionDocumentType(
-                        meta={"id": f"OFSI:{unique_id}"},
+                        meta={"id": f"ofs:{unique_id}"},
                         name=name,
                         address=address,
                         postcode=postcode,
                         flag_uuid=SystemFlags.SANCTION_OFSI_MATCH,
-                        reference=unique_id,
+                        reference=item["groupid"],
                         data=item,
                     )
                     document.save()
@@ -186,11 +187,12 @@ class Command(BaseCommand):
                     name = join_fields(item, fields=["Name 1", "Name 2", "Name 3", "Name 4", "Name 5", "Name 6"])
                     unique_id = hash_values([item["Unique ID"], name, address, postcode, item["Regime Name"]])
                     document = documents.SanctionDocumentType(
+                        meta={"id": f"uk:{unique_id}"},
                         name=name,
                         address=address,
                         postcode=postcode,
                         flag_uuid=SystemFlags.SANCTION_UK_MATCH,
-                        reference=unique_id,
+                        reference=item["Unique ID"],
                         data=item,
                     )
                     document.save()
