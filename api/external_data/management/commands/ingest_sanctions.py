@@ -162,7 +162,7 @@ class Command(BaseCommand):
                         exc_info=True,
                     )
             log.info(
-                f"uk sanctions (successful:{successful} failed:{failed})",
+                f"office financial sanctions (successful:{successful} failed:{failed})",
             )
         except:
             log.exception(
