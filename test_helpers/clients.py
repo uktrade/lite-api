@@ -486,6 +486,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         firearm_details = None
         if create_firearm_details:
             firearm_details = FirearmGoodDetails.objects.create(
+                category=[],
                 type=FirearmGoodType.AMMUNITION,
                 calibre="0.5",
                 year_of_manufacture="1991",
