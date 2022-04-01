@@ -111,6 +111,9 @@ class SanctionDocumentType(Document):
                     "date": fields.TextField(),
                 }
             ),
+            "title": fields.TextField(),
+            "Last Updated": fields.TextField(),
+            "Date Designated": fields.TextField(),
         }
     )
 
