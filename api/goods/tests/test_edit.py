@@ -314,6 +314,10 @@ class GoodsEditDraftGoodTests(DataTestClient):
         good = self.create_good(
             "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
         )
+        firearm_details = good.firearm_details
+        firearm_details.is_covered_by_firearm_act_section_one_two_or_five = "Unknown"
+        firearm_details.is_covered_by_firearm_act_section_one_two_or_five_explanation = "Explanation"
+        firearm_details.save()
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"firearm_details": {"type": FirearmGoodType.FIREARMS_ACCESSORY}}
@@ -326,6 +330,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertIsNone(good["firearm_details"]["year_of_manufacture"])
         self.assertEqual(good["firearm_details"]["calibre"], "")
         self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"], "")
+        self.assertEqual(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five_explanation"], "")
         self.assertEqual(good["firearm_details"]["serial_numbers_available"], "")
         # 2 due to creating a new good for this test
         self.assertEqual(Good.objects.all().count(), 2)

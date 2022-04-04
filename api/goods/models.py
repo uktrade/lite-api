@@ -59,6 +59,7 @@ class FirearmGoodDetails(models.Model):
     replica_description = models.TextField(blank=True, default="")
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = models.TextField(blank=True, default="")
+    is_covered_by_firearm_act_section_one_two_or_five_explanation = models.TextField(blank=True, default="")
     firearms_act_section = models.TextField(blank=True, default="")
 
     section_certificate_missing = models.BooleanField(blank=True, null=True)

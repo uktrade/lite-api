@@ -26,17 +26,15 @@ from api.core.decorators import (
     application_in_state,
 )
 from api.core.exceptions import BadRequestError
-from api.core.helpers import str_to_bool
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
-from api.goods.helpers import FIREARMS_CORE_TYPES, has_valid_certificate
+from api.goods.helpers import FIREARMS_CORE_TYPES, get_rfd_status
 from api.goods.libraries.get_goods import get_good_with_organisation
 from api.goods.serializers import FirearmDetailsSerializer
 from api.goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
-from api.organisations.models import OrganisationDocumentType
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -104,11 +102,8 @@ class ApplicationGoodsOnApplication(APIView):
             good = get_good_with_organisation(data.get("good"), get_request_user_organisation_id(request))
 
             if data.get("firearm_details") and good.firearm_details.type in FIREARMS_CORE_TYPES:
-                is_rfd = str_to_bool(data.get("is_registered_firearm_dealer")) is True
+                rfd_status = get_rfd_status(data, good.organisation_id)
 
-                rfd_status = is_rfd or has_valid_certificate(
-                    good.organisation_id, OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE
-                )
                 data["firearm_details"]["rfd_status"] = rfd_status
 
                 # If the user is a registered firearms dealer and has a valid certificate then it
