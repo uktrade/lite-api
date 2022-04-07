@@ -4,6 +4,7 @@ from unittest import mock
 from django.urls import reverse
 
 from api.organisations.enums import OrganisationDocumentType
+from api.organisations.models import DocumentOnOrganisation
 from test_helpers.clients import DataTestClient
 
 
@@ -82,3 +83,23 @@ class OrganisationDocumentViewTests(DataTestClient):
                 },
             },
         )
+
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
+    def test_delete_organisation_documents(self):
+        response = self.create_document_on_organisation("some-document-one")
+        self.assertEqual(response.status_code, 201)
+
+        document_on_application_pk = response.json()["document"]["id"]
+
+        url = reverse(
+            "organisations:documents",
+            kwargs={
+                "pk": self.organisation.pk,
+                "document_on_application_pk": document_on_application_pk,
+            },
+        )
+
+        response = self.client.delete(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, 204)
+        with self.assertRaises(DocumentOnOrganisation.DoesNotExist):
+            DocumentOnOrganisation.objects.get(pk=document_on_application_pk)

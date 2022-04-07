@@ -35,7 +35,7 @@ urlpatterns = [
     ),
     path(
         "<uuid:pk>/document/<uuid:document_on_application_pk>/",
-        documents.DocumentOnOrganisationView.as_view({"get": "retrieve"}),
+        documents.DocumentOnOrganisationView.as_view({"get": "retrieve", "delete": "delete"}),
         name="documents",
     ),
 ]
