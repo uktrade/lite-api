@@ -523,6 +523,27 @@ class GoodDocumentDetail(APIView):
         return JsonResponse({"document": serializer.data})
 
     @transaction.atomic
+    def put(self, request, pk, doc_pk):
+        good = get_good(pk)
+
+        if good.organisation_id != get_request_user_organisation_id(request):
+            raise PermissionDenied()
+
+        if good.status != GoodStatus.DRAFT:
+            return JsonResponse(
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        document = Document.objects.get(id=doc_pk)
+        good_document = get_good_document(good, document.id)
+        serializer = GoodDocumentCreateSerializer(instance=good_document, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse({"document": serializer.data}, status=status.HTTP_200_OK)
+
+        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
     def delete(self, request, pk, doc_pk):
         """
         Deletes good document

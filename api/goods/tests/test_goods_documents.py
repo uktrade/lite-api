@@ -33,23 +33,6 @@ class GoodDocumentsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["documents"]), 2)
 
-    # Circle CI cannot handle this test as the AWS bucket name is invalid
-    # def test_can_remove_document_from_unsubmitted_good(self):
-    #     doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
-    #     self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc2key', name='doc2.pdf')
-    #
-    #     url = reverse('goods:document', kwargs={'pk': self.good.id, 'doc_pk': doc1.id})
-    #
-    #     response = self.client.delete(url, **self.exporter_headers)
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #
-    #     response = self.client.get(self.url, **self.exporter_headers)
-    #     response_data = response.json()
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(len(response_data['documents']), 1)
-
     def test_no_document_comments_saved(self):
         """
         Ensure no-doc comments by applicant are stored in the database
@@ -99,17 +82,16 @@ class GoodDocumentsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # Circle CI does not like calls to live S3
-    # TODO: Work in progress
-    # def test_add_a_document(self):
-    #     data = [{"name": "file123.pdf",
-    #              "s3_key": "file123_12345678.pdf",
-    #              "size": 476,
-    #              "description": "Description 58398"}]
-    #
-    #     response = self.client.post(self.url, data=data, **self.gov_headers)
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #     print('STATUSCODE' + str(response.status_code))
-    #     self.assertEqual(CaseDocument.objects.count(), 1)
-    #     self.assertEqual(CaseDocument.objects.get().case, self.case)
+    def test_edit_product_document_description(self):
+        draft = self.create_draft_standard_application(self.organisation)
+        good = GoodOnApplication.objects.get(application=draft).good
+        document = self.create_good_document(
+            good=good, user=self.exporter_user, organisation=self.organisation, s3_key="doc1key", name="doc1.pdf"
+        )
+        url = reverse("goods:document", kwargs={"pk": good.id, "doc_pk": document.id})
+        response = self.client.put(url, {"description": "Updated document description"}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["document"]["description"], "Updated document description")
