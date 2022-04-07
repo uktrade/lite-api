@@ -81,3 +81,17 @@ class GoodDocumentsTests(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_edit_product_document_description(self):
+        draft = self.create_draft_standard_application(self.organisation)
+        good = GoodOnApplication.objects.get(application=draft).good
+        document = self.create_good_document(
+            good=good, user=self.exporter_user, organisation=self.organisation, s3_key="doc1key", name="doc1.pdf"
+        )
+        url = reverse("goods:document", kwargs={"pk": good.id, "doc_pk": document.id})
+        response = self.client.put(url, {"description": "Updated document description"}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["document"]["description"], "Updated document description")
