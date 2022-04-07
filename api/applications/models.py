@@ -27,6 +27,7 @@ from api.external_data import enums as denial_enums
 from api.flags.models import Flag
 from api.goods.enums import ItemType, PvGrading
 from api.goods.models import Good
+from api.organisations.enums import OrganisationDocumentType
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.parties.enums import PartyType
 from api.parties.models import Party
@@ -290,6 +291,12 @@ class HmrcQuery(BaseApplication):
 class ApplicationDocument(Document):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    document_type = models.TextField(
+        choices=OrganisationDocumentType.choices,
+        default=None,
+        blank=True,
+        null=True,
+    )
 
 
 class SiteOnApplication(models.Model):
