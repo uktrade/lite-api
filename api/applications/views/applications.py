@@ -173,11 +173,13 @@ class ApplicationsRequireSerialNumbersList(ListAPIView):
             ]
         )
         applications = applications.filter(
-            goods__firearm_details__serial_numbers_available__in=FirearmGoodDetails.SerialNumberAvailability.get_has_serial_numbers_values(),
-        )
-        applications = applications.filter(
-            Q(goods__firearm_details__serial_numbers__len__lt=F("goods__firearm_details__number_of_items"))
-            | Q(goods__firearm_details__serial_numbers__contains=[""])
+            Q(
+                goods__firearm_details__serial_numbers_available__in=FirearmGoodDetails.SerialNumberAvailability.get_has_serial_numbers_values()
+            )
+            & (
+                Q(goods__firearm_details__serial_numbers__len__lt=F("goods__firearm_details__number_of_items"))
+                | Q(goods__firearm_details__serial_numbers__contains=[""])
+            )
         )
 
         return applications
