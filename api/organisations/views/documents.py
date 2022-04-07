@@ -41,3 +41,18 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
 
         serializer.save()
         return JsonResponse({"document": serializer.data}, status=201)
+
+    def delete(self, request, pk, document_on_application_pk):
+        instance = get_object_or_404(self.get_queryset(), pk=document_on_application_pk)
+        instance.delete()
+        organisation = models.Organisation.objects.get(pk=pk)
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.DOCUMENT_ON_ORGANISATION_DELETE,
+            target=organisation,
+            payload={
+                "file_name": instance.document.name,
+                "document_type": instance.document_type,
+            },
+        )
+        return JsonResponse({}, status=204)
