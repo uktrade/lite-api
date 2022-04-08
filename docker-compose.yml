@@ -23,6 +23,8 @@ services:
       - "9000:9000"
     entrypoint: sh
     command: ['-c', 'mkdir -p /data/lite-document-store-test && minio server /data']
+    networks:
+      - lite
 
   api:
     env_file:
