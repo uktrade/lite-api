@@ -268,6 +268,9 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
+    is_document_available = serializers.BooleanField(allow_null=True, required=False, default=None)
+    no_document_comments = serializers.CharField(allow_blank=True, required=False)
+    is_document_sensitive = serializers.BooleanField(allow_null=True, required=False, default=None)
     item_category = KeyValueChoiceField(
         choices=ItemCategory.choices, error_messages={"required": strings.Goods.FORM_NO_ITEM_CATEGORY_SELECTED}
     )
@@ -388,6 +391,9 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
+        instance.is_document_available = validated_data.get("is_document_available", instance.is_document_available)
+        instance.no_document_comments = validated_data.get("no_document_comments", instance.no_document_comments)
+        instance.is_document_sensitive = validated_data.get("is_document_sensitive", instance.is_document_sensitive)
 
         if "control_list_entries" in validated_data:
             instance.control_list_entries.set(validated_data["control_list_entries"])

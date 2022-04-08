@@ -532,9 +532,6 @@ class StandardApplicationTests(DataTestClient):
         self.assertNotIn(SystemFlags.WMD_END_USE_ID, case_flags)
         self.assertNotIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)
 
-        # only good on the draft not firearms
-        self.assertNotIn(SystemFlags.FIREARMS_ID, case_flags)
-
         html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
 
