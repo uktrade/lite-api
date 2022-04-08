@@ -82,6 +82,32 @@ class GoodDocumentsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_edit_product_document_availability(self):
+        draft = self.create_draft_standard_application(self.organisation)
+        good = GoodOnApplication.objects.get(application=draft).good
+        self.assertTrue(good.is_document_available)
+
+        url = reverse("goods:good", kwargs={"pk": good.id})
+        response = self.client.put(
+            url,
+            {"is_document_available": False, "no_document_comments": "Product not manufactured yet"},
+            **self.exporter_headers,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good = response.json()["good"]
+        self.assertFalse(good["is_document_available"])
+        self.assertEqual(good["no_document_comments"], "Product not manufactured yet")
+
+    def test_edit_product_document_sensitivity(self):
+        draft = self.create_draft_standard_application(self.organisation)
+        good = GoodOnApplication.objects.get(application=draft).good
+        self.assertFalse(good.is_document_sensitive)
+
+        url = reverse("goods:good", kwargs={"pk": good.id})
+        response = self.client.put(url, {"is_document_sensitive": True}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.json()["good"]["is_document_sensitive"])
+
     def test_edit_product_document_description(self):
         draft = self.create_draft_standard_application(self.organisation)
         good = GoodOnApplication.objects.get(application=draft).good

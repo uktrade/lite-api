@@ -12,10 +12,12 @@ class GoodFactory(factory.django.DjangoModelFactory):
     is_good_controlled = False
     part_number = factory.Faker("ean13")
     organisation = None
-    item_category = ItemCategory.GROUP1_COMPONENTS
+    item_category = ItemCategory.GROUP2_FIREARMS
     is_military_use = MilitaryUse.NO
     is_component = Component.NO
     is_pv_graded = GoodPvGraded.NO
+    is_document_available = True
+    is_document_sensitive = False
     uses_information_security = False
     information_security_details = None
     modified_military_use_details = None
