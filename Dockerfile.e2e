@@ -1,6 +1,7 @@
 FROM python:3.7-slim
 
 ARG DOCKERIZE_VERSION=v0.6.1
+ARG GIT_ACCESS_CODE=
 
 WORKDIR /app
 
@@ -23,5 +24,15 @@ RUN pipenv install --dev --system --deploy
 RUN pip3 install endesive==1.5.9
 
 ADD . /app
+
+# Install git
+RUN apt-get update --fix-missing
+RUN apt-get install -y git
+
+# Clean up submodule and pull it down 
+RUN rm -rf lite_content/
+RUN git clone https://$GIT_ACCESS_CODE@github.com/uktrade/lite-content.git
+RUN mkdir lite_content
+RUN cp -r lite-content/ lite_content/
 
 CMD ./start-e2e.sh
