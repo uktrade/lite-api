@@ -165,19 +165,6 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
                 self.initial_data[i]["footnote"] = None
                 self.initial_data[i]["footnote_required"] = None
 
-    def create(self, *args, **kwargs):
-        instance = super().create(*args, **kwargs)
-
-        if not instance.denial_reasons.exists():
-            denial_reasons_logger.warning(
-                "Creating advice object with no denial reasons: %s (%s)",
-                instance,
-                instance.pk,
-                exc_info=True,
-            )
-
-        return instance
-
     def update(self, instance, validated_data):
         previous_denial_reasons = list(instance.denial_reasons.values_list("pk", flat=True))
 
