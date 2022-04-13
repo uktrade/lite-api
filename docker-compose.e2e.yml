@@ -8,7 +8,9 @@ services:
       - db
       - elasticsearch
       - redis
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.e2e
     volumes:
       - .:/app
     ports:
