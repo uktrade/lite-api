@@ -20,6 +20,7 @@ from api.core.helpers import str_to_bool
 from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
+from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
 from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (
@@ -151,6 +152,13 @@ class GoodsListControlCode(APIView):
                             "is_precedent": serializer.validated_data.get("is_precedent", False),
                         },
                     )
+
+            # Add or remove WASSENAAR flag based on whether the user chose to apply it
+            good = obj if isinstance(good, GoodsType) else obj.good
+            if serializer.validated_data.get("is_wassenaar"):
+                good.flags.add(SystemFlags.WASSENAAR)
+            else:
+                good.flags.remove(SystemFlags.WASSENAAR)
         apply_good_flagging_rules_for_case(case)
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 

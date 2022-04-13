@@ -1,10 +1,12 @@
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from api.flags.enums import SystemFlags
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.applications.models import GoodOnApplication
+from api.applications.tests.factories import GoodOnApplicationFactory
 from api.core import constants
 from api.flags.enums import FlagLevels
 from api.flags.tests.factories import FlagFactory
@@ -415,3 +417,58 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         response = self.client.post(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class WASSENAARFlagTest(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.report_summary = self.create_picklist_item(
+            "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
+        )
+
+        role = Role(name="review_goods")
+        role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])
+        role.save()
+        self.gov_user.role = role
+        self.gov_user.save()
+
+        self.application = self.create_draft_standard_application(organisation=self.organisation)
+
+        self.good = GoodOnApplicationFactory(
+            application=self.application,
+            good=GoodFactory(organisation=self.organisation),
+        )
+
+        self.case = self.submit_application(self.application)
+        self.url = reverse("goods:control_list_entries", kwargs={"case_pk": self.case.id})
+
+    def test_wassenaar_flags(self):
+        """
+        Assert that is_wassenaar field sets the wassenaar flag
+        """
+
+        # Add WASSENAAR flag
+        data = {
+            "objects": self.good.good.pk,
+            "current_object": self.good.pk,
+            "comment": "I Am Easy to Find",
+            "report_summary": self.report_summary.text,
+            "control_list_entries": ["ML1a"],
+            "is_good_controlled": True,
+            "is_wassenaar": True,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.good.refresh_from_db()
+        assert self.good.good.flags.filter(id=SystemFlags.WASSENAAR).exists()
+
+        # Remove WASSENAAR flag
+        data["is_wassenaar"] = False
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.good.refresh_from_db()
+        assert not self.good.good.flags.filter(id=SystemFlags.WASSENAAR).exists()
