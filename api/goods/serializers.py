@@ -699,10 +699,11 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
 
     is_precedent = serializers.BooleanField(required=False, default=False)
+    is_wassenaar = serializers.BooleanField(required=False, default=False)
 
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
-        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control", "is_precedent")
+        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control", "is_precedent", "is_wassenaar")
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
