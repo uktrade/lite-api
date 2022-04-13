@@ -477,3 +477,16 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(good["firearm_details"]["serial_numbers_available"], "AVAILABLE")
         self.assertEqual(good["firearm_details"]["no_identification_markings_details"], "")
+
+    def test_edit_firearm_year_made_before_1938(self):
+        good = self.create_good(
+            "Rifle", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"firearm_details": {"is_made_before_1938": False}}
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(good["firearm_details"]["is_made_before_1938"], False)

@@ -63,6 +63,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         allow_null=True,
         required=False,
     )
+    is_made_before_1938 = serializers.BooleanField(allow_null=True, required=False)
     year_of_manufacture = serializers.IntegerField(
         allow_null=False,
         required=False,
@@ -110,6 +111,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         fields = (
             "type",
             "category",
+            "is_made_before_1938",
             "year_of_manufacture",
             "calibre",
             "is_replica",
@@ -145,6 +147,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.type = validated_data.get("type", instance.type)
         instance.category = validated_data.get("category", instance.category)
+        instance.is_made_before_1938 = validated_data.get("is_made_before_1938", instance.is_made_before_1938)
         instance.year_of_manufacture = validated_data.get("year_of_manufacture", instance.year_of_manufacture)
         instance.calibre = validated_data.get("calibre", instance.calibre)
 

@@ -53,6 +53,7 @@ class FirearmGoodDetails(models.Model):
 
     type = models.TextField(choices=FirearmGoodType.choices, blank=False)
     category = ArrayField(models.CharField(choices=FirearmCategory.choices, max_length=255), blank=True, null=True)
+    is_made_before_1938 = models.BooleanField(blank=True, null=True)
     year_of_manufacture = models.PositiveSmallIntegerField(blank=True, null=True)
     calibre = models.TextField(blank=True)
     is_replica = models.BooleanField(blank=True, null=True)
