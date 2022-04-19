@@ -194,7 +194,7 @@ class FirearmGoodType:
     TECHNOLOGY_RELATED_TO_FIREARM = "technology_related_to_firearms"
 
     choices = [
-        (FIREARMS, "Firearms"),
+        (FIREARMS, "Firearm"),
         (COMPONENTS_FOR_FIREARMS, "Components for firearms"),
         (AMMUNITION, "Ammunition"),
         (COMPONENTS_FOR_AMMUNITION, "Components for ammunition"),
