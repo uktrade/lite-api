@@ -120,6 +120,7 @@ class AuditType(LiteEnum):
     LICENCE_UPDATED_STATUS = autostr()
     DOCUMENT_ON_ORGANISATION_CREATE = autostr()
     DOCUMENT_ON_ORGANISATION_DELETE = autostr()
+    DOCUMENT_ON_ORGANISATION_UPDATE = autostr()
     REPORT_SUMMARY_UPDATED = autostr()
     COUNTERSIGN_ADVICE = autostr()
     UPDATED_SERIAL_NUMBERS = autostr()

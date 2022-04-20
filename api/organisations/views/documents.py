@@ -56,3 +56,22 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
             },
         )
         return JsonResponse({}, status=204)
+
+    def update(self, request, pk, document_on_application_pk):
+        instance = get_object_or_404(self.get_queryset(), pk=document_on_application_pk)
+        organisation = models.Organisation.objects.get(pk=pk)
+        serializer = self.serializer_class(
+            instance=instance, data=request.data, partial=True, context={"organisation": organisation}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.DOCUMENT_ON_ORGANISATION_UPDATE,
+            target=organisation,
+            payload={
+                "file_name": instance.document.name,
+                "document_type": instance.document_type,
+            },
+        )
+        return JsonResponse({"document": serializer.data}, status=200)
