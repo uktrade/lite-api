@@ -1,4 +1,4 @@
-from string import ascii_lowercase, ascii_uppercase
+from string import ascii_uppercase
 
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code
@@ -19,23 +19,11 @@ class GetLicenceReferenceCodeTests(DataTestClient):
 
         self.assertEqual(reference_code, f"{self.application.reference_code}-01")
 
-    def test_get_amended_licence_old_reference_code_format(self):
+    def test_get_amended_licence_reference_code(self):
         """
-        Check all amended licences get suffix '/A' -> '/Z' in the old format
+        Check all amended licences get suffix /A -> /Z
         """
-        self.application.reference_code = "GBSIEL/2021/0000001/P"
-        self.application.save()
-
         for letter in ascii_uppercase:
             self.create_licence(self.application, status=LicenceStatus.ISSUED)
             reference_code = get_licence_reference_code(self.application.reference_code)
-            self.assertEqual(reference_code, f"{self.application.reference_code}/{letter}")
-
-    def test_get_amended_licence_reference_code(self):
-        """
-        Check all amended licences get suffix starting from '-02' then '-03', '-04', '-05' etc.
-        """
-        for number in range(100, 2):
-            self.create_licence(self.application, status=LicenceStatus.ISSUED)
-            reference_code = get_licence_reference_code(self.application.reference_code)
-            self.assertEqual(reference_code, f"{self.application.reference_code}-{number:02}")
+            self.assertEqual(reference_code, self.application.reference_code + "/" + letter)

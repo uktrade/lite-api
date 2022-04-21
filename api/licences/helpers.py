@@ -38,19 +38,11 @@ def get_licence_reference_code(application_reference):
     total_reference_codes = (
         Licence.objects.filter(reference_code__icontains=application_reference).select_for_update().count()
     )
-
-    # If licence reference already exists then we are re-issuing it so for each
-    # re-issue/amendment we add a suffix to the original reference
-    # suffix differs as per the application reference naming scheme
-    if application_reference.startswith("GB"):
-        if not total_reference_codes:
-            return application_reference
-        letter = ascii_uppercase[total_reference_codes - 1]
-        suffix = f"/{letter}"
-    else:
-        suffix = f"-{(total_reference_codes + 1):02}"
-
-    return f"{application_reference}{suffix}"
+    return (
+        f"{application_reference}/{ascii_uppercase[total_reference_codes-1]}"
+        if total_reference_codes != 0
+        else application_reference
+    )
 
 
 def serialize_goods_on_licence(licence):
