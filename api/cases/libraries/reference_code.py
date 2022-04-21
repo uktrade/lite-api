@@ -7,6 +7,7 @@ from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 LICENCE_APPLICATION_PREFIX = "GB"
 SEPARATOR = "/"
 
+
 def generate_reference_code(case):
     from api.cases.models import CaseReferenceCode
 

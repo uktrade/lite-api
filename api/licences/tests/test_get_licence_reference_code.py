@@ -17,7 +17,7 @@ class GetLicenceReferenceCodeTests(DataTestClient):
         """
         reference_code = get_licence_reference_code(self.application.reference_code)
 
-        self.assertEqual(reference_code, f"{self.application.reference_code}-01")
+        self.assertEqual(reference_code, f"{self.application.reference_code}")
 
     def test_get_amended_licence_reference_code(self):
         """

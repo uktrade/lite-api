@@ -37,7 +37,7 @@ class ReferenceCode(DataTestClient):
 
     def test_standard_individual_transhipment_application_reference_code(self):
         standard_application = self.create_draft_standard_application(
-            self.organisation, case_type_id=CaseTypeEnum.SITL.id,
+            self.organisation, case_type_id=CaseTypeEnum.SITL.id
         )
         standard_application = self.submit_application(standard_application)
 
