@@ -103,3 +103,38 @@ class OrganisationDocumentViewTests(DataTestClient):
         self.assertEqual(response.status_code, 204)
         with self.assertRaises(DocumentOnOrganisation.DoesNotExist):
             DocumentOnOrganisation.objects.get(pk=document_on_application_pk)
+
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now", mock.Mock)
+    def test_update_organisation_documents(self):
+        response = self.create_document_on_organisation("some-document-one")
+        self.assertEqual(response.status_code, 201)
+
+        document_on_application_pk = response.json()["document"]["id"]
+
+        url = reverse(
+            "organisations:documents",
+            kwargs={
+                "pk": self.organisation.pk,
+                "document_on_application_pk": document_on_application_pk,
+            },
+        )
+
+        response = self.client.put(
+            url,
+            data={
+                "expiry_date": "2030-12-12",
+                "reference_code": "567",
+            },
+            **self.exporter_headers,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        document_on_application = DocumentOnOrganisation.objects.get(pk=document_on_application_pk)
+        self.assertEqual(
+            document_on_application.expiry_date,
+            datetime.date(2030, 12, 12),
+        )
+        self.assertEqual(
+            document_on_application.reference_code,
+            "567",
+        )
