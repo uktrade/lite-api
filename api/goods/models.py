@@ -100,10 +100,7 @@ class FirearmGoodDetails(models.Model):
     )
     is_onward_incorporated = models.BooleanField(default=None, blank=True, null=True)
     is_onward_incorporated_comments = models.TextField(
-        default="",
-        blank=True,
-        null=False,
-        help_text="what's being incorporated into the product",
+        default="", blank=True, help_text="what"s being incorporated into the product"
     )
 
     @property
