@@ -50,7 +50,7 @@ xmlschema = "~=1.2.0"
 notifications-python-client = "~=5.7.1"
 dataclasses = "~=0.6"
 # endesive = "~=1.5.9" (not included here as installed in a later jenkins step. Uncomment if working locally)
-pypdf2 = "~=1.26.0"
+pypdf2 = "~=1.27.5"
 pyOpenSSL = "~=19.1.0"
 sentry-sdk = "~=0.16"
 elastic-apm = "~=6.7.2"
