@@ -203,6 +203,10 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         if validated_data.get("firearm_details"):
             # copy the data from the "firearm detail on good" level to "firearm detail on good-on-application" level
             firearm_data = model_to_dict(validated_data["good"].firearm_details)
+            # since in the instance no manufacture date is set it retrieves as null. This is requires to avoid a
+            # validation error as this is an optional question when saving against a good application
+            if "year_of_manufacture" in firearm_data and firearm_data["year_of_manufacture"] is None:
+                del firearm_data["year_of_manufacture"]
             if validated_data.get("firearm_details"):
                 firearm_data.update(validated_data["firearm_details"])
             firearm_data = update_firearms_certificate_data(validated_data["good"].organisation_id, firearm_data)
