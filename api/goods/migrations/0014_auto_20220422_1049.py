@@ -18,7 +18,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="firearmgooddetails",
             name="is_onward_altered_processed_comments",
-            field=models.TextField(blank=True, default="", help_text="How the product will be processed or altered"),
+            field=models.TextField(
+                blank=True, default="", null=True, help_text="How the product will be processed or altered"
+            ),
         ),
         migrations.AddField(
             model_name="firearmgooddetails",
@@ -33,6 +35,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="firearmgooddetails",
             name="is_onward_incorporated_comments",
-            field=models.TextField(blank=True, default="", help_text="what's being incorporated into the product"),
+            field=models.TextField(
+                blank=True, default="", null=True, help_text="what's being incorporated into the product"
+            ),
         ),
     ]

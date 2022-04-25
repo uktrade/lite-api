@@ -96,11 +96,11 @@ class FirearmGoodDetails(models.Model):
     is_onward_exported = models.BooleanField(default=None, blank=True, null=True)
     is_onward_altered_processed = models.BooleanField(default=None, blank=True, null=True)
     is_onward_altered_processed_comments = models.TextField(
-        default="", blank=True, help_text="How the product will be processed or altered"
+        default="", blank=True, null=True, help_text="How the product will be processed or altered"
     )
     is_onward_incorporated = models.BooleanField(default=None, blank=True, null=True)
     is_onward_incorporated_comments = models.TextField(
-        default="", blank=True, help_text="what's being incorporated into the product"
+        default="", blank=True, null=True, help_text="what's being incorporated into the product"
     )
 
     @property
