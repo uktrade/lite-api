@@ -5,8 +5,9 @@ from django.db.models import F
 from django.http.response import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.exceptions import ParseError
-from rest_framework.generics import ListCreateAPIView, UpdateAPIView
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView
 from rest_framework.views import APIView
+from api.applications.models import GoodOnApplication
 from api.applications.serializers.advice import CountersignAdviceSerializer, CountryWithFlagsSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -72,6 +73,8 @@ from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
+from api.goods.serializers import GoodOnApplicationSerializer
+from api.goods.enums import GoodStatus
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuComplianceCreatedEmailData
@@ -999,3 +1002,21 @@ class CountersignAdvice(APIView):
         )
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
+
+
+class GoodOnPrecedentList(ListAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = GoodOnApplicationSerializer
+
+    def get_queryset(self):
+        case = get_case(self.kwargs["pk"])
+        gonas = GoodOnApplication.objects.filter(application=case).all()
+        goods = {gona.good_id for gona in gonas}
+        return GoodOnApplication.objects.filter(good__in=goods, good__status=GoodStatus.VERIFIED).prefetch_related(
+            "good",
+            "good__flags",
+            "good__control_list_entries",
+            "application",
+            "application__queues",
+            "control_list_entries",
+        )

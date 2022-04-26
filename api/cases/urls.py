@@ -87,4 +87,6 @@ urlpatterns = [
     path("<uuid:pk>/review-date/", views.NextReviewDate.as_view(), name="review_date"),
     # Advice2.0
     path("<uuid:pk>/countersign-advice/", views.CountersignAdvice.as_view(), name="countersign_advice"),
+    # Good precedents
+    path("<uuid:pk>/good-precedents/", views.GoodOnPrecedentList.as_view(), name="good_precedents"),
 ]
