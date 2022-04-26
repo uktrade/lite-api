@@ -4,7 +4,7 @@ from datetime import timedelta
 import requests
 from rest_framework import status
 
-BANK_HOLIDAY_API = "https://www.gov.uk/bank-holidays.json"
+BANK_HOLIDAY_API = "https://www.gov.uk/bank-holidays.jsonx"
 BACKUP_FILE_NAME = "bank-holidays.csv"
 LOG_PREFIX = "update_cases_sla background task:"
 
