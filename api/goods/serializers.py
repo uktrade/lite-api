@@ -143,6 +143,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "is_deactivated",
             "date_of_deactivation",
             "is_deactivated_to_standard",
+            "not_deactivated_to_standard_comments",
         )
 
     def validate(self, data):
