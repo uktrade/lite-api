@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from api.applications.models import PartyOnApplication
 from api.core.helpers import str_to_bool
 from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
 from api.documents.libraries.process_document import process_document
@@ -728,3 +729,47 @@ class ClcControlGoodSerializer(GoodControlReviewSerializer):
         super().update(instance, validated_data)
         instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
         return instance
+
+
+class GoodOnApplicationSerializer(serializers.ModelSerializer):
+
+    queue = serializers.SerializerMethodField()
+    reference = serializers.ReadOnlyField(source="application.reference_code")
+    control_list_entries = serializers.SerializerMethodField()
+    wassenaar = serializers.SerializerMethodField()
+    destinations = serializers.SerializerMethodField()
+    submitted_at = serializers.ReadOnlyField(source="application.submitted_at")
+
+    class Meta:
+        model = GoodOnApplication
+        fields = (
+            "id",
+            "queue",
+            "application",
+            "reference",
+            "good",
+            "report_summary",
+            "quantity",
+            "unit",
+            "value",
+            "control_list_entries",
+            "destinations",
+            "wassenaar",
+            "submitted_at",
+        )
+
+    def get_queue(self, obj):
+        queue = obj.application.queues.first()
+        return queue.id if queue else None
+
+    def get_control_list_entries(self, obj):
+        return [cle.rating for cle in obj.get_control_list_entries().all()]
+
+    def get_wassenaar(self, obj):
+        return obj.good.flags.filter(name="WASSENAAR").exists()
+
+    def get_destinations(self, obj):
+        destinations = (
+            PartyOnApplication.objects.filter(application=obj.application).values("party__country").distinct()
+        )
+        return [dest["party__country"] for dest in destinations]
