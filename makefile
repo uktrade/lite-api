@@ -1,6 +1,6 @@
 ARGUMENTS = $(filter-out $@,$(MAKECMDGOALS)) $(filter-out --,$(MAKEFLAGS))
 
-docker-base = docker-compose -p lite -f docker-compose.e2e.yml
+docker-base = docker-compose -f docker-compose.e2e.yml
 
 clean:
 	-find . -type f -name "*.pyc" -delete
@@ -21,8 +21,11 @@ test:
 secrets:
 	cp local.env .env
 
+build-e2e:
+	$(docker-base) build --build-arg GIT_ACCESS_CODE=${GIT_ACCESS_CODE}
+
 start-e2e:
 	$(docker-base) up
 
 stop-e2e:
-	$(docker-base) down
+	$(docker-base) down --remove-orphans
