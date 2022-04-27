@@ -140,6 +140,9 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "is_onward_altered_processed_comments",
             "is_onward_incorporated",
             "is_onward_incorporated_comments",
+            "is_deactivated",
+            "date_of_deactivation",
+            "is_deactivated_to_standard",
         )
 
     def validate(self, data):
