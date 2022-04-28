@@ -32,7 +32,7 @@ class PvGradingDetails(models.Model):
     custom_grading = models.TextField(blank=True, null=True, max_length=100)
     prefix = models.CharField(blank=True, null=True, max_length=30)
     suffix = models.CharField(blank=True, null=True, max_length=30)
-    issuing_authority = models.CharField(blank=True, null=True, max_length=255)
+    issuing_authority = models.TextField(default="")
     reference = models.CharField(blank=True, null=True, max_length=100)
     date_of_issue = models.DateField(blank=True, null=True)
 

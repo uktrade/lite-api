@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='pvgradingdetails',
             name='issuing_authority',
-            field=models.CharField(blank=True, max_length=255, null=True),
+            field=models.TextField(default=""),
         ),
     ]
