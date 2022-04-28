@@ -89,6 +89,7 @@ class FirearmGoodDetails(models.Model):
         help_text="Has the firearms been deactivated to UK/EU standards?", null=True
     )
     date_of_deactivation = models.DateField(blank=True, null=True)
+    not_deactivated_to_standard_comments = models.TextField(default="")
     deactivation_standard = models.TextField(default="")
     deactivation_standard_other = models.TextField(default="")
 
