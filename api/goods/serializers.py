@@ -105,6 +105,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         required=False,
         error_messages={"null": "Enter the number of items", "invalid": "Number of items must be valid"},
     )
+    not_deactivated_to_standard_comments = serializers.CharField(allow_blank=True, required=False)
     serial_numbers = serializers.ListField(child=serializers.CharField(allow_blank=True), required=False)
 
     class Meta:
@@ -140,9 +141,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "is_onward_altered_processed_comments",
             "is_onward_incorporated",
             "is_onward_incorporated_comments",
-            "is_deactivated",
-            "date_of_deactivation",
-            "is_deactivated_to_standard",
             "not_deactivated_to_standard_comments",
         )
 
