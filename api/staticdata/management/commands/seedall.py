@@ -34,6 +34,7 @@ SEED_COMMANDS = {
         "seedfinaldecisions",
         "seedflags",
         "seedf680clearancetypes",
+        "seedlettertemplates",
     ],
 }
 
