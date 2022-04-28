@@ -37,6 +37,8 @@ class Command(SeedCommand):
         teams = {}
 
         for row in rows:
+            if not row.get("alias"):
+                row["alias"] = None
             team = Team.objects.filter(name__iexact=row["name"])
             if not team.exists():
                 team_id = Team.objects.create(**row).id
@@ -60,6 +62,8 @@ class Command(SeedCommand):
     @classmethod
     def _create_queues_or_flags(cls, model: models.Model, rows: dict, teams: dict, include_team_in_filter: bool):
         for row in rows:
+            if not row.get("alias"):
+                row["alias"] = None
             team_name = row.pop("team_name")
             row["team_id"] = teams[team_name]
             filter = dict(name__iexact=row["name"])
