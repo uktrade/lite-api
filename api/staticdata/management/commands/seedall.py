@@ -60,6 +60,11 @@ class Command(SeedCommand):
             action="store_true",
             help="Executes: " + ", ".join(SEED_COMMANDS["Dev"]),
         )
+        parser.add_argument(
+            "--test",
+            action="store_true",
+            help="Executes: " + ", ".join(SEED_COMMANDS["Tests"]),
+        )
 
     @staticmethod
     def seed_list(commands):
@@ -91,6 +96,9 @@ class Command(SeedCommand):
 
             if options["dev"]:
                 errors += self.seed_list(SEED_COMMANDS["Dev"])
+
+            if options["test"]:
+                errors += self.seed_list(SEED_COMMANDS["Tests"])
 
         self.print_separator()
 
