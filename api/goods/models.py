@@ -32,7 +32,7 @@ class PvGradingDetails(models.Model):
     custom_grading = models.TextField(blank=True, null=True, max_length=100)
     prefix = models.CharField(blank=True, null=True, max_length=30)
     suffix = models.CharField(blank=True, null=True, max_length=30)
-    issuing_authority = models.CharField(blank=True, null=True, max_length=100)
+    issuing_authority = models.TextField(default="")
     reference = models.CharField(blank=True, null=True, max_length=100)
     date_of_issue = models.DateField(blank=True, null=True)
 
@@ -89,6 +89,7 @@ class FirearmGoodDetails(models.Model):
         help_text="Has the firearms been deactivated to UK/EU standards?", null=True
     )
     date_of_deactivation = models.DateField(blank=True, null=True)
+    not_deactivated_to_standard_comments = models.TextField(default="")
     deactivation_standard = models.TextField(default="")
     deactivation_standard_other = models.TextField(default="")
 
