@@ -62,6 +62,9 @@ class Command(SeedCommand):
         for row in rows:
             team_name = row.pop("team_name")
             row["team_id"] = teams[team_name]
+            countersigning_queue = row.pop("countersigning_queue", None)
+            if countersigning_queue:
+                row["countersigning_queue"] = model.objects.get(name=countersigning_queue)
             filter = dict(name__iexact=row["name"])
 
             if include_team_in_filter:
