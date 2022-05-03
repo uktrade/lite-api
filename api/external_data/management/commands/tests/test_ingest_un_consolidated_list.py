@@ -1,7 +1,6 @@
 from unittest import mock
 
 from elasticsearch_dsl import Index, Search
-import pyexcel
 import requests_mock
 
 from django.conf import settings
@@ -220,24 +219,3 @@ class PopulateSanctionsTests(DataTestClient):
                 content=b"<note><to>Tove</to></note>",
             )
             ingest_sanctions.get_office_financial_sanctions_implementation()
-
-    def test_get_uk_sanctions_list(self):
-        book = pyexcel.get_book(
-            bookdict={
-                "Sheet 1": [[], [], ["a", "b", "c"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]],
-                "Sheet 2": [[], [], ["x", "y", "z"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
-            }
-        )
-        with mock.patch.object(pyexcel, "get_book", return_value=book):
-            parsed = ingest_sanctions.get_uk_sanctions_list()
-
-        self.assertEqual(
-            list(parsed),
-            [
-                {"a": 1.0, "b": 2.0, "c": 3.0, "sheet": "Sheet 1"},
-                {"a": 4.0, "b": 5.0, "c": 6.0, "sheet": "Sheet 1"},
-                {"a": 7.0, "b": 8.0, "c": 9.0, "sheet": "Sheet 1"},
-                {"x": 1.0, "y": 2.0, "z": 3.0, "sheet": "Sheet 2"},
-                {"x": 4.0, "y": 5.0, "z": 6.0, "sheet": "Sheet 2"},
-            ],
-        )
