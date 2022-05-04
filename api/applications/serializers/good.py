@@ -240,7 +240,17 @@ class GoodOnApplicationDocumentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodOnApplicationDocument
-        fields = ("name", "s3_key", "user", "size", "application", "good", "document_on_organisation")
+        fields = (
+            "name",
+            "s3_key",
+            "user",
+            "size",
+            "application",
+            "good",
+            "document_on_organisation",
+            "document_type",
+            "good_on_application",
+        )
 
     def create(self, validated_data):
         document_on_organisation = validated_data.pop("document_on_organisation", None)
