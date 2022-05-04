@@ -436,6 +436,6 @@ SANCTION_LIST_SOURCES = env.json(
     {
         "un_sanctions_file": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
         "office_financial_sanctions_file": "https://ofsistorage.blob.core.windows.net/publishlive/2022format/ConList.xml",
-        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1063465/UK_Sanctions_List.ods",
+        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1071293/UK_Sanctions_List.xml",
     },
 )

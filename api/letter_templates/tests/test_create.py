@@ -41,7 +41,7 @@ class LetterTemplateCreateTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
-        letter_template = LetterTemplate.objects.get()
+        letter_template = LetterTemplate.objects.filter(name="Letter Template").get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(letter_template.name, data["name"])
@@ -67,7 +67,7 @@ class LetterTemplateCreateTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        letter_template = LetterTemplate.objects.get()
+        letter_template = LetterTemplate.objects.filter(name="Letter Template").get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(letter_template.name, data["name"])

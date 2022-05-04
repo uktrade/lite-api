@@ -20,7 +20,7 @@ class LetterTemplatesListTests(DataTestClient):
         url = reverse("letter_templates:letter_templates")
 
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"][0]
+        response_data = [r for r in response.json()["results"] if r["id"] == str(self.letter_template.id)][0]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["id"], str(self.letter_template.id))
@@ -45,7 +45,7 @@ class LetterTemplatesListTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
 
         response = self.client.get(url + "?case=" + str(case.id), **self.gov_headers)
-        response_data = response.json()["results"][0]
+        response_data = [r for r in response.json()["results"] if r["id"] == str(self.letter_template.id)][0]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["id"], str(self.letter_template.id))
@@ -61,7 +61,7 @@ class LetterTemplatesListTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
 
         response = self.client.get(url + "?case=" + str(case.id) + "&decision=" + decision, **self.gov_headers)
-        response_data = response.json()["results"][0]
+        response_data = [r for r in response.json()["results"] if r["id"] == str(self.letter_template.id)][0]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["id"], str(self.letter_template.id))
@@ -81,8 +81,7 @@ class LetterTemplatesListTests(DataTestClient):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()["results"]), 1)
-        self.assertEqual((response.json()["results"][0]["id"]), str(self.letter_template.id))
+        self.assertIn(str(self.letter_template.id), [r["id"] for r in response.json()["results"]])
 
     def test_get_letter_template_success(self):
         url = reverse("letter_templates:letter_template", kwargs={"pk": str(self.letter_template.id)})

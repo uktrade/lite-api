@@ -34,6 +34,8 @@ SEED_COMMANDS = {
         "seedfinaldecisions",
         "seedflags",
         "seedf680clearancetypes",
+        "seedlettertemplates",
+        "seedroutingrules",
     ],
 }
 
@@ -58,6 +60,11 @@ class Command(SeedCommand):
             "--dev",
             action="store_true",
             help="Executes: " + ", ".join(SEED_COMMANDS["Dev"]),
+        )
+        parser.add_argument(
+            "--test",
+            action="store_true",
+            help="Executes: " + ", ".join(SEED_COMMANDS["Tests"]),
         )
 
     @staticmethod
@@ -90,6 +97,9 @@ class Command(SeedCommand):
 
             if options["dev"]:
                 errors += self.seed_list(SEED_COMMANDS["Dev"])
+
+            if options["test"]:
+                errors += self.seed_list(SEED_COMMANDS["Tests"])
 
         self.print_separator()
 
