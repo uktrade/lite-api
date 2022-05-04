@@ -41,6 +41,7 @@ def get_office_financial_sanctions_implementation():
 
 def get_uk_sanctions_list():
     response = requests.get(settings.SANCTION_LIST_SOURCES["uk_sanctions_file"])
+    response.raise_for_status()
     doc = xmltodict.parse(
         response.content,
         postprocessor=(lambda path, key, value: (key.lower(), value)),
