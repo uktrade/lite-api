@@ -35,6 +35,7 @@ SEED_COMMANDS = {
         "seedflags",
         "seedf680clearancetypes",
         "seedlettertemplates",
+        "seedroutingrules",
     ],
 }
 
