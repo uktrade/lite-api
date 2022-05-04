@@ -416,6 +416,21 @@ class GoodOnApplicationDocument(Document):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods_document")
     good = models.ForeignKey(Good, related_name="goods_on_application_document", on_delete=models.CASCADE)
     user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING, related_name="user")
+    document_type = models.TextField(
+        choices=OrganisationDocumentType.choices,
+        default=None,
+        blank=True,
+        null=True,
+    )
+    # Joining on good_on_application may seem a little redundant because we are already linking to both the application
+    # and the good on this model, however, because the relationship between application and good is many-to-many just
+    # joining against them on this model means it is ambiguous as to exactly which one of the goods on the application
+    # this may be referring to (a good could be attached to the same application many times).
+    # Attaching to GoodOnApplication makes it explicit which good (if there are many) this document refers to.
+    # We have to keep this null and can't just replace this relationship with `good` and `application` as we can't
+    # unambiguously go back and know exactly what one of the many possible goods on the application the document refers
+    # to.
+    good_on_application = models.ForeignKey(GoodOnApplication, on_delete=models.CASCADE, blank=True, null=True)
 
 
 class CountryOnApplication(models.Model):
