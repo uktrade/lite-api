@@ -95,11 +95,11 @@ class Command(SeedCommand):
             if options["essential"]:
                 errors += self.seed_list(SEED_COMMANDS["Essential"])
 
-            if options["dev"]:
-                errors += self.seed_list(SEED_COMMANDS["Dev"])
-
             if options["test"]:
                 errors += self.seed_list(SEED_COMMANDS["Tests"])
+
+            if options["dev"]:
+                errors += self.seed_list(SEED_COMMANDS["Dev"])
 
         self.print_separator()
 
