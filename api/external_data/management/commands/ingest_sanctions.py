@@ -178,11 +178,12 @@ class Command(BaseCommand):
                     for address_item in item.get("addresses", {}).get("address", []):
                         address_list.append(" ".join(address_item.values()))
 
-                    filtered_name = filter(
-                        lambda n: n.get("nametype", "").lower() == "primary name",
-                        item["names"]["name"],
+                    primary_name = next(
+                        filter(
+                            lambda n: n.get("nametype", "").lower() == "primary name",
+                            item["names"]["name"],
+                        )
                     )
-                    primary_name = list(filtered_name)[0]
 
                     name = join_fields(primary_name, fields=["name1", "name2", "name3", "name4", "name5", "name6"])
                     address = ",".join(address_list)
