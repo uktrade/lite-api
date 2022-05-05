@@ -100,6 +100,11 @@ def update_firearms_certificate_data(organisation_id, firearm_data):
     )
     has_valid_section5 = has_valid_certificate(organisation_id, OrganisationDocumentType.FIREARM_SECTION_FIVE)
 
+    if firearm_data["firearms_act_section"] in ["firearms_act_section1", "firearms_act_section2"]:
+        # if the user is uploading a firearms act section 1 or 2 certificate we
+        # need to retain all of the information they've given to us
+        return firearm_data
+
     if not has_valid_rfd:
         if has_valid_section5:
             del firearm_data["section_certificate_number"]
