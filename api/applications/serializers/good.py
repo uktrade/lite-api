@@ -288,6 +288,8 @@ class GoodOnApplicationDocumentViewSerializer(serializers.Serializer):
     user = ExporterUserSimpleSerializer()
     s3_key = serializers.SerializerMethodField()
     safe = serializers.BooleanField()
+    document_type = serializers.CharField()
+    good_on_application = serializers.PrimaryKeyRelatedField(read_only=True)
 
     def get_s3_key(self, instance):
         return instance.s3_key if instance.safe else "File not ready"
