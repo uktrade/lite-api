@@ -125,6 +125,14 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             return []
         return AuditSerializer(instance.audit_trail.all(), many=True).data
 
+    def update(self, instance, validated_data):
+        if "firearm_details" in validated_data:
+            firearm_details_serializer = self.fields["firearm_details"]
+            firearm_details_validated_data = validated_data.pop("firearm_details")
+            firearm_details_serializer.update(instance.firearm_details, firearm_details_validated_data)
+
+        return super().update(instance, validated_data)
+
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
