@@ -231,6 +231,28 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
         instance.serial_numbers = validated_data.get("serial_numbers", instance.serial_numbers)
 
+        if "is_onward_exported" in validated_data:
+            if validated_data["is_onward_exported"]:
+                instance.is_onward_exported = validated_data["is_onward_exported"]
+                instance.is_onward_altered_processed = validated_data.get(
+                    "is_onward_altered_processed", instance.is_onward_altered_processed
+                )
+                instance.is_onward_altered_processed_comments = validated_data.get(
+                    "is_onward_altered_processed_comments", instance.is_onward_altered_processed_comments
+                )
+                instance.is_onward_incorporated = validated_data.get(
+                    "is_onward_incorporated", instance.is_onward_incorporated
+                )
+                instance.is_onward_incorporated_comments = validated_data.get(
+                    "is_onward_incorporated_comments", instance.is_onward_incorporated_comments
+                )
+            else:
+                instance.is_onward_exported = validated_data["is_onward_exported"]
+                instance.is_onward_altered_processed = None
+                instance.is_onward_altered_processed_comments = ""
+                instance.is_onward_incorporated = None
+                instance.is_onward_incorporated_comments = ""
+
         if instance.type != "firearms":
             instance.is_replica = None
             instance.replica_description = ""
