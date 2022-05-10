@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.utils.timezone import now
 from parameterized import parameterized
@@ -528,3 +528,38 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good.firearm_details.is_onward_altered_processed_comments, "")
         self.assertEqual(good.firearm_details.is_onward_incorporated, None)
         self.assertEqual(good.firearm_details.is_onward_incorporated_comments, "")
+
+    def test_edit_firearm_is_deactivated(self):
+        good = self.create_good(
+            "Rifle", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {
+            "firearm_details": {
+                "is_deactivated": True,
+                "date_of_deactivation": "2007-12-12",
+                "is_deactivated_to_standard": False,
+                "not_deactivated_to_standard_comments": "Not deactivated",
+            },
+        }
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(good.firearm_details.is_deactivated, True)
+        self.assertEqual(good.firearm_details.date_of_deactivation, date(2007, 12, 12))
+        self.assertEqual(good.firearm_details.is_deactivated_to_standard, False)
+        self.assertEqual(good.firearm_details.not_deactivated_to_standard_comments, "Not deactivated")
+
+        request_data = {
+            "firearm_details": {
+                "is_deactivated": False,
+            },
+        }
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(good.firearm_details.is_deactivated, False)
+        self.assertEqual(good.firearm_details.date_of_deactivation, None)
+        self.assertEqual(good.firearm_details.is_deactivated_to_standard, None)
+        self.assertEqual(good.firearm_details.not_deactivated_to_standard_comments, "")
