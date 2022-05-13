@@ -119,7 +119,7 @@ class PvGrading:
 
     @classmethod
     def to_str(cls, obj):
-        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
+        return next(choice[1] for choice in (cls.choices + cls.choices_new) if choice[0] == obj) if obj else None
 
 
 class ItemCategory:
