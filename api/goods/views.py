@@ -604,14 +604,16 @@ class DocumentGoodOnApplicationInternalDetailView(APIView):
     authentication_classes = (SharedAuthentication,)
     serializer_class = GoodOnApplicationInternalDocumentViewSerializer
 
-    def get(self, request, **kwargs):
-        document = get_object_or_404(GoodOnApplicationInternalDocument.objects.all(), pk=self.kwargs["doc_pk"])
-        serializer = GoodOnApplicationDocumentViewSerializer(document)
+    def get(self, request, doc_pk):
+        document = get_object_or_404(GoodOnApplicationInternalDocument.objects.all(), pk=doc_pk)
+        serializer = self.serializer_class(document)
         return JsonResponse({"document": serializer.data})
 
     def put(self, request, doc_pk):
         document = GoodOnApplicationInternalDocument.objects.get(id=doc_pk)
-        serializer = self.serializer_class(instance=document, data=request.data, partial=True)
+        serializer = GoodOnApplicationInternalDocumentCreateSerializer(
+            instance=document, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return JsonResponse({"document": serializer.data}, status=status.HTTP_200_OK)

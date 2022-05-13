@@ -50,25 +50,28 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_document_good_on_application_internal_document_delete(self):
-        internal_doc_id = str(self.good_on_application_internal_doc)
+
+        internal_doc_id = str(self.good_on_application_internal_doc.id)
         url = reverse("goods:document_internal_good_on_application_detail", kwargs={"doc_pk": internal_doc_id})
         response = self.client.delete(url, **self.exporter_headers)
+
+        total_internal_docs = GoodOnApplicationInternalDocument.objects.filter(id=internal_doc_id).count()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(GoodOnApplicationInternalDocument.filter(id=internal_doc.id).count(), 0)
+        self.assertEqual(total_internal_docs, 0)
 
     def test_document_good_on_application_internal_document_edit(self):
-        internal_doc_id = str(self.good_on_application_internal_doc)
+        internal_doc_id = str(self.good_on_application_internal_doc.id)
         url = reverse("goods:document_internal_good_on_application_detail", kwargs={"doc_pk": internal_doc_id})
         data = {"document_title": "new title"}
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        document_title = GoodOnApplicationInternalDocument.filter(id=internal_doc_id).document_title
+        document_title = GoodOnApplicationInternalDocument.objects.get(id=internal_doc_id).document_title
         self.assertEqual(document_title, data["document_title"])
 
     def test_document_good_on_application_internal_document_get(self):
-        internal_doc_id = str(self.good_on_application_internal_doc)
+        internal_doc_id = str(self.good_on_application_internal_doc.id)
         url = reverse("goods:document_internal_good_on_application_detail", kwargs={"doc_pk": internal_doc_id})
         response = self.client.get(url, **self.exporter_headers)
         good_internal_doc_returned = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(good_internal_doc_returned["id"], str(good_internal_doc.id))
+        self.assertEqual(good_internal_doc_returned["document"]["id"], internal_doc_id)
