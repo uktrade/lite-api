@@ -3,11 +3,13 @@ from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.utils.functional import cached_property
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
-from api.applications.models import GoodOnApplication, BaseApplication
+from api.applications.models import GoodOnApplication, BaseApplication, GoodOnApplicationInternalDocument
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeSubTypeEnum
@@ -45,6 +47,11 @@ from api.goods.serializers import (
     GoodDocumentSensitivitySerializer,
     TinyGoodDetailsSerializer,
 )
+from api.applications.serializers.good import (
+    GoodOnApplicationInternalDocumentCreateSerializer,
+    GoodOnApplicationInternalDocumentViewSerializer,
+)
+
 from api.goodstype.models import GoodsType
 from api.goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
@@ -106,7 +113,6 @@ class GoodsListControlCode(APIView):
             old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
             old_is_controlled = good.is_good_controlled
             old_report_summary = good.report_summary
-
             obj = serializer.save()
 
             if request.data["report_summary"] != old_report_summary:
@@ -159,6 +165,7 @@ class GoodsListControlCode(APIView):
                 good.flags.add(SystemFlags.WASSENAAR)
             else:
                 good.flags.remove(SystemFlags.WASSENAAR)
+
         apply_good_flagging_rules_for_case(case)
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -576,3 +583,43 @@ class GoodDocumentDetail(APIView):
                 good_on_application.delete()
 
         return JsonResponse({"document": "deleted success"})
+
+
+class DocumentGoodOnApplicationInternalView(APIView):
+    authentication_classes = (SharedAuthentication,)
+    serializer_class = GoodOnApplicationInternalDocumentCreateSerializer
+
+    def post(self, request, goods_on_application_pk):
+        data = request.data
+        data["good_on_application"] = goods_on_application_pk
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return JsonResponse({"document": serializer.data}, status=201)
+
+        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DocumentGoodOnApplicationInternalDetailView(APIView):
+    authentication_classes = (SharedAuthentication,)
+    serializer_class = GoodOnApplicationInternalDocumentViewSerializer
+
+    def get(self, request, **kwargs):
+        document = get_object_or_404(GoodOnApplicationInternalDocument.objects.all(), pk=self.kwargs["doc_pk"])
+        serializer = GoodOnApplicationDocumentViewSerializer(document)
+        return JsonResponse({"document": serializer.data})
+
+    def put(self, request, doc_pk):
+        document = GoodOnApplicationInternalDocument.objects.get(id=doc_pk)
+        serializer = self.serializer_class(instance=document, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse({"document": serializer.data}, status=status.HTTP_200_OK)
+
+        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, doc_pk):
+        document = GoodOnApplicationInternalDocument.objects.get(id=doc_pk)
+        document.delete_s3()
+        document.delete()
+        return JsonResponse(data={"internal good on application document": "Deleted"}, status=status.HTTP_200_OK)

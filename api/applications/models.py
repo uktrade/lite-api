@@ -39,7 +39,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
-from api.users.models import ExporterUser
+from api.users.models import ExporterUser, GovUser
 from lite_content.lite_api.strings import PartyErrors
 
 
@@ -431,6 +431,17 @@ class GoodOnApplicationDocument(Document):
     # unambiguously go back and know exactly what one of the many possible goods on the application the document refers
     # to.
     good_on_application = models.ForeignKey(GoodOnApplication, on_delete=models.CASCADE, blank=True, null=True)
+
+
+class GoodOnApplicationInternalDocument(Document):
+
+    document_title = models.TextField(
+        max_length=200,
+        default=None,
+        blank=True,
+        null=True,
+    )
+    good_on_application = models.ForeignKey(GoodOnApplication, on_delete=models.CASCADE)
 
 
 class CountryOnApplication(models.Model):
