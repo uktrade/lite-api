@@ -26,7 +26,7 @@ from api.licences.models import GoodOnLicence
 from api.organisations.models import DocumentOnOrganisation
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from api.staticdata.units.enums import Units
-from api.users.models import ExporterUser, GovUser
+from api.users.models import ExporterUser
 from api.users.serializers import ExporterUserSimpleSerializer
 from lite_content.lite_api import strings
 

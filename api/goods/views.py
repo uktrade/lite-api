@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
 
 from api.applications.models import GoodOnApplication, BaseApplication, GoodOnApplicationInternalDocument
 from api.audit_trail import service as audit_trail_service

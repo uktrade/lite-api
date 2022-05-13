@@ -39,7 +39,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
-from api.users.models import ExporterUser, GovUser
+from api.users.models import ExporterUser
 from lite_content.lite_api.strings import PartyErrors
 
 
@@ -437,11 +437,13 @@ class GoodOnApplicationInternalDocument(Document):
 
     document_title = models.TextField(
         max_length=200,
-        default=None,
+        default="",
         blank=True,
         null=True,
     )
-    good_on_application = models.ForeignKey(GoodOnApplication, on_delete=models.CASCADE)
+    good_on_application = models.ForeignKey(
+        GoodOnApplication, on_delete=models.CASCADE, related_name="good_on_application_internal_documents"
+    )
 
 
 class CountryOnApplication(models.Model):

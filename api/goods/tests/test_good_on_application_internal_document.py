@@ -38,7 +38,7 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
         new_internal_doc = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        data["good_on_application"] = str(GoodOnApplicationInternalDocument.objects.last().good_on_application.id)
+        data["good_on_application"] = str(GoodOnApplicationInternalDocument.objects.last().good_on_application_id)
         self.assertEqual(new_internal_doc, {"document": data})
 
     def test_document_good_on_application_internal_document_error(self):
