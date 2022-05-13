@@ -152,6 +152,34 @@ class ApplicationGoodOnApplication(APIView):
         serializer = self.serializer_class(good_on_application, context={"include_audit_trail": True})
         return JsonResponse(serializer.data)
 
+    def put(self, request, **kwargs):
+        good_on_application = self.get_object()
+
+        application = good_on_application.application
+
+        if application.status.status in get_case_statuses(read_only=True):
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.READ_ONLY]},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if good_on_application.application.organisation.id != get_request_user_organisation_id(request):
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.INVALID_ORGANISATION]},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        data = request.data.copy()
+        serializer = self.serializer_class(instance=good_on_application, data=data, partial=True)
+        if not serializer.is_valid():
+            return JsonResponse(
+                data={"errors": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer.save()
+        return JsonResponse(status=status.HTTP_200_OK, data=serializer.data)
+
     def delete(self, request, obj_pk):
         good_on_application = self.get_object()
         application = good_on_application.application
@@ -164,7 +192,7 @@ class ApplicationGoodOnApplication(APIView):
 
         if good_on_application.application.organisation.id != get_request_user_organisation_id(request):
             return JsonResponse(
-                data={"errors": strings.Applications.Generic.INVALID_ORGANISATION},
+                data={"errors": [strings.Applications.Generic.INVALID_ORGANISATION]},
                 status=status.HTTP_403_FORBIDDEN,
             )
 

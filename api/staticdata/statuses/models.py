@@ -21,6 +21,9 @@ class CaseStatus(models.Model):
     def natural_key(self):
         return (self.status,)
 
+    def __str__(self):
+        return self.status
+
 
 class CaseStatusCaseType(models.Model):
     class Meta:
