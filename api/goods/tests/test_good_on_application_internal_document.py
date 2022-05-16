@@ -23,7 +23,8 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
         )
 
     @mock.patch("api.documents.libraries.s3_operations.delete_file")
-    def test_document_good_on_application_internal_document_saved(self, mock_delete_file):
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    def test_document_good_on_application_internal_document_saved(self, mock_delete_file, mock_get_file):
 
         good_on_application_id = str(self.good_on_application.id)
         url = reverse(
