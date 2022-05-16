@@ -1,3 +1,4 @@
+from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
@@ -49,7 +50,8 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_document_good_on_application_internal_document_delete(self):
+    @mock.patch("api.documents.libraries.s3_operations.delete_file")
+    def test_document_good_on_application_internal_document_delete(self, mock_delete_file):
 
         internal_doc_id = str(self.good_on_application_internal_doc.id)
         url = reverse("goods:document_internal_good_on_application_detail", kwargs={"doc_pk": internal_doc_id})
@@ -58,6 +60,7 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
         total_internal_docs = GoodOnApplicationInternalDocument.objects.filter(id=internal_doc_id).count()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(total_internal_docs, 0)
+        mock_delete_file.assert_called_once()
 
     def test_document_good_on_application_internal_document_edit(self):
         internal_doc_id = str(self.good_on_application_internal_doc.id)
