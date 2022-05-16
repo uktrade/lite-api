@@ -325,6 +325,7 @@ class GoodOnApplicationInternalDocumentCreateSerializer(serializers.ModelSeriali
     def create(self, validated_data):
         document = super().create(validated_data)
         document.save()
+
         process_document(document)
         return document
 

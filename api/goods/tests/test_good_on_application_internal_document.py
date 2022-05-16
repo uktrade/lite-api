@@ -1,5 +1,4 @@
 from unittest import mock
-from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
@@ -23,10 +22,7 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
             document_title="test title",
         )
 
-    @override_settings(BACKGROUND_TASK_ENABLED=False)
-    @mock.patch("api.documents.libraries.s3_operations.delete_file")
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
-    def test_document_good_on_application_internal_document_saved(self, mock_delete_file, mock_get_file):
+    def test_document_good_on_application_internal_document_saved(self, mock_process_document):
 
         good_on_application_id = str(self.good_on_application.id)
         url = reverse(
@@ -43,8 +39,10 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
         new_internal_doc = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         data["good_on_application"] = str(GoodOnApplicationInternalDocument.objects.last().good_on_application_id)
         self.assertEqual(new_internal_doc, {"document": data})
+        mock_process_document.assert_called_once()
 
     def test_document_good_on_application_internal_document_error(self):
         good_id = str(self.good_on_application.id)
