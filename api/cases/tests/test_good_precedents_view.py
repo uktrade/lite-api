@@ -44,7 +44,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
             assert gona["good"] == str(self.good.id)
             assert gona["application"] == str(self.draft_1.id)
             assert gona["reference"] == self.draft_1.reference_code
-            assert gona["destinations"] == ["GB"]
+            assert gona["destinations"] == ["Great Britain"]
             assert gona["wassenaar"]
             assert gona["quantity"] == 5.0
             assert gona["report_summary"] == "test"
