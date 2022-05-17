@@ -1011,11 +1011,15 @@ class GoodOnPrecedentList(ListAPIView):
         case = get_case(self.kwargs["pk"])
         gonas = GoodOnApplication.objects.filter(application=case).all()
         goods = {gona.good_id for gona in gonas}
-        return GoodOnApplication.objects.filter(good__in=goods, good__status=GoodStatus.VERIFIED).prefetch_related(
-            "good",
-            "good__flags",
-            "good__control_list_entries",
-            "application",
-            "application__queues",
-            "control_list_entries",
+        return (
+            GoodOnApplication.objects.filter(good__in=goods, good__status=GoodStatus.VERIFIED)
+            .exclude(application=case)
+            .prefetch_related(
+                "good",
+                "good__flags",
+                "good__control_list_entries",
+                "application",
+                "application__queues",
+                "control_list_entries",
+            )
         )
