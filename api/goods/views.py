@@ -585,7 +585,7 @@ class GoodDocumentDetail(APIView):
 
 
 class DocumentGoodOnApplicationInternalView(APIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (GovAuthentication,)
     serializer_class = GoodOnApplicationInternalDocumentCreateSerializer
 
     def post(self, request, goods_on_application_pk):
@@ -600,7 +600,7 @@ class DocumentGoodOnApplicationInternalView(APIView):
 
 
 class DocumentGoodOnApplicationInternalDetailView(APIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (GovAuthentication,)
     serializer_class = GoodOnApplicationInternalDocumentViewSerializer
 
     def get(self, request, doc_pk):

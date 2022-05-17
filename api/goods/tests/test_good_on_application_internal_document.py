@@ -37,7 +37,7 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
             "document_title": "test saved title",
         }
 
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.gov_headers)
         new_internal_doc = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -50,7 +50,7 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
         good_id = str(self.good_on_application.id)
         url = reverse("goods:documents_good_on_application_internal", kwargs={"goods_on_application_pk": str(good_id)})
         data = {}
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -59,7 +59,7 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
 
         internal_doc_id = str(self.good_on_application_internal_doc.id)
         url = reverse("goods:document_internal_good_on_application_detail", kwargs={"doc_pk": internal_doc_id})
-        response = self.client.delete(url, **self.exporter_headers)
+        response = self.client.delete(url, **self.gov_headers)
 
         total_internal_docs = GoodOnApplicationInternalDocument.objects.filter(id=internal_doc_id).count()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -70,7 +70,7 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
         internal_doc_id = str(self.good_on_application_internal_doc.id)
         url = reverse("goods:document_internal_good_on_application_detail", kwargs={"doc_pk": internal_doc_id})
         data = {"document_title": "new title"}
-        response = self.client.put(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         document_title = GoodOnApplicationInternalDocument.objects.get(id=internal_doc_id).document_title
         self.assertEqual(document_title, data["document_title"])
@@ -78,7 +78,13 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
     def test_document_good_on_application_internal_document_get(self):
         internal_doc_id = str(self.good_on_application_internal_doc.id)
         url = reverse("goods:document_internal_good_on_application_detail", kwargs={"doc_pk": internal_doc_id})
-        response = self.client.get(url, **self.exporter_headers)
+        response = self.client.get(url, **self.gov_headers)
         good_internal_doc_returned = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(good_internal_doc_returned["document"]["id"], internal_doc_id)
+
+    def test_document_good_on_application_internal_document_get_not_allowed(self):
+        internal_doc_id = str(self.good_on_application_internal_doc.id)
+        url = reverse("goods:document_internal_good_on_application_detail", kwargs={"doc_pk": internal_doc_id})
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
