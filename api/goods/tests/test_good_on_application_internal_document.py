@@ -22,6 +22,7 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
             document_title="test title",
         )
 
+    @mock.patch("api.applications.serializers.good.process_document")
     def test_document_good_on_application_internal_document_saved(self, mock_process_document):
 
         good_on_application_id = str(self.good_on_application.id)
