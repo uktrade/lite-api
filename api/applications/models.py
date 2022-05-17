@@ -433,6 +433,18 @@ class GoodOnApplicationDocument(Document):
     good_on_application = models.ForeignKey(GoodOnApplication, on_delete=models.CASCADE, blank=True, null=True)
 
 
+class GoodOnApplicationInternalDocument(Document):
+
+    document_title = models.TextField(
+        default="",
+        blank=True,
+        null=True,
+    )
+    good_on_application = models.ForeignKey(
+        GoodOnApplication, on_delete=models.CASCADE, related_name="good_on_application_internal_documents"
+    )
+
+
 class CountryOnApplication(models.Model):
     """
     Open licence applications export to countries, instead of an end user

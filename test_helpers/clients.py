@@ -63,6 +63,7 @@ from api.goods.enums import (
     FirearmGoodType,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
+from api.applications.models import GoodOnApplicationInternalDocument
 from api.goods.tests.factories import GoodFactory
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
@@ -383,6 +384,22 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         good_doc.save()
         return good_doc
+
+    @staticmethod
+    def create_good_on_application_internal_document(
+        good_on_application: GoodOnApplication, name: str, document_title: str, s3_key: str, safe=True
+    ):
+        good_internal_doc = GoodOnApplicationInternalDocument(
+            good_on_application=good_on_application,
+            document_title=document_title,
+            name=name,
+            s3_key=s3_key,
+            size=123456,
+            virus_scanned_at=django.utils.timezone.now(),
+            safe=safe,
+        )
+        good_internal_doc.save()
+        return good_internal_doc
 
     @staticmethod
     def create_document_for_party(party: Party, name="document_name.pdf", safe=True):
