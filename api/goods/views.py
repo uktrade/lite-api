@@ -34,6 +34,7 @@ from api.goods.libraries.get_goods import get_good, get_good_document
 from api.goods.libraries.save_good import create_or_update_good
 from api.goods.models import Good, GoodDocument
 from api.goods.serializers import (
+    GoodAttachingSerializer,
     GoodCreateSerializer,
     GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
@@ -462,6 +463,36 @@ class GoodOverview(APIView):
 
         good.delete()
         return JsonResponse(data={"status": "Good Deleted"}, status=status.HTTP_200_OK)
+
+
+class GoodAttaching(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def put(self, request, pk):
+        """Edit details of a good for attaching.
+
+        This is distinct from normal editing of a good as we allow this to be
+        edited regardless of the application status unlike `GoodOverview`.
+
+        For safety we only allow a subset of fields to be edited.
+        """
+        good = get_good(pk)
+
+        if good.organisation_id != get_request_user_organisation_id(request):
+            raise PermissionDenied()
+
+        data = request.data.copy()
+
+        serializer = GoodAttachingSerializer(instance=good, data=data, partial=True)
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        return JsonResponse(
+            data={"good": serializer.data},
+            status=status.HTTP_200_OK,
+        )
 
 
 class GoodDocuments(APIView):

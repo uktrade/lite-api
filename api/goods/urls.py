@@ -7,6 +7,7 @@ app_name = "goods"
 urlpatterns = [
     path("", views.GoodList.as_view(), name="goods"),
     path("<uuid:pk>/", views.GoodOverview.as_view(), name="good"),
+    path("<uuid:pk>/attaching/", views.GoodAttaching.as_view(), name="good_attaching"),
     path("<uuid:pk>/details/", views.GoodTAUDetails.as_view(), name="good_details"),
     path(
         "<uuid:pk>/document-availability/",
