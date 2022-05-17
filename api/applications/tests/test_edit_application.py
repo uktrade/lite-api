@@ -1,3 +1,5 @@
+import datetime
+
 from django.urls import reverse
 from parameterized import parameterized, parameterized_class
 from rest_framework import status
@@ -442,9 +444,12 @@ class EditExhibitionApplicationsTests(DataTestClient):
         self.assertEqual(response_data["title"][0], strings.Applications.Exhibition.Error.NO_EXHIBITION_NAME)
 
     def test_edit_exhibition_required_by_date_draft_success(self):
+        required_by_date = datetime.date.today() + datetime.timedelta(days=5)
+        required_by_date = required_by_date.isoformat()
+
         data = {
             "title": self.application.title,
-            "required_by_date": "2029-05-15",
+            "required_by_date": required_by_date,
             "first_exhibition_date": self.application.first_exhibition_date,
         }
 
@@ -452,7 +457,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
         response_data = response.json()["application"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["required_by_date"], data["required_by_date"])
+        self.assertEqual(response_data["required_by_date"], required_by_date)
 
     def test_edit_exhibition_required_by_date_later_than_first_exhibition_date_draft_failure(self):
         data = {

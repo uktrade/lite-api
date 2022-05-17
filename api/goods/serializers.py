@@ -303,6 +303,7 @@ class GoodListSerializer(serializers.Serializer):
     control_list_entries = ControlListEntrySerializer(many=True, allow_null=True)
     part_number = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
+    firearm_details = FirearmDetailsSerializer(read_only=True)
 
 
 class GoodCreateSerializer(serializers.ModelSerializer):
