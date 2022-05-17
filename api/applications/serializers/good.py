@@ -318,6 +318,7 @@ class GoodOnApplicationInternalDocumentCreateSerializer(serializers.ModelSeriali
             "name",
             "s3_key",
             "size",
+            "safe",
             "document_title",
             "good_on_application",
         )

@@ -436,7 +436,6 @@ class GoodOnApplicationDocument(Document):
 class GoodOnApplicationInternalDocument(Document):
 
     document_title = models.TextField(
-        max_length=200,
         default="",
         blank=True,
         null=True,

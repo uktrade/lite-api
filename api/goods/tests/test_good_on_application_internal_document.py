@@ -33,6 +33,7 @@ class DocumentGoodOnApplicationInternalTests(DataTestClient):
             "name": "test saved",
             "s3_key": "saved_jpg",
             "size": 2000,
+            "safe": None,
             "document_title": "test saved title",
         }
 

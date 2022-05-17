@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                         to="documents.document",
                     ),
                 ),
-                ("document_title", models.TextField(blank=True, default="", max_length=200, null=True)),
+                ("document_title", models.TextField(blank=True, default="", null=True)),
                 (
                     "good_on_application",
                     models.ForeignKey(
