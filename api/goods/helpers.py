@@ -112,11 +112,6 @@ def update_firearms_certificate_data(organisation_id, firearm_data):
             del firearm_data["section_certificate_number"]
         return firearm_data
 
-    if has_valid_rfd and has_valid_section5:
-        # because user is not asked to upload the certificate again
-        # it fails validation if this is not removed here
-        del firearm_data["section_certificate_number"]
-
     return firearm_data
 
 
