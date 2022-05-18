@@ -106,7 +106,9 @@ def update_firearms_certificate_data(organisation_id, firearm_data):
         return firearm_data
 
     if not has_valid_rfd:
-        if has_valid_section5:
+        # If we have a value for the certificate number then we use it.
+        # If it's not set then we just discard the empty value.
+        if has_valid_section5 and not firearm_data.get("section_certificate_number"):
             del firearm_data["section_certificate_number"]
         return firearm_data
 
