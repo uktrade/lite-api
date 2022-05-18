@@ -1,0 +1,3 @@
+FROM postgres
+
+ADD lite-uat.sql /docker-entrypoint-initdb.d
