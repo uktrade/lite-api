@@ -231,9 +231,11 @@ class ApplicationGoodOnApplicationDocumentView(APIView):
 
     # @authorised_to_view_application(ExporterUser)
     def get(self, request, pk, good_pk):
-        documents = GoodOnApplicationDocument.objects.filter(application_id=pk, good_id=good_pk, safe=True).order_by(
-            "-created_at"
-        )
+        documents = GoodOnApplicationDocument.objects.filter(application_id=pk, good_id=good_pk).order_by("-created_at")
+        include_unsafe = request.GET.get("include_unsafe", False)
+        if not include_unsafe:
+            documents = documents.filter(safe=True)
+
         serializer = GoodOnApplicationDocumentViewSerializer(documents, many=True)
 
         return JsonResponse({"documents": serializer.data}, status=status.HTTP_200_OK)
