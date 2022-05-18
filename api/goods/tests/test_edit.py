@@ -563,3 +563,45 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good.firearm_details.date_of_deactivation, None)
         self.assertEqual(good.firearm_details.is_deactivated_to_standard, None)
         self.assertEqual(good.firearm_details.not_deactivated_to_standard_comments, "")
+
+
+class GoodsAttachingTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.good = self.create_good(
+            "Rifle",
+            self.organisation,
+            item_category=ItemCategory.GROUP2_FIREARMS,
+            create_firearm_details=True,
+        )
+        self.url = reverse("goods:good_attaching", kwargs={"pk": str(self.good.id)})
+
+    def test_editing_firearm_category(self):
+        self.good.firearm_details.category = None
+        self.good.firearm_details.save()
+
+        url = reverse("goods:good_details", kwargs={"pk": str(self.good.id)})
+        data = {
+            "firearm_details": {
+                "category": [
+                    "NON_AUTOMATIC_SHOTGUN",
+                    "NON_AUTOMATIC_RIM_FIRED_RIFLE",
+                ],
+            },
+        }
+        response = self.client.put(
+            url,
+            data,
+            **self.exporter_headers,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.good.refresh_from_db()
+        self.assertEqual(
+            self.good.firearm_details.category,
+            [
+                "NON_AUTOMATIC_SHOTGUN",
+                "NON_AUTOMATIC_RIM_FIRED_RIFLE",
+            ],
+        )

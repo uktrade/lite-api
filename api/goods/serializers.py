@@ -296,6 +296,21 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         return instance
 
 
+class FirearmDetailsAttachingSerializer(serializers.Serializer):
+    category = serializers.ListField(
+        child=KeyValueChoiceField(
+            choices=FirearmCategory.choices,
+        ),
+        allow_null=True,
+        required=False,
+    )
+
+    def update(self, instance, validated_data):
+        instance.category = validated_data.get("category", instance.category)
+        instance.save()
+        return instance
+
+
 class GoodListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
@@ -304,6 +319,36 @@ class GoodListSerializer(serializers.Serializer):
     part_number = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     firearm_details = FirearmDetailsSerializer(read_only=True)
+
+
+class GoodAttachingSerializer(serializers.ModelSerializer):
+    firearm_details = FirearmDetailsAttachingSerializer(allow_null=True, required=False)
+
+    class Meta:
+        model = Good
+        fields = ("firearm_details",)
+
+    def update(self, instance, validated_data):
+        if instance.item_category not in ItemCategory.group_two:
+            return instance
+
+        firearm_details = validated_data.get("firearm_details")
+        if not firearm_details:
+            return instance
+
+        instance.firearm_details = self.update_firearm_details(
+            instance=instance.firearm_details,
+            firearm_details=firearm_details,
+        )
+        return instance
+
+    def update_firearm_details(self, firearm_details, instance):
+        serializer = FirearmDetailsAttachingSerializer()
+
+        return serializer.update(
+            instance=instance,
+            validated_data=firearm_details,
+        )
 
 
 class GoodCreateSerializer(serializers.ModelSerializer):
