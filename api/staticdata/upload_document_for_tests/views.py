@@ -11,7 +11,7 @@ from api.conf.settings import (
     AWS_STORAGE_BUCKET_NAME,
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY,
-    S3_LOCAL_ENDPOINT_URL,
+    AWS_S3_ENDPOINT_URL,
 )
 
 
@@ -31,7 +31,7 @@ class UploadDocumentForTests(APIView):
             "s3",
             aws_access_key_id=AWS_ACCESS_KEY_ID,
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-            **({"endpoint_url": S3_LOCAL_ENDPOINT_URL} if S3_LOCAL_ENDPOINT_URL else {}),
+            **({"endpoint_url": AWS_S3_ENDPOINT_URL} if AWS_S3_ENDPOINT_URL else {}),
         )
         s3_key = "lite-e2e-test-file.txt"
 

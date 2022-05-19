@@ -10,7 +10,7 @@ from django.http import StreamingHttpResponse
 from api.conf.settings import (
     STREAMING_CHUNK_SIZE,
     S3_CONNECT_TIMEOUT,
-    S3_LOCAL_ENDPOINT_URL,
+    AWS_S3_ENDPOINT_URL,
     S3_REQUEST_TIMEOUT,
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY,
@@ -24,7 +24,7 @@ _client = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
     region_name=AWS_REGION,
     config=Config(connect_timeout=S3_CONNECT_TIMEOUT, read_timeout=S3_REQUEST_TIMEOUT),
-    **({"endpoint_url": S3_LOCAL_ENDPOINT_URL} if S3_LOCAL_ENDPOINT_URL else {}),
+    **({"endpoint_url": AWS_S3_ENDPOINT_URL} if AWS_S3_ENDPOINT_URL else {}),
 )
 
 
