@@ -8,7 +8,7 @@ Docker Compose to provide services like the database, elasticsearch and redis
   - `AWS_SECRET_ACCESS_KEY=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`
   - `AWS_STORAGE_BUCKET_NAME=lite-document-store-test`
   - `AWS_REGION=eu-west-2`
-  - `S3_LOCAL_ENDPOINT_URL=http://lite-minio-s3:9000`
+  - `AWS_S3_ENDPOINT_URL=http://lite-minio-s3:9000`
 - With docker:
   - Start stack with docker: `docker-compose up`
 - Without docker:
@@ -17,3 +17,5 @@ Docker Compose to provide services like the database, elasticsearch and redis
 
 You can view the bucket on MinIO at `http://localhost:9000/minio/lite-document-store-test/`.
 You will have to use above access key and secret to log into MinIO.
+
+In case virus scanning needs disabling for ease of use, `AV_DEBUG_DISABLE` can be set to `True` in .env. This will only work when `DEBUG` is `True` though.
