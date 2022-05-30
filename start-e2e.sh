@@ -8,5 +8,8 @@ EXPORTER_USERS='[{"email"=>"foo@bar.com"}]' /app/manage.py seedexporterusers
 # Rebuild ES index
 LITE_API_ENABLE_ES=true /app/manage.py search_index --rebuild -f
 
+# Fill sanctions in ES
+LITE_API_ENABLE_ES=true /app/manage.py ingest_sanctions
+
 # Run app
 python /app/manage.py runserver 0.0.0.0:8100
