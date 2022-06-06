@@ -51,6 +51,7 @@ class AuthenticateExporterUser(APIView):
         data = request.data
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
+        external_id = data.get("sub")
 
         # Once we go live with gov.uk we can remove this check
         if data.get("no_profile_login"):
@@ -80,6 +81,12 @@ class AuthenticateExporterUser(APIView):
                 user.baseuser_ptr.first_name = first_name
                 user.baseuser_ptr.last_name = last_name
                 user.baseuser_ptr.save()
+            if not user.external_id and external_id:
+                # This is saving external_id from external SSO service only needs to be done once.
+                # If we have a sub we have an open_id from an external system
+                user.external_id = external_id
+                user.save()
+
         except ExporterUser.DoesNotExist:
             return JsonResponse(
                 data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_401_UNAUTHORIZED

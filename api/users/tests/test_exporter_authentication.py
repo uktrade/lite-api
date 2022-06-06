@@ -12,7 +12,11 @@ class ExporterUserAuthenticateTests(DataTestClient):
         """
         Authorises user then checks the token which is sent is valid upon another request
         """
-        data = {"email": self.exporter_user.email, "user_profile": {"first_name": "Matt", "last_name": "Berninger"}}
+        data = {
+            "email": self.exporter_user.email,
+            "sub": "xyz123456",
+            "user_profile": {"first_name": "Matt", "last_name": "Berninger"},
+        }
 
         response = self.client.post(self.url, data)
         response_data = response.json()

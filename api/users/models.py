@@ -161,6 +161,7 @@ class ExporterUser(models.Model, BaseUserCompatMixin):
         primary_key=True,
     )
     type = UserType.EXPORTER
+    external_id = models.CharField(max_length=200, null=True, blank=True)
 
     def send_notification(self, organisation, content_object, case):
         ExporterNotification.objects.create(
