@@ -90,7 +90,7 @@ class Command(BaseCommand):
                         exc_info=True,
                     )
             log.info(
-                f"uk sanctions (successful:{successful} failed:{failed})",
+                "uk sanctions (successful:{} failed:{})".format(successful, failed),
             )
         except:
             log.exception(
