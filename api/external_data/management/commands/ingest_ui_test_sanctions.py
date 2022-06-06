@@ -8,36 +8,38 @@ from api.flags.enums import SystemFlags
 log = logging.getLogger(__name__)
 
 
-DUMMY_SANCTIONS = {
-    "consolidated_list": {
-        "individuals": {
-            "individual": [
+DUMMY_SANCTIONS = [
+    {
+        "lastupdated": "2020-12-31T00:00:00",
+        "uniqueid": "AFG0001",
+        "ofsigroupid": "1234",
+        "unreferencenumber": None,
+        "names": {
+            "name": [
                 {
-                    "dataid": "6908555",
-                    "versionnum": "1",
-                    "first_name": "ABDUL",
-                    "second_name": "AZIZ",
-                    "third_name": None,
-                    "un_list_type": "DPRK",
-                    "reference_number": "KPi.033",
-                    "listed_on": "2016-11-30",
-                    "comments1": "Ri Won Ho is a DPRK Ministry of State Security Official stationed in Syria.",
-                    "designation": {"value": "DPRK Ministry of State Security Official"},
-                    "nationality": {"value": "Democratic People's Republic of Korea"},
-                    "list_name": {"value": "UN List"},
-                    "last_day_updated": {"value": None},
-                    "individual_alias": {"quality": None, "alias_name": None},
-                    "individual_address": [{"country": None}],
-                    "individual_date_of_birth": {"type_of_date": "EXACT", "date": "1964-07-17"},
-                    "individual_place_of_birth": None,
-                    "individual_document": {"type_of_document": "Passport", "number": "381310014"},
-                    "sort_key": None,
-                    "sort_key_last_mod": None,
-                }
-            ],
+                    "name6": "ABDUL AZIZ",
+                    "nametype": "Primary Name",
+                },
+                {
+                    "name1": "ABDUL AHAD",
+                    "nametype": "alias",
+                },
+            ]
+        },
+        "addresses": {
+            "address": [
+                {
+                    "addressLine1": "Sheykhan Village, Pirkowti Area, Orgun District",
+                    "addressLine2": "Paktika Province, Afghanistan",
+                },
+                {
+                    "addressLine1": "Shega District",
+                    "addressLine2": "Kandahar Province, Afghanistan",
+                },
+            ]
         },
     },
-}
+]
 
 def join_fields(data, fields):
     return " ".join(str(data[field]) for field in fields if data.get(field))
