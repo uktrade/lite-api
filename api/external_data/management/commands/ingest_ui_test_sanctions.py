@@ -41,6 +41,7 @@ DUMMY_SANCTIONS = [
     },
 ]
 
+
 def join_fields(data, fields):
     return " ".join(str(data[field]) for field in fields if data.get(field))
 
