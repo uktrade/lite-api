@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="exporteruser",
             name="external_id",
-            field=models.CharField(blank=True, max_length=200, null=True),
+            field=models.CharField(blank=True, max_length=200, default=""),
         ),
     ]
