@@ -21,16 +21,16 @@ class ExporterUserAuthenticateTests(DataTestClient):
 
         response = self.client.post(self.url, data)
         response_data = response.json()
-        updated_user = ExporterUser.objects.all().last()
+        self.exporter_user.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         headers = {
             "HTTP_EXPORTER_USER_TOKEN": response_data["token"],
             "HTTP_ORGANISATION_ID": str(self.organisation.id),
         }
 
-        assert updated_user.first_name == data["user_profile"]["first_name"]
-        assert updated_user.last_name == data["user_profile"]["last_name"]
-        assert updated_user.external_id == data["sub"]
+        assert self.exporter_user.first_name == data["user_profile"]["first_name"]
+        assert self.exporter_user.last_name == data["user_profile"]["last_name"]
+        assert self.exporter_user.external_id == data["sub"]
 
         response = self.client.get(reverse("goods:goods"), **headers)
 
