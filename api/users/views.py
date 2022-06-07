@@ -51,7 +51,7 @@ class AuthenticateExporterUser(APIView):
         data = request.data
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
-        external_id = data.get("sub")
+        external_id = data.get("sub", "")
 
         # Once we go live with gov.uk we can remove this check
         if data.get("no_profile_login"):
