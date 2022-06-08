@@ -1,28 +1,7 @@
 version: 2.1
 
-jobs:
-  tests:
-    docker:
-      - image: circleci/python:3.7
-      - image: circleci/postgres:11
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-        environment:
-          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-          xpack.security.enabled: "false"
-          xpack.monitoring.enabled: "false"
-          xpack.graph.enabled: "false"
-          xpack.watcher.enabled: "false"
-          transport.host: "localhost"
-
-    working_directory: ~/lite-api
-
-    environment:
-      LITE_API_ENABLE_ES: False
-      ELASTICSEARCH_HOST: http://localhost:9200
-      ENABLE_SPIRE_SEARCH: True
+commands:
+  setup:
     steps:
       - checkout
       - run:
@@ -49,24 +28,125 @@ jobs:
             - ./venv
           key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
-      - run:
-          name: Check migrations are made
-          command: pipenv run ./manage.py makemigrations --check
+jobs:
+  tests:
+    docker:
+      - image: circleci/python:3.7
+      - image: circleci/postgres:11
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+        environment:
+          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+          xpack.security.enabled: "false"
+          xpack.monitoring.enabled: "false"
+          xpack.graph.enabled: "false"
+          xpack.watcher.enabled: "false"
+          transport.host: "localhost"
 
-      - run:
-          name: Run seeding tests
-          command: |
-            LITE_API_ENABLE_ES=true pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
+    working_directory: ~/lite-api
 
+    environment:
+      LITE_API_ENABLE_ES: False
+      ELASTICSEARCH_HOST: http://localhost:9200
+      ENABLE_SPIRE_SEARCH: True
+
+    steps:
+      - setup
       - run:
           name: Run tests
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k "not seeding and not elasticsearch and not performance"
 
+  seeding_tests:
+    docker:
+      - image: circleci/python:3.7
+      - image: circleci/postgres:11
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+        environment:
+          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+          xpack.security.enabled: "false"
+          xpack.monitoring.enabled: "false"
+          xpack.graph.enabled: "false"
+          xpack.watcher.enabled: "false"
+          transport.host: "localhost"
+
+    working_directory: ~/lite-api
+
+    environment:
+      LITE_API_ENABLE_ES: True
+      ELASTICSEARCH_HOST: http://localhost:9200
+      ENABLE_SPIRE_SEARCH: True
+
+    steps:
+      - setup
+      - run:
+          name: Run seeding tests
+          command: |
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
+
+  elastic_search_tests:
+    docker:
+      - image: circleci/python:3.7
+      - image: circleci/postgres:11
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+        environment:
+          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+          xpack.security.enabled: "false"
+          xpack.monitoring.enabled: "false"
+          xpack.graph.enabled: "false"
+          xpack.watcher.enabled: "false"
+          transport.host: "localhost"
+
+    working_directory: ~/lite-api
+
+    environment:
+      LITE_API_ENABLE_ES: True
+      ELASTICSEARCH_HOST: http://localhost:9200
+      ENABLE_SPIRE_SEARCH: True
+
+    steps:
+      - setup
       - run:
           name: Run elasticsearch tests
           command: |
-            LITE_API_ENABLE_ES=true pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
+
+  check_migrations:
+    docker:
+      - image: circleci/python:3.7
+      - image: circleci/postgres:11
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+        environment:
+          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+          xpack.security.enabled: "false"
+          xpack.monitoring.enabled: "false"
+          xpack.graph.enabled: "false"
+          xpack.watcher.enabled: "false"
+          transport.host: "localhost"
+
+    working_directory: ~/lite-api
+
+    environment:
+      LITE_API_ENABLE_ES: False
+      ELASTICSEARCH_HOST: http://localhost:9200
+      ENABLE_SPIRE_SEARCH: True
+
+    steps:
+      - setup
+      - run:
+          name: Check migrations are made
+          command: pipenv run ./manage.py makemigrations --check
 
   linting:
     docker:
@@ -114,4 +194,7 @@ workflows:
   test:
     jobs:
       - tests
+      - seeding_tests
+      - elastic_search_tests
+      - check_migrations
       - linting
