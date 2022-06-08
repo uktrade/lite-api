@@ -1,160 +1,168 @@
 version: 2.1
 
-orbs:
-  jq: circleci/jq@1.8.0
+common_env_vars: &common_env_vars
+  ELASTICSEARCH_HOST: http://localhost:9200
+  ENABLE_SPIRE_SEARCH: True
+
+image_python: &image_python
+  image: circleci/python:3.7
+
+image_postgres: &image_postgres
+  image: circleci/postgres:11
+  environment:
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: password
+
+image_elasticsearch: &image_elasticsearch
+  image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+  environment:
+    ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    xpack.security.enabled: "false"
+    xpack.monitoring.enabled: "false"
+    xpack.graph.enabled: "false"
+    xpack.watcher.enabled: "false"
+    transport.host: "localhost"
 
 commands:
-  setup_code_climate:
-    steps:
-      - run:
-          name:  Download cc-test-reporter
-          command: |
-            mkdir -p tmp/
-            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
-            chmod +x ./tmp/cc-test-reporter
-            ./tmp/cc-test-reporter before-build
-
-jobs:
-  upload_coverage:
-    working_directory: ~/lite-api
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - attach_workspace:
-          at: ~/lite-api/tmp
-      - setup_code_climate
-      - run:
-          name: Upload coverage results to Code Climate
-          command: |
-            ./tmp/cc-test-reporter sum-coverage tmp/codeclimate.*.json -p 3 -o tmp/codeclimate.total.json
-            ./tmp/cc-test-reporter upload-coverage -i tmp/codeclimate.total.json
-
-  tests:
-    docker:
-      - image: circleci/python:3.7
-      - image: circleci/postgres:11
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-        environment:
-          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-          xpack.security.enabled: "false"
-          xpack.monitoring.enabled: "false"
-          xpack.graph.enabled: "false"
-          xpack.watcher.enabled: "false"
-          transport.host: "localhost"
-
-    working_directory: ~/lite-api
-
-    environment:
-      LITE_API_ENABLE_ES: False
-      ELASTICSEARCH_HOST: http://localhost:9200
-      ENABLE_SPIRE_SEARCH: True
+  setup:
     steps:
       - checkout
-      - setup_code_climate
       - run:
           name: Git Submodule Checkout
           command: |
             git submodule sync
             git submodule update --init
-
       # Download and cache dependencies
       # ensure this step occurs *before* installing dependencies
       - restore_cache:
           key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-
       - run:
           name: Install OS libraries
           command: sudo apt-get install swig;
-
       - run:
           name: Install Dependencies
           command: pipenv sync --dev
-
+      - run:
+          name: Install code coverage
+          command: |
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            chmod +x codecov
       - save_cache:
           paths:
             - ./venv
           key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-
+  upload_code_coverage:
+    steps:
       - run:
-          name: Check migrations are made
-          command: pipenv run ./manage.py makemigrations --check
+          name: Upload code coverage
+          command: ./codecov
 
-      - run:
-          name: Run seeding tests
-          command: |
-            LITE_API_ENABLE_ES=true pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
-            ./tmp/cc-test-reporter format-coverage -t coverage.py -o tmp/codeclimate.seeding.json coverage/seeding.resultset.json
-
+jobs:
+  tests:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: False
+    steps:
+      - setup
       - run:
           name: Run tests
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k "not seeding and not elasticsearch and not performance"
-            ./tmp/cc-test-reporter format-coverage -t coverage.py -o tmp/codeclimate.api.json coverage/api.resultset.json
+      - upload_code_coverage
 
+  seeding_tests:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    steps:
+      - setup
+      - run:
+          name: Run seeding tests
+          command: |
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
+      - upload_code_coverage
+
+  elastic_search_tests:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    steps:
+      - setup
       - run:
           name: Run elasticsearch tests
           command: |
-            LITE_API_ENABLE_ES=true pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
-            ./tmp/cc-test-reporter format-coverage -t coverage.py -o tmp/codeclimate.es.json coverage/es.resultset.json
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
+      - upload_code_coverage
 
-      - persist_to_workspace:
-          root: tmp
-          paths:
-            - codeclimate.api.json
-            - codeclimate.es.json
-            - codeclimate.seeding.json
-
+  check_migrations:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    steps:
+      - setup
       - run:
-          name: Run Bandit tests
-          command: |
-            pipenv run bandit -r .
+          name: Check migrations are made
+          command: pipenv run ./manage.py makemigrations --check
 
   linting:
     docker:
-      - image: circleci/python:3.7
+      - <<: *image_python
     steps:
       - checkout
-
       - run:
           name: Git Submodule Checkout
           command: |
             git submodule sync
             git submodule update --init
-
       - restore_cache:
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-
       - run:
           name: Install OS libraries
           command: sudo apt-get install swig;
-
       - run:
           name: Install Dependencies
           command: pipenv sync --dev
-
       - save_cache:
           paths:
             - ./venv
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-
       - run:
           name: Prospector
           command: pipenv run prospector -W pylint -W pep257 -W mccabe
-
       - run:
           name: Black
           command: pipenv run black . --check --diff
+      - run:
+          name: Bandit
+          command: |
+            pipenv run bandit -r .
 
 workflows:
   version: 2
   test:
     jobs:
       - tests
+      - seeding_tests
+      - elastic_search_tests
+      - check_migrations
       - linting
-      - upload_coverage:
-          requires:
-           - tests
-           - linting
