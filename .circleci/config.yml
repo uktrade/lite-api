@@ -71,11 +71,6 @@ jobs:
           command: |
             LITE_API_ENABLE_ES=true pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
 
-      - run:
-          name: Run Bandit tests
-          command: |
-            pipenv run bandit -r .
-
   linting:
     docker:
       - image: circleci/python:3.7
@@ -111,6 +106,11 @@ jobs:
       - run:
           name: Black
           command: pipenv run black . --check --diff
+
+      - run:
+          name: Bandit
+          command: |
+            pipenv run bandit -r .
 
 workflows:
   version: 2
