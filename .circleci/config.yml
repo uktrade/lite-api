@@ -1,5 +1,28 @@
 version: 2.1
 
+common_env_vars: &common_env_vars
+  ELASTICSEARCH_HOST: http://localhost:9200
+  ENABLE_SPIRE_SEARCH: True
+
+image_python: &image_python
+  image: circleci/python:3.7
+
+image_postgres: &image_postgres
+  image: circleci/postgres:11
+  environment:
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: password
+
+image_elasticsearch: &image_elasticsearch
+  image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+  environment:
+    ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    xpack.security.enabled: "false"
+    xpack.monitoring.enabled: "false"
+    xpack.graph.enabled: "false"
+    xpack.watcher.enabled: "false"
+    transport.host: "localhost"
+
 commands:
   setup:
     steps:
@@ -31,27 +54,13 @@ commands:
 jobs:
   tests:
     docker:
-      - image: circleci/python:3.7
-      - image: circleci/postgres:11
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-        environment:
-          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-          xpack.security.enabled: "false"
-          xpack.monitoring.enabled: "false"
-          xpack.graph.enabled: "false"
-          xpack.watcher.enabled: "false"
-          transport.host: "localhost"
-
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
     working_directory: ~/lite-api
-
     environment:
+      <<: *common_env_vars
       LITE_API_ENABLE_ES: False
-      ELASTICSEARCH_HOST: http://localhost:9200
-      ENABLE_SPIRE_SEARCH: True
-
     steps:
       - setup
       - run:
@@ -61,27 +70,13 @@ jobs:
 
   seeding_tests:
     docker:
-      - image: circleci/python:3.7
-      - image: circleci/postgres:11
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-        environment:
-          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-          xpack.security.enabled: "false"
-          xpack.monitoring.enabled: "false"
-          xpack.graph.enabled: "false"
-          xpack.watcher.enabled: "false"
-          transport.host: "localhost"
-
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
     working_directory: ~/lite-api
-
     environment:
+      <<: *common_env_vars
       LITE_API_ENABLE_ES: True
-      ELASTICSEARCH_HOST: http://localhost:9200
-      ENABLE_SPIRE_SEARCH: True
-
     steps:
       - setup
       - run:
@@ -91,27 +86,13 @@ jobs:
 
   elastic_search_tests:
     docker:
-      - image: circleci/python:3.7
-      - image: circleci/postgres:11
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-        environment:
-          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-          xpack.security.enabled: "false"
-          xpack.monitoring.enabled: "false"
-          xpack.graph.enabled: "false"
-          xpack.watcher.enabled: "false"
-          transport.host: "localhost"
-
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
     working_directory: ~/lite-api
-
     environment:
+      <<: *common_env_vars
       LITE_API_ENABLE_ES: True
-      ELASTICSEARCH_HOST: http://localhost:9200
-      ENABLE_SPIRE_SEARCH: True
-
     steps:
       - setup
       - run:
@@ -121,27 +102,13 @@ jobs:
 
   check_migrations:
     docker:
-      - image: circleci/python:3.7
-      - image: circleci/postgres:11
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-      - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-        environment:
-          ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-          xpack.security.enabled: "false"
-          xpack.monitoring.enabled: "false"
-          xpack.graph.enabled: "false"
-          xpack.watcher.enabled: "false"
-          transport.host: "localhost"
-
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
     working_directory: ~/lite-api
-
     environment:
-      LITE_API_ENABLE_ES: False
-      ELASTICSEARCH_HOST: http://localhost:9200
-      ENABLE_SPIRE_SEARCH: True
-
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
     steps:
       - setup
       - run:
@@ -150,40 +117,32 @@ jobs:
 
   linting:
     docker:
-      - image: circleci/python:3.7
+      - <<: *image_python
     steps:
       - checkout
-
       - run:
           name: Git Submodule Checkout
           command: |
             git submodule sync
             git submodule update --init
-
       - restore_cache:
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-
       - run:
           name: Install OS libraries
           command: sudo apt-get install swig;
-
       - run:
           name: Install Dependencies
           command: pipenv sync --dev
-
       - save_cache:
           paths:
             - ./venv
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-
       - run:
           name: Prospector
           command: pipenv run prospector -W pylint -W pep257 -W mccabe
-
       - run:
           name: Black
           command: pipenv run black . --check --diff
-
       - run:
           name: Bandit
           command: |
