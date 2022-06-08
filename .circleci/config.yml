@@ -32,24 +32,30 @@ commands:
           command: |
             git submodule sync
             git submodule update --init
-
       # Download and cache dependencies
       # ensure this step occurs *before* installing dependencies
       - restore_cache:
           key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-
       - run:
           name: Install OS libraries
           command: sudo apt-get install swig;
-
       - run:
           name: Install Dependencies
           command: pipenv sync --dev
-
+      - run:
+          name: Install code coverage
+          command: |
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            chmod +x codecov
       - save_cache:
           paths:
             - ./venv
           key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+  upload_code_coverage:
+    steps:
+      - run:
+          name: Upload code coverage
+          command: ./codecov
 
 jobs:
   tests:
@@ -67,6 +73,7 @@ jobs:
           name: Run tests
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k "not seeding and not elasticsearch and not performance"
+      - upload_code_coverage
 
   seeding_tests:
     docker:
@@ -83,6 +90,7 @@ jobs:
           name: Run seeding tests
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
+      - upload_code_coverage
 
   elastic_search_tests:
     docker:
@@ -99,6 +107,7 @@ jobs:
           name: Run elasticsearch tests
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
+      - upload_code_coverage
 
   check_migrations:
     docker:
