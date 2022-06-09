@@ -44,7 +44,9 @@ def get_uk_sanctions_list():
     log.info(
         "start pyexcel.get_book",
     )
-    book = pyexcel.get_book(url=settings.SANCTION_LIST_SOURCES["uk_sanctions_file"])
+
+    url = settings.SANCTION_LIST_SOURCES["uk_sanctions_file"]
+    book = pyexcel.iget_book(url=settings.SANCTION_LIST_SOURCES["uk_sanctions_file"])
     log.info(
         "end pyexcel.get_book",
     )
