@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from elasticsearch_dsl import connections
+import pyexcel
 
 import requests
 import xmltodict
@@ -40,16 +41,20 @@ def get_office_financial_sanctions_implementation():
 
 
 def get_uk_sanctions_list():
-    response = requests.get(settings.SANCTION_LIST_SOURCES["uk_sanctions_file"])
-    response.raise_for_status()
-    doc = xmltodict.parse(
-        response.content,
-        postprocessor=(lambda path, key, value: (key.lower(), value)),
-        xml_attribs=False,
-        cdata_key="p",
-        force_list=["name", "address"],
-    )
-    return doc["designations"]["designation"]
+    book = pyexcel.get_book(url=settings.SANCTION_LIST_SOURCES["uk_sanctions_file"])
+    return parse_ods(book)
+
+
+def parse_ods(book):
+    for sheet_name in book.sheet_names():
+        records = iter(book[sheet_name])
+        # Top 2 lines is just meta
+        next(records)
+        next(records)
+        headers = next(records)
+        for row in records:
+            data = dict(zip(headers, row))
+            yield {**data, "sheet": sheet_name}
 
 
 def join_fields(data, fields):
@@ -73,7 +78,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["rebuild"]:
             self.rebuild_index()
-
         self.populate_united_nations_sanctions()
         self.populate_office_financial_sanctions_implementation()
         self.populate_uk_sanctions_list()
@@ -170,37 +174,30 @@ class Command(BaseCommand):
         successful = 0
         failed = 0
         try:
-            uk_sanctions_list = get_uk_sanctions_list()
-            for item in uk_sanctions_list:
+            parsed = get_uk_sanctions_list()
+            for item in parsed:
                 try:
-                    address_list = []
-
-                    for address_item in item.get("addresses", {}).get("address", []):
-                        address_list.append(" ".join(address_item.values()))
-
-                    primary_name = next(
-                        filter(
-                            lambda n: n.get("nametype", "").lower() == "primary name",
-                            item["names"]["name"],
-                        )
+                    item.pop("nationality", None)
+                    address = join_fields(
+                        item, fields=["Address Line 1", "Address Line 2", "Address Line 3", "Address Line 4"]
                     )
-
-                    name = join_fields(primary_name, fields=["name1", "name2", "name3", "name4", "name5", "name6"])
-                    address = ",".join(address_list)
-
-                    unique_id = item.get("ofsigroupid", "UNKNOWN")
+                    postcode = normalize_address(item["Address Postal Code"])
+                    if postcode not in normalize_address(address):
+                        address += " " + postcode
+                    name = join_fields(item, fields=["Name 1", "Name 2", "Name 3", "Name 4", "Name 5", "Name 6"])
+                    unique_id = hash_values([item["Unique ID"], name, address, postcode, item["Regime Name"]])
                     document = documents.SanctionDocumentType(
                         meta={"id": f"uk:{unique_id}"},
                         name=name,
                         address=address,
+                        postcode=postcode,
                         flag_uuid=SystemFlags.SANCTION_UK_MATCH,
-                        reference=unique_id,
+                        reference=item["Unique ID"],
                         data=item,
                     )
                     document.save()
                     successful += 1
                 except:
-
                     failed += 1
                     log.exception(
                         "Error loading uk sanction record -> %s",

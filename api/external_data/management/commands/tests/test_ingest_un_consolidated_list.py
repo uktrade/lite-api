@@ -1,6 +1,7 @@
 from unittest import mock
 
 from elasticsearch_dsl import Index, Search
+import pyexcel
 import requests_mock
 
 from django.conf import settings
@@ -20,38 +21,65 @@ class PopulateSanctionsTests(DataTestClient):
     def test_populate_sanctions(
         self, mock_get_uk_sanctions_list, mock_get_office_financial_sanctions_implementation, mock_get_un_sanctions
     ):
-        mock_get_uk_sanctions_list.return_value = [
-            {
-                "lastupdated": "2020-12-31T00:00:00",
-                "uniqueid": "AFG0001",
-                "ofsigroupid": "1234",
-                "unreferencenumber": None,
-                "names": {
-                    "name": [
-                        {
-                            "name6": "HAJI KHAIRULLAH HAJI SATTAR MONEY EXCHANGE",
-                            "nametype": "Primary Name",
-                        },
-                        {
-                            "name1": "SATTAR MONEY EXCHANGE",
-                            "nametype": "alias",
-                        },
-                    ]
-                },
-                "addresses": {
-                    "address": [
-                        {
-                            "addressLine1": "Branch Office 10",
-                            "addressLine2": "Suite numbers 196-197",
-                        },
-                        {
-                            "addressLine1": "Branch Office 13",
-                            "addressLine2": "Sarafi Market",
-                        },
-                    ]
-                },
-            },
-        ]
+        mock_get_uk_sanctions_list.return_value = iter(
+            [
+                {
+                    "Address Line 1": "Branch Office 1: i) Chohar Mir Road",
+                    "Address Line 2": "Kandahari Bazaar",
+                    "Address Line 3": "Quetta City",
+                    "Address Line 4": "Baluchistan Province, Pakistan; ii) Room number 1",
+                    "Business registration number (s)": "Unknown",
+                    "Country of birth": "N/A",
+                    "Current believed flag of ship": "N/A",
+                    "Current owner/operator (s)": "N/A",
+                    "D.O.B": "N/A",
+                    "Date Designated": "29/06/2012 00:00:00",
+                    "Email address": "Unknown",
+                    "Entity, Vessel\xa0or Individual": "Entity",
+                    "Gender": "N/A",
+                    "Honorary/Professional/Religious titles": "N/A",
+                    "Hull identification number (HIN)": "N/A",
+                    "IMO number": "N/A",
+                    "Last Updated": "N/A",
+                    "Length of ship": "N/A",
+                    "Name 1": "HAJI",
+                    "Name 2": "KHAIRULLAH",
+                    "Name 4": "HAJI SATTAR",
+                    "Name 5": "",
+                    "Name 6": "MONEY EXCHANGE",
+                    "National Identifier number": "N/A",
+                    "Nationality(/ies)": "N/A",
+                    "OFSI ID": "12703",
+                    "Other Information": "Pakistan National Tax Number: 1774308",
+                    "Other suspected locations": "Branch Office 11: i) Sarafi Market, Zaranj",
+                    "Parent company": "Unknown",
+                    "Passport number": "N/A",
+                    "Phone number ": "Unknown",
+                    "Position": "N/A",
+                    "Address Postal Code": "Unknown",
+                    "Previous flags": "N/A",
+                    "Previous owner/operator (s)": "N/A",
+                    "Primary Address Country": "Pakistan",
+                    "Primary Name": "HAJI KHAIRULLAH HAJI SATTAR MONEY EXCHANGE",
+                    "Regime Name": "The Afghanistan (Sanctions) (EU Exit) Regulations 2020",
+                    "Regime Type (UK, UN)": "UN",
+                    "Sanctions Imposed": "Asset freeze",
+                    "Subsidiaries": "Unknown",
+                    "Tonnage of ship ": "N/A",
+                    "Town of birth": "N/A",
+                    "Type of entity": "Unknown",
+                    "Type of ship": "N/A",
+                    "UK Statement of Reasons": "N/A",
+                    "UN Reference ID": "2989469",
+                    "Unique ID": "AFG0001",
+                    "Website": "Unknown",
+                    "Year Built": "N/A",
+                    "a.k.a": "Haji Khairullah-Haji Sattar Sarafi",
+                    "a.k.a (Non-Latin Script)": "حاجی خيرالله و حاجی ستار صرافی",
+                    "sheet": "MasterList-Bank",
+                }
+            ]
+        )
 
         mock_get_office_financial_sanctions_implementation.return_value = {
             "arrayoffinancialsanctionstarget": {
@@ -205,7 +233,7 @@ class PopulateSanctionsTests(DataTestClient):
 
         self.assertEqual(results_three.hits[1]["name"], "HAJI KHAIRULLAH HAJI SATTAR MONEY EXCHANGE")
         self.assertEqual(results_three.hits[1]["flag_uuid"], "00000000-0000-0000-0000-000000000041")
-        self.assertEqual(results_three.hits[1]["reference"], "1234")
+        self.assertEqual(results_three.hits[1]["reference"], "AFG0001")
 
     def test_get_un_sanctions(self):
         with requests_mock.Mocker() as m:
@@ -219,3 +247,24 @@ class PopulateSanctionsTests(DataTestClient):
                 content=b"<note><to>Tove</to></note>",
             )
             ingest_sanctions.get_office_financial_sanctions_implementation()
+
+    def test_get_uk_sanctions_list(self):
+        book = pyexcel.get_book(
+            bookdict={
+                "Sheet 1": [[], [], ["a", "b", "c"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]],
+                "Sheet 2": [[], [], ["x", "y", "z"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+            }
+        )
+        with mock.patch.object(pyexcel, "get_book", return_value=book):
+            parsed = ingest_sanctions.get_uk_sanctions_list()
+
+        self.assertEqual(
+            list(parsed),
+            [
+                {"a": 1.0, "b": 2.0, "c": 3.0, "sheet": "Sheet 1"},
+                {"a": 4.0, "b": 5.0, "c": 6.0, "sheet": "Sheet 1"},
+                {"a": 7.0, "b": 8.0, "c": 9.0, "sheet": "Sheet 1"},
+                {"x": 1.0, "y": 2.0, "z": 3.0, "sheet": "Sheet 2"},
+                {"x": 4.0, "y": 5.0, "z": 6.0, "sheet": "Sheet 2"},
+            ],
+        )
