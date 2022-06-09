@@ -41,12 +41,24 @@ def get_office_financial_sanctions_implementation():
 
 
 def get_uk_sanctions_list():
+    log.info(
+        "start pyexcel.get_book",
+    )
     book = pyexcel.get_book(url=settings.SANCTION_LIST_SOURCES["uk_sanctions_file"])
+    log.info(
+        "end pyexcel.get_book",
+    )
     return parse_ods(book)
 
 
 def parse_ods(book):
+    log.info(
+        "start parse_ods",
+    )
     for sheet_name in book.sheet_names():
+        log.info(
+            f"start get records for book  {sheet_name}",
+        )
         records = iter(book[sheet_name])
         # Top 2 lines is just meta
         next(records)
