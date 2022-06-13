@@ -4,6 +4,7 @@ import factory
 from django.utils import timezone
 
 from api.addresses.tests.factories import AddressFactory
+from api.documents.tests.factories import DocumentFactory
 from api.organisations import models
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.tests.providers import OrganisationProvider
@@ -53,3 +54,10 @@ class SiteFactory(factory.django.DjangoModelFactory):
     def site_records_located_at(self, create, extracted, **kwargs):
         self.site_records_located_at = self
         self.save()
+
+
+class DocumentOnOrganisationFactory(factory.django.DjangoModelFactory):
+    document = factory.SubFactory(DocumentFactory)
+
+    class Meta:
+        model = models.DocumentOnOrganisation
