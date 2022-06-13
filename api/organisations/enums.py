@@ -27,6 +27,10 @@ class OrganisationDocumentType:
         (REGISTERED_FIREARM_DEALER_CERTIFICATE, "Registered Firearm Dealer certificate"),
     ]
 
+    @classmethod
+    def keys(cls):
+        return [key for key, _ in cls.choices]
+
 
 class OrganisationStatus:
     ACTIVE = "active"
