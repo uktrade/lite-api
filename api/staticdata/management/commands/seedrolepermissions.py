@@ -32,6 +32,9 @@ class Command(SeedCommand):
             id=Roles.EXPORTER_DEFAULT_ROLE_ID, type=UserType.EXPORTER.value, name=Roles.EXPORTER_DEFAULT_ROLE_NAME
         )
         self._create_role_and_output(
+            id=Roles.EXPORTER_AGENT_ROLE_ID, type=UserType.EXPORTER.value, name=Roles.EXPORTER_AGENT_ROLE_NAME
+        )
+        self._create_role_and_output(
             id=Roles.INTERNAL_SUPER_USER_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_SUPER_USER_ROLE_NAME
         )
         self._create_role_and_output(
@@ -54,6 +57,14 @@ class Command(SeedCommand):
 
         permissions = list(Permission.exporter.all())
         role.permissions.add(*permissions)
+
+        role.save()
+
+        # Add agent permissions to Agent
+        role = Role.objects.get(id=Roles.EXPORTER_AGENT_ROLE_ID)
+
+        permission = Permission.objects.get(id=ExporterPermissions.SUBMIT_LICENCE_APPLICATION.name)
+        role.permissions.add(permission)
 
         role.save()
 
