@@ -137,7 +137,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 6)
+        self.assertEqual(len(response_data), 5)
         self.assertIn(str(Role.objects.get(name="multi permission role").id), str(response_data))
         self.assertIn(
             str(Role.objects.get(name=constants.ExporterPermissions.ADMINISTER_USERS.name).id), str(response_data)
@@ -181,7 +181,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 4)
+        self.assertEqual(len(response_data), 3)
         self.assertIn(
             str(Role.objects.get(name=constants.ExporterPermissions.ADMINISTER_USERS.name).id), str(response_data)
         )
@@ -217,7 +217,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 3)
+        self.assertEqual(len(response_data), 2)
         self.assertIn(
             str(Role.objects.get(name=constants.ExporterPermissions.ADMINISTER_USERS.name).id), str(response_data)
         )
@@ -267,14 +267,14 @@ class RolesAndPermissionsTests(DataTestClient):
                 "organisations:user",
                 kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.pk},
             ),
-            data={"role": str(constants.Roles.EXPORTER_DEFAULT_ROLE_ID)},
+            data={"role": str(constants.Roles.EXPORTER_EXPORTER_ROLE_ID)},
             **self.exporter_headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertNotEqual(
             self.exporter_user.get_role(self.organisation),
-            Role.objects.get(id=constants.Roles.EXPORTER_DEFAULT_ROLE_ID),
+            Role.objects.get(id=constants.Roles.EXPORTER_EXPORTER_ROLE_ID),
         )
 
     def test_cannot_change_another_users_role_to_one_the_request_user_does_not_have_access_to(self):

@@ -226,7 +226,7 @@ class UserOrganisationRelationship(TimestampableModel):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, related_name="users")
     role = models.ForeignKey(
-        Role, related_name="exporter_role", default=Roles.EXPORTER_DEFAULT_ROLE_ID, on_delete=models.PROTECT
+        Role, related_name="exporter_role", default=Roles.EXPORTER_EXPORTER_ROLE_ID, on_delete=models.PROTECT
     )
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
 

@@ -140,9 +140,9 @@ class UserDetail(APIView):
 
         # Cannot perform actions on another super user without super user role
         if (
-            data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
-            or user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
-        ) and not request.user.exporteruser.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+            data.get("role") == Roles.EXPORTER_ADMINISTRATOR_ROLE_ID
+            or user.get_role(org_pk).id == Roles.EXPORTER_ADMINISTRATOR_ROLE_ID
+        ) and not request.user.exporteruser.get_role(org_pk).id == Roles.EXPORTER_ADMINISTRATOR_ROLE_ID:
             raise PermissionDenied()
 
         # Don't allow a user to update their own status or that of a super user
@@ -151,7 +151,7 @@ class UserDetail(APIView):
                 return JsonResponse(
                     data={"errors": "A user cannot change their own status"}, status=status.HTTP_400_BAD_REQUEST
                 )
-            elif user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID and data["status"] == "Deactivated":
+            elif user.get_role(org_pk).id == Roles.EXPORTER_ADMINISTRATOR_ROLE_ID and data["status"] == "Deactivated":
                 raise PermissionDenied()
 
         # Cannot remove super user from yourself
@@ -161,7 +161,9 @@ class UserDetail(APIView):
                     data={"errors": strings.Users.ORGANISATIONS_VIEWS_USER_CANNOT_CHANGE_OWN_ROLE},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            elif user.pk == request.user.pk and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+            elif (
+                user.pk == request.user.pk and request.user.get_role(org_pk).id == Roles.EXPORTER_ADMINISTRATOR_ROLE_ID
+            ):
                 return JsonResponse(
                     data={"errors": "A user cannot remove super user from themselves"},
                     status=status.HTTP_400_BAD_REQUEST,

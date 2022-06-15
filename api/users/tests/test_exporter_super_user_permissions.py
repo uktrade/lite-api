@@ -9,7 +9,7 @@ from api.users.models import Permission
 class SuperUserTests(DataTestClient):
     def test_super_user_role_cannot_be_edited(self):
         url = reverse(
-            "organisations:role", kwargs={"pk": Roles.EXPORTER_SUPER_USER_ROLE_ID, "org_pk": self.organisation.id}
+            "organisations:role", kwargs={"pk": Roles.EXPORTER_ADMINISTRATOR_ROLE_ID, "org_pk": self.organisation.id}
         )
 
         data = {"permissions": [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name]}
@@ -21,7 +21,7 @@ class SuperUserTests(DataTestClient):
 
     def test_exporter_default_user_role_cannot_be_edited(self):
         url = reverse(
-            "organisations:role", kwargs={"pk": Roles.EXPORTER_SUPER_USER_ROLE_ID, "org_pk": self.organisation.id}
+            "organisations:role", kwargs={"pk": Roles.EXPORTER_ADMINISTRATOR_ROLE_ID, "org_pk": self.organisation.id}
         )
 
         data = {"permissions": [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name]}
@@ -29,7 +29,7 @@ class SuperUserTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(self.exporter_default_role.permissions.count(), 0)
+        self.assertEqual(self.exporter_default_role.permissions.count(), 1)
 
     def test_super_user_roles_have_all_permissions(self):
         self.assertEqual(self.super_user_role.permissions.count(), Permission.internal.all().count())

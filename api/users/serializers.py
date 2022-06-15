@@ -118,7 +118,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
                         id=self.initial_data["role"], organisation_id=self.initial_data["organisation"]
                     )
                 except Role.DoesNotExist:
-                    role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+                    role = Role.objects.get(id=Roles.EXPORTER_EXPORTER_ROLE_ID)
         return role
 
     def clean_email(self, email):
@@ -136,7 +136,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
         organisation = validated_data.pop("organisation")
         sites = validated_data.pop("sites")
-        role = validated_data.pop("role", Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
+        role = validated_data.pop("role", Role.objects.get(id=Roles.EXPORTER_EXPORTER_ROLE_ID))
 
         base_user, _ = BaseUser.objects.get_or_create(
             email__iexact=base_user_defaults["email"], type=UserType.EXPORTER, defaults=base_user_defaults
@@ -149,7 +149,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
             relationship.sites.set(sites)
         else:
             relationship = UserOrganisationRelationship(
-                user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+                user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_ADMINISTRATOR_ROLE_ID)
             )
             relationship.save()
             relationship.sites.set(sites)

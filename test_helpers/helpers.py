@@ -27,7 +27,7 @@ def generate_country_dict(country: Country):
     return {"id": country.id, "name": country.name, "is_eu": country.is_eu, "report_name": "", "type": country.type}
 
 
-def create_exporter_users(organisation, quantity=1, role_id=Roles.EXPORTER_DEFAULT_ROLE_ID):
+def create_exporter_users(organisation, quantity=1, role_id=Roles.EXPORTER_EXPORTER_ROLE_ID):
     users = []
 
     for i in range(quantity):

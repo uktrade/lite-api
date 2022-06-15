@@ -126,7 +126,7 @@ class Command(SeedCommand):
 
     @classmethod
     def _add_user_to_organisations(cls, exporter_user: ExporterUser, exporter_user_data):
-        role_name = exporter_user_data.get("role", Roles.EXPORTER_SUPER_USER_ROLE_NAME)
+        role_name = exporter_user_data.get("role", Roles.EXPORTER_ADMINISTRATOR_ROLE_NAME)
         organisation_name = exporter_user_data.get("organisation")
 
         # If a commercial (non-HMRC) Organisation was specified, only seed the user to that chosen organisation
@@ -138,7 +138,7 @@ class Command(SeedCommand):
                 cls._add_exporter_to_organisation(exporter_user, organisation, role_name)
 
         for organisation in HMRC_ORGANISATIONS:
-            cls._add_exporter_to_organisation(exporter_user, organisation, Roles.EXPORTER_SUPER_USER_ROLE_NAME)
+            cls._add_exporter_to_organisation(exporter_user, organisation, Roles.EXPORTER_ADMINISTRATOR_ROLE_NAME)
 
     @classmethod
     def _get_organisation_from_commercial_organisations(cls, organisation_name):
