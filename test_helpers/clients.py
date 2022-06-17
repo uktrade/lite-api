@@ -165,8 +165,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         self.default_role = Role.objects.get(id=Roles.INTERNAL_DEFAULT_ROLE_ID)
         self.super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
-        self.exporter_default_role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
-        self.exporter_super_user_role = Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+        self.exporter_default_role = Role.objects.get(id=Roles.EXPORTER_EXPORTER_ROLE_ID)
+        self.exporter_super_user_role = Role.objects.get(id=Roles.EXPORTER_ADMINISTRATOR_ROLE_ID)
 
         self.hmrc_exporter_headers = {
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.hmrc_exporter_user.baseuser_ptr),
@@ -230,7 +230,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if organisation:
             if not role:
-                role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+                role = Role.objects.get(id=Roles.EXPORTER_EXPORTER_ROLE_ID)
             UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
             # exporter_user.status = UserStatuses.ACTIVE
 
@@ -239,7 +239,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def add_exporter_user_to_org(organisation, exporter_user, role=None):
         if not role:
-            role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+            role = Role.objects.get(id=Roles.EXPORTER_EXPORTER_ROLE_ID)
         relation = UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
         return relation
 

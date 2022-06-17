@@ -16,7 +16,7 @@ class CreateExporterUser(DataTestClient):
         self.data = {
             "email": "email@email.com",
             "sites": [str(self.site.id)],
-            "role": Roles.EXPORTER_DEFAULT_ROLE_ID,
+            "role": Roles.EXPORTER_EXPORTER_ROLE_ID,
         }
         self.url = reverse_lazy("users:users")
 
@@ -56,7 +56,7 @@ class CreateExporterUser(DataTestClient):
             "email": "TESTEXPORTER@email.com",
             "phone_number": "+447812346820",
             "sites": [str(self.site.id)],
-            "role": Roles.EXPORTER_DEFAULT_ROLE_ID,
+            "role": Roles.EXPORTER_EXPORTER_ROLE_ID,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)

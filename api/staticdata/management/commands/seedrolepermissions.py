@@ -29,7 +29,7 @@ class Command(SeedCommand):
             id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
         )
         self._create_role_and_output(
-            id=Roles.EXPORTER_DEFAULT_ROLE_ID, type=UserType.EXPORTER.value, name=Roles.EXPORTER_DEFAULT_ROLE_NAME
+            id=Roles.EXPORTER_EXPORTER_ROLE_ID, type=UserType.EXPORTER.value, name=Roles.EXPORTER_EXPORTER_ROLE_NAME
         )
         self._create_role_and_output(
             id=Roles.EXPORTER_AGENT_ROLE_ID, type=UserType.EXPORTER.value, name=Roles.EXPORTER_AGENT_ROLE_NAME
@@ -38,7 +38,9 @@ class Command(SeedCommand):
             id=Roles.INTERNAL_SUPER_USER_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_SUPER_USER_ROLE_NAME
         )
         self._create_role_and_output(
-            id=Roles.EXPORTER_SUPER_USER_ROLE_ID, type=UserType.EXPORTER.value, name=Roles.EXPORTER_SUPER_USER_ROLE_NAME
+            id=Roles.EXPORTER_ADMINISTRATOR_ROLE_ID,
+            type=UserType.EXPORTER.value,
+            name=Roles.EXPORTER_ADMINISTRATOR_ROLE_NAME,
         )
 
         # Add all permissions and statuses to internal super user
@@ -52,12 +54,18 @@ class Command(SeedCommand):
 
         role.save()
 
-        # Add all permissions to exporter super user
-        role = Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+        # Add all permissions to administrator on exporter side
+        role = Role.objects.get(id=Roles.EXPORTER_ADMINISTRATOR_ROLE_ID)
 
         permissions = list(Permission.exporter.all())
         role.permissions.add(*permissions)
+        role.save()
 
+        # Add permissions to Exporter role
+        role = Role.objects.get(id=Roles.EXPORTER_EXPORTER_ROLE_ID)
+
+        permission = Permission.objects.get(id=ExporterPermissions.SUBMIT_LICENCE_APPLICATION.name)
+        role.permissions.add(permission)
         role.save()
 
         # Add agent permissions to Agent
@@ -65,7 +73,6 @@ class Command(SeedCommand):
 
         permission = Permission.objects.get(id=ExporterPermissions.SUBMIT_LICENCE_APPLICATION.name)
         role.permissions.add(permission)
-
         role.save()
 
     @classmethod
@@ -81,8 +88,10 @@ class Command(SeedCommand):
 
     @classmethod
     def _create_role_and_output(cls, id, type, name):
-        data = dict(id=str(id), type=type, name=name)
-        _, created = Role.objects.get_or_create(**data)
+        data = dict(id=str(id), type=type)
+        role, created = Role.objects.get_or_create(**data)
+        role.name = name
+        role.save()
 
         if created:
             cls.print_created_or_updated(Role, data, is_created=True)

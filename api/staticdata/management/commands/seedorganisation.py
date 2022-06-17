@@ -72,7 +72,7 @@ class Command(SeedCommand):
     @classmethod
     def _set_organisation_primary_user(cls, organisation: Organisation, primary_user: str):
         if not primary_user:
-            return create_exporter_users(organisation, 1, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID)[0]
+            return create_exporter_users(organisation, 1, role_id=Roles.EXPORTER_ADMINISTRATOR_ROLE_ID)[0]
 
         try:
             exporter_user = ExporterUser.objects.get(email__exact=primary_user)
@@ -80,7 +80,7 @@ class Command(SeedCommand):
             raise Exception(f"An Exporter User with email: '{primary_user}' does not exist")
 
         UserOrganisationRelationship.objects.create(
-            organisation=organisation, user=exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID
+            organisation=organisation, user=exporter_user, role_id=Roles.EXPORTER_ADMINISTRATOR_ROLE_ID
         )
 
         return exporter_user

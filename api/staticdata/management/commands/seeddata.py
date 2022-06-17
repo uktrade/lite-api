@@ -68,7 +68,7 @@ class ActionBase:
     @staticmethod
     def organisation_create_random_users(company_email_domain, organisation, required_users_count):
         added = list()
-        role_id = Roles.EXPORTER_SUPER_USER_ROLE_ID
+        role_id = Roles.EXPORTER_ADMINISTRATOR_ROLE_ID
         for _ in range(required_users_count):
             email, first_name, last_name = ActionBase.fake_export_user_details(company_email_domain)
             user, _ = ExporterUser.objects.get_or_create(first_name=first_name, last_name=last_name, email=email)
@@ -105,7 +105,7 @@ class ActionBase:
         return None
 
     @staticmethod
-    def organisation_get_create_user(organisation, exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID):
+    def organisation_get_create_user(organisation, exporter_user, role_id=Roles.EXPORTER_ADMINISTRATOR_ROLE_ID):
         return UserOrganisationRelationship.objects.get_or_create(
             organisation=organisation, user=exporter_user, role_id=role_id
         )

@@ -146,7 +146,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(exporter_user.email, data["user"]["email"])
         self.assertEqual(
             UserOrganisationRelationship.objects.get(user=exporter_user, organisation=organisation).role_id,
-            Roles.EXPORTER_SUPER_USER_ROLE_ID,
+            Roles.EXPORTER_ADMINISTRATOR_ROLE_ID,
         )
 
         self.assertEqual(site.name, data["site"]["name"])
@@ -204,7 +204,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(exporter_user.email, data["user"]["email"])
         self.assertEqual(
             UserOrganisationRelationship.objects.get(user=exporter_user, organisation=organisation).role_id,
-            Roles.EXPORTER_SUPER_USER_ROLE_ID,
+            Roles.EXPORTER_ADMINISTRATOR_ROLE_ID,
         )
 
         self.assertEqual(site.name, data["site"]["name"])
