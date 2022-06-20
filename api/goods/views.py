@@ -8,7 +8,12 @@ from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 
-from api.applications.models import GoodOnApplication, BaseApplication, GoodOnApplicationInternalDocument
+from api.applications.models import (
+    GoodOnApplication,
+    BaseApplication,
+    GoodOnApplicationInternalDocument,
+    StandardApplication,
+)
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeSubTypeEnum
@@ -100,6 +105,17 @@ class GoodsListControlCode(APIView):
 
         case = get_case(case_pk)
 
+        line_items = {}
+        good_on_application_qs = self.get_queryset()
+
+        try:
+            application = StandardApplication.objects.get(id=case.id)
+            good_on_application_ids = [g.id for g in application.goods.all()]
+            for item in good_on_application_qs:
+                line_items[item.id] = good_on_application_ids.index(item.id)
+        except Exception:
+            raise BadRequestError({f"Line item doesn't belong to this application"})
+
         for good in self.get_queryset():
             data = request.data.copy()
             serializer_class = self.get_serializer_class()
@@ -115,45 +131,37 @@ class GoodsListControlCode(APIView):
             old_report_summary = good.report_summary
             obj = serializer.save()
 
-            if request.data["report_summary"] != old_report_summary:
-                if str(good.id) == request.data.get("current_object", str(good.id)):
-                    if isinstance(good, GoodsType):
-                        name = good.description
-                    else:
-                        name = good.name
-
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.REPORT_SUMMARY_UPDATED,
-                        action_object=obj,
-                        target=case,
-                        payload={
-                            "good_name": name,
-                            "old_report_summary": old_report_summary,
-                            "report_summary": obj.report_summary,
-                        },
-                    )
+            report_summary_updated = request.data["report_summary"] != old_report_summary
 
             if "control_list_entries" in serializer.data or "is_good_controlled" in serializer.data:
                 new_control_list_entries = [item.rating for item in serializer.validated_data["control_list_entries"]]
                 new_is_controlled = serializer.validated_data["is_good_controlled"]
-                if new_control_list_entries != old_control_list_entries or new_is_controlled != old_is_controlled:
+
+                if (
+                    new_control_list_entries != old_control_list_entries
+                    or new_is_controlled != old_is_controlled
+                    or report_summary_updated
+                ):
                     if isinstance(good, GoodsType):
                         good.flags.clear()
                     else:
                         good.good.flags.clear()
                     default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
+
                     audit_trail_service.create(
                         actor=request.user,
-                        verb=AuditType.GOOD_REVIEWED,
+                        verb=AuditType.PRODUCT_REVIEWED,
                         action_object=good,
                         target=case,
                         payload={
-                            "good_name": good.description,
+                            "line_no": line_items[good.id] + 1,
+                            "good_name": good.name,
                             "new_control_list_entry": new_control_list_entries or default_control,
                             "old_control_list_entry": old_control_list_entries or default_control,
                             "old_is_good_controlled": "Yes" if old_is_controlled else "No",
                             "new_is_good_controlled": "Yes" if new_is_controlled else "No",
+                            "old_report_summary": old_report_summary,
+                            "report_summary": request.data["report_summary"],
                             "additional_text": serializer.validated_data["comment"],
                             "is_precedent": serializer.validated_data.get("is_precedent", False),
                         },

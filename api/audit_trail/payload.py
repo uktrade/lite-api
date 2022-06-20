@@ -161,4 +161,10 @@ audit_type_format = {
     AuditType.REPORT_SUMMARY_UPDATED: "updated ARS for {good_name} from {old_report_summary} to {report_summary}",
     AuditType.COUNTERSIGN_ADVICE: "countersigned all {department|} recommendations",
     AuditType.UPDATED_SERIAL_NUMBERS: "updated serial numbers on '{good_name}'",
+    AuditType.PRODUCT_REVIEWED: (
+        "reviewed the line {line_no} assessment for {good_name}:\n"
+        "Licence required: Changed from '{old_is_good_controlled}' to '{new_is_good_controlled}'\n"
+        "Control list entry: Changed from '{old_control_list_entry}' to '{new_control_list_entry}'\n"
+        "Report summary: Changed from '{old_report_summary}' to '{report_summary}'"
+    ),
 }
