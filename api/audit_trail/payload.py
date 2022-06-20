@@ -1,6 +1,7 @@
 from string import Formatter
 
 from api.audit_trail.enums import AuditType
+from api.audit_trail import formatters
 from lite_content.lite_api import strings
 
 
@@ -32,9 +33,12 @@ class DefaultValueParameterFormatter(Formatter):
 
 def format_payload(audit_type, payload):
     fmt = DefaultValueParameterFormatter()
-    text = fmt.format(audit_type_format[audit_type], **payload)
-    if text[-1] not in [":", ".", "?"]:
-        return f"{text}."
+    if callable(audit_type_format[audit_type]):
+        text = audit_type_format[audit_type](**payload)
+    else:
+        text = fmt.format(audit_type_format[audit_type], **payload)
+        if text[-1] not in [":", ".", "?"]:
+            return f"{text}."
 
     return text
 
@@ -161,10 +165,5 @@ audit_type_format = {
     AuditType.REPORT_SUMMARY_UPDATED: "updated ARS for {good_name} from {old_report_summary} to {report_summary}",
     AuditType.COUNTERSIGN_ADVICE: "countersigned all {department|} recommendations",
     AuditType.UPDATED_SERIAL_NUMBERS: "updated serial numbers on '{good_name}'",
-    AuditType.PRODUCT_REVIEWED: (
-        "reviewed the line {line_no} assessment for {good_name}:\n"
-        "Licence required: Changed from '{old_is_good_controlled}' to '{new_is_good_controlled}'\n"
-        "Control list entry: Changed from '{old_control_list_entry}' to '{new_control_list_entry}'\n"
-        "Report summary: Changed from '{old_report_summary}' to '{report_summary}'"
-    ),
+    AuditType.PRODUCT_REVIEWED: formatters.product_reviewed,
 }
