@@ -1,6 +1,7 @@
 from string import Formatter
 
 from api.audit_trail.enums import AuditType
+from api.audit_trail import formatters
 from lite_content.lite_api import strings
 
 
@@ -32,9 +33,13 @@ class DefaultValueParameterFormatter(Formatter):
 
 def format_payload(audit_type, payload):
     fmt = DefaultValueParameterFormatter()
-    text = fmt.format(audit_type_format[audit_type], **payload)
-    if text[-1] not in [":", ".", "?"]:
-        return f"{text}."
+
+    if callable(audit_type_format[audit_type]):
+        text = audit_type_format[audit_type](**payload)
+    else:
+        text = fmt.format(audit_type_format[audit_type], **payload)
+        if text[-1] not in [":", ".", "?"]:
+            return f"{text}."
 
     return text
 
@@ -92,7 +97,7 @@ audit_type_format = {
     AuditType.CLEARED_USER_ADVICE: "cleared their recommendation",
     AuditType.ADD_PARTY: strings.Audit.ADD_PARTY,
     AuditType.REMOVE_PARTY: strings.Audit.REMOVE_PARTY,
-    AuditType.UPLOAD_PARTY_DOCUMENT: strings.Audit.UPLOAD_PARTY_DOCUMENT,
+    AuditType.UPLOAD_PARTY_DOCUMENT: formatters.upload_party_document,
     AuditType.DELETE_PARTY_DOCUMENT: strings.Audit.DELETE_PARTY_DOCUMENT,
     AuditType.UPLOAD_APPLICATION_DOCUMENT: strings.Audit.UPLOAD_APPLICATION_DOCUMENT,
     AuditType.DELETE_APPLICATION_DOCUMENT: strings.Audit.DELETE_APPLICATION_DOCUMENT,
@@ -137,7 +142,7 @@ audit_type_format = {
     AuditType.APPROVED_ORGANISATION: strings.Audit.APPROVED_ORGANISATION,
     AuditType.REMOVED_FLAG_ON_ORGANISATION: strings.Audit.REMOVED_FLAG_ON_ORGANISATION,
     AuditType.ADDED_FLAG_ON_ORGANISATION: strings.Audit.ADDED_FLAG_ON_ORGANISATION,
-    AuditType.ENFORCEMENT_CHECK: strings.Audit.ENFORCEMENT_CHECK,
+    AuditType.ENFORCEMENT_CHECK: "exported the case for enforcement checks",
     AuditType.UPDATED_SITE: strings.Audit.UPDATED_SITE,
     AuditType.CREATED_SITE: strings.Audit.CREATED_SITE,
     AuditType.UPDATED_SITE_NAME: strings.Audit.UPDATED_SITE_NAME,
