@@ -21,6 +21,7 @@ class FormattersTest(DataTestClient):
         result = formatters.removed_flags(**payload)
         self.assertEqual(result, expected_result)
 
+<<<<<<< HEAD
     @parameterized.expand(
         [
             (
@@ -99,6 +100,21 @@ class FormattersTest(DataTestClient):
     )
     def test_remove_party_audit_message(self, payload, expected_result):
         result = formatters.remove_party(**payload)
+=======
+
+    @parameterized.expand(
+        [
+            ({"status": "issued", "licence": "1"}, "issued licence 1."),
+            ({"status": "Issued", "licence": "1"}, "issued licence 1."),
+            ({"status": "reinstated", "licence": "1"}, "reinstated licence 1."),
+            ({"status": "cancelled", "licence": "1"}, "cancelled licence 1."),
+            ({"status": "withdrawn", "licence": "1"}, "withdrew the licence."),
+            ({"status": "Withdrawn", "licence": "1"}, "withdrew the licence."),
+        ]
+    )
+    def test_licence_status_updated(self, payload, expected_result):
+        result = formatters.licence_status_updated(**payload)
+>>>>>>> 6a9e883c (content changes as per LTD-2411)
         self.assertEqual(result, expected_result)
 
     @parameterized.expand(

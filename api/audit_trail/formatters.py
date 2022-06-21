@@ -86,7 +86,6 @@ def get_updated_status(**payload):
     # Default behavior - same as always
     return format_text(strings.Audit.UPDATED_STATUS, **payload)
 
-
 def product_reviewed(**payload):
     text = f"reviewed the line {payload['line_no']} assessment for {payload['good_name']}\n"
 
@@ -106,3 +105,15 @@ def product_reviewed(**payload):
         text += f"Report summary: No change from '{payload['old_report_summary']}'"
 
     return text
+
+def licence_status_updated(**payload):
+    status = payload["status"].lower()
+    licence = payload["licence"]
+    if status == "issued":
+        return f"issued licence {licence}."
+    elif status == "reinstated":
+        return f"reinstated licence {licence}."
+    elif status == "cancelled":
+        return f"cancelled licence {licence}."
+    elif status == "withdrawn":
+        return f"withdrew the licence."
