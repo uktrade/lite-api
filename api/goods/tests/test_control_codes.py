@@ -296,8 +296,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         self.assertEqual(self.product_on_application1.report_summary, "Sniper rifles (10)")
         self.assertEqual(self.product_on_application2.report_summary, "Rifles (5)")
-        audit_qs = Audit.objects.filter(verb=AuditType.REPORT_SUMMARY_UPDATED)
-        self.assertEqual(audit_qs.count(), 1)
+        audit_qs = Audit.objects.filter(verb=AuditType.PRODUCT_REVIEWED)
+        self.assertEqual(audit_qs.count(), 3)
         audit_payload = audit_qs.first().payload
         self.assertEqual(audit_payload["old_report_summary"], "Rifles (10)")
         self.assertEqual(audit_payload["report_summary"], "Sniper rifles (10)")
@@ -325,53 +325,6 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
 
         self.case = self.submit_application(self.application)
         self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": self.case.id})
-
-    def test_verify_single_good(self):
-        """
-        Post a singular good to the endpoint, and check that the control code is updated, and flags are removed
-        """
-        data = {
-            "objects": self.good_1.pk,
-            "current_object": self.good_1.pk,
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.text,
-            "is_good_controlled": True,
-            "control_list_entries": ["ML1a"],
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.good_1.refresh_from_db()
-        self.assertEqual(list(self.good_1.control_list_entries.values_list("rating", flat=True)), ["ML1a"])
-
-        # determine that flags have been removed when good verified
-        self.assertFalse(is_not_verified_flag_set_on_good(self.good_1))
-
-    def test_verify_only_change_comment_doesnt_remove_flags(self):
-        """
-        Assert that not changing the control code does not remove the flags
-        """
-        self.good_1.is_good_controlled = True
-        self.good_1.control_list_entries.set([get_control_list_entry("ML1a")])
-        self.good_1.save()
-        data = {
-            "objects": self.good_1.pk,
-            "current_object": self.good_1.pk,
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.text,
-            "control_list_entries": ["ML1a"],
-            "is_good_controlled": True,
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.good_1.refresh_from_db()
-        self.assertEqual(list(self.good_1.control_list_entries.values_list("rating", flat=True)), ["ML1a"])
-
-        # determine that flags have not been removed when control code hasn't changed
-        self.assertEqual(self.good_1.flags.count(), 1)
 
     def test_invalid_control_list_entries(self):
         """

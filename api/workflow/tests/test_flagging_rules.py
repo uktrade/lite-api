@@ -80,7 +80,7 @@ class FlaggingRulesAutomation(DataTestClient):
         the flag is now cleared after review.
         """
         flag = self.create_flag(name="good flag", level=FlagLevels.GOOD, team=self.team)
-        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
+        case = self.create_draft_standard_application(self.organisation)
         self.submit_application(case)
         good = GoodOnApplication.objects.filter(application_id=case.id).first().good
 
@@ -96,7 +96,7 @@ class FlaggingRulesAutomation(DataTestClient):
         )
 
         apply_flagging_rules_to_case(case)
-        self.assertEqual(good.flags.count(), 1)
+        self.assertEqual(good.flags.count(), 2)
 
         role = Role(name="review_goods")
         role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])

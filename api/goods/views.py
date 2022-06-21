@@ -114,7 +114,7 @@ class GoodsListControlCode(APIView):
             for item in good_on_application_qs:
                 line_items[item.id] = good_on_application_ids.index(item.id)
         except Exception:
-            raise BadRequestError({f"Line item doesn't belong to this application"})
+            raise BadRequestError({"Line item doesn't belong to this application"})
 
         for good in self.get_queryset():
             data = request.data.copy()
