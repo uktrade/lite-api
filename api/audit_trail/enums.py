@@ -98,7 +98,6 @@ class AuditType(LiteEnum):
     REJECTED_ORGANISATION = autostr()
     APPROVED_ORGANISATION = autostr()
     REMOVED_FLAG_ON_ORGANISATION = autostr()
-    REMOVED_FLAG_ON_ORGANISATION_FORMATTED = autostr()
     ADDED_FLAG_ON_ORGANISATION = autostr()
     RERUN_ROUTING_RULES = autostr()
     ENFORCEMENT_CHECK = autostr()

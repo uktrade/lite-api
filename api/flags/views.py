@@ -229,23 +229,17 @@ class AssignFlags(APIView):
             )
 
     def _set_organisation_activity(self, added_flags, removed_flags, organisation, user, note, **kwargs):
-        def _format_flag_names(flags):
-            if len(flags) == 1:
-                return None, flags[0]
-            elif len(flags) >= 2:
-                return "s", f'{", ".join(flags[:-1])}, and {flags[-1]}'
-
         # Add an activity item for the organisation
         if added_flags:
             verb = AuditType.ADDED_FLAG_ON_ORGANISATION
             flags = added_flags
-            payload = {"flag_name": flags, "additional_text": note}
         elif removed_flags:
-            verb = AuditType.REMOVED_FLAG_ON_ORGANISATION_FORMATTED
-            plural, flag_names = _format_flag_names(removed_flags)
-            payload = {"plural": plural, "flag_name": flag_names, "additional_text": note}
+            verb = AuditType.REMOVED_FLAG_ON_ORGANISATION
+            flags = removed_flags
         else:
             return
+
+        payload = {"flag_name": flags, "additional_text": note}
 
         audit_trail_service.create(
             actor=user,

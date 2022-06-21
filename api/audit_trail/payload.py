@@ -1,6 +1,7 @@
 from string import Formatter
 
 from api.audit_trail.enums import AuditType
+from api.audit_trail import formatters
 from lite_content.lite_api import strings
 
 
@@ -32,9 +33,12 @@ class DefaultValueParameterFormatter(Formatter):
 
 def format_payload(audit_type, payload):
     fmt = DefaultValueParameterFormatter()
-    text = fmt.format(audit_type_format[audit_type], **payload)
-    if text[-1] not in [":", ".", "?"]:
-        return f"{text}."
+    if callable(audit_type_format[audit_type]):
+        text = audit_type_format[audit_type](**payload)
+    else:
+        text = fmt.format(audit_type_format[audit_type], **payload)
+        if text[-1] not in [":", ".", "?"]:
+            return f"{text}."
 
     return text
 
@@ -135,8 +139,7 @@ audit_type_format = {
     AuditType.REGISTER_ORGANISATION: strings.Audit.REGISTER_ORGANISATION,
     AuditType.REJECTED_ORGANISATION: strings.Audit.REJECTED_ORGANISATION,
     AuditType.APPROVED_ORGANISATION: strings.Audit.APPROVED_ORGANISATION,
-    AuditType.REMOVED_FLAG_ON_ORGANISATION: strings.Audit.REMOVED_FLAG_ON_ORGANISATION,
-    AuditType.REMOVED_FLAG_ON_ORGANISATION_FORMATTED: "removed the flag{plural} '{flag_name}' from the organisation",
+    AuditType.REMOVED_FLAG_ON_ORGANISATION: formatters.removed_flags,
     AuditType.ADDED_FLAG_ON_ORGANISATION: strings.Audit.ADDED_FLAG_ON_ORGANISATION,
     AuditType.ENFORCEMENT_CHECK: strings.Audit.ENFORCEMENT_CHECK,
     AuditType.UPDATED_SITE: strings.Audit.UPDATED_SITE,
