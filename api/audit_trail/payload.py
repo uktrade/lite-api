@@ -73,7 +73,7 @@ audit_type_format = {
     AuditType.GENERATE_CASE_DOCUMENT: strings.Audit.GENERATE_CASE_DOCUMENT,
     AuditType.ADD_CASE_OFFICER_TO_CASE: strings.Audit.ADD_CASE_OFFICER_TO_CASE,
     AuditType.REMOVE_CASE_OFFICER_FROM_CASE: strings.Audit.REMOVE_CASE_OFFICER_FROM_CASE,
-    AuditType.GRANTED_APPLICATION: strings.Audit.GRANTED_APPLICATION,
+    AuditType.GRANTED_APPLICATION: "issued licence for {licence_duration} months starting from {start_date}",
     AuditType.REINSTATED_APPLICATION: strings.Audit.REINSTATED_APPLICATION,
     AuditType.FINALISED_APPLICATION: strings.Audit.FINALISED_APPLICATION,
     AuditType.UNASSIGNED_QUEUES: strings.Audit.UNASSIGNED_QUEUES,
