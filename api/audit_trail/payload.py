@@ -140,7 +140,7 @@ audit_type_format = {
     AuditType.REGISTER_ORGANISATION: strings.Audit.REGISTER_ORGANISATION,
     AuditType.REJECTED_ORGANISATION: strings.Audit.REJECTED_ORGANISATION,
     AuditType.APPROVED_ORGANISATION: strings.Audit.APPROVED_ORGANISATION,
-    AuditType.REMOVED_FLAG_ON_ORGANISATION: strings.Audit.REMOVED_FLAG_ON_ORGANISATION,
+    AuditType.REMOVED_FLAG_ON_ORGANISATION: formatters.removed_flags,
     AuditType.ADDED_FLAG_ON_ORGANISATION: strings.Audit.ADDED_FLAG_ON_ORGANISATION,
     AuditType.ENFORCEMENT_CHECK: "exported the case for enforcement checks",
     AuditType.UPDATED_SITE: strings.Audit.UPDATED_SITE,
