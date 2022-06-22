@@ -1,6 +1,7 @@
 from string import Formatter
 
 from api.parties.enums import PartyType
+from api.licences.enums import LicenceStatus
 from api.staticdata.statuses.enums import CaseStatusEnum
 from lite_content.lite_api import strings
 
@@ -109,11 +110,11 @@ def product_reviewed(**payload):
 def licence_status_updated(**payload):
     status = payload["status"].lower()
     licence = payload["licence"]
-    if status == "issued":
+    if status == LicenceStatus.ISSUED:
         return f"issued licence {licence}."
-    elif status == "reinstated":
+    elif status == LicenceStatus.REINSTATED:
         return f"reinstated licence {licence}."
-    elif status == "cancelled":
+    elif status == LicenceStatus.CANCELLED:
         return f"cancelled licence {licence}."
-    elif status == "withdrawn":
-        return f"withdrew the licence."
+    elif status == CaseStatusEnum.WITHDRAWN:
+        return "withdrew the licence."
