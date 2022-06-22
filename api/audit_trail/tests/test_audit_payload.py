@@ -42,3 +42,16 @@ class TestPayload(DataTestClient):
             format_payload(verb, payload)
 
         self.assertTrue(key_error in str(context.exception))
+
+
+@parameterized.expand(
+    [
+        [{"status": "Submitted"}, "applied for a licence."],
+        [{"status": "Applicant editing"}, "updated the status to: Applicant editing."],
+        [{"status": "Re-opened for changes"}, "updated the status to: Re-opened for changes."],
+        [{"status": "finalised"}, "updated the status to: finalised."],
+        [{"status": "Withdrawn"}, "updated the status to: Withdrawn."],
+    ]
+)
+def test_updated_status(payload, expected_text):
+    assert format_payload(AuditType.UPDATED_STATUS, payload) == expected_text

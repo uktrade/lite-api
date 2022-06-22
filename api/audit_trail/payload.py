@@ -1,45 +1,13 @@
-from string import Formatter
-
 from api.audit_trail.enums import AuditType
 from api.audit_trail import formatters
 from lite_content.lite_api import strings
 
 
-class DefaultValueParameterFormatter(Formatter):
-    """String formatter that allows strings to specify a default value
-    for substitution parameters. The default is used when the parameter
-    is not found in the substitution parameters dictionary (payload).
-
-    Example: "the sky is {colour|blue}"
-    Without default: "the sky is {colour}"
-    """
-
-    def get_value(self, key, args, kwds):
-        if isinstance(key, str):
-            try:
-                return kwds[key]
-            except KeyError:
-                try:
-                    key, val = key.split("|")
-                    try:
-                        return kwds[key.strip()]
-                    except KeyError:
-                        return val.strip()
-                except ValueError:
-                    raise KeyError(f"Payload does not contain parameter '{key}' and message specifies no default value")
-        else:
-            return Formatter.get_value(key, args, kwds)
-
-
 def format_payload(audit_type, payload):
-    fmt = DefaultValueParameterFormatter()
-
     if callable(audit_type_format[audit_type]):
         text = audit_type_format[audit_type](**payload)
     else:
-        text = fmt.format(audit_type_format[audit_type], **payload)
-        if text[-1] not in [":", ".", "?"]:
-            return f"{text}."
+        text = formatters.format_text(audit_type_format[audit_type], **payload)
 
     return text
 
@@ -80,7 +48,7 @@ audit_type_format = {
     AuditType.PV_GRADING_RESPONSE: strings.Audit.PV_GRADING_RESPONSE,
     AuditType.CREATED_CASE_NOTE: strings.Audit.CREATED_CASE_NOTE,
     AuditType.ECJU_QUERY: strings.Audit.ECJU_QUERY,
-    AuditType.UPDATED_STATUS: strings.Audit.UPDATED_STATUS,
+    AuditType.UPDATED_STATUS: formatters.get_updated_status,
     AuditType.UPDATED_APPLICATION_NAME: strings.Audit.UPDATED_APPLICATION_NAME,
     AuditType.UPDATE_APPLICATION_LETTER_REFERENCE: strings.Audit.UPDATE_APPLICATION_LETTER_REFERENCE,
     AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES: strings.Audit.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,

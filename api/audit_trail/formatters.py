@@ -1,4 +1,42 @@
+from string import Formatter
+
 from api.parties.enums import PartyType
+from api.staticdata.statuses.enums import CaseStatusEnum
+from lite_content.lite_api import strings
+
+
+class DefaultValueParameterFormatter(Formatter):
+    """String formatter that allows strings to specify a default value
+    for substitution parameters. The default is used when the parameter
+    is not found in the substitution parameters dictionary (payload).
+
+    Example: "the sky is {colour|blue}"
+    Without default: "the sky is {colour}"
+    """
+
+    def get_value(self, key, args, kwds):
+        if isinstance(key, str):
+            try:
+                return kwds[key]
+            except KeyError:
+                try:
+                    key, val = key.split("|")
+                    try:
+                        return kwds[key.strip()]
+                    except KeyError:
+                        return val.strip()
+                except ValueError:
+                    raise KeyError(f"Payload does not contain parameter '{key}' and message specifies no default value")
+        else:
+            return Formatter.get_value(key, args, kwds)
+
+
+def format_text(format_str, **payload):
+    fmt = DefaultValueParameterFormatter()
+    text = fmt.format(format_str, **payload)
+    if text[-1] not in [":", ".", "?"]:
+        text = f"{text}."
+    return text
 
 
 def removed_flags(**payload):
@@ -39,3 +77,11 @@ def remove_party(**payload):
 def upload_party_document(**payload):
     party_type = PartyType.get_display_value(payload["party_type"])
     return f"uploaded the document {payload['file_name']} for {party_type.lower()} {payload['party_name']}"
+
+
+def get_updated_status(**payload):
+    status = payload.get("status", "").lower()
+    if status == CaseStatusEnum.SUBMITTED:
+        return "applied for a licence."
+    # Default behavior - same as always
+    return format_text(strings.Audit.UPDATED_STATUS, **payload)
