@@ -72,7 +72,7 @@ class ApplicationPartyView(APIView):
                 actor=request.user,
                 verb=AuditType.ADD_PARTY,
                 target=application.get_case(),
-                payload={"party_type": party.type.replace("_", " "), "party_name": party.name},
+                payload={"party_type": party.type, "party_name": party.name},
             )
 
             return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
