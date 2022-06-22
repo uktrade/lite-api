@@ -298,7 +298,10 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEqual(self.product_on_application2.report_summary, "Rifles (5)")
         audit_qs = Audit.objects.filter(verb=AuditType.PRODUCT_REVIEWED)
         self.assertEqual(audit_qs.count(), 3)
-        audit_payload = audit_qs.first().payload
+        # because we added the same product twice check if reviewing the second has not modified
+        # first product report summary value
+        product1_audit = [item for item in audit_qs if item.action_object.id == self.product_on_application1.id]
+        audit_payload = product1_audit[0].payload
         self.assertEqual(audit_payload["old_report_summary"], "Rifles (10)")
         self.assertEqual(audit_payload["report_summary"], "Sniper rifles (10)")
 
