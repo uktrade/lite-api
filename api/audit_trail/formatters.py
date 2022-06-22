@@ -117,4 +117,4 @@ def licence_status_updated(**payload):
     elif status == LicenceStatus.CANCELLED:
         return f"cancelled licence {licence}."
     elif status == CaseStatusEnum.WITHDRAWN:
-        return "withdrew the licence."
+        return f"withdrew the licence {licence}."

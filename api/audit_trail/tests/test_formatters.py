@@ -107,8 +107,8 @@ class FormattersTest(DataTestClient):
             ({"status": "Issued", "licence": "1"}, "issued licence 1."),
             ({"status": "reinstated", "licence": "1"}, "reinstated licence 1."),
             ({"status": "cancelled", "licence": "1"}, "cancelled licence 1."),
-            ({"status": "withdrawn", "licence": "1"}, "withdrew the licence."),
-            ({"status": "Withdrawn", "licence": "1"}, "withdrew the licence."),
+            ({"status": "withdrawn", "licence": "1"}, "withdrew the licence 1."),
+            ({"status": "Withdrawn", "licence": "1"}, "withdrew the licence 1."),
         ]
     )
     def test_licence_status_updated(self, payload, expected_result):
