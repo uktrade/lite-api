@@ -13,8 +13,8 @@ class TestPayload(DataTestClient):
             [AuditType.REMOVE_CASE, {"queues": "Queue 1, Queue 2"}, "removed case from queues: Queue 1, Queue 2."],
             [
                 AuditType.UPLOAD_PARTY_DOCUMENT,
-                {"file_name": "file.png", "party_type": "Party", "party_name": "Name"},
-                "uploaded the document file.png for Party Name.",
+                {"file_name": "file.png", "party_type": "third_party", "party_name": "Test technologies"},
+                "uploaded the document file.png for third party Test technologies",
             ],
             [AuditType.COUNTERSIGN_ADVICE, {"department": "Test Dept"}, "countersigned all Test Dept recommendations."],
             [AuditType.COUNTERSIGN_ADVICE, {}, "countersigned all  recommendations."],
