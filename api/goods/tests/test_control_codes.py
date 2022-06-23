@@ -14,7 +14,6 @@ from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.picklists.enums import PicklistType, PickListStatus
-from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.units.enums import Units

@@ -101,11 +101,8 @@ class GoodsListControlCode(APIView):
         good_on_application_qs = self.get_queryset()
         good_on_application_ids = [g.id for g in application.goods.all()]
 
-        try:
-            for item in good_on_application_qs:
-                line_items[item.id] = good_on_application_ids.index(item.id)
-        except Exception:
-            raise BadRequestError({"Line item doesn't belong to this application"})
+        for item in good_on_application_qs:
+            line_items[item.id] = good_on_application_ids.index(item.id)
 
         return line_items
 
@@ -146,9 +143,7 @@ class GoodsListControlCode(APIView):
                     or new_is_controlled != old_is_controlled
                     or report_summary_updated
                 ):
-                    if isinstance(good, GoodsType):
-                        good.flags.clear()
-                    else:
+                    if isinstance(good, GoodOnApplication):
                         good.good.flags.clear()
                     default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
 

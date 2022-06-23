@@ -91,16 +91,18 @@ def product_reviewed(**payload):
     text = f"reviewed the line {payload['line_no']} assessment for {payload['good_name']}\n"
 
     if payload["old_is_good_controlled"] != payload["new_is_good_controlled"]:
-        text += f"Licence required: Changed from '{payload['old_is_good_controlled']}'' to '{payload['new_is_good_controlled']}'\n"
+        text += f"Licence required: Changed from '{payload['old_is_good_controlled']}' to '{payload['new_is_good_controlled']}'\n"
     else:
         text += f"Licence required: No change from '{payload['old_is_good_controlled']}'\n"
 
     if payload["old_control_list_entry"] != payload["new_control_list_entry"]:
-        text += f"Control list entry: Changed from '{payload['old_control_list_entry']}'' to '{payload['new_control_list_entry']}'\n"
+        text += f"Control list entry: Changed from '{payload['old_control_list_entry']}' to '{payload['new_control_list_entry']}'\n"
     else:
         text += f"Control list entry: No change from '{payload['old_control_list_entry']}'\n"
 
     if payload["old_report_summary"] != payload["report_summary"]:
-        text += f"Report summary: Changed from '{payload['old_report_summary']}'' to '{payload['report_summary']}'\n"
+        text += f"Report summary: Changed from '{payload['old_report_summary']}' to '{payload['report_summary']}'"
     else:
-        text += f"Report summary: No change from '{payload['old_report_summary']}'\n"
+        text += f"Report summary: No change from '{payload['old_report_summary']}'"
+
+    return text
