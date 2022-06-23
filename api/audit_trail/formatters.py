@@ -155,6 +155,13 @@ def get_updated_status(**payload):
     status = payload.get("status", "").lower()
     if status == CaseStatusEnum.SUBMITTED:
         return "applied for a licence."
+    if status == CaseStatusEnum.RESUBMITTED:
+        return "reapplied for a licence."
+    if status == CaseStatusEnum.APPLICANT_EDITING:
+        return "is editing their application."
+    if status == CaseStatusEnum.REOPENED_FOR_CHANGES:
+        return "re-opened the application to changes."
+
     # Default behavior - same as always
     return format_text(strings.Audit.UPDATED_STATUS, **payload)
 

@@ -47,8 +47,9 @@ class TestPayload(DataTestClient):
 @parameterized.expand(
     [
         [{"status": "Submitted"}, "applied for a licence."],
-        [{"status": "Applicant editing"}, "updated the status to: Applicant editing."],
-        [{"status": "Re-opened for changes"}, "updated the status to: Re-opened for changes."],
+        [{"status": "Resubmitted"}, "reapplied for a licence."],
+        [{"status": "applicant_editing"}, "is editing their application."],
+        [{"status": "reopened_for_changes"}, "re-opened the application to changes."],
         [{"status": "finalised"}, "updated the status to: finalised."],
         [{"status": "Withdrawn"}, "updated the status to: Withdrawn."],
     ]
