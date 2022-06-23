@@ -95,6 +95,20 @@ class GoodsListControlCode(APIView):
     def check_permissions(self, request):
         assert_user_has_permission(request.user.govuser, constants.GovPermissions.REVIEW_GOODS)
 
+    def get_application_line_items(self, case):
+        line_items = {}
+        application = StandardApplication.objects.get(id=case.id)
+        good_on_application_qs = self.get_queryset()
+        good_on_application_ids = [g.id for g in application.goods.all()]
+
+        try:
+            for item in good_on_application_qs:
+                line_items[item.id] = good_on_application_ids.index(item.id)
+        except Exception:
+            raise BadRequestError({"Line item doesn't belong to this application"})
+
+        return line_items
+
     @transaction.atomic
     def post(self, request, case_pk):
         if CaseStatusEnum.is_terminal(self.application.status.status):
@@ -104,17 +118,7 @@ class GoodsListControlCode(APIView):
             )
 
         case = get_case(case_pk)
-
-        line_items = {}
-        good_on_application_qs = self.get_queryset()
-
-        try:
-            application = StandardApplication.objects.get(id=case.id)
-            good_on_application_ids = [g.id for g in application.goods.all()]
-            for item in good_on_application_qs:
-                line_items[item.id] = good_on_application_ids.index(item.id)
-        except Exception:
-            raise BadRequestError({"Line item doesn't belong to this application"})
+        line_items = self.get_application_line_items(case)
 
         for good in self.get_queryset():
             data = request.data.copy()

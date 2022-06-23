@@ -329,29 +329,6 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.case = self.submit_application(self.application)
         self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": self.case.id})
 
-    def test_invalid_control_list_entries(self):
-        """
-        Post multiple goods to the endpoint, and that a bad request is returned, and that flags are not updated
-        """
-
-        data = {
-            "objects": [self.good_1.pk, self.good_2.pk],
-            "current_object": self.good_1.pk,
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.text,
-            "control_list_entries": ["invalid"],
-            "is_good_controlled": "True",
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        # since it has an invalid control code, flags should not be removed
-        self.good_1.refresh_from_db()
-        self.good_2.refresh_from_db()
-        self.assertTrue(is_not_verified_flag_set_on_good(self.good_1))
-        self.assertTrue(is_not_verified_flag_set_on_good(self.good_2))
-
     def test_user_cannot_review_goods_without_permissions(self):
         """
         Tests that the right level of permissions are required
