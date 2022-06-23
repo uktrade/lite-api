@@ -839,7 +839,7 @@ class FinaliseView(UpdateAPIView):
                 if Licence.objects.filter(case=case).count() < 2
                 else AuditType.REINSTATED_APPLICATION,
                 target=case,
-                payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%-d %B %Y")},
+                payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
             )
             generate_compliance_site_case(case)
         except Licence.DoesNotExist:
