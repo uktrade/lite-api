@@ -13,8 +13,8 @@ class TestPayload(DataTestClient):
             [AuditType.REMOVE_CASE, {"queues": "Queue 1, Queue 2"}, "removed case from queues: Queue 1, Queue 2."],
             [
                 AuditType.UPLOAD_PARTY_DOCUMENT,
-                {"file_name": "file.png", "party_type": "Party", "party_name": "Name"},
-                "uploaded the document file.png for Party Name.",
+                {"file_name": "file.png", "party_type": "third_party", "party_name": "Test technologies"},
+                "uploaded the document file.png for third party Test technologies",
             ],
             [AuditType.COUNTERSIGN_ADVICE, {"department": "Test Dept"}, "countersigned all Test Dept recommendations."],
             [AuditType.COUNTERSIGN_ADVICE, {}, "countersigned all  recommendations."],
@@ -42,3 +42,16 @@ class TestPayload(DataTestClient):
             format_payload(verb, payload)
 
         self.assertTrue(key_error in str(context.exception))
+
+
+@parameterized.expand(
+    [
+        [{"status": "Submitted"}, "applied for a licence."],
+        [{"status": "Applicant editing"}, "updated the status to: Applicant editing."],
+        [{"status": "Re-opened for changes"}, "updated the status to: Re-opened for changes."],
+        [{"status": "finalised"}, "updated the status to: finalised."],
+        [{"status": "Withdrawn"}, "updated the status to: Withdrawn."],
+    ]
+)
+def test_updated_status(payload, expected_text):
+    assert format_payload(AuditType.UPDATED_STATUS, payload) == expected_text

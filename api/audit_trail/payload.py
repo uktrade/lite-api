@@ -1,44 +1,13 @@
-from string import Formatter
-
 from api.audit_trail.enums import AuditType
 from api.audit_trail import formatters
 from lite_content.lite_api import strings
 
 
-class DefaultValueParameterFormatter(Formatter):
-    """String formatter that allows strings to specify a default value
-    for substitution parameters. The default is used when the parameter
-    is not found in the substitution parameters dictionary (payload).
-
-    Example: "the sky is {colour|blue}"
-    Without default: "the sky is {colour}"
-    """
-
-    def get_value(self, key, args, kwds):
-        if isinstance(key, str):
-            try:
-                return kwds[key]
-            except KeyError:
-                try:
-                    key, val = key.split("|")
-                    try:
-                        return kwds[key.strip()]
-                    except KeyError:
-                        return val.strip()
-                except ValueError:
-                    raise KeyError(f"Payload does not contain parameter '{key}' and message specifies no default value")
-        else:
-            return Formatter.get_value(key, args, kwds)
-
-
 def format_payload(audit_type, payload):
-    fmt = DefaultValueParameterFormatter()
     if callable(audit_type_format[audit_type]):
         text = audit_type_format[audit_type](**payload)
     else:
-        text = fmt.format(audit_type_format[audit_type], **payload)
-        if text[-1] not in [":", ".", "?"]:
-            return f"{text}."
+        text = formatters.format_text(audit_type_format[audit_type], **payload)
 
     return text
 
@@ -79,7 +48,7 @@ audit_type_format = {
     AuditType.PV_GRADING_RESPONSE: strings.Audit.PV_GRADING_RESPONSE,
     AuditType.CREATED_CASE_NOTE: strings.Audit.CREATED_CASE_NOTE,
     AuditType.ECJU_QUERY: strings.Audit.ECJU_QUERY,
-    AuditType.UPDATED_STATUS: strings.Audit.UPDATED_STATUS,
+    AuditType.UPDATED_STATUS: formatters.get_updated_status,
     AuditType.UPDATED_APPLICATION_NAME: strings.Audit.UPDATED_APPLICATION_NAME,
     AuditType.UPDATE_APPLICATION_LETTER_REFERENCE: strings.Audit.UPDATE_APPLICATION_LETTER_REFERENCE,
     AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES: strings.Audit.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
@@ -94,9 +63,9 @@ audit_type_format = {
     AuditType.REVIEW_COMBINE_ADVICE: "reviewed and combined {department} recommendations",
     AuditType.CREATED_USER_ADVICE: "added a recommendation",
     AuditType.CLEARED_USER_ADVICE: "cleared their recommendation",
-    AuditType.ADD_PARTY: strings.Audit.ADD_PARTY,
-    AuditType.REMOVE_PARTY: strings.Audit.REMOVE_PARTY,
-    AuditType.UPLOAD_PARTY_DOCUMENT: strings.Audit.UPLOAD_PARTY_DOCUMENT,
+    AuditType.ADD_PARTY: formatters.add_party,
+    AuditType.REMOVE_PARTY: formatters.remove_party,
+    AuditType.UPLOAD_PARTY_DOCUMENT: formatters.upload_party_document,
     AuditType.DELETE_PARTY_DOCUMENT: strings.Audit.DELETE_PARTY_DOCUMENT,
     AuditType.UPLOAD_APPLICATION_DOCUMENT: strings.Audit.UPLOAD_APPLICATION_DOCUMENT,
     AuditType.DELETE_APPLICATION_DOCUMENT: strings.Audit.DELETE_APPLICATION_DOCUMENT,
@@ -141,7 +110,7 @@ audit_type_format = {
     AuditType.APPROVED_ORGANISATION: strings.Audit.APPROVED_ORGANISATION,
     AuditType.REMOVED_FLAG_ON_ORGANISATION: formatters.removed_flags,
     AuditType.ADDED_FLAG_ON_ORGANISATION: strings.Audit.ADDED_FLAG_ON_ORGANISATION,
-    AuditType.ENFORCEMENT_CHECK: strings.Audit.ENFORCEMENT_CHECK,
+    AuditType.ENFORCEMENT_CHECK: "exported the case for enforcement checks",
     AuditType.UPDATED_SITE: strings.Audit.UPDATED_SITE,
     AuditType.CREATED_SITE: strings.Audit.CREATED_SITE,
     AuditType.UPDATED_SITE_NAME: strings.Audit.UPDATED_SITE_NAME,

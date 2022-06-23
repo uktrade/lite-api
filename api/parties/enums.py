@@ -28,6 +28,12 @@ class PartyType:
         }
         return api_names.get(party_type, "parties")
 
+    @classmethod
+    def get_display_value(cls, choice):
+        for key, value in cls.choices:
+            if key == choice:
+                return value
+
 
 class SubType:
     GOVERNMENT = "government"
