@@ -4,7 +4,7 @@ from django.db import migrations
 
 
 def rename_fco(apps, schema_editor):
-    Department = apps.get_model("departments", "Department")
+    Department = apps.get_model("teams", "Department")
     fco = Department.objects.filter(name="FCO")
     if fco.exists():
         fco.update(name="FCDO")
