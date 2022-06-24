@@ -2,7 +2,6 @@ from datetime import datetime
 from string import Formatter
 
 from api.parties.enums import PartyType
-from api.licences.enums import LicenceStatus
 from api.staticdata.statuses.enums import CaseStatusEnum
 from lite_content.lite_api import strings
 
@@ -120,15 +119,15 @@ def granted_application(**payload):
     start_date = datetime.strptime(payload["start_date"], "%Y-%m-%d").strftime("%-d %B %Y")
     licence_duration = int(payload["licence_duration"])
     if licence_duration > 1:
-        return f"issued licence for {licence_duration} months starting from {start_date}."
+        return f"issued licence for {licence_duration} months, starting from {start_date}."
     else:
-        return f"issued licence for {licence_duration} month starting from {start_date}."
+        return f"issued licence for {licence_duration} month, starting from {start_date}."
 
 
 def reinstated_application(**payload):
     start_date = datetime.strptime(payload["start_date"], "%Y-%m-%d").strftime("%-d %B %Y")
     licence_duration = int(payload["licence_duration"])
     if licence_duration > 1:
-        return f"reinstated licence for {licence_duration} months starting from {start_date}."
+        return f"reinstated licence for {licence_duration} months, starting from {start_date}."
     else:
-        return f"reinstated licence for {licence_duration} month starting from {start_date}."
+        return f"reinstated licence for {licence_duration} month, starting from {start_date}."
