@@ -103,11 +103,15 @@ class FormattersTest(DataTestClient):
     @parameterized.expand(
         [
             ({"status": "issued", "licence": "1"}, "issued licence 1."),
-            ({"status": "Issued", "licence": "1"}, "issued licence 1."),
             ({"status": "reinstated", "licence": "1"}, "reinstated licence 1."),
-            ({"status": "cancelled", "licence": "1"}, "cancelled licence 1."),
-            ({"status": "withdrawn", "licence": "1"}, "withdrew the licence 1."),
-            ({"status": "Withdrawn", "licence": "1"}, "withdrew the licence 1."),
+            ({"status": "revoked", "licence": "1"}, "revoked licence 1."),
+            ({"status": "surrendered", "licence": "1"}, "surrendered licence 1."),
+            ({"status": "suspended", "licence": "1"}, "suspended licence 1."),
+            ({"status": "exhausted", "licence": "1"}, "exhausted licence 1."),
+            ({"status": "expired", "licence": "1"}, "expired licence 1."),
+            ({"status": "draft", "licence": "1"}, "draft licence 1."),
+            ({"status": "expired", "licence": "1"}, "expired licence 1."),
+            ({"status": "withdrawn", "licence": "1"}, "withdrew licence 1."),
         ]
     )
     def test_licence_status_updated(self, payload, expected_result):

@@ -111,15 +111,10 @@ def product_reviewed(**payload):
 def licence_status_updated(**payload):
     status = payload["status"].lower()
     licence = payload["licence"]
-    if status == LicenceStatus.ISSUED:
-        return f"issued licence {licence}."
-    elif status == LicenceStatus.REINSTATED:
-        return f"reinstated licence {licence}."
-    elif status == LicenceStatus.CANCELLED:
-        return f"cancelled licence {licence}."
-    elif status == CaseStatusEnum.WITHDRAWN:
-        return f"withdrew the licence {licence}."
+    if status == CaseStatusEnum.WITHDRAWN:
+        return f"withdrew licence {licence}."
 
+    return f"{status} licence {licence}."
 
 def granted_application(**payload):
     start_date = datetime.strptime(payload["start_date"], "%Y-%m-%d").strftime("%-d %B %Y")
