@@ -1,3 +1,4 @@
+from datetime import datetime
 from string import Formatter
 
 from api.parties.enums import PartyType
@@ -106,3 +107,30 @@ def product_reviewed(**payload):
         text += f"Report summary: No change from '{payload['old_report_summary']}'"
 
     return text
+
+
+def licence_status_updated(**payload):
+    status = payload["status"].lower()
+    licence = payload["licence"]
+    if status == CaseStatusEnum.WITHDRAWN:
+        return f"withdrew licence {licence}."
+
+    return f"{status} licence {licence}."
+
+
+def granted_application(**payload):
+    start_date = datetime.strptime(payload["start_date"], "%Y-%m-%d").strftime("%-d %B %Y")
+    licence_duration = int(payload["licence_duration"])
+    if licence_duration > 1:
+        return f"issued licence for {licence_duration} months, starting from {start_date}."
+    else:
+        return f"issued licence for {licence_duration} month, starting from {start_date}."
+
+
+def reinstated_application(**payload):
+    start_date = datetime.strptime(payload["start_date"], "%Y-%m-%d").strftime("%-d %B %Y")
+    licence_duration = int(payload["licence_duration"])
+    if licence_duration > 1:
+        return f"reinstated licence for {licence_duration} months, starting from {start_date}."
+    else:
+        return f"reinstated licence for {licence_duration} month, starting from {start_date}."

@@ -99,6 +99,23 @@ class FormattersTest(DataTestClient):
     )
     def test_remove_party_audit_message(self, payload, expected_result):
         result = formatters.remove_party(**payload)
+
+    @parameterized.expand(
+        [
+            ({"status": "issued", "licence": "1"}, "issued licence 1."),
+            ({"status": "reinstated", "licence": "1"}, "reinstated licence 1."),
+            ({"status": "revoked", "licence": "1"}, "revoked licence 1."),
+            ({"status": "surrendered", "licence": "1"}, "surrendered licence 1."),
+            ({"status": "suspended", "licence": "1"}, "suspended licence 1."),
+            ({"status": "exhausted", "licence": "1"}, "exhausted licence 1."),
+            ({"status": "expired", "licence": "1"}, "expired licence 1."),
+            ({"status": "draft", "licence": "1"}, "draft licence 1."),
+            ({"status": "expired", "licence": "1"}, "expired licence 1."),
+            ({"status": "withdrawn", "licence": "1"}, "withdrew licence 1."),
+        ]
+    )
+    def test_licence_status_updated(self, payload, expected_result):
+        result = formatters.licence_status_updated(**payload)
         self.assertEqual(result, expected_result)
 
     @parameterized.expand(
@@ -155,4 +172,35 @@ class FormattersTest(DataTestClient):
     )
     def test_product_reviewed_audit_message(self, payload, expected_result):
         result = formatters.product_reviewed(**payload)
+
+    @parameterized.expand(
+        [
+            (
+                {"start_date": "2022-03-02", "licence_duration": "1"},
+                "issued licence for 1 month, starting from 2 March 2022.",
+            ),
+            (
+                {"start_date": "2022-03-02", "licence_duration": "24"},
+                "issued licence for 24 months, starting from 2 March 2022.",
+            ),
+        ]
+    )
+    def test_granted_application(self, payload, expected_result):
+        result = formatters.granted_application(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (
+                {"start_date": "2022-03-02", "licence_duration": "1"},
+                "reinstated licence for 1 month, starting from 2 March 2022.",
+            ),
+            (
+                {"start_date": "2022-03-02", "licence_duration": "24"},
+                "reinstated licence for 24 months, starting from 2 March 2022.",
+            ),
+        ]
+    )
+    def test_reinstated_application(self, payload, expected_result):
+        result = formatters.reinstated_application(**payload)
         self.assertEqual(result, expected_result)
