@@ -1,6 +1,7 @@
 from datetime import datetime
 from string import Formatter
 
+from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from lite_content.lite_api import strings
@@ -114,6 +115,8 @@ def licence_status_updated(**payload):
     licence = payload["licence"]
     if status == CaseStatusEnum.WITHDRAWN:
         return f"withdrew licence {licence}."
+    elif status == LicenceStatus.EXHAUSTED:
+        return f"The products for licence {licence} were exported and the status set to '{status}'."
 
     return f"{status} licence {licence}."
 
@@ -134,3 +137,21 @@ def reinstated_application(**payload):
         return f"reinstated licence for {licence_duration} months, starting from {start_date}."
     else:
         return f"reinstated licence for {licence_duration} month, starting from {start_date}."
+
+
+def update_product_usage_data(**payload):
+    product_name = payload["product_name"]
+    licence_reference = payload["licence_reference"]
+    usage = payload["usage"]
+    quantity = payload["quantity"]
+
+    single_product_on_licence = quantity == 1 and usage == 1
+    exhausted = usage == quantity
+
+    if single_product_on_licence:
+        return f"The {product_name} product on licence {licence_reference} was exported."
+    elif exhausted:
+        return f"All {product_name} products on licence {licence_reference} were exported."
+    else:
+        # partial export and also default case
+        return f"{usage} of {quantity} {product_name} products on licence {licence_reference} were exported."

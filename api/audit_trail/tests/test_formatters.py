@@ -107,7 +107,10 @@ class FormattersTest(DataTestClient):
             ({"status": "revoked", "licence": "1"}, "revoked licence 1."),
             ({"status": "surrendered", "licence": "1"}, "surrendered licence 1."),
             ({"status": "suspended", "licence": "1"}, "suspended licence 1."),
-            ({"status": "exhausted", "licence": "1"}, "exhausted licence 1."),
+            (
+                {"status": "exhausted", "licence": "1"},
+                "The products for licence 1 were exported and the status set to 'exhausted'.",
+            ),
             ({"status": "expired", "licence": "1"}, "expired licence 1."),
             ({"status": "draft", "licence": "1"}, "draft licence 1."),
             ({"status": "expired", "licence": "1"}, "expired licence 1."),
@@ -203,4 +206,40 @@ class FormattersTest(DataTestClient):
     )
     def test_reinstated_application(self, payload, expected_result):
         result = formatters.reinstated_application(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (
+                {
+                    "product_name": "Sniper rifle",
+                    "licence_reference": "GBSIEL/2022/0000001/P",
+                    "usage": 1,
+                    "quantity": 1,
+                },
+                "The Sniper rifle product on licence GBSIEL/2022/0000001/P was exported.",
+            ),
+            (
+                {
+                    "product_name": "Sniper rifle",
+                    "licence_reference": "GBSIEL/2022/0000001/P",
+                    "usage": 1,
+                    "quantity": 5,
+                },
+                "1 of 5 Sniper rifle products on licence GBSIEL/2022/0000001/P were exported.",
+            ),
+            (
+                {
+                    "product_name": "Sniper rifle",
+                    "licence_reference": "GBSIEL/2022/0000001/P",
+                    "usage": 5,
+                    "quantity": 5,
+                },
+                "All Sniper rifle products on licence GBSIEL/2022/0000001/P were exported.",
+            ),
+        ]
+    )
+    def test_update_product_usage_data(self, payload, expected_result):
+        result = formatters.update_product_usage_data(**payload)
+        print(f"{result} ==== {expected_result}")
         self.assertEqual(result, expected_result)

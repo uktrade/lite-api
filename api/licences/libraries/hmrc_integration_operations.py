@@ -229,17 +229,24 @@ def _update_good_on_licence_usage(licence: Licence, validated_good_id: UUID, val
     """Updates the Usage for a Good on a Licence"""
 
     if licence.case.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
-        gol = get_approved_goods_types(licence.case.baseapplication).get(id=validated_good_id)
-        good_description = gol.description
+        good_on_licence = get_approved_goods_types(licence.case.baseapplication).get(id=validated_good_id)
+        good_description = good_on_licence.description
+        quantity = 0
     else:
-        gol = GoodOnLicence.objects.get(licence=licence, good_id=validated_good_id)
-        good_description = gol.good.good.name or gol.good.good.description
+        good_on_licence = GoodOnLicence.objects.get(licence=licence, good_id=validated_good_id)
+        good_description = good_on_licence.good.good.name or good_on_licence.good.good.description
+        quantity = good_on_licence.quantity
 
-    gol.usage += validated_usage
-    gol.save()
+    good_on_licence.usage += validated_usage
+    good_on_licence.save()
 
     audit_trail_service.create_system_user_audit(
-        verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
+        verb=AuditType.LICENCE_UPDATED_PRODUCT_USAGE,
         target=licence.case,
-        payload={"good_description": good_description, "usage": gol.usage, "licence": licence.reference_code},
+        payload={
+            "product_name": good_description,
+            "licence_reference": licence.reference_code,
+            "usage": good_on_licence.usage,
+            "quantity": quantity,
+        },
     )
