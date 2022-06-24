@@ -100,3 +100,59 @@ class FormattersTest(DataTestClient):
     def test_remove_party_audit_message(self, payload, expected_result):
         result = formatters.remove_party(**payload)
         self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (
+                {
+                    "line_no": 1,
+                    "good_name": "Sniper rifles",
+                    "old_is_good_controlled": "No",
+                    "new_is_good_controlled": "Yes",
+                    "old_control_list_entry": "ML8a",
+                    "new_control_list_entry": "ML8b",
+                    "old_report_summary": "None",
+                    "report_summary": "Sniper rifles (10)",
+                },
+                "reviewed the line 1 assessment for Sniper rifles\n"
+                "Licence required: Changed from 'No' to 'Yes'\n"
+                "Control list entry: Changed from 'ML8a' to 'ML8b'\n"
+                "Report summary: Changed from 'None' to 'Sniper rifles (10)'",
+            ),
+            (
+                {
+                    "line_no": 1,
+                    "good_name": "Sniper rifles",
+                    "old_is_good_controlled": "No",
+                    "new_is_good_controlled": "Yes",
+                    "old_control_list_entry": "ML8a",
+                    "new_control_list_entry": "ML8a",
+                    "old_report_summary": "None",
+                    "report_summary": "Sniper rifles (10)",
+                },
+                "reviewed the line 1 assessment for Sniper rifles\n"
+                "Licence required: Changed from 'No' to 'Yes'\n"
+                "Control list entry: No change from 'ML8a'\n"
+                "Report summary: Changed from 'None' to 'Sniper rifles (10)'",
+            ),
+            (
+                {
+                    "line_no": 2,
+                    "good_name": "Sniper rifles",
+                    "old_is_good_controlled": "No",
+                    "new_is_good_controlled": "Yes",
+                    "old_control_list_entry": "ML8a",
+                    "new_control_list_entry": "ML8b",
+                    "old_report_summary": "Sniper rifles (10)",
+                    "report_summary": "Sniper rifles (10)",
+                },
+                "reviewed the line 2 assessment for Sniper rifles\n"
+                "Licence required: Changed from 'No' to 'Yes'\n"
+                "Control list entry: Changed from 'ML8a' to 'ML8b'\n"
+                "Report summary: No change from 'Sniper rifles (10)'",
+            ),
+        ]
+    )
+    def test_product_reviewed_audit_message(self, payload, expected_result):
+        result = formatters.product_reviewed(**payload)
+        self.assertEqual(result, expected_result)
