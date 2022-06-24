@@ -238,9 +238,6 @@ def _update_good_on_licence_usage(licence: Licence, validated_good_id: UUID, val
     gol.usage += validated_usage
     gol.save()
 
-    if len(good_description) > 15:
-        good_description = f"{good_description[:15]}..."
-
     audit_trail_service.create_system_user_audit(
         verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
         target=licence.case,
