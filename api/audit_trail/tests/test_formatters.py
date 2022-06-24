@@ -177,11 +177,11 @@ class FormattersTest(DataTestClient):
         [
             (
                 {"start_date": "2022-03-02", "licence_duration": "1"},
-                "issued licence for 1 month starting from 2 March 2022.",
+                "issued licence for 1 month, starting from 2 March 2022.",
             ),
             (
                 {"start_date": "2022-03-02", "licence_duration": "24"},
-                "issued licence for 24 months starting from 2 March 2022.",
+                "issued licence for 24 months, starting from 2 March 2022.",
             ),
         ]
     )
@@ -193,11 +193,11 @@ class FormattersTest(DataTestClient):
         [
             (
                 {"start_date": "2022-03-02", "licence_duration": "1"},
-                "reinstated licence for 1 month starting from 2 March 2022.",
+                "reinstated licence for 1 month, starting from 2 March 2022.",
             ),
             (
                 {"start_date": "2022-03-02", "licence_duration": "24"},
-                "reinstated licence for 24 months starting from 2 March 2022.",
+                "reinstated licence for 24 months, starting from 2 March 2022.",
             ),
         ]
     )
