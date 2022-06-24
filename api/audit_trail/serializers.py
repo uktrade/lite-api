@@ -6,6 +6,7 @@ from rest_framework import serializers
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.audit_trail.payload import format_payload
+from api.users.enums import UserType
 
 
 class AuditSerializer(serializers.ModelSerializer):
@@ -30,6 +31,7 @@ class AuditSerializer(serializers.ModelSerializer):
                 "first_name": instance.actor.first_name,
                 "last_name": instance.actor.last_name,
                 "type": instance.actor.type,
+                "team": instance.actor.team.name if instance.actor.type == UserType.INTERNAL else "",
             }
         else:
             # When an anonymous user is registering for an org,

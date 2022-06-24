@@ -304,7 +304,7 @@ class CaseNote(TimestampableModel):
         default=None,
         null=False,
     )
-    text = models.TextField(default=None, blank=True, null=True, max_length=2200)
+    text = models.TextField(default=None, blank=True, null=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
     notifications = GenericRelation(ExporterNotification, related_query_name="case_note")
