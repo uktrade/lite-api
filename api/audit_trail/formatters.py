@@ -87,6 +87,7 @@ def get_updated_status(**payload):
     # Default behavior - same as always
     return format_text(strings.Audit.UPDATED_STATUS, **payload)
 
+
 def product_reviewed(**payload):
     text = f"reviewed the line {payload['line_no']} assessment for {payload['good_name']}\n"
 
@@ -107,6 +108,7 @@ def product_reviewed(**payload):
 
     return text
 
+
 def licence_status_updated(**payload):
     status = payload["status"].lower()
     licence = payload["licence"]
@@ -114,6 +116,7 @@ def licence_status_updated(**payload):
         return f"withdrew licence {licence}."
 
     return f"{status} licence {licence}."
+
 
 def granted_application(**payload):
     start_date = datetime.strptime(payload["start_date"], "%Y-%m-%d").strftime("%-d %B %Y")
