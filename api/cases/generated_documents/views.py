@@ -7,8 +7,6 @@ from rest_framework.exceptions import ParseError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from api.audit_trail import service as audit_trail_service
-from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseDocumentState, AdviceType
 from api.cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from api.cases.generated_documents.models import GeneratedCaseDocument
@@ -118,14 +116,6 @@ class GeneratedDocuments(generics.ListAPIView):
                     visible_to_exporter=visible_to_exporter,
                     advice_type=request.data.get("advice_type"),
                     licence=licence,
-                )
-
-                audit_trail_service.create(
-                    actor=request.user.govuser,
-                    verb=AuditType.GENERATE_CASE_DOCUMENT,
-                    action_object=generated_doc,
-                    target=document.case,
-                    payload={"file_name": document_name, "template": document.template.name},
                 )
 
                 s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)

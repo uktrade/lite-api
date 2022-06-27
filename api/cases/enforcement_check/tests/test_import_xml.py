@@ -102,8 +102,6 @@ class ImportXML(DataTestClient):
         self.assertEqual(response.json(), {"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in flags)
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_ORGANISATION_MATCH) in flags)
-        # Test workflow was triggered because there was no match
-        self.assertTrue(Audit.objects.filter(verb=AuditType.UNASSIGNED).exists())
 
     def test_import_xml_case_doesnt_match_success(self):
         other_case = self.create_standard_application_case(self.organisation)

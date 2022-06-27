@@ -6,15 +6,11 @@ from rest_framework.exceptions import ValidationError
 import os
 import xmlschema
 
-from api.audit_trail import service as audit_trail_service
-from api.audit_trail.enums import AuditType
 from api.cases.enums import EnforcementXMLEntityTypes
 from api.cases.models import EnforcementCheckID, Case
 from api.conf.settings import BASE_DIR
 from api.flags.enums import SystemFlags
 from lite_content.lite_api.strings import Cases
-from api.users.enums import SystemUser
-from api.users.models import BaseUser
 from api.workflow.user_queue_assignment import user_queue_assignment_workflow
 
 APPLICATION_ID_TAG = "CODE1"
@@ -87,7 +83,6 @@ def _set_flags(data):
 
 
 def _trigger_workflow(data, queue):
-    system_user = BaseUser.objects.get(id=SystemUser.id)
     applications = set([item["application"] for item in data])
     applications_without_matches = []
 
@@ -98,11 +93,6 @@ def _trigger_workflow(data, queue):
     cases_to_apply_workflow = Case.objects.filter(id__in=applications_without_matches)
     for case in cases_to_apply_workflow:
         user_queue_assignment_workflow([queue], case)
-        audit_trail_service.create(
-            actor=system_user,
-            verb=AuditType.UNASSIGNED,
-            target=case,
-        )
 
 
 def _add_flag_if_not_exists(flag, case_id):
