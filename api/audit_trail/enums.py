@@ -125,6 +125,7 @@ class AuditType(LiteEnum):
     COUNTERSIGN_ADVICE = autostr()
     UPDATED_SERIAL_NUMBERS = autostr()
     PRODUCT_REVIEWED = autostr()
+    LICENCE_UPDATED_PRODUCT_USAGE = autostr()
 
     def human_readable(self):
         """

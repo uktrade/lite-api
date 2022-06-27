@@ -114,11 +114,12 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
         self.assertTrue(
             Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
+                verb=AuditType.LICENCE_UPDATED_PRODUCT_USAGE,
                 payload={
-                    "good_description": gol_first.good.good.name or gol_first.good.good.description,
+                    "product_name": gol_first.good.good.name or gol_first.good.good.description,
+                    "licence_reference": licence.reference_code,
                     "usage": original_usage + usage_data,
-                    "licence": licence.reference_code,
+                    "quantity": gol_first.quantity,
                 },
             ).exists()
         )
@@ -148,11 +149,12 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
         self.assertTrue(
             Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
+                verb=AuditType.LICENCE_UPDATED_PRODUCT_USAGE,
                 payload={
-                    "good_description": good.description,
+                    "product_name": good.description,
+                    "licence_reference": licence.reference_code,
                     "usage": original_usage + usage_data,
-                    "licence": licence.reference_code,
+                    "quantity": 0,
                 },
             ).exists()
         )
@@ -902,14 +904,15 @@ class HMRCIntegrationUsageTests(DataTestClient):
             [gol.usage for gol in licence.goods.all()], [prev_usage + quantity_used for prev_usage in original_usage]
         )
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        for index, gol in enumerate(licence.goods.all()):
+        for index, good_on_licence in enumerate(licence.goods.all()):
             self.assertTrue(
                 Audit.objects.filter(
-                    verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
+                    verb=AuditType.LICENCE_UPDATED_PRODUCT_USAGE,
                     payload={
-                        "good_description": gol.good.good.name or gol.good.good.description,
+                        "product_name": good_on_licence.good.good.name or good_on_licence.good.good.description,
+                        "licence_reference": licence.reference_code,
                         "usage": original_usage[index] + quantity_used,
-                        "licence": licence.reference_code,
+                        "quantity": good_on_licence.quantity,
                     },
                 ).exists()
             )
