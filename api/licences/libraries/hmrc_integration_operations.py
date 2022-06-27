@@ -229,9 +229,10 @@ def _update_good_on_licence_usage(licence: Licence, validated_good_id: UUID, val
     """Updates the Usage for a Good on a Licence"""
 
     if licence.case.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
+        # Quantity is not applicable for open licences
+        quantity = 0
         good_on_licence = get_approved_goods_types(licence.case.baseapplication).get(id=validated_good_id)
         good_description = good_on_licence.description
-        quantity = 0
     else:
         good_on_licence = GoodOnLicence.objects.get(licence=licence, good_id=validated_good_id)
         good_description = good_on_licence.good.good.name or good_on_licence.good.good.description
@@ -246,7 +247,7 @@ def _update_good_on_licence_usage(licence: Licence, validated_good_id: UUID, val
         payload={
             "product_name": good_description,
             "licence_reference": licence.reference_code,
-            "usage": good_on_licence.usage,
+            "usage": validated_usage,
             "quantity": quantity,
         },
     )

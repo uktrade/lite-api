@@ -241,5 +241,4 @@ class FormattersTest(DataTestClient):
     )
     def test_update_product_usage_data(self, payload, expected_result):
         result = formatters.update_product_usage_data(**payload)
-        print(f"{result} ==== {expected_result}")
         self.assertEqual(result, expected_result)
