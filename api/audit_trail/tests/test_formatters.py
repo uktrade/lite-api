@@ -37,6 +37,107 @@ class FormattersTest(DataTestClient):
 
     @parameterized.expand(
         [
+            ({"removed_flags": "flag1", "good_name": "good1"}, "removed the flag 'flag1' from the good 'good1'."),
+            (
+                {"removed_flags": "flag1, flag2", "good_name": "good1"},
+                "removed the flags 'flag1' and 'flag2' from the good 'good1'.",
+            ),
+            (
+                {"removed_flags": "flag1, flag2, flag3", "good_name": "good1"},
+                "removed the flags 'flag1', 'flag2' and 'flag3' from the good 'good1'.",
+            ),
+        ]
+    )
+    def test_remove_good_flags(self, payload, expected_result):
+        result = formatters.good_remove_flags(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (
+                {"added_flags": "flag1", "good_name": "good1"},
+                "added the flag 'flag1' from the good 'good1'.",
+            ),
+            (
+                {"added_flags": "flag1, flag2", "good_name": "good1"},
+                "added the flags 'flag1' and 'flag2' from the good 'good1'.",
+            ),
+            (
+                {"added_flags": "flag1, flag2, flag3", "good_name": "good1"},
+                "added the flags 'flag1', 'flag2' and 'flag3' from the good 'good1'.",
+            ),
+        ]
+    )
+    def test_add_good_flags(self, payload, expected_result):
+        result = formatters.good_add_flags(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (
+                {"added_flags": "add1", "removed_flags": "remove1", "good_name": "good1"},
+                "added the flag 'add1' and removed the flag 'remove1' from the good 'good1'.",
+            ),
+            (
+                {"added_flags": "add1, add2", "removed_flags": "remove1", "good_name": "good1"},
+                "added the flags 'add1' and 'add2' and removed the flag 'remove1' from the good 'good1'.",
+            ),
+            (
+                {"added_flags": "add1", "removed_flags": "remove1, remove2", "good_name": "good1"},
+                "added the flag 'add1' and removed the flags 'remove1' and 'remove2' from the good 'good1'.",
+            ),
+            (
+                {"added_flags": "add1, add2, add3", "removed_flags": "remove1", "good_name": "good1"},
+                "added the flags 'add1', 'add2' and 'add3' and removed the flag 'remove1' from the good 'good1'.",
+            ),
+        ]
+    )
+    def test_add_remove_good_flags(self, payload, expected_result):
+        result = formatters.good_add_remove_flags(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (
+                {"removed_flags": "flag1", "destination_name": "SPECIAL SERVICE CENTRE"},
+                "removed the flag 'flag1' from the destination 'Special Service Centre'.",
+            ),
+            (
+                {"removed_flags": "flag1, flag2", "destination_name": "SPECIAL SERVICE CENTRE"},
+                "removed the flags 'flag1' and 'flag2' from the destination 'Special Service Centre'.",
+            ),
+            (
+                {"removed_flags": "flag1, flag2, flag3", "destination_name": "SPECIAL SERVICE CENTRE"},
+                "removed the flags 'flag1', 'flag2' and 'flag3' from the destination 'Special Service Centre'.",
+            ),
+        ]
+    )
+    def test_remove_destination_flags(self, payload, expected_result):
+        result = formatters.destination_remove_flags(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (
+                {"added_flags": "flag1", "destination_name": "SPECIAL SERVICE CENTRE"},
+                "added the flag 'flag1' from the destination 'Special Service Centre'.",
+            ),
+            (
+                {"added_flags": "flag1, flag2", "destination_name": "SPECIAL SERVICE CENTRE"},
+                "added the flags 'flag1' and 'flag2' from the destination 'Special Service Centre'.",
+            ),
+            (
+                {"added_flags": "flag1, flag2, flag3", "destination_name": "SPECIAL SERVICE CENTRE"},
+                "added the flags 'flag1', 'flag2' and 'flag3' from the destination 'Special Service Centre'.",
+            ),
+        ]
+    )
+    def test_add_destination_flags(self, payload, expected_result):
+        result = formatters.destination_add_flags(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
             (
                 {"file_name": "test.pdf", "party_type": PartyType.END_USER, "party_name": "Test technologies ltd"},
                 "uploaded the document test.pdf for end-user Test technologies ltd",
