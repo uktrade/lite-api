@@ -854,7 +854,6 @@ class FinaliseView(UpdateAPIView):
             pass
 
         # Finalise Case
-        old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
 
@@ -869,16 +868,6 @@ class FinaliseView(UpdateAPIView):
                 target=case,
                 payload={"case_reference": case.reference_code, "decision": decision, "licence_reference": ""},
             )
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=case,
-            payload={
-                "status": {"new": case.status.status, "old": old_status},
-                "additional_text": request.data.get("note"),
-            },
-        )
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)
