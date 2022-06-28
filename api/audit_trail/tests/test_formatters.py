@@ -9,11 +9,11 @@ from test_helpers.clients import DataTestClient
 class FormattersTest(DataTestClient):
     @parameterized.expand(
         [
-            ({"removed_flags": "flag1"}, "removed the flag 'flag1' from the organisation"),
-            ({"removed_flags": "flag1, flag2"}, "removed the flags 'flag1' and 'flag2' from the organisation"),
+            ({"removed_flags": "flag1"}, "removed the flag 'flag1'."),
+            ({"removed_flags": "flag1, flag2"}, "removed the flags 'flag1' and 'flag2'."),
             (
                 {"removed_flags": "flag1, flag2, flag3"},
-                "removed the flags 'flag1', 'flag2' and 'flag3' from the organisation",
+                "removed the flags 'flag1', 'flag2' and 'flag3'.",
             ),
         ]
     )
@@ -23,11 +23,11 @@ class FormattersTest(DataTestClient):
 
     @parameterized.expand(
         [
-            ({"added_flags": "flag1"}, "added the flag 'flag1' from the organisation"),
-            ({"added_flags": "flag1, flag2"}, "added the flags 'flag1' and 'flag2' from the organisation"),
+            ({"added_flags": "flag1"}, "added the flag 'flag1'."),
+            ({"added_flags": "flag1, flag2"}, "added the flags 'flag1' and 'flag2'."),
             (
                 {"added_flags": "flag1, flag2, flag3"},
-                "added the flags 'flag1', 'flag2' and 'flag3' from the organisation",
+                "added the flags 'flag1', 'flag2' and 'flag3'.",
             ),
         ]
     )
