@@ -18,7 +18,7 @@ audit_type_format = {
     AuditType.OGL_MULTI_FIELD_EDITED: strings.Audit.UPDATED_MULTI_OGL_FIELD,
     AuditType.CREATED: strings.Audit.CREATED,
     AuditType.ADD_FLAGS: strings.Audit.ADD_FLAGS,
-    AuditType.REMOVE_FLAGS: strings.Audit.REMOVE_FLAGS,
+    AuditType.REMOVE_FLAGS: formatters.removed_flags,
     AuditType.GOOD_REVIEWED: strings.Audit.GOOD_REVIEWED,
     AuditType.GOOD_ADD_FLAGS: strings.Audit.GOOD_ADD_FLAGS,
     AuditType.GOOD_REMOVE_FLAGS: strings.Audit.GOOD_REMOVE_FLAGS,

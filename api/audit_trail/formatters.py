@@ -42,12 +42,12 @@ def format_text(format_str, **payload):
 
 
 def removed_flags(**payload):
-    flags = payload["flag_name"]
+    flags = payload["removed_flags"].split(",")
     if len(flags) == 1:
-        return f"removed the flag '{flags[0]}' from the organisation"
+        return f"removed the flag '{flags[0]}'."
     elif len(flags) >= 2:
         formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
-        return f"removed the flags {formatted_flags} from the organisation"
+        return f"removed the flags {formatted_flags}."
 
 
 def get_party_type_value(party_type):
