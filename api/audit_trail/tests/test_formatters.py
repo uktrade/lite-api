@@ -57,19 +57,19 @@ class FormattersTest(DataTestClient):
         [
             (
                 {"party_type": PartyType.END_USER, "party_name": "Test technologies ltd"},
-                "added the end-user Test technologies ltd",
+                "added the end-user Test technologies ltd.",
             ),
             (
                 {"party_type": PartyType.ULTIMATE_END_USER, "party_name": "Test technologies ltd"},
-                "added the ultimate end-user Test technologies ltd",
+                "added the ultimate end-user Test technologies ltd.",
             ),
             (
                 {"party_type": PartyType.THIRD_PARTY, "party_name": "Test technologies ltd"},
-                "added the third party Test technologies ltd",
+                "added the third party Test technologies ltd.",
             ),
             (
                 {"party_type": PartyType.ADDITIONAL_CONTACT, "party_name": "Test technologies ltd"},
-                "added the additional contact Test technologies ltd",
+                "added the additional contact Test technologies ltd.",
             ),
         ]
     )
@@ -81,19 +81,19 @@ class FormattersTest(DataTestClient):
         [
             (
                 {"party_type": PartyType.END_USER, "party_name": "Test technologies ltd"},
-                "removed the end-user Test technologies ltd",
+                "removed the end-user Test technologies ltd.",
             ),
             (
                 {"party_type": PartyType.ULTIMATE_END_USER, "party_name": "Test technologies ltd"},
-                "removed the ultimate end-user Test technologies ltd",
+                "removed the ultimate end-user Test technologies ltd.",
             ),
             (
                 {"party_type": PartyType.THIRD_PARTY, "party_name": "Test technologies ltd"},
-                "removed the third party Test technologies ltd",
+                "removed the third party Test technologies ltd.",
             ),
             (
                 {"party_type": PartyType.ADDITIONAL_CONTACT, "party_name": "Test technologies ltd"},
-                "removed the additional contact Test technologies ltd",
+                "removed the additional contact Test technologies ltd.",
             ),
         ]
     )
