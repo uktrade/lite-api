@@ -17,8 +17,22 @@ class FormattersTest(DataTestClient):
             ),
         ]
     )
-    def test_removed_flags(self, payload, expected_result):
-        result = formatters.removed_flags(**payload)
+    def test_remove_flags(self, payload, expected_result):
+        result = formatters.remove_flags(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            ({"added_flags": "flag1"}, "added the flag 'flag1' from the organisation"),
+            ({"added_flags": "flag1, flag2"}, "added the flags 'flag1' and 'flag2' from the organisation"),
+            (
+                {"added_flags": "flag1, flag2, flag3"},
+                "added the flags 'flag1', 'flag2' and 'flag3' from the organisation",
+            ),
+        ]
+    )
+    def test_add_flags(self, payload, expected_result):
+        result = formatters.add_flags(**payload)
         self.assertEqual(result, expected_result)
 
     @parameterized.expand(

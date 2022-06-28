@@ -41,13 +41,22 @@ def format_text(format_str, **payload):
     return text
 
 
-def removed_flags(**payload):
+def remove_flags(**payload):
     flags = payload["removed_flags"].split(",")
     if len(flags) == 1:
         return f"removed the flag '{flags[0]}'."
     elif len(flags) >= 2:
         formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
         return f"removed the flags {formatted_flags}."
+
+
+def add_flags(**payload):
+    flags = payload["added_flags"].split(",")
+    if len(flags) == 1:
+        return f"added the flag '{flags[0]}'."
+    elif len(flags) >= 2:
+        formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
+        return f"added the flags {formatted_flags}."
 
 
 def get_party_type_value(party_type):
