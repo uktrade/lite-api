@@ -283,3 +283,32 @@ class FormattersTest(DataTestClient):
     def test_create_final_recommendation(self, payload, expected_result):
         result = formatters.create_final_recommendation(**payload)
         self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (
+                {
+                    "case_reference": "GBSIEL/2022/0000001/P",
+                    "decision": AdviceType.REFUSE,
+                },
+                "created a 'licence refused' letter.",
+            ),
+            (
+                {
+                    "case_reference": "GBSIEL/2022/0000001/P",
+                    "decision": AdviceType.NO_LICENCE_REQUIRED,
+                },
+                "created a 'no licence required' letter.",
+            ),
+            (
+                {
+                    "case_reference": "GBSIEL/2022/0000001/P",
+                    "decision": AdviceType.APPROVE,
+                },
+                "invalid decision approve for this event.",
+            ),
+        ]
+    )
+    def test_generate_decision_letter(self, payload, expected_result):
+        result = formatters.generate_decision_letter(**payload)
+        self.assertEqual(result, expected_result)

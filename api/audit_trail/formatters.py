@@ -169,3 +169,14 @@ def create_final_recommendation(**payload):
         return "added a decision of no licence needed."
 
     return f"added a decision {decision}."
+
+
+def generate_decision_letter(**payload):
+    decision = payload["decision"]
+
+    if decision == AdviceType.REFUSE:
+        return "created a 'licence refused' letter."
+    elif decision == AdviceType.NO_LICENCE_REQUIRED:
+        return "created a 'no licence required' letter."
+
+    return f"invalid decision {decision} for this event."

@@ -7,6 +7,8 @@ from rest_framework.exceptions import ParseError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from api.audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseDocumentState, AdviceType
 from api.cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from api.cases.generated_documents.models import GeneratedCaseDocument
@@ -76,10 +78,8 @@ class GeneratedDocuments(generics.ListAPIView):
         if document.template.include_digital_signature:
             pdf = sign_pdf(pdf)
 
-        if request.data.get("advice_type") in [
-            AdviceType.APPROVE,
-            AdviceType.PROVISO,
-        ]:
+        advice_type = request.data.get("advice_type")
+        if advice_type in [AdviceType.APPROVE, AdviceType.PROVISO]:
             try:
                 licence = Licence.objects.get_draft_licence(pk)
             except Licence.DoesNotExist:
@@ -123,6 +123,14 @@ class GeneratedDocuments(generics.ListAPIView):
             return JsonResponse(
                 {"errors": [strings.Cases.GeneratedDocuments.UPLOAD_ERROR]},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        if advice_type in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.GENERATE_DECISION_LETTER,
+                target=generated_doc.case,
+                payload={"case_reference": generated_doc.case.reference_code, "decision": advice_type},
             )
 
         return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
