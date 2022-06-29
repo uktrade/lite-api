@@ -14,7 +14,7 @@ class TestPayload(DataTestClient):
             [
                 AuditType.UPLOAD_PARTY_DOCUMENT,
                 {"file_name": "file.png", "party_type": "third_party", "party_name": "Test technologies"},
-                "uploaded the document file.png for third party Test technologies",
+                "uploaded the document file.png for third party Test technologies.",
             ],
             [AuditType.COUNTERSIGN_ADVICE, {"department": "Test Dept"}, "countersigned all Test Dept recommendations."],
             [AuditType.COUNTERSIGN_ADVICE, {}, "countersigned all  recommendations."],
