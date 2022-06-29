@@ -191,7 +191,7 @@ def licence_status_updated(**payload):
     status = payload["status"].lower()
     licence = payload["licence"]
     if status == CaseStatusEnum.WITHDRAWN:
-        return f"withdrew licence {licence}."
+        return f"withdrew their application."
     elif status == LicenceStatus.EXHAUSTED:
         return f"The products for licence {licence} were exported and the status set to '{status}'."
 
