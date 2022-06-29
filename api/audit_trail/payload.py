@@ -136,4 +136,6 @@ audit_type_format = {
     AuditType.UPDATED_SERIAL_NUMBERS: "updated serial numbers on '{good_name}'",
     AuditType.PRODUCT_REVIEWED: formatters.product_reviewed,
     AuditType.LICENCE_UPDATED_PRODUCT_USAGE: formatters.update_product_usage_data,
+    AuditType.CREATED_FINAL_RECOMMENDATION: formatters.create_final_recommendation,
+    AuditType.GENERATE_DECISION_LETTER: formatters.generate_decision_letter,
 }

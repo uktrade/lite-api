@@ -126,6 +126,8 @@ class AuditType(LiteEnum):
     UPDATED_SERIAL_NUMBERS = autostr()
     PRODUCT_REVIEWED = autostr()
     LICENCE_UPDATED_PRODUCT_USAGE = autostr()
+    CREATED_FINAL_RECOMMENDATION = autostr()
+    GENERATE_DECISION_LETTER = autostr()
 
     def human_readable(self):
         """

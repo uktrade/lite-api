@@ -76,9 +76,6 @@ class AssignedQueues(APIView):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 user_queue_assignment_workflow(queues, case)
-                audit_trail_service.create(
-                    actor=request.user, verb=AuditType.UNASSIGNED, target=case, payload={"additional_text": note}
-                )
 
             return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
         else:

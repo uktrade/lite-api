@@ -78,7 +78,6 @@ class CaseAssignmentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["queues_removed"], [])
-        self.assertTrue(Audit.objects.filter(verb=AuditType.UNASSIGNED).exists())
 
     def test_put_unassign_no_assignments_multiple_queues_failure(self):
         response = self.client.put(self.url, **self.gov_headers, data={"queues": [self.queue.id, self.other_queue.id]})

@@ -1,6 +1,7 @@
 from datetime import datetime
 from string import Formatter
 
+from api.cases.enums import AdviceType
 from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -224,3 +225,27 @@ def update_product_usage_data(**payload):
     else:
         # partial export and also default case
         return f"{usage} of {quantity} {product_name} products on licence {licence_reference} were exported."
+
+
+def create_final_recommendation(**payload):
+    decision = payload["decision"]
+
+    if decision == AdviceType.APPROVE:
+        return "added a decision of licence approved."
+    elif decision == AdviceType.REFUSE:
+        return "added a decision of licence refused."
+    elif decision == AdviceType.NO_LICENCE_REQUIRED:
+        return "added a decision of no licence needed."
+
+    return f"added a decision {decision}."
+
+
+def generate_decision_letter(**payload):
+    decision = payload["decision"]
+
+    if decision == AdviceType.REFUSE:
+        return "created a 'licence refused' letter."
+    elif decision == AdviceType.NO_LICENCE_REQUIRED:
+        return "created a 'no licence required' letter."
+
+    return f"invalid decision {decision} for this event."

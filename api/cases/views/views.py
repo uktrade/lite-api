@@ -417,12 +417,6 @@ class FinalAdvice(APIView):
             assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
             group_advice(self.case, self.team_advice, request.user, AdviceLevel.FINAL)
-
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.CREATED_FINAL_ADVICE,
-                target=self.case,
-            )
             final_advice = Advice.objects.filter(case=self.case).order_by("-created_at")
         else:
             final_advice = self.final_advice
@@ -830,36 +824,50 @@ class FinaliseView(UpdateAPIView):
                 if not licence_document_exists:
                     raise ParseError({"decision-approve": [Cases.Licence.MISSING_LICENCE_DOCUMENT]})
 
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.CREATED_FINAL_RECOMMENDATION,
+                    target=case,
+                    payload={
+                        "case_reference": case.reference_code,
+                        "decision": AdviceType.APPROVE,
+                        "licence_reference": licence.reference_code,
+                    },
+                )
+
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.issue()
             return_payload["licence"] = licence.id
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.GRANTED_APPLICATION
-                if Licence.objects.filter(case=case).count() < 2
-                else AuditType.REINSTATED_APPLICATION,
-                target=case,
-                payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
-            )
+            if Licence.objects.filter(case=case).count() > 1:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.REINSTATED_APPLICATION,
+                    target=case,
+                    payload={
+                        "licence_duration": licence.duration,
+                        "start_date": licence.start_date.strftime("%Y-%m-%d"),
+                    },
+                )
             generate_compliance_site_case(case)
         except Licence.DoesNotExist:
             # Do nothing if Licence doesn't exist
             pass
 
         # Finalise Case
-        old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
 
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=case,
-            payload={
-                "status": {"new": case.status.status, "old": old_status},
-                "additional_text": request.data.get("note"),
-            },
-        )
+        decisions = required_decisions.copy()
+        if AdviceType.APPROVE in decisions:
+            decisions.remove(AdviceType.APPROVE)
+
+        for decision in decisions:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.CREATED_FINAL_RECOMMENDATION,
+                target=case,
+                payload={"case_reference": case.reference_code, "decision": decision, "licence_reference": ""},
+            )
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)

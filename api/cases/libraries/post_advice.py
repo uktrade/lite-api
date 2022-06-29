@@ -90,7 +90,6 @@ def post_advice(request, case, level, team=False):
         audit_verbs = {
             AdviceLevel.USER: AuditType.CREATED_USER_ADVICE,
             AdviceLevel.TEAM: AuditType.REVIEW_COMBINE_ADVICE,
-            AdviceLevel.FINAL: AuditType.CREATED_FINAL_ADVICE,
         }
 
         department = request.user.govuser.team.department
@@ -100,9 +99,10 @@ def post_advice(request, case, level, team=False):
         else:
             department = "department"
 
-        audit_trail_service.create(
-            actor=request.user, verb=audit_verbs[level], target=case, payload={"department": department}
-        )
+        if level in audit_verbs:
+            audit_trail_service.create(
+                actor=request.user, verb=audit_verbs[level], target=case, payload={"department": department}
+            )
 
         if level == AdviceLevel.FINAL:
             # Remove GoodCountryDecision if changing approve decision for applicable country/goods type

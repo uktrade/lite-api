@@ -52,7 +52,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(self.standard_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
-        self.assertEqual(Audit.objects.count(), 5)
+        self.assertEqual(Audit.objects.count(), 4)
         send_exporter_notifications_func.assert_called()
 
     def test_grant_standard_application_wrong_permission_failure(self):
@@ -103,7 +103,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(clearance_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
-        self.assertEqual(Audit.objects.count(), 6)
+        self.assertEqual(Audit.objects.count(), 5)
         send_exporter_notifications_func.assert_called()
 
     def test_grant_clearance_wrong_permission_failure(self):
