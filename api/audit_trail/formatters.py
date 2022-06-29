@@ -68,13 +68,13 @@ def get_party_type_value(party_type):
 def add_party(**payload):
     party_type = payload["party_type"]
     party_type = get_party_type_value(party_type)
-    return f"added the {party_type.lower()} {payload['party_name']}"
+    return f"added the {party_type.lower()} {payload['party_name']}."
 
 
 def remove_party(**payload):
     party_type = payload["party_type"]
     party_type = get_party_type_value(party_type)
-    return f"removed the {party_type.lower()} {payload['party_name']}"
+    return f"removed the {party_type.lower()} {payload['party_name']}."
 
 
 def upload_party_document(**payload):
