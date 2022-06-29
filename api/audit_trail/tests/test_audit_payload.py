@@ -8,7 +8,7 @@ from api.audit_trail.payload import format_payload
 class TestPayload(DataTestClient):
     @parameterized.expand(
         [
-            [AuditType.ADD_FLAGS, {"added_flags": "Flag 1, Flag 2"}, "added flags: Flag 1, Flag 2."],
+            [AuditType.ADD_FLAGS, {"added_flags": "Flag 1, Flag 2"}, "added the flags 'Flag 1' and 'Flag 2'."],
             [AuditType.MOVE_CASE, {"queues": "Queue 1, Queue 2"}, "moved the case to Queue 1, Queue 2."],
             [AuditType.REMOVE_CASE, {"queues": "Queue 1, Queue 2"}, "removed case from queues: Queue 1, Queue 2."],
             [
