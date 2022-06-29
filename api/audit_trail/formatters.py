@@ -148,7 +148,7 @@ def remove_party(**payload):
 
 def upload_party_document(**payload):
     party_type = PartyType.get_display_value(payload["party_type"])
-    return f"uploaded the document {payload['file_name']} for {party_type.lower()} {payload['party_name']}"
+    return f"uploaded the document {payload['file_name']} for {party_type.lower()} {payload['party_name']}."
 
 
 def get_updated_status(**payload):

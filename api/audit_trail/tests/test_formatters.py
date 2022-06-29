@@ -141,7 +141,7 @@ class FormattersTest(DataTestClient):
         [
             (
                 {"file_name": "test.pdf", "party_type": PartyType.END_USER, "party_name": "Test technologies ltd"},
-                "uploaded the document test.pdf for end-user Test technologies ltd",
+                "uploaded the document test.pdf for end-user Test technologies ltd.",
             ),
             (
                 {
@@ -149,11 +149,11 @@ class FormattersTest(DataTestClient):
                     "party_type": PartyType.ULTIMATE_END_USER,
                     "party_name": "Test technologies ltd",
                 },
-                "uploaded the document test.pdf for ultimate end-user Test technologies ltd",
+                "uploaded the document test.pdf for ultimate end-user Test technologies ltd.",
             ),
             (
                 {"file_name": "test.pdf", "party_type": PartyType.THIRD_PARTY, "party_name": "Test technologies ltd"},
-                "uploaded the document test.pdf for third party Test technologies ltd",
+                "uploaded the document test.pdf for third party Test technologies ltd.",
             ),
             (
                 {
@@ -161,7 +161,7 @@ class FormattersTest(DataTestClient):
                     "party_type": PartyType.ADDITIONAL_CONTACT,
                     "party_name": "Test technologies ltd",
                 },
-                "uploaded the document test.pdf for additional contact Test technologies ltd",
+                "uploaded the document test.pdf for additional contact Test technologies ltd.",
             ),
         ]
     )
