@@ -41,13 +41,82 @@ def format_text(format_str, **payload):
     return text
 
 
-def removed_flags(**payload):
-    flags = payload["flag_name"]
+def add_flags(**payload):
+    flags = [flag.strip() for flag in payload["added_flags"].split(",")]
     if len(flags) == 1:
-        return f"removed the flag '{flags[0]}' from the organisation"
+        return f"added the flag '{flags[0]}'."
     elif len(flags) >= 2:
         formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
-        return f"removed the flags {formatted_flags} from the organisation"
+        return f"added the flags {formatted_flags}."
+
+
+def remove_flags(**payload):
+    flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
+    if len(flags) == 1:
+        return f"removed the flag '{flags[0]}'."
+    elif len(flags) >= 2:
+        formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
+        return f"removed the flags {formatted_flags}."
+
+
+def good_add_flags(**payload):
+    flags = [flag.strip() for flag in payload["added_flags"].split(",")]
+    good_name = payload["good_name"]
+    if len(flags) == 1:
+        return f"added the flag '{flags[0]}' from the good '{good_name}'."
+    elif len(flags) >= 2:
+        formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
+        return f"added the flags {formatted_flags} from the good '{good_name}'."
+
+
+def good_remove_flags(**payload):
+    flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
+    good_name = payload["good_name"]
+    if len(flags) == 1:
+        return f"removed the flag '{flags[0]}' from the good '{good_name}'."
+    elif len(flags) >= 2:
+        formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
+        return f"removed the flags {formatted_flags} from the good '{good_name}'."
+
+
+def good_add_remove_flags(**payload):
+    added_flags = [flag.strip() for flag in payload["added_flags"].split(",")]
+    removed_flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
+    good_name = payload["good_name"]
+    if len(added_flags) == 1:
+        message = f"added the flag '{added_flags[0]}'"
+    elif len(added_flags) >= 2:
+        added_formatted_flags = f"{str(added_flags[:-1])[1:-1]} and '{added_flags[-1]}'"
+        message = f"added the flags {added_formatted_flags}"
+
+    if len(removed_flags) == 1:
+        message += f" and removed the flag '{removed_flags[0]}'"
+    elif len(removed_flags) >= 2:
+        rem_formatted_flags = f"{str(removed_flags[:-1])[1:-1]} and '{removed_flags[-1]}'"
+        message += f" and removed the flags {rem_formatted_flags}"
+
+    message += f" from the good '{good_name}'."
+    return message
+
+
+def destination_add_flags(**payload):
+    flags = [flag.strip() for flag in payload["added_flags"].split(",")]
+    destination_name = payload["destination_name"].title()
+    if len(flags) == 1:
+        return f"added the flag '{flags[0]}' from the destination '{destination_name}'."
+    elif len(flags) >= 2:
+        formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
+        return f"added the flags {formatted_flags} from the destination '{destination_name}'."
+
+
+def destination_remove_flags(**payload):
+    flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
+    destination_name = payload["destination_name"].title()
+    if len(flags) == 1:
+        return f"removed the flag '{flags[0]}' from the destination '{destination_name}'."
+    elif len(flags) >= 2:
+        formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
+        return f"removed the flags {formatted_flags} from the destination '{destination_name}'."
 
 
 def get_party_type_value(party_type):
