@@ -60,7 +60,9 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING))
         audit_event = Audit.objects.first()
         self.assertEqual(audit_event.verb, AuditType.UPDATED_STATUS)
-        self.assertEqual(audit_event.payload, {"status": {"new": "Applicant editing", "old": "Submitted"}})
+        self.assertEqual(
+            audit_event.payload, {"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": CaseStatusEnum.SUBMITTED}}
+        )
 
     def test_exporter_set_application_status_withdrawn_when_application_not_terminal_success(self):
         self.submit_application(self.standard_application)
