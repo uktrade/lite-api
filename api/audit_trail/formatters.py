@@ -42,7 +42,7 @@ def format_text(format_str, **payload):
 
 
 def add_flags(**payload):
-    flags = payload["added_flags"].split(", ")
+    flags = [flag.strip() for flag in payload["added_flags"].split(",")]
     if len(flags) == 1:
         return f"added the flag '{flags[0]}'."
     elif len(flags) >= 2:
@@ -51,7 +51,7 @@ def add_flags(**payload):
 
 
 def remove_flags(**payload):
-    flags = payload["removed_flags"].split(", ")
+    flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
     if len(flags) == 1:
         return f"removed the flag '{flags[0]}'."
     elif len(flags) >= 2:
@@ -60,7 +60,7 @@ def remove_flags(**payload):
 
 
 def good_add_flags(**payload):
-    flags = payload["added_flags"].split(", ")
+    flags = [flag.strip() for flag in payload["added_flags"].split(",")]
     good_name = payload["good_name"]
     if len(flags) == 1:
         return f"added the flag '{flags[0]}' from the good '{good_name}'."
@@ -70,7 +70,7 @@ def good_add_flags(**payload):
 
 
 def good_remove_flags(**payload):
-    flags = payload["removed_flags"].split(", ")
+    flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
     good_name = payload["good_name"]
     if len(flags) == 1:
         return f"removed the flag '{flags[0]}' from the good '{good_name}'."
@@ -80,8 +80,8 @@ def good_remove_flags(**payload):
 
 
 def good_add_remove_flags(**payload):
-    added_flags = payload["added_flags"].split(", ")
-    removed_flags = payload["removed_flags"].split(", ")
+    added_flags = [flag.strip() for flag in payload["added_flags"].split(",")]
+    removed_flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
     good_name = payload["good_name"]
     if len(added_flags) == 1:
         message = f"added the flag '{added_flags[0]}'"
@@ -100,7 +100,7 @@ def good_add_remove_flags(**payload):
 
 
 def destination_add_flags(**payload):
-    flags = payload["added_flags"].split(", ")
+    flags = [flag.strip() for flag in payload["added_flags"].split(",")]
     destination_name = payload["destination_name"].title()
     if len(flags) == 1:
         return f"added the flag '{flags[0]}' from the destination '{destination_name}'."
@@ -110,7 +110,7 @@ def destination_add_flags(**payload):
 
 
 def destination_remove_flags(**payload):
-    flags = payload["removed_flags"].split(", ")
+    flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
     destination_name = payload["destination_name"].title()
     if len(flags) == 1:
         return f"removed the flag '{flags[0]}' from the destination '{destination_name}'."
