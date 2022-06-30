@@ -67,8 +67,8 @@ def create_submitted_audit(request: Request, application: HmrcQuery, old_status:
         target=application.get_case(),
         payload={
             "status": {
-                "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
-                "old": CaseStatusEnum.get_text(old_status),
+                "new": CaseStatusEnum.RESUBMITTED if old_status != CaseStatusEnum.DRAFT else CaseStatusEnum.SUBMITTED,
+                "old": old_status,
             }
         },
         ignore_case_status=True,

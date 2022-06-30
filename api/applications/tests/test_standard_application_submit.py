@@ -317,8 +317,8 @@ class StandardApplicationTests(DataTestClient):
         self.assertIn(
             {
                 "status": {
-                    "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
-                    "old": CaseStatusEnum.get_text(CaseStatusEnum.APPLICANT_EDITING),
+                    "new": CaseStatusEnum.RESUBMITTED,
+                    "old": CaseStatusEnum.APPLICANT_EDITING,
                 }
             },
             case_status_audits,
@@ -414,8 +414,8 @@ class StandardApplicationTests(DataTestClient):
         self.assertIn(
             {
                 "status": {
-                    "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
-                    "old": CaseStatusEnum.get_text(CaseStatusEnum.DRAFT),
+                    "new": CaseStatusEnum.SUBMITTED,
+                    "old": CaseStatusEnum.DRAFT,
                 }
             },
             case_status_audits,
