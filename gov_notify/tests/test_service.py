@@ -1,12 +1,14 @@
 from unittest import mock
 
+from rest_framework.test import APITestCase
+
 from gov_notify import service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData
-from test_helpers.clients import DataTestClient
 
 
-class GovNotifyTemplateTests(DataTestClient):
+class GovNotifyTemplateTests(APITestCase):
+
     @mock.patch("gov_notify.service.client")
     def test_send_email(self, mock_client):
         email = "fake@email.com"
