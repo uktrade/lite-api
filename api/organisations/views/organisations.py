@@ -24,6 +24,7 @@ from api.organisations.serializers import (
     OrganisationListSerializer,
     OrganisationStatusUpdateSerializer,
 )
+from api.organisations import notify
 from api.audit_trail import service as audit_trail_service
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -81,20 +82,27 @@ class OrganisationsList(generics.ListCreateAPIView):
             if not validate_only:
                 serializer.save()
 
-            # Audit the creation of the organisation
-            if not request.user.is_anonymous:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.CREATED_ORGANISATION,
-                    target=get_organisation_by_pk(serializer.data.get("id")),
-                    payload={"organisation_name": serializer.data.get("name")},
-                )
-            else:
-                audit_trail_service.create_system_user_audit(
-                    verb=AuditType.REGISTER_ORGANISATION,
-                    target=get_organisation_by_pk(serializer.data.get("id")),
-                    payload={"email": request.data["user"]["email"], "organisation_name": serializer.data.get("name")},
-                )
+                # Audit the creation of the organisation
+                if not request.user.is_anonymous:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.CREATED_ORGANISATION,
+                        target=get_organisation_by_pk(serializer.data.get("id")),
+                        payload={"organisation_name": serializer.data.get("name")},
+                    )
+                else:
+                    notify.notify_exporter_registration(
+                        serializer.validated_data["user"]["email"],
+                        {"organisation_name": serializer.validated_data["name"]},
+                    )
+                    audit_trail_service.create_system_user_audit(
+                        verb=AuditType.REGISTER_ORGANISATION,
+                        target=get_organisation_by_pk(serializer.data.get("id")),
+                        payload={
+                            "email": request.data["user"]["email"],
+                            "organisation_name": serializer.data.get("name"),
+                        },
+                    )
 
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 

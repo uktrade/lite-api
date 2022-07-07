@@ -8,7 +8,6 @@ from gov_notify.payloads import EcjuCreatedEmailData
 
 
 class GovNotifyTemplateTests(APITestCase):
-
     @mock.patch("gov_notify.service.client")
     def test_send_email(self, mock_client):
         email = "fake@email.com"

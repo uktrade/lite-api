@@ -2,19 +2,19 @@ from unittest import mock
 
 from rest_framework.test import APITestCase
 from django.test import override_settings
+from faker import Faker
 
 from gov_notify.client import LiteNotificationClient
 
 
 class LiteNotificationClientTests(APITestCase):
-
     @override_settings(GOV_NOTIFY_ENABLED=False)
     @mock.patch("gov_notify.client.NotificationsAPIClient")
     def test_send_email_notify_disabled(self, mock_client):
         api_key = "testapikey"
         client = LiteNotificationClient(api_key)
         client.send_email(
-            "test@example.com",
+            Faker().email(),
             "test-template-id",
             {},
         )
@@ -27,7 +27,7 @@ class LiteNotificationClientTests(APITestCase):
     def test_send_email_notify_enabled(self, mock_client):
         api_key = "testapikey"
         client = LiteNotificationClient(api_key)
-        email = "test@example.com"
+        email = Faker().email()
         template_id = "test-template-id"
         personalisation = {}
         client.send_email(
@@ -42,4 +42,3 @@ class LiteNotificationClientTests(APITestCase):
             template_id=template_id,
             personalisation=personalisation,
         )
-

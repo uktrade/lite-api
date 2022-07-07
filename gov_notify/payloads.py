@@ -37,3 +37,8 @@ class ApplicationStatusEmailData(EmailData):
 @dataclass(frozen=True)
 class OrganisationStatusEmailData(EmailData):
     organisation_name: str
+
+
+@dataclass(frozen=True)
+class ExporterRegistration(EmailData):
+    organisation_name: str
