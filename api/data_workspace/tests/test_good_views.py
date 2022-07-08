@@ -43,6 +43,7 @@ class DataWorkspaceTests(DataTestClient):
             "software_or_technology_details",
             "firearm_details",
             "is_precedent",
+            "precedents",
         )
 
         response = self.client.get(url)
