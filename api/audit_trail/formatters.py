@@ -161,6 +161,8 @@ def get_updated_status(**payload):
         return "is editing their application."
     if status == CaseStatusEnum.REOPENED_FOR_CHANGES:
         return "re-opened the application to changes."
+    if status == CaseStatusEnum.WITHDRAWN:
+        return "withdrew their application."
 
     # Default behavior - same as always
     return format_text(strings.Audit.UPDATED_STATUS, **payload)
@@ -190,9 +192,7 @@ def product_reviewed(**payload):
 def licence_status_updated(**payload):
     status = payload["status"].lower()
     licence = payload["licence"]
-    if status == CaseStatusEnum.WITHDRAWN:
-        return "withdrew their application."
-    elif status == LicenceStatus.EXHAUSTED:
+    if status == LicenceStatus.EXHAUSTED:
         return f"The products for licence {licence} were exported and the status set to '{status}'."
 
     return f"{status} licence {licence}."
