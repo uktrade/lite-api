@@ -31,6 +31,7 @@ env = Env(
     STREAM_PAGE_SIZE=(int, 20),
     ENV=(str, "localhost"),
     EXPORTER_BASE_URL=(str, ""),
+    CASEWORKER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
 )
@@ -375,9 +376,14 @@ GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
 
 ENV = env("ENV")
 
-# If EXPORTER_BASE_URL is not provided, render the base_url using the environment
+# If EXPORTER_BASE_URL is not in env vars, build the base_url using the environment
 EXPORTER_BASE_URL = (
     env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
+)
+
+# If CASEWORKER_BASE_URL is not in env vars, build the base_url using the environment
+CASEWORKER_BASE_URL = (
+    env("CASEWORKER_BASE_URL") if env("CASEWORKER_BASE_URL") else f"https://internal.lite.service.{ENV}.uktrade.digital"
 )
 
 # Demo flags
