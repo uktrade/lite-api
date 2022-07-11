@@ -42,3 +42,9 @@ class OrganisationStatusEmailData(EmailData):
 @dataclass(frozen=True)
 class ExporterRegistration(EmailData):
     organisation_name: str
+
+
+@dataclass(frozen=True)
+class ExporterUserAdded(EmailData):
+    organisation_name: str
+    exporter_frontend_url: str

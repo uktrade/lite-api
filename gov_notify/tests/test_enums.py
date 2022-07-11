@@ -13,6 +13,7 @@ class TemplateTypeTests(APITestCase):
             (TemplateType.APPLICATION_STATUS, "b9c3403a-8d09-416e-acd3-99baabf5b043"),
             (TemplateType.ORGANISATION_STATUS, "c57ef67e-14fd-4af9-a9b2-5015040fa408"),
             (TemplateType.EXPORTER_REGISTERED_NEW_ORG, "6096c45e-0cbb-4ecd-a7a9-0ad674e1d2c0"),
+            (TemplateType.EXPORTER_USER_ADDED, "c9b67dca-0916-453a-99c0-70ba563e1bdd"),
         ]
     )
     def test_template_id(self, template_type, expected_template_id):

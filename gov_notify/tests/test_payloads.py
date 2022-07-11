@@ -47,6 +47,13 @@ class DataclassTests(APITestCase):
                     "organisation_name": "testorgname",
                 },
             ),
+            (
+                payloads.ExporterUserAdded,
+                {
+                    "organisation_name": "testorgname",
+                    "exporter_frontend_url": "https://some.domain/foo",
+                },
+            ),
         ]
     )
     def test_valid_input(self, dataclass, data):
