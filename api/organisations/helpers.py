@@ -2,6 +2,8 @@ from django.db.models import F
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
+from api.core.helpers import get_exporter_frontend_url
+from api.organisations import notify
 from api.organisations.enums import OrganisationType, OrganisationStatus
 
 
@@ -73,6 +75,10 @@ def audit_edited_organisation_fields(user, organisation, new_org, is_non_uk=None
 
 
 def audit_reviewed_organisation(user, organisation, decision):
+    organisation_members = organisation.users.annotate(
+        email=F("user__baseuser_ptr__email"), first_name=F("user__baseuser_ptr__first_name")
+    ).values_list("email", "first_name")
+
     if decision == OrganisationStatus.ACTIVE:
         audit_trail_service.create(
             actor=user,
@@ -82,6 +88,15 @@ def audit_reviewed_organisation(user, organisation, decision):
                 "organisation_name": organisation.name,
             },
         )
+        for email, first_name in organisation_members:
+            notify.notify_exporter_organisation_approved(
+                email,
+                {
+                    "exporter_first_name": first_name or "",
+                    "organisation_name": organisation.name,
+                    "exporter_frontend_url": get_exporter_frontend_url("/"),
+                },
+            )
     else:
         audit_trail_service.create(
             actor=user,

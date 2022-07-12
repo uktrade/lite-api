@@ -841,7 +841,8 @@ class EditOrganisationStatusTests(DataTestClient):
         UserOrganisationRelationshipFactory(organisation=self.organisation, user=self.exporter_user)
         self.url = reverse("organisations:organisation_status", kwargs={"pk": self.organisation.pk})
 
-    def test_set_organisation_status_success(self):
+    @mock.patch("api.organisations.notify.notify_exporter_organisation_approved")
+    def test_set_organisation_status_active_success(self, mocked_notify):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {"status": OrganisationStatus.ACTIVE}
 
@@ -850,6 +851,14 @@ class EditOrganisationStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["status"]["key"], OrganisationStatus.ACTIVE)
         self.assertEqual(Audit.objects.count(), 1)
+        mocked_notify.assert_called_with(
+            self.exporter_user.email,
+            {
+                "exporter_first_name": self.exporter_user.first_name,
+                "organisation_name": self.organisation.name,
+                "exporter_frontend_url": "https://exporter.lite.service.localhost.uktrade.digital/",
+            },
+        )
 
     def test_set_organisation_status__without_permission_failure(self):
         data = {"status": OrganisationStatus.ACTIVE}
