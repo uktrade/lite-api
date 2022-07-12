@@ -13,7 +13,6 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.core.authentication import EXPORTER_USER_TOKEN_HEADER
 from api.core.constants import Roles, GovPermissions
-from gov_notify.enums import TemplateType
 from lite_content.lite_api.strings import Organisations
 from api.organisations.constants import UK_VAT_VALIDATION_REGEX, UK_EORI_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus
@@ -842,8 +841,7 @@ class EditOrganisationStatusTests(DataTestClient):
         UserOrganisationRelationshipFactory(organisation=self.organisation, user=self.exporter_user)
         self.url = reverse("organisations:organisation_status", kwargs={"pk": self.organisation.pk})
 
-    @mock.patch("gov_notify.service.client")
-    def test_set_organisation_status_success(self, mock_notify_client):
+    def test_set_organisation_status_success(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {"status": OrganisationStatus.ACTIVE}
 
@@ -852,11 +850,6 @@ class EditOrganisationStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["status"]["key"], OrganisationStatus.ACTIVE)
         self.assertEqual(Audit.objects.count(), 1)
-        mock_notify_client.send_email.assert_called_with(
-            email_address=self.exporter_user.email,
-            template_id=TemplateType.ORGANISATION_STATUS.template_id,
-            data={"organisation_name": self.organisation.name},
-        )
 
     def test_set_organisation_status__without_permission_failure(self):
         data = {"status": OrganisationStatus.ACTIVE}

@@ -36,12 +36,6 @@ class DataclassTests(APITestCase):
                 },
             ),
             (
-                payloads.OrganisationStatusEmailData,
-                {
-                    "organisation_name": "testorgname",
-                },
-            ),
-            (
                 payloads.ExporterRegistration,
                 {
                     "organisation_name": "testorgname",
