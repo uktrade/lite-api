@@ -680,6 +680,51 @@ class GoodControlListEntryViewSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class GoodOnApplicationSerializer(serializers.ModelSerializer):
+    queue = serializers.SerializerMethodField()
+    reference = serializers.ReadOnlyField(source="application.reference_code")
+    control_list_entries = serializers.SerializerMethodField()
+    wassenaar = serializers.SerializerMethodField()
+    destinations = serializers.SerializerMethodField()
+    submitted_at = serializers.ReadOnlyField(source="application.submitted_at")
+    goods_starting_point = serializers.ReadOnlyField(source="application.standardapplication.goods_starting_point")
+
+    class Meta:
+        model = GoodOnApplication
+        fields = (
+            "id",
+            "queue",
+            "application",
+            "reference",
+            "good",
+            "report_summary",
+            "quantity",
+            "unit",
+            "value",
+            "control_list_entries",
+            "destinations",
+            "wassenaar",
+            "submitted_at",
+            "goods_starting_point",
+        )
+
+    def get_queue(self, obj):
+        queue = obj.application.queues.first()
+        return queue.id if queue else None
+
+    def get_control_list_entries(self, obj):
+        return [cle.rating for cle in obj.get_control_list_entries().all()]
+
+    def get_wassenaar(self, obj):
+        return obj.good.flags.filter(name="WASSENAAR").exists()
+
+    def get_destinations(self, obj):
+        destinations = (
+            PartyOnApplication.objects.filter(application=obj.application).values("party__country__name").distinct()
+        )
+        return [dest["party__country__name"] for dest in destinations]
+
+
 class GoodSerializerInternal(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
@@ -708,6 +753,7 @@ class GoodSerializerInternal(serializers.Serializer):
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
     is_precedent = serializers.BooleanField(required=False, default=False)
+    precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
 
     def get_documents(self, instance):
         documents = instance.gooddocument_set.all()
@@ -751,6 +797,7 @@ class GoodSerializerExporter(serializers.Serializer):
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
@@ -824,47 +871,3 @@ class ClcControlGoodSerializer(GoodControlReviewSerializer):
         super().update(instance, validated_data)
         instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
         return instance
-
-
-class GoodOnApplicationSerializer(serializers.ModelSerializer):
-
-    queue = serializers.SerializerMethodField()
-    reference = serializers.ReadOnlyField(source="application.reference_code")
-    control_list_entries = serializers.SerializerMethodField()
-    wassenaar = serializers.SerializerMethodField()
-    destinations = serializers.SerializerMethodField()
-    submitted_at = serializers.ReadOnlyField(source="application.submitted_at")
-
-    class Meta:
-        model = GoodOnApplication
-        fields = (
-            "id",
-            "queue",
-            "application",
-            "reference",
-            "good",
-            "report_summary",
-            "quantity",
-            "unit",
-            "value",
-            "control_list_entries",
-            "destinations",
-            "wassenaar",
-            "submitted_at",
-        )
-
-    def get_queue(self, obj):
-        queue = obj.application.queues.first()
-        return queue.id if queue else None
-
-    def get_control_list_entries(self, obj):
-        return [cle.rating for cle in obj.get_control_list_entries().all()]
-
-    def get_wassenaar(self, obj):
-        return obj.good.flags.filter(name="WASSENAAR").exists()
-
-    def get_destinations(self, obj):
-        destinations = (
-            PartyOnApplication.objects.filter(application=obj.application).values("party__country__name").distinct()
-        )
-        return [dest["party__country__name"] for dest in destinations]

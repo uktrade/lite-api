@@ -173,6 +173,14 @@ class Good(TimestampableModel):
         db_table = "good"
         ordering = ["-created_at"]
 
+    def get_precedents(self):
+        if self.status != GoodStatus.VERIFIED:
+            return self.goods_on_application.none()
+
+        return self.goods_on_application.filter(
+            control_list_entries__isnull=False,
+        )
+
 
 class GoodDocument(Document):
     good = models.ForeignKey(Good, on_delete=models.CASCADE)
