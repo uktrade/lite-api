@@ -54,3 +54,10 @@ class ExporterOrganisationApproved(EmailData):
 class ExporterOrganisationRejected(EmailData):
     exporter_first_name: str
     organisation_name: str
+
+
+@dataclass(frozen=True)
+class ExporterECJUQuery(EmailData):
+    case_reference: str
+    exporter_first_name: str
+    exporter_frontend_url: str
