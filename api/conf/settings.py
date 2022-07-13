@@ -312,6 +312,7 @@ if LITE_API_ENABLE_ES:
 
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
+GOOD_ON_APPLICATION_COPY_LOGGER = "good_on_application_copy_logger"
 
 
 if "test" not in sys.argv:
@@ -330,6 +331,7 @@ if "test" not in sys.argv:
         "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
         "loggers": {
             DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
+            GOOD_ON_APPLICATION_COPY_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
         },
     }
 else:
