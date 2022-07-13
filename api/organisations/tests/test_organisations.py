@@ -106,7 +106,8 @@ class GetOrganisationTests(DataTestClient):
 class CreateOrganisationTests(DataTestClient):
     url = reverse("organisations:organisations")
 
-    def test_create_commercial_organisation_as_internal_success(self):
+    @mock.patch("api.organisations.notify.notify_exporter_registration")
+    def test_create_commercial_organisation_as_internal_success(self, mocked_notify_exporter_registration):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
@@ -158,6 +159,9 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqualIgnoreType(site.address.country.id, "GB")
         self.assertEqual(Audit.objects.count(), 1)
 
+        # Ensure that exporters are not notified when an internal user creates an organisation
+        assert not mocked_notify_exporter_registration.called
+
     @parameterized.expand(
         [
             [
@@ -172,7 +176,8 @@ class CreateOrganisationTests(DataTestClient):
             [{"address": "123", "country": "PL"}],
         ]
     )
-    def test_create_commercial_organisation_as_exporter_success(self, address):
+    @mock.patch("api.organisations.notify.notify_exporter_registration")
+    def test_create_commercial_organisation_as_exporter_success(self, address, mocked_notify_exporter_registration):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
@@ -223,6 +228,10 @@ class CreateOrganisationTests(DataTestClient):
 
         # assert records located at set to site itself
         self.assertEqual(site.site_records_located_at, site)
+
+        mocked_notify_exporter_registration.assert_called_with(
+            data["user"]["email"], {"organisation_name": data["name"]}
+        )
 
     def test_create_organisation_phone_number_mandatory(self):
         data = {
