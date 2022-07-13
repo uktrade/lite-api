@@ -18,16 +18,6 @@ class DataclassTests(APITestCase):
                 },
             ),
             (
-                payloads.EcjuComplianceCreatedEmailData,
-                {
-                    "query": "testquery",
-                    "case_reference": "testref",
-                    "site_name": "testsitename",
-                    "site_address": "testaddress",
-                    "link": "testlink",
-                },
-            ),
-            (
                 payloads.ApplicationStatusEmailData,
                 {
                     "case_reference": "testref",

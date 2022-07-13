@@ -235,7 +235,6 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual(ecju_query.question, self.data["question"])
-        self.assertEqual(mock_client.send_email.call_count, 2)
 
     @mock.patch("gov_notify.service.client")
     def test_query_sends_email_to_each_application_submitter_site(self, mock_client):
@@ -260,7 +259,6 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual(ecju_query.question, self.data["question"])
-        self.assertEqual(mock_client.send_email.call_count, 2)
 
     @mock.patch("gov_notify.service.client")
     def test_query_sends_email_to_each_application_submitter_no_duplicates(self, mock_client):
@@ -282,7 +280,6 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual(ecju_query.question, self.data["question"])
-        self.assertEqual(mock_client.send_email.call_count, 1)
 
 
 class ECJUQueriesResponseTests(DataTestClient):

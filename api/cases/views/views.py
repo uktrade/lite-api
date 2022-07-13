@@ -76,9 +76,6 @@ from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
 from api.goods.serializers import GoodOnApplicationSerializer
 from api.goods.enums import GoodStatus
-from gov_notify import service as gov_notify_service
-from gov_notify.enums import TemplateType
-from gov_notify.payloads import EcjuComplianceCreatedEmailData
 from api.licences.models import Licence
 from api.licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
@@ -515,18 +512,19 @@ class ECJUQueries(APIView):
                 for licence in Case.objects.filter_for_cases_related_to_compliance_case(case_id):
                     emails.add(licence.submitted_by.email)
 
-                for email in emails:
-                    gov_notify_service.send_email(
-                        email_address=email,
-                        template_type=TemplateType.ECJU_COMPLIANCE_CREATED,
-                        data=EcjuComplianceCreatedEmailData(
-                            query=serializer.data["question"],
-                            case_reference=case_info["reference_code"],
-                            site_name=site.name,
-                            site_address=str(site.address),
-                            link=link,
-                        ),
-                    )
+                # TODO: Replace the below with new template
+                # for email in emails:
+                #    gov_notify_service.send_email(
+                #        email_address=email,
+                #        template_type=TemplateType.ECJU_COMPLIANCE_CREATED,
+                #        data=EcjuComplianceCreatedEmailData(
+                #            query=serializer.data["question"],
+                #            case_reference=case_info["reference_code"],
+                #            site_name=site.name,
+                #            site_address=str(site.address),
+                #            link=link,
+                #        ),
+                #    )
             return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
 
 
