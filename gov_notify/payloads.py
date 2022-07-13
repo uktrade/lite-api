@@ -57,3 +57,9 @@ class ExporterOrganisationApproved(EmailData):
     exporter_first_name: str
     organisation_name: str
     exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterOrganisationRejected(EmailData):
+    exporter_first_name: str
+    organisation_name: str
