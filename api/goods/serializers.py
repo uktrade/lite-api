@@ -720,8 +720,16 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
 
     def get_destinations(self, obj):
         destinations = (
-            PartyOnApplication.objects.filter(application=obj.application).values("party__country__name").distinct()
+            PartyOnApplication.objects.filter(
+                application=obj.application,
+                deleted_at__isnull=True,
+            )
+            .values(
+                "party__country__name",
+            )
+            .distinct()
         )
+
         return [dest["party__country__name"] for dest in destinations]
 
 
