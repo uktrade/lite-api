@@ -430,6 +430,7 @@ class GoodOnApplication(AbstractGoodOnApplication):
                 str(self.id),
                 str(self.good_id),
                 stack_info=True,
+                exc_info=True,
             )
 
 
