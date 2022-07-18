@@ -20,7 +20,7 @@ from api.staticdata.units.enums import Units
 from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
-from api.users.models import Role, GovUser
+from api.users.models import Role
 
 
 class GoodsVerifiedTestsStandardApplication(DataTestClient):
@@ -303,6 +303,61 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         audit_payload = product1_audit[0].payload
         self.assertEqual(audit_payload["old_report_summary"], "Rifles (10)")
         self.assertEqual(audit_payload["report_summary"], "Sniper rifles (10)")
+
+    def test_preserve_previous_cles_when_product_reused_in_other_application(self):
+        """Tests whether CLEs on product are preserved when the same product is
+        reused on a second application"""
+        product = self.good_1
+        self.product_on_application1 = GoodOnApplication.objects.create(
+            good=product,
+            application=self.application,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+            report_summary="Rifles (10)",
+        )
+        data = {
+            "objects": [product.pk],
+            "current_object": self.product_on_application1.pk,
+            "control_list_entries": ["ML1b"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": "Sniper rifles (10)",
+            "comment": "preserve CLEs when product re-used test",
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.product_on_application1.refresh_from_db()
+        self.assertEqual(self.product_on_application1.report_summary, "Sniper rifles (10)")
+
+        second_application = self.create_draft_standard_application(organisation=self.organisation)
+        product_on_application_reused = GoodOnApplication.objects.create(
+            good=product, application=second_application, quantity=10, unit=Units.NAR, value=500
+        )
+        second_case = self.submit_application(second_application)
+        data = {
+            "objects": [product.pk],
+            "current_object": product_on_application_reused.pk,
+            "control_list_entries": ["FR AI", "ML2a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": "Rifles (5)",
+            "comment": "preserve CLEs when product re-used test",
+        }
+        url = reverse("goods:control_list_entries", kwargs={"case_pk": second_case.id})
+        response = self.client.post(url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        product_on_application_reused.refresh_from_db()
+        self.assertEqual(product_on_application_reused.report_summary, "Rifles (5)")
+
+        cles = [cle.rating for cle in product_on_application_reused.control_list_entries.all()]
+        self.assertEqual(sorted(cles), ["FR AI", "ML2a"])
+
+        product_cles = [cle.rating for cle in product.control_list_entries.all()]
+        self.assertEqual(sorted(product_cles), ["FR AI", "ML1b", "ML2a"])
 
 
 class GoodsVerifiedTestsOpenApplication(DataTestClient):
