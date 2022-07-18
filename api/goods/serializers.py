@@ -863,10 +863,14 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
-        instance.good.status = GoodStatus.VERIFIED
-        instance.good.control_list_entries.set(validated_data["control_list_entries"])
+        if instance.good.status == GoodStatus.VERIFIED:
+            instance.good.control_list_entries.add(*validated_data["control_list_entries"])
+        else:
+            instance.good.status = GoodStatus.VERIFIED
+            instance.good.control_list_entries.set(validated_data["control_list_entries"])
+            instance.good.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
+
         instance.good.save()
-        instance.good.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
         return instance
 
 
