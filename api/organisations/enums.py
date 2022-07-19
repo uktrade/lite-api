@@ -36,11 +36,13 @@ class OrganisationStatus:
     ACTIVE = "active"
     IN_REVIEW = "in_review"
     REJECTED = "rejected"
+    DRAFT = "draft"
 
     choices = [
         (ACTIVE, "Active"),
         (IN_REVIEW, "In review"),
         (REJECTED, "Rejected"),
+        (DRAFT, "Draft"),
     ]
 
 

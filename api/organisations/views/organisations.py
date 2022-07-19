@@ -67,12 +67,13 @@ class OrganisationsList(generics.ListCreateAPIView):
         """Create a new organisation."""
         data = request.data.copy()
         validate_only = request.data.get("validate_only", False)
+        if not data.get("status"):
+            data["status"] = (
+                OrganisationStatus.ACTIVE
+                if getattr(request.user, "type", None) == UserType.INTERNAL
+                else OrganisationStatus.IN_REVIEW
+            )
 
-        data["status"] = (
-            OrganisationStatus.ACTIVE
-            if getattr(request.user, "type", None) == UserType.INTERNAL
-            else OrganisationStatus.IN_REVIEW
-        )
         serializer = OrganisationCreateUpdateSerializer(
             data=data, context={"validate_only": validate_only, "type": data["type"]}
         )
@@ -107,9 +108,9 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
     def put(self, request, pk):
         """Edit details of an organisation."""
         data = request.data.copy()
+
         organisation = get_organisation_by_pk(pk)
         org_name_changed = False
-
         if not check_user_has_permission(request.user.govuser, GovPermissions.MANAGE_ORGANISATIONS):
             return JsonResponse(
                 data={"errors": Organisations.NO_PERM_TO_EDIT},
@@ -123,7 +124,6 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
                     data={"errors": Organisations.NO_PERM_TO_EDIT_NAME},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
         serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=data, partial=True)
 
         if serializer.is_valid(raise_exception=True):
@@ -155,6 +155,33 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
         for application in applications:
             apply_flagging_rules_to_case(application)
+
+
+class OrganisationsDraftDetail(generics.RetrieveUpdateAPIView):
+    # Specific view for draft updates
+    authentication_classes = (SharedAuthentication,)
+    queryset = Organisation.objects.all()
+    serializer_class = OrganisationDetailSerializer
+
+    def put(self, request, pk):
+        """Edit details of an organisation."""
+        data = request.data.copy()
+
+        organisation = get_organisation_by_pk(pk)
+
+        if organisation.status != OrganisationStatus.DRAFT:
+            # Organisation is in draft state updates are allowed by exporter
+            # TODO we may need futher checker to ensure exporter is owner
+            return JsonResponse(
+                data={"errors": Organisations.NO_PERM_TO_EDIT},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=data, partial=True)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
 
 
 class OrganisationsMatchingDetail(APIView):

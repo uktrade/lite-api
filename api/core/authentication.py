@@ -14,6 +14,7 @@ from api.organisations.models import Organisation
 from api.users.enums import UserStatuses
 from api.users.libraries.token_to_user import token_to_user_pk
 from api.users.models import UserOrganisationRelationship, ExporterUser, GovUser
+from django.db.models import Q
 
 GOV_USER_TOKEN_HEADER = "HTTP_GOV_USER_TOKEN"  # nosec
 
@@ -21,7 +22,7 @@ EXPORTER_USER_TOKEN_HEADER = "HTTP_EXPORTER_USER_TOKEN"  # nosec
 ORGANISATION_ID = "HTTP_ORGANISATION_ID"
 
 MISSING_TOKEN_ERROR = "You must supply the correct token in your headers"  # nosec
-ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated"
+ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated or not in draft"
 USER_DEACTIVATED_ERROR = "User is not active for this organisation"
 USER_NOT_FOUND_ERROR = "User does not exist"
 
@@ -44,7 +45,10 @@ class ExporterAuthentication(authentication.BaseAuthentication):
         else:
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
-        if not Organisation.objects.filter(id=organisation_id, status=OrganisationStatus.ACTIVE).exists():
+        if not Organisation.objects.filter(
+            Q(id=organisation_id, status=OrganisationStatus.ACTIVE)
+            | Q(id=organisation_id, status=OrganisationStatus.DRAFT)
+        ).exists():
             raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
 
         if not UserOrganisationRelationship.objects.filter(

@@ -8,6 +8,7 @@ app_name = "organisations"
 urlpatterns = [
     path("", organisations.OrganisationsList.as_view(), name="organisations"),
     path("<uuid:pk>/", organisations.OrganisationsDetail.as_view(), name="organisation"),
+    path("<uuid:pk>/update/", organisations.OrganisationsDraftDetail.as_view(), name="organisation_draft_update"),
     path(
         "<uuid:pk>/matching_details/",
         organisations.OrganisationsMatchingDetail.as_view(),
