@@ -16,3 +16,11 @@ def debug_count_cases():
     Simple debug celery task to count the number of cases in the app.
     """
     return Case.objects.count()
+
+
+@shared_task
+def debug_exception():
+    """
+    Debug task which raises an exception.
+    """
+    raise Exception("debug_exception task")

@@ -262,8 +262,8 @@ def _build_redis_url(base_url, db_number, **query_args):
 if REDIS_BASE_URL:
     # Give celery tasks their own redis DB - future uses of redis should use a different DB
     REDIS_CELERY_DB = env("REDIS_CELERY_DB", default=0)
-    is_rediss = REDIS_BASE_URL.startswith("rediss://")
-    url_args = {"ssl_cert_reqs": "CERT_REQUIRED"} if is_rediss else {}
+    is_redis_ssl = REDIS_BASE_URL.startswith("rediss://")
+    url_args = {"ssl_cert_reqs": "CERT_REQUIRED"} if is_redis_ssl else {}
 
     CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
     CELERY_RESULT_BACKEND = CELERY_BROKER_URL
