@@ -82,7 +82,6 @@ def audit_reviewed_organisation(user, organisation, decision):
                 "organisation_name": organisation.name,
             },
         )
-        notify.notify_exporter_organisation_approved(organisation)
     else:
         audit_trail_service.create(
             actor=user,
@@ -92,4 +91,10 @@ def audit_reviewed_organisation(user, organisation, decision):
                 "organisation_name": organisation.name,
             },
         )
+
+
+def notify_organisation_reviewed(organisation, decision):
+    if decision == OrganisationStatus.ACTIVE:
+        notify.notify_exporter_organisation_approved(organisation)
+    else:
         notify.notify_exporter_organisation_rejected(organisation)
