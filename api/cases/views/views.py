@@ -47,6 +47,7 @@ from api.cases.models import (
     Case,
     CaseReviewDate,
 )
+from api.cases.notify import notify_exporter_licence_issued
 from api.cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -837,6 +838,10 @@ class FinaliseView(UpdateAPIView):
 
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.issue()
+
+            # Send email notification for licence issued
+            notify_exporter_licence_issued(licence)
+
             return_payload["licence"] = licence.id
             if Licence.objects.filter(case=case).count() > 1:
                 audit_trail_service.create(

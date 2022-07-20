@@ -48,3 +48,10 @@ class ExporterRegistration(EmailData):
 class ExporterUserAdded(EmailData):
     organisation_name: str
     exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterLicenceIssued(EmailData):
+    user_first_name: str
+    application_reference: str
+    exporter_frontend_url: str

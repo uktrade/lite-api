@@ -28,8 +28,9 @@ class FinaliseCaseTests(DataTestClient):
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
 
+    @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
-    def test_grant_standard_application_success(self, send_exporter_notifications_func):
+    def test_grant_standard_application_success(self, send_exporter_notifications_func, mock_notify):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         licence = self.create_licence(self.standard_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
@@ -54,6 +55,7 @@ class FinaliseCaseTests(DataTestClient):
             self.assertTrue(document.visible_to_exporter)
         self.assertEqual(Audit.objects.count(), 4)
         send_exporter_notifications_func.assert_called()
+        mock_notify.assert_called_with(licence)
 
     def test_grant_standard_application_wrong_permission_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
@@ -74,8 +76,9 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": {"decision-approve": [Cases.Licence.MISSING_DOCUMENTS]}})
 
+    @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
-    def test_grant_clearance_success(self, send_exporter_notifications_func):
+    def test_grant_clearance_success(self, send_exporter_notifications_func, mock_notify):
         clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(clearance_case)
         self.create_advice(self.gov_user, clearance_case, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
@@ -105,6 +108,7 @@ class FinaliseCaseTests(DataTestClient):
             self.assertTrue(document.visible_to_exporter)
         self.assertEqual(Audit.objects.count(), 5)
         send_exporter_notifications_func.assert_called()
+        mock_notify.assert_called_with(licence)
 
     def test_grant_clearance_wrong_permission_failure(self):
         clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
