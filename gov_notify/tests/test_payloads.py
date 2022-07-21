@@ -36,12 +36,6 @@ class DataclassTests(APITestCase):
                 },
             ),
             (
-                payloads.OrganisationStatusEmailData,
-                {
-                    "organisation_name": "testorgname",
-                },
-            ),
-            (
                 payloads.ExporterRegistration,
                 {
                     "organisation_name": "testorgname",
@@ -52,6 +46,21 @@ class DataclassTests(APITestCase):
                 {
                     "organisation_name": "testorgname",
                     "exporter_frontend_url": "https://some.domain/foo",
+                },
+            ),
+            (
+                payloads.ExporterOrganisationApproved,
+                {
+                    "exporter_first_name": "testname",
+                    "organisation_name": "testorgname",
+                    "exporter_frontend_url": "https://some.domain/foo",
+                },
+            ),
+            (
+                payloads.ExporterOrganisationRejected,
+                {
+                    "exporter_first_name": "testname",
+                    "organisation_name": "testorgname",
                 },
             ),
         ]
