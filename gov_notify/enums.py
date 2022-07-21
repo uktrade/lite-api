@@ -10,6 +10,7 @@ class TemplateType(Enum):
     EXPORTER_ORGANISATION_REJECTED = "exporter_organisation_rejected"
     CASEWORKER_REGISTERED_NEW_ORG = "caseworker_registered_new_org"
     EXPORTER_CASE_OPENED_FOR_EDITING = "exporter_editing"
+    EXPORTER_ECJU_QUERY = "exporter_ecju_query"
 
     @property
     def template_id(self):

@@ -67,8 +67,8 @@ class ExporterECJUQuery(EmailData):
 class CaseWorkerNewRegistration(EmailData):
     organisation_name: str
     applicant_email: str
-    
-    
+
+
 class ExporterCaseOpenedForEditing(EmailData):
     user_first_name: str
     application_reference: str
