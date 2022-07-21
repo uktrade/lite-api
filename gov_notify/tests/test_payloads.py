@@ -18,16 +18,6 @@ class DataclassTests(APITestCase):
                 },
             ),
             (
-                payloads.EcjuComplianceCreatedEmailData,
-                {
-                    "query": "testquery",
-                    "case_reference": "testref",
-                    "site_name": "testsitename",
-                    "site_address": "testaddress",
-                    "link": "testlink",
-                },
-            ),
-            (
                 payloads.ApplicationStatusEmailData,
                 {
                     "case_reference": "testref",
@@ -61,6 +51,14 @@ class DataclassTests(APITestCase):
                 {
                     "exporter_first_name": "testname",
                     "organisation_name": "testorgname",
+                },
+            ),
+            (
+                payloads.ExporterECJUQuery,
+                {
+                    "case_reference": "testref",
+                    "exporter_first_name": "testname",
+                    "exporter_frontend_url": "https://some.domain/foo",
                 },
             ),
         ]
