@@ -6,7 +6,7 @@ from faker import Faker
 from rest_framework.test import APITestCase
 
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import ExporterRegistration, CaseWorkNewRegistration
+from gov_notify.payloads import ExporterRegistration, CaseWorkerNewRegistration
 from api.organisations.notify import notify_exporter_registration, notify_caseworker_new_registration
 
 
@@ -26,7 +26,7 @@ class NotifyTests(APITestCase):
         settings.LITE_INTERNAL_NOTIFICATION_EMAILS = {"CASEWORKER_NEW_REGISTRATION": [email]}
 
         data = {"organisation_name": "testorgname", "applicant_email": Faker().email()}
-        expected_payload = CaseWorkNewRegistration(**data)
+        expected_payload = CaseWorkerNewRegistration(**data)
 
         notify_caseworker_new_registration(data)
         mock_send_email.assert_called_with(email, TemplateType.CASEWORKER_REGISTERED_NEW_ORG, expected_payload)

@@ -45,7 +45,7 @@ class ExporterRegistration(EmailData):
 
 
 @dataclass(frozen=True)
-class CaseWorkNewRegistration(EmailData):
+class CaseWorkerNewRegistration(EmailData):
     organisation_name: str
     applicant_email: str
 
