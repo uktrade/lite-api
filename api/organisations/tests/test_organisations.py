@@ -1,6 +1,8 @@
 import re
 import pytest
 
+from django.conf import settings
+
 from unittest import mock
 
 from faker import Faker
@@ -106,8 +108,11 @@ class GetOrganisationTests(DataTestClient):
 class CreateOrganisationTests(DataTestClient):
     url = reverse("organisations:organisations")
 
+    @mock.patch("api.organisations.notify.notify_caseworker_new_registration")
     @mock.patch("api.organisations.notify.notify_exporter_registration")
-    def test_create_commercial_organisation_as_internal_success(self, mocked_notify_exporter_registration):
+    def test_create_commercial_organisation_as_internal_success(
+        self, mocked_notify_exporter_registration, mocked_caseworker_new_registration
+    ):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
@@ -161,6 +166,8 @@ class CreateOrganisationTests(DataTestClient):
 
         # Ensure that exporters are not notified when an internal user creates an organisation
         assert not mocked_notify_exporter_registration.called
+        # Caseworkers are still notified
+        assert mocked_caseworker_new_registration.called
 
     @parameterized.expand(
         [
@@ -177,7 +184,13 @@ class CreateOrganisationTests(DataTestClient):
         ]
     )
     @mock.patch("api.organisations.notify.notify_exporter_registration")
-    def test_create_commercial_organisation_as_exporter_success(self, address, mocked_notify_exporter_registration):
+    @mock.patch("api.organisations.notify.notify_caseworker_new_registration")
+    def test_create_commercial_organisation_as_exporter_success(
+        self,
+        address,
+        mocked_notify_caseworker_new_registration,
+        mocked_notify_exporter_registration,
+    ):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
@@ -231,6 +244,10 @@ class CreateOrganisationTests(DataTestClient):
 
         mocked_notify_exporter_registration.assert_called_with(
             data["user"]["email"], {"organisation_name": data["name"]}
+        )
+
+        mocked_notify_caseworker_new_registration.assert_called_with(
+            {"organisation_name": data["name"], "applicant_email": data["user"]["email"]}
         )
 
     def test_create_organisation_phone_number_mandatory(self):
@@ -841,6 +858,7 @@ class EditOrganisationStatusTests(DataTestClient):
         self.organisation = OrganisationFactory(status=OrganisationStatus.IN_REVIEW)
         UserOrganisationRelationshipFactory(organisation=self.organisation, user=self.exporter_user)
         self.url = reverse("organisations:organisation_status", kwargs={"pk": self.organisation.pk})
+        settings.LITE_INTERNAL_NOTIFICATION_EMAILS = {"CASEWORKER_NEW_REGISTRATION": [Faker().email()]}
 
     @mock.patch("gov_notify.service.client")
     def test_set_organisation_status_success(self, mock_notify_client):
