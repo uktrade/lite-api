@@ -19,15 +19,6 @@ class EcjuCreatedEmailData(EmailData):
 
 
 @dataclass(frozen=True)
-class EcjuComplianceCreatedEmailData(EmailData):
-    query: str
-    case_reference: str
-    site_name: str
-    site_address: str
-    link: str
-
-
-@dataclass(frozen=True)
 class ApplicationStatusEmailData(EmailData):
     case_reference: str
     application_reference: str
@@ -63,3 +54,10 @@ class ExporterOrganisationApproved(EmailData):
 class ExporterOrganisationRejected(EmailData):
     exporter_first_name: str
     organisation_name: str
+
+
+@dataclass(frozen=True)
+class ExporterECJUQuery(EmailData):
+    case_reference: str
+    exporter_first_name: str
+    exporter_frontend_url: str

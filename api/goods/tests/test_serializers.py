@@ -4,8 +4,8 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     StandardApplicationFactory,
 )
-from api.parties.tests.factories import PartyFactory
 from api.staticdata.countries.factories import CountryFactory
+from api.parties.tests.factories import PartyFactory
 from test_helpers.clients import DataTestClient
 
 from api.applications.tests.factories import PartyOnApplicationFactory
@@ -42,6 +42,9 @@ class GoodOnApplicationSerializerTests(DataTestClient):
 
         party_on_application = PartyOnApplicationFactory.create(
             application=self.application,
+            party__country__id="IT",
+            party__country__name="Italy",
+            party__country__type="2",
         )
         self.assertEqual(
             GoodOnApplicationSerializer().get_destinations(self.a_good_on_application),
@@ -54,6 +57,9 @@ class GoodOnApplicationSerializerTests(DataTestClient):
 
         another_party_on_application = PartyOnApplicationFactory.create(
             application=self.application,
+            party__country__id="UK",
+            party__country__name="United Kingdom",
+            party__country__type="1",
         )
         self.assertNotEqual(
             party_on_application.party.country.name,
