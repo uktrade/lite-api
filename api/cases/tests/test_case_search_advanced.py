@@ -42,7 +42,7 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_3.count(), 1)
         self.assertEqual(site_on_application_2.application.pk, site_on_application_3.application.pk)
         self.assertNotEqual(site_on_application_1.application.pk, site_on_application_2.application.pk)
-        self.assertNotEqual(site_on_application_1.site.name, site_on_application_2.site.name)
+        self.assertNotEqual(site_on_application_1.site.pk, site_on_application_2.site.pk)
 
     def test_filter_with_organisation_name(self):
         application_1 = StandardApplicationFactory()
