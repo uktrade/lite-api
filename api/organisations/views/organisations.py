@@ -86,6 +86,14 @@ class OrganisationsList(generics.ListCreateAPIView):
             if not validate_only:
                 serializer.save()
 
+                # Notify caseworkers of new registration
+                notify.notify_caseworker_new_registration(
+                    {
+                        "applicant_email": serializer.validated_data["user"]["email"],
+                        "organisation_name": serializer.validated_data["name"],
+                    },
+                )
+
                 # Audit the creation of the organisation
                 if not request.user.is_anonymous:
                     audit_trail_service.create(

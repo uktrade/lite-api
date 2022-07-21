@@ -1,8 +1,14 @@
 from django.db.models import F
+from django.conf import settings
 
 from api.core.helpers import get_exporter_frontend_url
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import ExporterRegistration, ExporterOrganisationApproved, ExporterOrganisationRejected
+from gov_notify.payloads import (
+    ExporterRegistration,
+    ExporterOrganisationApproved,
+    ExporterOrganisationRejected,
+    CaseWorkerNewRegistration,
+)
 from gov_notify.service import send_email
 
 
@@ -50,3 +56,9 @@ def notify_exporter_organisation_rejected(organisation):
 def _notify_exporter_organisation_rejected(email, data):
     payload = ExporterOrganisationRejected(**data)
     send_email(email, TemplateType.EXPORTER_ORGANISATION_REJECTED, payload)
+
+
+def notify_caseworker_new_registration(data):
+    payload = CaseWorkerNewRegistration(**data)
+    for email in settings.LITE_INTERNAL_NOTIFICATION_EMAILS.get("CASEWORKER_NEW_REGISTRATION", []):
+        send_email(email, TemplateType.CASEWORKER_REGISTERED_NEW_ORG, payload)

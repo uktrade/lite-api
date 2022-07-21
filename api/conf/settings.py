@@ -443,3 +443,4 @@ SANCTION_LIST_SOURCES = env.json(
         "uk_sanctions_file": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1071293/UK_Sanctions_List.xml",
     },
 )
+LITE_INTERNAL_NOTIFICATION_EMAILS = env.json("LITE_INTERNAL_NOTIFICATION_EMAILS", {})
