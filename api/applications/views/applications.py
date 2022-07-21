@@ -530,7 +530,7 @@ class ApplicationManageStatus(APIView):
         if old_status != application.status:
             run_routing_rules(case=application, keep_status=True)
 
-            if application.status == get_case_status_by_status(CaseStatusEnum.REOPENED_FOR_CHANGES):
+            if application.status.status == CaseStatusEnum.REOPENED_FOR_CHANGES:
                 notify_exporter_case_opened_for_editing(application)
 
         data = get_application_view_serializer(application)(application, context={"user_type": request.user.type}).data
