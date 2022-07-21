@@ -15,7 +15,11 @@ from api.core.helpers import str_to_bool
 from api.core.permissions import check_user_has_permission, assert_user_has_permission
 from lite_content.lite_api.strings import Organisations
 from api.organisations.enums import OrganisationStatus, OrganisationType
-from api.organisations.helpers import audit_edited_organisation_fields, audit_reviewed_organisation
+from api.organisations.helpers import (
+    audit_edited_organisation_fields,
+    audit_reviewed_organisation,
+    notify_organisation_reviewed,
+)
 from api.organisations.libraries.get_organisation import get_organisation_by_pk, get_request_user_organisation
 from api.organisations.models import Organisation
 from api.organisations.serializers import (
@@ -232,6 +236,7 @@ class OrganisationStatusView(generics.UpdateAPIView):
         if serializer.is_valid():
             serializer.save()
             audit_reviewed_organisation(request.user, organisation, serializer.data["status"]["key"])
+            notify_organisation_reviewed(organisation, serializer.data["status"]["key"])
 
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 

@@ -35,11 +35,6 @@ class ApplicationStatusEmailData(EmailData):
 
 
 @dataclass(frozen=True)
-class OrganisationStatusEmailData(EmailData):
-    organisation_name: str
-
-
-@dataclass(frozen=True)
 class ExporterRegistration(EmailData):
     organisation_name: str
 
@@ -55,3 +50,16 @@ class ExporterLicenceIssued(EmailData):
     user_first_name: str
     application_reference: str
     exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterOrganisationApproved(EmailData):
+    exporter_first_name: str
+    organisation_name: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterOrganisationRejected(EmailData):
+    exporter_first_name: str
+    organisation_name: str
