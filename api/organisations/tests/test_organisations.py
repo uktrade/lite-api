@@ -165,7 +165,9 @@ class CreateOrganisationTests(DataTestClient):
         # Ensure that exporters are not notified when an internal user creates an organisation
         assert not mocked_notify_exporter_registration.called
         # Caseworkers are still notified
-        assert mocked_caseworker_new_registration.called
+        mocked_caseworker_new_registration.called_with(
+            {"organisation_name": data["name"], "applicant_email": data["user"]["email"]}
+        )
 
     @parameterized.expand(
         [

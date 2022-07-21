@@ -69,6 +69,7 @@ class CaseWorkerNewRegistration(EmailData):
     applicant_email: str
 
 
+@dataclass(frozen=True)
 class ExporterCaseOpenedForEditing(EmailData):
     user_first_name: str
     application_reference: str
