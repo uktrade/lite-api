@@ -8,8 +8,8 @@ class TemplateType(Enum):
     EXPORTER_LICENCE_ISSUED = "exporter_licence_issued"
     EXPORTER_ORGANISATION_APPROVED = "exporter_organisation_approved"
     EXPORTER_ORGANISATION_REJECTED = "exporter_organisation_rejected"
-    EXPORTER_ECJU_QUERY = "exporter_ecju_query"
     CASEWORKER_REGISTERED_NEW_ORG = "caseworker_registered_new_org"
+    EXPORTER_CASE_OPENED_FOR_EDITING = "exporter_editing"
 
     @property
     def template_id(self):
@@ -25,4 +25,5 @@ class TemplateType(Enum):
             self.EXPORTER_ORGANISATION_REJECTED: "1dec3acd-94b0-47bb-832a-384ba5c6f51a",
             self.EXPORTER_ECJU_QUERY: "84431173-72a9-43a1-8926-b43dec7871f9",
             self.CASEWORKER_REGISTERED_NEW_ORG: "d835dba3-ca85-4a27-b257-e31a17f0e61d",
+            self.EXPORTER_CASE_OPENED_FOR_EDITING: "73121bc2-2f03-4c66-8e88-61a156c05559",
         }[self]
