@@ -303,7 +303,8 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.WITHDRAWN))
 
-    def test_gov_set_status_when_they_have_permission_to_reopen_closed_cases_success(self):
+    @mock.patch("api.applications.views.applications.notify_exporter_case_opened_for_editing")
+    def test_gov_set_status_when_they_have_permission_to_reopen_closed_cases_success(self, mock_notify):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
         self.standard_application.save()
 
@@ -321,20 +322,6 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.REOPENED_FOR_CHANGES)
         )
-
-    @mock.patch("api.applications.views.applications.notify_exporter_case_opened_for_editing")
-    def test_gov_set_status_when_they_have_permission_to_reopen_closed_cases_sends_notification(self, mock_notify):
-        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
-        self.standard_application.save()
-
-        # Give gov user super used role, to include reopen closed cases permission
-        self.gov_user.role = self.super_user_role
-        self.gov_user.save()
-
-        data = {"status": CaseStatusEnum.REOPENED_FOR_CHANGES}
-
-        self.client.put(self.url, data=data, **self.gov_headers)
-
         mock_notify.assert_called_with(self.standard_application)
 
     def test_case_routing_automation(self):
