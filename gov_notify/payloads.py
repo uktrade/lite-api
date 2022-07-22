@@ -68,3 +68,10 @@ class ExporterECJUQuery(EmailData):
     case_reference: str
     exporter_first_name: str
     exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterCaseOpenedForEditing(EmailData):
+    user_first_name: str
+    application_reference: str
+    exporter_frontend_url: str

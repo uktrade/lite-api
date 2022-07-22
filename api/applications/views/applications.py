@@ -46,6 +46,7 @@ from api.applications.models import (
     StandardApplication,
     F680ClearanceApplication,
 )
+from api.applications.notify import notify_exporter_case_opened_for_editing
 from api.applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from api.applications.serializers.generic_application import (
     GenericApplicationListSerializer,
@@ -526,9 +527,11 @@ class ApplicationManageStatus(APIView):
             },
         )
 
-        # Case routing rules
         if old_status != application.status:
             run_routing_rules(case=application, keep_status=True)
+
+            if application.status.status == CaseStatusEnum.REOPENED_FOR_CHANGES:
+                notify_exporter_case_opened_for_editing(application)
 
         data = get_application_view_serializer(application)(application, context={"user_type": request.user.type}).data
 

@@ -61,6 +61,22 @@ class DataclassTests(APITestCase):
                     "exporter_frontend_url": "https://some.domain/foo",
                 },
             ),
+            (
+                payloads.ExporterECJUQuery,
+                {
+                    "case_reference": "testref",
+                    "exporter_first_name": "testname",
+                    "exporter_frontend_url": "https://some.domain/foo",
+                },
+            ),
+            (
+                payloads.ExporterCaseOpenedForEditing,
+                {
+                    "application_reference": "testref",
+                    "user_first_name": "testname",
+                    "exporter_frontend_url": "https://some.domain/foo",
+                },
+            ),
         ]
     )
     def test_valid_input(self, dataclass, data):
