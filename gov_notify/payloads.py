@@ -78,6 +78,12 @@ class ExporterECJUQuery(EmailData):
 
 
 @dataclass(frozen=True)
+class CaseWorkerNewRegistration(EmailData):
+    organisation_name: str
+    applicant_email: str
+
+
+@dataclass(frozen=True)
 class ExporterCaseOpenedForEditing(EmailData):
     user_first_name: str
     application_reference: str

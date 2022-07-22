@@ -77,6 +77,13 @@ class DataclassTests(APITestCase):
                     "exporter_frontend_url": "https://some.domain/foo",
                 },
             ),
+            (
+                payloads.CaseWorkerNewRegistration,
+                {
+                    "organisation_name": "testref",
+                    "applicant_email": "test@user.com",
+                },
+            ),
         ]
     )
     def test_valid_input(self, dataclass, data):
