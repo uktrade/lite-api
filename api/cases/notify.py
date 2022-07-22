@@ -3,7 +3,7 @@ from django.db.models import F
 from api.core.helpers import get_exporter_frontend_url
 from api.cases.models import Case
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import ExporterECJUQuery, ExporterLicenceIssued, ExporterLicenceRefused
+from gov_notify.payloads import ExporterECJUQuery, ExporterLicenceIssued, ExporterLicenceRefused, ExporterLicenceRevoked
 from gov_notify.service import send_email
 
 
@@ -42,6 +42,28 @@ def notify_exporter_licence_refused(case):
     exporter = case.submitted_by
     case = case.get_case()
     _notify_exporter_licence_refused(
+        exporter.email,
+        {
+            "user_first_name": exporter.first_name,
+            "application_reference": case.reference_code,
+            "exporter_frontend_url": get_exporter_frontend_url("/"),
+        },
+    )
+
+
+def _notify_exporter_licence_revoked(email, data):
+    payload = ExporterLicenceRevoked(**data)
+    send_email(
+        email,
+        TemplateType.EXPORTER_LICENCE_REVOKED,
+        payload,
+    )
+
+
+def notify_exporter_licence_revoked(licence):
+    exporter = licence.case.submitted_by
+    case = licence.case.get_case()
+    _notify_exporter_licence_revoked(
         exporter.email,
         {
             "user_first_name": exporter.first_name,
