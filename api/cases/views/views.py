@@ -43,7 +43,11 @@ from api.cases.models import (
     CaseAssignment,
     CaseReviewDate,
 )
-from api.cases.notify import notify_exporter_licence_issued, notify_exporter_licence_refused
+from api.cases.notify import (
+    notify_exporter_licence_issued,
+    notify_exporter_licence_refused,
+    notify_exporter_no_licence_required,
+)
 from api.cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -834,6 +838,9 @@ class FinaliseView(UpdateAPIView):
 
         if AdviceType.REFUSE in decisions:
             notify_exporter_licence_refused(case)
+
+        if AdviceType.NO_LICENCE_REQUIRED in decisions:
+            notify_exporter_no_licence_required(case)
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)

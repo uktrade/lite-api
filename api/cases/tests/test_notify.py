@@ -4,13 +4,19 @@ from api.cases.notify import (
     notify_exporter_ecju_query,
     notify_exporter_licence_issued,
     notify_exporter_licence_refused,
-    notify_exporter_licence_refused,
+    notify_exporter_no_licence_required,
     notify_exporter_licence_revoked,
 )
 from api.licences.tests.factories import LicenceFactory
 from api.users.tests.factories import ExporterUserFactory
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import ExporterECJUQuery, ExporterLicenceIssued, ExporterLicenceRefused, ExporterLicenceRevoked
+from gov_notify.payloads import (
+    ExporterECJUQuery,
+    ExporterLicenceIssued,
+    ExporterLicenceRefused,
+    ExporterLicenceRevoked,
+    ExporterNoLicenceRequired,
+)
 from test_helpers.clients import DataTestClient
 
 
@@ -65,6 +71,22 @@ class NotifyTests(DataTestClient):
         mock_send_email.assert_called_with(
             self.exporter_user.email,
             TemplateType.EXPORTER_LICENCE_REVOKED,
+            expected_payload,
+        )
+
+    @mock.patch("api.cases.notify.send_email")
+    def test_notify_no_licence_required(self, mock_send_email):
+        expected_payload = ExporterNoLicenceRequired(
+            user_first_name=self.exporter_user.first_name,
+            application_reference=self.case.reference_code,
+            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
+        )
+
+        notify_exporter_no_licence_required(self.case)
+
+        mock_send_email.assert_called_with(
+            self.exporter_user.email,
+            TemplateType.EXPORTER_NO_LICENCE_REQUIRED,
             expected_payload,
         )
 

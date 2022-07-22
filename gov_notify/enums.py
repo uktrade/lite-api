@@ -13,6 +13,7 @@ class TemplateType(Enum):
     CASEWORKER_REGISTERED_NEW_ORG = "caseworker_registered_new_org"
     EXPORTER_CASE_OPENED_FOR_EDITING = "exporter_editing"
     EXPORTER_ECJU_QUERY = "exporter_ecju_query"
+    EXPORTER_NO_LICENCE_REQUIRED = "exporter_no_licence_required"
 
     @property
     def template_id(self):
@@ -31,4 +32,5 @@ class TemplateType(Enum):
             self.EXPORTER_ECJU_QUERY: "84431173-72a9-43a1-8926-b43dec7871f9",
             self.CASEWORKER_REGISTERED_NEW_ORG: "d835dba3-ca85-4a27-b257-e31a17f0e61d",
             self.EXPORTER_CASE_OPENED_FOR_EDITING: "73121bc2-2f03-4c66-8e88-61a156c05559",
+            self.EXPORTER_NO_LICENCE_REQUIRED: "d84d1843-882c-440e-9cd4-84972ba612e6",
         }[self]

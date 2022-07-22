@@ -16,6 +16,7 @@ class TemplateTypeTests(APITestCase):
             (TemplateType.EXPORTER_ORGANISATION_REJECTED, "1dec3acd-94b0-47bb-832a-384ba5c6f51a"),
             (TemplateType.EXPORTER_ECJU_QUERY, "84431173-72a9-43a1-8926-b43dec7871f9"),
             (TemplateType.EXPORTER_CASE_OPENED_FOR_EDITING, "73121bc2-2f03-4c66-8e88-61a156c05559"),
+            (TemplateType.EXPORTER_NO_LICENCE_REQUIRED, "d84d1843-882c-440e-9cd4-84972ba612e6"),
         ]
     )
     def test_template_id(self, template_type, expected_template_id):
