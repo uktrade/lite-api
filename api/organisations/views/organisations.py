@@ -165,22 +165,21 @@ class OrganisationsDraftDetail(generics.RetrieveUpdateAPIView):
 
     def put(self, request, pk):
         """Edit details of an organisation."""
-        data = request.data.copy()
 
         organisation = get_organisation_by_pk(pk)
 
         if organisation.status != OrganisationStatus.DRAFT:
             # Organisation is in draft state updates are allowed by exporter
-            # TODO we may need futher checker to ensure exporter is owner
             return JsonResponse(
                 data={"errors": Organisations.NO_PERM_TO_EDIT},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=data, partial=True)
+        serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=request.data, partial=True)
 
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
         return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
 
 

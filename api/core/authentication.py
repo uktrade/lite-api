@@ -46,8 +46,7 @@ class ExporterAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         if not Organisation.objects.filter(
-            Q(id=organisation_id, status=OrganisationStatus.ACTIVE)
-            | Q(id=organisation_id, status=OrganisationStatus.DRAFT)
+            id=organisation_id, status_in=[OrganisationStatus.ACTIVE, OrganisationStatus.DRAFT]
         ).exists():
             raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
 

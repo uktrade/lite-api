@@ -870,8 +870,10 @@ class UpdateOrganisationDraftTests(DataTestClient):
         data = {"name": "Lite Corp"}
 
         response = self.client.put(self.url, data, **self.gov_headers)
+        self.organisation.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["organisation"]["name"], data["name"])
+        self.assertEqual(self.organisation.name, data["name"])
 
     def test_update_organisation_non_draft_fails(self):
         self.organisation.status = OrganisationStatus.ACTIVE
@@ -881,3 +883,10 @@ class UpdateOrganisationDraftTests(DataTestClient):
         response = self.client.put(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"], "You do not have permission to edit the organisation.")
+
+    def test_update_organisation_fails_validation_errors(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
+        data = {"vat_number": "xyz"}
+        response = self.client.put(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"vat_number": ["Standard UK VAT numbers are 9 digits long"]})
