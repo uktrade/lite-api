@@ -14,6 +14,7 @@ from api.staticdata.countries.factories import CountryFactory
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from api.parties.tests.factories import PartyFactory
+from api.users.tests.factories import ExporterUserFactory
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -63,6 +64,7 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     intended_end_use = "this is our intended end use"
     is_shipped_waybill_or_lading = True
     non_waybill_or_lading_route_details = None
+    submitted_by = factory.SubFactory(ExporterUserFactory)
 
     class Meta:
         model = StandardApplication
