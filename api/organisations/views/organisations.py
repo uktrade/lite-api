@@ -157,7 +157,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
             apply_flagging_rules_to_case(application)
 
 
-class OrganisationsDraftDetail(generics.RetrieveUpdateAPIView):
+class OrganisationsDraftDetail(APIView):
     # Specific view for draft updates
     authentication_classes = (SharedAuthentication,)
     queryset = Organisation.objects.all()
