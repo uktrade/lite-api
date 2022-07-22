@@ -14,7 +14,6 @@ from api.organisations.models import Organisation
 from api.users.enums import UserStatuses
 from api.users.libraries.token_to_user import token_to_user_pk
 from api.users.models import UserOrganisationRelationship, ExporterUser, GovUser
-from django.db.models import Q
 
 GOV_USER_TOKEN_HEADER = "HTTP_GOV_USER_TOKEN"  # nosec
 
