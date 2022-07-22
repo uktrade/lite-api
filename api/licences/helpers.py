@@ -6,6 +6,7 @@ from api.applications.models import GoodOnApplication
 from api.applications.serializers.good import GoodOnApplicationViewSerializer
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import GoodCountryDecision
+from api.cases.notify import notify_exporter_licence_revoked
 from api.core.exceptions import NotFoundError
 from api.licences.models import Licence
 from lite_content.lite_api import strings
@@ -71,5 +72,6 @@ def update_licence_status(case, status):
                 licence.suspend()
             elif status == CaseStatusEnum.REVOKED:
                 licence.revoke()
+                notify_exporter_licence_revoked(licence)
         except Licence.DoesNotExist:
             raise ParseError({"status": [strings.Applications.Generic.Finalise.Error.SURRENDER]})
