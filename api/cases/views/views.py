@@ -1,7 +1,5 @@
-from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import F
 from django.http.response import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -11,12 +9,11 @@ from api.applications.models import GoodOnApplication
 from api.applications.serializers.advice import CountersignAdviceSerializer, CountryWithFlagsSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
+from api.cases import notify
 from api.cases.enums import (
     CaseTypeSubTypeEnum,
     AdviceType,
     AdviceLevel,
-    CaseTypeTypeEnum,
-    CaseTypeReferenceEnum,
 )
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
@@ -44,8 +41,12 @@ from api.cases.models import (
     Advice,
     GoodCountryDecision,
     CaseAssignment,
-    Case,
     CaseReviewDate,
+)
+from api.cases.notify import (
+    notify_exporter_licence_issued,
+    notify_exporter_licence_refused,
+    notify_exporter_no_licence_required,
 )
 from api.cases.serializers import (
     CaseDocumentViewSerializer,
@@ -63,7 +64,6 @@ from api.cases.serializers import (
 )
 from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
-from api.compliance.models import ComplianceVisitCase
 from api.core import constants
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from api.core.constants import GovPermissions
@@ -75,14 +75,10 @@ from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
 from api.goods.serializers import GoodOnApplicationSerializer
 from api.goods.enums import GoodStatus
-from gov_notify import service as gov_notify_service
-from gov_notify.enums import TemplateType
-from gov_notify.payloads import EcjuComplianceCreatedEmailData
 from api.licences.models import Licence
 from api.licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
-from api.organisations.models import Site
 from api.parties.models import Party
 from api.parties.serializers import PartySerializer, AdditionalContactSerializer
 from api.queues.models import Queue
@@ -491,41 +487,8 @@ class ECJUQueries(APIView):
                 payload={"ecju_query": data["question"]},
             )
 
-            # Send an email to the user(s) that submitted the application
-            case_info = (
-                Case.objects.annotate(email=F("submitted_by__baseuser_ptr__email"), name=F("baseapplication__name"))
-                .values("id", "email", "name", "reference_code", "case_type__type", "case_type__reference")
-                .get(id=pk)
-            )
+            notify.notify_exporter_ecju_query(pk)
 
-            # For each licence in a compliance case, email the user that submitted the application
-            if case_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
-                emails = set()
-                case_id = case_info["id"]
-                link = f"{settings.EXPORTER_BASE_URL}/compliance/{pk}/ecju-queries/"
-
-                if case_info["case_type__reference"] == CaseTypeReferenceEnum.COMP_VISIT:
-                    # If the case is a compliance visit case, use the parent compliance site case ID instead
-                    case_id = ComplianceVisitCase.objects.get(pk=case_id).site_case_id
-                    link = f"{settings.EXPORTER_BASE_URL}/compliance/{case_id}/visit/{pk}/ecju-queries/"
-
-                site = Site.objects.get(compliance__id=case_id)
-
-                for licence in Case.objects.filter_for_cases_related_to_compliance_case(case_id):
-                    emails.add(licence.submitted_by.email)
-
-                for email in emails:
-                    gov_notify_service.send_email(
-                        email_address=email,
-                        template_type=TemplateType.ECJU_COMPLIANCE_CREATED,
-                        data=EcjuComplianceCreatedEmailData(
-                            query=serializer.data["question"],
-                            case_reference=case_info["reference_code"],
-                            site_name=site.name,
-                            site_address=str(site.address),
-                            link=link,
-                        ),
-                    )
             return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
 
 
@@ -837,6 +800,10 @@ class FinaliseView(UpdateAPIView):
 
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.issue()
+
+            # Send email notification for licence issued
+            notify_exporter_licence_issued(licence)
+
             return_payload["licence"] = licence.id
             if Licence.objects.filter(case=case).count() > 1:
                 audit_trail_service.create(
@@ -868,6 +835,12 @@ class FinaliseView(UpdateAPIView):
                 target=case,
                 payload={"case_reference": case.reference_code, "decision": decision, "licence_reference": ""},
             )
+
+        if AdviceType.REFUSE in decisions:
+            notify_exporter_licence_refused(case)
+
+        if AdviceType.NO_LICENCE_REQUIRED in decisions:
+            notify_exporter_no_licence_required(case)
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)

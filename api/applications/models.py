@@ -1,5 +1,7 @@
+import logging
 import uuid
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -41,6 +43,9 @@ from api.staticdata.trade_control.enums import TradeControlProductCategory, Trad
 from api.staticdata.units.enums import Units
 from api.users.models import ExporterUser
 from lite_content.lite_api.strings import PartyErrors
+
+
+gona_copy_logger = logging.getLogger(settings.GOOD_ON_APPLICATION_COPY_LOGGER)
 
 
 class ApplicationException(APIException):
@@ -410,6 +415,23 @@ class GoodOnApplication(AbstractGoodOnApplication):
         if self.is_good_controlled is None:
             return self.good.control_list_entries
         return self.control_list_entries
+
+    def save(self, *args, **kwargs):
+        """LTD-2541 - we want to flag when a GoodOnApplication object
+        is saved with properties that seem to be copied from the
+        associated Good.
+        """
+        super().save(*args, **kwargs)
+        cle = set(self.control_list_entries.all())
+        good_cle = set(self.good.control_list_entries.all())
+        if cle == good_cle and cle != set():
+            gona_copy_logger.warning(
+                "Saving GoodOnApplication (%s) with CLE copied from Good: (%s)",
+                str(self.id),
+                str(self.good_id),
+                stack_info=True,
+                exc_info=True,
+            )
 
 
 class GoodOnApplicationDocument(Document):

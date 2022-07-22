@@ -2,9 +2,10 @@ import re
 import pytest
 
 from unittest import mock
-
+from django.conf import settings
 from faker import Faker
 from parameterized import parameterized
+
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -13,7 +14,6 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.core.authentication import EXPORTER_USER_TOKEN_HEADER
 from api.core.constants import Roles, GovPermissions
-from gov_notify.enums import TemplateType
 from lite_content.lite_api.strings import Organisations
 from api.organisations.constants import UK_VAT_VALIDATION_REGEX, UK_EORI_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus
@@ -106,7 +106,11 @@ class GetOrganisationTests(DataTestClient):
 class CreateOrganisationTests(DataTestClient):
     url = reverse("organisations:organisations")
 
-    def test_create_commercial_organisation_as_internal_success(self):
+    @mock.patch("api.organisations.notify.notify_caseworker_new_registration")
+    @mock.patch("api.organisations.notify.notify_exporter_registration")
+    def test_create_commercial_organisation_as_internal_success(
+        self, mocked_notify_exporter_registration, mocked_caseworker_new_registration
+    ):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
@@ -158,6 +162,13 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqualIgnoreType(site.address.country.id, "GB")
         self.assertEqual(Audit.objects.count(), 1)
 
+        # Ensure that exporters are not notified when an internal user creates an organisation
+        assert not mocked_notify_exporter_registration.called
+        # Caseworkers are still notified
+        mocked_caseworker_new_registration.called_with(
+            {"organisation_name": data["name"], "applicant_email": data["user"]["email"]}
+        )
+
     @parameterized.expand(
         [
             [
@@ -172,7 +183,14 @@ class CreateOrganisationTests(DataTestClient):
             [{"address": "123", "country": "PL"}],
         ]
     )
-    def test_create_commercial_organisation_as_exporter_success(self, address):
+    @mock.patch("api.organisations.notify.notify_exporter_registration")
+    @mock.patch("api.organisations.notify.notify_caseworker_new_registration")
+    def test_create_commercial_organisation_as_exporter_success(
+        self,
+        address,
+        mocked_notify_caseworker_new_registration,
+        mocked_notify_exporter_registration,
+    ):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
@@ -223,6 +241,13 @@ class CreateOrganisationTests(DataTestClient):
 
         # assert records located at set to site itself
         self.assertEqual(site.site_records_located_at, site)
+
+        mocked_notify_exporter_registration.assert_called_with(
+            data["user"]["email"], {"organisation_name": data["name"]}
+        )
+        mocked_notify_caseworker_new_registration.assert_called_with(
+            {"organisation_name": data["name"], "applicant_email": data["user"]["email"]}
+        )
 
     def test_create_organisation_phone_number_mandatory(self):
         data = {
@@ -833,8 +858,8 @@ class EditOrganisationStatusTests(DataTestClient):
         UserOrganisationRelationshipFactory(organisation=self.organisation, user=self.exporter_user)
         self.url = reverse("organisations:organisation_status", kwargs={"pk": self.organisation.pk})
 
-    @mock.patch("gov_notify.service.client")
-    def test_set_organisation_status_success(self, mock_notify_client):
+    @mock.patch("api.organisations.notify.notify_exporter_organisation_approved")
+    def test_set_organisation_status_active_success(self, mocked_notify):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {"status": OrganisationStatus.ACTIVE}
 
@@ -843,11 +868,19 @@ class EditOrganisationStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["status"]["key"], OrganisationStatus.ACTIVE)
         self.assertEqual(Audit.objects.count(), 1)
-        mock_notify_client.send_email.assert_called_with(
-            email_address=self.exporter_user.email,
-            template_id=TemplateType.ORGANISATION_STATUS.template_id,
-            data={"organisation_name": self.organisation.name},
-        )
+        mocked_notify.assert_called_with(self.organisation)
+
+    @mock.patch("api.organisations.notify.notify_exporter_organisation_rejected")
+    def test_set_organisation_status_rejected_success(self, mocked_notify):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
+        data = {"status": OrganisationStatus.REJECTED}
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["status"]["key"], OrganisationStatus.REJECTED)
+        self.assertEqual(Audit.objects.count(), 1)
+        mocked_notify.assert_called_with(self.organisation)
 
     def test_set_organisation_status__without_permission_failure(self):
         data = {"status": OrganisationStatus.ACTIVE}

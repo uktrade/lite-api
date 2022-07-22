@@ -31,6 +31,7 @@ env = Env(
     STREAM_PAGE_SIZE=(int, 20),
     ENV=(str, "localhost"),
     EXPORTER_BASE_URL=(str, ""),
+    CASEWORKER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
 )
@@ -312,6 +313,7 @@ if LITE_API_ENABLE_ES:
 
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
+GOOD_ON_APPLICATION_COPY_LOGGER = "good_on_application_copy_logger"
 
 
 if "test" not in sys.argv:
@@ -330,6 +332,7 @@ if "test" not in sys.argv:
         "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
         "loggers": {
             DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
+            GOOD_ON_APPLICATION_COPY_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
         },
     }
 else:
@@ -373,10 +376,11 @@ GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
 
 ENV = env("ENV")
 
-# If EXPORTER_BASE_URL is not provided, render the base_url using the environment
-EXPORTER_BASE_URL = (
-    env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
-)
+# If EXPORTER_BASE_URL is not in env vars, build the base_url using the environment
+EXPORTER_BASE_URL = env("EXPORTER_BASE_URL") or f"https://exporter.lite.service.{ENV}.uktrade.digital"
+
+# If CASEWORKER_BASE_URL is not in env vars, build the base_url using the environment
+CASEWORKER_BASE_URL = env("CASEWORKER_BASE_URL") or f"https://internal.lite.service.{ENV}.uktrade.digital"
 
 # Demo flags
 LITE_API_DEMO_FLAGS_CSV = env.str(
@@ -439,3 +443,4 @@ SANCTION_LIST_SOURCES = env.json(
         "uk_sanctions_file": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1071293/UK_Sanctions_List.xml",
     },
 )
+LITE_INTERNAL_NOTIFICATION_EMAILS = env.json("LITE_INTERNAL_NOTIFICATION_EMAILS", {})

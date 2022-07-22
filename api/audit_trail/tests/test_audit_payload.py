@@ -51,7 +51,7 @@ class TestPayload(DataTestClient):
         [{"status": "applicant_editing"}, "is editing their application."],
         [{"status": "reopened_for_changes"}, "re-opened the application to changes."],
         [{"status": "finalised"}, "updated the status to: finalised."],
-        [{"status": "Withdrawn"}, "updated the status to: Withdrawn."],
+        [{"status": "Withdrawn"}, "withdrew their application."],
     ]
 )
 def test_updated_status(payload, expected_text):

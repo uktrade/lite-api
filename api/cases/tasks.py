@@ -48,16 +48,21 @@ def today(time=None):
     return datetime.combine(timezone.localtime(), time, tzinfo=tz(settings.TIME_ZONE))
 
 
-def yesterday(date=timezone.localtime(), time=None):
+def yesterday(date=None, time=None):
     """
     returns the previous working day from the date provided (defaults to now) at the time provided (defaults to now)
     """
+    if not date:
+        date = timezone.localtime()
+
     day = date - timezone.timedelta(days=1)
 
     while is_bank_holiday(day, call_api=False) or is_weekend(day):
         day = day - timezone.timedelta(days=1)
+
     if time:
         day = datetime.combine(day.date(), time, tzinfo=tz(settings.TIME_ZONE))
+
     return day
 
 

@@ -140,8 +140,8 @@ class OpenApplicationTests(DataTestClient):
         self.assertIn(
             {
                 "status": {
-                    "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
-                    "old": CaseStatusEnum.get_text(CaseStatusEnum.DRAFT),
+                    "new": CaseStatusEnum.SUBMITTED,
+                    "old": CaseStatusEnum.DRAFT,
                 }
             },
             case_status_audits,

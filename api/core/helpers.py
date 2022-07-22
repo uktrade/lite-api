@@ -1,5 +1,6 @@
 import datetime
 import re
+from urllib.parse import urljoin
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -96,3 +97,15 @@ def add_months(start_date, months, date_format=DATE_FORMAT):
     """
     new_date = start_date + relativedelta(months=+months)
     return new_date.strftime(date_format)
+
+
+def _get_frontend_url(base, path):
+    return urljoin(base, path)
+
+
+def get_caseworker_frontend_url(path):
+    return _get_frontend_url(settings.CASEWORKER_BASE_URL, path)
+
+
+def get_exporter_frontend_url(path):
+    return _get_frontend_url(settings.EXPORTER_BASE_URL, path)

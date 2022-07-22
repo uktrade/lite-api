@@ -15,7 +15,13 @@ from api.core.authentication import (
 )
 from api.core.constants import ExporterPermissions
 from api.core.exceptions import NotFoundError
-from api.core.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date, str_to_bool
+from api.core.helpers import (
+    convert_queryset_to_str,
+    get_exporter_frontend_url,
+    get_value_from_enum,
+    date_to_drf_date,
+    str_to_bool,
+)
 from api.core.permissions import assert_user_has_permission, check_user_has_permission
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Users
@@ -24,6 +30,7 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.organisations.libraries.get_site import get_site
 from api.organisations.models import Site
 from api.queues.models import Queue
+from api.users import notify
 from api.users.libraries.get_user import (
     get_user_by_pk,
     get_user_organisation_relationship,
@@ -111,13 +118,18 @@ class CreateUser(APIView):
         Create Exporter within the same organisation that current user is logged into
         """
         data = request.data
-        data["organisation"] = get_request_user_organisation_id(request)
+        organisation = get_request_user_organisation(request)
+        data["organisation"] = organisation.pk
         data["role"] = UUID(data["role"])
 
         serializer = ExporterUserCreateUpdateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
+            notify.notify_exporter_user_added(
+                serializer.validated_data["email"],
+                {"organisation_name": organisation.name, "exporter_frontend_url": get_exporter_frontend_url("/")},
+            )
             return JsonResponse(data={"user": serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

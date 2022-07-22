@@ -19,15 +19,6 @@ class EcjuCreatedEmailData(EmailData):
 
 
 @dataclass(frozen=True)
-class EcjuComplianceCreatedEmailData(EmailData):
-    query: str
-    case_reference: str
-    site_name: str
-    site_address: str
-    link: str
-
-
-@dataclass(frozen=True)
 class ApplicationStatusEmailData(EmailData):
     case_reference: str
     application_reference: str
@@ -35,5 +26,72 @@ class ApplicationStatusEmailData(EmailData):
 
 
 @dataclass(frozen=True)
-class OrganisationStatusEmailData(EmailData):
+class ExporterRegistration(EmailData):
     organisation_name: str
+
+
+@dataclass(frozen=True)
+class ExporterUserAdded(EmailData):
+    organisation_name: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterLicenceIssued(EmailData):
+    user_first_name: str
+    application_reference: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterLicenceRefused(EmailData):
+    user_first_name: str
+    application_reference: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterLicenceRevoked(EmailData):
+    user_first_name: str
+    application_reference: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterOrganisationApproved(EmailData):
+    exporter_first_name: str
+    organisation_name: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterOrganisationRejected(EmailData):
+    exporter_first_name: str
+    organisation_name: str
+
+
+@dataclass(frozen=True)
+class ExporterECJUQuery(EmailData):
+    case_reference: str
+    exporter_first_name: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class CaseWorkerNewRegistration(EmailData):
+    organisation_name: str
+    applicant_email: str
+
+
+@dataclass(frozen=True)
+class ExporterCaseOpenedForEditing(EmailData):
+    user_first_name: str
+    application_reference: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class ExporterNoLicenceRequired(EmailData):
+    user_first_name: str
+    application_reference: str
+    exporter_frontend_url: str
