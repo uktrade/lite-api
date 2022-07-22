@@ -44,6 +44,13 @@ class ExporterLicenceIssued(EmailData):
 
 
 @dataclass(frozen=True)
+class ExporterLicenceRefused(EmailData):
+    user_first_name: str
+    application_reference: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
 class ExporterOrganisationApproved(EmailData):
     exporter_first_name: str
     organisation_name: str
