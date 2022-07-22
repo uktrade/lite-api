@@ -3,7 +3,13 @@ from django.db.models import F
 from api.core.helpers import get_exporter_frontend_url
 from api.cases.models import Case
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import ExporterECJUQuery, ExporterLicenceIssued, ExporterLicenceRefused, ExporterLicenceRevoked
+from gov_notify.payloads import (
+    ExporterECJUQuery,
+    ExporterLicenceIssued,
+    ExporterLicenceRefused,
+    ExporterNoLicenceRequired,
+    ExporterLicenceRevoked,
+)
 from gov_notify.service import send_email
 
 
@@ -99,3 +105,21 @@ def notify_exporter_ecju_query(case_pk):
 def _notify_exporter_ecju_query(email, data):
     payload = ExporterECJUQuery(**data)
     send_email(email, TemplateType.EXPORTER_ECJU_QUERY, payload)
+
+
+def _notify_exporter_no_licence_required(email, data):
+    payload = ExporterNoLicenceRequired(**data)
+    send_email(email, TemplateType.EXPORTER_NO_LICENCE_REQUIRED, payload)
+
+
+def notify_exporter_no_licence_required(case):
+    exporter = case.submitted_by
+    case = case.get_case()
+    _notify_exporter_no_licence_required(
+        exporter.email,
+        {
+            "user_first_name": exporter.first_name,
+            "application_reference": case.reference_code,
+            "exporter_frontend_url": get_exporter_frontend_url("/"),
+        },
+    )
