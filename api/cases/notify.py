@@ -22,9 +22,9 @@ def _notify_exporter_licence_issued(email, data):
     )
 
 
-def notify_exporter_licence_issued(licence):
-    exporter = licence.case.submitted_by
-    case = licence.case.get_case()
+def notify_exporter_licence_issued(case):
+    exporter = case.submitted_by
+    case = case.get_case()
     _notify_exporter_licence_issued(
         exporter.email,
         {
