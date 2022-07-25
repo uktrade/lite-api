@@ -37,8 +37,6 @@ services:
       - redis
     entrypoint: dockerize -wait tcp://db:5432 -wait tcp://api:8100
     command: celery -A api.conf worker -l info
-    networks:
-      - lite
 
   db:
     image: gcr.io/sre-docker-registry/lite-db:latest
