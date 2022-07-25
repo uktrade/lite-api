@@ -30,11 +30,11 @@ class NotifyTests(DataTestClient):
     def test_notify_licence_issued(self, mock_send_email):
         expected_payload = ExporterLicenceIssued(
             user_first_name=self.exporter_user.first_name,
-            application_reference=self.licence.case.reference_code,
+            application_reference=self.case.reference_code,
             exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
         )
 
-        notify_exporter_licence_issued(self.licence)
+        notify_exporter_licence_issued(self.case)
 
         mock_send_email.assert_called_with(
             self.exporter_user.email,
