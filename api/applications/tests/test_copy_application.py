@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
@@ -16,11 +17,15 @@ from api.applications.models import (
     F680ClearanceApplication,
 )
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
+from api.core import constants
+from api.goods.enums import GoodStatus
+
 from api.goodstype.models import GoodsType
 from api.parties.models import Party, PartyDocument
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
+from api.users.models import Role
 from test_helpers.clients import DataTestClient
 
 
@@ -160,6 +165,56 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.copied_application = StandardApplication.objects.get(id=self.response_data)
 
         self._validate_standard_application()
+
+    def test_reset_products_assessment_status_on_copied_application(self):
+        self.original_application = self.create_draft_standard_application(self.organisation)
+        self.submit_application(self.original_application)
+        product_on_application = self.original_application.goods.first()
+
+        role = Role(name="review_goods")
+        role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])
+        role.save()
+        self.gov_user.role = role
+        self.gov_user.save()
+
+        data = {
+            "objects": [product_on_application.good.pk],
+            "current_object": product_on_application.pk,
+            "control_list_entries": ["FR AI", "ML2a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": "Rifles (5)",
+            "comment": "preserve CLEs when product re-used test",
+        }
+        url = reverse("goods:control_list_entries", kwargs={"case_pk": self.original_application.id})
+        response = self.client.post(url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        product_on_application.refresh_from_db()
+        self.assertEqual(product_on_application.good.status, GoodStatus.VERIFIED)
+
+        self.url = reverse("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {
+            "name": "New application",
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "54321-12",
+        }
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = StandardApplication.objects.get(id=self.response_data)
+        self._validate_standard_application()
+
+        copied_product_on_application = self.copied_application.goods.first()
+        product = copied_product_on_application.good
+        product.refresh_from_db()
+        self.assertEqual(product.status, GoodStatus.DRAFT)
 
     def test_copy_draft_open_application_successful(self):
         """

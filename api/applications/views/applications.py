@@ -73,6 +73,7 @@ from api.core.helpers import convert_date_to_string, str_to_bool
 from api.core.permissions import assert_user_has_permission
 from api.flags.enums import FlagStatuses, SystemFlags
 from api.flags.models import Flag
+from api.goods.enums import GoodStatus
 from api.goods.serializers import GoodCreateSerializer
 from api.goods.models import FirearmGoodDetails
 from api.goodstype.models import GoodsType
@@ -780,6 +781,9 @@ class ApplicationCopy(APIView):
         # Save
         self.new_application.created_at = now()
         self.new_application.save()
+
+        self.reset_products_assessment_status(self.new_application)
+
         return JsonResponse(data={"data": self.new_application.id}, status=status.HTTP_201_CREATED)
 
     def strip_id_for_application_copy(self):
@@ -910,6 +914,12 @@ class ApplicationCopy(APIView):
                     F680ClearanceApplication.objects.get(id=self.old_application_id).types.values_list("id", flat=True)
                 )
             )
+
+    def reset_products_assessment_status(self, application):
+        for product_on_application in application.goods.all():
+            product = product_on_application.good
+            product.status = GoodStatus.DRAFT
+            product.save()
 
 
 class ExhibitionDetails(ListCreateAPIView):

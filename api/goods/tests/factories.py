@@ -2,7 +2,7 @@ import factory
 from django.utils import timezone
 
 from api.goods import models
-from api.goods.enums import ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
+from api.goods.enums import ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded, GoodStatus
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 
 
@@ -22,6 +22,7 @@ class GoodFactory(factory.django.DjangoModelFactory):
     information_security_details = None
     modified_military_use_details = None
     component_details = None
+    status = GoodStatus.DRAFT
 
     class Meta:
         model = models.Good
