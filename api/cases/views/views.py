@@ -801,9 +801,6 @@ class FinaliseView(UpdateAPIView):
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.issue()
 
-            # Send email notification for licence issued
-            notify_exporter_licence_issued(licence)
-
             return_payload["licence"] = licence.id
             if Licence.objects.filter(case=case).count() > 1:
                 audit_trail_service.create(
@@ -825,6 +822,16 @@ class FinaliseView(UpdateAPIView):
         case.save()
 
         decisions = required_decisions.copy()
+
+        if AdviceType.REFUSE in decisions:
+            notify_exporter_licence_refused(case)
+
+        if AdviceType.NO_LICENCE_REQUIRED in decisions:
+            notify_exporter_no_licence_required(case)
+
+        if AdviceType.APPROVE in decisions:
+            notify_exporter_licence_issued(case)
+
         if AdviceType.APPROVE in decisions:
             decisions.remove(AdviceType.APPROVE)
 
@@ -835,12 +842,6 @@ class FinaliseView(UpdateAPIView):
                 target=case,
                 payload={"case_reference": case.reference_code, "decision": decision, "licence_reference": ""},
             )
-
-        if AdviceType.REFUSE in decisions:
-            notify_exporter_licence_refused(case)
-
-        if AdviceType.NO_LICENCE_REQUIRED in decisions:
-            notify_exporter_no_licence_required(case)
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)

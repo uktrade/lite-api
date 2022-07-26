@@ -25,9 +25,15 @@ class RefuseCaseTests(DataTestClient):
             decisions=[Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED)],
         )
 
+    @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
     @mock.patch("api.cases.views.views.notify_exporter_no_licence_required")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
-    def test_no_licence_required_standard_application_success(self, send_exporter_notifications_func, mock_notify):
+    def test_no_licence_required_standard_application_success(
+        self,
+        send_exporter_notifications_func,
+        mock_notify_exporter_no_licence_required,
+        mock_notify_exporter_licence_issued,
+    ):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_generated_case_document(self.application, self.template, advice_type=AdviceType.NO_LICENCE_REQUIRED)
 
@@ -41,5 +47,6 @@ class RefuseCaseTests(DataTestClient):
 
         self.assertEqual(Audit.objects.count(), 2)
         case = get_case(self.application.id)
-        mock_notify.assert_called_with(case)
+        mock_notify_exporter_no_licence_required.assert_called_with(case)
+        mock_notify_exporter_licence_issued.assert_not_called()
         send_exporter_notifications_func.assert_called()
