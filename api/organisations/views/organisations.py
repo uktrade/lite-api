@@ -9,6 +9,7 @@ from api.core.authentication import (
     SharedAuthentication,
     OrganisationAuthentication,
     GovAuthentication,
+    ExporterDraftOrganisationAuthentication,
 )
 from api.core.constants import GovPermissions
 from api.core.helpers import str_to_bool
@@ -179,21 +180,13 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
 class OrganisationsDraftDetail(APIView):
     # Specific view for draft updates
-    authentication_classes = (SharedAuthentication,)
-    queryset = Organisation.objects.all()
+    authentication_classes = (ExporterDraftOrganisationAuthentication,)
     serializer_class = OrganisationDetailSerializer
 
     def put(self, request, pk):
         """Edit details of an organisation."""
 
         organisation = get_organisation_by_pk(pk)
-
-        if organisation.status != OrganisationStatus.DRAFT:
-            # Organisation is in draft state updates are allowed by exporter
-            return JsonResponse(
-                data={"errors": Organisations.NO_PERM_TO_EDIT},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=request.data, partial=True)
 

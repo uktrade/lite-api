@@ -11,6 +11,7 @@ from api.core.exceptions import PermissionDeniedError
 from api.gov_users.enums import GovUserStatuses
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.models import Organisation
+
 from api.users.enums import UserStatuses
 from api.users.libraries.token_to_user import token_to_user_pk
 from api.users.models import UserOrganisationRelationship, ExporterUser, GovUser
@@ -26,27 +27,26 @@ USER_DEACTIVATED_ERROR = "User is not active for this organisation"
 USER_NOT_FOUND_ERROR = "User does not exist"
 
 
-class ExporterAuthentication(authentication.BaseAuthentication):
-    def authenticate(self, request):
-        """
-        When given an exporter user token and an organisation id, validate that the user belongs to the
-        organisation and that they're allowed to access that organisation
-        """
-
+class ExporterBaseAuthentication(authentication.BaseAuthentication):
+    def get_header_data(self, request):
         from api.organisations.libraries.get_organisation import get_request_user_organisation_id
-
-        hawk_receiver = _authenticate(request, _lookup_credentials)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(exporter_user_token)
             organisation_id = get_request_user_organisation_id(request)
+            return exporter_user_token, user_id, organisation_id
         else:
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
-        if not Organisation.objects.filter(
-            id=organisation_id, status__in=[OrganisationStatus.ACTIVE, OrganisationStatus.DRAFT]
-        ).exists():
+    def get_exporter_user(self, user_id):
+        try:
+            return ExporterUser.objects.get(pk=user_id)
+        except ExporterUser.DoesNotExist:
+            raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
+
+    def check_organisation(self, user_id, organisation_id, organisation_status):
+        if not Organisation.objects.filter(id=organisation_id, status=organisation_status).exists():
             raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
 
         if not UserOrganisationRelationship.objects.filter(
@@ -54,10 +54,39 @@ class ExporterAuthentication(authentication.BaseAuthentication):
         ).exists():
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
-        try:
-            exporter_user = ExporterUser.objects.get(pk=user_id)
-        except ExporterUser.DoesNotExist:
-            raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
+
+class ExporterAuthentication(ExporterBaseAuthentication):
+    def authenticate(self, request):
+        """
+        When given an exporter user token and an organisation id, validate that the user belongs to the
+        organisation and that they're allowed to access that organisation
+        Use this for active organisations
+        """
+        hawk_receiver = _authenticate(request, _lookup_credentials)
+
+        exporter_user_token, user_id, organisation_id = self.get_header_data(request)
+
+        self.check_organisation(user_id, organisation_id, OrganisationStatus.ACTIVE)
+
+        exporter_user = self.get_exporter_user(user_id)
+
+        return exporter_user.baseuser_ptr, hawk_receiver
+
+
+class ExporterDraftOrganisationAuthentication(ExporterBaseAuthentication):
+    def authenticate(self, request):
+        """
+        When given an exporter user token and an organisation id, validate that the user belongs to the
+        organisation and that they're allowed to access that organisation
+        Use this for draft organisations
+        """
+        hawk_receiver = _authenticate(request, _lookup_credentials)
+
+        exporter_user_token, user_id, organisation_id = self.get_header_data(request)
+
+        self.check_organisation(user_id, organisation_id, OrganisationStatus.ACTIVE)
+
+        exporter_user = self.get_exporter_user(user_id)
 
         return exporter_user.baseuser_ptr, hawk_receiver
 
