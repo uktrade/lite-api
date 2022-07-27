@@ -84,7 +84,7 @@ class ExporterDraftOrganisationAuthentication(ExporterBaseAuthentication):
 
         exporter_user_token, user_id, organisation_id = self.get_header_data(request)
 
-        self.check_organisation(user_id, organisation_id, OrganisationStatus.ACTIVE)
+        self.check_organisation(user_id, organisation_id, OrganisationStatus.DRAFT)
 
         exporter_user = self.get_exporter_user(user_id)
 
