@@ -59,7 +59,10 @@ EXPORTER_USERS='[{"email"=>"foo@bar.com"}]' ./manage.py seedexporterusers
 
 ## Running Background tasks
 
-`pipenv run ./manage.py process_tasks` will run all background tasks
+We currently have two mechanisms for background tasks in lite;
+- django-background-tasks: `pipenv run ./manage.py process_tasks` will run all background tasks
+- celery: a celery container is running by default when using docker-compose.  If a working copy
+    "on the metal" without docker, run celery with `watchmedo auto-restart -d . -R -p '*.py' -- celery -A api.conf worker -l info`
 
 ## Installing WeasyPrint for document generation
 

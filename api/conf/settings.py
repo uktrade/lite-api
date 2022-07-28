@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from urllib.parse import urlencode
 
 from environ import Env
 import sentry_sdk
@@ -246,6 +247,29 @@ else:
     AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
     AWS_REGION = env("AWS_REGION")
     AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+
+if "redis" in VCAP_SERVICES:
+    REDIS_BASE_URL = VCAP_SERVICES["redis"][0]["credentials"]["uri"]
+else:
+    REDIS_BASE_URL = env("REDIS_BASE_URL", default=None)
+
+
+def _build_redis_url(base_url, db_number, **query_args):
+    encoded_query_args = urlencode(query_args)
+    return f"{base_url}/{db_number}?{encoded_query_args}"
+
+
+if REDIS_BASE_URL:
+    # Give celery tasks their own redis DB - future uses of redis should use a different DB
+    REDIS_CELERY_DB = env("REDIS_CELERY_DB", default=0)
+    is_redis_ssl = REDIS_BASE_URL.startswith("rediss://")
+    url_args = {"ssl_cert_reqs": "CERT_REQUIRED"} if is_redis_ssl else {}
+
+    CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
+    CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+
+CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", False)
+CELERY_TASK_SEND_SENT_EVENT = env.bool("CELERY_TASK_SEND_SENT_EVENT", True)
 
 S3_CONNECT_TIMEOUT = 60  # Maximum time, in seconds, to wait for an initial connection
 S3_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
