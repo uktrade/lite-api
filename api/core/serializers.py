@@ -80,6 +80,8 @@ class CountrySerializerField(PrimaryKeyRelatedSerializerField):
         if self.pk_field is not None:
             data = self.pk_field.to_internal_value(data)
         try:
+            if isinstance(data, dict):
+                data = data["id"]
             return self.get_queryset().get(pk=data)
         except ObjectDoesNotExist:
             raise serializers.ValidationError(strings.Addresses.NULL_COUNTRY)

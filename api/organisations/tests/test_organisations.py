@@ -889,3 +889,34 @@ class EditOrganisationStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Audit.objects.count(), 0)
+
+
+class UpdateOrganisationDraftTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.organisation = OrganisationFactory(status=OrganisationStatus.DRAFT)
+        UserOrganisationRelationshipFactory(organisation=self.organisation, user=self.exporter_user)
+        self.exporter_headers["HTTP_ORGANISATION_ID"] = str(self.organisation.id)
+        self.url = reverse("organisations:organisation_draft_update", kwargs={"pk": self.organisation.pk})
+
+    def test_update_organisation_status_success(self):
+        data = {"name": "Lite Corp"}
+        response = self.client.put(self.url, data, **self.exporter_headers)
+        self.organisation.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["organisation"]["name"], data["name"])
+        self.assertEqual(self.organisation.name, data["name"])
+
+    def test_update_organisation_non_draft_fails(self):
+        self.organisation.status = OrganisationStatus.ACTIVE
+        self.organisation.save()
+        data = {"name": "Lite Corp"}
+        response = self.client.put(self.url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.json()["errors"], {"error": "Organisation is not activated or not in draft"})
+
+    def test_update_organisation_fails_validation_errors(self):
+        data = {"vat_number": "xyz"}
+        response = self.client.put(self.url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"vat_number": ["Standard UK VAT numbers are 9 digits long"]})

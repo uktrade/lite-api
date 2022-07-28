@@ -108,7 +108,6 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         users = []
         if "users" in validated_data:
             users = validated_data.pop("users")
-
         address_data = validated_data.pop("address")
         address_data["country"] = address_data["country"].id
 

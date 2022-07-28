@@ -181,6 +181,8 @@ class UserMeDetail(APIView):
 
         if str_to_bool(request.GET.get("in_review", False)):
             relationships = relationships.filter(organisation__status=OrganisationStatus.IN_REVIEW)
+        elif str_to_bool(request.GET.get("draft", False)):
+            relationships = relationships.filter(organisation__status=OrganisationStatus.DRAFT)
         else:
             relationships = relationships.exclude(organisation__status=OrganisationStatus.IN_REVIEW)
 
