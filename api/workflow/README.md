@@ -65,7 +65,37 @@ Which is in turn called by the following endpoints;
 https://github.com/uktrade/lite-api/blob/3176d25aa6130cd6420f3c2219aafca820bfa39f/api/workflow/flagging_rules_automation.py#L25
 
 ### Purpose
-TODO
+This function is responsible for taking a case, reviewing certain criteria (it's type, it's destinations, it's Good's control list entries) and applying flagging rules to it.
+
+As an outcome; the Case, it's Partys, it's Goods should have applicable Flags set according to the flagging rules in the system.
+
+### Steps
+
+- If a case is status Draft or a terminal status, do nothing
+- If not, apply the following categories of flagging rules:
+    - case-level flagging rules
+    - destination-level flagging rules
+    - good-level flagging rules
+
+#### Case-level flagging rules
+- Case flagging rules are applied so that flagging rules of type case will apply if this Case's CaseType intersects with the case types present in the flagging rule's `matching_values`
+- If flagging rule is applied, it's associated flag is set on the case
+
+#### Destination-level flagging rules
+- All flagging rule records which are for destinations are collected
+- The end user Party records are extracted for the case
+- Each party has the applicable flagging rules applied; a rule will apply if the Party's country appears in the flagging rule's `matching_values`
+- If flagging rule is applied, it's associated flag is added to the Party
+
+#### Good-level flagging rules
+- All flagging rule records for Goods are collected
+- The goods are extracted for the Case (this logic is a little complex depending on case types etc)
+- Each Good has the applicable flagging rules applied; a rule will apply if:
+    - the Good's CLE appears in the flagging rule's `matching_values`, OR...
+    - the Good's CLE's parent CLE appears in the flagging rule's `matching_groups`, AND..
+    - the Good's CLE/parent CLE is NOT present in the rule's `excluded_values`
+- In addition, a flagging rule will not apply if it is `is_for_verified_goods_only=True` AND the Good is not verified
+- If flagging rule is applied, it's associated flag is added to the Good
 
 ### Called By
 
