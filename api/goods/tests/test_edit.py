@@ -577,21 +577,28 @@ class GoodsAttachingTests(DataTestClient):
         )
         self.url = reverse("goods:good_attaching", kwargs={"pk": str(self.good.id)})
 
-    def test_editing_firearm_category(self):
+    def test_editing_firearm(self):
         self.good.firearm_details.category = None
+        self.good.firearm_details.section_certificate_missing = None
+        self.good.firearm_details.section_certificate_missing_reason = "previous missing reason"
+        self.good.firearm_details.section_certificate_number = None
+        self.good.firearm_details.section_certificate_date_of_expiry = None
         self.good.firearm_details.save()
 
-        url = reverse("goods:good_details", kwargs={"pk": str(self.good.id)})
         data = {
             "firearm_details": {
                 "category": [
                     "NON_AUTOMATIC_SHOTGUN",
                     "NON_AUTOMATIC_RIM_FIRED_RIFLE",
                 ],
+                "section_certificate_missing": False,
+                "section_certificate_missing_reason": "",
+                "section_certificate_number": "55555",
+                "section_certificate_date_of_expiry": "2025-11-5",
             },
         }
         response = self.client.put(
-            url,
+            self.url,
             data,
             **self.exporter_headers,
         )
@@ -604,4 +611,20 @@ class GoodsAttachingTests(DataTestClient):
                 "NON_AUTOMATIC_SHOTGUN",
                 "NON_AUTOMATIC_RIM_FIRED_RIFLE",
             ],
+        )
+        self.assertIs(
+            self.good.firearm_details.section_certificate_missing,
+            False,
+        )
+        self.assertEqual(
+            self.good.firearm_details.section_certificate_missing_reason,
+            "",
+        )
+        self.assertEqual(
+            self.good.firearm_details.section_certificate_number,
+            "55555",
+        )
+        self.assertEqual(
+            self.good.firearm_details.section_certificate_date_of_expiry,
+            date(2025, 11, 5),
         )

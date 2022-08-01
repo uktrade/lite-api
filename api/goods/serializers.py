@@ -304,9 +304,31 @@ class FirearmDetailsAttachingSerializer(serializers.Serializer):
         allow_null=True,
         required=False,
     )
+    section_certificate_missing = serializers.BooleanField(allow_null=True, required=False)
+    section_certificate_missing_reason = serializers.CharField(allow_blank=True, required=False)
+    section_certificate_number = serializers.CharField(
+        allow_blank=True, allow_null=True, required=False, max_length=100
+    )
+    section_certificate_date_of_expiry = serializers.DateField(
+        allow_null=True, required=False, error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE}
+    )
 
     def update(self, instance, validated_data):
-        instance.category = validated_data.get("category", instance.category)
+        for field_to_update in [
+            "category",
+            "section_certificate_missing",
+            "section_certificate_missing_reason",
+            "section_certificate_number",
+            "section_certificate_date_of_expiry",
+        ]:
+            setattr(
+                instance,
+                field_to_update,
+                validated_data.get(
+                    field_to_update,
+                    getattr(instance, field_to_update),
+                ),
+            )
         instance.save()
         return instance
 
