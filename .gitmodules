@@ -2,3 +2,7 @@
 	path = lite_content
 	url = git@github.com:uktrade/lite-content.git
 	branch = master
+[submodule "lite_routing"]
+	path = lite_routing
+	url = git@github.com:uktrade/lite-routing.git
+	branch = main
