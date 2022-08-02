@@ -12,6 +12,7 @@ omit =
     *test*
     .venv/*
     vendor/*
+    ./pii-secret-exclude.txt
 branch = True
 
 plugins =
