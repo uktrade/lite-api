@@ -5,6 +5,10 @@ from api.flags.models import Flag
 from api.goodstype.constants import DESCRIPTION_MAX_LENGTH
 from api.staticdata.countries.models import Country
 
+# Import of GoodsTypeDocument necessary as django flush command cannot find this model otherwise
+# flake8: noqa
+from api.goodstype.document.models import GoodsTypeDocument
+
 
 class GoodsType(AbstractGoodOnApplication):
     description = models.TextField(default=None, blank=True, null=True, max_length=DESCRIPTION_MAX_LENGTH)
