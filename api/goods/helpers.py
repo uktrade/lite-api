@@ -18,7 +18,7 @@ def validate_firearms_act_certificate(validated_data):
         return
 
     covered_by_firearms_act = validated_data.get("is_covered_by_firearm_act_section_one_two_or_five", "")
-    if covered_by_firearms_act == "No" or covered_by_firearms_act == "Unsure":
+    if covered_by_firearms_act in ["No", "Unsure", ""]:
         return
 
     certificate_missing = validated_data.get("section_certificate_missing", False) == True
