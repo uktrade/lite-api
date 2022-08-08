@@ -441,6 +441,43 @@ class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
                 new_good["firearm_details"]["year_of_manufacture"], data["firearm_details"]["year_of_manufacture"]
             )
 
+    @parameterized.expand(
+        [
+            ("No",),
+            ("Unsure",),
+            ("",),
+        ],
+    )
+    def test_add_a_good_to_a_draft_with_firearms_details_is_covered_by_section_5_values(
+        self, covered_by_firearms_act_negative_value
+    ):
+        self.create_good_document(
+            self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            name="doc1",
+            s3_key="doc3",
+        )
+
+        data = {
+            "good_id": self.good.id,
+            "quantity": 1,
+            "unit": Units.NAR,
+            "value": 1,
+            "is_good_incorporated": True,
+            "firearm_details": {
+                "year_of_manufacture": 2020,
+                "number_of_items": 1,
+                "serial_numbers": ["serial1"],
+                "is_covered_by_firearm_act_section_one_two_or_five": covered_by_firearms_act_negative_value,
+            },
+        }
+
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
 class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
     def setUp(self):
