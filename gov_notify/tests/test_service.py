@@ -33,4 +33,4 @@ class GovNotifyTemplateTests(APITestCase):
 
         service.send_email(email_address=email, template_type=template_type, data=organisation_status_data)
 
-        assert mock_send_email.called is False
+        assert not mock_send_email.called
