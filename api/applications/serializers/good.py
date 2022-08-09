@@ -111,6 +111,11 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "good_application_documents",
             "good_application_internal_documents",
             "is_precedent",
+            "is_onward_exported",
+            "is_onward_altered_processed",
+            "is_onward_altered_processed_comments",
+            "is_onward_incorporated",
+            "is_onward_incorporated_comments",
         )
 
     def get_flags(self, instance):
@@ -171,6 +176,11 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             "item_type",
             "other_item_type",
             "firearm_details",
+            "is_onward_exported",
+            "is_onward_altered_processed",
+            "is_onward_altered_processed_comments",
+            "is_onward_incorporated",
+            "is_onward_incorporated_comments",
         )
 
     def __init__(self, **kwargs):
