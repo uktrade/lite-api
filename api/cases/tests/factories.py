@@ -1,6 +1,6 @@
 import factory
 
-from api.cases.enums import AdviceLevel, AdviceType
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import (
     Advice,
     Case,
@@ -65,6 +65,10 @@ class CaseFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Case
+
+
+class CaseSIELFactory(CaseFactory):
+    case_type_id = CaseTypeEnum.SIEL.id
 
 
 class CaseTypeFactory(factory.django.DjangoModelFactory):
