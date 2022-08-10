@@ -26,7 +26,7 @@ def convert_control_list_entries_to_tree(data):
     return ultimate_parents_of_tree_list
 
 
-def get_clc_parent_nodes(rating):
+def get_clc_parent_nodes(rating, parent_nodes=None):
     """
     A control list entry can be a group entry or a child of a child entry.
     Given a rating, this function provides the list of all parent nodes in the chain.
@@ -34,18 +34,25 @@ def get_clc_parent_nodes(rating):
     ML1 -> ML1a, ML1b, ML1c, ML1d
     ML1b -> ML1b1, ML1b2
     Given ML1b1, it returns [ML1, ML1b]
+
+    If the given rating itself is a parent node then it returns the same node.
     """
 
-    parent_nodes = []
     try:
         node = ControlListEntry.objects.get(rating=rating)
     except ControlListEntry.DoesNotExist:
         node = None
 
+    if parent_nodes is None:
+        parent_nodes = []
+    else:
+        parent_nodes.extend([rating])
+
+    if node and node.controlled and node.parent is None:
+        return [node.rating]
+
     if node and node.parent and node.parent.controlled:
-        parent_nodes.append(node.parent.rating)
-        next_parent = get_clc_parent_nodes(node.parent.rating)
-        parent_nodes.extend(next_parent)
+        get_clc_parent_nodes(node.parent.rating, parent_nodes)
 
     return parent_nodes
 

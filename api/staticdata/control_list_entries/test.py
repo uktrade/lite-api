@@ -45,7 +45,7 @@ class CLCListTests(DataTestClient):
 
     @parameterized.expand(
         [
-            ["ML1", []],
+            ["ML1", ["ML1"]],
             ["ML1c", ["ML1"]],
             ["ML1b1", ["ML1", "ML1b"]],
             ["ML1d1", ["ML1"]],
@@ -54,6 +54,7 @@ class CLCListTests(DataTestClient):
             ["ML2c4", ["ML2"]],
             ["6E003a1", ["6", "6E", "6E003", "6E003a"]],
             ["6A005d1d1a", ["6", "6A", "6A005", "6A005d", "6A005d1", "6A005d1d", "6A005d1d1"]],
+            ["PL9004", ["PL9004"]],
             ["INVALID_CLC", []],
         ]
     )
