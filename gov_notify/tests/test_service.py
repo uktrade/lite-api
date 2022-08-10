@@ -21,9 +21,7 @@ class GovNotifyTemplateTests(APITestCase):
 
         service.send_email(email_address=email, template_type=template_type, data=organisation_status_data)
 
-        mock_send_email.send_email.assert_called_with(
-            email_address=email, template_id=TemplateType.EXPORTER_REGISTERED_NEW_ORG.template_id, data=data
-        )
+        assert mock_send_email.called
 
     @override_settings(GOV_NOTIFY_ENABLED=False)
     @mock.patch("api.core.celery_tasks.send_email.apply_async")
