@@ -141,6 +141,9 @@ class Good(TimestampableModel):
     )
 
     part_number = models.CharField(default="", blank=True, null=True, max_length=255)
+    no_part_number_comments = models.TextField(
+        default="", blank=True, null=False, help_text="Comments from applicant reasoning why part number is included"
+    )
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
     flags = models.ManyToManyField(Flag, related_name="goods")

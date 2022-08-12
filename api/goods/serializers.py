@@ -424,6 +424,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "is_good_controlled",
             "control_list_entries",
             "part_number",
+            "no_part_number_comments",
             "organisation",
             "status",
             "not_sure_details_details",
@@ -515,6 +516,9 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
         instance.part_number = validated_data.get("part_number", instance.part_number)
+        instance.no_part_number_comments = validated_data.get(
+            "no_part_number_comments", instance.no_part_number_comments
+        )
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
         instance.is_document_available = validated_data.get("is_document_available", instance.is_document_available)
@@ -815,6 +819,7 @@ class GoodSerializerExporter(serializers.Serializer):
     description = serializers.CharField()
     control_list_entries = ControlListEntryField(many=True)
     part_number = serializers.CharField()
+    no_part_number_comments = serializers.CharField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
     is_pv_graded = KeyValueChoiceField(choices=GoodPvGraded.choices)
     item_category = KeyValueChoiceField(choices=ItemCategory.choices)
@@ -828,6 +833,9 @@ class GoodSerializerExporter(serializers.Serializer):
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
     precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
+
+
+c
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
