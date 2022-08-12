@@ -835,9 +835,6 @@ class GoodSerializerExporter(serializers.Serializer):
     precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
 
 
-c
-
-
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     case_id = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
