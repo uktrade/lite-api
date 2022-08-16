@@ -113,6 +113,7 @@ INSTALLED_APPS = [
     "health_check.storage",
     "health_check.contrib.migrations",
     "django_audit_log_middleware",
+    "lite_routing",
 ]
 
 MIDDLEWARE = [
