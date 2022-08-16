@@ -109,8 +109,8 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
                 self.initial_data["team"] = kwargs["context"]["request"].user.govuser.team.id
 
             additional_rules = kwargs["data"].get("additional_rules")
-            if not isinstance(additional_rules, list):
-                additional_rules = [additional_rules]
+            if isinstance(additional_rules, str):
+                additional_rules = additional_rules.split(",")
 
             if RoutingRulesAdditionalFields.USERS not in additional_rules:
                 self.initial_data["user"] = None
