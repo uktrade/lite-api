@@ -26,6 +26,11 @@ image_elasticsearch: &image_elasticsearch
 image_redis: &image_redis
   image: circleci/redis:3.2-alpine
 
+parameters:
+  lite_routing_branch_name:
+    type: string
+    default: "default"
+
 commands:
   setup:
     steps:
@@ -35,6 +40,25 @@ commands:
           command: |
             git submodule sync
             git submodule update --init
+      - when:
+          condition:
+            not:
+              and:
+                # If not equal default run this step.
+                - equal:
+                    [
+                      default,
+                      << pipeline.parameters.lite_routing_branch_name >>,
+                    ]
+          steps:
+            - run:
+                name: Git lite_routing Checkout
+                command: |
+                  echo lite_routing checkout to << pipeline.parameters.lite_routing_branch_name >>
+                  cd lite_routing
+                  git checkout << pipeline.parameters.lite_routing_branch_name >>
+                  cd ..
+
       # Download and cache dependencies
       # ensure this step occurs *before* installing dependencies
       - restore_cache:
