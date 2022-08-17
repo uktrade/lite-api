@@ -61,24 +61,6 @@ commands:
           command: ./codecov
 
 jobs:
-  tests:
-    docker:
-      - <<: *image_python
-      - <<: *image_postgres
-      - <<: *image_elasticsearch
-      - <<: *image_redis
-    working_directory: ~/lite-api
-    environment:
-      <<: *common_env_vars
-      LITE_API_ENABLE_ES: False
-    steps:
-      - setup
-      - run:
-          name: Run tests
-          command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k "not seeding and not elasticsearch and not performance"
-      - upload_code_coverage
-
   seeding_tests:
     docker:
       - <<: *image_python
