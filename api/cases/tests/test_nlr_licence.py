@@ -45,7 +45,7 @@ class RefuseCaseTests(DataTestClient):
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
 
-        self.assertEqual(Audit.objects.count(), 2)
+        self.assertEqual(Audit.objects.count(), 3)
         case = get_case(self.application.id)
         mock_notify_exporter_no_licence_required.assert_called_with(case)
         mock_notify_exporter_licence_issued.assert_not_called()
