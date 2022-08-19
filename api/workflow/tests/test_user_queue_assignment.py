@@ -35,7 +35,7 @@ class UserQueueAssignmentTests(DataTestClient):
         user_queue_assignment_workflow([self.queue], self.case)
 
         self.case.refresh_from_db()
-        self.assertFalse(self.case.queues.exists())
+        self.assertTrue(self.case.queues.exists())
         self.assertGreater(self.case.status.priority, old_status.priority)
 
     def test_queue_and_case_assignment(self):

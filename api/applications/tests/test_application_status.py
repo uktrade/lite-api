@@ -342,8 +342,11 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status.status, CaseStatusEnum.UNDER_REVIEW)
-        self.assertEqual(self.standard_application.queues.count(), 1)
-        self.assertEqual(self.standard_application.queues.first().id, routing_queue.id)
+        self.assertEqual(self.standard_application.queues.count(), 2)
+        self.assertEqual(
+            sorted([queue.name for queue in self.standard_application.queues.all()]),
+            ["Licensing Unit Pre-circulation Cases to Review", "new queue"],
+        )
 
     def test_gov_user_set_hmrc_status_closed_success(self):
         self.hmrc_query = self.create_hmrc_query(self.organisation)

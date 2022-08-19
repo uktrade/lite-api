@@ -1,3 +1,5 @@
+import pytest
+
 from django.urls import reverse
 from rest_framework import status
 
@@ -6,6 +8,7 @@ from api.audit_trail.models import Audit
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import CaseStatus
+from api.workflow.routing_rules.models import RoutingRule
 from test_helpers.clients import DataTestClient
 
 
@@ -31,11 +34,16 @@ class RerunRoutingRulesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.case.refresh_from_db()
-        self.assertEqual(self.case.queues.count(), 1)
+        self.assertEqual(self.case.queues.count(), 2)
         self.assertEqual(self.case.queues.first().id, self.queue.id)
 
     def test_rules_rerun_when_no_rules_are_applied_then_case_status_is_changed_and_audited(self):
         self.routing_rule_1.delete()
+
+        # Delete all existing rules to ensure no rules are triggered
+        for rule in RoutingRule.objects.all():
+            rule.delete()
+
         self.case.queues.set([self.other_queue.id])
 
         response = self.client.put(self.url, {}, **self.gov_headers)
