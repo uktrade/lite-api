@@ -834,6 +834,10 @@ class GoodSerializerExporter(serializers.Serializer):
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
     precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
+    has_security_features = serializers.BooleanField()
+    security_feature_details = serializers.CharField()
+    has_declared_at_customs = serializers.BooleanField()
+    design_details = serializers.CharField()
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
