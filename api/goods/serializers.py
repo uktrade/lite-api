@@ -341,6 +341,7 @@ class GoodListSerializer(serializers.Serializer):
     part_number = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     firearm_details = FirearmDetailsSerializer(read_only=True)
+    item_category = KeyValueChoiceField(choices=ItemCategory.choices)
 
 
 class GoodAttachingSerializer(serializers.ModelSerializer):
