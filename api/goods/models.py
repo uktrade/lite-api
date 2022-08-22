@@ -171,6 +171,12 @@ class Good(TimestampableModel):
     grading_comment = models.TextField(default=None, blank=True, null=True, max_length=2000)
     # max length same as picklist
     report_summary = models.TextField(default=None, blank=True, null=True, max_length=5000)
+    has_security_features = models.BooleanField(default=None, blank=True, null=True)
+    security_feature_details = models.TextField(
+        default="", blank=True, null=True, help_text="what security features incorporated into the product"
+    )
+    has_declared_at_customs = models.BooleanField(default=None, blank=True, null=True)
+    design_details = models.TextField(default="", blank=True, null=True, help_text="what design details provided")
 
     class Meta:
         db_table = "good"
