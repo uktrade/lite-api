@@ -330,7 +330,7 @@ class CaseRoutingAutomationTests(DataTestClient):
 
         run_routing_rules(case)
 
-        self.assertEqual(len(case.queues.all()), 0)
+        self.assertEqual(len(case.queues.all()), 2)
         self.assertNotEqual(case.status, CaseStatus.objects.get(status="submitted"))
 
     def test_rules_not_run_if_flags_match(self):

@@ -17,6 +17,7 @@ class FlagReadOnlySerializer(serializers.Serializer):
 
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(read_only=True)
+    alias = serializers.CharField(read_only=True)
     colour = serializers.CharField(read_only=True)
     level = serializers.CharField(read_only=True)
     label = serializers.CharField(read_only=True)

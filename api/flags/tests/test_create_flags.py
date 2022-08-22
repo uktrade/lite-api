@@ -33,7 +33,7 @@ class FlagsCreateTest(DataTestClient):
             {
                 "id": str(self.team.id),
                 "name": self.team.name,
-                "part_of_ecju": None,
+                "part_of_ecju": False,
                 "department": None,
                 "is_ogd": False,
                 "alias": None,

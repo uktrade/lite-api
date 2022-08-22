@@ -1,7 +1,10 @@
+from itertools import chain
+
 from api.applications.models import GoodOnApplication, PartyOnApplication
 from api.cases.libraries.get_flags import get_ordered_flags
 from api.flags.enums import FlagLevels
 from api.flags.tests.factories import FlagFactory
+from api.organisations.models import Organisation
 from api.parties.enums import PartyType
 from api.teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
@@ -34,18 +37,14 @@ class FlagsOrderingOnCaseViewTests(DataTestClient):
 
         self.organisation.flags.set([flag for flag in flags if flag.level == FlagLevels.ORGANISATION])
 
-        ordered_flags = get_ordered_flags(case, self.team)
-
-        # This is the order of the original flags when displayed on a case
-        expected_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 16, 9, 17, 10, 18, 11, 19, 12, 20, 13, 21, 14, 22, 15, 23]
-
-        for i in range(0, 24):
-            if i <= 7:
-                self.assertIn(flags[expected_order[i]].name, str(ordered_flags[i]))
-            else:
-                # We don't know about the order here by team, it doesn't matter as long as its by priority and type correctly
-                if i % 2 == 0:
-                    self.assertIn(flags[expected_order[i]].name, str(ordered_flags[i]) + str(ordered_flags[i + 1]))
-                else:
-                    self.assertIn(flags[expected_order[i]].name, str(ordered_flags[i]) + str(ordered_flags[i - 1]))
-            i += 1
+        actual_flags = sorted([item["name"] for item in get_ordered_flags(case, self.team)])
+        expected_flags = sorted(
+            [
+                flag.name
+                for flag in list(
+                    chain(case.flags.all(), good.flags.all(), end_user.flags.all(), self.organisation.flags.all())
+                )
+            ]
+            + ["Green Countries", "Green Countries"]
+        )
+        self.assertEqual(expected_flags, actual_flags)

@@ -37,7 +37,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(response_data["flag"], str(flag.id))
         self.assertEqual(response_data["matching_values"], [CaseTypeReferenceEnum.SIEL, CaseTypeReferenceEnum.OGEL])
 
-        rule = FlaggingRule.objects.get()
+        rule = FlaggingRule.objects.get(id=response_data["id"])
         self.assertEqual(rule.level, "Case")
         self.assertEqual(rule.flag, flag)
         self.assertEqual(rule.matching_values, [CaseTypeReferenceEnum.SIEL, CaseTypeReferenceEnum.OGEL])
@@ -68,7 +68,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(response_data["matching_values"], [clc1.rating, clc2.rating])
         self.assertTrue(response_data["is_for_verified_goods_only"])
 
-        rule = FlaggingRule.objects.get()
+        rule = FlaggingRule.objects.get(id=response_data["id"])
         self.assertEqual(rule.level, FlagLevels.GOOD)
         self.assertEqual(rule.flag, flag)
         self.assertEqual(rule.matching_values, [clc1.rating, clc2.rating])
@@ -95,7 +95,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(response_data["flag"], str(flag.id))
         self.assertEqual(response_data["matching_values"], [country_id])
 
-        rule = FlaggingRule.objects.get()
+        rule = FlaggingRule.objects.get(id=response_data["id"])
         self.assertEqual(rule.level, "Destination")
         self.assertEqual(rule.flag, flag)
         self.assertEqual(rule.matching_values, [country_id])

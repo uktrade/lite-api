@@ -63,7 +63,7 @@ class CaseGetTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        expected_flags = [Flag.objects.get(id=SystemFlags.GOOD_NOT_YET_VERIFIED_ID).name]
+        expected_flags = [Flag.objects.get(id=SystemFlags.GOOD_NOT_YET_VERIFIED_ID).name, "Small Arms"]
         actual_flags_on_case = [flag["name"] for flag in response_data["case"]["all_flags"]]
         actual_flags_on_goods = [flag["name"] for flag in response_data["case"]["data"]["goods"][0]["flags"]]
 
@@ -80,7 +80,11 @@ class CaseGetTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        expected_flags = [Flag.objects.get(id=SystemFlags.GOOD_NOT_YET_VERIFIED_ID).name]
+        expected_flags = [
+            Flag.objects.get(id=SystemFlags.GOOD_NOT_YET_VERIFIED_ID).name,
+            "Small Arms",
+            "UK Military/Para: Sch 2",
+        ]
         actual_flags_on_case = [flag["name"] for flag in response_data["case"]["all_flags"]]
         actual_flags_on_goods_type = [flag["name"] for flag in response_data["case"]["data"]["goods_types"][0]["flags"]]
 

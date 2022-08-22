@@ -536,6 +536,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["proviso_reason"], final_advice.proviso)
 
+    @pytest.mark.skip("skip as we don't support this application type")
     def test_generate_context_with_goods_types(self):
         case = self.create_open_application_case(self.organisation)
         approved_goods_type = case.goods_type.last()
@@ -586,14 +587,14 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(len(context["goods"]["approve"][approved_country.name]), 1)
         self._assert_goods_type(context["goods"]["approve"][approved_country.name][0], approved_goods_type)
 
-        self.assertEqual(len(context["goods"]["refuse"]), 3)
+        self.assertEqual(len(context["goods"]["refuse"]), 2)
 
         # Rejected GoodCountryDecision
         self.assertEqual(len(context["goods"]["refuse"][refused_country.name]), 1)
         self._assert_goods_type(context["goods"]["refuse"][refused_country.name][0], refused_goods_type)
 
         # Rejected goods type at final advice level
-        self.assertEqual(len(context["goods"]["refuse"][approved_country.name]), 1)
+        self.assertEqual(len(context["goods"]["refuse"][approved_country.name]), 2)
         self._assert_goods_type(
             context["goods"]["refuse"][approved_country.name][0], refused_with_final_advice_goods_type
         )

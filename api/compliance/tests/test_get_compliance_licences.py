@@ -19,7 +19,7 @@ def _assert_response_data(self, response_data, licence, completed_olr=False):
     self.assertEqual(response_data[0]["status"]["key"], licence.status)
     self.assertEqual(response_data[0]["status"]["value"], LicenceStatus.to_str(licence.status))
     goods = licence.case.goods_type.all()
-    self.assertEqual(len(response_data[0]["flags"]), 2)
+    self.assertEqual(len(response_data[0]["flags"]), 3)
     self.assertEqual(response_data[0]["flags"][0]["name"], goods[0].flags.all()[0].name)
     self.assertEqual(response_data[0]["flags"][1]["name"], goods[1].flags.all()[0].name)
     self.assertEqual(response_data[0]["flags"][0]["level"], goods[0].flags.all()[0].level)
