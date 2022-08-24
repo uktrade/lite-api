@@ -1088,7 +1088,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         licence.decisions.set(decisions)
         return licence
 
-    def create_routing_rule(self, team_id, queue_id, tier, status_id, additional_rules: list):
+    def create_routing_rule(self, team_id, queue_id, tier, status_id, additional_rules: list, is_python_criteria=False):
         user = self.gov_user.pk if RoutingRulesAdditionalFields.USERS in additional_rules else None
         flags = (
             [self.create_flag("routing_flag", FlagLevels.CASE, self.team).id]
@@ -1108,6 +1108,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             additional_rules=additional_rules,
             user_id=user,
             country_id=country,
+            is_python_criteria=is_python_criteria,
         )
 
         if case_types:
