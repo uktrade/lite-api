@@ -1,4 +1,7 @@
+import logging
+
 from django.http import JsonResponse
+
 from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
@@ -14,6 +17,9 @@ from api.users.enums import UserStatuses
 from api.users.libraries.get_user import get_user_by_pk
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import GovUser
+
+
+logger = logging.getLogger(__name__)
 
 
 class AuthenticateGovUser(APIView):
@@ -32,17 +38,20 @@ class AuthenticateGovUser(APIView):
         first_name = data.get("first_name")
         last_name = data.get("last_name")
 
+        logger.info("Authenticating user: %s payload: %s", email, data)
         try:
             user = GovUser.objects.get(baseuser_ptr__email=email)
-
-            # Update the user's first and last names
-            user.baseuser_ptr.first_name = first_name
-            user.baseuser_ptr.last_name = last_name
-            user.baseuser_ptr.save()
         except GovUser.DoesNotExist:
+            logger.info("User not found: %s", email)
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
+        # Update the user's first and last names
+        user.baseuser_ptr.first_name = first_name
+        user.baseuser_ptr.last_name = last_name
+        user.baseuser_ptr.save()
+
         if user.status == GovUserStatuses.DEACTIVATED:
+            logger.info("User deactivated: %s", email)
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user.baseuser_ptr)
