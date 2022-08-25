@@ -42,31 +42,38 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                 if team_rule_tier and team_rule_tier != rule.tier:
                     break
 
-                for item in rule.parameter_sets():
-                    parameter_set = item["flags_country_set"]
-                    flags_to_exclude_set = item.get("flags_to_exclude", None)
-                    # If the rule set is a subset of the case's set we wish to assign the user and queue to the case,
-                    #   and set the team rule tier for the future.
-                    # Also if the rules contains flags that the case should not contain then add the case to the queue.
-                    if parameter_set.issubset(case_parameter_set) or (
-                        flags_to_exclude_set and not (flags_to_exclude_set.intersection(case_parameter_set))
-                    ):
-                        case.queues.add(rule.queue)
-                        audit_trail_service.create(
-                            actor=system_user,
-                            verb=AuditType.MOVE_CASE,
-                            action_object=case.get_case(),
-                            payload={"queues": rule.queue.name, "id": str(rule.id), "tier": rule.tier},
-                        )
-                        # Only assign active users to the case
-                        if rule.user and rule.user.status == UserStatuses.ACTIVE:
-                            # Two rules of the same user, queue, and case assignment may exist with
-                            # difference conditions, we should ensure these do not overlap
-                            if not CaseAssignment.objects.filter(user=rule.user, queue=rule.queue, case=case).exists():
-                                CaseAssignment(user=rule.user, queue=rule.queue, case=case).save(audit_user=system_user)
-                        team_rule_tier = rule.tier
-                        rules_have_been_applied = True
-                        break
+                criteria_satisfied = False
+                if rule.is_python_criteria:
+                    criteria_satisfied = rule.is_python_criteria_satisfied(case)
+                else:
+                    for item in rule.parameter_sets():
+                        parameter_set = item["flags_country_set"]
+                        flags_to_exclude_set = item.get("flags_to_exclude", None)
+                        # If the rule set is a subset of the case's set we wish to assign the user and queue to the case,
+                        #   and set the team rule tier for the future.
+                        # Also if the rules contains flags that the case should not contain then add the case to the queue.
+                        if parameter_set.issubset(case_parameter_set) or (
+                            flags_to_exclude_set and not (flags_to_exclude_set.intersection(case_parameter_set))
+                        ):
+                            criteria_satisfied = True
+                            break
+
+                if criteria_satisfied:
+                    case.queues.add(rule.queue)
+                    audit_trail_service.create(
+                        actor=system_user,
+                        verb=AuditType.MOVE_CASE,
+                        action_object=case.get_case(),
+                        payload={"queues": rule.queue.name, "id": str(rule.id), "tier": rule.tier},
+                    )
+                    # Only assign active users to the case
+                    if rule.user and rule.user.status == UserStatuses.ACTIVE:
+                        # Two rules of the same user, queue, and case assignment may exist with
+                        # difference conditions, we should ensure these do not overlap
+                        if not CaseAssignment.objects.filter(user=rule.user, queue=rule.queue, case=case).exists():
+                            CaseAssignment(user=rule.user, queue=rule.queue, case=case).save(audit_user=system_user)
+                    team_rule_tier = rule.tier
+                    rules_have_been_applied = True
 
         # If no rules have been applied, we wish to either move to the next status, or break loop if keep_status is True
         #   or the next status is terminal

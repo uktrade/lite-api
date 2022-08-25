@@ -1,3 +1,5 @@
+import unittest
+
 from api.applications.models import CountryOnApplication, PartyOnApplication
 from api.cases.models import CaseType
 from api.flags.enums import FlagStatuses
@@ -375,3 +377,36 @@ class CaseRoutingAutomationTests(DataTestClient):
 
         self.assertIn(self.queue, set(case.queues.all()))
         self.assertEqual(case.status, CaseStatus.objects.get(status="submitted"))
+
+    @unittest.mock.patch("api.workflow.routing_rules.models.run_criteria_function")
+    def test_rule_fired_when_python_criteria_met(self, mocked_run_criteria_function):
+        mocked_run_criteria_function.return_value = True
+        rule = self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+            is_python_criteria=True,
+        )
+        case = self.create_standard_application_case(organisation=self.organisation)
+        run_routing_rules(case)
+
+        self.assertIn(self.queue, set(case.queues.all()))
+        self.assertEqual(case.status, CaseStatus.objects.get(status="submitted"))
+
+    @unittest.mock.patch("api.workflow.routing_rules.models.run_criteria_function")
+    def test_rule_not_fired_when_python_criteria_unmet(self, mocked_run_criteria_function):
+        mocked_run_criteria_function.return_value = False
+        rule = self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+            is_python_criteria=True,
+        )
+        case = self.create_standard_application_case(organisation=self.organisation)
+        run_routing_rules(case)
+
+        self.assertNotIn(self.queue, set(case.queues.all()))
