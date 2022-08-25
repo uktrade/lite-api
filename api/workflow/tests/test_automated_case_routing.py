@@ -389,7 +389,7 @@ class CaseRoutingAutomationTests(DataTestClient):
             additional_rules=[],
             is_python_criteria=True,
         )
-        case = self.create_open_application_case(organisation=self.organisation)
+        case = self.create_standard_application_case(organisation=self.organisation)
         run_routing_rules(case)
 
         self.assertIn(self.queue, set(case.queues.all()))
@@ -406,7 +406,7 @@ class CaseRoutingAutomationTests(DataTestClient):
             additional_rules=[],
             is_python_criteria=True,
         )
-        case = self.create_open_application_case(organisation=self.organisation)
+        case = self.create_standard_application_case(organisation=self.organisation)
         run_routing_rules(case)
 
         self.assertNotIn(self.queue, set(case.queues.all()))
