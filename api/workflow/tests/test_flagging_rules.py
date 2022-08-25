@@ -6,6 +6,7 @@ from api.applications.models import GoodOnApplication, PartyOnApplication, Count
 from api.cases.enums import CaseTypeEnum
 from api.core import constants
 from api.flags.enums import FlagLevels, FlagStatuses
+from api.flags.models import FlaggingRule
 from api.goods.enums import GoodStatus
 from api.goodstype.models import GoodsType
 from api.staticdata.control_list_entries.models import ControlListEntry
@@ -23,6 +24,8 @@ from api.workflow.flagging_rules_automation import (
     apply_flagging_rule_to_all_open_cases,
 )
 from api.users.models import Role
+
+from lite_routing.routing_rules_internal.enums import FlaggingRulesEnum
 
 
 class FlaggingRulesAutomation(DataTestClient):
@@ -375,6 +378,43 @@ class FlaggingRulesAutomation(DataTestClient):
 
         case.refresh_from_db()
         self.assertNotIn(flag, case.flags.all())
+
+    def test_flagging_rule_with_python_criteria_not_met(self):
+        application = self.create_standard_application_case(self.organisation)
+        good = GoodOnApplication.objects.filter(application_id=application.id).first().good
+        good.control_list_entries.set([ControlListEntry.objects.get(rating="ML5a")])
+        good.flags.clear()
+        flagging_rule = FlaggingRule.objects.get(id=FlaggingRulesEnum.SMALL_ARMS)
+        flagging_rule.status = FlagStatuses.ACTIVE
+        flagging_rule.is_python_criteria = True
+        flagging_rule.save()
+
+        self.submit_application(application)
+        apply_flagging_rules_to_case(application)
+
+        application.refresh_from_db()
+        good.refresh_from_db()
+
+        self.assertNotIn(flagging_rule.flag, good.flags.all())
+
+    @parameterized.expand(["ML2a", "ML3a"])
+    def test_flagging_rule_with_python_CLC_values_criteria_met(self, rating):
+        application = self.create_standard_application_case(self.organisation)
+        good = GoodOnApplication.objects.filter(application_id=application.id).first().good
+        good.control_list_entries.set([ControlListEntry.objects.get(rating=rating)])
+        good.flags.clear()
+        flagging_rule = FlaggingRule.objects.get(id=FlaggingRulesEnum.SMALL_ARMS)
+        flagging_rule.status = FlagStatuses.ACTIVE
+        flagging_rule.is_python_criteria = True
+        flagging_rule.save()
+
+        self.submit_application(application)
+        apply_flagging_rules_to_case(application)
+
+        application.refresh_from_db()
+        good.refresh_from_db()
+
+        self.assertIn(flagging_rule.flag, good.flags.all())
 
 
 class FlaggingRulesAutomationForEachCaseType(DataTestClient):

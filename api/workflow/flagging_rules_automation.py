@@ -15,6 +15,8 @@ from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.control_list_entries.helpers import get_clc_child_nodes, get_clc_parent_nodes
 
+from lite_routing.routing_rules_internal.flagging_rules_criteria import run_flagging_rules_criteria
+
 
 def get_active_flagging_rules_for_level(level):
     return FlaggingRule.objects.prefetch_related("flag").filter(
@@ -27,10 +29,19 @@ def apply_flagging_rules_to_case(case):
     Apply all active flagging rules to a case which meet the criteria
     """
     # flagging rules should only be applied to cases which are open
-    if not (case.status.status == CaseStatusEnum.DRAFT or CaseStatusEnum.is_terminal(case.status.status)):
-        apply_case_flagging_rules(case)
-        apply_destination_flagging_rules_for_case(case)
-        apply_good_flagging_rules_for_case(case)
+    if case.status.status == CaseStatusEnum.DRAFT or CaseStatusEnum.is_terminal(case.status.status):
+        return
+
+    apply_case_flagging_rules(case)
+    apply_destination_flagging_rules_for_case(case)
+    apply_good_flagging_rules_for_case(case)
+
+    run_flagging_rules_with_python_criteria(case)
+
+
+def run_flagging_rules_with_python_criteria(case):
+    for rule in FlaggingRule.objects.filter(status=FlagStatuses.ACTIVE, is_python_criteria=True):
+        run_flagging_rules_criteria(rule.id, case)
 
 
 def apply_case_flagging_rules(case):
