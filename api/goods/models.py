@@ -152,6 +152,7 @@ class Good(TimestampableModel):
     no_document_comments = models.TextField(
         default="", blank=True, null=False, help_text="Comments from applicant reasoning why no document is uploaded"
     )
+    product_description = models.TextField(default="", blank=True, null=True)
     item_category = models.CharField(choices=ItemCategory.choices, null=True, max_length=20)
     is_military_use = models.CharField(choices=MilitaryUse.choices, null=True, max_length=15)
     modified_military_use_details = models.TextField(default=None, blank=True, null=True, max_length=2000)

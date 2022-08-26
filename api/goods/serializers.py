@@ -398,6 +398,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     is_document_available = serializers.BooleanField(allow_null=True, required=False, default=None)
     no_document_comments = serializers.CharField(allow_blank=True, required=False)
     is_document_sensitive = serializers.BooleanField(allow_null=True, required=False, default=None)
+    product_description = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     item_category = KeyValueChoiceField(
         choices=ItemCategory.choices, error_messages={"required": strings.Goods.FORM_NO_ITEM_CATEGORY_SELECTED}
     )
@@ -433,6 +434,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "pv_grading_details",
             "is_document_available",
             "is_document_sensitive",
+            "product_description",
             "no_document_comments",
             "comment",
             "report_summary",
@@ -525,6 +527,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         instance.is_document_available = validated_data.get("is_document_available", instance.is_document_available)
         instance.no_document_comments = validated_data.get("no_document_comments", instance.no_document_comments)
         instance.is_document_sensitive = validated_data.get("is_document_sensitive", instance.is_document_sensitive)
+        instance.product_description = validated_data.get("product_description", instance.product_description)
 
         if "control_list_entries" in validated_data:
             instance.control_list_entries.set(validated_data["control_list_entries"])
@@ -846,6 +849,7 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     is_document_available = serializers.BooleanField()
     is_document_sensitive = serializers.BooleanField()
     no_document_comments = serializers.CharField()
+    product_description = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     query = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()
