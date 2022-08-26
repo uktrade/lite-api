@@ -70,6 +70,8 @@ class FlaggingRule(TimestampableModel):
     matching_groups = ArrayField(models.TextField(default=""), default=list)
     excluded_values = ArrayField(models.TextField(default=""), default=list)
     is_for_verified_goods_only = models.BooleanField(null=True, blank=True)
+    is_python_criteria = models.BooleanField(default=False)
+    description = models.TextField(default="", blank=True)
 
     objects = FlaggingRuleManager()
 
