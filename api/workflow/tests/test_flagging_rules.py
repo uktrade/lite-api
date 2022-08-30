@@ -1,13 +1,17 @@
+import unittest
+
 from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
+from api.applications.tests.factories import PartyOnApplicationFactory
 from api.cases.enums import CaseTypeEnum
 from api.core import constants
 from api.flags.enums import FlagLevels, FlagStatuses
-from api.flags.models import FlaggingRule
+from api.flags.models import Flag, FlaggingRule
 from api.goods.enums import GoodStatus
+from api.goods.tests.factories import GoodFactory
 from api.goodstype.models import GoodsType
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.control_list_entries.helpers import (
@@ -17,15 +21,17 @@ from api.staticdata.control_list_entries.helpers import (
 )
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.teams.models import Team
 from test_helpers.clients import DataTestClient
 from api.workflow.flagging_rules_automation import (
     apply_flagging_rules_to_case,
+    apply_case_flagging_rules,
+    apply_goods_rules_for_good,
+    apply_destination_rule_on_party,
     get_active_flagging_rules_for_level,
     apply_flagging_rule_to_all_open_cases,
 )
 from api.users.models import Role
-
-from lite_routing.routing_rules_internal.enums import FlaggingRulesEnum
 
 
 class FlaggingRulesAutomation(DataTestClient):
@@ -379,42 +385,55 @@ class FlaggingRulesAutomation(DataTestClient):
         case.refresh_from_db()
         self.assertNotIn(flag, case.flags.all())
 
-    def test_flagging_rule_with_python_criteria_not_met(self):
-        application = self.create_standard_application_case(self.organisation)
-        good = GoodOnApplication.objects.filter(application_id=application.id).first().good
-        good.control_list_entries.set([ControlListEntry.objects.get(rating="ML5a")])
-        good.flags.clear()
-        flagging_rule = FlaggingRule.objects.get(id=FlaggingRulesEnum.SMALL_ARMS)
-        flagging_rule.status = FlagStatuses.ACTIVE
-        flagging_rule.is_python_criteria = True
-        flagging_rule.save()
+    @unittest.mock.patch("api.workflow.flagging_rules_automation.run_flagging_rules_criteria_case")
+    def test_python_criteria_satisfied_calls_case_criteria_function(self, mocked_criteria_function):
+        mocked_criteria_function.return_value = True
+        rule = FlaggingRule.objects.create(
+            team=Team.objects.first(),
+            flag=Flag.objects.first(),
+            level=FlagLevels.CASE,
+            status=FlagStatuses.ACTIVE,
+            is_python_criteria=True,
+        )
+        case = self.create_standard_application_case(self.organisation)
+        case.flags.clear()
+        self.assertEqual(case.flags.count(), 0)
+        apply_case_flagging_rules(case)
+        assert mocked_criteria_function.called
+        self.assertEqual(case.flags.count(), 1)
 
-        self.submit_application(application)
-        apply_flagging_rules_to_case(application)
+    @unittest.mock.patch("api.workflow.flagging_rules_automation.run_flagging_rules_criteria_product")
+    def test_python_criteria_satisfied_calls_product_criteria_function(self, mocked_criteria_function):
+        mocked_criteria_function.return_value = True
+        rule = FlaggingRule.objects.create(
+            team=Team.objects.first(),
+            flag=Flag.objects.first(),
+            level=FlagLevels.GOOD,
+            status=FlagStatuses.ACTIVE,
+            is_python_criteria=True,
+        )
+        good = GoodFactory(organisation=self.organisation)
+        self.assertEqual(good.flags.count(), 0)
+        apply_goods_rules_for_good(good)
+        assert mocked_criteria_function.called
+        self.assertEqual(good.flags.count(), 2)
 
-        application.refresh_from_db()
-        good.refresh_from_db()
-
-        self.assertNotIn(flagging_rule.flag, good.flags.all())
-
-    @parameterized.expand(["ML2a", "ML3a"])
-    def test_flagging_rule_with_python_CLC_values_criteria_met(self, rating):
-        application = self.create_standard_application_case(self.organisation)
-        good = GoodOnApplication.objects.filter(application_id=application.id).first().good
-        good.control_list_entries.set([ControlListEntry.objects.get(rating=rating)])
-        good.flags.clear()
-        flagging_rule = FlaggingRule.objects.get(id=FlaggingRulesEnum.SMALL_ARMS)
-        flagging_rule.status = FlagStatuses.ACTIVE
-        flagging_rule.is_python_criteria = True
-        flagging_rule.save()
-
-        self.submit_application(application)
-        apply_flagging_rules_to_case(application)
-
-        application.refresh_from_db()
-        good.refresh_from_db()
-
-        self.assertIn(flagging_rule.flag, good.flags.all())
+    @unittest.mock.patch("api.workflow.flagging_rules_automation.run_flagging_rules_criteria_destination")
+    def test_python_criteria_satisfied_calls_destination_criteria_function(self, mocked_criteria_function):
+        mocked_criteria_function.return_value = True
+        rule = FlaggingRule.objects.create(
+            team=Team.objects.first(),
+            flag=Flag.objects.first(),
+            level=FlagLevels.DESTINATION,
+            status=FlagStatuses.ACTIVE,
+            is_python_criteria=True,
+        )
+        party_on_application = PartyOnApplicationFactory(party__country__id="US")
+        party = party_on_application.party
+        self.assertEqual(party.flags.count(), 0)
+        apply_destination_rule_on_party(party)
+        assert mocked_criteria_function.called
+        self.assertEqual(party.flags.count(), 2)
 
 
 class FlaggingRulesAutomationForEachCaseType(DataTestClient):

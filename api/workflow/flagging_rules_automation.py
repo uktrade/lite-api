@@ -15,7 +15,11 @@ from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.control_list_entries.helpers import get_clc_child_nodes, get_clc_parent_nodes
 
-from lite_routing.routing_rules_internal.flagging_rules_criteria import run_flagging_rules_criteria
+from lite_routing.routing_rules_internal.flagging_rules_criteria import (
+    run_flagging_rules_criteria_case,
+    run_flagging_rules_criteria_product,
+    run_flagging_rules_criteria_destination,
+)
 
 
 def get_active_flagging_rules_for_level(level):
@@ -36,13 +40,6 @@ def apply_flagging_rules_to_case(case):
     apply_destination_flagging_rules_for_case(case)
     apply_good_flagging_rules_for_case(case)
 
-    run_flagging_rules_with_python_criteria(case)
-
-
-def run_flagging_rules_with_python_criteria(case):
-    for rule in FlaggingRule.objects.filter(status=FlagStatuses.ACTIVE, is_python_criteria=True):
-        run_flagging_rules_criteria(rule.id, case)
-
 
 def apply_case_flagging_rules(case):
     """
@@ -54,6 +51,12 @@ def apply_case_flagging_rules(case):
         .filter(matching_values__overlap=[case.case_type.reference])
         .values_list("flag_id", flat=True)
     )
+
+    flags = list(flags)
+    for rule in FlaggingRule.objects.filter(level=FlagLevels.CASE, status=FlagStatuses.ACTIVE, is_python_criteria=True):
+        rule_applies = run_flagging_rules_criteria_case(rule.id, case)
+        if rule_applies:
+            flags.append(rule.flag_id)
 
     if flags:
         case.flags.add(*flags)
@@ -88,6 +91,14 @@ def apply_destination_rule_on_party(party: Party, flagging_rules: QuerySet = Non
 
     # get a list of flag_id's where the flagging rule matching value is equivalent to the country id
     flags = flagging_rules.filter(matching_values__overlap=[party.country.id]).values_list("flag_id", flat=True)
+
+    flags = list(flags)
+    for rule in FlaggingRule.objects.filter(
+        level=FlagLevels.DESTINATION, status=FlagStatuses.ACTIVE, is_python_criteria=True
+    ):
+        rule_applies = run_flagging_rules_criteria_destination(rule.id, party)
+        if rule_applies:
+            flags.append(rule.flag_id)
 
     if flags:
         party.flags.add(*flags)
@@ -132,6 +143,12 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
         flagging_rules = flagging_rules.exclude(is_for_verified_goods_only=True)
 
     flags = flagging_rules.values_list("flag_id", flat=True)
+
+    flags = list(flags)
+    for rule in FlaggingRule.objects.filter(level=FlagLevels.GOOD, status=FlagStatuses.ACTIVE, is_python_criteria=True):
+        rule_applies = run_flagging_rules_criteria_product(rule.id, good)
+        if rule_applies:
+            flags.append(rule.flag_id)
 
     if flags:
         good.flags.add(*flags)
