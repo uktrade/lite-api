@@ -79,7 +79,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
                 actor=system_user,
                 verb=AuditType.MOVE_CASE,
                 action_object=case.get_case(),
-                payload={"queues": queue.countersigning_queue.name},
+                payload={"queues": queue.countersigning_queue.name, "queue_ids": [str(queue.countersigning_queue_id)]},
             )
 
     # Move case to next non-terminal state if unassigned from all queues
