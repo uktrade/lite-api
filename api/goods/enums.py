@@ -132,12 +132,12 @@ class ItemCategory:
     GROUP3_TECHNOLOGY = "group3_technology"
 
     choices = [
-        (GROUP1_PLATFORM, "Platform, vehicle, system or machine"),
+        (GROUP1_PLATFORM, "Complete product"),
         (GROUP1_DEVICE, "Device, equipment or object"),
-        (GROUP1_COMPONENTS, "Components, modules or accessories of something"),
-        (GROUP1_MATERIALS, "Materials or substances"),
-        (GROUP2_FIREARMS, "Firearms"),
-        (GROUP3_SOFTWARE, "Software"),
+        (GROUP1_COMPONENTS, "Component, accessory or module"),
+        (GROUP1_MATERIALS, "Material or substance"),
+        (GROUP2_FIREARMS, "Firearm"),
+        (GROUP3_SOFTWARE, "Software, information or technology"),
         (GROUP3_TECHNOLOGY, "Technology"),
     ]
 
