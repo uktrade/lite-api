@@ -22,6 +22,24 @@ from lite_routing.routing_rules_internal.flagging_rules_criteria import (
 )
 
 
+def _apply_python_flagging_rules(level, object):
+    flags = []
+
+    for rule in FlaggingRule.objects.filter(level=level, status=FlagStatuses.ACTIVE, is_python_criteria=True):
+        rule_applies = False
+        if level == FlagLevels.CASE:
+            rule_applies = run_flagging_rules_criteria_case(rule.id, object)
+        elif level == FlagLevels.GOOD:
+            rule_applies = run_flagging_rules_criteria_product(rule.id, object)
+        elif level == FlagLevels.DESTINATION:
+            rule_applies = run_flagging_rules_criteria_destination(rule.id, object)
+
+        if rule_applies:
+            flags.append(rule.flag_id)
+
+    return flags
+
+
 def get_active_flagging_rules_for_level(level):
     return FlaggingRule.objects.prefetch_related("flag").filter(
         status=FlagStatuses.ACTIVE, flag__status=FlagStatuses.ACTIVE, level=level
@@ -53,10 +71,7 @@ def apply_case_flagging_rules(case):
     )
 
     flags = list(flags)
-    for rule in FlaggingRule.objects.filter(level=FlagLevels.CASE, status=FlagStatuses.ACTIVE, is_python_criteria=True):
-        rule_applies = run_flagging_rules_criteria_case(rule.id, case)
-        if rule_applies:
-            flags.append(rule.flag_id)
+    flags.extend(_apply_python_flagging_rules(FlagLevels.CASE, case))
 
     if flags:
         case.flags.add(*flags)
@@ -93,12 +108,7 @@ def apply_destination_rule_on_party(party: Party, flagging_rules: QuerySet = Non
     flags = flagging_rules.filter(matching_values__overlap=[party.country.id]).values_list("flag_id", flat=True)
 
     flags = list(flags)
-    for rule in FlaggingRule.objects.filter(
-        level=FlagLevels.DESTINATION, status=FlagStatuses.ACTIVE, is_python_criteria=True
-    ):
-        rule_applies = run_flagging_rules_criteria_destination(rule.id, party)
-        if rule_applies:
-            flags.append(rule.flag_id)
+    flags.extend(_apply_python_flagging_rules(FlagLevels.DESTINATION, party))
 
     if flags:
         party.flags.add(*flags)
@@ -145,10 +155,7 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
     flags = flagging_rules.values_list("flag_id", flat=True)
 
     flags = list(flags)
-    for rule in FlaggingRule.objects.filter(level=FlagLevels.GOOD, status=FlagStatuses.ACTIVE, is_python_criteria=True):
-        rule_applies = run_flagging_rules_criteria_product(rule.id, good)
-        if rule_applies:
-            flags.append(rule.flag_id)
+    flags.extend(_apply_python_flagging_rules(FlagLevels.GOOD, good))
 
     if flags:
         good.flags.add(*flags)

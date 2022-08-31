@@ -400,7 +400,7 @@ class FlaggingRulesAutomation(DataTestClient):
         self.assertEqual(case.flags.count(), 0)
         apply_case_flagging_rules(case)
         assert mocked_criteria_function.called
-        self.assertEqual(case.flags.count(), 1)
+        self.assertIn(rule.flag, case.flags.all())
 
     @unittest.mock.patch("api.workflow.flagging_rules_automation.run_flagging_rules_criteria_product")
     def test_python_criteria_satisfied_calls_product_criteria_function(self, mocked_criteria_function):
@@ -416,7 +416,7 @@ class FlaggingRulesAutomation(DataTestClient):
         self.assertEqual(good.flags.count(), 0)
         apply_goods_rules_for_good(good)
         assert mocked_criteria_function.called
-        self.assertEqual(good.flags.count(), 2)
+        self.assertIn(rule.flag, good.flags.all())
 
     @unittest.mock.patch("api.workflow.flagging_rules_automation.run_flagging_rules_criteria_destination")
     def test_python_criteria_satisfied_calls_destination_criteria_function(self, mocked_criteria_function):
@@ -433,7 +433,7 @@ class FlaggingRulesAutomation(DataTestClient):
         self.assertEqual(party.flags.count(), 0)
         apply_destination_rule_on_party(party)
         assert mocked_criteria_function.called
-        self.assertEqual(party.flags.count(), 2)
+        self.assertIn(rule.flag, party.flags.all())
 
 
 class FlaggingRulesAutomationForEachCaseType(DataTestClient):
