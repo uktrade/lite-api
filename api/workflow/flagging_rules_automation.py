@@ -15,6 +15,30 @@ from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.control_list_entries.helpers import get_clc_child_nodes, get_clc_parent_nodes
 
+from lite_routing.routing_rules_internal.flagging_rules_criteria import (
+    run_flagging_rules_criteria_case,
+    run_flagging_rules_criteria_product,
+    run_flagging_rules_criteria_destination,
+)
+
+
+def _apply_python_flagging_rules(level, object):
+    flags = []
+
+    for rule in FlaggingRule.objects.filter(level=level, status=FlagStatuses.ACTIVE, is_python_criteria=True):
+        rule_applies = False
+        if level == FlagLevels.CASE:
+            rule_applies = run_flagging_rules_criteria_case(rule.id, object)
+        elif level == FlagLevels.GOOD:
+            rule_applies = run_flagging_rules_criteria_product(rule.id, object)
+        elif level == FlagLevels.DESTINATION:
+            rule_applies = run_flagging_rules_criteria_destination(rule.id, object)
+
+        if rule_applies:
+            flags.append(rule.flag_id)
+
+    return flags
+
 
 def get_active_flagging_rules_for_level(level):
     return FlaggingRule.objects.prefetch_related("flag").filter(
@@ -27,10 +51,12 @@ def apply_flagging_rules_to_case(case):
     Apply all active flagging rules to a case which meet the criteria
     """
     # flagging rules should only be applied to cases which are open
-    if not (case.status.status == CaseStatusEnum.DRAFT or CaseStatusEnum.is_terminal(case.status.status)):
-        apply_case_flagging_rules(case)
-        apply_destination_flagging_rules_for_case(case)
-        apply_good_flagging_rules_for_case(case)
+    if case.status.status == CaseStatusEnum.DRAFT or CaseStatusEnum.is_terminal(case.status.status):
+        return
+
+    apply_case_flagging_rules(case)
+    apply_destination_flagging_rules_for_case(case)
+    apply_good_flagging_rules_for_case(case)
 
 
 def apply_case_flagging_rules(case):
@@ -43,6 +69,9 @@ def apply_case_flagging_rules(case):
         .filter(matching_values__overlap=[case.case_type.reference])
         .values_list("flag_id", flat=True)
     )
+
+    flags = list(flags)
+    flags.extend(_apply_python_flagging_rules(FlagLevels.CASE, case))
 
     if flags:
         case.flags.add(*flags)
@@ -77,6 +106,9 @@ def apply_destination_rule_on_party(party: Party, flagging_rules: QuerySet = Non
 
     # get a list of flag_id's where the flagging rule matching value is equivalent to the country id
     flags = flagging_rules.filter(matching_values__overlap=[party.country.id]).values_list("flag_id", flat=True)
+
+    flags = list(flags)
+    flags.extend(_apply_python_flagging_rules(FlagLevels.DESTINATION, party))
 
     if flags:
         party.flags.add(*flags)
@@ -121,6 +153,9 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
         flagging_rules = flagging_rules.exclude(is_for_verified_goods_only=True)
 
     flags = flagging_rules.values_list("flag_id", flat=True)
+
+    flags = list(flags)
+    flags.extend(_apply_python_flagging_rules(FlagLevels.GOOD, good))
 
     if flags:
         good.flags.add(*flags)
