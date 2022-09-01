@@ -130,8 +130,11 @@ class SeedCommandTest(TestCase):
     Default test class to be extended to test seed operations
     """
 
-    def seed_command(self, seed_class):
+    def seed_command(self, seed_class, *args):
         out = StringIO()
-        call_command(seed_class.seed_command, stdout=out)
+        if args:
+            call_command(seed_class.seed_command, *args, stdout=out)
+        else:
+            call_command(seed_class.seed_command, stdout=out)
         if not settings.SUPPRESS_TEST_OUTPUT:
             self.assertIn(seed_class.success, out.getvalue())

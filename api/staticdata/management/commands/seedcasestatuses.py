@@ -16,6 +16,7 @@ class Command(SeedCommand):
     help = "Creates case statuses and case statuses on case types"
     info = "Seeding case statuses"
     seed_command = "seedcasestatuses"
+    force_help_message = "Running this command will likely overwrite changes made to CaseStatus records.  ONLY DO THIS IF YOU REALLY MEAN TO.  Use the --force flag to acknowledge the risks and run."
 
     STATUSES_ON_CASE_TYPES = {
         "00000000-0000-0000-0000-000000000001": ["application", "hmrc", "goods", "eua"],
@@ -28,15 +29,24 @@ class Command(SeedCommand):
         "00000000-0000-0000-0000-000000000008": {"application"},
     }
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--force",
+            action="store_true",
+            help=self.force_help_message,
+        )
+
     @transaction.atomic
     def operation(self, *args, **options):
+        if not options["force"]:
+            raise Exception(self.force_help_message)
+
         status_csv = self.read_csv(STATUSES_FILE)
         for row in status_csv:
             if row["workflow_sequence"] == "None":
                 row["workflow_sequence"] = None
 
         self.update_or_create(CaseStatus, status_csv)
-        self.delete_unused_objects(CaseStatus, status_csv)
 
         case_type_list = CaseTypeEnum.CASE_TYPE_LIST
 

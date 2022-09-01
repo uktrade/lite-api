@@ -33,6 +33,7 @@ class CaseStatusEnum:
     UNDER_FINAL_REVIEW = "under_final_review"
     UNDER_REVIEW = "under_review"
     WITHDRAWN = "withdrawn"
+    OGD_CONSOLIDATION = "ogd_consolidation"
 
     _system_status = [DRAFT]
 
@@ -54,6 +55,7 @@ class CaseStatusEnum:
         SUSPENDED,
         WITHDRAWN,
         OGD_ADVICE,
+        OGD_CONSOLIDATION,
     ]
 
     _major_editable_statuses = [APPLICANT_EDITING, DRAFT]
@@ -99,6 +101,7 @@ class CaseStatusEnum:
         (UNDER_REVIEW, "Under review"),
         (WITHDRAWN, "Withdrawn"),
         (OGD_ADVICE, "OGD Advice"),
+        (OGD_CONSOLIDATION, "OGD Consolidation"),
     ]
 
     priority = {
@@ -108,30 +111,31 @@ class CaseStatusEnum:
         INITIAL_CHECKS: 4,
         UNDER_REVIEW: 5,
         OGD_ADVICE: 6,
-        UNDER_FINAL_REVIEW: 7,
-        FINALISED: 8,
-        CLC: 9,
-        PV: 10,
-        OPEN: 11,
-        UNDER_INTERNAL_REVIEW: 12,
-        RETURN_TO_INSPECTOR: 13,
-        AWAITING_EXPORTER_RESPONSE: 14,
-        WITHDRAWN: 15,
-        CLOSED: 16,
-        REGISTERED: 17,
-        UNDER_APPEAL: 18,
-        APPEAL_REVIEW: 19,
-        APPEAL_FINAL_REVIEW: 20,
-        REOPENED_FOR_CHANGES: 21,
-        REOPENED_DUE_TO_ORG_CHANGES: 22,
-        CHANGE_INTIAL_REVIEW: 23,
-        CHANGE_UNDER_REVIEW: 24,
-        CHANGE_UNDER_FINAL_REVIEW: 25,
-        UNDER_ECJU_REVIEW: 26,
-        REVOKED: 27,
-        SUSPENDED: 28,
-        SURRENDERED: 29,
-        DEREGISTERED: 30,
+        OGD_CONSOLIDATION: 7,
+        UNDER_FINAL_REVIEW: 8,
+        FINALISED: 9,
+        CLC: 10,
+        PV: 11,
+        OPEN: 12,
+        UNDER_INTERNAL_REVIEW: 13,
+        RETURN_TO_INSPECTOR: 14,
+        AWAITING_EXPORTER_RESPONSE: 15,
+        WITHDRAWN: 16,
+        CLOSED: 17,
+        REGISTERED: 18,
+        UNDER_APPEAL: 19,
+        APPEAL_REVIEW: 20,
+        APPEAL_FINAL_REVIEW: 21,
+        REOPENED_FOR_CHANGES: 22,
+        REOPENED_DUE_TO_ORG_CHANGES: 23,
+        CHANGE_INTIAL_REVIEW: 24,
+        CHANGE_UNDER_REVIEW: 25,
+        CHANGE_UNDER_FINAL_REVIEW: 26,
+        UNDER_ECJU_REVIEW: 27,
+        REVOKED: 28,
+        SUSPENDED: 29,
+        SURRENDERED: 30,
+        DEREGISTERED: 31,
     }
 
     @classmethod
@@ -218,3 +222,4 @@ class CaseStatusIdEnum:
     UNDER_FINAL_REVIEW = UUID("00000000-0000-0000-0000-000000000006")
     UNDER_REVIEW = UUID("00000000-0000-0000-0000-000000000005")
     WITHDRAWN = UUID("00000000-0000-0000-0000-000000000008")
+    OGD_CONSOLIDATION = UUID("00000000-0000-0000-0000-000000000031")

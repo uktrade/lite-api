@@ -47,9 +47,9 @@ class SeedingTests(SeedCommandTest):
     @pytest.mark.seeding
     def test_seed_case_statuses(self):
         self.seed_command(seedcasetypes.Command)
-        self.seed_command(seedcasestatuses.Command)
-        self.assertEqual(
-            CaseStatus.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE))
+        self.seed_command(seedcasestatuses.Command, "--force")
+        self.assertTrue(
+            CaseStatus.objects.count() >= len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE))
         )
 
         case_type_list = CaseTypeEnum.CASE_TYPE_LIST
