@@ -36,7 +36,6 @@ class Command(SeedCommand):
                 row["workflow_sequence"] = None
 
         self.update_or_create(CaseStatus, status_csv)
-        self.delete_unused_objects(CaseStatus, status_csv)
 
         case_type_list = CaseTypeEnum.CASE_TYPE_LIST
 
