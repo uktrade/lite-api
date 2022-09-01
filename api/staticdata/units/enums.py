@@ -13,14 +13,22 @@ class Units:
     LTR = "LTR"
     MTQ = "MTQ"
     ITG = "ITG"
+    TON = "TON"
+    MIM = "MIM"
+    MCM = "MCM"
+    MIR = "MTR"
 
     choices = [
-        (GRM, "Gram(s)"),
+        (TON, "Tonne(s)"),
         (KGM, "Kilogram(s)"),
+        (GRM, "Gram(s)"),
+        (MIM, "Milligrams(s)"),
+        (MCM, "Micrograms(s)"),
         (NAR, "Number of articles"),
         (MTK, "Square metre(s)"),
         (MTR, "Metre(s)"),
         (LTR, "Litre(s)"),
+        (MIR, "Millilitre(s)"),
         (MTQ, "Cubic metre(s)"),
         (ITG, "Intangible"),
     ]
