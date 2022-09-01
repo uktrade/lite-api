@@ -55,8 +55,7 @@ class CaseStatusEnum:
         SUSPENDED,
         WITHDRAWN,
         OGD_ADVICE,
-        # TODO: Uncomment this after lite_routing changes for LTD-2371 are merged
-        # OGD_CONSOLIDATION,
+        OGD_CONSOLIDATION,
     ]
 
     _major_editable_statuses = [APPLICANT_EDITING, DRAFT]
@@ -102,8 +101,7 @@ class CaseStatusEnum:
         (UNDER_REVIEW, "Under review"),
         (WITHDRAWN, "Withdrawn"),
         (OGD_ADVICE, "OGD Advice"),
-        # TODO: Uncomment this after lite_routing changes for LTD-2371 are merged
-        # (OGD_CONSOLIDATION, "OGD Consolidation"),
+        (OGD_CONSOLIDATION, "OGD Consolidation"),
     ]
 
     priority = {

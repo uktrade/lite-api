@@ -31,7 +31,7 @@ def forward_migration(apps, schema_editor):
         call_command("seedcasetypes")
 
     if not CaseStatus.objects.filter(status=CaseStatusEnum.OPEN).exists():
-        call_command("seedcasestatuses")
+        call_command("seedcasestatuses", "--force")
 
     for case in cases:
         generate_compliance_site_case(case)
