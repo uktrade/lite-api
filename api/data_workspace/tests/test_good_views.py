@@ -20,6 +20,7 @@ class DataWorkspaceTests(DataTestClient):
             "name",
             "description",
             "part_number",
+            "no_part_number_comments",
             "control_list_entries",
             "comment",
             "is_good_controlled",
