@@ -167,6 +167,8 @@ class SetQueues(APIView):
                 payload={"queues": sorted([queue.name for queue in removed_queues]), "additional_text": note},
             )
         if new_queues:
+            # Be careful when editing this audit trail event; we depend on it for
+            # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.MOVE_CASE,

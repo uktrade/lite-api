@@ -60,6 +60,8 @@ def run_routing_rules(case: Case, keep_status: bool = False):
 
                 if criteria_satisfied:
                     case.queues.add(rule.queue)
+                    # Be careful when editing this audit trail event; we depend on it for
+                    # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
                     audit_trail_service.create(
                         actor=system_user,
                         verb=AuditType.MOVE_CASE,

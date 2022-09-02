@@ -75,6 +75,8 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
     for queue in queues_without_case_assignments:
         if queue.countersigning_queue_id:
             case.queues.add(queue.countersigning_queue_id)
+            # Be careful when editing this audit trail event; we depend on it for
+            # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
             audit_trail_service.create(
                 actor=system_user,
                 verb=AuditType.MOVE_CASE,

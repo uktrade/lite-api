@@ -19,3 +19,4 @@ class CasesConfig(AppConfig):
     def ready(self):
         if BACKGROUND_TASK_ENABLED:
             post_migrate.connect(self.initialize_background_tasks, sender=self)
+        from . import signals  # noqa
