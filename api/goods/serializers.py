@@ -768,6 +768,7 @@ class GoodSerializerInternal(serializers.Serializer):
     name = serializers.CharField()
     description = serializers.CharField()
     part_number = serializers.CharField()
+    no_part_number_comments = serializers.CharField()
     control_list_entries = ControlListEntrySerializer(many=True)
     comment = serializers.CharField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
