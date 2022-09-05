@@ -793,6 +793,7 @@ class GoodSerializerInternal(serializers.Serializer):
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
     is_precedent = serializers.BooleanField(required=False, default=False)
     precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
+    product_description = serializers.CharField()
 
     def get_documents(self, instance):
         documents = instance.gooddocument_set.all()
