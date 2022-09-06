@@ -45,6 +45,7 @@ class DataWorkspaceTests(DataTestClient):
             "firearm_details",
             "is_precedent",
             "precedents",
+            "product_description",
         )
 
         response = self.client.get(url)
