@@ -38,6 +38,15 @@ class TestSignals(DataTestClient):
 
     @override_settings(FEATURE_C5_ROUTING_ENABLED=True)
     @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
+    def test_case_pre_save_handler_status_terminal(self, mocked_flagging_func):
+        submitted = CaseStatus.objects.get(status="submitted")
+        case = CaseFactory(status=submitted)
+        case.status = CaseStatus.objects.get(status="finalised")
+        case_pre_save_handler(Case, case)
+        assert not mocked_flagging_func.called
+
+    @override_settings(FEATURE_C5_ROUTING_ENABLED=True)
+    @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
     def test_case_pre_save_handler_raw(self, mocked_flagging_func):
         submitted = CaseStatus.objects.get(status="submitted")
         case = CaseFactory(status=submitted)
