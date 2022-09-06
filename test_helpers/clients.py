@@ -856,13 +856,26 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_standard_application_with_incorporated_good(
-        self, organisation: Organisation, reference_name="Standard Draft", safe_document=True
+        self,
+        organisation: Organisation,
+        reference_name="Standard Draft",
+        safe_document=True,
+        destination_country_code="GB",
+        good_cles=None,
     ):
 
-        application = self.create_draft_standard_application(organisation, reference_name, safe_document)
+        application = self.create_draft_standard_application(
+            organisation, reference_name, safe_document, num_products=0
+        )
+
+        good = GoodFactory(is_good_controlled=True, organisation=self.organisation)
+        if good_cles != None:
+            good.control_list_entries.clear()
+            for cle in good_cles:
+                good.control_list_entries.add(cle)
 
         GoodOnApplication(
-            good=GoodFactory(is_good_controlled=True, organisation=self.organisation),
+            good=good,
             application=application,
             quantity=17,
             value=18,
@@ -870,7 +883,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         ).save()
 
         self.ultimate_end_user = self.create_party(
-            "Ultimate End User", organisation, PartyType.ULTIMATE_END_USER, application
+            "Ultimate End User",
+            organisation,
+            PartyType.ULTIMATE_END_USER,
+            application,
+            country_code=destination_country_code,
         )
         self.create_document_for_party(application.ultimate_end_users.first().party, safe=safe_document)
 
