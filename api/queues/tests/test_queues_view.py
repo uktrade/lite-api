@@ -30,7 +30,7 @@ class QueuesViewTests(DataTestClient):
         data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(data), 54)
+        self.assertEqual(len([q for q in data if q["team"]]), Queue.objects.count())
         for queue in data:
             queue_exists = queue["id"] in SYSTEM_QUEUES.keys() or Queue.objects.filter(pk=queue["id"]).exists()
             self.assertTrue(queue_exists)
