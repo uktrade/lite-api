@@ -4,17 +4,19 @@ from api.applications.enums import ApplicationExportType, ApplicationExportLicen
 from api.applications.models import (
     PartyOnApplication,
     CountryOnApplication,
+    DenialMatchOnApplication,
     OpenApplication,
     SiteOnApplication,
     GoodOnApplication,
     StandardApplication,
 )
 from api.cases.enums import CaseTypeEnum
+from api.external_data.models import Denial
 from api.staticdata.countries.factories import CountryFactory
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from api.parties.tests.factories import PartyFactory
-from api.users.tests.factories import ExporterUserFactory
+from api.users.tests.factories import ExporterUserFactory, GovUserFactory
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -122,3 +124,32 @@ class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = GoodOnApplication
+
+
+class DenialMatchFactory(factory.django.DjangoModelFactory):
+    created_by = factory.SubFactory(GovUserFactory)
+    reference = factory.Faker("word")
+    name = factory.Faker("name")
+    address = factory.Faker("address")
+    notifying_government = factory.Iterator(
+        ["France", "Italy", "Spain", "Germany", "Switzerland", "Japan", "Australia"]
+    )
+    final_destination = factory.Iterator(
+        ["France", "Italy", "Spain", "Germany", "Switzerland", "Japan", "Australia", "Canada", "Israel"]
+    )
+    item_list_codes = factory.Faker("word")
+    item_description = factory.Faker("sentence")
+    consignee_name = factory.Faker("name")
+    end_use = factory.Faker("sentence")
+
+    class Meta:
+        model = Denial
+
+
+class DenialMatchOnApplicationFactory(factory.django.DjangoModelFactory):
+    category = factory.Iterator(["partial", "exact"])
+    application = factory.SubFactory(StandardApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
+    denial = factory.SubFactory(DenialMatchFactory)
+
+    class Meta:
+        model = DenialMatchOnApplication

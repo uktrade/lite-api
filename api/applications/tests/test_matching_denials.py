@@ -6,6 +6,7 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
+from api.applications.tests.factories import DenialMatchFactory
 from api.external_data import models, serializers
 from test_helpers.clients import DataTestClient
 
@@ -92,3 +93,28 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
         response = response.json()
         self.assertEqual(response["is_revoked"], True)
         self.assertEqual(response["is_revoked_comment"], "This denial is no longer active")
+
+    def test_view_denial_notifications_on_the_application(self):
+        data = []
+        for index in range(10):
+            denial = DenialMatchFactory()
+            data.append(
+                {
+                    "application": self.application.id,
+                    "denial": denial.id,
+                    "category": "exact" if (index % 2) else "partial",
+                }
+            )
+
+        url = reverse("applications:application_denial_matches", kwargs={"pk": self.application.id})
+        response = self.client.post(url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(url, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        denial_matches = response.json()["denial_matches"]
+        self.assertEqual(len(denial_matches), 10)
+
+        # remove one match
+        response = self.client.delete(url, {"objects": [denial_matches[0]["id"]]}, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
