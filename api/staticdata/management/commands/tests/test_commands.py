@@ -1,13 +1,15 @@
 import os
+import pytest
 
 from django.conf import settings
-import pytest
+from tempfile import NamedTemporaryFile
 
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
 from api.core.constants import GovPermissions, ExporterPermissions
 from api.conf.settings import BASE_DIR
 from api.flags.models import Flag
+from api.letter_templates.models import LetterTemplate
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
@@ -23,6 +25,7 @@ from api.staticdata.management.commands import (
     seedcontrollistentries,
     seedcountries,
     seeddenialreasons,
+    seedlettertemplates,
     seedrolepermissions,
     seedadminteam,
     seedflags,
@@ -125,3 +128,23 @@ class SeedingTests(SeedCommandTest):
             self.assertTrue(
                 Decision.objects.filter(id=AdviceType.ids[key], name=key).exists(), f"Decision {key} does not exist"
             )
+
+    @pytest.mark.seeding
+    def test_seed_letter_templates(self):
+        with NamedTemporaryFile(suffix=".csv", delete=True) as tmp_file:
+            layout = LetterLayout.objects.create(name="layout1", filename="filename1")
+            content = [
+                "name,layout_id,visible_to_exporter,include_digital_signature,casetype_id",
+                f"template1,{layout.id},true,true,00000000-0000-0000-0000-000000000004",
+                f"template2,{layout.id},true,true,00000000-0000-0000-0000-000000000004",
+            ]
+            tmp_file.write(("\n".join(content)).encode("utf-8"))
+            tmp_file.flush()
+            seedlettertemplates.LETTER_TEMPLATES_FILE = tmp_file.name
+            self.seed_command(seedlettertemplates.Command)
+
+        self.assertEqual(LetterTemplate.objects.count(), 2)
+
+        # running again with existing templates does nothing
+        self.seed_command(seedlettertemplates.Command)
+        self.assertEqual(LetterTemplate.objects.count(), 2)
