@@ -1,16 +1,21 @@
 import factory
 
+from faker import Faker
+
+
 from api.organisations.tests.factories import OrganisationFactory
 from api.users import models
 from api.users.enums import UserType, UserStatuses
 from api.users.models import Role, UserOrganisationRelationship
 from api.teams.tests.factories import TeamFactory
 
+faker = Faker()
+
 
 class BaseUserFactory(factory.django.DjangoModelFactory):
     first_name = factory.Faker("first_name")
     last_name = factory.Faker("last_name")
-    email = factory.Faker("email")
+    email = factory.LazyAttribute(lambda n: faker.email())
 
     class Meta:
         model = models.BaseUser

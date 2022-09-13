@@ -13,6 +13,7 @@ from api.applications.models import (
 from api.cases.enums import CaseTypeEnum
 from api.external_data.models import Denial
 from api.staticdata.countries.factories import CountryFactory
+from api.staticdata.statuses.models import CaseStatus
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from api.parties.tests.factories import PartyFactory
@@ -75,6 +76,8 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
         obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        if "status" in kwargs and isinstance(kwargs["status"], CaseStatus):
+            obj.status = kwargs["status"]
         obj.save()
         return obj
 
