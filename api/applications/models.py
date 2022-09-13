@@ -226,6 +226,8 @@ class StandardApplication(BaseApplication):
     goods_recipients = models.TextField(choices=GOODS_RECIPIENTS_CHOICES, default="")
     goods_starting_point = models.TextField(choices=GOODS_STARTING_POINT_CHOICES, default="")
 
+    is_mod_security_approved = models.BooleanField(blank=True, default=None, null=True)
+
 
 class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
