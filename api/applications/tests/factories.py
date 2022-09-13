@@ -1,5 +1,7 @@
 import factory
 
+from faker import Faker
+
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.models import (
     PartyOnApplication,
@@ -21,6 +23,9 @@ from api.users.tests.factories import ExporterUserFactory, GovUserFactory
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+
+
+faker = Faker()
 
 
 class OpenApplicationFactory(factory.django.DjangoModelFactory):
@@ -131,19 +136,15 @@ class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
 
 class DenialMatchFactory(factory.django.DjangoModelFactory):
     created_by = factory.SubFactory(GovUserFactory)
-    reference = factory.Faker("word")
-    name = factory.Faker("name")
-    address = factory.Faker("address")
-    notifying_government = factory.Iterator(
-        ["France", "Italy", "Spain", "Germany", "Switzerland", "Japan", "Australia"]
-    )
-    final_destination = factory.Iterator(
-        ["France", "Italy", "Spain", "Germany", "Switzerland", "Japan", "Australia", "Canada", "Israel"]
-    )
-    item_list_codes = factory.Faker("word")
-    item_description = factory.Faker("sentence")
-    consignee_name = factory.Faker("name")
-    end_use = factory.Faker("sentence")
+    reference = factory.LazyAttribute(lambda n: faker.uuid4())
+    name = factory.LazyAttribute(lambda n: faker.name())
+    address = factory.LazyAttribute(lambda n: faker.address())
+    notifying_government = factory.LazyAttribute(lambda n: faker.country())
+    final_destination = factory.LazyAttribute(lambda n: faker.country())
+    item_list_codes = factory.LazyAttribute(lambda n: faker.word())
+    item_description = factory.LazyAttribute(lambda n: faker.sentence())
+    consignee_name = factory.LazyAttribute(lambda n: faker.name())
+    end_use = factory.LazyAttribute(lambda n: faker.sentence())
 
     class Meta:
         model = Denial
