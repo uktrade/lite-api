@@ -1,10 +1,4 @@
 class Units:
-    """
-    LITE Frontend can dynamically pluralise these
-    units, to enable this include an (s) at the
-    end of the unit.
-    """
-
     GRM = "GRM"
     KGM = "KGM"
     NAR = "NAR"
@@ -12,25 +6,23 @@ class Units:
     MTR = "MTR"
     LTR = "LTR"
     MTQ = "MTQ"
-    ITG = "ITG"
     TON = "TON"
     MIM = "MIM"
     MCM = "MCM"
-    MIR = "MTR"
+    MIR = "MIR"
 
     choices = [
-        (TON, "Tonne(s)"),
-        (KGM, "Kilogram(s)"),
-        (GRM, "Gram(s)"),
-        (MIM, "Milligrams(s)"),
-        (MCM, "Micrograms(s)"),
-        (NAR, "Number of articles"),
-        (MTK, "Square metre(s)"),
-        (MTR, "Metre(s)"),
-        (LTR, "Litre(s)"),
-        (MIR, "Millilitre(s)"),
-        (MTQ, "Cubic metre(s)"),
-        (ITG, "Intangible"),
+        (NAR, "Items"),
+        (TON, "Tonnes"),
+        (KGM, "Kilograms"),
+        (GRM, "Grams"),
+        (MIM, "Milligrams"),
+        (MCM, "Micrograms"),
+        (MTR, "Metres"),
+        (MTK, "Square metres"),
+        (MTQ, "Cubic metres"),
+        (LTR, "Litres"),
+        (MIR, "Millilitres"),
     ]
 
     @classmethod
