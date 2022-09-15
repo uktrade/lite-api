@@ -196,3 +196,30 @@ class ContractType:
     @classmethod
     def get_flag_name(cls, choice):
         return cls.get_text(choice)[:25]
+
+
+class ApplicationDocumentType:
+    F1686_APPROVAL = "f1686-approval"
+    choices = [
+        (F1686_APPROVAL, "F1686 approval document"),
+    ]
+
+    @classmethod
+    def keys(cls):
+        return [key for key, _ in cls.choices]
+
+
+class SecurityClassifiedApprovalsType:
+    F680 = "F680"
+    F1686 = "F1686"
+    OTHER = "Other"
+
+    choices = (
+        (F680, "F680"),
+        (F1686, "F1686"),
+        (OTHER, "Other"),
+    )
+
+    @classmethod
+    def keys(cls):
+        return [key for key, _ in cls.choices]
