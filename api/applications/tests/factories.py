@@ -13,7 +13,7 @@ from api.applications.models import (
     StandardApplication,
 )
 from api.cases.enums import CaseTypeEnum
-from api.external_data.models import Denial
+from api.external_data.models import Denial, SanctionMatch
 from api.staticdata.countries.factories import CountryFactory
 from api.staticdata.statuses.models import CaseStatus
 from api.goods.tests.factories import GoodFactory
@@ -157,3 +157,15 @@ class DenialMatchOnApplicationFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = DenialMatchOnApplication
+
+
+class SanctionMatchFactory(factory.django.DjangoModelFactory):
+    party_on_application = factory.SubFactory(PartyOnApplicationFactory)
+    elasticsearch_reference = factory.LazyAttribute(lambda n: faker.word())
+    name = factory.LazyAttribute(lambda n: faker.name())
+    flag_uuid = factory.LazyAttribute(lambda n: faker.uuid4())
+    is_revoked = factory.LazyAttribute(lambda n: faker.boolean())
+    is_revoked_comment = factory.LazyAttribute(lambda n: faker.sentence())
+
+    class Meta:
+        model = SanctionMatch
