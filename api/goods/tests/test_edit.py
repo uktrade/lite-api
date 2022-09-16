@@ -564,6 +564,68 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good.firearm_details.is_deactivated_to_standard, None)
         self.assertEqual(good.firearm_details.not_deactivated_to_standard_comments, "")
 
+    def test_edit_security_features_to_no_clears_details_field_success(self):
+        request_data = {"has_security_features": False, "security_feature_details": ""}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Good.objects.all().count(), 1)
+
+        self.assertFalse(good["has_security_features"])
+        self.assertEqual(good["security_feature_details"], "")
+
+        good = Good.objects.get()
+        self.assertFalse(good.has_security_features)
+        self.assertEqual(good.security_feature_details, "")
+
+    def test_edit_security_features(self):
+        request_data = {"has_security_features": True, "security_feature_details": "new details"}
+
+        self.assertEqual(Good.objects.all().count(), 1)
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Good.objects.all().count(), 1)
+
+        self.assertTrue(good["has_security_features"])
+        self.assertEqual(good["security_feature_details"], "new details")
+
+        good = Good.objects.get()
+        self.assertTrue(good.has_security_features)
+        self.assertEqual(good.security_feature_details, "new details")
+
+    def test_edit_has_declared_at_customs_field_success(self):
+        request_data = {"has_declared_at_customs": False}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Good.objects.all().count(), 1)
+
+        self.assertFalse(good["has_declared_at_customs"])
+
+        good = Good.objects.get()
+        self.assertFalse(good.has_declared_at_customs)
+
+    def test_edit_design_details_field_success(self):
+        request_data = {"design_details": "design details"}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Good.objects.all().count(), 1)
+
+        self.assertEqual(good["design_details"], "design details")
+
+        good = Good.objects.get()
+        self.assertEqual(good.design_details, "design details")
+
 
 class GoodsAttachingTests(DataTestClient):
     def setUp(self):

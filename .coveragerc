@@ -13,6 +13,7 @@ omit =
     .venv/*
     vendor/*
     ./pii-secret-exclude.txt
+    ./api/staticdata/management/*
 branch = True
 
 plugins =

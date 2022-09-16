@@ -416,6 +416,10 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         allow_null=True, required=False, allow_blank=True, max_length=2000
     )
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
+    has_security_features = serializers.BooleanField(allow_null=True, required=False, default=None)
+    security_feature_details = serializers.CharField(allow_null=True, required=False, allow_blank=True, max_length=2000)
+    has_declared_at_customs = serializers.BooleanField(allow_null=True, required=False, default=None)
+    design_details = serializers.CharField(allow_null=True, required=False, allow_blank=True, max_length=2000)
 
     class Meta:
         model = Good
@@ -447,6 +451,10 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "information_security_details",
             "software_or_technology_details",
             "firearm_details",
+            "has_security_features",
+            "security_feature_details",
+            "has_declared_at_customs",
+            "design_details",
         )
 
     def __init__(self, *args, **kwargs):
@@ -578,6 +586,30 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         instance.information_security_details = validated_data.get(
             "information_security_details", instance.information_security_details
         )
+
+        has_security_features = validated_data.get("has_security_features")
+        # if information security has changed, then set the new value and the details field
+        if has_security_features is not None and has_security_features != instance.has_security_features:
+            instance.has_security_features = has_security_features
+            instance.security_feature_details = validated_data.get(
+                "security_feature_details", instance.information_security_details
+            )
+        instance.security_feature_details = validated_data.get("security_feature_details", "")
+
+        if has_security_features is False:
+            instance.security_feature_details = ""
+        else:
+            instance.security_feature_details = validated_data.get(
+                "security_feature_details", instance.security_feature_details
+            )
+
+        has_declared_at_customs = validated_data.get("has_declared_at_customs")
+        if has_declared_at_customs is not None and has_declared_at_customs != instance.has_declared_at_customs:
+            instance.has_declared_at_customs = has_declared_at_customs
+
+        design_details = validated_data.get("design_details")
+        if design_details is not None and design_details != instance.design_details:
+            instance.design_details = design_details
 
         software_or_technology_details = validated_data.get("software_or_technology_details")
         if software_or_technology_details:
