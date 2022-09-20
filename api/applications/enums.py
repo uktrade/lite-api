@@ -1,4 +1,5 @@
 from enum import Enum
+from django.db import models
 
 
 class YesNoChoiceType:
@@ -209,17 +210,7 @@ class ApplicationDocumentType:
         return [key for key, _ in cls.choices]
 
 
-class SecurityClassifiedApprovalsType:
+class SecurityClassifiedApprovalsType(models.TextChoices):
     F680 = "F680"
     F1686 = "F1686"
     OTHER = "Other"
-
-    choices = (
-        (F680, "F680"),
-        (F1686, "F1686"),
-        (OTHER, "Other"),
-    )
-
-    @classmethod
-    def keys(cls):
-        return [key for key, _ in cls.choices]
