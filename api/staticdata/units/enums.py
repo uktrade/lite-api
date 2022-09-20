@@ -10,6 +10,7 @@ class Units:
     MIM = "MIM"
     MCM = "MCM"
     MIR = "MIR"
+    MCR = "MCR"
 
     choices = [
         (NAR, "Items"),
@@ -23,6 +24,7 @@ class Units:
         (MTQ, "Cubic metres"),
         (LTR, "Litres"),
         (MIR, "Millilitres"),
+        (MCR, "Microlitres"),
     ]
 
     @classmethod
