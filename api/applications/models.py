@@ -16,6 +16,7 @@ from api.applications.enums import (
     MTCRAnswers,
     GoodsTypeCategory,
     ContractType,
+    SecurityClassifiedApprovalsType,
 )
 
 from api.applications.managers import BaseApplicationManager, HmrcQueryManager
@@ -226,7 +227,17 @@ class StandardApplication(BaseApplication):
     goods_recipients = models.TextField(choices=GOODS_RECIPIENTS_CHOICES, default="")
     goods_starting_point = models.TextField(choices=GOODS_STARTING_POINT_CHOICES, default="")
 
+    # MOD Security approval fields
     is_mod_security_approved = models.BooleanField(blank=True, default=None, null=True)
+    security_approvals = ArrayField(
+        models.CharField(choices=SecurityClassifiedApprovalsType.choices, max_length=255), blank=True, null=True
+    )
+    f680_reference_number = models.CharField(default=None, blank=True, null=True, max_length=100)
+    f1686_contracting_authority = models.CharField(default=None, blank=True, null=True, max_length=200)
+    is_f1686_approval_document_available = models.BooleanField(blank=True, default=None, null=True)
+    f1686_reference_number = models.CharField(default=None, blank=True, null=True, max_length=100)
+    f1686_approval_date = models.DateField(blank=False, null=True)
+    other_security_approval_details = models.TextField(default=None, blank=True, null=True)
 
 
 class OpenApplication(BaseApplication):

@@ -81,6 +81,14 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "is_amended",
                 "goods_starting_point",
                 "goods_recipients",
+                "is_mod_security_approved",
+                "security_approvals",
+                "f680_reference_number",
+                "f1686_contracting_authority",
+                "is_f1686_approval_document_available",
+                "f1686_reference_number",
+                "f1686_approval_date",
+                "other_security_approval_details",
             )
         )
 
@@ -214,6 +222,14 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "non_waybill_or_lading_route_details",
             "goods_starting_point",
             "goods_recipients",
+            "is_mod_security_approved",
+            "security_approvals",
+            "f680_reference_number",
+            "f1686_contracting_authority",
+            "is_f1686_approval_document_available",
+            "f1686_reference_number",
+            "f1686_approval_date",
+            "other_security_approval_details",
         )
 
     def __init__(self, *args, **kwargs):
