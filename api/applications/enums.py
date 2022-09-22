@@ -199,17 +199,6 @@ class ContractType:
         return cls.get_text(choice)[:25]
 
 
-class ApplicationDocumentType:
-    F1686_APPROVAL = "f1686-approval"
-    choices = [
-        (F1686_APPROVAL, "F1686 approval document"),
-    ]
-
-    @classmethod
-    def keys(cls):
-        return [key for key, _ in cls.choices]
-
-
 class SecurityClassifiedApprovalsType(models.TextChoices):
     F680 = "F680"
     F1686 = "F1686"
