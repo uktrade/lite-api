@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     "api.staticdata.trade_control",
     "api.staticdata.units",
     "api.staticdata.upload_document_for_tests",
+    "api.staticdata.regimes",
     "api.teams",
     "api.users",
     "api.workflow.routing_rules",
