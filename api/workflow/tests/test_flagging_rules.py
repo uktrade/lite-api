@@ -121,6 +121,7 @@ class FlaggingRulesAutomation(DataTestClient):
             "report_summary": "test report summary",
             "control_list_entries": ["ML8b"],
             "is_good_controlled": True,
+            "regime_entries": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)

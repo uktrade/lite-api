@@ -751,6 +751,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
     destinations = serializers.SerializerMethodField()
     submitted_at = serializers.ReadOnlyField(source="application.submitted_at")
     goods_starting_point = serializers.ReadOnlyField(source="application.standardapplication.goods_starting_point")
+    regime_entries = serializers.SerializerMethodField()
 
     class Meta:
         model = GoodOnApplication
@@ -769,6 +770,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
             "wassenaar",
             "submitted_at",
             "goods_starting_point",
+            "regime_entries",
         )
 
     def get_queue(self, obj):
@@ -777,6 +779,9 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
 
     def get_control_list_entries(self, obj):
         return [cle.rating for cle in obj.get_control_list_entries().all()]
+
+    def get_regime_entries(self, obj):
+        return [regime_entry.name for regime_entry in obj.regime_entries.all()]
 
     def get_wassenaar(self, obj):
         return obj.good.flags.filter(name="WASSENAAR").exists()

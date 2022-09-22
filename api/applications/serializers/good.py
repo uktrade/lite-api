@@ -85,6 +85,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     audit_trail = serializers.SerializerMethodField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
     firearm_details = FirearmDetailsSerializer()
+    regime_entries = serializers.SerializerMethodField()
 
     class Meta:
         model = GoodOnApplication
@@ -116,10 +117,14 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "is_onward_altered_processed_comments",
             "is_onward_incorporated",
             "is_onward_incorporated_comments",
+            "regime_entries",
         )
 
     def get_flags(self, instance):
         return list(instance.good.flags.values("id", "name", "colour", "label"))
+
+    def get_regime_entries(self, instance):
+        return list(instance.regime_entries.values_list("name", flat=True))
 
     def get_good_application_documents(self, instance):
         documents = GoodOnApplicationDocument.objects.filter(
