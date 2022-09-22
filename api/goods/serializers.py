@@ -28,6 +28,7 @@ from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
 from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.users.models import ExporterUser
@@ -926,10 +927,16 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
 
     is_precedent = serializers.BooleanField(required=False, default=False)
     is_wassenaar = serializers.BooleanField(required=False, default=False)
+    regime_entries = PrimaryKeyRelatedField(many=True, queryset=RegimeEntry.objects.all())
 
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
-        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control", "is_precedent", "is_wassenaar")
+        fields = GoodControlReviewSerializer.Meta.fields + (
+            "end_use_control",
+            "is_precedent",
+            "is_wassenaar",
+            "regime_entries",
+        )
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
