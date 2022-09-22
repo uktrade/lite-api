@@ -94,7 +94,7 @@ jobs:
     working_directory: ~/lite-api
     environment:
       <<: *common_env_vars
-      LITE_API_ENABLE_ES: False
+      LITE_API_ENABLE_ES: True
     steps:
       - setup
       - run:

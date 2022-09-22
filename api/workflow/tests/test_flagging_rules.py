@@ -125,7 +125,7 @@ class FlaggingRulesAutomation(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(good.flags.count(), 1)
+        self.assertEqual(good.flags.count(), 3)
 
     def test_adding_goods_type_flag_from_case_with_verified_only_rule_failure(self):
         """Test flag not applied to good when flagging rule is for verified goods only."""
