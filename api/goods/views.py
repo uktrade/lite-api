@@ -143,8 +143,6 @@ class GoodsListControlCode(APIView):
                     or new_is_controlled != old_is_controlled
                     or report_summary_updated
                 ):
-                    if isinstance(good, GoodOnApplication):
-                        good.good.flags.clear()
                     default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
 
                     audit_trail_service.create(
