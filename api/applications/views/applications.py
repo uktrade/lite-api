@@ -359,6 +359,10 @@ class ApplicationSubmission(APIView):
             )
 
         errors = validate_application_ready_for_submission(application)
+        check_security_approvals = request.data.get("check_security_approvals")
+        # Remove any checks for security errors This can be removed once feature flag is removed
+        if not check_security_approvals and errors.get("security_approvals"):
+            del errors["security_approvals"]
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
