@@ -71,6 +71,7 @@ importlib-metadata = "==4.8.1"  # Not needed for Python3.8+
 celery = "~=5.2.7"
 redis = "~=4.0.2"
 psycopg2-binary = "~=2.9.3"
+setuptools = "~=63.4.1"
 
 [requires]
 python_version = "3.7"
