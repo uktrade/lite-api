@@ -25,6 +25,7 @@ from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializ
 from api.licences.models import GoodOnLicence
 from api.organisations.models import DocumentOnOrganisation
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.staticdata.regimes.serializers import RegimeEntrySerializer
 from api.staticdata.units.enums import Units
 from api.users.models import ExporterUser
 from api.users.serializers import ExporterUserSimpleSerializer
@@ -85,7 +86,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     audit_trail = serializers.SerializerMethodField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
     firearm_details = FirearmDetailsSerializer()
-    regime_entries = serializers.SerializerMethodField()
+    regime_entries = RegimeEntrySerializer(many=True, read_only=True)
 
     class Meta:
         model = GoodOnApplication
@@ -122,9 +123,6 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
 
     def get_flags(self, instance):
         return list(instance.good.flags.values("id", "name", "colour", "label"))
-
-    def get_regime_entries(self, instance):
-        return list(instance.regime_entries.values_list("name", flat=True))
 
     def get_good_application_documents(self, instance):
         documents = GoodOnApplicationDocument.objects.filter(

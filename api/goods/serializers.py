@@ -29,6 +29,7 @@ from api.organisations.models import Organisation
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.regimes.serializers import RegimeEntrySerializer
 from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
 from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.users.models import ExporterUser
@@ -751,7 +752,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
     destinations = serializers.SerializerMethodField()
     submitted_at = serializers.ReadOnlyField(source="application.submitted_at")
     goods_starting_point = serializers.ReadOnlyField(source="application.standardapplication.goods_starting_point")
-    regime_entries = serializers.SerializerMethodField()
+    regime_entries = RegimeEntrySerializer(many=True, read_only=True)
 
     class Meta:
         model = GoodOnApplication
@@ -779,9 +780,6 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
 
     def get_control_list_entries(self, obj):
         return [cle.rating for cle in obj.get_control_list_entries().all()]
-
-    def get_regime_entries(self, obj):
-        return [regime_entry.name for regime_entry in obj.regime_entries.all()]
 
     def get_wassenaar(self, obj):
         return obj.good.flags.filter(name="WASSENAAR").exists()
@@ -932,7 +930,11 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
 
     is_precedent = serializers.BooleanField(required=False, default=False)
     is_wassenaar = serializers.BooleanField(required=False, default=False)
-    regime_entries = PrimaryKeyRelatedField(many=True, queryset=RegimeEntry.objects.all())
+    regime_entries = PrimaryKeyRelatedField(
+        many=True,
+        queryset=RegimeEntry.objects.all(),
+        required=False,  # not required for backwards compatibility reasons so that the old UI will still work
+    )
 
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
