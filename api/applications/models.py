@@ -38,6 +38,7 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.f680_clearance_types.models import F680ClearanceType
+from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
@@ -386,6 +387,20 @@ class GoodOnApplicationControlListEntry(models.Model):
         db_table = "applications_goodonapplication_control_list_entries"
 
 
+class GoodOnApplicationRegimeEntry(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    good_on_application = models.ForeignKey(
+        "GoodOnApplication",
+        on_delete=models.CASCADE,
+        related_name="good_on_applications",
+    )
+    regime_entry = models.ForeignKey(
+        RegimeEntry,
+        on_delete=models.CASCADE,
+        related_name="regime_entries",
+    )
+
+
 class GoodOnApplication(AbstractGoodOnApplication):
 
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods", null=False)
@@ -407,6 +422,7 @@ class GoodOnApplication(AbstractGoodOnApplication):
         object_id_field="action_object_object_id",
     )
     control_list_entries = models.ManyToManyField(ControlListEntry, through=GoodOnApplicationControlListEntry)
+    regime_entries = models.ManyToManyField(RegimeEntry, through=GoodOnApplicationRegimeEntry)
 
     # Onward export
     # This are being imported from FirearmDetails as it's become transparent this attribute is required.
