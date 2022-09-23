@@ -166,6 +166,16 @@ def _validate_countries(draft, errors, is_mandatory):
     return errors
 
 
+def _validate_security_approvals(draft, errors, is_mandatory):
+    """Checks there are security approvals for the draft"""
+    if is_mandatory:
+        if draft.is_mod_security_approved is None:
+            errors["security_approvals"] = [
+                "To submit the application, complete the 'Do you have a security approval?' section"
+            ]
+    return errors
+
+
 def _validate_goods_types(draft, errors, is_mandatory):
     """Checks there are GoodsTypes for the draft"""
 
@@ -354,6 +364,7 @@ def _validate_standard_licence(draft, errors):
 
     errors = _validate_siel_locations(draft, errors)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
+    errors = _validate_security_approvals(draft, errors, is_mandatory=True)
     errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_goods(draft, errors, is_mandatory=True)
