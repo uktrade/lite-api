@@ -170,7 +170,9 @@ def _validate_security_approvals(draft, errors, is_mandatory):
     """Checks there are security approvals for the draft"""
     if is_mandatory:
         if draft.is_mod_security_approved is None:
-            errors["security_approvals"] = ["To submit the application, add security approvals"]
+            errors["security_approvals"] = [
+                "To submit the application, complete the 'Do you have a security approval?' section"
+            ]
     return errors
 
 
