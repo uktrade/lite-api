@@ -268,6 +268,7 @@ class FormattersTest(DataTestClient):
                 "reviewed the line 1 assessment for Sniper rifles\n"
                 "Licence required: Changed from 'No' to 'Yes'\n"
                 "Control list entry: No change from 'ML8a'\n"
+                "Regimes: No change from 'No regimes'\n"
                 "Report summary: Changed from 'None' to 'Sniper rifles (10)'",
             ),
             (
@@ -284,7 +285,27 @@ class FormattersTest(DataTestClient):
                 "reviewed the line 2 assessment for Sniper rifles\n"
                 "Licence required: Changed from 'No' to 'Yes'\n"
                 "Control list entry: Changed from 'ML8a' to 'ML8b'\n"
+                "Regimes: No change from 'No regimes'\n"
                 "Report summary: No change from 'Sniper rifles (10)'",
+            ),
+            (
+                {
+                    "line_no": 1,
+                    "good_name": "Sniper rifles",
+                    "old_is_good_controlled": "No",
+                    "new_is_good_controlled": "Yes",
+                    "old_control_list_entry": "ML8a",
+                    "new_control_list_entry": "ML8b",
+                    "old_report_summary": "None",
+                    "report_summary": "Sniper rifles (10)",
+                    "old_regime_entries": "REGIME1",
+                    "new_regime_entries": "REGIME2",
+                },
+                "reviewed the line 1 assessment for Sniper rifles\n"
+                "Licence required: Changed from 'No' to 'Yes'\n"
+                "Control list entry: Changed from 'ML8a' to 'ML8b'\n"
+                "Regimes: Changed from 'REGIME1' to 'REGIME2'\n"
+                "Report summary: Changed from 'None' to 'Sniper rifles (10)'",
             ),
         ]
     )
