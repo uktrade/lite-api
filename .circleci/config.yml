@@ -100,7 +100,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k "not seeding and not elasticsearch and not performance"
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance"
       - upload_code_coverage
 
   seeding_tests:
@@ -118,6 +118,24 @@ jobs:
           name: Run seeding tests
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
+      - upload_code_coverage
+
+  lite_routing_tests:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
+      - <<: *image_redis
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    steps:
+      - setup
+      - run:
+          name: Run lite_routing BDD tests
+          command: |
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc lite_routing
       - upload_code_coverage
 
   elastic_search_tests:
@@ -191,6 +209,7 @@ workflows:
     jobs:
       - tests
       - seeding_tests
+      - lite_routing_tests
       - elastic_search_tests
       - check_migrations
       - linting
