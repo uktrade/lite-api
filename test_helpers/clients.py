@@ -862,13 +862,16 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         safe_document=True,
         destination_country_code="GB",
         good_cles=None,
+        good_kwargs=None,
     ):
 
         application = self.create_draft_standard_application(
             organisation, reference_name, safe_document, num_products=0
         )
+        if not good_kwargs:
+            good_kwargs = {}
 
-        good = GoodFactory(is_good_controlled=True, organisation=self.organisation)
+        good = GoodFactory(is_good_controlled=True, organisation=self.organisation, **good_kwargs)
         if good_cles != None:
             good.control_list_entries.clear()
             for cle in good_cles:
