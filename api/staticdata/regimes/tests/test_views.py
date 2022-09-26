@@ -50,3 +50,23 @@ class MTCREntriesTests(DataTestClient):
             response.json(),
             [{"pk": str(r.pk), "name": r.name} for r in sorted(mtcr_regimes, key=lambda r: r.name)],
         )
+
+
+class WassenaarEntriesTests(DataTestClient):
+    def test_view(self):
+        non_wassenaar_regime = RegimeFactory.create()
+        non_wassenaar_subsection = RegimeSubsectionFactory.create(regime=non_wassenaar_regime)
+        RegimeEntryFactory.create(subsection=non_wassenaar_subsection)
+
+        wassenaar_regimes = RegimeEntry.objects.filter(
+            subsection__regime=RegimesEnum.WASSENAAR,
+        )
+
+        url = reverse("staticdata:regimes:wassenaar_entries")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            [{"pk": str(r.pk), "name": r.name} for r in sorted(wassenaar_regimes, key=lambda r: r.name)],
+        )
