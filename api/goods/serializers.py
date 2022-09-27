@@ -28,6 +28,8 @@ from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.regimes.serializers import RegimeEntrySerializer
 from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
 from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.users.models import ExporterUser
@@ -750,6 +752,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
     destinations = serializers.SerializerMethodField()
     submitted_at = serializers.ReadOnlyField(source="application.submitted_at")
     goods_starting_point = serializers.ReadOnlyField(source="application.standardapplication.goods_starting_point")
+    regime_entries = RegimeEntrySerializer(many=True, read_only=True)
 
     class Meta:
         model = GoodOnApplication
@@ -768,6 +771,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
             "wassenaar",
             "submitted_at",
             "goods_starting_point",
+            "regime_entries",
         )
 
     def get_queue(self, obj):
@@ -926,10 +930,20 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
 
     is_precedent = serializers.BooleanField(required=False, default=False)
     is_wassenaar = serializers.BooleanField(required=False, default=False)
+    regime_entries = PrimaryKeyRelatedField(
+        many=True,
+        queryset=RegimeEntry.objects.all(),
+        required=False,  # not required for backwards compatibility reasons so that the old UI will still work
+    )
 
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
-        fields = GoodControlReviewSerializer.Meta.fields + ("end_use_control", "is_precedent", "is_wassenaar")
+        fields = GoodControlReviewSerializer.Meta.fields + (
+            "end_use_control",
+            "is_precedent",
+            "is_wassenaar",
+            "regime_entries",
+        )
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
