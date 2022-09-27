@@ -81,6 +81,25 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEqual(verified_good_1.control_list_entries.get().rating, "ML1a")
         self.assertEqual(verified_good_2.control_list_entries.get().rating, "ML1a")
 
+    def test_payload_without_regime_entries(self):
+        data = {
+            "objects": [self.good_1.pk, self.good_2.pk],
+            "current_object": self.good_on_application_1.pk,
+            "comment": "I Am Easy to Find",
+            "report_summary": self.report_summary.text,
+            "control_list_entries": ["ML1a"],
+            "is_good_controlled": True,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        verified_good_1 = Good.objects.get(pk=self.good_1.pk)
+        verified_good_2 = Good.objects.get(pk=self.good_2.pk)
+
+        self.assertEqual(verified_good_1.control_list_entries.get().rating, "ML1a")
+        self.assertEqual(verified_good_2.control_list_entries.get().rating, "ML1a")
+
     def test_report_summary_saved_goodonapplication(self):
         """
         Make sure report_summary is saved to the GoodOnApplication
