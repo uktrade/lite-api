@@ -35,6 +35,7 @@ class RegimeEntrySerializer(serializers.ModelSerializer):
         fields = [
             "pk",
             "name",
+            "shortened_name",
             "subsection",
         ]
 

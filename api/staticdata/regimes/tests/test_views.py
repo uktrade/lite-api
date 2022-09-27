@@ -40,11 +40,13 @@ class MTCREntriesTests(DataTestClient):
         RegimeEntryFactory.create(
             id="5dd10250-3f51-4359-963b-2b05cbec20ae",
             name="Z",
+            shortened_name="z",
             subsection=self.mtcr_category_1_subsection,
         )
         RegimeEntryFactory.create(
             id="9a1f90c2-844c-437f-9ea3-783bf226b060",
             name="A",
+            shortened_name="a",
             subsection=self.mtcr_category_2_subsection,
         )
 
@@ -57,6 +59,7 @@ class MTCREntriesTests(DataTestClient):
             [
                 {
                     "name": "A",
+                    "shortened_name": "a",
                     "pk": "9a1f90c2-844c-437f-9ea3-783bf226b060",
                     "subsection": {
                         "name": "MTCR Category 2",
@@ -69,6 +72,7 @@ class MTCREntriesTests(DataTestClient):
                 },
                 {
                     "name": "Z",
+                    "shortened_name": "z",
                     "pk": "5dd10250-3f51-4359-963b-2b05cbec20ae",
                     "subsection": {
                         "name": "MTCR Category 1",
@@ -110,16 +114,19 @@ class WassenaarEntriesTests(DataTestClient):
         RegimeEntryFactory.create(
             id="2b552cf7-cb5b-4ec4-a834-0eeb0a6af1ec",
             name="C",
+            shortened_name="c",
             subsection=self.wassenaar_arrangement_very_sensitive_subsection,
         )
         RegimeEntryFactory.create(
             id="2817d81b-bf0d-454b-ae82-1e8aa7734833",
             name="B",
+            shortened_name="b",
             subsection=self.wassenaar_arrangement_sensitive_subsection,
         )
         RegimeEntryFactory.create(
             id="2798b8b1-f771-4ad6-acbc-0e07f642c6d8",
             name="A",
+            shortened_name="a",
             subsection=self.wassenaar_arrangement_subsection,
         )
 
@@ -133,6 +140,7 @@ class WassenaarEntriesTests(DataTestClient):
                 {
                     "pk": "2798b8b1-f771-4ad6-acbc-0e07f642c6d8",
                     "name": "A",
+                    "shortened_name": "a",
                     "subsection": {
                         "pk": "a67b1acd-0578-4b83-af66-36ac56f00296",
                         "name": "Wassenaar Arrangement",
@@ -142,6 +150,7 @@ class WassenaarEntriesTests(DataTestClient):
                 {
                     "pk": "2817d81b-bf0d-454b-ae82-1e8aa7734833",
                     "name": "B",
+                    "shortened_name": "b",
                     "subsection": {
                         "pk": "3bafdc58-f994-4e44-9f89-b01a037b9676",
                         "name": "Wassenaar Arrangement Sensitive",
@@ -151,6 +160,7 @@ class WassenaarEntriesTests(DataTestClient):
                 {
                     "pk": "2b552cf7-cb5b-4ec4-a834-0eeb0a6af1ec",
                     "name": "C",
+                    "shortened_name": "c",
                     "subsection": {
                         "pk": "deb7099a-dfeb-47c7-9dce-d9228a8337e0",
                         "name": "Wassenaar Arrangement Very Sensitive",
