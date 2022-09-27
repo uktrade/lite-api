@@ -7,8 +7,18 @@ from .models import RegimeEntry
 from .serializers import RegimeEntrySerializer
 
 
-class MTCREntriesView(generics.ListAPIView):
+class BaseEntriesView(generics.ListAPIView):
     authentication_classes = (HawkOnlyAuthentication,)
     pagination_class = None
-    queryset = RegimeEntry.objects.filter(subsection__regime=RegimesEnum.MTCR).order_by("name")
     serializer_class = RegimeEntrySerializer
+
+    def get_queryset(self):
+        return RegimeEntry.objects.filter(subsection__regime=self.regime_type).order_by("name")
+
+
+class MTCREntriesView(BaseEntriesView):
+    regime_type = RegimesEnum.MTCR
+
+
+class WassenaarEntriesView(BaseEntriesView):
+    regime_type = RegimesEnum.WASSENAAR

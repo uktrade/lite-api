@@ -1,7 +1,12 @@
 class RegimesEnum:
     MTCR = "b1c1f990-a7be-4bc8-9292-a8b5ea25c0dd"
+    WASSENAAR = "66e5fc8d-67c7-4a5a-9d11-2eb8dbc57f7d"
 
 
 class RegimeSubsectionsEnum:
     MTCR_CATEGORY_1 = "e529df3d-d471-49be-94d7-7a4e5835df90"
     MTCR_CATEGORY_2 = "77b14423-f33c-45a5-a512-61ddd380cf06"
+
+    WASSENAAR_ARRANGEMENT = "a67b1acd-0578-4b83-af66-36ac56f00296"
+    WASSENAAR_ARRANGEMENT_SENSITIVE = "3bafdc58-f994-4e44-9f89-b01a037b9676"
+    WASSENAAR_ARRANGEMENT_VERY_SENSITIVE = "deb7099a-dfeb-47c7-9dce-d9228a8337e0"
