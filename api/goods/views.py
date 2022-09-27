@@ -130,6 +130,7 @@ class GoodsListControlCode(APIView):
             old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
             old_is_controlled = good.is_good_controlled
             old_report_summary = good.report_summary
+            old_regime_entries = list(good.regime_entries.values_list("name", flat=True))
             obj = serializer.save()
 
             report_summary_updated = request.data["report_summary"] != old_report_summary
@@ -137,6 +138,7 @@ class GoodsListControlCode(APIView):
             if "control_list_entries" in serializer.data or "is_good_controlled" in serializer.data:
                 new_control_list_entries = [item.rating for item in serializer.validated_data["control_list_entries"]]
                 new_is_controlled = serializer.validated_data["is_good_controlled"]
+                new_regime_entries = [regime_entry.name for regime_entry in serializer.validated_data["regime_entries"]]
 
                 if (
                     new_control_list_entries != old_control_list_entries
@@ -144,6 +146,7 @@ class GoodsListControlCode(APIView):
                     or report_summary_updated
                 ):
                     default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
+                    default_regimes = ["No regimes"]
 
                     audit_trail_service.create(
                         actor=request.user,
@@ -161,11 +164,13 @@ class GoodsListControlCode(APIView):
                             "report_summary": request.data["report_summary"],
                             "additional_text": serializer.validated_data["comment"],
                             "is_precedent": serializer.validated_data.get("is_precedent", False),
+                            "old_regime_entries": old_regime_entries or default_regimes,
+                            "new_regime_entries": new_regime_entries or default_regimes,
                         },
                     )
 
             # Add or remove WASSENAAR flag based on whether the user chose to apply it
-            good = obj if isinstance(good, GoodsType) else obj.good
+            good = obj.good
             if serializer.validated_data.get("is_wassenaar"):
                 good.flags.add(SystemFlags.WASSENAAR)
             else:

@@ -48,5 +48,5 @@ class MTCREntriesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.json(),
-            {"entries": [[str(r.pk), r.name] for r in sorted(mtcr_regimes, key=lambda r: r.name)]},
+            [{"pk": str(r.pk), "name": r.name} for r in sorted(mtcr_regimes, key=lambda r: r.name)],
         )

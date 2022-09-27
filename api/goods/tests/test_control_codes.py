@@ -14,6 +14,11 @@ from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.picklists.enums import PicklistType, PickListStatus
+from api.staticdata.regimes.tests.factories import (
+    RegimeEntryFactory,
+    RegimeFactory,
+    RegimeSubsectionFactory,
+)
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.units.enums import Units
@@ -64,6 +69,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],
             "is_good_controlled": True,
+            "regime_entries": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -89,6 +95,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "end_use_control": [],
             "report_summary": self.report_summary.text,
             "comment": "Lorem ipsum",
+            "regime_entries": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -96,6 +103,34 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.good_on_application_1.refresh_from_db()
 
         self.assertEqual(self.good_on_application_1.report_summary, self.report_summary.text)
+
+    def test_regime_entries_saved_goodonapplication(self):
+        """
+        Make sure regime_entries is saved to the GoodOnApplication
+        """
+        regime = RegimeFactory.create()
+        regime_subsection = RegimeSubsectionFactory.create(regime=regime)
+        regime_entry = RegimeEntryFactory.create(subsection=regime_subsection)
+
+        data = {
+            "objects": [self.good_1.pk],
+            "current_object": self.good_on_application_1.pk,
+            "control_list_entries": ["ML1a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": self.report_summary.text,
+            "comment": "Lorem ipsum",
+            "regime_entries": [str(regime_entry.pk)],
+        }
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.good_on_application_1.refresh_from_db()
+
+        self.assertQuerysetEqual(
+            self.good_on_application_1.regime_entries.all(),
+            [regime_entry],
+        )
 
     def test_verify_multiple_goods_NLR(self):
         """
@@ -108,6 +143,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],
             "is_good_controlled": False,
+            "regime_entries": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -127,6 +163,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.text,
             "is_good_controlled": False,
             "control_list_entries": ["ML1b"],
+            "regime_entries": [],
         }
 
         # when I review the goods
@@ -145,6 +182,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
                     "comment": "I Am Easy to Find",
                     "is_good_controlled": False,
                     "control_list_entries": [],
+                    "regime_entries": [],
                 },
                 False,
             ),
@@ -155,6 +193,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
                     "is_good_controlled": False,
                     "control_list_entries": [],
                     "is_precedent": False,
+                    "regime_entries": [],
                 },
                 False,
             ),
@@ -165,6 +204,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
                     "is_good_controlled": False,
                     "control_list_entries": [],
                     "is_precedent": True,
+                    "regime_entries": [],
                 },
                 True,
             ),
@@ -197,6 +237,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.text,
             "is_good_controlled": True,
             "control_list_entries": ["invalid"],
+            "regime_entries": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -205,22 +246,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         # since it has an invalid control code, flags should not be removed
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertTrue(is_not_verified_flag_set_on_good(verified_good))
-
-    def test_standard_controlled_good_empty_control_list_entries(self):
-        """
-        Post multiple goods, with an blank control_list_entries and is controlled, for a 400 response, and no update of goods
-        """
-        data = {
-            "objects": [self.good_1.pk, self.good_2.pk],
-            "current_object": self.good_on_application_1.pk,
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.text,
-            "is_good_controlled": True,
-            "control_list_entries": [],
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, 200)
 
     def test_user_cannot_review_good_without_permissions(self):
         """
@@ -256,6 +281,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "report_summary": self.report_summary.text,
             "control_list_entries": "ML1a",
             "is_good_controlled": "yes",
+            "regime_entries": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -287,6 +313,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "end_use_control": [],
             "report_summary": "Sniper rifles (10)",
             "comment": "report summary update test",
+            "regime_entries": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -325,6 +352,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "end_use_control": [],
             "report_summary": "Sniper rifles (10)",
             "comment": "preserve CLEs when product re-used test",
+            "regime_entries": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -346,6 +374,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "end_use_control": [],
             "report_summary": "Rifles (5)",
             "comment": "preserve CLEs when product re-used test",
+            "regime_entries": [],
         }
         url = reverse("goods:control_list_entries", kwargs={"case_pk": second_case.id})
         response = self.client.post(url, data, **self.gov_headers)
@@ -442,6 +471,7 @@ class WASSENAARFlagTest(DataTestClient):
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],
+            "regime_entries": [],
             "is_good_controlled": True,
             "is_wassenaar": True,
         }

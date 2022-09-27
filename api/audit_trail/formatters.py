@@ -181,6 +181,11 @@ def product_reviewed(**payload):
     else:
         text += f"Control list entry: No change from '{payload['old_control_list_entry']}'\n"
 
+    if payload.get("old_regime_entries") != payload.get("new_regime_entries"):
+        text += f"Regimes: Changed from '{payload['old_regime_entries']}' to '{payload['new_regime_entries']}'\n"
+    else:
+        text += f"Regimes: No change from '{payload.get('old_regime_entries', 'No regimes')}'\n"
+
     if payload["old_report_summary"] != payload["report_summary"]:
         text += f"Report summary: Changed from '{payload['old_report_summary']}' to '{payload['report_summary']}'"
     else:
