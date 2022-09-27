@@ -17,6 +17,9 @@ def create_wassenaar_regimes(apps, schema_editor):
             name="WASSENAAR",
         )
 
+        # We have a data model for the regimes that always has three levels in the hierarchy.
+        # In the case of Wassenaar there isn't really a subsection but to be consistent with the hierarchy of models
+        # we create dummy entries inbetween.
         for pk, name in [
             (
                 RegimeSubsectionsEnum.WASSENAAR_ARRANGEMENT,
