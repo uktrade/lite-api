@@ -138,7 +138,9 @@ class GoodsListControlCode(APIView):
             if "control_list_entries" in serializer.data or "is_good_controlled" in serializer.data:
                 new_control_list_entries = [item.rating for item in serializer.validated_data["control_list_entries"]]
                 new_is_controlled = serializer.validated_data["is_good_controlled"]
-                new_regime_entries = [regime_entry.name for regime_entry in serializer.validated_data["regime_entries"]]
+                new_regime_entries = [
+                    regime_entry.name for regime_entry in serializer.validated_data.get("regime_entries", [])
+                ]
 
                 if (
                     new_control_list_entries != old_control_list_entries
