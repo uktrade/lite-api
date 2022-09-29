@@ -340,6 +340,7 @@ if LITE_API_ENABLE_ES:
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
 GOOD_ON_APPLICATION_COPY_LOGGER = "good_on_application_copy_logger"
+GOOD_OVERVIEW_PUT_DELETION_LOGGER = "good_overview_put_deletion_logger"
 
 
 if "test" not in sys.argv:
@@ -359,6 +360,7 @@ if "test" not in sys.argv:
         "loggers": {
             DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
             GOOD_ON_APPLICATION_COPY_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
+            GOOD_OVERVIEW_PUT_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
         },
     }
 else:
