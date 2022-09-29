@@ -67,6 +67,8 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterNotification
 from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
+import logging
+
 
 class GoodsListControlCode(APIView):
     authentication_classes = (GovAuthentication,)
@@ -451,8 +453,7 @@ class GoodOverview(APIView):
         data = request.data.copy()
 
         if data.get("is_good_controlled") is None or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED:
-            for good_on_application in GoodOnApplication.objects.filter(good=good):
-                good_on_application.delete()
+            logging.warning("Code removed: we would have just deleted GoodOnApplication for good id %s", good.id)
 
         data["organisation"] = get_request_user_organisation_id(request)
 
