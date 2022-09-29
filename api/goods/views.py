@@ -456,7 +456,11 @@ class GoodOverview(APIView):
         data = request.data.copy()
 
         if data.get("is_good_controlled") is None or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED:
-            logger.warning("Code removed: we would have just deleted GoodOnApplication for good id %s", good.id)
+            logger.warning(
+                "Code removed: we would have just deleted GoodOnApplication for good id: %s sending data: %s",
+                good.id,
+                data,
+            )
 
         data["organisation"] = get_request_user_organisation_id(request)
 
