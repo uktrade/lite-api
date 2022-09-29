@@ -1,3 +1,6 @@
+import logging
+
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, Count
@@ -66,6 +69,9 @@ from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterNotification
 from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
+
+
+good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
 
 
 class GoodsListControlCode(APIView):
@@ -451,8 +457,11 @@ class GoodOverview(APIView):
         data = request.data.copy()
 
         if data.get("is_good_controlled") is None or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED:
-            for good_on_application in GoodOnApplication.objects.filter(good=good):
-                good_on_application.delete()
+            good_overview_put_deletion_logger.warning(
+                "Code removed: we would have just deleted GoodOnApplication for good id: %s sending data: %s",
+                good.id,
+                data,
+            )
 
         data["organisation"] = get_request_user_organisation_id(request)
 
