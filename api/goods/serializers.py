@@ -596,7 +596,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             instance.security_feature_details = validated_data.get(
                 "security_feature_details", instance.information_security_details
             )
-        instance.security_feature_details = validated_data.get("security_feature_details", "")
 
         if has_security_features is False:
             instance.security_feature_details = ""
