@@ -137,7 +137,7 @@ class Good(TimestampableModel):
     # PV
     is_pv_graded = models.CharField(choices=GoodPvGraded.choices, default=GoodPvGraded.GRADING_REQUIRED, max_length=20)
     pv_grading_details = models.ForeignKey(
-        PvGradingDetails, on_delete=models.CASCADE, default=None, blank=True, null=True
+        PvGradingDetails, on_delete=models.SET_NULL, default=None, blank=True, null=True
     )
 
     part_number = models.CharField(default="", blank=True, null=True, max_length=255)
