@@ -30,6 +30,7 @@ from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
 from api.flags.enums import SystemFlags
+from api.flags.models import Flag
 from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
 from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (
@@ -69,6 +70,7 @@ from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterNotification
 from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
 good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
@@ -114,6 +116,7 @@ class GoodsListControlCode(APIView):
 
     @transaction.atomic
     def post(self, request, case_pk):
+
         if CaseStatusEnum.is_terminal(self.application.status.status):
             return JsonResponse(
                 data={"errors": {"error": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
@@ -147,6 +150,17 @@ class GoodsListControlCode(APIView):
                 new_regime_entries = [
                     regime_entry.name for regime_entry in serializer.validated_data.get("regime_entries", [])
                 ]
+                for regime in new_regime_entries:
+                    if regime == "M1A2":
+                        case.flags.add(Flag.objects.get(id=FlagsEnum.MTCR_CAT_1))
+                    if regime == "M6A1":
+                        case.flags.add(Flag.objects.get(id=FlagsEnum.MTCR_CAT_2))
+                    if regime == "Wassenaar Arrangement":
+                        case.flags.add(Flag.objects.get(id=FlagsEnum.WASSENAAR))
+                    if regime == "Wassenaar Arrangement Sensitive":
+                        case.flags.add(Flag.objects.get(id=FlagsEnum.WASSENAAR_SENSITIVE))
+                    if regime == "Wassenaar Arrangement Very Sensitive":
+                        case.flags.add(Flag.objects.get(id=FlagsEnum.WASSENAAR_VERY_SENSITIVE))
 
                 if (
                     new_control_list_entries != old_control_list_entries

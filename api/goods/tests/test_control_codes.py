@@ -2,6 +2,7 @@ from django.urls import reverse_lazy, reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from api.flags.models import Flag
 from api.flags.enums import SystemFlags
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -26,6 +27,8 @@ from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
 from api.users.models import Role
+from api.staticdata.regimes.models import RegimeEntry
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
 class GoodsVerifiedTestsStandardApplication(DataTestClient):
@@ -150,6 +153,48 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             self.good_on_application_1.regime_entries.all(),
             [regime_entry],
         )
+
+    @parameterized.expand(
+        [
+            "M1A2",
+            "M6A1",
+            "Wassenaar Arrangement",
+            "Wassenaar Arrangement Sensitive",
+            "Wassenaar Arrangement Very Sensitive",
+        ]
+    )
+    def test_specific_regime_flags(self, regime):
+        """
+        Test the following regime flags: M1A2, M6A1, Wassenaar, Wassenaar Sensitive, Wassenaar Very Sensitive
+        """
+
+        regime_entry = RegimeEntry.objects.get(name=regime)
+        if regime == "M1A2":
+            flag = Flag.objects.get(id=FlagsEnum.MTCR_CAT_1)
+        if regime == "M6A1":
+            flag = Flag.objects.get(id=FlagsEnum.MTCR_CAT_2)
+        if regime == "Wassenaar Arrangement":
+            flag = Flag.objects.get(id=FlagsEnum.WASSENAAR)
+        if regime == "Wassenaar Arrangement Sensitive":
+            flag = Flag.objects.get(id=FlagsEnum.WASSENAAR_SENSITIVE)
+        if regime == "Wassenaar Arrangement Very Sensitive":
+            flag = Flag.objects.get(id=FlagsEnum.WASSENAAR_VERY_SENSITIVE)
+
+        data = {
+            "objects": [self.good_1.pk],
+            "current_object": self.good_on_application_1.pk,
+            "control_list_entries": ["ML1a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": self.report_summary.text,
+            "comment": "Lorem ipsum",
+            "regime_entries": [str(regime_entry.pk)],
+        }
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.case.refresh_from_db()
+        assert flag in list(self.case.flags.all())
 
     def test_verify_multiple_goods_NLR(self):
         """
