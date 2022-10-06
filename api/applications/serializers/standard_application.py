@@ -27,6 +27,7 @@ from api.core.serializers import KeyValueChoiceField
 from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
@@ -291,3 +292,31 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "Select who the products are going to",
         )
         return validated_data
+
+
+class StandardApplicationRequiresSerialNumbersSerializer(
+    PartiesSerializerMixin,
+    serializers.ModelSerializer,
+):
+    goods = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StandardApplication
+        fields = (
+            "id",
+            "name",
+            "reference_code",
+            "goods",
+            "status",
+        ) + PartiesSerializerMixin.Meta.fields
+
+    def get_status(self, instance):
+        if instance.status:
+            return {
+                "key": instance.status.status,
+                "value": get_status_value_from_case_status_enum(instance.status.status),
+            }
+
+    def get_goods(self, instance):
+        return [{"good": {"name": good_on_application.good.name}} for good_on_application in instance.goods.all()]
