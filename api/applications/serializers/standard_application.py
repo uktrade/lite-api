@@ -11,13 +11,6 @@ from api.applications.enums import (
 )
 from api.applications.mixins.serializers import PartiesSerializerMixin
 from api.applications.models import DenialMatchOnApplication, StandardApplication
-from api.applications.serializers.generic_application import (
-    GenericApplicationCreateSerializer,
-    GenericApplicationUpdateSerializer,
-    GenericApplicationViewSerializer,
-)
-from api.applications.serializers.denial import DenialMatchOnApplicationViewSerializer
-from api.applications.serializers.good import GoodOnApplicationViewSerializer
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from api.applications.serializers.serializer_helper import validate_field
 from api.audit_trail.enums import AuditType
@@ -27,8 +20,16 @@ from api.core.serializers import KeyValueChoiceField
 from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
+
+from .denial import DenialMatchOnApplicationViewSerializer
+from .generic_application import (
+    GenericApplicationCreateSerializer,
+    GenericApplicationUpdateSerializer,
+    GenericApplicationViewSerializer,
+)
+from .good import GoodOnApplicationViewSerializer
+from .fields import CaseStatusField
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -299,7 +300,7 @@ class StandardApplicationRequiresSerialNumbersSerializer(
     serializers.ModelSerializer,
 ):
     goods = serializers.SerializerMethodField()
-    status = serializers.SerializerMethodField()
+    status = CaseStatusField()
 
     class Meta:
         model = StandardApplication
@@ -310,13 +311,6 @@ class StandardApplicationRequiresSerialNumbersSerializer(
             "goods",
             "status",
         ) + PartiesSerializerMixin.Meta.fields
-
-    def get_status(self, instance):
-        if instance.status:
-            return {
-                "key": instance.status.status,
-                "value": get_status_value_from_case_status_enum(instance.status.status),
-            }
 
     def get_goods(self, instance):
         return [{"good": {"name": good_on_application.good.name}} for good_on_application in instance.goods.all()]
