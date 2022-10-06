@@ -52,7 +52,7 @@ from api.applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
-from api.applications.serializers.standard_application import StandardApplicationViewSerializer
+from api.applications.serializers.standard_application import StandardApplicationRequiresSerialNumbersSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
@@ -159,7 +159,7 @@ class ApplicationList(ListCreateAPIView):
 
 class ApplicationsRequireSerialNumbersList(ListAPIView):
     authentication_classes = (ExporterAuthentication,)
-    serializer_class = StandardApplicationViewSerializer
+    serializer_class = StandardApplicationRequiresSerialNumbersSerializer
 
     def get_queryset(self):
         organisation = get_request_user_organisation(self.request)

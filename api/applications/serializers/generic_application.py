@@ -22,13 +22,12 @@ from api.organisations.serializers import OrganisationDetailSerializer, External
 from api.parties.serializers import PartySerializer
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import (
-    get_status_value_from_case_status_enum,
-    get_case_status_by_status,
-)
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import CaseStatus
 from api.users.libraries.notifications import get_exporter_user_notification_individual_count
 from api.users.models import ExporterUser
+
+from .fields import CaseStatusField
 
 
 class TinyCaseTypeSerializer(serializers.ModelSerializer):
@@ -44,17 +43,10 @@ class GenericApplicationListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
     case_type = TinyCaseTypeSerializer()
-    status = serializers.SerializerMethodField()
+    status = CaseStatusField()
     updated_at = serializers.DateTimeField()
     reference_code = serializers.CharField()
     export_type = serializers.SerializerMethodField()
-
-    def get_status(self, instance):
-        if instance.status:
-            return {
-                "key": instance.status.status,
-                "value": get_status_value_from_case_status_enum(instance.status.status),
-            }
 
     def get_export_type(self, instance):
         if hasattr(instance, "export_type") and getattr(instance, "export_type"):
@@ -74,7 +66,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
     )
     case_type = serializers.SerializerMethodField()
     export_type = serializers.SerializerMethodField()
-    status = serializers.SerializerMethodField()
+    status = CaseStatusField()
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
@@ -126,14 +118,6 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
             return {
                 "key": instance.export_type,
                 "value": get_value_from_enum(instance.export_type, ApplicationExportType),
-            }
-
-    def get_status(self, instance):
-        if instance.status:
-            return {
-                "id": instance.status.id,
-                "key": instance.status.status,
-                "value": get_status_value_from_case_status_enum(instance.status.status),
             }
 
     def get_case_type(self, instance):
