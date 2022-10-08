@@ -153,7 +153,7 @@ jobs:
       - run:
           name: Run lite_routing tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc lite_routing/routing_rules_internal/tests/bdd
+            pipenv run pytest lite_routing/routing_rules_internal/tests/bdd
       - upload_code_coverage
 
   elastic_search_tests:
