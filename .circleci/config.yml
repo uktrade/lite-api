@@ -76,7 +76,7 @@ commands:
             chmod +x codecov
       - save_cache:
           paths:
-            - ./venv
+            - ./.venv
           key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
   upload_code_coverage:
     steps:
