@@ -20,7 +20,7 @@ class Denial(TimestampableModel):
     notifying_government = models.TextField(
         help_text="The authority that raised the denial", blank=True, default="", null=True
     )
-    final_destination = models.TextField(blank=True, default="", null=True)
+    country = models.TextField(blank=True, default="", null=True)
     item_list_codes = models.TextField("The codes of the items being denied", blank=True, default="", null=True)
     item_description = models.TextField("The description of the item being denied", blank=True, default="", null=True)
     consignee_name = models.TextField(blank=True, default="", null=True)

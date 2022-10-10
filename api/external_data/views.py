@@ -10,6 +10,7 @@ from django.conf import settings
 
 from api.core.authentication import GovAuthentication
 from api.external_data import documents, models, serializers
+from api.external_data.helpers import get_denial_entity_type
 
 
 class DenialViewSet(viewsets.ModelViewSet):
@@ -47,7 +48,10 @@ class DenialSearchView(DocumentViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        return Response(queryset.execute().to_dict())
+        results = queryset.execute().to_dict()
+        for denial in results["hits"]["hits"]:
+            denial["_source"]["entity_type"] = get_denial_entity_type(denial["_source"]["data"])
+        return Response(results)
 
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False)

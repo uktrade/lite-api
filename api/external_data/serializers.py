@@ -7,10 +7,13 @@ from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
 from api.external_data import documents, models
+from api.external_data.helpers import get_denial_entity_type
 from api.flags.enums import SystemFlags
 
 
 class DenialSerializer(serializers.ModelSerializer):
+    entity_type = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Denial
         fields = (
@@ -20,7 +23,7 @@ class DenialSerializer(serializers.ModelSerializer):
             "address",
             "reference",
             "notifying_government",
-            "final_destination",
+            "country",
             "item_list_codes",
             "item_description",
             "consignee_name",
@@ -28,6 +31,7 @@ class DenialSerializer(serializers.ModelSerializer):
             "data",
             "is_revoked",
             "is_revoked_comment",
+            "entity_type",
         )
         extra_kwargs = {
             "is_revoked": {"required": False},
@@ -40,6 +44,9 @@ class DenialSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"is_revoked_comment": "This field is required"})
         return validated_data
 
+    def get_entity_type(self, obj):
+        return get_denial_entity_type(obj.data)
+
 
 class DenialFromCSVFileSerializer(serializers.Serializer):
 
@@ -49,7 +56,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         "name",
         "address",
         "notifying_government",
-        "final_destination",
+        "country",
         "item_list_codes",
         "item_description",
         "consignee_name",
