@@ -57,7 +57,6 @@ class Command(BaseCommand):
     def load_denials(self, filename):
         data = get_json_content(filename)
         errors = []
-        valid_serializers = []
         for i, row in enumerate(data, start=1):
             serializer = DenialSerializer(
                 data={
@@ -66,7 +65,11 @@ class Command(BaseCommand):
                 }
             )
             if serializer.is_valid():
-                valid_serializers.append(serializer)
+                serializer.save()
+                log.exception(
+                    "Saved row number -> %s",
+                    i,
+                )
             else:
                 self.add_bulk_errors(errors=errors, row_number=i + 1, line_errors=serializer.errors)
 
@@ -76,11 +79,3 @@ class Command(BaseCommand):
                 errors,
             )
             raise serializers.ValidationError(errors)
-        else:
-            # only save if no errors
-            for serializer in valid_serializers:
-                serializer.save()
-            log.info(
-                "denials record saved -> %s",
-                len(valid_serializers),
-            )
