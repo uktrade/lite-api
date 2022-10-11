@@ -49,7 +49,7 @@ def test_populate_denials(mock_json_content):
             "consignee_flag": "false",
         },
     ]
-    call_command("ingest_denials", rebuild=True)
+    call_command("ingest_denials", "json_file", rebuild=True)
     assert Denial.objects.all().count() == 3
     denial_record = Denial.objects.all()[0]
     assert denial_record.reference == "DN001\/0003"
@@ -73,5 +73,5 @@ def test_populate_denials_validation_call(mock_json_content):
     ]
 
     with pytest.raises(ValidationError):
-        call_command("ingest_denials", rebuild=True)
-    assert Denial.objects.all().count() == 0
+        call_command("ingest_denials", "json_file")
+    assert not Denial.objects.all().exists()

@@ -15,9 +15,9 @@ from api.external_data.serializers import DenialSerializer
 log = logging.getLogger(__name__)
 
 
-def get_json_content():
-    with open("export.json") as json_file:
-        return json.load(json_file)
+def get_json_content(filename):
+    json_file = s3_operations.get_object(document_id=filename, s3_key=filename)
+    return json.load(json_file["Body"])
 
 
 class Command(BaseCommand):
@@ -35,6 +35,7 @@ class Command(BaseCommand):
     ]
 
     def add_arguments(self, parser):
+        parser.add_argument("input_json", type=str, help="Path to the input JSON file")
         parser.add_argument("--rebuild", default=False, action="store_true")
 
     def rebuild_index(self):
@@ -50,11 +51,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["rebuild"]:
             self.rebuild_index()
-        self.load_denials()
+        self.load_denials(options["input_json"])
 
     @transaction.atomic
-    def load_denials(self):
-        data = get_json_content()
+    def load_denials(self, filename):
+        data = get_json_content(filename)
         errors = []
         valid_serializers = []
         for i, row in enumerate(data, start=1):
