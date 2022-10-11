@@ -66,7 +66,7 @@ class Command(BaseCommand):
             )
             if serializer.is_valid():
                 serializer.save()
-                log.exception(
+                log.info(
                     "Saved row number -> %s",
                     i,
                 )
