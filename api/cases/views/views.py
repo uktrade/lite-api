@@ -177,6 +177,7 @@ class SetQueues(APIView):
                     "queues": sorted([queue.name for queue in new_queues]),
                     "queue_ids": sorted([str(queue.id) for queue in new_queues]),
                     "additional_text": note,
+                    "case_status": case.status.status,
                 },
             )
         return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
