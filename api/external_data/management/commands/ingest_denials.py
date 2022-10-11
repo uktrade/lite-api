@@ -9,7 +9,7 @@ from rest_framework import serializers
 from elasticsearch_dsl import connections
 
 from api.documents.libraries import s3_operations
-from api.external_data import documents, models
+from api.external_data import documents
 from api.external_data.serializers import DenialSerializer
 
 log = logging.getLogger(__name__)
