@@ -9,7 +9,9 @@ from api.users.models import GovUser
 
 class Denial(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
-    created_by = models.ForeignKey(GovUser, related_name="denials_created", on_delete=models.CASCADE)
+    created_by = models.ForeignKey(
+        GovUser, related_name="denials_created", on_delete=models.DO_NOTHING, blank=True, null=True
+    )
     name = models.TextField(
         help_text="The name of the individual/organization being denied", blank=True, default="", null=True
     )
