@@ -140,7 +140,7 @@ class DenialMatchFactory(factory.django.DjangoModelFactory):
     name = factory.LazyAttribute(lambda n: faker.name())
     address = factory.LazyAttribute(lambda n: faker.address())
     notifying_government = factory.LazyAttribute(lambda n: faker.country())
-    final_destination = factory.LazyAttribute(lambda n: faker.country())
+    country = factory.LazyAttribute(lambda n: faker.country())
     item_list_codes = factory.LazyAttribute(lambda n: faker.word())
     item_description = factory.LazyAttribute(lambda n: faker.sentence())
     consignee_name = factory.LazyAttribute(lambda n: faker.name())

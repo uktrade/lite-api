@@ -17,7 +17,7 @@ class DenialDocumentType(Document):
     address = fields.TextField()
     reference = fields.KeywordField()
     notifying_government = fields.TextField()
-    final_destination = fields.TextField()
+    country = fields.TextField()
     item_list_codes = fields.TextField()
     item_description = fields.TextField()
     consignee_name = fields.TextField()

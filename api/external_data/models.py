@@ -9,16 +9,24 @@ from api.users.models import GovUser
 
 class Denial(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
-    created_by = models.ForeignKey(GovUser, related_name="denials_created", on_delete=models.CASCADE)
-    name = models.TextField(help_text="The name of the individual/organization being denied")
-    address = models.TextField(help_text="The address of the individual/organization being denied")
-    reference = models.TextField(help_text="The reference assigned by the notifying government", unique=True)
-    notifying_government = models.TextField(help_text="The authority that raised the denial")
-    final_destination = models.TextField()
-    item_list_codes = models.TextField("The codes of the items being denied")
-    item_description = models.TextField("The description of the item being denied")
-    consignee_name = models.TextField()
-    end_use = models.TextField()
+    created_by = models.ForeignKey(
+        GovUser, related_name="denials_created", on_delete=models.DO_NOTHING, blank=True, null=True
+    )
+    name = models.TextField(
+        help_text="The name of the individual/organization being denied", blank=True, default="", null=True
+    )
+    address = models.TextField(
+        help_text="The address of the individual/organization being denied", blank=True, default="", null=True
+    )
+    reference = models.TextField(help_text="The reference assigned by the notifying government")
+    notifying_government = models.TextField(
+        help_text="The authority that raised the denial", blank=True, default="", null=True
+    )
+    country = models.TextField(blank=True, default="", null=True)
+    item_list_codes = models.TextField("The codes of the items being denied", blank=True, default="", null=True)
+    item_description = models.TextField("The description of the item being denied", blank=True, default="", null=True)
+    consignee_name = models.TextField(blank=True, default="", null=True)
+    end_use = models.TextField(blank=True, default="", null=True)
 
     data = models.JSONField(default=dict)
     is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")

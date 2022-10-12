@@ -27,8 +27,8 @@ class DenialViewSetTests(DataTestClient):
                 {
                     "address": "123 fake street",
                     "consignee_name": "Fred Food",
-                    "data": {"field_n": "value_n", "field_one": "value_one", "field_two": "value_two"},
-                    "final_destination": "Germany",
+                    "data": {"end_user_flag": "true", "consignee_flag": "true", "other_role": "false"},
+                    "country": "Germany",
                     "item_description": "Foo",
                     "item_list_codes": "ABC123",
                     "name": "Jim Example",
@@ -39,8 +39,8 @@ class DenialViewSetTests(DataTestClient):
                 {
                     "address": "123 fake street",
                     "consignee_name": "Fred Food",
-                    "data": {"field_n": "value_n", "field_one": "value_one", "field_two": "value_two"},
-                    "final_destination": "Germany",
+                    "data": {"end_user_flag": "false", "consignee_flag": "true", "other_role": "false"},
+                    "country": "Germany",
                     "item_description": "Foo",
                     "item_list_codes": "ABC123",
                     "name": "Jak Example",
@@ -51,8 +51,8 @@ class DenialViewSetTests(DataTestClient):
                 {
                     "address": "123 fake street",
                     "consignee_name": "Fred Food",
-                    "data": {"field_n": "value_n", "field_one": "value_one", "field_two": "value_two"},
-                    "final_destination": "Germany",
+                    "data": {"end_user_flag": "false", "consignee_flag": "false", "other_role": "true"},
+                    "country": "Germany",
                     "item_description": "Foo",
                     "item_list_codes": "ABC123",
                     "name": "Bob Example",
@@ -84,7 +84,10 @@ class DenialViewSetTests(DataTestClient):
             },
         )
 
-    def test_create_validation_error_diplicate(self):
+    @pytest.mark.skip(
+        reason="Unique constraint on reference is removed temporarily, enable this test once we reinstate that constraint"
+    )
+    def test_create_validation_error_duplicate(self):
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
         with open(file_path, "rb") as f:
