@@ -4,6 +4,7 @@ from django_elasticsearch_dsl.registries import registry
 from elasticsearch_dsl import analysis
 
 from api.external_data import models
+from api.search.application.documents import lowercase_normalizer
 
 
 class DataField(fields.ObjectField):
@@ -17,7 +18,11 @@ class DenialDocumentType(Document):
     address = fields.TextField()
     reference = fields.KeywordField()
     notifying_government = fields.TextField()
-    country = fields.TextField()
+    country = fields.TextField(
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+        },
+    )
     item_list_codes = fields.TextField()
     item_description = fields.TextField()
     consignee_name = fields.TextField()

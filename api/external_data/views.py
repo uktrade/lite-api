@@ -43,8 +43,15 @@ class DenialSearchView(DocumentViewSet):
     filter_backends = [
         filter_backends.SearchFilterBackend,
         filter_backends.SourceBackend,
+        filter_backends.FilteringFilterBackend,
     ]
     search_fields = ["name", "address"]
+    filter_fields = {
+        "country": {
+            "enabled": True,
+            "field": "country.raw",
+        }
+    }
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
