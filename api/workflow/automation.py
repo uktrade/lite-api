@@ -71,6 +71,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                             "queue_ids": [str(rule.queue.id)],
                             "id": str(rule.id),
                             "tier": rule.tier,
+                            "case_status": case.status.status,
                         },
                     )
                     # Only assign active users to the case
