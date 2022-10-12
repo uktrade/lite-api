@@ -24,3 +24,6 @@ class ControlListEntry(models.Model):
         control_list_entry = cls(rating=rating, text=text, parent=parent)
         control_list_entry.save()
         return control_list_entry
+
+    def __str__(self):
+        return self.rating
