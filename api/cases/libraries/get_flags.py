@@ -57,7 +57,7 @@ def get_flags(case: Case) -> QuerySet:
     case_flags = case.flags.all()
     org_flags = Flag.objects.filter(organisations__cases__id=case.id)
 
-    return goods_flags | destination_flags | case_flags | org_flags
+    return (goods_flags | destination_flags | case_flags | org_flags).distinct()
 
 
 def get_ordered_flags(case: Case, team: Team, limit: int = None):
