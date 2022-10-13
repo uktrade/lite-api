@@ -63,6 +63,9 @@ class TestGetFlags(DataTestClient):
 
 class TestGetOrderedFlags(DataTestClient):
     def test_deduplication_of_flags(self):
+        application = StandardApplicationFactory(
+            organisation=self.organisation,
+        )
         goods = [
             GoodFactory(
                 organisation=self.organisation,
@@ -75,10 +78,10 @@ class TestGetOrderedFlags(DataTestClient):
         for good in goods:
             firearm_details = FirearmFactory()
             GoodOnApplicationFactory(
-                application=self.application,
+                application=application,
                 firearm_details=firearm_details,
                 good=good,
             )
             good.flags.add(flag)
-        flags = get_ordered_flags(self.application, self.team, distinct=True)
+        flags = get_ordered_flags(application, self.team, distinct=True)
         self.assertQuerysetEqual(flags, [flag])
