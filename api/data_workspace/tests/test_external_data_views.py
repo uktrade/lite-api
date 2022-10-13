@@ -23,6 +23,7 @@ class DataWorkspaceExternalDataViewTests(DataTestClient):
             "id",
             "created_by",
             "name",
+            "regime_reg_ref",
             "address",
             "reference",
             "notifying_government",
