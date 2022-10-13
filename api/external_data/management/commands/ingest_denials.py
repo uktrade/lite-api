@@ -65,8 +65,6 @@ class Command(BaseCommand):
                     **{field: row.pop(field, None) for field in self.required_headers},
                 }
             )
-            if i == 100:
-                break
             if serializer.is_valid():
                 serializer.save()
                 log.info(
