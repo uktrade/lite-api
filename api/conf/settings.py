@@ -99,6 +99,7 @@ INSTALLED_APPS = [
     "api.staticdata.units",
     "api.staticdata.upload_document_for_tests",
     "api.staticdata.regimes",
+    "api.staticdata.report_summaries",
     "api.teams",
     "api.users",
     "api.workflow.routing_rules",
