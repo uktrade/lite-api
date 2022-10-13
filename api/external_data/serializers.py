@@ -22,6 +22,7 @@ class DenialSerializer(serializers.ModelSerializer):
             "name",
             "address",
             "reference",
+            "regime_reg_ref",
             "notifying_government",
             "country",
             "item_list_codes",

@@ -24,6 +24,7 @@ class Command(BaseCommand):
 
     required_headers = [
         "reference",
+        "regime_reg_ref",
         "name",
         "address",
         "notifying_government",
@@ -64,6 +65,8 @@ class Command(BaseCommand):
                     **{field: row.pop(field, None) for field in self.required_headers},
                 }
             )
+            if i == 100:
+                break
             if serializer.is_valid():
                 serializer.save()
                 log.info(
