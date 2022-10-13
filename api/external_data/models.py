@@ -19,6 +19,7 @@ class Denial(TimestampableModel):
         help_text="The address of the individual/organization being denied", blank=True, default="", null=True
     )
     reference = models.TextField(help_text="The reference assigned by the notifying government")
+    regime_reg_ref = models.TextField(blank=True, default="", null=True)
     notifying_government = models.TextField(
         help_text="The authority that raised the denial", blank=True, default="", null=True
     )

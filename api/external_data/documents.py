@@ -17,6 +17,7 @@ class DenialDocumentType(Document):
     name = fields.TextField()
     address = fields.TextField()
     reference = fields.KeywordField()
+    regime_reg_ref = fields.KeywordField()
     notifying_government = fields.TextField()
     country = fields.TextField(
         fields={

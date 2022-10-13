@@ -24,6 +24,7 @@ class Command(BaseCommand):
 
     required_headers = [
         "reference",
+        "regime_reg_ref",
         "name",
         "address",
         "notifying_government",

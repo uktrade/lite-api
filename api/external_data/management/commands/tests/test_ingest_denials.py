@@ -20,6 +20,7 @@ def test_populate_denials(mock_json_content):
                 [
                     {
                         "reference": "DN001\/0003",
+                        "regime_reg_ref": "12",
                         "name": "Test1 case",
                         "address": "somewhere\nmid\nlatter\nCairo",
                         "notifying_government": "United Kingdom",
@@ -32,6 +33,7 @@ def test_populate_denials(mock_json_content):
                     },
                     {
                         "reference": "DN001\/0002",
+                        "regime_reg_ref": "123",
                         "name": "Test2 case",
                         "address": "no address given",
                         "notifying_government": "Germany",
@@ -44,6 +46,7 @@ def test_populate_denials(mock_json_content):
                     },
                     {
                         "reference": "DN001\/0001",
+                        "regime_reg_ref": "1234",
                         "name": "Test3 case",
                         "address": "antartica",
                         "notifying_government": "United States",
@@ -69,6 +72,7 @@ def test_populate_denials(mock_json_content):
     assert denial_record.item_list_codes == "123456"
     assert denial_record.item_description == "phone"
     assert denial_record.end_use == "locating phone"
+    assert denial_record.regime_reg_ref == "12"
 
 
 @pytest.mark.elasticsearch
