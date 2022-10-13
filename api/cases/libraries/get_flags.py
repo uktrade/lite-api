@@ -57,10 +57,10 @@ def get_flags(case: Case) -> QuerySet:
     case_flags = case.flags.all()
     org_flags = Flag.objects.filter(organisations__cases__id=case.id)
 
-    return (goods_flags | destination_flags | case_flags | org_flags).distinct()
+    return goods_flags | destination_flags | case_flags | org_flags
 
 
-def get_ordered_flags(case: Case, team: Team, limit: int = None):
+def get_ordered_flags(case: Case, team: Team, limit: int = None, distinct: bool = False):
     """
     This function will get the flags for cases looking at good, destination, case, and organisation flags. The flags
         will be ordered with your teams flags first, in order of category (same order as above), and priority
@@ -83,6 +83,9 @@ def get_ordered_flags(case: Case, team: Team, limit: int = None):
             output_field=IntegerField(),
         ),
     ).order_by("-my_team", "order", "priority")
+
+    if distinct:
+        all_flags = all_flags.distinct()
 
     if limit:
         all_flags = all_flags[:limit]

@@ -5,7 +5,10 @@ from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
-from api.cases.libraries.get_flags import get_flags
+from api.cases.libraries.get_flags import (
+    get_flags,
+    get_ordered_flags,
+)
 from api.flags.enums import FlagLevels
 from api.flags.tests.factories import FlagFactory
 from api.goods.tests.factories import FirearmFactory, GoodFactory
@@ -57,6 +60,8 @@ class TestGetFlags(DataTestClient):
         flags = get_flags(self.application)
         self.assertQuerysetEqual(flags, [flag])
 
+
+class TestGetOrderedFlags(DataTestClient):
     def test_deduplication_of_flags(self):
         goods = [
             GoodFactory(
@@ -75,5 +80,5 @@ class TestGetFlags(DataTestClient):
                 good=good,
             )
             good.flags.add(flag)
-        flags = get_flags(self.application)
+        flags = get_ordered_flags(self.application, self.team, distinct=True)
         self.assertQuerysetEqual(flags, [flag])
