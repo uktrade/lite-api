@@ -12,11 +12,15 @@ from api.documents.libraries import s3_operations
 from api.external_data import documents
 from api.external_data.serializers import DenialSerializer
 
+from api.external_data.models import Denial
+
 log = logging.getLogger(__name__)
 
 
-def get_json_content(filename):
+def get_json_content_and_delete(filename):
     json_file = s3_operations.get_object(document_id=filename, s3_key=filename)
+    # Let's delete the file
+    s3_operations.delete_file(document_id=filename, s3_key=filename)
     return json.load(json_file["Body"])
 
 
@@ -56,7 +60,14 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def load_denials(self, filename):
-        data = get_json_content(filename)
+
+        if Denial.objects.all().exists():
+            # We already have denials we do not support updating or re-importing
+            # Let's delete the file
+            s3_operations.delete_file(document_id=filename, s3_key=filename)
+            raise Exception("re-importing denials data is not supported")
+
+        data = get_json_content_and_delete(filename)
         errors = []
         for i, row in enumerate(data, start=1):
             serializer = DenialSerializer(

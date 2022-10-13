@@ -12,8 +12,9 @@ import io
 
 @pytest.mark.elasticsearch
 @pytest.mark.django_db
+@mock.patch.object(ingest_denials.s3_operations, "delete_file")
 @mock.patch.object(ingest_denials.s3_operations, "get_object")
-def test_populate_denials(mock_json_content):
+def test_populate_denials(mock_json_content, mock_delete_file):
     mock_json_content.return_value = {
         "Body": io.StringIO(
             json.dumps(
@@ -74,11 +75,14 @@ def test_populate_denials(mock_json_content):
     assert denial_record.end_use == "locating phone"
     assert denial_record.regime_reg_ref == "12"
 
+    mock_delete_file.assert_called_with(document_id="json_file", s3_key="json_file")
+
 
 @pytest.mark.elasticsearch
 @pytest.mark.django_db
+@mock.patch.object(ingest_denials.s3_operations, "delete_file")
 @mock.patch.object(ingest_denials.s3_operations, "get_object")
-def test_populate_denials_validation_call(mock_json_content):
+def test_populate_denials_validation_call(mock_json_content, mock_delete_file):
     mock_json_content.return_value = {
         "Body": io.StringIO(
             json.dumps(
@@ -93,4 +97,18 @@ def test_populate_denials_validation_call(mock_json_content):
 
     with pytest.raises(ValidationError):
         call_command("ingest_denials", "json_file")
+
     assert not Denial.objects.all().exists()
+
+    mock_delete_file.assert_called_with(document_id="json_file", s3_key="json_file")
+
+
+@pytest.mark.django_db
+@mock.patch.object(ingest_denials.s3_operations, "delete_file")
+def test_populate_denials_raise_exception_with_existing_records(mock_delete_file):
+    Denial(reference="dummy").save()
+    with pytest.raises(Exception):
+        call_command("ingest_denials", "json_file")
+
+    assert Denial.objects.all().count() == 1
+    mock_delete_file.assert_called_with(document_id="json_file", s3_key="json_file")
