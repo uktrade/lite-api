@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from test_helpers.clients import DataTestClient
 
 from api.applications.tests.factories import (
@@ -5,7 +7,10 @@ from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
-from api.cases.libraries.get_flags import get_flags
+from api.cases.libraries.get_flags import (
+    get_flags,
+    get_ordered_flags,
+)
 from api.flags.enums import FlagLevels
 from api.flags.tests.factories import FlagFactory
 from api.goods.tests.factories import FirearmFactory, GoodFactory
@@ -57,7 +62,12 @@ class TestGetFlags(DataTestClient):
         flags = get_flags(self.application)
         self.assertQuerysetEqual(flags, [flag])
 
+
+class TestGetOrderedFlags(DataTestClient):
     def test_deduplication_of_flags(self):
+        application = StandardApplicationFactory(
+            organisation=self.organisation,
+        )
         goods = [
             GoodFactory(
                 organisation=self.organisation,
@@ -70,10 +80,23 @@ class TestGetFlags(DataTestClient):
         for good in goods:
             firearm_details = FirearmFactory()
             GoodOnApplicationFactory(
-                application=self.application,
+                application=application,
                 firearm_details=firearm_details,
                 good=good,
             )
             good.flags.add(flag)
-        flags = get_flags(self.application)
-        self.assertQuerysetEqual(flags, [flag])
+        flags = get_ordered_flags(application, self.team, distinct=True)
+        self.assertEqual(
+            [
+                {
+                    "id": str(flag.pk),
+                    "name": flag.name,
+                    "alias": flag.alias,
+                    "label": flag.label,
+                    "colour": flag.colour,
+                    "priority": flag.priority,
+                    "level": flag.level,
+                }
+            ],
+            flags,
+        )
