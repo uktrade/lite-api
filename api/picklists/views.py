@@ -1,4 +1,4 @@
-from django.db.models import Case, When
+from django.db.models import BinaryField, Case, When
 from django.http.response import JsonResponse
 
 from rest_framework import status, permissions
@@ -52,15 +52,23 @@ class PickListsView(OptionalPaginationView):
         if picklist_type:
             picklist_items = picklist_items.filter(type=picklist_type)
 
-        if name:
-            picklist_items = picklist_items.filter(name__icontains=name)
-
         if not show_deactivated:
             picklist_items = picklist_items.filter(status=PickListStatus.ACTIVE)
 
         if ids:
             ids = ids.split(",")
             picklist_items = picklist_items.filter(id__in=ids)
+
+        if name:
+            picklist_items = picklist_items.filter(name__icontains=name)
+            picklist_items = picklist_items.annotate(
+                is_prefixed=Case(
+                    When(name__istartswith=name.lower(), then=True),
+                    default=False,
+                    output_field=BinaryField(),
+                ),
+            )
+            return picklist_items.order_by("-is_prefixed", "name")
 
         return picklist_items.order_by("name")
 
