@@ -1,4 +1,6 @@
+from django.db.models import Case, When
 from django.http.response import JsonResponse
+
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
@@ -60,7 +62,7 @@ class PickListsView(OptionalPaginationView):
             ids = ids.split(",")
             picklist_items = picklist_items.filter(id__in=ids)
 
-        return picklist_items.order_by("-updated_at")
+        return picklist_items.order_by("name")
 
     def post(self, request):
         """
