@@ -3,6 +3,7 @@ from django.http.response import JsonResponse
 
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -25,10 +26,15 @@ from api.picklists.serializers import (
 )
 
 
+class PickListsPaginator(PageNumberPagination):
+    page_size = 100
+
+
 @permission_classes((permissions.AllowAny,))
 class PickListsView(OptionalPaginationView):
     authentication_classes = (GovAuthentication,)
     serializer_class = PicklistListSerializer
+    pagination_class = PickListsPaginator
 
     def get_serializer_class(self):
         if str_to_bool(self.request.GET.get("disable_pagination")):
