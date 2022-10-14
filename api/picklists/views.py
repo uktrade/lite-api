@@ -1,6 +1,9 @@
+from django.db.models import BinaryField, Case, When
 from django.http.response import JsonResponse
+
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -23,10 +26,15 @@ from api.picklists.serializers import (
 )
 
 
+class PickListsPaginator(PageNumberPagination):
+    page_size = 100
+
+
 @permission_classes((permissions.AllowAny,))
 class PickListsView(OptionalPaginationView):
     authentication_classes = (GovAuthentication,)
     serializer_class = PicklistListSerializer
+    pagination_class = PickListsPaginator
 
     def get_serializer_class(self):
         if str_to_bool(self.request.GET.get("disable_pagination")):
@@ -50,9 +58,6 @@ class PickListsView(OptionalPaginationView):
         if picklist_type:
             picklist_items = picklist_items.filter(type=picklist_type)
 
-        if name:
-            picklist_items = picklist_items.filter(name__icontains=name)
-
         if not show_deactivated:
             picklist_items = picklist_items.filter(status=PickListStatus.ACTIVE)
 
@@ -60,7 +65,18 @@ class PickListsView(OptionalPaginationView):
             ids = ids.split(",")
             picklist_items = picklist_items.filter(id__in=ids)
 
-        return picklist_items.order_by("-updated_at")
+        if name:
+            picklist_items = picklist_items.filter(name__icontains=name)
+            picklist_items = picklist_items.annotate(
+                is_prefixed=Case(
+                    When(name__istartswith=name.lower(), then=True),
+                    default=False,
+                    output_field=BinaryField(),
+                ),
+            )
+            return picklist_items.order_by("-is_prefixed", "name")
+
+        return picklist_items.order_by("name")
 
     def post(self, request):
         """
