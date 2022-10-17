@@ -68,7 +68,8 @@ class CaseGetTests(DataTestClient):
         actual_flags_on_goods = [flag["name"] for flag in response_data["case"]["data"]["goods"][0]["flags"]]
 
         self.assertIn(actual_flags_on_case[0], expected_flags)
-        self.assertEqual(actual_flags_on_goods, expected_flags)
+        for expected_flag in expected_flags:
+            self.assertIn(expected_flag, actual_flags_on_goods)
 
     def test_case_returns_expected_goods_types_flags(self):
         self.open_application = self.create_draft_open_application(self.organisation)
@@ -89,7 +90,8 @@ class CaseGetTests(DataTestClient):
         actual_flags_on_goods_type = [flag["name"] for flag in response_data["case"]["data"]["goods_types"][0]["flags"]]
 
         self.assertIn(actual_flags_on_case[0], expected_flags)
-        self.assertEqual(actual_flags_on_goods_type, expected_flags)
+        for expected_flag in expected_flags:
+            self.assertIn(expected_flag, actual_flags_on_goods_type)
 
     def test_case_returns_has_advice(self):
         case = self.submit_application(self.standard_application)
