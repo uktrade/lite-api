@@ -60,6 +60,8 @@ class AuthenticateExporterUser(APIView):
         last_name = data.get("user_profile", {}).get("last_name", "")
         external_id = data.get("sub", "")
 
+        # Once we go live with gov.uk we can remove this check
+
         if not data.get("email"):
             return JsonResponse(
                 data={"errors": ["No email provided"]},
