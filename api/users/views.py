@@ -60,13 +60,11 @@ class AuthenticateExporterUser(APIView):
         last_name = data.get("user_profile", {}).get("last_name", "")
         external_id = data.get("sub", "")
 
-        # Once we go live with gov.uk we can remove this check
-        if data.get("no_profile_login"):
-            if not data.get("email"):
-                return JsonResponse(
-                    data={"errors": ["No email provided"]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        if not data.get("email"):
+            return JsonResponse(
+                data={"errors": ["No email provided"]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         else:
             user_profile = data.get("user_profile")
             if not user_profile:
