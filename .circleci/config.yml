@@ -33,6 +33,14 @@ parameters:
     default: "default"
 
 commands:
+  install_os_libraries:
+    steps:
+      - run:
+          name: Install OS libraries
+          command: |
+            sudo apt-get update
+            sudo apt-get install swig libpango1.0-0 libcairo2 libpq-dev libpangocairo-1.0-0
+
   setup:
     steps:
       - checkout
@@ -64,11 +72,7 @@ commands:
       # ensure this step occurs *before* installing dependencies
       - restore_cache:
           key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-      - run:
-          name: Install OS libraries
-          command: |
-            sudo apt-get update
-            sudo apt-get install swig
+      - install_os_libraries
       - run:
           name: Install Dependencies
           command: pipenv sync --dev
@@ -81,6 +85,7 @@ commands:
           paths:
             - ./.venv
           key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+
   upload_code_coverage:
     steps:
       - run:
@@ -203,11 +208,7 @@ jobs:
             git submodule update --init
       - restore_cache:
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-      - run:
-          name: Install OS libraries
-          command: |
-            sudo apt-get update
-            sudo apt-get install swig
+      - install_os_libraries
       - run:
           name: Install Dependencies
           command: pipenv sync --dev
