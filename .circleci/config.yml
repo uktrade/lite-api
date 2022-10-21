@@ -5,7 +5,8 @@ common_env_vars: &common_env_vars
   ENABLE_SPIRE_SEARCH: True
 
 image_python: &image_python
-  image: circleci/python:3.7
+  image: cimg/python:3.7.14
+
 
 image_postgres: &image_postgres
   image: circleci/postgres:11
