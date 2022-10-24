@@ -8,6 +8,8 @@ from api.workflow.routing_rules.models import RoutingRule
 from api.workflow.user_queue_assignment import get_next_status_in_workflow_sequence
 from api.audit_trail import service as audit_trail_service
 
+from lite_routing.routing_rules_internal.routing_rules_criteria import run_routing_post_process
+
 
 def run_routing_rules(case: Case, keep_status: bool = False):
     """
@@ -22,6 +24,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
     case.remove_all_case_assignments()
     rules_have_been_applied = False
     case_parameter_set = case.parameter_set()
+    applied_rules = []
 
     system_user = BaseUser.objects.get(id=SystemUser.id)
 
@@ -60,20 +63,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
 
                 if criteria_satisfied:
                     case.queues.add(rule.queue)
-                    # Be careful when editing this audit trail event; we depend on it for
-                    # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
-                    audit_trail_service.create(
-                        actor=system_user,
-                        verb=AuditType.MOVE_CASE,
-                        action_object=case.get_case(),
-                        payload={
-                            "queues": rule.queue.name,
-                            "queue_ids": [str(rule.queue.id)],
-                            "id": str(rule.id),
-                            "tier": rule.tier,
-                            "case_status": case.status.status,
-                        },
-                    )
+                    applied_rules.append(rule)
                     # Only assign active users to the case
                     if rule.user and rule.user.status == UserStatuses.ACTIVE:
                         # Two rules of the same user, queue, and case assignment may exist with
@@ -82,6 +72,31 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                             CaseAssignment(user=rule.user, queue=rule.queue, case=case).save(audit_user=system_user)
                     team_rule_tier = rule.tier
                     rules_have_been_applied = True
+
+        if rules_have_been_applied:
+            # In this function we handle special cases where we may have to
+            # adjust the queues the case is going to be routed to.
+            run_routing_post_process(case)
+
+            # Post processing has implications in terms of emitting audit events because some of the
+            # queues may have been removed after post processing so keep track of the newly
+            # applied rules and only emit events to those queues the case is still present on.
+            applied_rules = [rule for rule in applied_rules if rule.queue in case.queues.all()]
+            for rule in applied_rules:
+                # Be careful when editing this audit trail event; we depend on it for
+                # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
+                audit_trail_service.create(
+                    actor=system_user,
+                    verb=AuditType.MOVE_CASE,
+                    action_object=case.get_case(),
+                    payload={
+                        "queues": rule.queue.name,
+                        "queue_ids": [str(rule.queue.id)],
+                        "id": str(rule.id),
+                        "tier": rule.tier,
+                        "case_status": case.status.status,
+                    },
+                )
 
         # If no rules have been applied, we wish to either move to the next status, or break loop if keep_status is True
         #   or the next status is terminal
