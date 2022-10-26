@@ -184,7 +184,9 @@ class UserMeDetail(APIView):
         elif str_to_bool(request.GET.get("draft", False)):
             relationships = relationships.filter(organisation__status=OrganisationStatus.DRAFT)
         else:
-            relationships = relationships.exclude(organisation__status=OrganisationStatus.IN_REVIEW)
+            relationships = relationships.exclude(
+                organisation__status__in=[OrganisationStatus.IN_REVIEW, OrganisationStatus.REJECTED]
+            )
 
         # Returning a dict over a serializer for performance reasons
         # This endpoint is called often, so it needs to be as fast as possible
