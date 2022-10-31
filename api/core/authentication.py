@@ -27,6 +27,9 @@ USER_DEACTIVATED_ERROR = "User is not active for this organisation"
 USER_NOT_FOUND_ERROR = "User does not exist"
 
 
+logger = logging.getLogger(__name__)
+
+
 class ExporterBaseAuthentication(authentication.BaseAuthentication):
     def get_header_data(self, request):
         from api.organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -37,6 +40,7 @@ class ExporterBaseAuthentication(authentication.BaseAuthentication):
             organisation_id = get_request_user_organisation_id(request)
             return exporter_user_token, user_id, organisation_id
         else:
+            logger.error("Missing token: %s", EXPORTER_USER_TOKEN_HEADER)
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
     def get_exporter_user(self, user_id):
@@ -107,6 +111,7 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
             user_id = token_to_user_pk(exporter_user_token)
             organisation_id = get_request_user_organisation_id(request)
         else:
+            logger.error("Missing token: %s", EXPORTER_USER_TOKEN_HEADER)
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
@@ -139,6 +144,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(exporter_user_token)
         else:
+            logger.error("Missing token: %s", EXPORTER_USER_TOKEN_HEADER)
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
@@ -168,7 +174,7 @@ class HMRCIntegrationOnlyAuthentication(authentication.BaseAuthentication):
         try:
             hawk_receiver = _authenticate(request, _lookup_credentials_hmrc_integration)
         except HawkFail as e:
-            logging.error(f"Failed HAWK authentication {e}")
+            logger.exception("Failed HAWK authentication")
             raise e
 
         return AnonymousUser(), hawk_receiver
@@ -183,7 +189,7 @@ class DataWorkspaceOnlyAuthentication(authentication.BaseAuthentication):
         try:
             hawk_receiver = _authenticate(request, _lookup_credentials_data_workspace_access)
         except HawkFail as e:
-            logging.error(f"Failed HAWK authentication {e}")
+            logger.exception("Failed HAWK authentication")
             raise e
 
         return AnonymousUser(), hawk_receiver
@@ -201,6 +207,7 @@ class GovAuthentication(authentication.BaseAuthentication):
             gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(gov_user_token)
         else:
+            logger.error("Missing token: %s", GOV_USER_TOKEN_HEADER)
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
