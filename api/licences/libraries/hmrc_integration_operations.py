@@ -55,7 +55,7 @@ def send_licence(licence: Licence, action: str):
         licence.hmrc_integration_sent_at = timezone.now()
         licence.save()
 
-    logging.info(f"Successfully sent licence '{licence.id}', action '{action}' to HMRC Integration")
+    logging.info(f"Successfully sent licence '{licence.reference_code}', action '{action}' to HMRC Integration")
 
 
 def get_mail_status(licence: Licence):
