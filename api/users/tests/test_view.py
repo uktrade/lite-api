@@ -1,8 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
 
+from api.addresses.tests.factories import AddressFactoryGB
 from api.core.helpers import convert_queryset_to_str, date_to_drf_date
-from api.organisations.enums import OrganisationStatus
+from api.organisations.enums import OrganisationStatus, OrganisationType
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import generate_key_value_pair
 from api.users.libraries.get_user import get_user_organisation_relationship
@@ -39,3 +41,17 @@ class UserTests(DataTestClient):
                 },
             },
         )
+
+    def test_user_select_organisations_exclude_rejected_orgs(self):
+        site_gb = SiteFactory(address=AddressFactoryGB())
+        organisation = OrganisationFactory(name="Subsidiary", type=OrganisationType.COMMERCIAL, primary_site=site_gb)
+        self.add_exporter_user_to_org(organisation, self.exporter_user)
+        response = self.client.get(reverse("users:me"), **self.exporter_headers)
+        self.assertEqual(len(response.json()["organisations"]), 2)
+
+        organisation.status = OrganisationStatus.REJECTED
+        organisation.save()
+        response = self.client.get(reverse("users:me"), **self.exporter_headers)
+        active_organisations = response.json()["organisations"]
+        self.assertEqual(len(active_organisations), 1)
+        self.assertNotIn(organisation.name, [name for name in active_organisations])
