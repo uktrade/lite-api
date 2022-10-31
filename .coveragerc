@@ -15,6 +15,7 @@ omit =
     ./pii-secret-exclude.txt
     ./api/staticdata/management/*
     ./runtime.txt
+    ./lite_routing/management/commands/generate_rules_docs.py
 branch = True
 
 plugins =
