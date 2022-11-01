@@ -55,32 +55,16 @@ class AuthenticateExporterUser(APIView):
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
         """
+
         data = request.data
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
         external_id = data.get("sub", "")
-
-        # Once we go live with gov.uk we can remove this check
-
         if not data.get("email"):
             return JsonResponse(
                 data={"errors": ["No email provided"]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        else:
-            user_profile = data.get("user_profile")
-            if not user_profile:
-                return JsonResponse(
-                    data={"errors": [strings.Login.Error.USER_PROFILE]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            first_name = data.get("user_profile").get("first_name")
-            last_name = data.get("user_profile").get("last_name")
-            if not first_name or not last_name:
-                return JsonResponse(
-                    data={"errors": [strings.Login.Error.USER_PROFILE]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
         try:
             user = ExporterUser.objects.get(baseuser_ptr__email__iexact=data.get("email"))
             if first_name and last_name:
