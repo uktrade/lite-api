@@ -36,12 +36,6 @@ class ExporterUserAuthenticateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_authenticate_user_with_empty_profile_success(self):
-        data = {"email": self.exporter_user.email, "no_profile_login": True}
-
-        response = self.client.post(self.url, data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
     def test_cannot_authenticate_user_with_empty_data(self):
         data = {"email": None, "user_profile": {"first_name": None, "last_name": None}}
 
