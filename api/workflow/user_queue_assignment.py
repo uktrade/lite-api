@@ -79,6 +79,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
                 for remaining_feeder_queue in case.queues.all()
                 if remaining_feeder_queue.countersigning_queue_id == queue.countersigning_queue_id
             ]
+            remaining_feeder_queues = case.queues.filter(countersigning_queue_id=queue.countersigning_queue_id)
             if not remaining_feeder_queues:
                 case.queues.add(queue.countersigning_queue_id)
                 # Be careful when editing this audit trail event; we depend on it for
