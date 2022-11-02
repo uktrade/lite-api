@@ -2,6 +2,7 @@ from xml.etree import ElementTree  # nosec
 
 from django.urls import reverse
 from rest_framework import status
+from parameterized import parameterized
 
 from api.applications.models import SiteOnApplication, ExternalLocationOnApplication
 from api.cases.enforcement_check.export_xml import _get_address_line_2, get_enforcement_id
@@ -11,6 +12,7 @@ from api.cases.models import EnforcementCheckID
 from api.core.constants import GovPermissions
 from api.flags.enums import SystemFlags
 from api.parties.enums import PartyType, PartyRole
+from api.organisations.tests.factories import OrganisationFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -91,14 +93,19 @@ class ExportXML(DataTestClient):
         # Ensure the correct EnforcementCheckID object is added for the import xml process
         self._assert_enforcement_type_recorded(stakeholder["SH_ID"], entity_uuid, party.type)
 
-    def test_export_xml_with_site_success(self):
+    @parameterized.expand(
+        [
+            "foo",
+            "foo & bar",  # Ensure ampersand character is dealt with as expected
+        ]
+    )
+    def test_export_xml_with_site_success(self, org_name):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        organisation = OrganisationFactory(name=org_name)
         application = self.create_standard_application_case(self.organisation, parties=False, site=False)
         application.queues.set([self.queue])
         application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
-        site_on_application = SiteOnApplication.objects.create(
-            site=self.organisation.primary_site, application=application
-        )
+        site_on_application = SiteOnApplication.objects.create(site=organisation.primary_site, application=application)
         site = site_on_application.site
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -111,7 +118,7 @@ class ExportXML(DataTestClient):
         self.assertEqual(stakeholder["SH_ID"], str(get_enforcement_id(site.pk)))
         self.assertEqual(stakeholder["SH_TYPE"], "SOURCE")
         self.assertEqual(stakeholder["COUNTRY"], site.address.country.name)
-        self.assertEqual(stakeholder["ORG_NAME"], site.organisation.name)
+        self.assertEqual(stakeholder["ORG_NAME"], org_name)
         self.assertEqual(stakeholder["ADDRESS1"], site.address.address_line_1)
         self.assertEqual(
             stakeholder["ADDRESS2"],

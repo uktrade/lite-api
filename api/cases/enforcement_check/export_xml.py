@@ -41,7 +41,11 @@ def _dict_to_xml(parent, data):
     for key, value in data.items():
         element = ElementTree.SubElement(parent, key)
         if value:
-            element.text = escape(str(value))
+            escaped_value = escape(str(value))
+            # Unescape ampersand characters since the tool EU feed this XML in to does not
+            # deal with escaped ampersand characters
+            escaped_value = escaped_value.replace("&amp;", "&")
+            element.text = escaped_value
 
 
 def _get_address_line_2(address_line_2, postcode, city):
