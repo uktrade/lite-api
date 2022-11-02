@@ -46,7 +46,7 @@ class PartyManager(models.Manager):
 
 class Party(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.TextField(default="", blank=True)
+    name = models.TextField(default="", blank=True, max_length=80)
     address = models.TextField(default=None, blank=True, max_length=256)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     website = models.URLField(default=None, blank=True, null=True)
