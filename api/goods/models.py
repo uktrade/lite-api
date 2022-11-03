@@ -76,7 +76,7 @@ class FirearmGoodDetails(models.Model):
         null=True,
     )
     serial_number = models.TextField(default="")
-    number_of_items = models.PositiveSmallIntegerField(blank=True, null=True)
+    number_of_items = models.PositiveIntegerField(blank=True, null=True)
     serial_numbers = ArrayField(models.TextField(default=""), default=list)
     has_proof_mark = models.BooleanField(
         help_text="Has been proofed (by a proof house) indicating it is safe to be used.", null=True
