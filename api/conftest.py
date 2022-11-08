@@ -1,6 +1,7 @@
 from django.core.management import call_command
 from django.db.migrations.executor import MigrationExecutor
 from django import db
+from django.conf import settings
 
 import re
 import glob
@@ -113,3 +114,8 @@ def migration(transactional_db):
 
     yield Migrator()
     call_command("migrate")
+
+
+@pytest.fixture(autouse=True)
+def setup(settings):
+    settings.HAWK_AUTHENTICATION_ENABLED = False

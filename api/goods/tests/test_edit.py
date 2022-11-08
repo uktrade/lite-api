@@ -498,36 +498,32 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
-            "firearm_details": {
-                "is_onward_exported": True,
-                "is_onward_altered_processed": True,
-                "is_onward_altered_processed_comments": "Altered comments",
-                "is_onward_incorporated": True,
-                "is_onward_incorporated_comments": "Incorporated comments",
-            },
+            "is_onward_exported": True,
+            "is_onward_altered_processed": True,
+            "is_onward_altered_processed_comments": "Altered comments",
+            "is_onward_incorporated": True,
+            "is_onward_incorporated_comments": "Incorporated comments",
         }
         response = self.client.put(url, request_data, **self.exporter_headers)
         good.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(good.firearm_details.is_onward_exported, True)
-        self.assertEqual(good.firearm_details.is_onward_altered_processed, True)
-        self.assertEqual(good.firearm_details.is_onward_altered_processed_comments, "Altered comments")
-        self.assertEqual(good.firearm_details.is_onward_incorporated, True)
-        self.assertEqual(good.firearm_details.is_onward_incorporated_comments, "Incorporated comments")
+        self.assertEqual(good.is_onward_exported, True)
+        self.assertEqual(good.is_onward_altered_processed, True)
+        self.assertEqual(good.is_onward_altered_processed_comments, "Altered comments")
+        self.assertEqual(good.is_onward_incorporated, True)
+        self.assertEqual(good.is_onward_incorporated_comments, "Incorporated comments")
 
         request_data = {
-            "firearm_details": {
-                "is_onward_exported": False,
-            },
+            "is_onward_exported": False,
         }
         response = self.client.put(url, request_data, **self.exporter_headers)
         good.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(good.firearm_details.is_onward_exported, False)
-        self.assertEqual(good.firearm_details.is_onward_altered_processed, None)
-        self.assertEqual(good.firearm_details.is_onward_altered_processed_comments, "")
-        self.assertEqual(good.firearm_details.is_onward_incorporated, None)
-        self.assertEqual(good.firearm_details.is_onward_incorporated_comments, "")
+        self.assertEqual(good.is_onward_exported, False)
+        self.assertEqual(good.is_onward_altered_processed, None)
+        self.assertEqual(good.is_onward_altered_processed_comments, "")
+        self.assertEqual(good.is_onward_incorporated, None)
+        self.assertEqual(good.is_onward_incorporated_comments, "")
 
     def test_edit_firearm_is_deactivated(self):
         good = self.create_good(
