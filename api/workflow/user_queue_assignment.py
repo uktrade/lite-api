@@ -74,11 +74,6 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
     # This here allows us to look at each queue removed, and assign a countersigning queue for the work queue as needed
     for queue in queues_without_case_assignments:
         if queue.countersigning_queue_id:
-            remaining_feeder_queues = [
-                remaining_feeder_queue
-                for remaining_feeder_queue in case.queues.all()
-                if remaining_feeder_queue.countersigning_queue_id == queue.countersigning_queue_id
-            ]
             remaining_feeder_queues = case.queues.filter(countersigning_queue_id=queue.countersigning_queue_id)
             if not remaining_feeder_queues:
                 case.queues.add(queue.countersigning_queue_id)
