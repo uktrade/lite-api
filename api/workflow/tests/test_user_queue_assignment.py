@@ -100,6 +100,30 @@ class UserQueueAssignmentTests(DataTestClient):
         self.assertNotIn(self.queue, self.case.queues.all())
         self.assertEqual(self.case.status, old_status)
 
+    def test_countersigning_queue_multiple_feeder_queues(self):
+        """
+        Tests that countersigning queues are assigned when last "feeder" work queue removed, and status is not changed
+        """
+        old_status = self.case.status
+        countersigning_queue = QueueFactory(name="other", team=self.team)
+        feeder_queue_1 = QueueFactory(name="feeder 1", team=self.team, countersigning_queue=countersigning_queue)
+        feeder_queue_2 = QueueFactory(name="feeder 2", team=self.team, countersigning_queue=countersigning_queue)
+        self.case.queues.set([feeder_queue_1, feeder_queue_2])
+
+        user_queue_assignment_workflow([feeder_queue_1], self.case)
+
+        self.case.refresh_from_db()
+        self.assertNotIn(countersigning_queue, self.case.queues.all())
+        self.assertNotIn(feeder_queue_1, self.case.queues.all())
+        self.assertEqual(self.case.status, old_status)
+
+        user_queue_assignment_workflow([feeder_queue_2], self.case)
+
+        self.case.refresh_from_db()
+        self.assertIn(countersigning_queue, self.case.queues.all())
+        self.assertNotIn(feeder_queue_2, self.case.queues.all())
+        self.assertEqual(self.case.status, old_status)
+
 
 class NextStatusTests(DataTestClient):
     def setUp(self):
