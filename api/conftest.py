@@ -67,6 +67,9 @@ if settings.DEBUG:
     for fixture_name in sorted(fixture_names):
         print(f"pytest.fixture: {fixture_name}")
 
+@pytest.fixture(autouse=True)
+def disable_hawk():
+    settings.HAWK_AUTHENTICATION_ENABLED = False
 
 @pytest.fixture()
 def migration(transactional_db):
