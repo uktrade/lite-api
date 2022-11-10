@@ -69,7 +69,7 @@ if settings.DEBUG:
 
 
 @pytest.fixture(autouse=True)
-def disable_hawk():
+def disable_hawk(settings):
     settings.HAWK_AUTHENTICATION_ENABLED = False
 
 
