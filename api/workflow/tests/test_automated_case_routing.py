@@ -1,4 +1,5 @@
 import unittest
+import pytest
 
 from api.applications.models import CountryOnApplication, PartyOnApplication
 from api.cases.models import CaseType
@@ -14,6 +15,7 @@ from api.workflow.automation import run_routing_rules
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
+@pytest.mark.skip("Legacy routing rules obsolete as of C5")
 class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
     def test_routing_rule_parameters_are_returned_in_a_set(self):
         routing_rule = self.create_routing_rule(
@@ -121,6 +123,7 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         self.assertIn(case.case_type, parameter_set)
 
 
+@pytest.mark.skip("Legacy routing rules obsolete as of C5")
 class CaseRoutingAutomationTests(DataTestClient):
     def test_case_routed_to_new_queue_when_status_changed(self):
         self.create_routing_rule(

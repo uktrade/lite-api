@@ -1,3 +1,4 @@
+import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -9,6 +10,7 @@ from test_helpers.clients import DataTestClient
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
+@pytest.mark.skip("Legacy routing rules obsolete as of C5")
 class RoutingRuleCreationTests(DataTestClient):
     def test_all_data_works(self):
         self.gov_user.role = self.super_user_role

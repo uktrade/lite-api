@@ -1,3 +1,4 @@
+import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -7,6 +8,7 @@ from test_helpers.clients import DataTestClient
 from api.users.models import Role
 
 
+@pytest.mark.skip("Legacy routing rules obsolete as of C5")
 class RoutingRuleCreationTests(DataTestClient):
     def setUp(self):
         super(RoutingRuleCreationTests, self).setUp()
