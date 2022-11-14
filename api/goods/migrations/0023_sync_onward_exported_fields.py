@@ -7,13 +7,13 @@ def synchronise_onward_exported_fields(apps, schema_editor):
 
     firearm_good_details = FirearmGoodDetails.objects.all()
 
-    for firarm_detail in firearm_good_details:
-        GoodOnApplication.objects.filter(firearm_details_id=firarm_detail.id).update(
-            is_onward_exported=firarm_detail.is_onward_exported,
-            is_onward_altered_processed=firarm_detail.is_onward_altered_processed,
-            is_onward_altered_processed_comments=firarm_detail.is_onward_altered_processed_comments,
-            is_onward_incorporated=firarm_detail.is_onward_incorporated,
-            is_onward_incorporated_comments=firarm_detail.is_onward_incorporated_comments,
+    for firearm_detail in firearm_good_details:
+        GoodOnApplication.objects.filter(firearm_details_id=firearm_detail.id).update(
+            is_onward_exported=firearm_detail.is_onward_exported,
+            is_onward_altered_processed=firearm_detail.is_onward_altered_processed,
+            is_onward_altered_processed_comments=firearm_detail.is_onward_altered_processed_comments,
+            is_onward_incorporated=firearm_detail.is_onward_incorporated,
+            is_onward_incorporated_comments=firearm_detail.is_onward_incorporated_comments,
         )
 
 
