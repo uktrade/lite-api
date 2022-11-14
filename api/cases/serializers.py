@@ -258,9 +258,9 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
     def get_all_flags(self, instance):
         """
-        Gets flags for a case and returns in sorted order by team.
+        Gets distinct flags for a case and returns in sorted order by team.
         """
-        return get_ordered_flags(instance, self.team)
+        return get_ordered_flags(instance, self.team, distinct=True)
 
     def get_audit_notification(self, instance):
         content_type = ContentType.objects.get_for_model(Audit)
