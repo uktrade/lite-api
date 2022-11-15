@@ -10,7 +10,6 @@ from test_helpers.clients import DataTestClient
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
-@pytest.mark.skip("Legacy routing rules obsolete as of C5")
 class RoutingRuleUpdateTests(DataTestClient):
     def test_update_to_have_all_data(self):
         self.gov_user.role = self.super_user_role
@@ -99,7 +98,6 @@ class RoutingRuleUpdateTests(DataTestClient):
         self.assertIsNone(routing_rule["country"])
 
 
-@pytest.mark.skip("Legacy routing rules obsolete as of C5")
 class RoutingRuleStatusChangeTests(DataTestClient):
     def test_deactivate(self):
         self.gov_user.role = self.super_user_role

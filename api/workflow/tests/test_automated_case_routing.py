@@ -15,7 +15,6 @@ from api.workflow.automation import run_routing_rules
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
-@pytest.mark.skip("Legacy routing rules obsolete as of C5")
 class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
     def test_routing_rule_parameters_are_returned_in_a_set(self):
         routing_rule = self.create_routing_rule(
@@ -123,7 +122,6 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         self.assertIn(case.case_type, parameter_set)
 
 
-@pytest.mark.skip("Legacy routing rules obsolete as of C5")
 class CaseRoutingAutomationTests(DataTestClient):
     def test_case_routed_to_new_queue_when_status_changed(self):
         self.create_routing_rule(
@@ -310,11 +308,10 @@ class CaseRoutingAutomationTests(DataTestClient):
             additional_rules=[],
         )
 
-        case = self.create_open_application_case(organisation=self.organisation)
+        case = self.create_standard_application_case(organisation=self.organisation)
         run_routing_rules(case)
 
-        self.assertIn(queue_2, set(case.queues.all()))
-        self.assertEqual(case.status, under_review)
+        self.assertEqual(case.status, CaseStatus.objects.get(status="submitted"))
 
     def test_rules_not_run_if_flags_dont_match(self):
         flag_1 = FlagFactory(team=self.team)
@@ -330,13 +327,12 @@ class CaseRoutingAutomationTests(DataTestClient):
         )
         rule.flags_to_include.set([flag_1, flag_2])
 
-        case = self.create_open_application_case(organisation=self.organisation)
+        case = self.create_standard_application_case(organisation=self.organisation)
         case.flags.set([flag_2, flag_3])
 
         run_routing_rules(case)
 
-        self.assertEqual(len(case.queues.all()), 2)
-        self.assertNotEqual(case.status, CaseStatus.objects.get(status="submitted"))
+        self.assertEqual(case.status, CaseStatus.objects.get(status="submitted"))
 
     def test_rules_not_run_if_flags_match(self):
         flag_1 = FlagFactory(team=self.team)

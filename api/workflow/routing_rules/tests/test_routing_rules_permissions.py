@@ -8,7 +8,6 @@ from test_helpers.clients import DataTestClient
 from api.users.models import Role
 
 
-@pytest.mark.skip("Legacy routing rules obsolete as of C5")
 class RoutingRuleCreationTests(DataTestClient):
     def setUp(self):
         super(RoutingRuleCreationTests, self).setUp()
