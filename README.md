@@ -35,6 +35,11 @@ Service for handling backend calls in LITE.
 
   - Run the migrations
     - `./bin/migrate.sh` - Perform the Django migrations
+  - OR pull in the anonymised UAT data
+    - install [cloudfoundry cli](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html)
+    - install [cloudfoundry conduit plugin](https://github.com/alphagov/paas-cf-conduit)
+    - login to cloudfoundry `cf login --sso`
+    - `cf conduit <UAT_PG_INSTANCE_NAME> -- docker run --rm -e PGUSER -e PGPASSWORD -e PGDATABASE -e PGPORT -e PGHOST=host.docker.internal postgres:11.12-alpine pg_dump --no-acl --no-owner | docker-compose exec -T db psql -U postgres`
 
 - Starting the service
   - `docker-compose up` - to start the API's django server

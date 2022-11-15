@@ -74,19 +74,21 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
     # This here allows us to look at each queue removed, and assign a countersigning queue for the work queue as needed
     for queue in queues_without_case_assignments:
         if queue.countersigning_queue_id:
-            case.queues.add(queue.countersigning_queue_id)
-            # Be careful when editing this audit trail event; we depend on it for
-            # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
-            audit_trail_service.create(
-                actor=system_user,
-                verb=AuditType.MOVE_CASE,
-                action_object=case.get_case(),
-                payload={
-                    "queues": queue.countersigning_queue.name,
-                    "queue_ids": [str(queue.countersigning_queue_id)],
-                    "case_status": case.status.status,
-                },
-            )
+            remaining_feeder_queues = case.queues.filter(countersigning_queue_id=queue.countersigning_queue_id)
+            if not remaining_feeder_queues:
+                case.queues.add(queue.countersigning_queue_id)
+                # Be careful when editing this audit trail event; we depend on it for
+                # the flagging rule lite_routing.routing_rules_internal.flagging_rules_criteria:mod_consolidation_required_flagging_rule_criteria()
+                audit_trail_service.create(
+                    actor=system_user,
+                    verb=AuditType.MOVE_CASE,
+                    action_object=case.get_case(),
+                    payload={
+                        "queues": queue.countersigning_queue.name,
+                        "queue_ids": [str(queue.countersigning_queue_id)],
+                        "case_status": case.status.status,
+                    },
+                )
 
     # Move case to next non-terminal state if unassigned from all queues
     if case.queues.count() == 0:
