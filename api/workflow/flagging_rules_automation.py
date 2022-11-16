@@ -40,9 +40,9 @@ def _apply_python_flagging_rules(level, object):
     return flags
 
 
-def get_active_flagging_rules_for_level(level):
+def get_active_legacy_flagging_rules_for_level(level):
     return FlaggingRule.objects.prefetch_related("flag").filter(
-        status=FlagStatuses.ACTIVE, flag__status=FlagStatuses.ACTIVE, level=level
+        status=FlagStatuses.ACTIVE, flag__status=FlagStatuses.ACTIVE, level=level, is_python_criteria=False
     )
 
 
@@ -65,7 +65,7 @@ def apply_case_flagging_rules(case):
     """
     # get a list of flag_id's where the flagging rule matching value is equivalent to the case_type
     flags = (
-        get_active_flagging_rules_for_level(FlagLevels.CASE)
+        get_active_legacy_flagging_rules_for_level(FlagLevels.CASE)
         .filter(matching_values__overlap=[case.case_type.reference])
         .values_list("flag_id", flat=True)
     )
@@ -82,7 +82,9 @@ def apply_destination_flagging_rules_for_case(case, flagging_rule: QuerySet = No
     Applies destination type flagging rules to a case object
     """
     # If the flagging rules are specified then these is the only one we expect, else get all active
-    flagging_rules = get_active_flagging_rules_for_level(FlagLevels.DESTINATION) if not flagging_rule else flagging_rule
+    flagging_rules = (
+        get_active_legacy_flagging_rules_for_level(FlagLevels.DESTINATION) if not flagging_rule else flagging_rule
+    )
 
     if case.case_type.id == CaseTypeEnum.EUA.id:
         # if the instance is not an EndUserAdvisoryQuery we need to get this to have access to the party
@@ -101,7 +103,7 @@ def apply_destination_flagging_rules_for_case(case, flagging_rule: QuerySet = No
 def apply_destination_rule_on_party(party: Party, flagging_rules: QuerySet = None):
     # If the flagging rules are specified then these is the only one we expect, else get all active
     flagging_rules = (
-        get_active_flagging_rules_for_level(FlagLevels.DESTINATION) if not flagging_rules else flagging_rules
+        get_active_legacy_flagging_rules_for_level(FlagLevels.DESTINATION) if not flagging_rules else flagging_rules
     )
 
     # get a list of flag_id's where the flagging rule matching value is equivalent to the country id
@@ -116,7 +118,7 @@ def apply_destination_rule_on_party(party: Party, flagging_rules: QuerySet = Non
 
 def apply_good_flagging_rules_for_case(case, flagging_rule: QuerySet = None):
     # If the flagging rules are specified then these is the only one we expect, else get all active
-    flagging_rules = get_active_flagging_rules_for_level(FlagLevels.GOOD) if not flagging_rule else flagging_rule
+    flagging_rules = get_active_legacy_flagging_rules_for_level(FlagLevels.GOOD) if not flagging_rule else flagging_rule
 
     if case.case_type.id == CaseTypeEnum.GOODS.id:
         if not isinstance(case, GoodsQuery):
@@ -137,7 +139,9 @@ def apply_good_flagging_rules_for_case(case, flagging_rule: QuerySet = None):
 
 def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
     # If the flagging rules are specified then these is the only one we expect, else get all active
-    flagging_rules = get_active_flagging_rules_for_level(FlagLevels.GOOD) if not flagging_rules else flagging_rules
+    flagging_rules = (
+        get_active_legacy_flagging_rules_for_level(FlagLevels.GOOD) if not flagging_rules else flagging_rules
+    )
 
     # get a list of flag_id's where the flagging rule matching value is equivalent to the good control code
     ratings = [r for r in good.control_list_entries.values_list("rating", flat=True)]
