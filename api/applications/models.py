@@ -425,8 +425,6 @@ class GoodOnApplication(AbstractGoodOnApplication):
     regime_entries = models.ManyToManyField(RegimeEntry, through=GoodOnApplicationRegimeEntry)
 
     # Onward export
-    # This are being imported from FirearmDetails as it's become transparent this attribute is required.
-    # We will need to remove this from FirearmDetails, migrate all code
     is_onward_exported = models.BooleanField(default=None, blank=True, null=True)
     is_onward_altered_processed = models.BooleanField(default=None, blank=True, null=True)
     is_onward_altered_processed_comments = models.TextField(
