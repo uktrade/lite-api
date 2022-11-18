@@ -105,10 +105,6 @@ class Case(TimestampableModel):
 
     objects = CaseManager()
 
-    def __init__(self, *args, **kwargs):
-        super(Case, self).__init__(*args, **kwargs)
-        self.previous_status = self.status
-
     def save(self, *args, **kwargs):
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
@@ -120,6 +116,10 @@ class Case(TimestampableModel):
             self.reference_code = generate_reference_code(self)
 
         super(Case, self).save(*args, **kwargs)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.previous_status = self.status
 
     def get_case(self):
         """
