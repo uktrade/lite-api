@@ -1040,7 +1040,7 @@ def _get_goods_context(application, final_advice, licence=None):
     goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))
     # order them back in the original order
     approved_goods = goods_context.pop(AdviceType.APPROVE)
-    ordered_goods = sorted(approved_goods, key=lambda d: d["created_at"]) 
+    ordered_goods = sorted(approved_goods, key=lambda d: d["created_at"])
     goods_context[AdviceType.APPROVE] = ordered_goods
     return goods_context
 
