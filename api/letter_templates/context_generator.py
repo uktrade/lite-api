@@ -656,6 +656,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
             "firearm_details",
             "applied_for_quantity",
             "applied_for_value",
+            "created_at",
         ]
 
     good = GoodSerializer()
@@ -1037,6 +1038,10 @@ def _get_goods_context(application, final_advice, licence=None):
 
     # Move proviso elements into approved because they are treated the same
     goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))
+    # order them back in the original order
+    approved_goods = goods_context.pop(AdviceType.APPROVE)
+    ordered_goods = sorted(approved_goods, key=lambda d: d["created_at"])
+    goods_context[AdviceType.APPROVE] = ordered_goods
     return goods_context
 
 
