@@ -356,7 +356,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     """
 
     name = serializers.CharField(error_messages={"blank": "Enter a product name"})
-    description = serializers.CharField(max_length=280, allow_blank=True, required=False)
+    description = serializers.CharField(allow_blank=True, required=False)
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices, allow_null=True)
     control_list_entries = ControlListEntryField(required=False, many=True, allow_null=True, allow_empty=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())

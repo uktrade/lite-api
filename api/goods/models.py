@@ -128,7 +128,7 @@ class GoodControlListEntry(models.Model):
 class Good(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
-    description = models.TextField(max_length=280)
+    description = models.TextField()
 
     # CLC. used as base values that can be overridden at application level
     is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
@@ -196,4 +196,4 @@ class GoodDocument(Document):
     good = models.ForeignKey(Good, on_delete=models.CASCADE)
     user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING)
     organisation = models.ForeignKey(Organisation, on_delete=models.DO_NOTHING)
-    description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    description = models.TextField(default=None, blank=True, null=True)
