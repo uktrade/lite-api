@@ -138,11 +138,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
             "deactivation_standard_other",
             "number_of_items",
             "serial_numbers",
-            "is_onward_exported",
-            "is_onward_altered_processed",
-            "is_onward_altered_processed_comments",
-            "is_onward_incorporated",
-            "is_onward_incorporated_comments",
             "not_deactivated_to_standard_comments",
         )
 
@@ -232,32 +227,6 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
                 )
 
         instance.serial_numbers = validated_data.get("serial_numbers", instance.serial_numbers)
-
-        if "is_onward_exported" in validated_data:
-            if validated_data["is_onward_exported"]:
-                instance.is_onward_exported = validated_data["is_onward_exported"]
-                instance.is_onward_altered_processed = validated_data.get(
-                    "is_onward_altered_processed",
-                    instance.is_onward_altered_processed,
-                )
-                instance.is_onward_altered_processed_comments = validated_data.get(
-                    "is_onward_altered_processed_comments",
-                    instance.is_onward_altered_processed_comments,
-                )
-                instance.is_onward_incorporated = validated_data.get(
-                    "is_onward_incorporated",
-                    instance.is_onward_incorporated,
-                )
-                instance.is_onward_incorporated_comments = validated_data.get(
-                    "is_onward_incorporated_comments",
-                    instance.is_onward_incorporated_comments,
-                )
-            else:
-                instance.is_onward_exported = validated_data["is_onward_exported"]
-                instance.is_onward_altered_processed = None
-                instance.is_onward_altered_processed_comments = ""
-                instance.is_onward_incorporated = None
-                instance.is_onward_incorporated_comments = ""
 
         if "is_deactivated" in validated_data:
             if validated_data["is_deactivated"]:

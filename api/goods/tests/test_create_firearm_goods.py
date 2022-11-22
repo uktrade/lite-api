@@ -93,3 +93,12 @@ class CreateFirearmGoodTests(DataTestClient):
         data["firearm_details"]["serial_numbers"] = ["", "", ""]
         response = self.client.post(URL, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_large_number_of_items_success(self):
+        data = good_rifle()
+        data["firearm_details"]["number_of_items"] = 500000
+        data["firearm_details"]["serial_numbers_available"] = "AVAILABLE"
+        data["firearm_details"]["no_identification_markings_details"] = ""
+        data["firearm_details"]["serial_numbers"] = ["serial1", "serial2", "serial3"]
+        response = self.client.post(URL, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

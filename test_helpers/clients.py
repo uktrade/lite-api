@@ -720,6 +720,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_compliant_limitations_eu=None,
             intended_end_use="this is our intended end use",
             is_shipped_waybill_or_lading=True,
+            is_mod_security_approved=False,
             non_waybill_or_lading_route_details=None,
             status_id="00000000-0000-0000-0000-000000000000",
             submitted_by=user,
