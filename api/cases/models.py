@@ -101,7 +101,8 @@ class Case(TimestampableModel):
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
     additional_contacts = models.ManyToManyField("parties.Party", related_name="case")
-    previous_status = None
+    # _previous_status is used during post_save signal to check if the status has changed
+    _previous_status = None
 
     objects = CaseManager()
 
@@ -119,7 +120,7 @@ class Case(TimestampableModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.previous_status = self.status
+        self._previous_status = self.status
 
     def get_case(self):
         """
