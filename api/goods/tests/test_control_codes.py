@@ -456,7 +456,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
     def test_payload_end_flag(self):
         data = {
             "objects": [self.good_1.pk],
-            "current_object": self.good_on_application_1.pk,
+            "current_object": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["END"],
