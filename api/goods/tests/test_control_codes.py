@@ -453,6 +453,23 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_payload_end_flag(self):
+        data = {
+            "objects": [self.good_1.pk],
+            "current_object": self.good_on_application_1.pk,
+            "comment": "I Am Easy to Find",
+            "report_summary": self.report_summary.text,
+            "control_list_entries": ["END"],
+            "is_good_controlled": True,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        verified_good_1 = Good.objects.get(pk=self.good_1.pk)
+
+        self.assertEqual(verified_good_1.control_list_entries.get().rating, "END")
+
 
 class WASSENAARFlagTest(DataTestClient):
     def setUp(self):
