@@ -4,19 +4,13 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     def populate_control_list_entries(apps, schema_editor):
         ratings = ("END", "MEND1", "MEND2", "MEND3")
         ControlListEntry = apps.get_model("control_list_entries", "ControlListEntry")
         for rating in ratings:
             ControlListEntry.objects.create(
-                rating=rating,
-                text="placeholder text for " + rating,
-                parent_id=None,
-                category="Non-military",
-                controlled=True
+                rating=rating, text=rating, parent_id=None, category="End-Use", controlled=True
             )
-
 
     dependencies = [
         ("control_list_entries", "0002_controllistentry_controlled"),
