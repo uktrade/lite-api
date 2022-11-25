@@ -118,3 +118,8 @@ def migration(transactional_db):
 
     yield Migrator()
     call_command("migrate")
+
+
+@pytest.fixture(autouse=True)
+def setup(settings):
+    settings.HAWK_AUTHENTICATION_ENABLED = False

@@ -18,7 +18,7 @@ Service for handling backend calls in LITE.
       If you want to run in Docker then uncomment the appropriate line in `.env` referring to DATABASE_URL.
     - In `.env`, also fill in the email field for INTERNAL_USERS and EXPORTER_USERS with valid values.
     - If running locally (using pipenv), make sure to change the DATABASE_URL to use the port exposed by docker-compose
-      which is 5462 (double check by viewing the docker-compose file)
+      which is 5462 (double check by viewing the docker-compose file) and change ELASTICSEARCH_HOST also
 
   - Initialise submodules
 

@@ -28,7 +28,7 @@ from api.workflow.flagging_rules_automation import (
     apply_case_flagging_rules,
     apply_goods_rules_for_good,
     apply_destination_rule_on_party,
-    get_active_flagging_rules_for_level,
+    get_active_legacy_flagging_rules_for_level,
     apply_flagging_rule_to_all_open_cases,
 )
 from api.users.models import Role
@@ -232,7 +232,7 @@ class FlaggingRulesAutomation(DataTestClient):
             status=FlagStatuses.DEACTIVATED,
         )
 
-        flagging_rules = list(get_active_flagging_rules_for_level(level=FlagLevels.GOOD))
+        flagging_rules = list(get_active_legacy_flagging_rules_for_level(level=FlagLevels.GOOD))
 
         self.assertTrue(active_flag in [rule.flag for rule in flagging_rules])
         self.assertTrue(deactivated_flag not in [rule.flag for rule in flagging_rules])
@@ -251,7 +251,7 @@ class FlaggingRulesAutomation(DataTestClient):
         deactivated_flag.status = FlagStatuses.DEACTIVATED
         deactivated_flag.save()
 
-        flagging_rules = list(get_active_flagging_rules_for_level(level=FlagLevels.GOOD))
+        flagging_rules = list(get_active_legacy_flagging_rules_for_level(level=FlagLevels.GOOD))
 
         self.assertTrue(active_flag in [rule.flag for rule in flagging_rules])
         self.assertTrue(deactivated_flag not in [rule.flag for rule in flagging_rules])
@@ -271,7 +271,7 @@ class FlaggingRulesAutomation(DataTestClient):
             status=FlagStatuses.DEACTIVATED,
         )
 
-        flagging_rules = list(get_active_flagging_rules_for_level(level=FlagLevels.DESTINATION))
+        flagging_rules = list(get_active_legacy_flagging_rules_for_level(level=FlagLevels.DESTINATION))
 
         self.assertTrue(active_flag in [rule.flag for rule in flagging_rules])
         self.assertTrue(deactivated_flag not in [rule.flag for rule in flagging_rules])
@@ -292,7 +292,7 @@ class FlaggingRulesAutomation(DataTestClient):
         deactivated_flag.status = FlagStatuses.DEACTIVATED
         deactivated_flag.save()
 
-        flagging_rules = list(get_active_flagging_rules_for_level(level=FlagLevels.DESTINATION))
+        flagging_rules = list(get_active_legacy_flagging_rules_for_level(level=FlagLevels.DESTINATION))
 
         self.assertTrue(active_flag in [rule.flag for rule in flagging_rules])
         self.assertTrue(deactivated_flag not in [rule.flag for rule in flagging_rules])
@@ -310,7 +310,7 @@ class FlaggingRulesAutomation(DataTestClient):
             status=FlagStatuses.DEACTIVATED,
         )
 
-        flagging_rules = list(get_active_flagging_rules_for_level(level=FlagLevels.CASE))
+        flagging_rules = list(get_active_legacy_flagging_rules_for_level(level=FlagLevels.CASE))
 
         self.assertTrue(active_flag in [rule.flag for rule in flagging_rules])
         self.assertTrue(deactivated_flag not in [rule.flag for rule in flagging_rules])
@@ -329,7 +329,7 @@ class FlaggingRulesAutomation(DataTestClient):
         deactivated_flag.status = FlagStatuses.DEACTIVATED
         deactivated_flag.save()
 
-        flagging_rules = list(get_active_flagging_rules_for_level(level=FlagLevels.CASE))
+        flagging_rules = list(get_active_legacy_flagging_rules_for_level(level=FlagLevels.CASE))
 
         self.assertTrue(active_flag in [rule.flag for rule in flagging_rules])
         self.assertTrue(deactivated_flag not in [rule.flag for rule in flagging_rules])
