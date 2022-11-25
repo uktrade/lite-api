@@ -25,7 +25,7 @@ services:
       - db
     expose:
       - 8100
-    command: ./manage.py runserver 0.0.0.0:${PORT:-8100}
+    command: python manage.py runserver 0.0.0.0:${PORT:-8100}
     networks:
       - lite
     stdin_open: true
