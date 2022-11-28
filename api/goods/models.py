@@ -93,17 +93,6 @@ class FirearmGoodDetails(models.Model):
     deactivation_standard = models.TextField(default="")
     deactivation_standard_other = models.TextField(default="")
 
-    # Onward export
-    is_onward_exported = models.BooleanField(default=None, blank=True, null=True)
-    is_onward_altered_processed = models.BooleanField(default=None, blank=True, null=True)
-    is_onward_altered_processed_comments = models.TextField(
-        default="", blank=True, null=True, help_text="How the product will be processed or altered"
-    )
-    is_onward_incorporated = models.BooleanField(default=None, blank=True, null=True)
-    is_onward_incorporated_comments = models.TextField(
-        default="", blank=True, null=True, help_text="what's being incorporated into the product"
-    )
-
     @property
     def has_serial_numbers(self):
         return self.SerialNumberAvailability.has_serial_numbers(self.serial_numbers_available)

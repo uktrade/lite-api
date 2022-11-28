@@ -115,6 +115,7 @@ class CaseListSerializer(serializers.Serializer):
     sla_remaining_days = serializers.IntegerField()
     next_review_date = serializers.DateField()
     has_open_queries = serializers.BooleanField()
+    case_officer = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -131,6 +132,7 @@ class CaseListSerializer(serializers.Serializer):
             return_value[user_id]["first_name"] = assignment.user.first_name
             return_value[user_id]["last_name"] = assignment.user.last_name
             return_value[user_id]["email"] = assignment.user.email
+            return_value[user_id]["team_name"] = assignment.user.team.name
             if "queues" not in return_value[user_id]:
                 return_value[user_id]["queues"] = []
             return_value[user_id]["queues"].append(assignment.queue.name)
@@ -144,6 +146,14 @@ class CaseListSerializer(serializers.Serializer):
 
     def get_status(self, instance):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
+
+    def get_case_officer(self, instance):
+        if instance.case_officer:
+            return {
+                "first_name": instance.case_officer.first_name,
+                "last_name": instance.case_officer.last_name,
+                "email": instance.case_officer.email,
+            }
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
