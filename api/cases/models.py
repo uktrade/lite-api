@@ -369,7 +369,7 @@ class CaseAssignment(TimestampableModel):
 class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE, null=True)
-    description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    description = models.TextField(default=None, blank=True, null=True)
     type = models.CharField(
         choices=CaseDocumentState.choices, default=CaseDocumentState.UPLOADED, max_length=100, null=False
     )
@@ -577,7 +577,7 @@ class EcjuQuery(TimestampableModel):
 class EcjuQueryDocument(Document):
     query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, related_name="ecjuquery_document")
     user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING, related_name="ecjuquery_document")
-    description = models.TextField(default="", blank=True, max_length=280)
+    description = models.TextField(default="", blank=True)
 
 
 class GoodCountryDecision(TimestampableModel):

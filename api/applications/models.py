@@ -308,7 +308,7 @@ class HmrcQuery(BaseApplication):
 
 class ApplicationDocument(Document):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE)
-    description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    description = models.TextField(default=None, blank=True, null=True)
     document_type = models.TextField(
         choices=OrganisationDocumentType.choices,
         default=None,
