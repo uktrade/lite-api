@@ -29,7 +29,6 @@ from api.core.permissions import assert_user_has_permission
 from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import PvGrading
-from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queues.models import Queue
 from api.staticdata.countries.models import Country
@@ -45,6 +44,7 @@ from api.users.models import (
     UserOrganisationRelationship,
     ExporterNotification,
 )
+from lite_content.lite_api import strings
 
 
 denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
@@ -101,6 +101,8 @@ class Case(TimestampableModel):
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
     additional_contacts = models.ManyToManyField("parties.Party", related_name="case")
+    # _previous_status is used during post_save signal to check if the status has changed
+    _previous_status = None
 
     objects = CaseManager()
 
@@ -115,6 +117,10 @@ class Case(TimestampableModel):
             self.reference_code = generate_reference_code(self)
 
         super(Case, self).save(*args, **kwargs)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._previous_status = self.status
 
     def get_case(self):
         """
