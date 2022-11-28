@@ -407,14 +407,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         product_cles = [cle.rating for cle in product.control_list_entries.all()]
         self.assertEqual(sorted(product_cles), ["FR AI", "ML1b", "ML2a"])
 
-    @parameterized.expand(
-        [
-            "END",
-            "MEND1",
-            "MEND2",
-            "MEND3"
-        ]
-    )
+    @parameterized.expand(["END", "MEND1", "MEND2", "MEND3"])
     def test_payload_end_flag(self, cle):
         data = {
             "objects": [self.good_1.pk],
@@ -430,7 +423,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         verified_good_1 = Good.objects.get(pk=self.good_1.pk)
 
-        self.assertEqual(verified_good_1.control_list_entries.get().rating, "END")
+        self.assertEqual(verified_good_1.control_list_entries.get().rating, cle)
 
 
 class GoodsVerifiedTestsOpenApplication(DataTestClient):
