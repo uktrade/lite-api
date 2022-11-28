@@ -67,7 +67,7 @@ class SeedingTests(SeedCommandTest):
     @pytest.mark.seeding
     def test_seed_control_list_entries(self):
         self.seed_command(seedcontrollistentries.Command)
-        self.assertEqual(ControlListEntry.objects.count(), 2910)
+        self.assertEqual(ControlListEntry.objects.count(), 2914)
 
     @pytest.mark.seeding
     def test_seed_countries(self):
