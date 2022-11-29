@@ -29,7 +29,6 @@ from api.core.permissions import assert_user_has_permission
 from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import PvGrading
-from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queues.models import Queue
 from api.staticdata.countries.models import Country
@@ -45,6 +44,7 @@ from api.users.models import (
     UserOrganisationRelationship,
     ExporterNotification,
 )
+from lite_content.lite_api import strings
 
 
 denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
@@ -101,6 +101,8 @@ class Case(TimestampableModel):
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
     additional_contacts = models.ManyToManyField("parties.Party", related_name="case")
+    # _previous_status is used during post_save signal to check if the status has changed
+    _previous_status = None
 
     objects = CaseManager()
 
@@ -115,6 +117,10 @@ class Case(TimestampableModel):
             self.reference_code = generate_reference_code(self)
 
         super(Case, self).save(*args, **kwargs)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._previous_status = self.status
 
     def get_case(self):
         """
@@ -369,7 +375,7 @@ class CaseAssignment(TimestampableModel):
 class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE, null=True)
-    description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    description = models.TextField(default=None, blank=True, null=True)
     type = models.CharField(
         choices=CaseDocumentState.choices, default=CaseDocumentState.UPLOADED, max_length=100, null=False
     )
@@ -577,7 +583,7 @@ class EcjuQuery(TimestampableModel):
 class EcjuQueryDocument(Document):
     query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, related_name="ecjuquery_document")
     user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING, related_name="ecjuquery_document")
-    description = models.TextField(default="", blank=True, max_length=280)
+    description = models.TextField(default="", blank=True)
 
 
 class GoodCountryDecision(TimestampableModel):
