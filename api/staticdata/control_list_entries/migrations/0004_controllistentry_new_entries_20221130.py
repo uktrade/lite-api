@@ -6,6 +6,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     def populate_control_list_entries(apps, schema_editor):
         ratings = (
+            "1C35023",
+            "1C35029",
+            "1C3504",
             "1C35065",
             "1C35066",
             "1C35067",
