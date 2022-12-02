@@ -1,6 +1,8 @@
 class RegimesEnum:
     MTCR = "b1c1f990-a7be-4bc8-9292-a8b5ea25c0dd"
     WASSENAAR = "66e5fc8d-67c7-4a5a-9d11-2eb8dbc57f7d"
+    CWC = "2acf6f32-5573-400d-b0f3-66f19ac30efe"
+    AG = "3f085cc9-218d-4a41-92fa-d36a3f21ff40"
 
 
 class RegimeSubsectionsEnum:
@@ -10,3 +12,10 @@ class RegimeSubsectionsEnum:
     WASSENAAR_ARRANGEMENT = "a67b1acd-0578-4b83-af66-36ac56f00296"
     WASSENAAR_ARRANGEMENT_SENSITIVE = "3bafdc58-f994-4e44-9f89-b01a037b9676"
     WASSENAAR_ARRANGEMENT_VERY_SENSITIVE = "deb7099a-dfeb-47c7-9dce-d9228a8337e0"
+
+    CWC_SCHEDULE_1 = "291c7998-6352-4c91-9b62-1eb1a869883c"
+    CWC_SCHEDULE_2 = "12717c8a-b56a-45ec-8eb2-8f5a50541718"
+    CWC_SCHEDULE_3 = "cf2ebc15-0b75-4608-ab57-fcae28520930"
+
+    AG_CHEMICAL_LIST = "0c677558-27f8-42c6-99c3-40b58a8ba815"
+    AG_BIOLOGICAL_LIST = "7f854f58-ad19-472b-baa2-38b0c011e4c8"
