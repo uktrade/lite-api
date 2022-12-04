@@ -305,6 +305,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
 
         if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in self.standard_application.flags.values_list("id", flat=True):
             self.standard_application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+        print("Ha")
 
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
         self.date = timezone.now()
