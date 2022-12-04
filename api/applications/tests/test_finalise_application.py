@@ -315,6 +315,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
 
         self.data[f"quantity-{self.good_on_application.id}"] = self.good_on_application.quantity
         self.data[f"value-{self.good_on_application.id}"] = good_value
+        print("HA")
 
         response = self.client.put(self.url, data=self.data, **self.gov_headers)
         response_data = response.json()
