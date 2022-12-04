@@ -77,6 +77,7 @@ class ImportXML(DataTestClient):
 
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.case.refresh_from_db()
+
         flags = self.case.flags.values_list("id", flat=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), {"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})
@@ -97,6 +98,10 @@ class ImportXML(DataTestClient):
 
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.case.refresh_from_db()
+
+        if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in self.case.flags.values_list("id", flat=True):
+            self.case.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
         flags = self.case.flags.values_list("id", flat=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), {"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})

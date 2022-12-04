@@ -1,6 +1,7 @@
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
+from uuid import UUID
 
 from api.applications.enums import LicenceDuration
 from api.applications.libraries.licence import get_default_duration
@@ -8,7 +9,7 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.core.constants import GovPermissions
-from api.flags.enums import FlagLevels
+from api.flags.enums import FlagLevels, SystemFlags
 from api.flags.tests.factories import FlagFactory
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence, GoodOnLicence
@@ -27,6 +28,10 @@ class FinaliseApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
+
+        if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in self.standard_application.flags.values_list("id", flat=True):
+            self.standard_application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
         self.role = Role.objects.create(name="test")
         self.finalised_status = CaseStatus.objects.get(status="finalised")
@@ -130,6 +135,7 @@ class FinaliseApplicationTests(DataTestClient):
     def test_approve_application_blocking_flags_failure(self):
         flag = FlagFactory(level=FlagLevels.CASE, team=self.team, blocks_finalising=True)
         self.standard_application.flags.add(flag)
+
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
         data = {"action": AdviceType.APPROVE, "duration": 60}
         data.update(self.post_date)
@@ -296,6 +302,10 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
         super().setUp()
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.standard_application = self.create_standard_application_case(self.organisation)
+
+        if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in self.standard_application.flags.values_list("id", flat=True):
+            self.standard_application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
         self.date = timezone.now()
         self.data = {

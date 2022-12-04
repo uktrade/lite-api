@@ -1,4 +1,5 @@
 from xml.etree import ElementTree  # nosec
+from uuid import UUID
 
 from django.urls import reverse
 from rest_framework import status
@@ -193,6 +194,10 @@ class ExportXML(DataTestClient):
     def test_export_xml_no_cases_with_flag_in_queue(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation)
+
+        if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in application.flags.values_list("id", flat=True):
+            application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
         application.queues.set([self.queue])
 
         response = self.client.get(self.url, **self.gov_headers)
