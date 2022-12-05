@@ -36,9 +36,10 @@ class Migration(migrations.Migration):
             "1C35089",
         )
         ControlListEntry = apps.get_model("control_list_entries", "ControlListEntry")
+        parent_cle = ControlListEntry.objects.get(rating="1C350")
         for rating in ratings:
             ControlListEntry.objects.create(
-                rating=rating, text=rating, parent_id=None, category="End-Use", controlled=True
+                rating=rating, text=rating, parent_id=parent_cle.id, category="Dual-Use List", controlled=True
             )
 
     dependencies = [
