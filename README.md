@@ -55,7 +55,16 @@ Service for handling backend calls in LITE.
 
 ## Add a single user:
 
-Run the following command to add new users:
+
+Run the following command to add new users (after setting INTERNAL_USERS and EXPORTER_USERS in .env):
+
+```
+./manage.py seedrolepermissions
+./manage.py seedinternalusers
+./manage.py seedexporterusers
+```
+
+to add subsequent new users
 
 ```
 INTERNAL_USERS='[{"email"=>"foo@bar.gov.uk"}]' ./manage.py seedinternalusers
