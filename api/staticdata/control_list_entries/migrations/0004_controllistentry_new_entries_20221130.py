@@ -5,6 +5,10 @@ from django.db import migrations, transaction
 
 class Migration(migrations.Migration):
     def populate_control_list_entries(apps, schema_editor):
+        """
+        Legacy CLEs are added to the DB via seeding so we need to use get_or_create to add
+        those that are parents to newly add CLEs via migration as migration runs first
+        """
         ratings = (
             "1C35023",
             "1C35029",
@@ -35,12 +39,39 @@ class Migration(migrations.Migration):
             "1C35088",
             "1C35089",
         )
+        family_category = "Dual-Use List"
         ControlListEntry = apps.get_model("control_list_entries", "ControlListEntry")
+
         with transaction.atomic():
-            parent_cle = ControlListEntry.objects.get(rating="1C350")
+            great_grandparent_cle = ControlListEntry.objects.get_or_create(
+                rating="1",
+                text="Special Materials and Related Equipment",
+                parent_id=None,
+                category=family_category,
+                controlled=True
+            )
+            grandparent_cle = ControlListEntry.objects.get_or_create(
+                rating="1C",
+                text="Materials",
+                parent_id=great_grandparent_cle.id,
+                category=family_category,
+                controlled=True
+            )
+            parent_cle = ControlListEntry.objects.get_or_create(
+                rating="1C350",
+                text="Chemicals that may be used as precursors for toxic chemical agents, and chemical mixtures",
+                parent_id=grandparent_cle.id,
+                category=family_category,
+                controlled=True
+            )
+
             for rating in ratings:
-                ControlListEntry.objects.create(
-                    rating=rating, text=rating, parent_id=parent_cle.id, category="Dual-Use List", controlled=True
+                ControlListEntry.objects.get_or_create(
+                    rating=rating,
+                    text=rating,
+                    parent_id=parent_cle.id,
+                    category=family_category,
+                    controlled=True
                 )
 
     dependencies = [
