@@ -39,7 +39,8 @@ Service for handling backend calls in LITE.
     - install [cloudfoundry cli](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html)
     - install [cloudfoundry conduit plugin](https://github.com/alphagov/paas-cf-conduit)
     - login to cloudfoundry `cf login --sso`
-    - `cf conduit <UAT_PG_INSTANCE_NAME> -- docker run --rm -e PGUSER -e PGPASSWORD -e PGDATABASE -e PGPORT -e PGHOST=host.docker.internal postgres:11.12-alpine pg_dump --no-acl --no-owner | docker-compose exec -T db psql -U postgres`
+    - `target -s dit-staging -o lite-api`
+    - `cf conduit <UAT_PG_INSTANCE_NAME> -- docker run --rm -e PGUSER -e PGPASSWORD -e PGDATABASE -e PGPORT -e PGHOST=host.docker.internal postgres:12.12 pg_dump --no-acl --no-owner | docker-compose exec -T db psql -U postgres`
 
 - Starting the service
   - `docker-compose up` - to start the API's django server
@@ -55,7 +56,16 @@ Service for handling backend calls in LITE.
 
 ## Add a single user:
 
-Run the following command to add new users:
+
+Run the following command to add new users (after setting INTERNAL_USERS and EXPORTER_USERS in .env):
+
+```
+./manage.py seedrolepermissions
+./manage.py seedinternalusers
+./manage.py seedexporterusers
+```
+
+to add subsequent new users
 
 ```
 INTERNAL_USERS='[{"email"=>"foo@bar.gov.uk"}]' ./manage.py seedinternalusers
