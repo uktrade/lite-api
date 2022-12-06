@@ -48,30 +48,26 @@ class Migration(migrations.Migration):
                 text="Special Materials and Related Equipment",
                 parent_id=None,
                 category=family_category,
-                controlled=True
+                controlled=True,
             )
             grandparent_cle = ControlListEntry.objects.get_or_create(
                 rating="1C",
                 text="Materials",
-                parent_id=great_grandparent_cle.id,
+                parent_id=great_grandparent_cle[0].id,
                 category=family_category,
-                controlled=True
+                controlled=True,
             )
             parent_cle = ControlListEntry.objects.get_or_create(
                 rating="1C350",
                 text="Chemicals that may be used as precursors for toxic chemical agents, and chemical mixtures",
-                parent_id=grandparent_cle.id,
+                parent_id=grandparent_cle[0].id,
                 category=family_category,
-                controlled=True
+                controlled=True,
             )
 
             for rating in ratings:
                 ControlListEntry.objects.get_or_create(
-                    rating=rating,
-                    text=rating,
-                    parent_id=parent_cle.id,
-                    category=family_category,
-                    controlled=True
+                    rating=rating, text=rating, parent_id=parent_cle[0].id, category=family_category, controlled=True
                 )
 
     dependencies = [
