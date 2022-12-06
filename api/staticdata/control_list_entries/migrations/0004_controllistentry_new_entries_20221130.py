@@ -43,31 +43,31 @@ class Migration(migrations.Migration):
         ControlListEntry = apps.get_model("control_list_entries", "ControlListEntry")
 
         with transaction.atomic():
-            great_grandparent_cle = ControlListEntry.objects.get_or_create(
+            great_grandparent_cle, created = ControlListEntry.objects.get_or_create(
                 rating="1",
                 text="Special Materials and Related Equipment",
                 parent_id=None,
                 category=family_category,
                 controlled=True,
             )
-            grandparent_cle = ControlListEntry.objects.get_or_create(
+            grandparent_cle, created = ControlListEntry.objects.get_or_create(
                 rating="1C",
                 text="Materials",
-                parent_id=great_grandparent_cle[0].id,
+                parent_id=great_grandparent_cle.id,
                 category=family_category,
                 controlled=True,
             )
-            parent_cle = ControlListEntry.objects.get_or_create(
+            parent_cle, created = ControlListEntry.objects.get_or_create(
                 rating="1C350",
                 text="Chemicals that may be used as precursors for toxic chemical agents, and chemical mixtures",
-                parent_id=grandparent_cle[0].id,
+                parent_id=grandparent_cle.id,
                 category=family_category,
                 controlled=True,
             )
 
             for rating in ratings:
                 ControlListEntry.objects.get_or_create(
-                    rating=rating, text=rating, parent_id=parent_cle[0].id, category=family_category, controlled=True
+                    rating=rating, text=rating, parent_id=parent_cle.id, category=family_category, controlled=True
                 )
 
     dependencies = [
