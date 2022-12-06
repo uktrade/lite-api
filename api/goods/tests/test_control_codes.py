@@ -408,7 +408,53 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEqual(sorted(product_cles), ["FR AI", "ML1b", "ML2a"])
 
     @parameterized.expand(["END", "MEND1", "MEND2", "MEND3"])
-    def test_payload_end_flag(self, cle):
+    def test_0003_controllistentry_new_entries_20221124(self, cle):
+        data = {
+            "objects": [self.good_1.pk],
+            "current_object": self.good_1.pk,
+            "comment": "I Am Easy to Find",
+            "report_summary": self.report_summary.text,
+            "control_list_entries": [cle],
+            "is_good_controlled": True,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        verified_good_1 = Good.objects.get(pk=self.good_1.pk)
+
+        self.assertEqual(verified_good_1.control_list_entries.get().rating, cle)
+
+    @parameterized.expand(
+        [
+            "1C35065",
+            "1C35066",
+            "1C35067",
+            "1C35068",
+            "1C35069",
+            "1C35070",
+            "1C35071",
+            "1C35072",
+            "1C35073",
+            "1C35074",
+            "1C35075",
+            "1C35076",
+            "1C35077",
+            "1C35078",
+            "1C35079",
+            "1C35080",
+            "1C35081",
+            "1C35082",
+            "1C35083",
+            "1C35084",
+            "1C35085",
+            "1C35086",
+            "1C35087",
+            "1C35088",
+            "1C35089",
+        ]
+    )
+    def test_0004_controllistentry_new_entries_20221130(self, cle):
         data = {
             "objects": [self.good_1.pk],
             "current_object": self.good_1.pk,
