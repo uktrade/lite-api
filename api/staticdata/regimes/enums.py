@@ -3,6 +3,7 @@ class RegimesEnum:
     WASSENAAR = "66e5fc8d-67c7-4a5a-9d11-2eb8dbc57f7d"
     CWC = "2acf6f32-5573-400d-b0f3-66f19ac30efe"
     AG = "3f085cc9-218d-4a41-92fa-d36a3f21ff40"
+    NSG = "d990c737-3a83-47a2-8e7e-97d5ef04038d"
 
 
 class RegimeSubsectionsEnum:
@@ -19,3 +20,6 @@ class RegimeSubsectionsEnum:
 
     AG_CHEMICAL_LIST = "0c677558-27f8-42c6-99c3-40b58a8ba815"
     AG_BIOLOGICAL_LIST = "7f854f58-ad19-472b-baa2-38b0c011e4c8"
+
+    NSG_POTENTIAL_TRIGGER_LIST = "61fa2375-6016-4a99-a146-7f968cdb58c1"
+    NSG_POTENTIAL_DUAL_USE = "5282ae0b-3c41-4d68-a5bf-3b4a6375410d"
