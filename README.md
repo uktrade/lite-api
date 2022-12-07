@@ -50,8 +50,11 @@ Service for handling backend calls in LITE.
 #### Git Hub pre-commit setup
 - Install pre-commit (e.g MAC pip install pre-commit)
 - pre-commit install
-* run following to scan all files for issues
-  - pre-commit run --all-files
+
+* to run on it's own
+  - pre-commit run
+
+If your changes incorrectly set off the pii/secrets warning, it can be added to `pii-secret-exclude.txt`
 
 ## Add a single user:
 
