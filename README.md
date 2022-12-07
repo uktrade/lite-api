@@ -101,6 +101,8 @@ A p12 file is also required. Please see https://uktrade.atlassian.net/wiki/space
 
 **[API Docs available on GitHub Pages](https://uktrade.github.io/lite-api/)**
 
+*For more docs on the development process and ongoing dev work, [check out LITE House Keeping.](https://github.com/uktrade/lite-house-keeping)*
+
 [Running locally without Docker](docs/without_docker.md)
 
 ### Entity Relationship diagrams
