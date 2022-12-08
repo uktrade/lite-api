@@ -13,26 +13,26 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="f680clearanceapplication",
             name="electronic_warfare_requirement",
-            field=models.BooleanField(null=True),
+            field=models.BooleanField(default=None, null=True),
         ),
         migrations.AlterField(
             model_name="f680clearanceapplication",
             name="expedited",
-            field=models.BooleanField(null=True),
+            field=models.BooleanField(default=None, null=True),
         ),
         migrations.AlterField(
             model_name="f680clearanceapplication",
             name="foreign_technology",
-            field=models.BooleanField(null=True),
+            field=models.BooleanField(default=None, null=True),
         ),
         migrations.AlterField(
             model_name="f680clearanceapplication",
             name="locally_manufactured",
-            field=models.BooleanField(null=True),
+            field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.AlterField(
             model_name="f680clearanceapplication",
             name="uk_service_equipment",
-            field=models.BooleanField(null=True),
+            field=models.BooleanField(default=None, null=True),
         ),
     ]
