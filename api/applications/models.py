@@ -17,6 +17,7 @@ from api.applications.enums import (
     GoodsTypeCategory,
     ContractType,
     SecurityClassifiedApprovalsType,
+    NSGListType,
 )
 
 from api.applications.managers import BaseApplicationManager, HmrcQueryManager
@@ -434,6 +435,11 @@ class GoodOnApplication(AbstractGoodOnApplication):
     is_onward_incorporated_comments = models.TextField(
         default="", blank=True, null=True, help_text="what's being incorporated into the product"
     )
+
+    # Trigger list fields
+    nsg_list_type = models.TextField(choices=NSGListType.choices, blank=True, default="")
+    is_nca_applicable = models.BooleanField(default=None, blank=True, null=True)
+    nsg_assessment_note = models.TextField(help_text="Trigger list assessment note", default="", blank=True)
 
     class Meta:
         ordering = ["created_at"]

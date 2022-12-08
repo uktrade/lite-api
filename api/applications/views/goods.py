@@ -39,6 +39,7 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterUser
+from api.users.enums import UserType
 
 
 class ApplicationGoodsOnApplication(APIView):
@@ -163,7 +164,10 @@ class ApplicationGoodOnApplication(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if good_on_application.application.organisation.id != get_request_user_organisation_id(request):
+        if (
+            request.user.type == UserType.EXPORTER
+            and good_on_application.application.organisation.id != get_request_user_organisation_id(request)
+        ):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.INVALID_ORGANISATION]},
                 status=status.HTTP_403_FORBIDDEN,
