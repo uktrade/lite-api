@@ -100,7 +100,6 @@ class ImportXML(DataTestClient):
         flags = self.case.flags.values_list("id", flat=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), {"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})
-        self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in flags)
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_ORGANISATION_MATCH) in flags)
 
     def test_import_xml_case_doesnt_match_success(self):
