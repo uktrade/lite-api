@@ -14,7 +14,7 @@ class Document(TimestampableModel):
     s3_key = models.CharField(max_length=1000, null=False, blank=False, default=None)
     size = models.IntegerField(null=True, blank=True)
     virus_scanned_at = models.DateTimeField(null=True, blank=True)
-    safe = models.NullBooleanField()
+    safe = models.BooleanField(null=True)
 
     def __str__(self):
         return self.name

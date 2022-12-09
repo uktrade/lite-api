@@ -277,20 +277,20 @@ class GiftingClearanceApplication(BaseApplication):
 class F680ClearanceApplication(BaseApplication):
     types = models.ManyToManyField(F680ClearanceType, related_name="f680_clearance_application")
 
-    expedited = models.NullBooleanField(default=None)
+    expedited = models.BooleanField(default=None, null=True)
     expedited_date = models.DateField(null=True, default=None)
 
-    foreign_technology = models.NullBooleanField(default=None)
+    foreign_technology = models.BooleanField(default=None, null=True)
     foreign_technology_description = models.CharField(max_length=2200, null=True)
 
-    locally_manufactured = models.NullBooleanField(blank=True, default=None)
+    locally_manufactured = models.BooleanField(blank=True, default=None, null=True)
     locally_manufactured_description = models.CharField(max_length=2200, null=True)
 
     mtcr_type = models.CharField(choices=MTCRAnswers.choices, null=True, max_length=50)
 
-    electronic_warfare_requirement = models.NullBooleanField(default=None)
+    electronic_warfare_requirement = models.BooleanField(default=None, null=True)
 
-    uk_service_equipment = models.NullBooleanField(default=None)
+    uk_service_equipment = models.BooleanField(default=None, null=True)
     uk_service_equipment_description = models.CharField(max_length=2200, null=True)
     uk_service_equipment_type = models.CharField(choices=ServiceEquipmentType.choices, null=True, max_length=50)
 
