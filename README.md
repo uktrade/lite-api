@@ -39,7 +39,7 @@ Service for handling backend calls in LITE.
     - install [cloudfoundry cli](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html)
     - install [cloudfoundry conduit plugin](https://github.com/alphagov/paas-cf-conduit)
     - login to cloudfoundry `cf login --sso`
-    - `cf conduit <UAT_PG_INSTANCE_NAME> -- docker run --rm -e PGUSER -e PGPASSWORD -e PGDATABASE -e PGPORT -e PGHOST=host.docker.internal postgres:12 pg_dump --no-acl --no-owner | docker-compose exec -T db psql -U postgres`
+    - `cf conduit <UAT_PG_INSTANCE_NAME> -- docker run --rm -e PGUSER -e PGPASSWORD -e PGDATABASE -e PGPORT -e PGHOST=host.docker.internal postgres:12 pg_dump --no-acl --no-owner | docker-compose exec -T db psql -U postgres -d lite-api`
 
 - Starting the service
   - `docker-compose up` - to start the API's django server
