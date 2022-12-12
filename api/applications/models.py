@@ -437,7 +437,7 @@ class GoodOnApplication(AbstractGoodOnApplication):
     )
 
     # Trigger list fields
-    nsg_list_type = models.TextField(choices=NSGListType.choices, blank=True, default="")
+    nsg_list_type = models.CharField(choices=NSGListType.choices, max_length=32, blank=True, default="")
     is_nca_applicable = models.BooleanField(default=None, blank=True, null=True)
     nsg_assessment_note = models.TextField(help_text="Trigger list assessment note", default="", blank=True)
 

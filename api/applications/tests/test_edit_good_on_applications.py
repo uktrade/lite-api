@@ -128,7 +128,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
         self.create_draft_standard_application(self.organisation)
 
         url = reverse(
-            "applications:good_on_application",
+            "applications:good_on_application_internal",
             kwargs={"obj_pk": self.good_on_application.id},
         )
 
@@ -144,5 +144,5 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()
         self.assertEqual(response["nsg_list_type"]["key"], NSGListType.TRIGGER_LIST)
-        self.assertEqual(response["is_nca_applicable"], True)
+        self.assertTrue(response["is_nca_applicable"])
         self.assertEqual(response["nsg_assessment_note"], "Trigger list product")

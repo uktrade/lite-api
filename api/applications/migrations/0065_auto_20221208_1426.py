@@ -23,8 +23,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="goodonapplication",
             name="nsg_list_type",
-            field=models.TextField(
-                blank=True, choices=[("TRIGGER_LIST", "Trigger List"), ("DUAL_USE", "Dual Use")], default=""
+            field=models.CharField(
+                blank=True,
+                choices=[("TRIGGER_LIST", "Trigger List"), ("DUAL_USE", "Dual Use")],
+                default="",
+                max_length=32,
             ),
         ),
     ]

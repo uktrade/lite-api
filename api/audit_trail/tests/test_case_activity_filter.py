@@ -94,7 +94,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
             object_id=self.case.id, object_content_type=self.content_type, user_type=UserType.EXPORTER
         )
 
-        self.assertEqual(res.count(), 2)
+        self.assertEqual(res.count(), 1)
         self.assertEqual(res.first().actor_object_id, str(self.exporter_user.pk))
 
     def test_filter_by_dates(self):

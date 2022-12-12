@@ -124,7 +124,7 @@ class GoodOnApplicationUpdateSerialNumbers(DataTestClient):
         audit_objects = Audit.objects.filter(verb=AuditType.UPDATED_SERIAL_NUMBERS)
 
         audit_object = audit_objects.get(target_object_id=self.application.pk)
-        self.assertEqual(audit_object.actor, self.exporter_user)
+        self.assertEqual(audit_object.actor, self.exporter_user.baseuser_ptr)
         self.assertEqual(
             audit_object.payload,
             {
