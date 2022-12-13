@@ -15,9 +15,6 @@
 .document #recipient-address {
   width: 90mm;
 }
-/* .document #sender-address {
-  margin-left: 10%;
-} */
 .document #references {
   display: inline-block;
 }
