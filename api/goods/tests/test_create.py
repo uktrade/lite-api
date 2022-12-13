@@ -1,6 +1,8 @@
 import uuid
 from copy import deepcopy
+from datetime import timedelta
 
+from django.utils.timezone import now
 from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
@@ -656,7 +658,7 @@ class CreateGoodTests(DataTestClient):
                 "is_covered_by_firearm_act_section_one_two_or_five": "Yes",
                 "firearms_act_section": "firearms_act_section2",
                 "section_certificate_number": "ABC123",
-                "section_certificate_date_of_expiry": "2022-12-12",
+                "section_certificate_date_of_expiry": (now() + timedelta(days=365)).date().isoformat(),
                 "serial_numbers_available": "AVAILABLE",
                 "no_identification_markings_details": "",
             },
