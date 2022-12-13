@@ -203,3 +203,8 @@ class SecurityClassifiedApprovalsType(models.TextChoices):
     F680 = "F680"
     F1686 = "F1686"
     OTHER = "Other"
+
+
+class NSGListType(models.TextChoices):
+    TRIGGER_LIST = "TRIGGER_LIST"
+    DUAL_USE = "DUAL_USE"

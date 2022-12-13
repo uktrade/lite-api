@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.applications.libraries.case_status_helpers import get_case_statuses
-from api.goods.enums import GoodStatus
+from api.applications.enums import NSGListType
 from api.goods.tests.factories import FirearmFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from lite_content.lite_api import strings
@@ -121,3 +121,28 @@ class EditGoodOnApplicationsTests(DataTestClient):
             self.good_on_application.firearm_details.calibre,
             original_calibre,
         )
+
+
+class GovUserEditGoodOnApplicationsTests(DataTestClient):
+    def test_edit_nsg_list_type_and_NCA(self):
+        self.create_draft_standard_application(self.organisation)
+
+        url = reverse(
+            "applications:good_on_application_internal",
+            kwargs={"obj_pk": self.good_on_application.id},
+        )
+
+        response = self.client.put(
+            url,
+            data={
+                "nsg_list_type": NSGListType.TRIGGER_LIST,
+                "is_nca_applicable": True,
+                "nsg_assessment_note": "Trigger list product",
+            },
+            **self.gov_headers,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(response["nsg_list_type"]["key"], NSGListType.TRIGGER_LIST)
+        self.assertTrue(response["is_nca_applicable"])
+        self.assertEqual(response["nsg_assessment_note"], "Trigger list product")

@@ -14,6 +14,7 @@ from api.applications.models import (
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.serializers import AuditSerializer
+from api.applications.enums import NSGListType
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
@@ -87,6 +88,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
     firearm_details = FirearmDetailsSerializer()
     regime_entries = RegimeEntrySerializer(many=True, read_only=True)
+    nsg_list_type = KeyValueChoiceField(choices=NSGListType.choices)
 
     class Meta:
         model = GoodOnApplication
@@ -119,6 +121,9 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "is_onward_incorporated",
             "is_onward_incorporated_comments",
             "regime_entries",
+            "nsg_list_type",
+            "is_nca_applicable",
+            "nsg_assessment_note",
         )
 
     def get_flags(self, instance):
