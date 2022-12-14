@@ -4,6 +4,10 @@ from django.db import migrations
 
 
 def update_nsg_regimes(apps, schema_editor):
+    # The original csv files to import the NSG regimes in 0008_add_nsg_regimes
+    # have been updated and fixed so that they correspond to the correct
+    # regimes, however this will have been run on environments already so this
+    # migration is here to tidy up the previously incorrect migration
     RegimeSubsection = apps.get_model("regimes", "RegimeSubsection")
     RegimeEntry = apps.get_model("regimes", "RegimeEntry")
 
