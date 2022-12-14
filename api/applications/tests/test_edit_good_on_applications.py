@@ -4,7 +4,8 @@ from rest_framework import status
 
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.enums import NSGListType
-from api.goods.tests.factories import FirearmFactory
+from api.applications.tests.factories import GoodOnApplicationFactory
+from api.goods.tests.factories import GoodFactory, FirearmFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
@@ -125,11 +126,22 @@ class EditGoodOnApplicationsTests(DataTestClient):
 
 class GovUserEditGoodOnApplicationsTests(DataTestClient):
     def test_edit_nsg_list_type_and_NCA(self):
-        self.create_draft_standard_application(self.organisation)
+        "Test updating trigger list assessment on multiple products on application"
+        draft = self.create_draft_standard_application(self.organisation)
+        application = self.submit_application(draft, self.exporter_user)
+        self.good_on_application2 = GoodOnApplicationFactory(
+            application=application,
+            good=GoodFactory(organisation=self.organisation, is_good_controlled=True),
+        )
+
+        for good_on_application in [self.good_on_application, self.good_on_application2]:
+            self.assertEqual(good_on_application.nsg_list_type, "")
+            self.assertIsNone(good_on_application.is_nca_applicable)
+            self.assertEqual(good_on_application.nsg_assessment_note, "")
 
         url = reverse(
-            "applications:good_on_application_internal",
-            kwargs={"obj_pk": self.good_on_application.id},
+            "applications:good_on_application_trigger_list",
+            kwargs={"pk": application.id},
         )
 
         response = self.client.put(
@@ -138,11 +150,34 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
                 "nsg_list_type": NSGListType.TRIGGER_LIST,
                 "is_nca_applicable": True,
                 "nsg_assessment_note": "Trigger list product",
+                "goods": [self.good_on_application.id, self.good_on_application2.id],
             },
             **self.gov_headers,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = response.json()
-        self.assertEqual(response["nsg_list_type"]["key"], NSGListType.TRIGGER_LIST)
-        self.assertTrue(response["is_nca_applicable"])
-        self.assertEqual(response["nsg_assessment_note"], "Trigger list product")
+        self.good_on_application.refresh_from_db()
+        self.good_on_application2.refresh_from_db()
+
+        for good_on_application in [self.good_on_application, self.good_on_application2]:
+            self.assertEqual(good_on_application.nsg_list_type, NSGListType.TRIGGER_LIST)
+            self.assertTrue(good_on_application.is_nca_applicable)
+            self.assertEqual(good_on_application.nsg_assessment_note, "Trigger list product")
+
+    def test_edit_good_on_application_bad_request(self):
+        draft = self.create_draft_standard_application(self.organisation)
+        application = self.submit_application(draft, self.exporter_user)
+
+        url = reverse(
+            "applications:good_on_application_trigger_list",
+            kwargs={"pk": application.id},
+        )
+
+        response = self.client.put(
+            url,
+            data={
+                "nsg_list_type": "INVALID_LIST_TYPE",
+                "goods": [self.good_on_application.id],
+            },
+            **self.gov_headers,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
