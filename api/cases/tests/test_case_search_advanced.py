@@ -411,3 +411,24 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(data_3["count"], 2)
         self.assertEqual(data_1["results"]["cases"][0]["id"], str(application_1.id))
         self.assertEqual(data_2["results"]["cases"][0]["id"], str(application_2.id))
+
+    def test_filter_is_nca_applicable(self):
+        application_1 = StandardApplicationFactory()
+        application_2 = StandardApplicationFactory()
+        StandardApplicationFactory()
+        good_1 = GoodFactory(
+            organisation=application_1.organisation,
+            description="Desc 1",
+            comment="Comment 1",
+            report_summary="Report Summary 1",
+        )
+        GoodOnApplicationFactory(application=application_1, good=good_1, is_nca_applicable=True)
+        GoodOnApplicationFactory(application=application_2, good=good_1, is_nca_applicable=False)
+        GoodOnApplicationFactory(application=application_2, good=good_1)
+
+        qs_1 = Case.objects.search(is_nca_applicable="True")
+        qs_2 = Case.objects.search()
+
+        self.assertEqual(qs_1.count(), 1)
+        self.assertEqual(qs_2.count(), 3)
+        self.assertEqual(qs_1.first().pk, application_1.pk)

@@ -171,6 +171,9 @@ class CaseQuerySet(models.QuerySet):
             | Q(baseapplication__goods_type__report_summary__icontains=goods_related_description)
         )
 
+    def with_nca_applicable(self):
+        return self.filter(baseapplication__goods__is_nca_applicable=True)
+
     def order_by_date(self, order="-"):
         """
         :param order: ('', '-')
@@ -239,6 +242,7 @@ class CaseManager(models.Manager):
         goods_related_description=None,
         sla_days_elapsed_sort_order=None,
         sla_days_elapsed=None,
+        is_nca_applicable=None,
         **kwargs,
     ):
         """
@@ -342,6 +346,9 @@ class CaseManager(models.Manager):
 
         if goods_related_description:
             case_qs = case_qs.with_goods_related_description(goods_related_description)
+
+        if is_nca_applicable:
+            case_qs = case_qs.with_nca_applicable()
 
         if is_work_queue:
             case_qs = case_qs.annotate(
