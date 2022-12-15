@@ -10,6 +10,7 @@ from api.applications.models import (
     BaseApplication,
     GoodOnApplication,
     GoodOnApplicationControlListEntry,
+    StandardApplication,
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -234,6 +235,41 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             serializer.is_valid(raise_exception=True)
             validated_data["firearm_details"] = serializer.save()
         return super().create(validated_data)
+
+
+class GoodOnApplicationUpdateListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+        good_on_application_mapping = {good_on_application.id: good_on_application for good_on_application in instance}
+        data_mapping = {item["id"]: item for item in validated_data}
+
+        ret = []
+        for id, data in data_mapping.items():
+            good_on_application = good_on_application_mapping.get(id, None)
+            if good_on_application is None:
+                raise NotImplementedError("Serializer doesn't support creating multiple goods on application")
+            else:
+                ret.append(self.child.update(good_on_application, data))
+
+        return ret
+
+
+class GoodOnApplicationUpdateSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField()
+    application = serializers.PrimaryKeyRelatedField(queryset=StandardApplication.objects.all())
+    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
+    nsg_list_type = KeyValueChoiceField(choices=NSGListType.choices)
+
+    class Meta:
+        model = GoodOnApplication
+        list_serializer_class = GoodOnApplicationUpdateListSerializer
+        fields = (
+            "id",
+            "application",
+            "good",
+            "nsg_list_type",
+            "is_nca_applicable",
+            "nsg_assessment_note",
+        )
 
 
 class DocumentOnOrganisationSerializer(serializers.ModelSerializer):

@@ -140,44 +140,63 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
             self.assertEqual(good_on_application.nsg_assessment_note, "")
 
         url = reverse(
-            "applications:good_on_application_trigger_list",
+            "applications:good_on_application_update_internal",
             kwargs={"pk": application.id},
         )
 
         response = self.client.put(
             url,
-            data={
-                "nsg_list_type": NSGListType.TRIGGER_LIST,
-                "is_nca_applicable": True,
-                "nsg_assessment_note": "Trigger list product",
-                "goods": [self.good_on_application.id, self.good_on_application2.id],
-            },
+            data=[
+                {
+                    "id": self.good_on_application.id,
+                    "application": application.id,
+                    "good": self.good_on_application.good.id,
+                    "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_nca_applicable": True,
+                    "nsg_assessment_note": "Trigger list product1",
+                },
+                {
+                    "id": self.good_on_application2.id,
+                    "application": application.id,
+                    "good": self.good_on_application2.good.id,
+                    "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_nca_applicable": True,
+                    "nsg_assessment_note": "Trigger list product2",
+                },
+            ],
             **self.gov_headers,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.good_on_application.refresh_from_db()
-        self.good_on_application2.refresh_from_db()
+        response = response.json()
 
-        for good_on_application in [self.good_on_application, self.good_on_application2]:
-            self.assertEqual(good_on_application.nsg_list_type, NSGListType.TRIGGER_LIST)
-            self.assertTrue(good_on_application.is_nca_applicable)
-            self.assertEqual(good_on_application.nsg_assessment_note, "Trigger list product")
+        for index, item in enumerate(response["data"], start=1):
+            self.assertEqual(item["nsg_list_type"]["key"], NSGListType.TRIGGER_LIST)
+            self.assertTrue(item["is_nca_applicable"])
+            self.assertEqual(item["nsg_assessment_note"], f"Trigger list product{index}")
 
     def test_edit_good_on_application_bad_request(self):
         draft = self.create_draft_standard_application(self.organisation)
         application = self.submit_application(draft, self.exporter_user)
 
         url = reverse(
-            "applications:good_on_application_trigger_list",
+            "applications:good_on_application_update_internal",
             kwargs={"pk": application.id},
         )
 
         response = self.client.put(
             url,
-            data={
-                "nsg_list_type": "INVALID_LIST_TYPE",
-                "goods": [self.good_on_application.id],
-            },
+            data=[
+                {
+                    "id": self.good_on_application.id,
+                    "application": application.id,
+                    "good": self.good_on_application.good.id,
+                    "nsg_list_type": "INVALID_LIST_TYPE",
+                    "is_nca_applicable": True,
+                    "nsg_assessment_note": "Trigger list product1",
+                },
+            ],
             **self.gov_headers,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = response.json()
+        self.assertEqual(response["errors"][0]["nsg_list_type"], ['"INVALID_LIST_TYPE" is not a valid choice.'])

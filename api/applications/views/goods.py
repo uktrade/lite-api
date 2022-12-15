@@ -14,6 +14,7 @@ from api.applications.serializers.good import (
     GoodOnApplicationCreateSerializer,
     GoodOnApplicationDocumentViewSerializer,
     GoodOnApplicationDocumentCreateSerializer,
+    GoodOnApplicationUpdateSerializer,
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -223,18 +224,14 @@ class ApplicationGoodOnApplication(APIView):
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
 
-class ApplicationGoodOnApplicationTriggerListAssessment(APIView):
-    """Good on a standard application for internal user edits"""
+class ApplicationGoodOnApplicationUpdateViewInternal(APIView):
+    """View to update GoodOnApplication by Internal users"""
 
     authentication_classes = (GovAuthentication,)
-    serializer_class = GoodOnApplicationViewSerializer
+    serializer_class = GoodOnApplicationUpdateSerializer
 
     def get_application(self):
         return get_object_or_404(StandardApplication.objects.all(), pk=self.kwargs["pk"])
-
-    def get_queryset(self):
-        good_on_application_ids = self.request.data["goods"]
-        return GoodOnApplication.objects.filter(application_id=self.kwargs["pk"], id__in=good_on_application_ids)
 
     def put(self, request, **kwargs):
         application = self.get_application()
@@ -244,18 +241,22 @@ class ApplicationGoodOnApplicationTriggerListAssessment(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        for good_on_application in self.get_queryset():
-            data = request.data.copy()
-            serializer = self.serializer_class(instance=good_on_application, data=data, partial=True)
-            if not serializer.is_valid():
-                return JsonResponse(
-                    data={"errors": serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        good_on_application_ids = [item["id"] for item in request.data]
+        serializer = self.serializer_class(
+            GoodOnApplication.objects.filter(id__in=good_on_application_ids),
+            data=request.data,
+            partial=True,
+            many=True,
+        )
+        if not serializer.is_valid():
+            return JsonResponse(
+                data={"errors": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            serializer.save()
+        serializer.save()
 
-        return JsonResponse(status=status.HTTP_200_OK, data={})
+        return JsonResponse(status=status.HTTP_200_OK, data={"data": serializer.data})
 
 
 class ApplicationGoodOnApplicationDocumentView(APIView):
