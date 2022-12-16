@@ -415,7 +415,7 @@ class FilterAndSortTests(DataTestClient):
     def test_filter_is_nca_applicable(self):
         application_1 = StandardApplicationFactory()
         application_2 = StandardApplicationFactory()
-        StandardApplicationFactory()
+        application_3 = StandardApplicationFactory()
         good_1 = GoodFactory(
             organisation=application_1.organisation,
             description="Desc 1",
@@ -428,7 +428,6 @@ class FilterAndSortTests(DataTestClient):
 
         qs_1 = Case.objects.search(is_nca_applicable="True")
         qs_2 = Case.objects.search()
-
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 3)
-        self.assertEqual(qs_1.first().pk, application_1.pk)
+        self.assertTrue(application_1.pk in qs_1.values_list("id", flat=True))
+        for application_id in [application_1.pk, application_2.pk, application_3.pk]:
+            self.assertTrue(application_id in qs_2.values_list("id", flat=True))
