@@ -1,5 +1,6 @@
 from difflib import SequenceMatcher
 
+from django.test import TransactionTestCase
 from django.utils import timezone
 from rest_framework.reverse import reverse
 
@@ -8,6 +9,7 @@ from api.cases.models import Case
 from api.cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.staticdata.countries.factories import CountryFactory
+from api.applications.enums import NSGListType
 from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     CountryOnApplicationFactory,
@@ -431,3 +433,39 @@ class FilterAndSortTests(DataTestClient):
         self.assertIn(application_1.pk, qs_1.values_list("id", flat=True))
         for application_id in [application_1.pk, application_2.pk, application_3.pk]:
             self.assertIn(application_id, qs_2.values_list("id", flat=True))
+
+    def test_filter_is_trigger_list(self):
+        application_1 = StandardApplicationFactory()
+        application_2 = StandardApplicationFactory()
+        application_3 = StandardApplicationFactory()
+        good_1 = GoodFactory(
+            organisation=application_1.organisation,
+            description="Desc 1",
+            comment="Comment 1",
+            report_summary="Report Summary 1",
+        )
+        good_2 = GoodFactory(
+            organisation=application_1.organisation,
+            description="Desc 2",
+            comment="Comment 2",
+            report_summary="Report Summary 2",
+        )
+        good_3 = GoodFactory(
+            organisation=application_1.organisation,
+            description="Desc 3",
+            comment="Comment 3",
+            report_summary="Report Summary 3",
+        )
+        GoodOnApplicationFactory(application=application_1, good=good_1, nsg_list_type=NSGListType.TRIGGER_LIST)
+        GoodOnApplicationFactory(application=application_1, good=good_2, nsg_list_type=NSGListType.DUAL_USE)
+        GoodOnApplicationFactory(application=application_1, good=good_3)
+        GoodOnApplicationFactory(application=application_2, good=good_1, nsg_list_type=NSGListType.DUAL_USE)
+        GoodOnApplicationFactory(application=application_3, good=good_1)
+
+        qs_1 = Case.objects.search(is_trigger_list="True")
+        qs_2 = Case.objects.search()
+
+        self.assertQuerysetEqual(qs_1, [application_1.get_case()])
+        self.assertQuerysetEqual(
+            qs_2, [application_1.get_case(), application_2.get_case(), application_3.get_case()], ordered=False
+        )
