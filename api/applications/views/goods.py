@@ -8,12 +8,13 @@ from api.applications.enums import GoodsTypeCategory
 from api.applications.helpers import delete_uploaded_document
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.libraries.get_applications import get_application
-from api.applications.models import BaseApplication, GoodOnApplication, GoodOnApplicationDocument
+from api.applications.models import BaseApplication, GoodOnApplication, GoodOnApplicationDocument, StandardApplication
 from api.applications.serializers.good import (
     GoodOnApplicationViewSerializer,
     GoodOnApplicationCreateSerializer,
     GoodOnApplicationDocumentViewSerializer,
     GoodOnApplicationDocumentCreateSerializer,
+    GoodOnApplicationUpdateSerializer,
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -141,7 +142,7 @@ class ApplicationGoodsOnApplication(APIView):
 class ApplicationGoodOnApplication(APIView):
     """Good on a standard application."""
 
-    authentication_classes = (ExporterAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     serializer_class = GoodOnApplicationViewSerializer
 
     def get_object(self):
@@ -223,33 +224,30 @@ class ApplicationGoodOnApplication(APIView):
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
 
-class ApplicationGoodOnApplicationInternal(APIView):
-    """Good on a standard application for internal user edits"""
+class ApplicationGoodOnApplicationUpdateViewInternal(APIView):
+    """View to update GoodOnApplication by Internal users"""
 
     authentication_classes = (GovAuthentication,)
-    serializer_class = GoodOnApplicationViewSerializer
+    serializer_class = GoodOnApplicationUpdateSerializer
 
-    def get_object(self):
-        return get_object_or_404(GoodOnApplication.objects.all(), pk=self.kwargs["obj_pk"])
-
-    def get(self, request, **kwargs):
-        good_on_application = self.get_object()
-        serializer = self.serializer_class(good_on_application, context={"include_audit_trail": True})
-        return JsonResponse(serializer.data)
+    def get_application(self):
+        return get_object_or_404(StandardApplication.objects.all(), pk=self.kwargs["pk"])
 
     def put(self, request, **kwargs):
-        good_on_application = self.get_object()
-
-        application = good_on_application.application
-
+        application = self.get_application()
         if application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.READ_ONLY]},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        data = request.data.copy()
-        serializer = self.serializer_class(instance=good_on_application, data=data, partial=True)
+        good_on_application_ids = [item["id"] for item in request.data]
+        serializer = self.serializer_class(
+            GoodOnApplication.objects.filter(id__in=good_on_application_ids),
+            data=request.data,
+            partial=True,
+            many=True,
+        )
         if not serializer.is_valid():
             return JsonResponse(
                 data={"errors": serializer.errors},
@@ -257,7 +255,8 @@ class ApplicationGoodOnApplicationInternal(APIView):
             )
 
         serializer.save()
-        return JsonResponse(status=status.HTTP_200_OK, data=serializer.data)
+
+        return JsonResponse(status=status.HTTP_200_OK, data={"data": serializer.data})
 
 
 class ApplicationGoodOnApplicationDocumentView(APIView):

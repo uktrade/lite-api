@@ -51,9 +51,9 @@ urlpatterns = [
     # Goods
     path("<uuid:pk>/goods/", goods.ApplicationGoodsOnApplication.as_view(), name="application_goods"),
     path(
-        "good-on-application/internal/<uuid:obj_pk>/",
-        goods.ApplicationGoodOnApplicationInternal.as_view(),
-        name="good_on_application_internal",
+        "<uuid:pk>/goods-on-application/",
+        goods.ApplicationGoodOnApplicationUpdateViewInternal.as_view(),
+        name="good_on_application_update_internal",
     ),
     path(
         "good-on-application/<uuid:obj_pk>/",

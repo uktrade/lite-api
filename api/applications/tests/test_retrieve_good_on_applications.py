@@ -26,7 +26,7 @@ class RetrieveGoodsTests(DataTestClient):
         self.good_on_application.good.save()
 
         url = reverse(
-            "applications:good_on_application_internal",
+            "applications:good_on_application",
             kwargs={"obj_pk": self.good_on_application.id},
         )
 
