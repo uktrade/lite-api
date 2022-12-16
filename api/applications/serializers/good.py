@@ -245,7 +245,7 @@ class GoodOnApplicationUpdateListSerializer(serializers.ListSerializer):
         ret = []
         for id, data in data_mapping.items():
             good_on_application = good_on_application_mapping.get(id, None)
-            if good_on_application is None:
+            if good_on_application is None:  # pragma: no cover
                 raise NotImplementedError("Serializer doesn't support creating multiple goods on application")
             else:
                 ret.append(self.child.update(good_on_application, data))
