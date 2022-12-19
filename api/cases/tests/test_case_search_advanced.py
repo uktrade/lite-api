@@ -127,25 +127,18 @@ class FilterAndSortTests(DataTestClient):
 
     def test_filter_by_good_regimes(self):
         application_1 = StandardApplicationFactory()
-        good = GoodFactory(
-            organisation=application_1.organisation,
-            is_good_controlled=True,
-            regime_entries=["T1"],
-        )
-        GoodOnApplicationFactory(application=application_1, good=good)
-
-        application_2 = OpenApplicationFactory()
-        GoodsTypeFactory(application=application_2, is_good_controlled=True, regime_entries=["T5"])
+        good = GoodFactory(organisation=application_1.organisation, is_good_controlled=True)
+        GoodOnApplicationFactory(application=application_1, good=good, regime_entries=["T1"])
 
         qs_1 = Case.objects.search(regime_entry="")
         qs_2 = Case.objects.search(regime_entry="T")
         qs_3 = Case.objects.search(regime_entry="T1")
         qs_4 = Case.objects.search(regime_entry="T5")
 
-        self.assertEqual(qs_1.count(), 2)
+        self.assertEqual(qs_1.count(), 1)
         self.assertEqual(qs_2.count(), 0)
         self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 1)
+        self.assertEqual(qs_4.count(), 0)
 
     def test_filter_by_flags(self):
         flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)

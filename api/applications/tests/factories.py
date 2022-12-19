@@ -21,6 +21,7 @@ from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from api.parties.tests.factories import PartyFactory
 from api.users.tests.factories import ExporterUserFactory, GovUserFactory
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
+from api.staticdata.regimes.helpers import get_regime_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -129,6 +130,16 @@ class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
 
         for code in codes:
             self.control_list_entries.add(get_control_list_entry(code))
+
+    @factory.post_generation
+    def regime_entries(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        regime_entries = extracted or ["T1"]
+        for regime in regime_entries:
+            self.regime_entries.add(get_regime_entry(regime))
 
     class Meta:
         model = GoodOnApplication
