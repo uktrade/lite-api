@@ -37,6 +37,16 @@ class GoodFactory(factory.django.DjangoModelFactory):
             self.control_list_entries.add(get_control_list_entry(control_list_entry))
 
     @factory.post_generation
+    def regime_entries(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        regime_entries = extracted or ["T1"]
+        for regime in regime_entries:
+            self.regime_entries.add(get_control_list_entry(regime))
+
+    @factory.post_generation
     def flags(self, create, extracted, **kwargs):
         if not create or not extracted:
             # Simple build, do nothing.
