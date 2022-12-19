@@ -430,4 +430,4 @@ class FilterAndSortTests(DataTestClient):
         qs_2 = Case.objects.search()
         self.assertIn(application_1.pk, qs_1.values_list("id", flat=True))
         for application_id in [application_1.pk, application_2.pk, application_3.pk]:
-            self.assertIn(application_id in qs_2.values_list("id", flat=True))
+            self.assertIn(application_id, qs_2.values_list("id", flat=True))
