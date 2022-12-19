@@ -6,6 +6,7 @@ from django.db import models, transaction
 from django.db.models import Q, Case, When, BinaryField
 from django.utils import timezone
 
+from api.applications.enums import NSGListType
 from api.cases.enums import AdviceLevel, CaseTypeEnum
 from api.cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from api.common.enums import SortOrder
@@ -174,6 +175,9 @@ class CaseQuerySet(models.QuerySet):
     def with_nca_applicable(self):
         return self.filter(baseapplication__goods__is_nca_applicable=True)
 
+    def with_trigger_list(self):
+        return self.filter(baseapplication__goods__nsg_list_type=NSGListType.TRIGGER_LIST)
+
     def order_by_date(self, order="-"):
         """
         :param order: ('', '-')
@@ -243,6 +247,7 @@ class CaseManager(models.Manager):
         sla_days_elapsed_sort_order=None,
         sla_days_elapsed=None,
         is_nca_applicable=None,
+        is_trigger_list=None,
         **kwargs,
     ):
         """
@@ -349,6 +354,9 @@ class CaseManager(models.Manager):
 
         if is_nca_applicable:
             case_qs = case_qs.with_nca_applicable()
+
+        if is_trigger_list:
+            case_qs = case_qs.with_trigger_list()
 
         if is_work_queue:
             case_qs = case_qs.annotate(
