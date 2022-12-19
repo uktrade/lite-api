@@ -40,3 +40,22 @@ class RegimeEntrySerializer(serializers.ModelSerializer):
         ]
 
     subsection = RegimeSubsectionSerializer()
+
+
+# Below serializers for DW use
+class RegimesListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Regime
+        fields = "__all__"
+
+
+class RegimeSubsectionsListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegimeSubsection
+        fields = "__all__"
+
+
+class RegimeEntriesListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegimeEntry
+        fields = "__all__"
