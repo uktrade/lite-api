@@ -227,6 +227,35 @@ jobs:
           command: |
             pipenv run bandit -r .
 
+  check-lite-routing-sha:
+    docker:
+      - <<: *image_python
+    steps:
+      - checkout
+      - run:
+          name: Git Submodule Checkout
+          command: |
+            git submodule sync
+            git submodule update --init
+      - run:
+          name: Check lite-routing submodule sha
+          command: |
+            CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            CHANGED_FILES=$(git diff --name-only $CURRENT_BRANCH $(git merge-base $CURRENT_BRANCH master))
+            if [[ "$CHANGED_FILES" == *"lite_routing"* ]]; then
+                cd lite_routing
+                SUBMODULE_SHA=$(git rev-parse HEAD)
+                git checkout main
+                git pull
+                LATEST_SUBMODULE_SHA=$(git rev-parse HEAD)
+                if [ "$SUBMODULE_SHA" != "$LATEST_SUBMODULE_SHA" ]; then
+                    echo "lite-api's lite_routing submodule SHA has been updated but is not pointing to the latest commit on main"
+                    echo "Updated lite_routing sha; $SUBMODULE_SHA"
+                    echo "main branch lite_routing sha; $LATEST_SUBMODULE_SHA"
+                    exit 1
+                fi
+            fi
+
 workflows:
   version: 2
   test:
@@ -238,3 +267,4 @@ workflows:
       - elastic_search_tests
       - check_migrations
       - linting
+      - check-lite-routing-sha
