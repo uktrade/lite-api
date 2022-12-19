@@ -105,6 +105,12 @@ class CaseQuerySet(models.QuerySet):
             | Q(baseapplication__goods_type__control_list_entries__rating__in=[control_list_entry])
         )
 
+    def with_regime_entry(self, control_list_entry):
+        return self.filter(
+            Q(baseapplication__goods__good__regimes__id__in=[control_list_entry])
+            | Q(baseapplication__goods_type__regimes__id__in=[control_list_entry])
+        )
+
     def with_flags(self, flags):
         case_flag_ids = self.filter(flags__id__in=flags).values_list("id", flat=True)
         org_flag_ids = self.filter(organisation__flags__id__in=flags).values_list("id", flat=True)
@@ -231,6 +237,7 @@ class CaseManager(models.Manager):
         exporter_site_name=None,
         exporter_site_address=None,
         control_list_entry=None,
+        regime_entry=None,
         flags=None,
         country=None,
         team_advice_type=None,
@@ -318,6 +325,9 @@ class CaseManager(models.Manager):
 
         if control_list_entry:
             case_qs = case_qs.with_control_list_entry(control_list_entry)
+
+        if regime_entry:
+            case_qs = case_qs.with_regime_entry(regime_entry)
 
         if flags:
             case_qs = case_qs.with_flags(flags)

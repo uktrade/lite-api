@@ -1,6 +1,9 @@
-from rest_framework import generics
+from django.http import JsonResponse
+from rest_framework import generics, permissions
+from rest_framework.decorators import permission_classes
+from rest_framework.views import APIView
 
-from api.core.authentication import HawkOnlyAuthentication
+from api.core.authentication import HawkOnlyAuthentication, SharedAuthentication
 
 from django.db.models.functions import Lower
 from django.http import Http404
@@ -9,6 +12,21 @@ from django.views.generic.base import RedirectView
 
 from .models import RegimeEntry
 from .serializers import RegimeEntrySerializer
+
+
+@permission_classes((permissions.AllowAny,))
+class RegimesList(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def get_queryset(self):
+        return RegimeEntry.objects.all()
+
+    def get(self, request):
+        """
+        Returns list of all Regimes
+        """
+        queryset = self.get_queryset()
+        return JsonResponse(data={"regimes": list(queryset.values("id", "shortened_name", "name"))})
 
 
 class EntriesView(generics.ListAPIView):
