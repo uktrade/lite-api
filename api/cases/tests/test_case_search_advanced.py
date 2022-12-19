@@ -428,6 +428,6 @@ class FilterAndSortTests(DataTestClient):
 
         qs_1 = Case.objects.search(is_nca_applicable="True")
         qs_2 = Case.objects.search()
-        self.assertTrue(application_1.pk in qs_1.values_list("id", flat=True))
+        self.assertIn(application_1.pk, qs_1.values_list("id", flat=True))
         for application_id in [application_1.pk, application_2.pk, application_3.pk]:
-            self.assertTrue(application_id in qs_2.values_list("id", flat=True))
+            self.assertIn(application_id in qs_2.values_list("id", flat=True))
