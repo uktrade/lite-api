@@ -1,6 +1,5 @@
+from rest_framework import generics
 from django.http import JsonResponse
-from rest_framework import generics, permissions
-from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
 from api.core.authentication import HawkOnlyAuthentication, SharedAuthentication
@@ -14,7 +13,6 @@ from .models import RegimeEntry
 from .serializers import RegimeEntrySerializer
 
 
-@permission_classes((permissions.AllowAny,))
 class RegimeEntriesList(APIView):
     authentication_classes = (SharedAuthentication,)
 
