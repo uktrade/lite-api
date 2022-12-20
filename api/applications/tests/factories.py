@@ -137,7 +137,7 @@ class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
             # Simple build, do nothing.
             return
 
-        regime_entries = extracted or ["T1"]
+        regime_entries = extracted or []
         for regime in regime_entries:
             self.regime_entries.add(get_regime_entry(regime))
 
