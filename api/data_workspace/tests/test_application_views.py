@@ -99,6 +99,9 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
             "firearm_details",
             "good_application_documents",
             "is_precedent",
+            "nsg_list_type",
+            "is_nca_applicable",
+            "nsg_assessment_note",
         ]
         for key in expected_keys:
             self.assertTrue(key in actual_keys)

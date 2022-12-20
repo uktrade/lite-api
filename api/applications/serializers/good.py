@@ -10,6 +10,7 @@ from api.applications.models import (
     BaseApplication,
     GoodOnApplication,
     GoodOnApplicationControlListEntry,
+    GoodOnApplicationRegimeEntry,
     StandardApplication,
 )
 from api.audit_trail import service as audit_trail_service
@@ -75,6 +76,12 @@ class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
 class GoodOnApplicationControlListEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodOnApplicationControlListEntry
+        fields = "__all__"
+
+
+class GoodOnApplicationRegimeEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoodOnApplicationRegimeEntry
         fields = "__all__"
 
 

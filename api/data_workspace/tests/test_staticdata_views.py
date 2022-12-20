@@ -49,3 +49,48 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         options = response.json()["actions"]["GET"]
         self.assertEqual(tuple(options.keys()), expected_fields)
+
+    def test_regimes(self):
+        url = reverse("data_workspace:dw-regimes-list")
+        expected_fields = ("id", "name")
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()["results"]
+        self.assertGreater(len(results), 0)
+        self.assertEqual(tuple(results[0].keys()), expected_fields)
+
+        response = self.client.options(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        options = response.json()["actions"]["GET"]
+        self.assertEqual(tuple(options.keys()), expected_fields)
+
+    def test_regime_subsections(self):
+        url = reverse("data_workspace:dw-regime-subsections-list")
+        expected_fields = ("id", "name", "regime")
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()["results"]
+        self.assertGreater(len(results), 0)
+        self.assertEqual(tuple(results[0].keys()), expected_fields)
+
+        response = self.client.options(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        options = response.json()["actions"]["GET"]
+        self.assertEqual(tuple(options.keys()), expected_fields)
+
+    def test_regime_entries(self):
+        url = reverse("data_workspace:dw-regime-entries-list")
+        expected_fields = ("id", "name", "shortened_name", "subsection")
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()["results"]
+        self.assertGreater(len(results), 0)
+        self.assertEqual(tuple(results[0].keys()), expected_fields)
+
+        response = self.client.options(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        options = response.json()["actions"]["GET"]
+        self.assertEqual(tuple(options.keys()), expected_fields)
