@@ -15,7 +15,7 @@ from .serializers import RegimeEntrySerializer
 
 
 @permission_classes((permissions.AllowAny,))
-class RegimesList(APIView):
+class RegimeEntriesList(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get_queryset(self):
@@ -26,7 +26,7 @@ class RegimesList(APIView):
         Returns list of all Regimes
         """
         queryset = self.get_queryset()
-        return JsonResponse(data={"regimes": list(queryset.values("id", "shortened_name", "name"))})
+        return JsonResponse(data={"regime_entires": list(queryset.values("id", "shortened_name", "name"))})
 
 
 class EntriesView(generics.ListAPIView):
