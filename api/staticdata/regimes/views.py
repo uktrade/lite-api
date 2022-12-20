@@ -2,7 +2,7 @@ from rest_framework import generics
 from django.http import JsonResponse
 from rest_framework.views import APIView
 
-from api.core.authentication import HawkOnlyAuthentication, SharedAuthentication
+from api.core.authentication import HawkOnlyAuthentication
 
 from django.db.models.functions import Lower
 from django.http import Http404
@@ -14,7 +14,7 @@ from .serializers import RegimeEntrySerializer
 
 
 class RegimeEntriesList(APIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (HawkOnlyAuthentication,)
 
     def get_queryset(self):
         return RegimeEntry.objects.all()
