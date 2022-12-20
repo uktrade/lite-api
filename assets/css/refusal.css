@@ -16,7 +16,7 @@
     width: 90mm;
   }
   .document #sender-address {
-    margin-left: 10%;
+    width: 70mm;
   }
   .document #references {
     display: inline-block;
