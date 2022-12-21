@@ -13,7 +13,7 @@ from .models import RegimeEntry
 from .serializers import RegimeEntrySerializer
 
 
-class RegimeEntriesList(APIView):
+class RegimeEntriesListView(APIView):
     authentication_classes = (HawkOnlyAuthentication,)
 
     def get_queryset(self):
