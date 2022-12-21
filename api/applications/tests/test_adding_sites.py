@@ -203,4 +203,4 @@ class SitesOnDraftTests(DataTestClient):
             ExternalLocations.Errors.COUNTRY_ON_APPLICATION
             % (site.address.country.id, transhipment.case_type.reference),
         )
-        self.assertNotEqual(transhipment.application_sites.get().site.name, site.name)
+        self.assertNotEqual(transhipment.application_sites.get().site.id, site.id)
