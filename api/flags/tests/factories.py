@@ -16,7 +16,7 @@ def get_flag_level():
 
 
 class FlagFactory(factory.django.DjangoModelFactory):
-    name = factory.Faker("word")
+    name = factory.Faker("sentence")
     status = FlagStatuses.ACTIVE
     level = factory.LazyFunction(get_flag_level)
     team = NotImplementedError()
