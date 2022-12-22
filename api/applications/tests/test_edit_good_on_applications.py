@@ -1,3 +1,5 @@
+from parameterized import parameterized
+
 from django.urls import reverse
 
 from rest_framework import status
@@ -6,6 +8,7 @@ from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.enums import NSGListType
 from api.applications.tests.factories import GoodOnApplicationFactory
 from api.goods.tests.factories import GoodFactory, FirearmFactory
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
@@ -125,7 +128,8 @@ class EditGoodOnApplicationsTests(DataTestClient):
 
 
 class GovUserEditGoodOnApplicationsTests(DataTestClient):
-    def test_edit_nsg_list_type_and_NCA(self):
+    @parameterized.expand(set(CaseStatusEnum.all()) - set(CaseStatusEnum.terminal_statuses()))
+    def test_edit_nsg_list_type_and_nca(self, non_terminal_status):
         "Test updating trigger list assessment on multiple products on application"
         draft = self.create_draft_standard_application(self.organisation)
         application = self.submit_application(draft, self.exporter_user)
@@ -173,6 +177,46 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
             self.assertEqual(item["nsg_list_type"]["key"], NSGListType.TRIGGER_LIST)
             self.assertTrue(item["is_nca_applicable"])
             self.assertEqual(item["nsg_assessment_note"], f"Trigger list product{index}")
+
+    @parameterized.expand(CaseStatusEnum.terminal_statuses())
+    def test_edit_good_on_terminal_status_application_forbidden(self, terminal_status):
+        draft = self.create_draft_standard_application(self.organisation)
+        application = self.submit_application(draft, self.exporter_user)
+        self.good_on_application2 = GoodOnApplicationFactory(
+            application=application,
+            good=GoodFactory(organisation=self.organisation, is_good_controlled=True),
+        )
+        url = reverse(
+            "applications:good_on_application_update_internal",
+            kwargs={"pk": application.id},
+        )
+
+        application.status = get_case_status_by_status(terminal_status)
+        application.save()
+
+        response = self.client.put(
+            url,
+            data=[
+                {
+                    "id": self.good_on_application.id,
+                    "application": application.id,
+                    "good": self.good_on_application.good.id,
+                    "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_nca_applicable": True,
+                    "nsg_assessment_note": "Trigger list product1",
+                },
+                {
+                    "id": self.good_on_application2.id,
+                    "application": application.id,
+                    "good": self.good_on_application2.good.id,
+                    "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_nca_applicable": True,
+                    "nsg_assessment_note": "Trigger list product2",
+                },
+            ],
+            **self.gov_headers,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_edit_good_on_application_bad_request(self):
         draft = self.create_draft_standard_application(self.organisation)
