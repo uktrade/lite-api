@@ -1,6 +1,4 @@
 from rest_framework import generics
-from django.http import JsonResponse
-from rest_framework.views import APIView
 
 from api.core.authentication import HawkOnlyAuthentication
 
@@ -13,18 +11,12 @@ from .models import RegimeEntry
 from .serializers import RegimeEntrySerializer
 
 
-class RegimeEntriesListView(APIView):
+class RegimeEntriesListView(generics.ListAPIView):
     authentication_classes = (HawkOnlyAuthentication,)
-
-    def get_queryset(self):
-        return RegimeEntry.objects.all()
-
-    def get(self, request):
-        """
-        Returns list of all Regimes
-        """
-        queryset = self.get_queryset()
-        return JsonResponse(data={"regime_entires": list(queryset.values("id", "shortened_name", "name"))})
+    model = RegimeEntry
+    pagination_class = None
+    serializer_class = RegimeEntrySerializer
+    queryset = RegimeEntry.objects.all()
 
 
 class EntriesView(generics.ListAPIView):

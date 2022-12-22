@@ -106,7 +106,7 @@ class CaseQuerySet(models.QuerySet):
         )
 
     def with_regime_entry(self, regime_entry):
-        return self.filter(Q(baseapplication__goods__regime_entries__id__in=[regime_entry]))
+        return self.filter(baseapplication__goods__regime_entries__id=regime_entry)
 
     def with_flags(self, flags):
         case_flag_ids = self.filter(flags__id__in=flags).values_list("id", flat=True)

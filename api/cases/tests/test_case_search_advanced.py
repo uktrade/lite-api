@@ -140,6 +140,7 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_1.count(), 1)
         self.assertEqual(qs_2.count(), 0)
         self.assertEqual(qs_3.count(), 1)
+        self.assertEqual(qs_3.first().pk, application_1.pk)
 
     def test_filter_by_flags(self):
         flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)

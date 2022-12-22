@@ -72,4 +72,7 @@ class EntriesTests(DataTestClient):
         url = reverse("staticdata:regimes:entries_list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()), 1)
+        self.assertEqual(
+            len(response.json()),
+            RegimeEntry.objects.count(),
+        )
