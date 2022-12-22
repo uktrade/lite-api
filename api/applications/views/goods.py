@@ -235,7 +235,7 @@ class ApplicationGoodOnApplicationUpdateViewInternal(APIView):
 
     def put(self, request, **kwargs):
         application = self.get_application()
-        if application.status.status in get_case_statuses(read_only=True):
+        if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.READ_ONLY]},
                 status=status.HTTP_403_FORBIDDEN,
