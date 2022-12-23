@@ -22,6 +22,7 @@ from api.parties.tests.factories import PartyFactory
 from api.flags.tests.factories import FlagFactory
 from api.goods.tests.factories import GoodFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -124,6 +125,22 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_2.count(), 0)
         self.assertEqual(qs_3.count(), 1)
         self.assertEqual(qs_4.count(), 1)
+
+    def test_filter_by_good_regimes(self):
+        application_1 = StandardApplicationFactory()
+        good = GoodFactory(organisation=application_1.organisation, is_good_controlled=True)
+        GoodOnApplicationFactory(application=application_1, good=good, regime_entries=["T1"])
+
+        T1 = RegimeEntry.objects.get(name="T1")
+        T5 = RegimeEntry.objects.get(name="T5")
+        qs_1 = Case.objects.search(regime_entry="")
+        qs_2 = Case.objects.search(regime_entry=T5.id)
+        qs_3 = Case.objects.search(regime_entry=T1.id)
+
+        self.assertEqual(qs_1.count(), 1)
+        self.assertEqual(qs_2.count(), 0)
+        self.assertEqual(qs_3.count(), 1)
+        self.assertEqual(qs_3.first().pk, application_1.pk)
 
     def test_filter_by_flags(self):
         flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)

@@ -11,6 +11,14 @@ from .models import RegimeEntry
 from .serializers import RegimeEntrySerializer
 
 
+class RegimeEntriesListView(generics.ListAPIView):
+    authentication_classes = (HawkOnlyAuthentication,)
+    model = RegimeEntry
+    pagination_class = None
+    serializer_class = RegimeEntrySerializer
+    queryset = RegimeEntry.objects.all()
+
+
 class EntriesView(generics.ListAPIView):
     authentication_classes = (HawkOnlyAuthentication,)
     pagination_class = None
