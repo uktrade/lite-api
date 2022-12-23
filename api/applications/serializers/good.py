@@ -264,7 +264,7 @@ class GoodOnApplicationUpdateSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField()
     application = serializers.PrimaryKeyRelatedField(queryset=StandardApplication.objects.all())
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
-    nsg_list_type = KeyValueChoiceField(choices=NSGListType.choices)
+    nsg_list_type = KeyValueChoiceField(choices=NSGListType.choices, allow_blank=True)
 
     class Meta:
         model = GoodOnApplication
