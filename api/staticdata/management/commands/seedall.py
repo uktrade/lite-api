@@ -17,7 +17,7 @@ SEED_COMMANDS = {
         "seedfinaldecisions",
         "seedf680clearancetypes",
     ],
-    "Dev": ["seedinternaldemodata", "seedexporterusers", "seedroutingrules"],
+    "Dev": ["seedexporterusers"],
     "Tests": [
         "seedcasetypes",
         "seedrolepermissions",
