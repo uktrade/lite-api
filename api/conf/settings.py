@@ -411,17 +411,6 @@ EXPORTER_BASE_URL = env("EXPORTER_BASE_URL") or f"https://exporter.lite.service.
 # If CASEWORKER_BASE_URL is not in env vars, build the base_url using the environment
 CASEWORKER_BASE_URL = env("CASEWORKER_BASE_URL") or f"https://internal.lite.service.{ENV}.uktrade.digital"
 
-# Demo flags
-LITE_API_DEMO_FLAGS_CSV = env.str(
-    "LITE_API_DEMO_FLAGS_CSV", default="team_name,level,name,alias\nteam1,level1,name1,NAME1\n", multiline=True
-)
-LITE_API_DEMO_QUEUES_CSV = env.str(
-    "LITE_API_DEMO_QUEUES_CSV", default="team_name,name,alias\nteam1,name1,NAME1\n", multiline=True
-)
-LITE_API_DEMO_TEAMS_CSV = env.str(
-    "LITE_API_DEMO_TEAMS_CSV", default="name,alias\nteam1,TEAM1\nteam2,TEAM2", multiline=True
-)
-
 
 # Document signing
 DOCUMENT_SIGNING_ENABLED = env("DOCUMENT_SIGNING_ENABLED")
