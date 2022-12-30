@@ -8,9 +8,7 @@ from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
 from api.core.constants import GovPermissions, ExporterPermissions
 from api.conf.settings import BASE_DIR
-from api.flags.models import Flag
 from api.letter_templates.models import LetterTemplate
-from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.cases.enums import AdviceType
@@ -27,11 +25,8 @@ from api.staticdata.management.commands import (
     seeddenialreasons,
     seedlettertemplates,
     seedrolepermissions,
-    seedadminteam,
-    seedinternaldemodata,
     seedfinaldecisions,
 )
-from api.staticdata.management.commands.seedinternaldemodata import deserialize_csv_from_string
 from api.staticdata.statuses.models import CaseStatus, CaseStatusCaseType
 from api.teams.models import Team
 from api.users.models import Permission
@@ -93,22 +88,6 @@ class SeedingTests(SeedCommandTest):
     def test_seed_role_permissions(self):
         self.seed_command(seedrolepermissions.Command)
         self.assertTrue(Permission.objects.count() >= len(GovPermissions) + len(ExporterPermissions))
-
-    @pytest.mark.seeding
-    def test_seed_demo_data(self):
-        self.seed_command(seedadminteam.Command)
-        self.seed_command(seedinternaldemodata.Command)
-        for team in deserialize_csv_from_string(settings.LITE_API_DEMO_TEAMS_CSV):
-            self.assertTrue(Team.objects.filter(name=team["name"]).exists(), f"Team {team['name']} does not exist")
-            self.assertTrue(Team.objects.filter(alias=team["alias"]).exists(), f"Team {team['alias']} does not exist")
-        for queue in deserialize_csv_from_string(settings.LITE_API_DEMO_QUEUES_CSV):
-            self.assertTrue(Queue.objects.filter(name=queue["name"]).exists(), f"Queue {queue['name']} does not exist")
-            self.assertTrue(
-                Queue.objects.filter(alias=queue["alias"]).exists(), f"Queue {queue['alias']} does not exist"
-            )
-        for flag in deserialize_csv_from_string(settings.LITE_API_DEMO_FLAGS_CSV):
-            self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
-            self.assertTrue(Flag.objects.filter(alias=flag["alias"]).exists(), f"Flag {flag['alias']} does not exist")
 
     @pytest.mark.seeding
     def test_seed_decisions(self):
