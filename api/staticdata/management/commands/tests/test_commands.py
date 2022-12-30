@@ -28,7 +28,6 @@ from api.staticdata.management.commands import (
     seedlettertemplates,
     seedrolepermissions,
     seedadminteam,
-    seedflags,
     seedinternaldemodata,
     seedfinaldecisions,
 )
@@ -94,14 +93,6 @@ class SeedingTests(SeedCommandTest):
     def test_seed_role_permissions(self):
         self.seed_command(seedrolepermissions.Command)
         self.assertTrue(Permission.objects.count() >= len(GovPermissions) + len(ExporterPermissions))
-
-    @pytest.mark.seeding
-    def test_seed_flags(self):
-        self.seed_command(seedrolepermissions.Command)
-        self.seed_command(seedadminteam.Command)
-        self.seed_command(seedflags.Command)
-        for flag in seedflags.Command.read_csv(seedflags.FLAGS_FILE):
-            self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
 
     @pytest.mark.seeding
     def test_seed_demo_data(self):
