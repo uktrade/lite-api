@@ -108,8 +108,8 @@ class GetLicencesTests(DataTestClient):
                     str(good_on_application.id),
                 )
                 self.assertEqual(
-                    licence_data["goods"][0]["control_list_entries"][0]["rating"],
-                    good_on_application.good.control_list_entries.all()[0].rating,
+                    [clc["rating"] for clc in licence_data["goods"][0]["control_list_entries"]],
+                    [clc.rating for clc in good_on_application.control_list_entries.all()],
                 )
 
     def test_get_standard_licences_only(self):
