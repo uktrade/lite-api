@@ -71,6 +71,7 @@ class DataWorkspaceTests(DataTestClient):
         expected_fields = (
             "good_on_application_id",
             "usage",
+            "name",
             "description",
             "units",
             "applied_for_quantity",
@@ -79,6 +80,7 @@ class DataWorkspaceTests(DataTestClient):
             "licenced_value",
             "applied_for_value_per_item",
             "licenced_value_per_item",
+            "is_good_controlled",
             "control_list_entries",
             "advice",
             "id",
