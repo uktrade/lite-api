@@ -9,16 +9,14 @@ from django.core.exceptions import ValidationError
     [
         ("http://workingexample.com", "http://workingexample.com"),
         ("http://www.workingexample.com", "http://www.workingexample.com"),
-        ("http://WWW.workingexample.com", "http://www.workingexample.com"),
+        ("http://WWW.workingexample.com", "http://WWW.workingexample.com"),
         ("http://workingexample.com", "http://workingexample.com"),
         ("workingexample.com", "https://workingexample.com"),
-        ("workingexample.com", "https://workingexample.com"),
-        ("HTTPS://workingexample.com", "https://workingexample.com"),
+        ("HTTPS://workingexample.com", "HTTPS://workingexample.com"),
     ]
 )
 def test_party_serializer_validate_website_valid(url_input, url_output):
-    assert url_input
-    # assert url_output == PartySerializer.validate_website(url_input)
+    assert url_output == PartySerializer.validate_website(url_input)
 
 
 def test_party_serializer_validate_website_invalid():
