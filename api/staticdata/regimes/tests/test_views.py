@@ -2,6 +2,11 @@ from parameterized import parameterized
 
 from rest_framework.reverse import reverse
 
+from api.staticdata.regimes.tests.factories import (
+    RegimeEntryFactory,
+    RegimeFactory,
+    RegimeSubsectionFactory,
+)
 from test_helpers.clients import DataTestClient
 
 from ..enums import RegimesEnum
@@ -57,4 +62,17 @@ class EntriesTests(DataTestClient):
         self.assertEqual(
             len(response.json()),
             RegimeEntry.objects.filter(subsection__regime=regime_pk).count(),
+        )
+
+    def test_regime_entries_list(self):
+        regime = RegimeFactory.create()
+        regime_subsection = RegimeSubsectionFactory.create(regime=regime)
+        RegimeEntryFactory.create(subsection=regime_subsection)
+
+        url = reverse("staticdata:regimes:entries_list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            len(response.json()),
+            RegimeEntry.objects.count(),
         )
