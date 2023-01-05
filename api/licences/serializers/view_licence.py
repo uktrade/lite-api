@@ -10,6 +10,7 @@ from api.cases.models import CaseType
 from api.cases.serializers import SimpleAdviceSerializer
 from api.core.serializers import KeyValueChoiceField, CountrySerializerField, ControlListEntryField
 from api.goods.models import Good
+from api.goods.enums import GoodControlled
 from api.goodstype.models import GoodsType
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import serialize_goods_on_licence, get_approved_countries
@@ -148,6 +149,7 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
 class GoodOnLicenceViewSerializer(serializers.Serializer):
     good_on_application_id = serializers.UUIDField(source="good.id")
     usage = serializers.FloatField()
+    name = serializers.CharField(source="good.good.name")
     description = serializers.CharField(source="good.good.description")
     units = KeyValueChoiceField(source="good.unit", choices=Units.choices)
     applied_for_quantity = serializers.FloatField(source="good.quantity")
@@ -156,6 +158,7 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
     licenced_value = serializers.FloatField(source="value")
     applied_for_value_per_item = serializers.SerializerMethodField()
     licenced_value_per_item = serializers.SerializerMethodField()
+    is_good_controlled = KeyValueChoiceField(source="good.is_good_controlled", choices=GoodControlled.choices)
     control_list_entries = ControlListEntrySerializer(source="good.good.control_list_entries", many=True)
     advice = serializers.SerializerMethodField()
 

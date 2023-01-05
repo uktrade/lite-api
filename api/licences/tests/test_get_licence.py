@@ -48,7 +48,12 @@ class GetLicenceTests(DataTestClient):
         self.assertEqual(response_data["duration"], licence.duration)
         self.assertEqual(response_data["goods_on_licence"][0]["good_on_application_id"], str(good_on_application.id))
         self.assertEqual(response_data["goods_on_licence"][0]["usage"], good_on_licence.usage)
+        self.assertEqual(response_data["goods_on_licence"][0]["name"], good.name)
         self.assertEqual(response_data["goods_on_licence"][0]["description"], good.description)
+        self.assertEqual(
+            response_data["goods_on_licence"][0]["is_good_controlled"],
+            good_on_application.is_good_controlled,
+        )
         self.assertEqual(response_data["goods_on_licence"][0]["units"]["key"], good_on_application.unit)
         self.assertEqual(response_data["goods_on_licence"][0]["applied_for_quantity"], good_on_application.quantity)
         self.assertEqual(response_data["goods_on_licence"][0]["applied_for_value"], good_on_application.value)
