@@ -68,8 +68,7 @@ class GetLicenceTests(DataTestClient):
             good_on_licence.value / good_on_licence.quantity,
         )
         self.assertEqual(
-            len(response_data["goods_on_licence"][0]["control_list_entries"]),
-            good_on_application.control_list_entries.count(),
+            len(response_data["goods_on_licence"][0]["control_list_entries"]), good.control_list_entries.count()
         )
         self.assertEqual(response_data["goods_on_licence"][0]["advice"]["type"]["key"], good_advice.type)
         self.assertEqual(response_data["goods_on_licence"][0]["advice"]["text"], good_advice.text)

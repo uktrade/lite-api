@@ -159,7 +159,7 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
     applied_for_value_per_item = serializers.SerializerMethodField()
     licenced_value_per_item = serializers.SerializerMethodField()
     is_good_controlled = KeyValueChoiceField(source="good.is_good_controlled", choices=GoodControlled.choices)
-    control_list_entries = ControlListEntrySerializer(source="good.control_list_entries", many=True)
+    control_list_entries = ControlListEntrySerializer(source="good.good.control_list_entries", many=True)
     advice = serializers.SerializerMethodField()
 
     def get_advice(self, instance):
