@@ -127,6 +127,7 @@ class PartySerializer(serializers.ModelSerializer):
         :return: string to save for the website field
         """
         if value:
+            value = value.lower()
             validator = URLValidator()
             if "https://" not in value and "http://" not in value:
                 # Prepend string with https:// so user doesn't have to
