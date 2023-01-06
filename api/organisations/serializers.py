@@ -1,9 +1,8 @@
 import re
 
-import phonenumbers
 from django.db import transaction
 from django.utils import timezone
-from phonenumber_field.phonenumber import to_python
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from api.addresses.models import Address
@@ -17,8 +16,6 @@ from api.core.serializers import (
 )
 from api.documents.libraries.process_document import process_document
 from api.documents.models import Document
-from lite_content.lite_api import strings
-from lite_content.lite_api.strings import Organisations
 from api.organisations.constants import (
     UK_EORI_MAX_LENGTH,
     UK_EORI_VALIDATION_REGEX,
@@ -32,6 +29,8 @@ from api.staticdata.countries.helpers import get_country
 from api.users.libraries.get_user import get_user_organisation_relationship
 from api.users.models import UserOrganisationRelationship, ExporterUser
 from api.users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
+from lite_content.lite_api import strings
+from lite_content.lite_api.strings import Organisations
 
 
 class SiteListSerializer(serializers.Serializer):
@@ -146,14 +145,6 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class PhoneNumberField(serializers.CharField):
-    def to_internal_value(self, data):
-        phone_number = to_python(data, "GB")
-        if phone_number and not phone_number.is_valid():
-            raise serializers.ValidationError("Enter a valid telephone number.")
-        return phone_number
-
-
 class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(error_messages={"blank": Organisations.Create.BLANK_NAME})
@@ -198,7 +189,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "max_length": Organisations.Create.LENGTH_REGISTRATION_NUMBER,
         },
     )
-    phone_number = PhoneNumberField()
+    phone_number = PhoneNumberField(required=True, allow_blank=True, region="GB")
     website = serializers.URLField(allow_blank=True)
 
     user = ExporterUserCreateUpdateSerializer(write_only=True)
