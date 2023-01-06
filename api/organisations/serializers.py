@@ -1,8 +1,9 @@
 import re
 
+import phonenumbers
 from django.db import transaction
 from django.utils import timezone
-from phonenumber_field.serializerfields import PhoneNumberField
+from phonenumber_field.phonenumber import to_python
 from rest_framework import serializers
 
 from api.addresses.models import Address
@@ -145,6 +146,14 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
+class PhoneNumberField(serializers.CharField):
+    def to_internal_value(self, data):
+        phone_number = to_python(data, "GB")
+        if phone_number and not phone_number.is_valid():
+            raise serializers.ValidationError("Enter a valid telephone number.")
+        return phone_number
+
+
 class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(error_messages={"blank": Organisations.Create.BLANK_NAME})
@@ -189,7 +198,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "max_length": Organisations.Create.LENGTH_REGISTRATION_NUMBER,
         },
     )
-    phone_number = PhoneNumberField(required=True, allow_blank=True)
+    phone_number = PhoneNumberField()
     website = serializers.URLField(allow_blank=True)
 
     user = ExporterUserCreateUpdateSerializer(write_only=True)
@@ -272,9 +281,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_phone_number(self, value):
         if value == "":
             error = (
-                "Enter an organisation phone number"
+                "Enter an organisation telephone number"
                 if self.context.get("type") == "commercial"
-                else "Enter a phone number"
+                else "Enter a telephone number"
             )
             raise serializers.ValidationError(error)
 
