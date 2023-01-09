@@ -35,6 +35,7 @@ env = Env(
     CASEWORKER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
+    GIT_COMMIT=(str, ""),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -465,3 +466,13 @@ SANCTION_LIST_SOURCES = env.json(
     },
 )
 LITE_INTERNAL_NOTIFICATION_EMAILS = env.json("LITE_INTERNAL_NOTIFICATION_EMAILS", {})
+
+GIT_COMMIT_SHA = env.str("GIT_COMMIT", "UNKNOWN")
+# Only extract the git commit sha by subprocess if we are running locally
+if GIT_COMMIT_SHA == "UNKNOWN" and ENV == "local":
+    import subprocess  # nosec
+
+    try:
+        GIT_COMMIT_SHA = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()  # nosec
+    except Exception:
+        GIT_COMMIT_SHA = "UNKNOWN"
