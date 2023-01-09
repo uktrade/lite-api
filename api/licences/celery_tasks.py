@@ -13,7 +13,7 @@ RETRY_BACKOFF = 1200
 
 
 @shared_task(
-    autoretry_for=(Exception,),
+    autoretry_for=(HMRCIntegrationException,),
     max_retries=MAX_ATTEMPTS,
     retry_backoff=RETRY_BACKOFF,
 )
