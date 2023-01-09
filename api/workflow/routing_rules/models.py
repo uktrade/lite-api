@@ -1,5 +1,8 @@
 import uuid
 
+from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from separatedvaluesfield.models import SeparatedValuesField
 
@@ -117,3 +120,53 @@ class RoutingRule(TimestampableModel):
         return run_criteria_function(self.id, case)
 
     natural_key.dependencies = ["teams.Team", "queues.Queue", "users.GovUser", "countries.Country"]
+
+
+class RoutingHistory(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey("cases.Case", on_delete=models.CASCADE, related_name="routing_history_records")
+    # used to limit the models that can be referred to by `entity` generic foreign key - only Flag and Queue
+    _entity_limit = models.Q(app_label="queues", model="Queue") | models.Q(app_label="flags", model="Flag")
+    entity_content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.SET_NULL,
+        db_index=True,
+        null=True,
+        blank=True,
+        limit_choices_to=_entity_limit,
+        related_name="+",
+    )
+    entity_object_id = models.CharField(max_length=255, db_index=True)
+    entity = GenericForeignKey("entity_content_type", "entity_object_id")
+    action = models.CharField(max_length=10, choices=[("add", "Add"), ("remove", "Remove")])
+    orchestrator_type = models.CharField(
+        max_length=20, choices=[("manual", "Manual"), ("routing_engine", "Routing Engine")]
+    )
+    orchestrator = models.ForeignKey("users.BaseUser", on_delete=models.PROTECT, related_name="+")
+    case_status = models.ForeignKey(
+        CaseStatus,
+        on_delete=models.PROTECT,
+        related_name="+",
+    )
+    case_flags = models.JSONField()
+    case_queues = models.JSONField()
+    rule_identifier = models.CharField(max_length=256, default="", blank=True)
+    commit_sha = models.CharField(max_length=40)
+
+    @classmethod
+    def create(cls, case, entity, action, orchestrator_type, orchestrator, rule_identifier):
+        case_flags = [str(flag.id) for flag in case.flags.all()]
+        case_queues = [str(queue.id) for queue in case.queues.all()]
+        routing_history = RoutingHistory.objects.create(
+            case=case,
+            entity=entity,
+            action=action,
+            orchestrator_type=orchestrator_type,
+            orchestrator=orchestrator,
+            case_status=case.status,
+            case_flags=case_flags,
+            case_queues=case_queues,
+            rule_identifier=rule_identifier,
+            commit_sha=settings.GIT_COMMIT_SHA,
+        )
+        return routing_history
