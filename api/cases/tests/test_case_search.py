@@ -9,8 +9,6 @@ from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case, CaseAssignment
 from api.queues.constants import (
     UPDATED_CASES_QUEUE_ID,
-    MY_ASSIGNED_CASES_QUEUE_ID,
-    MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
 )
 from api.queues.tests.factories import QueueFactory
@@ -334,75 +332,6 @@ class UpdatedCasesQueueTests(DataTestClient):
         response_data = response.json()["results"]["cases"]
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.case.id))
-
-
-class UserAssignedCasesQueueTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-
-        self.user_assigned_case = self.create_standard_application_case(self.organisation).get_case()
-        self.user_assigned_case.queues.set([self.queue])
-        self.case_assignment = CaseAssignment.objects.create(
-            case=self.user_assigned_case, queue=self.queue, user=self.gov_user
-        )
-
-        self.url = f'{reverse("cases:search")}?queue_id={MY_ASSIGNED_CASES_QUEUE_ID}'
-
-    def test_get_cases_on_user_assigned_to_case_queue_returns_expected_cases(self):
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.user_assigned_case.id))
-
-    def test_get_cases_on_user_assigned_to_case_queue_doesnt_return_closed_cases(self):
-        user_assigned_case = self.create_standard_application_case(self.organisation).get_case()
-        user_assigned_case.queues.set([self.queue])
-        CaseAssignment.objects.create(case=user_assigned_case, queue=self.queue, user=self.gov_user)
-        user_assigned_case.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
-        user_assigned_case.save()
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertNotEqual(response_data[0]["id"], str(user_assigned_case.id))
-
-
-class UserAssignedAsCaseOfficerQueueTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-
-        self.case_officer_case = self.create_standard_application_case(self.organisation).get_case()
-        self.case_officer_case.queues.set([self.queue])
-        self.case_officer_case.case_officer = self.gov_user
-        self.case_officer_case.save()
-
-        self.url = f'{reverse("cases:search")}?queue_id={MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID}'
-
-    def test_get_cases_on_user_assigned_as_case_officer_queue_returns_expected_cases(self):
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.case_officer_case.id))
-
-    def test_get_cases_on_user_assigned_as_case_officer_queue_doesnt_return_closed_cases(self):
-        case_officer_case = self.create_standard_application_case(self.organisation).get_case()
-        case_officer_case.queues.set([self.queue])
-        case_officer_case.case_officer = self.gov_user
-        case_officer_case.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
-        case_officer_case.save()
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertNotEqual(response_data[0]["id"], str(case_officer_case.id))
 
 
 class CaseOrderingOnQueueTests(DataTestClient):
