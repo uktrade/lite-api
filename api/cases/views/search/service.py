@@ -210,13 +210,16 @@ def populate_destinations(cases: List[Dict]):
 
 
 def populate_activity_updates(cases: List[Dict]):
+    """
+    retrieve the last 2 activities per case for the provided list of cases
+    """
     obj_type = ContentType.objects.get_for_model(Case)
     case_ids = [case["id"] for case in cases]
     ## case_id can be present against 1 of 2 fields so filters required
     obj_as_action_filter = Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type)
     obj_as_target_filter = Q(target_object_id__in=case_ids, target_content_type=obj_type)
-    ## get all data related to all cases
     activities_qs = Audit.objects.filter(obj_as_action_filter | obj_as_target_filter).order_by("-updated_at")
+    ## dictionary used to avoid nested looping while adding activites to cases
     case_id_indexes = {case["id"]: i for i, case in enumerate(cases)}
     ## iterate over audit records once and add if less than 2 records are present against the case
     for activity in activities_qs:
@@ -229,42 +232,15 @@ def populate_activity_updates(cases: List[Dict]):
         ## skips record if case not in case_ids i.e. already has 2 records
         if not case_id:
             continue
+
         activity_obj = AuditSerializer(activity).data
-        if "activity_updates" in cases[case_id_indexes[case_id]]:
-            ## add second record and remove case_id for case_ids
-            cases[case_id_indexes[case_id]]["activity_updates"].append(activity_obj)
+        case = cases[case_id_indexes[case_id]]
+        if "activity_updates" in case:
+            case["activity_updates"].append(activity_obj)
             case_ids.remove(case_id)
         else:
-            ## add first record against case
-            cases[case_id_indexes[case_id]]["activity_updates"] = [activity_obj]
+            case["activity_updates"] = [activity_obj]
         if not case_ids:
             break
-
-    ## double for loop but easier to follow, iterates over more records
-    # all_activities = list(activities_qs)
-    # case_ids = [case["id"] for case in cases]
-    # obj_as_action_filter = Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type)
-    # obj_as_target_filter = Q(target_object_id__in=case_ids, target_content_type=obj_type)
-    # activities_qs = Audit.objects.filter(obj_as_action_filter | obj_as_target_filter).order_by("-updated_at")
-    # all_activities = list(activities_qs)
-    # for case in cases:
-    #     for activity in all_activities:
-    #         if activity.target_object_id != case["id"] and activity.action_object_object_id  != case["id"]:
-    #             continue
-    #         activity_obj = AuditSerializer(activity).data
-    #         if "activity_updates" in case:
-    #             case["activity_updates"].append(activity_obj)
-    #             break
-    #         else:
-    #             case["activity_updates"] = [activity_obj]
-    #     all_activities = [activity for activity in all_activities if activity.target_object_id != case["id"] and activity.action_object_object_id  != case["id"]]
-
-    ## several queries but simpler
-    # for case in cases:
-    #     obj_as_action_filter = Q(action_object_object_id=case["id"], action_object_content_type=obj_type)
-    #     obj_as_target_filter = Q(target_object_id=case["id"], target_content_type=obj_type)
-    #     activities_qs = Audit.objects.filter(obj_as_action_filter | obj_as_target_filter).order_by("-updated_at")[:2]
-    #     activity_objs = AuditSerializer(activities_qs, many=True).data
-    #     case["activity_updates"] = activity_objs
 
     return cases
