@@ -1,39 +1,39 @@
-ARS_PREFIX,CODE_STATUS,CODE_LEVEL,,
-accessories for,ACTIVE,0,,
-alignment equipment for,ACTIVE,0,,
-calibration equipment for,ACTIVE,0,,
-chemicals used for,ACTIVE,0,,
-components for,ACTIVE,0,,
-control equipment for,ACTIVE,0,,
-counter-countermeasure equipment for,ACTIVE,0,,
-countermeasure equipment for,ACTIVE,0,,
-decoying equipment for,ACTIVE,0,,
-environmental test facilities for,ACTIVE,0,,
-equipment for the development of,ACTIVE,0,,
-equipment for the production of,ACTIVE,0,,
-equipment for the use of,ACTIVE,0,,
-fire simulation equipment for,ACTIVE,0,,
-guidance equipment for,ACTIVE,0,,
-inert,ACTIVE,0,,
-information security equipment,ACTIVE,0,,
-information security software,ACTIVE,0,,
-launching vehicles for,ACTIVE,0,,
-launching/handling/control equipment for,ACTIVE,0,,
-launching/handling/control/support equipment for,ACTIVE,0,,
-mixtures containing,ACTIVE,0,,
-oil and gas industry equipment/materials,ACTIVE,0,,
-production facilities for,ACTIVE,0,,
-promoting the supply of,ACTIVE,0,,
-promoting the supply of components for,ACTIVE,0,,
-simulators for,ACTIVE,0,,
-software enabling equipment to function as,ACTIVE,0,,
-software for,ACTIVE,0,,
-software support for,ACTIVE,0,,
-technical assistance for,ACTIVE,0,,
-technology for,ACTIVE,0,,
-technology for production installations for,ACTIVE,0,,
-test equipment for,ACTIVE,0,,
-test models for,ACTIVE,0,,
-training,ACTIVE,0,,
-training equipment for,ACTIVE,0,,
-unfinished products for,ACTIVE,0,,
+ARS_PREFIX,CODE_STATUS,CODE_LEVEL,ID
+accessories for,ACTIVE,0,14e17089-34e4-4dc6-8b36-c00bff1c2c67
+alignment equipment for,ACTIVE,0,d696325a-d040-46d1-b20f-8f620f32eeab
+calibration equipment for,ACTIVE,0,9f002834-6afa-4eb0-8c0d-0e6475c5fbda
+chemicals used for,ACTIVE,0,36acb312-9a45-4557-b179-63e9f1ad4198
+components for,ACTIVE,0,42e813cb-a75c-4f60-a121-dbe949222dd8
+control equipment for,ACTIVE,0,c3734555-467f-4b4c-90a6-bf5bd774cd0f
+counter-countermeasure equipment for,ACTIVE,0,56cfbe91-6317-4b7b-8d59-32c02cbc7971
+countermeasure equipment for,ACTIVE,0,c65fce42-f0bf-407a-a7a6-2c424ecdc5f4
+decoying equipment for,ACTIVE,0,eb18b6c4-4484-4d18-b316-b8c7550fac54
+environmental test facilities for,ACTIVE,0,98f6776c-6bd8-497f-b0a5-d3c78136b4c3
+equipment for the development of,ACTIVE,0,b4223b68-0fd8-41cb-aa40-fa42bb744c85
+equipment for the production of,ACTIVE,0,dc1050b7-0850-4ca5-a046-39b5885d48d4
+equipment for the use of,ACTIVE,0,364609d1-ee60-4673-8204-1fb226f89fa5
+fire simulation equipment for,ACTIVE,0,8b98866a-9274-43d6-a2b4-0cf9db5a6aac
+guidance equipment for,ACTIVE,0,30a27379-94e9-4c82-83b6-1819eed924fe
+inert,ACTIVE,0,cccf7772-8945-4402-a7ff-6af942a0aa73
+information security equipment,ACTIVE,0,01ed7414-b0be-4b74-a3f9-e4d068e9463d
+information security software,ACTIVE,0,571b468e-6b8f-4fbd-8b41-851aa1849a6d
+launching vehicles for,ACTIVE,0,5f5bc6b2-d03c-4c41-97b4-514426777397
+launching/handling/control equipment for,ACTIVE,0,d331740f-c9c0-4b19-81d1-28ec4b375ed4
+launching/handling/control/support equipment for,ACTIVE,0,74cd11be-d612-488f-b806-cb91ef3ea914
+mixtures containing,ACTIVE,0,d0c62090-ac39-48ae-9a26-8a427b8e07c7
+oil and gas industry equipment/materials,ACTIVE,0,39c0aa0d-10e6-4d8a-8044-d10ce11cd8d9
+production facilities for,ACTIVE,0,e862ebea-438a-43a6-9656-07676bcfe48a
+promoting the supply of,ACTIVE,0,31074444-f022-4930-8a73-9a2c9c4dd048
+promoting the supply of components for,ACTIVE,0,3cd5b3ce-bae2-4c37-8358-908d8357cfb5
+simulators for,ACTIVE,0,1c872756-8467-4627-8670-c539a26a6dfe
+software enabling equipment to function as,ACTIVE,0,e1ed0221-e3d2-49b5-a93d-7d7ed3138156
+software for,ACTIVE,0,f1799b24-310e-43be-96ee-616836cdfdd5
+software support for,ACTIVE,0,26a58936-64d8-4178-b0a5-22cdc6ee04e7
+technical assistance for,ACTIVE,0,61f355f7-7652-4cd1-8648-8907363623fb
+technology for,ACTIVE,0,ca6a7b52-84cf-4c32-a608-bed74f43f085
+technology for production installations for,ACTIVE,0,8dad608b-8e96-45ac-8515-b187b7e6e06e
+test equipment for,ACTIVE,0,fa0ad68c-8838-4299-b9be-53ca265d1510
+test models for,ACTIVE,0,34ebabef-512c-4af3-a943-041d13d3614c
+training,ACTIVE,0,d8d6b5ba-ec89-4021-baf9-2ff5750d24ab
+training equipment for,ACTIVE,0,0053ba97-c83f-463b-849f-24b73f8988ee
+unfinished products for,ACTIVE,0,e7815b75-6bc3-49ce-b612-903fdee06efd
