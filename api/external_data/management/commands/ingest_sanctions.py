@@ -1,6 +1,8 @@
 import itertools
 import logging
 
+from dateutil import parser
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -138,6 +140,16 @@ class Command(BaseCommand):
                     if postcode not in normalize_address(address):
                         address += " " + postcode
 
+                    try:
+                        item["lastupdated"] = normalize_datetime(item["lastupdated"])
+                    except KeyError:
+                        pass
+
+                    try:
+                        item["datedesignated"] = normalize_datetime(item["datedesignated"])
+                    except KeyError:
+                        pass
+
                     # We need to hash the data that uniquely identifies records atm we only care about names
                     unique_id = hash_values([item["groupid"], name])
                     document = documents.SanctionDocumentType(
@@ -188,6 +200,16 @@ class Command(BaseCommand):
                     name = join_fields(primary_name, fields=["name1", "name2", "name3", "name4", "name5", "name6"])
                     address = ",".join(address_list)
 
+                    try:
+                        item["lastupdated"] = normalize_datetime(item["lastupdated"])
+                    except KeyError:
+                        pass
+
+                    try:
+                        item["datedesignated"] = normalize_datetime(item["datedesignated"])
+                    except KeyError:
+                        pass
+
                     unique_id = item.get("ofsigroupid", "UNKNOWN")
                     document = documents.SanctionDocumentType(
                         meta={"id": f"uk:{unique_id}"},
@@ -223,3 +245,7 @@ def normalize_address(value):
         return ""
 
     return value.replace(" ", "")
+
+
+def normalize_datetime(value):
+    return parser.parse(value).isoformat()
