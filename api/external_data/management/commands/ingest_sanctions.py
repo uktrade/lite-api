@@ -224,7 +224,6 @@ class Command(BaseCommand):
                     document.save()
                     successful += 1
                 except:
-
                     failed += 1
                     logger.exception(
                         "Error loading uk sanction record -> %s",
