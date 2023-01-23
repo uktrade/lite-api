@@ -15,7 +15,7 @@ from api.external_data import documents
 from api.flags.enums import SystemFlags
 import hashlib
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get_un_sanctions():
@@ -111,16 +111,17 @@ class Command(BaseCommand):
                     successful += 1
                 except:
                     failed += 1
-                    log.exception(
+                    logger.exception(
                         "Error loading un sanction record -> %s",
+                        item["dataid"],
                         exc_info=True,
                     )
-            log.info(
-                f"uk sanctions (successful:{successful} failed:{failed})",
+            logger.info(
+                f"un sanctions (successful:{successful} failed:{failed})",
             )
         except:
-            log.exception(
-                "Error loading un sanctions -> %s",
+            logger.exception(
+                "Error loading un sanctions",
                 exc_info=True,
             )
 
@@ -165,16 +166,17 @@ class Command(BaseCommand):
                     successful += 1
                 except:
                     failed += 1
-                    log.exception(
+                    logger.exception(
                         "Error loading office financial sanction record -> %s",
+                        f"ofs:{unique_id}",
                         exc_info=True,
                     )
-            log.info(
+            logger.info(
                 f"office financial sanctions (successful:{successful} failed:{failed})",
             )
         except:
-            log.exception(
-                "Error office financial sanctions -> %s",
+            logger.exception(
+                "Error office financial sanctions",
                 exc_info=True,
             )
 
@@ -224,16 +226,17 @@ class Command(BaseCommand):
                 except:
 
                     failed += 1
-                    log.exception(
+                    logger.exception(
                         "Error loading uk sanction record -> %s",
+                        f"uk:{unique_id}",
                         exc_info=True,
                     )
-            log.info(
+            logger.info(
                 f"uk sanctions (successful:{successful} failed:{failed})",
             )
         except:
-            log.exception(
-                "Error loading uk sanctions -> %s",
+            logger.exception(
+                "Error loading uk sanctions",
                 exc_info=True,
             )
 
