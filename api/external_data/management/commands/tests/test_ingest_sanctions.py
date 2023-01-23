@@ -219,3 +219,11 @@ class PopulateSanctionsTests(DataTestClient):
                 content=b"<note><to>Tove</to></note>",
             )
             ingest_sanctions.get_office_financial_sanctions_implementation()
+
+    def test_get_uk_sanctions_list(self):
+        with requests_mock.Mocker() as m:
+            m.get(
+                settings.SANCTION_LIST_SOURCES["uk_sanctions_file"],
+                content=b"<designations><designation>Designation</designation></designations>",
+            )
+            ingest_sanctions.get_uk_sanctions_list()
