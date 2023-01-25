@@ -91,7 +91,12 @@ class ApplicationPartyMixin:
             pass
 
     def delete_party(self, poa):
-        poa.delete()
+        # delete party if application not submitted else 'expire' party
+        if self.status.status == CaseStatusEnum.DRAFT:
+            poa.delete(is_draft=True)
+            # Party.objects.get(pk=poa.party_id).delete()
+        else:
+            poa.delete()
 
     def is_major_editable(self):
         return self.status.status == CaseStatusEnum.APPLICANT_EDITING or is_case_status_draft(self.status.status)
@@ -568,8 +573,11 @@ class PartyOnApplication(TimestampableModel):
         )
 
     def delete(self, *args, **kwargs):
-        self.deleted_at = timezone.now()
-        self.save()
+        if "is_draft" in kwargs:
+            super().delete()
+        else:
+            self.deleted_at = timezone.now()
+            self.save()
 
 
 class DenialMatchOnApplication(TimestampableModel):

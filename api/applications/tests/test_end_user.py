@@ -114,7 +114,7 @@ class EndUserOnDraftTests(DataTestClient):
             ],
         ]
     )
-    def test_set_end_user_on_draft_standard_application_failure(self, data):
+    def test_set_end_user_on_non_draft_standard_application_failure(self, data):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -140,7 +140,11 @@ class EndUserOnDraftTests(DataTestClient):
         )
 
         self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
-        poa.refresh_from_db()
+        try:
+            poa.refresh_from_db()
+            self.fail(f"poa not deleted: {poa}")
+        except PartyOnApplication.DoesNotExist:
+            pass
 
         new_poa = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
@@ -328,7 +332,7 @@ class EndUserOnDraftTests(DataTestClient):
             PartyOnApplication.objects.filter(
                 application=self.draft, deleted_at__isnull=False, party__type=PartyType.END_USER
             ).count(),
-            1,
+            0,
         )
         delete_s3_function.assert_not_called()
 
@@ -403,3 +407,28 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(self.url, end_user, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["end_user"]["copy_of"], str(end_user["copy_of"]))
+
+
+class EndUserOnNonDraftTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.submitted = self.create_standard_application_case(self.organisation)
+
+    def test_delete_end_user_on_standard_application_when_application_has_not_been_submitted(
+        self,
+    ):
+        """
+        Deletes the poa instead of expiring
+        """
+        poa = PartyOnApplication.objects.get(
+            application=self.submitted, party__type=PartyType.END_USER, deleted_at__isnull=True
+        )
+
+        poa.delete()
+        try:
+            poa = PartyOnApplication.objects.get(
+                application=self.submitted, party__type=PartyType.END_USER, deleted_at__isnull=True
+            )
+            self.fail(f"poa not deleted: {poa}")
+        except PartyOnApplication.DoesNotExist:
+            pass
