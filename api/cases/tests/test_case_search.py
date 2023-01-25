@@ -300,6 +300,49 @@ class FilterAndSortTests(DataTestClient):
         cases_returned = [x["id"] for x in response_data]
         self.assertIn(str(case_with_open_query.id), cases_returned)
 
+    def test_head_request(self):
+        """
+        Given there is are cases
+        When a HEAD request is sent to view cases with no params
+        Then the count for all cases is returned in the header
+        """
+        all_cases = self.application_cases + self.clc_cases
+
+        response = self.client.head(self.url, **self.gov_headers)
+
+        response_headers = response.headers
+
+        self.assertEqual(response_headers["Resource-Count"], f"{len(all_cases)}")
+
+    def test_head_request_open_queries(self):
+        """
+        Given there is a case with an ECJU Query that has not been responded to
+        When a HEAD request is sent to view cases with open queries
+        Then the count for open queries is returned in the header
+        """
+
+        ## create an ecju query for a case that should appear in tab
+        case_with_open_query = self.application_cases[0]
+        self.create_ecju_query(case_with_open_query, gov_user=self.gov_user)
+
+        ## create an ecju query with a response so it should not appear in count
+        ecju_query_with_response = EcjuQuery(
+            question="ECJU Query 2",
+            case=self.application_cases[1],
+            response="I have a response",
+            raised_by_user=self.gov_user,
+            responded_by_user=self.exporter_user,
+            query_type=PicklistType.ECJU,
+        )
+        ecju_query_with_response.save()
+        url = f"{self.url}?only_open_queries=True"
+
+        response = self.client.head(url, **self.gov_headers)
+
+        response_headers = response.headers
+
+        self.assertEqual(response_headers["Resource-Count"], "1")
+
 
 class UpdatedCasesQueueTests(DataTestClient):
     def setUp(self):
