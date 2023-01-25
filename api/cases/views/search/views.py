@@ -44,6 +44,7 @@ class CasesSearchView(generics.ListAPIView):
         filters["submitted_to"] = make_date_from_params("submitted_to", filters)
         filters["finalised_from"] = make_date_from_params("finalised_from", filters)
         filters["finalised_to"] = make_date_from_params("finalised_to", filters)
+        filters["only_open_queries"] = True if request.GET.get("only_open_queries") == "True" else False
 
         page = self.paginate_queryset(
             Case.objects.search(
