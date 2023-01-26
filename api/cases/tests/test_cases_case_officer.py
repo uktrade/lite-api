@@ -24,3 +24,9 @@ class CasesUpdateCaseOfficerTests(DataTestClient):
         case_2.refresh_from_db()
         self.assertIsNotNone(case_1.case_officer)
         self.assertIsNotNone(case_2.case_officer)
+
+    def test_assign_gov_user_to_multiple_cases_bad_request(self):
+
+        request = self.client.put(self.url, data={"gov_user_pk": self.user.pk}, **self.gov_headers)
+
+        self.assertEqual(request.status_code, status.HTTP_400_BAD_REQUEST)
