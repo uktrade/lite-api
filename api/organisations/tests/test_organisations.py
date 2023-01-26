@@ -274,13 +274,13 @@ class CreateOrganisationTests(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = response.json()["errors"]
-        self.assertEqual(errors["phone_number"][0], "Enter an organisation phone number")
+        self.assertEqual(errors["phone_number"][0], "Enter an organisation telephone number")
 
         data["type"] = OrganisationType.INDIVIDUAL
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = response.json()["errors"]
-        self.assertEqual(errors["phone_number"][0], "Enter a phone number")
+        self.assertEqual(errors["phone_number"][0], "Enter a telephone number")
 
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {

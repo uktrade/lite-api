@@ -128,7 +128,7 @@ class PartySerializer(serializers.ModelSerializer):
         """
         if value:
             validator = URLValidator()
-            if "https://" not in value and "http://" not in value:
+            if "https://" not in value.lower() and "http://" not in value.lower():
                 # Prepend string with https:// so user doesn't have to
                 value = f"https://{value}"
             validator(value)

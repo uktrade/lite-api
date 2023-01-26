@@ -6,7 +6,8 @@ from rest_framework import status
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import Case, CaseAssignment
+from api.cases.models import Case, CaseAssignment, EcjuQuery
+from api.picklists.enums import PicklistType
 from api.queues.constants import (
     UPDATED_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
@@ -246,6 +247,99 @@ class FilterAndSortTests(DataTestClient):
         for case in response_data["cases"]:
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
             self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
+
+    def test_only_open_queries_gets_cases(self):
+        """
+        Given there is a case with an ECJU Query that has not been responded to
+        When a user requests to view cases with open queries
+        Then only cases with open queries are returned
+        """
+        ## create an ecju query for a case that should appear in tab
+        case_with_open_query = self.application_cases[0]
+        self.create_ecju_query(case_with_open_query, gov_user=self.gov_user)
+
+        ## create an ecju query with a response so it should not appear in tab
+        ecju_query_with_response = EcjuQuery(
+            question="ECJU Query 2",
+            case=self.application_cases[1],
+            response="I have a response",
+            raised_by_user=self.gov_user,
+            responded_by_user=self.exporter_user,
+            query_type=PicklistType.ECJU,
+        )
+        ecju_query_with_response.save()
+        url = f"{self.url}?only_open_queries=True"
+
+        response = self.client.get(url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response_data["count"], 1)
+        self.assertEqual(response_data["results"]["cases"][0]["id"], str(case_with_open_query.id))
+
+    def test_only_open_queries_false_search(self):
+        """
+        Given there is a case with an ECJU Query that has not been responded to
+        When 'only_open_queries' is false and a team queue is not chosen
+        Then all cases are returned
+        """
+        all_cases = self.application_cases + self.clc_cases
+
+        ## create an open ecju query that should be returned
+        case_with_open_query = self.application_cases[0]
+        self.create_ecju_query(case_with_open_query, gov_user=self.gov_user)
+
+        url = f"{self.url}?only_open_queries=False"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(len(response_data), len(all_cases))
+        cases_returned = [x["id"] for x in response_data]
+        self.assertIn(str(case_with_open_query.id), cases_returned)
+
+    def test_head_request(self):
+        """
+        Given there is are cases
+        When a HEAD request is sent to view cases with no params
+        Then the count for all cases is returned in the header
+        """
+        all_cases = self.application_cases + self.clc_cases
+
+        response = self.client.head(self.url, **self.gov_headers)
+
+        response_headers = response.headers
+
+        self.assertEqual(response_headers["Resource-Count"], f"{len(all_cases)}")
+
+    def test_head_request_open_queries(self):
+        """
+        Given there is a case with an ECJU Query that has not been responded to
+        When a HEAD request is sent to view cases with open queries
+        Then the count for open queries is returned in the header
+        """
+
+        ## create an ecju query for a case that should appear in tab
+        case_with_open_query = self.application_cases[0]
+        self.create_ecju_query(case_with_open_query, gov_user=self.gov_user)
+
+        ## create an ecju query with a response so it should not appear in count
+        ecju_query_with_response = EcjuQuery(
+            question="ECJU Query 2",
+            case=self.application_cases[1],
+            response="I have a response",
+            raised_by_user=self.gov_user,
+            responded_by_user=self.exporter_user,
+            query_type=PicklistType.ECJU,
+        )
+        ecju_query_with_response.save()
+        url = f"{self.url}?only_open_queries=True"
+
+        response = self.client.head(url, **self.gov_headers)
+
+        response_headers = response.headers
+
+        self.assertEqual(response_headers["Resource-Count"], "1")
 
 
 class UpdatedCasesQueueTests(DataTestClient):
