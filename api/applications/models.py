@@ -40,6 +40,7 @@ from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.f680_clearance_types.models import F680ClearanceType
 from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
@@ -412,6 +413,10 @@ class GoodOnApplication(AbstractGoodOnApplication):
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
+
+    # Report Summary prefix and subject
+    report_summary_prefix = models.ForeignKey(ReportSummaryPrefix, on_delete=models.CASCADE, blank=False, null=True)
+    report_summary_subject = models.ForeignKey(ReportSummarySubject, on_delete=models.CASCADE, blank=False, null=True)
 
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
