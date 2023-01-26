@@ -24,6 +24,7 @@ from api.goods.helpers import (
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails, GoodControlListEntry
 from api.gov_users.serializers import GovUserSimpleSerializer
+from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queries.goods_query.models import GoodsQuery
@@ -903,6 +904,12 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
         queryset=RegimeEntry.objects.all(),
         required=False,  # not required for backwards compatibility reasons so that the old UI will still work
     )
+    report_summary_prefix_id = PrimaryKeyRelatedField(
+        required=False, allow_null=True, queryset=ReportSummaryPrefix.objects.all()
+    )
+    report_summary_subject_id = PrimaryKeyRelatedField(
+        required=False, allow_null=True, queryset=ReportSummarySubject.objects.all()
+    )
 
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
@@ -911,6 +918,8 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
             "is_precedent",
             "is_wassenaar",
             "regime_entries",
+            "report_summary_prefix_id",
+            "report_summary_subject_id",
         )
 
     def update(self, instance, validated_data):
@@ -923,6 +932,7 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
             instance.good.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
 
         instance.good.save()
+
         return instance
 
 

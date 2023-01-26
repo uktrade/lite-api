@@ -1,3 +1,5 @@
+import uuid
+
 from django.urls import reverse_lazy, reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -19,6 +21,7 @@ from api.staticdata.regimes.tests.factories import (
     RegimeFactory,
     RegimeSubsectionFactory,
 )
+from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.units.enums import Units
@@ -26,6 +29,11 @@ from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
 from api.users.models import Role
+from api.goods.views import (
+    GOOD_ON_APP_NO_REPORT_SUMMARY,
+    GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX,
+    GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT,
+)
 
 
 class GoodsVerifiedTestsStandardApplication(DataTestClient):
@@ -305,6 +313,149 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_missing_report_summary_and_subject_gives_400_bad_request(self):
+        application = self.create_draft_standard_application(organisation=self.organisation, num_products=0)
+        case = self.submit_application(application)
+        url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
+
+        product_on_application = GoodOnApplication.objects.create(
+            good=self.good_1,
+            application=application,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+            report_summary="Rifles",
+        )
+        data = {
+            "objects": [self.good_1.pk],
+            "current_object": product_on_application.pk,
+            "control_list_entries": ["ML1a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "comment": "report summary update test",
+            "regime_entries": [],
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["error"][0], GOOD_ON_APP_NO_REPORT_SUMMARY)
+
+    @parameterized.expand(
+        [
+            ("report_summary and subject", "Rifles", None, "Sniper Rifles (2)", "Sniper Rifles (2)"),
+            (
+                "report_summary, prefix and subject",
+                "Rifles",
+                "components for",
+                "Sniper Rifles (3)",
+                "components for Sniper Rifles (3)",
+            ),
+            ("no report_summary but subject", None, None, "Sniper Rifles (2)", "Sniper Rifles (2)"),
+            (
+                "no report_summary but prefix and subject",
+                None,
+                "components for",
+                "Sniper Rifles (3)",
+                "components for Sniper Rifles (3)",
+            ),
+        ]
+    )
+    def test_report_summary_replaced_by_prefix_and_summary(
+        self, name, previous_summary, prefix, subject, expected_summary
+    ):
+        rs_prefix = ReportSummaryPrefix.objects.create(id=uuid.uuid4(), name=prefix) if prefix else None
+        rs_subject = (
+            ReportSummarySubject.objects.create(id=uuid.uuid4(), name=subject, code_level=1) if subject else None
+        )
+
+        application = self.create_draft_standard_application(organisation=self.organisation, num_products=0)
+        case = self.submit_application(application)
+        url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
+
+        product_on_application = GoodOnApplication.objects.create(
+            good=self.good_1,
+            application=application,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+            report_summary=previous_summary,
+        )
+        data = {
+            "objects": [self.good_1.pk],
+            "current_object": product_on_application.pk,
+            "control_list_entries": ["ML1a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary_prefix_id": rs_prefix.id if rs_prefix else None,
+            "report_summary_subject_id": rs_subject.id if rs_subject else None,
+            "comment": "report summary update test",
+            "regime_entries": [],
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+        product_on_application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(product_on_application.report_summary, expected_summary)
+        self.assertEqual(product_on_application.report_summary_prefix, rs_prefix)
+        self.assertEqual(product_on_application.report_summary_subject, rs_subject)
+
+        audit_qs = Audit.objects.filter(verb=AuditType.PRODUCT_REVIEWED)
+        product_audit = audit_qs.first()
+        audit_payload = product_audit.payload
+
+        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_payload["old_report_summary"], previous_summary)
+        self.assertEqual(audit_payload["report_summary"], expected_summary)
+
+    @parameterized.expand(
+        [
+            ("good prefix, bad subject", False, True, GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT),
+            ("bad prefix, good subject", True, False, GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX),
+            ("bad prefix, bad subject", True, True, GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT),
+            ("no subject, bad prefix", True, None, GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX),
+        ]
+    )
+    def test_bad_report_summary_subject_and_prefix_combinations(
+        self, name, has_bad_prefix, has_bad_subject, expected_errors
+    ):
+        rs_prefix_id = uuid.uuid4() if has_bad_prefix is not None else None
+        rs_subject_id = uuid.uuid4() if has_bad_subject is not None else None
+        if has_bad_prefix is not None and not has_bad_prefix:
+            ReportSummaryPrefix.objects.create(id=rs_prefix_id, name="prefix")
+        if has_bad_subject is not None and not has_bad_subject:
+            ReportSummarySubject.objects.create(id=rs_subject_id, name="subject", code_level=1)
+
+        application = self.create_draft_standard_application(organisation=self.organisation, num_products=0)
+        case = self.submit_application(application)
+        url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
+
+        product_on_application = GoodOnApplication.objects.create(
+            good=self.good_1,
+            application=application,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+        )
+        data = {
+            "objects": [self.good_1.pk],
+            "current_object": product_on_application.pk,
+            "control_list_entries": ["ML1a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": "fallback summary",
+            "report_summary_prefix_id": rs_prefix_id,
+            "report_summary_subject_id": rs_subject_id,
+            "comment": "report summary update test",
+            "regime_entries": [],
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["error"][0], expected_errors)
 
     def test_report_summary_updates_same_product_added_twice(self):
         self.product_on_application1 = GoodOnApplication.objects.create(
