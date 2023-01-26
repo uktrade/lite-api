@@ -5,4 +5,4 @@
 [submodule "lite_routing"]
 	path = lite_routing
 	url = git@github.com:uktrade/lite-routing.git
-	branch = main
+	branch = LTD-3163-Prefix_summary
