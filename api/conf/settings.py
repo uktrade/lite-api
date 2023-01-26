@@ -35,6 +35,7 @@ env = Env(
     CASEWORKER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
+    GIT_COMMIT=(str, ""),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -455,13 +456,24 @@ FEATURE_SIEL_COMPLIANCE_ENABLED = env.bool("FEATURE_SIEL_COMPLIANCE_ENABLED", Fa
 FEATURE_C5_ROUTING_ENABLED = env.bool("FEATURE_C5_ROUTING_ENABLED", True)
 FEATURE_C6_ROUTING_ENABLED = env.bool("FEATURE_C6_ROUTING_ENABLED", False)
 
+FEATURE_COUNTERSIGN_ROUTING_ENABLED = env.bool("FEATURE_COUNTERSIGN_ROUTING_ENABLED", False)
 
 SANCTION_LIST_SOURCES = env.json(
     "SANCTION_LIST_SOURCES",
     {
         "un_sanctions_file": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
         "office_financial_sanctions_file": "https://ofsistorage.blob.core.windows.net/publishlive/2022format/ConList.xml",
-        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1071293/UK_Sanctions_List.xml",
+        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1129559/UK_Sanctions_List.xml",
     },
 )
 LITE_INTERNAL_NOTIFICATION_EMAILS = env.json("LITE_INTERNAL_NOTIFICATION_EMAILS", {})
+
+GIT_COMMIT_SHA = env.str("GIT_COMMIT", "UNKNOWN")
+# Only extract the git commit sha by subprocess if we are running locally
+if GIT_COMMIT_SHA == "UNKNOWN" and ENV == "local":
+    import subprocess  # nosec
+
+    try:
+        GIT_COMMIT_SHA = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()  # nosec
+    except Exception:
+        GIT_COMMIT_SHA = "UNKNOWN"

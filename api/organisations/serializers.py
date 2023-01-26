@@ -16,8 +16,6 @@ from api.core.serializers import (
 )
 from api.documents.libraries.process_document import process_document
 from api.documents.models import Document
-from lite_content.lite_api import strings
-from lite_content.lite_api.strings import Organisations
 from api.organisations.constants import (
     UK_EORI_MAX_LENGTH,
     UK_EORI_VALIDATION_REGEX,
@@ -31,6 +29,8 @@ from api.staticdata.countries.helpers import get_country
 from api.users.libraries.get_user import get_user_organisation_relationship
 from api.users.models import UserOrganisationRelationship, ExporterUser
 from api.users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
+from lite_content.lite_api import strings
+from lite_content.lite_api.strings import Organisations
 
 
 class SiteListSerializer(serializers.Serializer):
@@ -189,7 +189,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "max_length": Organisations.Create.LENGTH_REGISTRATION_NUMBER,
         },
     )
-    phone_number = PhoneNumberField(required=True, allow_blank=True)
+    phone_number = PhoneNumberField(required=True, allow_blank=True, region="GB")
     website = serializers.URLField(allow_blank=True)
 
     user = ExporterUserCreateUpdateSerializer(write_only=True)
@@ -272,9 +272,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_phone_number(self, value):
         if value == "":
             error = (
-                "Enter an organisation phone number"
+                "Enter an organisation telephone number"
                 if self.context.get("type") == "commercial"
-                else "Enter a phone number"
+                else "Enter a telephone number"
             )
             raise serializers.ValidationError(error)
 
