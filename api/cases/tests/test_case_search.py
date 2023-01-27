@@ -248,10 +248,31 @@ class FilterAndSortTests(DataTestClient):
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
             self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
-    def test_only_open_queries_gets_cases(self):
+    def test_tab_all_cases_search(self):
         """
         Given there is a case with an ECJU Query that has not been responded to
-        When a user requests to view cases with open queries
+        When the tab is 'all_cases' and a team queue is not chosen
+        Then all cases are returned
+        """
+        all_cases = self.application_cases + self.clc_cases
+
+        ## create an open ecju query that should be returned
+        case_with_open_query = self.application_cases[0]
+        self.create_ecju_query(case_with_open_query, gov_user=self.gov_user)
+
+        url = f"{self.url}?selected_tab=all_cases"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(len(response_data), len(all_cases))
+        cases_returned = [x["id"] for x in response_data]
+        self.assertIn(str(case_with_open_query.id), cases_returned)
+
+    def test_tab_open_queries_cases_search(self):
+        """
+        Given there is a case with an ECJU Query that has not been responded to
+        When a user requests the open queries tab
         Then only cases with open queries are returned
         """
         ## create an ecju query for a case that should appear in tab
@@ -268,7 +289,7 @@ class FilterAndSortTests(DataTestClient):
             query_type=PicklistType.ECJU,
         )
         ecju_query_with_response.save()
-        url = f"{self.url}?only_open_queries=True"
+        url = f"{self.url}?selected_tab=open_queries"
 
         response = self.client.get(url, **self.gov_headers)
 
@@ -277,26 +298,32 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(response_data["count"], 1)
         self.assertEqual(response_data["results"]["cases"][0]["id"], str(case_with_open_query.id))
 
-    def test_only_open_queries_false_search(self):
+    def test_tab_my_cases_search(self):
         """
-        Given there is a case with an ECJU Query that has not been responded to
-        When 'only_open_queries' is false and a team queue is not chosen
-        Then all cases are returned
+        Given there is a case that I am assigned to
+        And there is a case where I am a case officer
+        When the  user requests the 'my_cases' tab
+        Then those two cases are returned
         """
-        all_cases = self.application_cases + self.clc_cases
+        ## create a case where I am case officer
+        case_officer_case = self.application_cases[0]
+        case_officer_case.case_officer = self.gov_user
+        case_officer_case.save()
 
-        ## create an open ecju query that should be returned
-        case_with_open_query = self.application_cases[0]
-        self.create_ecju_query(case_with_open_query, gov_user=self.gov_user)
+        ## create a case assigned to me
+        user_assigned_case = self.application_cases[1]
+        CaseAssignment.objects.create(queue=self.queue, case=user_assigned_case, user=self.gov_user)
 
-        url = f"{self.url}?only_open_queries=False"
+        url = f"{self.url}?selected_tab=my_cases"
 
         response = self.client.get(url, **self.gov_headers)
+
         response_data = response.json()["results"]["cases"]
 
-        self.assertEqual(len(response_data), len(all_cases))
+        self.assertEqual(len(response_data), 2)
         cases_returned = [x["id"] for x in response_data]
-        self.assertIn(str(case_with_open_query.id), cases_returned)
+        self.assertIn(str(user_assigned_case.id), cases_returned)
+        self.assertIn(str(case_officer_case.id), cases_returned)
 
     def test_head_request(self):
         """
@@ -312,7 +339,7 @@ class FilterAndSortTests(DataTestClient):
 
         self.assertEqual(response_headers["Resource-Count"], f"{len(all_cases)}")
 
-    def test_head_request_open_queries(self):
+    def test_head_request_open_queries_tab(self):
         """
         Given there is a case with an ECJU Query that has not been responded to
         When a HEAD request is sent to view cases with open queries
@@ -333,13 +360,37 @@ class FilterAndSortTests(DataTestClient):
             query_type=PicklistType.ECJU,
         )
         ecju_query_with_response.save()
-        url = f"{self.url}?only_open_queries=True"
+        url = f"{self.url}?selected_tab=open_queries"
 
         response = self.client.head(url, **self.gov_headers)
 
         response_headers = response.headers
 
         self.assertEqual(response_headers["Resource-Count"], "1")
+
+    def test_head_request_my_cases_tab(self):
+        """
+        Given there is a case assigned to me
+        And a case where I am assigned as case officer
+        When a HEAD request is sent with 'my_cases' as selected tab
+        Then header returns a count of 2
+        """
+
+        ## create a case where I am case officer
+        case_officer_case = self.application_cases[0]
+        case_officer_case.case_officer = self.gov_user
+        case_officer_case.save()
+
+        ## create a case assigned to me
+        user_assigned_case = self.application_cases[1]
+        CaseAssignment.objects.create(queue=self.queue, case=user_assigned_case, user=self.gov_user)
+
+        url = f"{self.url}?selected_tab=my_cases"
+
+        response = self.client.head(url, **self.gov_headers)
+        response_headers = response.headers
+
+        self.assertEqual(response_headers["Resource-Count"], "2")
 
 
 class UpdatedCasesQueueTests(DataTestClient):
