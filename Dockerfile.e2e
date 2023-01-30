@@ -1,7 +1,6 @@
 FROM python:3.7-slim
 
 ARG DOCKERIZE_VERSION=v0.6.1
-ARG GIT_ACCESS_CODE=
 
 WORKDIR /app
 
@@ -28,17 +27,5 @@ ADD . /app
 # Install git
 RUN apt-get update --fix-missing
 RUN apt-get install -y git
-
-# Clean up lite-content submodule and pull it down
-RUN rm -rf lite_content/
-RUN git clone https://$GIT_ACCESS_CODE@github.com/uktrade/lite-content.git
-RUN mkdir lite_content
-RUN cp -r lite-content/* lite_content/
-
-# Clean up lite-routing submodule and pull it down
-RUN rm -rf lite_routing/
-RUN git clone https://$GIT_ACCESS_CODE@github.com/uktrade/lite-routing.git
-RUN mkdir lite_routing
-RUN cp -r lite-routing/* lite_routing/
 
 CMD ./start-e2e.sh
