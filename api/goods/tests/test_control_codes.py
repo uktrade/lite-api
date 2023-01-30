@@ -314,7 +314,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_missing_report_summary_and_subject_gives_400_bad_request(self):
+    def test_missing_report_summary_and_subject_gives_200_OK(self):
         application = self.create_draft_standard_application(organisation=self.organisation, num_products=0)
         case = self.submit_application(application)
         url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
@@ -330,7 +330,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         data = {
             "objects": [self.good_1.pk],
             "current_object": product_on_application.pk,
-            "control_list_entries": ["ML1a"],
+            "control_list_entries": [],
             "is_precedent": False,
             "is_good_controlled": True,
             "end_use_control": [],
@@ -339,8 +339,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["error"][0], GOOD_ON_APP_NO_REPORT_SUMMARY)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @parameterized.expand(
         [
@@ -389,8 +388,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "is_precedent": False,
             "is_good_controlled": True,
             "end_use_control": [],
-            "report_summary_prefix_id": rs_prefix.id if rs_prefix else None,
-            "report_summary_subject_id": rs_subject.id if rs_subject else None,
+            "report_summary_prefix": rs_prefix.id if rs_prefix else None,
+            "report_summary_subject": rs_subject.id if rs_subject else None,
             "comment": "report summary update test",
             "regime_entries": [],
         }
@@ -398,9 +397,16 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         response = self.client.post(url, data, **self.gov_headers)
         product_on_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check the good-on-application was updated
         self.assertEqual(product_on_application.report_summary, expected_summary)
         self.assertEqual(product_on_application.report_summary_prefix, rs_prefix)
         self.assertEqual(product_on_application.report_summary_subject, rs_subject)
+
+        # Check the good was updated
+        self.assertEqual(product_on_application.good.report_summary, expected_summary)
+        self.assertEqual(product_on_application.good.report_summary_prefix, rs_prefix)
+        self.assertEqual(product_on_application.good.report_summary_subject, rs_subject)
 
         audit_qs = Audit.objects.filter(verb=AuditType.PRODUCT_REVIEWED)
         product_audit = audit_qs.first()
@@ -412,22 +418,22 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
     @parameterized.expand(
         [
-            ("good prefix, bad subject", False, True, GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT),
-            ("bad prefix, good subject", True, False, GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX),
-            ("bad prefix, bad subject", True, True, GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT),
-            ("no subject, bad prefix", True, None, GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX),
+            ("good prefix, bad subject", True, False, GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT),
+            ("bad prefix, good subject", False, True, GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX),
+            ("bad prefix, bad subject", False, False, GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT),
+            ("good prefix, no subject", True, None, GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT),
+            ("bad prefix, no subject", False, None, GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX),
         ]
     )
     def test_bad_report_summary_subject_and_prefix_combinations(
-        self, name, has_bad_prefix, has_bad_subject, expected_errors
+        self, name, has_good_prefix, has_good_subject, expected_errors
     ):
-        rs_prefix_id = uuid.uuid4() if has_bad_prefix is not None else None
-        rs_subject_id = uuid.uuid4() if has_bad_subject is not None else None
-        if has_bad_prefix is not None and not has_bad_prefix:
+        rs_prefix_id = uuid.uuid4() if has_good_prefix is not None else None
+        rs_subject_id = uuid.uuid4() if has_good_subject is not None else None
+        if has_good_prefix is True:
             ReportSummaryPrefix.objects.create(id=rs_prefix_id, name="prefix")
-        if has_bad_subject is not None and not has_bad_subject:
+        if has_good_subject is not None and has_good_subject:
             ReportSummarySubject.objects.create(id=rs_subject_id, name="subject", code_level=1)
-
         application = self.create_draft_standard_application(organisation=self.organisation, num_products=0)
         case = self.submit_application(application)
         url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
@@ -447,8 +453,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "is_good_controlled": True,
             "end_use_control": [],
             "report_summary": "fallback summary",
-            "report_summary_prefix_id": rs_prefix_id,
-            "report_summary_subject_id": rs_subject_id,
+            "report_summary_prefix": rs_prefix_id,
+            "report_summary_subject": rs_subject_id,
             "comment": "report summary update test",
             "regime_entries": [],
         }

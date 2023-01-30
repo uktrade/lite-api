@@ -84,8 +84,8 @@ def get_new_report_data(request):
     summary = data.get("report_summary", None)
     rs_subject, rs_prefix = None, None
 
-    subject_id = data.get("report_summary_subject_id", None)
-    prefix_id = data.get("report_summary_prefix_id", None)
+    subject_id = data.get("report_summary_subject", None)
+    prefix_id = data.get("report_summary_prefix", None)
 
     if subject_id is not None:
         try:
@@ -101,11 +101,12 @@ def get_new_report_data(request):
         except ReportSummaryPrefix.DoesNotExist:
             raise ValidationError(GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX)
 
-    if rs_subject is not None and rs_prefix is not None:
-        summary = " ".join([rs_prefix.name, rs_subject.name])
+    if rs_subject is None and rs_prefix is not None:
+        raise ValidationError(GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT)
 
-    if summary is None:
-        raise ValidationError(GOOD_ON_APP_NO_REPORT_SUMMARY)
+    if rs_subject is not None and rs_prefix is not None:
+        summary = f"{rs_prefix.name} {rs_subject.name}"
+
     return summary
 
 
@@ -122,8 +123,7 @@ class GoodsListControlCode(APIView):
             pks = [pks]
         if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
             return GoodsType.objects.filter(pk__in=pks)
-        objects_filter = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
-        return objects_filter
+        return GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
 
     def get_serializer_class(self):
         if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
