@@ -1,5 +1,0 @@
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', 'gcr.io/sre-docker-registry/github.com/uktrade/lite-api:${TAG_NAME}', '-f', 'Dockerfile.e2e', '.', '--build-arg', 'GIT_ACCESS_CODE=${_GITKEY}' ]
-images:
-  - 'gcr.io/sre-docker-registry/github.com/uktrade/lite-api:${TAG_NAME}'
