@@ -164,10 +164,14 @@ class Good(TimestampableModel):
     report_summary = models.TextField(default=None, blank=True, null=True, max_length=5000)
     # Report Summary prefix and subject
     report_summary_prefix = models.ForeignKey(
-        ReportSummaryPrefix, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_prefix"
+        ReportSummaryPrefix, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_prefix_good"
     )
     report_summary_subject = models.ForeignKey(
-        ReportSummarySubject, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_subject"
+        ReportSummarySubject,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="report_summary_subject_good",
     )
 
     has_security_features = models.BooleanField(default=None, blank=True, null=True)
