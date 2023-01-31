@@ -415,8 +415,12 @@ class GoodOnApplication(AbstractGoodOnApplication):
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
 
     # Report Summary prefix and subject
-    report_summary_prefix = models.ForeignKey(ReportSummaryPrefix, on_delete=models.CASCADE, blank=True, null=True)
-    report_summary_subject = models.ForeignKey(ReportSummarySubject, on_delete=models.CASCADE, blank=True, null=True)
+    report_summary_prefix = models.ForeignKey(
+        ReportSummaryPrefix, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_prefix"
+    )
+    report_summary_subject = models.ForeignKey(
+        ReportSummarySubject, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_subject"
+    )
 
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)

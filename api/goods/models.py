@@ -163,8 +163,12 @@ class Good(TimestampableModel):
     # max length same as picklist
     report_summary = models.TextField(default=None, blank=True, null=True, max_length=5000)
     # Report Summary prefix and subject
-    report_summary_prefix = models.ForeignKey(ReportSummaryPrefix, on_delete=models.CASCADE, blank=False, null=True)
-    report_summary_subject = models.ForeignKey(ReportSummarySubject, on_delete=models.CASCADE, blank=False, null=True)
+    report_summary_prefix = models.ForeignKey(
+        ReportSummaryPrefix, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_prefix"
+    )
+    report_summary_subject = models.ForeignKey(
+        ReportSummarySubject, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_subject"
+    )
 
     has_security_features = models.BooleanField(default=None, blank=True, null=True)
     security_feature_details = models.TextField(

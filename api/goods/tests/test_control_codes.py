@@ -30,7 +30,6 @@ from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
 from api.users.models import Role
 from api.goods.views import (
-    GOOD_ON_APP_NO_REPORT_SUMMARY,
     GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX,
     GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT,
 )
@@ -317,7 +316,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
     def test_missing_report_summary_and_subject_gives_200_OK(self):
         application = self.create_draft_standard_application(organisation=self.organisation, num_products=0)
         case = self.submit_application(application)
-        url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
+        url = reverse("goods:control_list_entries", kwargs={"case_pk": case.id})
 
         product_on_application = GoodOnApplication.objects.create(
             good=self.good_1,
@@ -371,7 +370,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         application = self.create_draft_standard_application(organisation=self.organisation, num_products=0)
         case = self.submit_application(application)
-        url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
+        url = reverse("goods:control_list_entries", kwargs={"case_pk": case.id})
 
         product_on_application = GoodOnApplication.objects.create(
             good=self.good_1,
@@ -436,7 +435,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             ReportSummarySubject.objects.create(id=rs_subject_id, name="subject", code_level=1)
         application = self.create_draft_standard_application(organisation=self.organisation, num_products=0)
         case = self.submit_application(application)
-        url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
+        url = reverse("goods:control_list_entries", kwargs={"case_pk": case.id})
 
         product_on_application = GoodOnApplication.objects.create(
             good=self.good_1,

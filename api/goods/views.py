@@ -74,12 +74,11 @@ from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for
 
 good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
 
-GOOD_ON_APP_NO_REPORT_SUMMARY = "Select a report summary subject"
 GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX = "Select a valid report summary prefix"
 GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT = "Select a valid report summary subject"
 
 
-def get_new_report_data(request):
+def get_new_report_summary_data(request):
     data = request.data
     summary = data.get("report_summary", None)
     rs_subject, rs_prefix = None, None
@@ -157,7 +156,7 @@ class GoodsListControlCode(APIView):
             )
 
         try:
-            new_report_summary = get_new_report_data(request)
+            new_report_summary = get_new_report_summary_data(request)
         except ValidationError as ex:
             return JsonResponse(
                 data={"errors": {"error": [ex.message]}},
