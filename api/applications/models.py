@@ -416,10 +416,14 @@ class GoodOnApplication(AbstractGoodOnApplication):
 
     # Report Summary prefix and subject
     report_summary_prefix = models.ForeignKey(
-        ReportSummaryPrefix, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_prefix_goa"
+        ReportSummaryPrefix, on_delete=models.CASCADE, blank=True, null=True, related_name="prefix_good_on_application"
     )
     report_summary_subject = models.ForeignKey(
-        ReportSummarySubject, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_subject_goa"
+        ReportSummarySubject,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="subject_good_on_application",
     )
 
     # Exhibition applications are the only applications that contain the following as such may be null
