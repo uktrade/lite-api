@@ -132,11 +132,15 @@ class CasesSearchView(generics.ListAPIView):
     def get_filters(self, request):
         filters = {key: value for key, value in request.GET.items() if key not in ["hidden", "queue_id", "flags"]}
 
+        search_tabs = ("my_cases", "open_queries")
+        selected_tab = request.GET.get("selected_tab")
+        if selected_tab and selected_tab in search_tabs:
+            filters[selected_tab] = True
+
         filters["flags"] = request.GET.getlist("flags", [])
         filters["submitted_from"] = make_date_from_params("submitted_from", filters)
         filters["submitted_to"] = make_date_from_params("submitted_to", filters)
         filters["finalised_from"] = make_date_from_params("finalised_from", filters)
         filters["finalised_to"] = make_date_from_params("finalised_to", filters)
-        filters["only_open_queries"] = True if request.GET.get("only_open_queries") == "True" else False
 
         return filters
