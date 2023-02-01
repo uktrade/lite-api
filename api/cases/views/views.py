@@ -746,6 +746,43 @@ class CaseOfficer(APIView):
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
+class CasesUpdateCaseOfficer(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    @transaction.atomic
+    def put(self, request):
+        """
+        Assigns a gov user as case officer to multiple cases
+        """
+        gov_user_pk = request.data.get("gov_user_pk")
+        case_ids = request.data.get("case_ids")
+
+        if not gov_user_pk or not case_ids:
+            return JsonResponse(
+                data={"errors": {"user": [Cases.CaseOfficerPage.NONE]}}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        data = {"case_officer": gov_user_pk}
+
+        for case_pk in case_ids:
+            case = get_case(case_pk)
+            serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
+
+            if serializer.is_valid(raise_exception=True):
+                user = get_user_by_pk(gov_user_pk)
+                serializer.save()
+
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
+                    target=case,
+                    payload={
+                        "case_officer": user.email if not user.first_name else f"{user.first_name} {user.last_name}"
+                    },
+                )
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
 class FinaliseView(UpdateAPIView):
     authentication_classes = (GovAuthentication,)
 

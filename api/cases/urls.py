@@ -17,6 +17,7 @@ urlpatterns = [
     path("<uuid:pk>/queues/", views.SetQueues.as_view(), name="queues"),
     path("<uuid:pk>/case-notes/", case_notes.CaseNoteList.as_view(), name="case_notes"),
     path("<uuid:pk>/case-officer/", views.CaseOfficer.as_view(), name="case_officer"),
+    path("cases-update-case-officer/", views.CasesUpdateCaseOfficer.as_view(), name="cases_update_case_officer"),
     path("<uuid:pk>/activity/", CaseActivityView.as_view(), name="activity"),
     path("<uuid:pk>/activity/filters/", CaseActivityFiltersView.as_view(), name="activity_filters"),
     path("<uuid:pk>/additional-contacts/", views.AdditionalContacts.as_view(), name="additional_contacts"),
