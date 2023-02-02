@@ -8,6 +8,7 @@ from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case, CaseAssignment, EcjuQuery
 from api.picklists.enums import PicklistType
+from api.cases.tests.factories import CaseSIELFactory
 from api.queues.constants import (
     UPDATED_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
@@ -581,3 +582,68 @@ class OpenEcjuQueriesForTeamOnWorkQueueTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(response_data["count"], 1)
+
+
+class SearchAPITest(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.url = reverse("cases:search")
+
+    def test_api_success(self):
+        case = CaseSIELFactory()
+        case.submitted_at = datetime.datetime.now()
+        case.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        case.save()
+        self.queue.cases.add(case)
+        self.queue.save()
+        assignment = CaseAssignment(user=self.gov_user, case=case, queue=self.queue)
+        assignment.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        case_api_result = response_data["cases"][0]
+        expected_assignments = {
+            str(self.gov_user.pk): {
+                "email": self.gov_user.email,
+                "first_name": self.gov_user.first_name,
+                "last_name": self.gov_user.last_name,
+                "queues": [{"id": str(self.queue.id), "name": self.queue.name}],
+                "team_id": str(self.gov_user.team.id),
+                "team_name": self.gov_user.team.name,
+            }
+        }
+        self.assertEqual(case_api_result["assignments"], expected_assignments)
+        self.assertEqual(case_api_result["case_officer"], None)
+        self.assertEqual(case_api_result["case_type"]["reference"]["key"], "siel")
+        self.assertEqual(case_api_result["destinations"], [])
+        self.assertEqual(case_api_result["destinations_flags"], [])
+        self.assertEqual(case_api_result["flags"], [])
+        self.assertEqual(case_api_result["goods_flags"], [])
+        self.assertEqual(case_api_result["has_open_queries"], False)
+        self.assertEqual(case_api_result["id"], str(case.id))
+        self.assertEqual(case_api_result["is_recently_updated"], True)
+        self.assertEqual(case_api_result["next_review_date"], None)
+        self.assertEqual(case_api_result["organisation"]["name"], case.organisation.name)
+        expected_queues = [
+            {
+                "countersigning_queue": self.queue.countersigning_queue,
+                "id": str(self.queue.id),
+                "name": self.queue.name,
+                "team": {
+                    "alias": self.queue.team.alias,
+                    "id": str(self.queue.team.id),
+                    "is_ogd": self.queue.team.is_ogd,
+                    "name": self.queue.team.name,
+                    "part_of_ecju": self.queue.team.part_of_ecju,
+                },
+            }
+        ]
+        self.assertEqual(case_api_result["queues"], expected_queues)
+        self.assertEqual(case_api_result["reference_code"], case.reference_code)
+        self.assertEqual(case_api_result["sla_days"], 0)
+        self.assertEqual(case_api_result["sla_remaining_days"], None)
+        self.assertEqual(case_api_result["status"]["key"], case.status.status)
+        self.assertEqual(case_api_result["submitted_at"], case.submitted_at.isoformat(timespec="microseconds") + "Z")
