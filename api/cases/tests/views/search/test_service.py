@@ -30,7 +30,7 @@ class TestSearchService(DataTestClient):
             payload={"old_name": old_name, "new_name": new_name},
         )
         cases = service.populate_activity_updates([{"id": str(self.case.id)}])
-        ## check only 2 reocr
+        # check only 2 records are present, sorted newest first
         assert len(cases[0]["activity_updates"]) == 2
         assert (
             cases[0]["activity_updates"][0]["text"]

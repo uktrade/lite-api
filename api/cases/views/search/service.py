@@ -1,9 +1,10 @@
 from datetime import timedelta
+import time
 from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, F, Q, Value
+from django.db.models import Count, F, Q, Value, OuterRef
 from django.db.models.functions import Concat
 from django.utils import timezone
 
@@ -215,32 +216,36 @@ def populate_activity_updates(cases: List[Dict]):
     """
     obj_type = ContentType.objects.get_for_model(Case)
     case_ids = [case["id"] for case in cases]
-    ## case_id can be present against 1 of 2 fields so filters required
-    obj_as_action_filter = Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type)
-    obj_as_target_filter = Q(target_object_id__in=case_ids, target_content_type=obj_type)
-    activities_qs = Audit.objects.filter(obj_as_action_filter | obj_as_target_filter).order_by("-updated_at")
-    ## dictionary used to avoid nested looping while adding activites to cases
+    # iterate over audit records once and add max of 2 records per matching
+    # action_object_content_type or target_content_type (up to 4 total)
+    top_2_per_case = Audit.objects.filter(
+        Q(action_object_object_id=OuterRef("action_object_object_id"), action_object_content_type=obj_type)
+        | Q(target_object_id=OuterRef("target_object_id"), target_content_type=obj_type)
+    ).order_by("-updated_at")[:2]
+    activities_qs = Audit.objects.filter(
+        Q(id__in=top_2_per_case.values("id")),
+        Q(target_object_id__in=case_ids, target_content_type=obj_type)
+        | Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type),
+    )
+    # dictionary used to avoid nested looping while adding activities to cases
     case_id_indexes = {case["id"]: i for i, case in enumerate(cases)}
-    ## iterate over audit records once and add if less than 2 records are present against the case
     for activity in activities_qs:
         case_id = None
-        ## get case id from either of the audit record fields
+        # get case id from either of the audit record fields
         if activity.target_object_id in case_ids:
             case_id = activity.target_object_id
         elif activity.action_object_object_id in case_ids:
             case_id = activity.action_object_object_id
-        ## skips record if case not in case_ids i.e. already has 2 records
-        if not case_id:
-            continue
 
         activity_obj = AuditSerializer(activity).data
         case = cases[case_id_indexes[case_id]]
         if "activity_updates" in case:
             case["activity_updates"].append(activity_obj)
-            case_ids.remove(case_id)
         else:
             case["activity_updates"] = [activity_obj]
-        if not case_ids:
-            break
+    # filter down to 2 most recent records only
+    for case in cases:
+        case["activity_updates"] = sorted(case["activity_updates"], key=lambda d: d["created_at"], reverse=True)
+        case["activity_updates"] = case["activity_updates"][:2]
 
     return cases
