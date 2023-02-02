@@ -1,3 +1,4 @@
+import uuid
 from datetime import date, timedelta
 
 from django.utils.timezone import now
@@ -16,6 +17,8 @@ from api.goods.enums import (
 )
 from api.goods.models import Good, PvGradingDetails
 from api.goods.tests.factories import GoodFactory
+from api.goods.views import GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT, GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX
+from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from lite_content.lite_api import strings
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from test_helpers.clients import DataTestClient

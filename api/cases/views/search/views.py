@@ -1,5 +1,6 @@
 import django
 from django.db.models import F, When, DateField, Exists, OuterRef
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import generics
 
@@ -37,22 +38,10 @@ class CasesSearchView(generics.ListAPIView):
         # we include hidden cases in non work queues (all cases, all open cases)
         # and if the flag to include hidden is added
         include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
-        filters = {key: value for key, value in request.GET.items() if key not in ["hidden", "queue_id", "flags"]}
-
-        filters["flags"] = request.GET.getlist("flags", [])
-        filters["submitted_from"] = make_date_from_params("submitted_from", filters)
-        filters["submitted_to"] = make_date_from_params("submitted_to", filters)
-        filters["finalised_from"] = make_date_from_params("finalised_from", filters)
-        filters["finalised_to"] = make_date_from_params("finalised_to", filters)
+        filters = self.get_filters(request)
 
         page = self.paginate_queryset(
-            Case.objects.search(
-                queue_id=queue_id,
-                is_work_queue=is_work_queue,
-                user=user,
-                include_hidden=include_hidden,
-                **filters,
-            ).annotate(
+            self.get_case_queryset(user, queue_id, is_work_queue, include_hidden, filters).annotate(
                 next_review_date=django.db.models.Case(
                     When(
                         case_review_date__team_id=user.team.id,
@@ -113,3 +102,45 @@ class CasesSearchView(generics.ListAPIView):
                 "queue": queue,
             }
         )
+
+    def head(self, request, *agrs, **kwargs):
+        user = request.user.govuser
+        queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
+        is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
+
+        # we include hidden cases in non work queues (all cases, all open cases)
+        # and if the flag to include hidden is added
+        include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
+
+        filters = self.get_filters(request)
+
+        count = self.get_case_queryset(user, queue_id, is_work_queue, include_hidden, filters).count()
+
+        response = HttpResponse()
+        response.headers["Resource-Count"] = count
+        return response
+
+    def get_case_queryset(self, user, queue_id, is_work_queue, include_hidden, filters):
+        return Case.objects.search(
+            queue_id=queue_id,
+            is_work_queue=is_work_queue,
+            user=user,
+            include_hidden=include_hidden,
+            **filters,
+        )
+
+    def get_filters(self, request):
+        filters = {key: value for key, value in request.GET.items() if key not in ["hidden", "queue_id", "flags"]}
+
+        search_tabs = ("my_cases", "open_queries")
+        selected_tab = request.GET.get("selected_tab")
+        if selected_tab and selected_tab in search_tabs:
+            filters[selected_tab] = True
+
+        filters["flags"] = request.GET.getlist("flags", [])
+        filters["submitted_from"] = make_date_from_params("submitted_from", filters)
+        filters["submitted_to"] = make_date_from_params("submitted_to", filters)
+        filters["finalised_from"] = make_date_from_params("finalised_from", filters)
+        filters["finalised_to"] = make_date_from_params("finalised_to", filters)
+
+        return filters

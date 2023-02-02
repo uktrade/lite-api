@@ -53,6 +53,8 @@ class Migration(migrations.Migration):
     dependencies = [
         ("report_summaries", "0002_add_report_summaries"),
         ("picklists", "0002_auto_20220110_1430"),
+        ("teams", "0007_auto_20220531_1344"),
+        ("lite_routing", "0001_initial"),
     ]
 
     operations = [

@@ -6,11 +6,11 @@ from rest_framework import status
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import Case, CaseAssignment
+from api.cases.models import Case, CaseAssignment, EcjuQuery
+from api.picklists.enums import PicklistType
+from api.cases.tests.factories import CaseSIELFactory
 from api.queues.constants import (
     UPDATED_CASES_QUEUE_ID,
-    MY_ASSIGNED_CASES_QUEUE_ID,
-    MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
 )
 from api.queues.tests.factories import QueueFactory
@@ -249,6 +249,150 @@ class FilterAndSortTests(DataTestClient):
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
             self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
+    def test_tab_all_cases_search(self):
+        """
+        Given there is a case with an ECJU Query that has not been responded to
+        When the tab is 'all_cases' and a team queue is not chosen
+        Then all cases are returned
+        """
+        all_cases = self.application_cases + self.clc_cases
+
+        ## create an open ecju query that should be returned
+        case_with_open_query = self.application_cases[0]
+        self.create_ecju_query(case_with_open_query, gov_user=self.gov_user)
+
+        url = f"{self.url}?selected_tab=all_cases"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(len(response_data), len(all_cases))
+        cases_returned = [x["id"] for x in response_data]
+        self.assertIn(str(case_with_open_query.id), cases_returned)
+
+    def test_tab_open_queries_cases_search(self):
+        """
+        Given there is a case with an ECJU Query that has not been responded to
+        When a user requests the open queries tab
+        Then only cases with open queries are returned
+        """
+        ## create an ecju query for a case that should appear in tab
+        case_with_open_query = self.application_cases[0]
+        self.create_ecju_query(case_with_open_query, gov_user=self.gov_user)
+
+        ## create an ecju query with a response so it should not appear in tab
+        ecju_query_with_response = EcjuQuery(
+            question="ECJU Query 2",
+            case=self.application_cases[1],
+            response="I have a response",
+            raised_by_user=self.gov_user,
+            responded_by_user=self.exporter_user,
+            query_type=PicklistType.ECJU,
+        )
+        ecju_query_with_response.save()
+        url = f"{self.url}?selected_tab=open_queries"
+
+        response = self.client.get(url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response_data["count"], 1)
+        self.assertEqual(response_data["results"]["cases"][0]["id"], str(case_with_open_query.id))
+
+    def test_tab_my_cases_search(self):
+        """
+        Given there is a case that I am assigned to
+        And there is a case where I am a case officer
+        When the  user requests the 'my_cases' tab
+        Then those two cases are returned
+        """
+        ## create a case where I am case officer
+        case_officer_case = self.application_cases[0]
+        case_officer_case.case_officer = self.gov_user
+        case_officer_case.save()
+
+        ## create a case assigned to me
+        user_assigned_case = self.application_cases[1]
+        CaseAssignment.objects.create(queue=self.queue, case=user_assigned_case, user=self.gov_user)
+
+        url = f"{self.url}?selected_tab=my_cases"
+
+        response = self.client.get(url, **self.gov_headers)
+
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(len(response_data), 2)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertIn(str(user_assigned_case.id), cases_returned)
+        self.assertIn(str(case_officer_case.id), cases_returned)
+
+    def test_head_request(self):
+        """
+        Given there is are cases
+        When a HEAD request is sent to view cases with no params
+        Then the count for all cases is returned in the header
+        """
+        all_cases = self.application_cases + self.clc_cases
+
+        response = self.client.head(self.url, **self.gov_headers)
+
+        response_headers = response.headers
+
+        self.assertEqual(response_headers["Resource-Count"], f"{len(all_cases)}")
+
+    def test_head_request_open_queries_tab(self):
+        """
+        Given there is a case with an ECJU Query that has not been responded to
+        When a HEAD request is sent to view cases with open queries
+        Then the count for open queries is returned in the header
+        """
+
+        ## create an ecju query for a case that should appear in tab
+        case_with_open_query = self.application_cases[0]
+        self.create_ecju_query(case_with_open_query, gov_user=self.gov_user)
+
+        ## create an ecju query with a response so it should not appear in count
+        ecju_query_with_response = EcjuQuery(
+            question="ECJU Query 2",
+            case=self.application_cases[1],
+            response="I have a response",
+            raised_by_user=self.gov_user,
+            responded_by_user=self.exporter_user,
+            query_type=PicklistType.ECJU,
+        )
+        ecju_query_with_response.save()
+        url = f"{self.url}?selected_tab=open_queries"
+
+        response = self.client.head(url, **self.gov_headers)
+
+        response_headers = response.headers
+
+        self.assertEqual(response_headers["Resource-Count"], "1")
+
+    def test_head_request_my_cases_tab(self):
+        """
+        Given there is a case assigned to me
+        And a case where I am assigned as case officer
+        When a HEAD request is sent with 'my_cases' as selected tab
+        Then header returns a count of 2
+        """
+
+        ## create a case where I am case officer
+        case_officer_case = self.application_cases[0]
+        case_officer_case.case_officer = self.gov_user
+        case_officer_case.save()
+
+        ## create a case assigned to me
+        user_assigned_case = self.application_cases[1]
+        CaseAssignment.objects.create(queue=self.queue, case=user_assigned_case, user=self.gov_user)
+
+        url = f"{self.url}?selected_tab=my_cases"
+
+        response = self.client.head(url, **self.gov_headers)
+        response_headers = response.headers
+
+        self.assertEqual(response_headers["Resource-Count"], "2")
+
 
 class UpdatedCasesQueueTests(DataTestClient):
     def setUp(self):
@@ -334,75 +478,6 @@ class UpdatedCasesQueueTests(DataTestClient):
         response_data = response.json()["results"]["cases"]
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.case.id))
-
-
-class UserAssignedCasesQueueTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-
-        self.user_assigned_case = self.create_standard_application_case(self.organisation).get_case()
-        self.user_assigned_case.queues.set([self.queue])
-        self.case_assignment = CaseAssignment.objects.create(
-            case=self.user_assigned_case, queue=self.queue, user=self.gov_user
-        )
-
-        self.url = f'{reverse("cases:search")}?queue_id={MY_ASSIGNED_CASES_QUEUE_ID}'
-
-    def test_get_cases_on_user_assigned_to_case_queue_returns_expected_cases(self):
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.user_assigned_case.id))
-
-    def test_get_cases_on_user_assigned_to_case_queue_doesnt_return_closed_cases(self):
-        user_assigned_case = self.create_standard_application_case(self.organisation).get_case()
-        user_assigned_case.queues.set([self.queue])
-        CaseAssignment.objects.create(case=user_assigned_case, queue=self.queue, user=self.gov_user)
-        user_assigned_case.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
-        user_assigned_case.save()
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertNotEqual(response_data[0]["id"], str(user_assigned_case.id))
-
-
-class UserAssignedAsCaseOfficerQueueTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-
-        self.case_officer_case = self.create_standard_application_case(self.organisation).get_case()
-        self.case_officer_case.queues.set([self.queue])
-        self.case_officer_case.case_officer = self.gov_user
-        self.case_officer_case.save()
-
-        self.url = f'{reverse("cases:search")}?queue_id={MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID}'
-
-    def test_get_cases_on_user_assigned_as_case_officer_queue_returns_expected_cases(self):
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.case_officer_case.id))
-
-    def test_get_cases_on_user_assigned_as_case_officer_queue_doesnt_return_closed_cases(self):
-        case_officer_case = self.create_standard_application_case(self.organisation).get_case()
-        case_officer_case.queues.set([self.queue])
-        case_officer_case.case_officer = self.gov_user
-        case_officer_case.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
-        case_officer_case.save()
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
-        self.assertNotEqual(response_data[0]["id"], str(case_officer_case.id))
 
 
 class CaseOrderingOnQueueTests(DataTestClient):
@@ -507,3 +582,68 @@ class OpenEcjuQueriesForTeamOnWorkQueueTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(response_data["count"], 1)
+
+
+class SearchAPITest(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.url = reverse("cases:search")
+
+    def test_api_success(self):
+        case = CaseSIELFactory()
+        case.submitted_at = datetime.datetime.now()
+        case.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        case.save()
+        self.queue.cases.add(case)
+        self.queue.save()
+        assignment = CaseAssignment(user=self.gov_user, case=case, queue=self.queue)
+        assignment.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        case_api_result = response_data["cases"][0]
+        expected_assignments = {
+            str(self.gov_user.pk): {
+                "email": self.gov_user.email,
+                "first_name": self.gov_user.first_name,
+                "last_name": self.gov_user.last_name,
+                "queues": [{"id": str(self.queue.id), "name": self.queue.name}],
+                "team_id": str(self.gov_user.team.id),
+                "team_name": self.gov_user.team.name,
+            }
+        }
+        self.assertEqual(case_api_result["assignments"], expected_assignments)
+        self.assertEqual(case_api_result["case_officer"], None)
+        self.assertEqual(case_api_result["case_type"]["reference"]["key"], "siel")
+        self.assertEqual(case_api_result["destinations"], [])
+        self.assertEqual(case_api_result["destinations_flags"], [])
+        self.assertEqual(case_api_result["flags"], [])
+        self.assertEqual(case_api_result["goods_flags"], [])
+        self.assertEqual(case_api_result["has_open_queries"], False)
+        self.assertEqual(case_api_result["id"], str(case.id))
+        self.assertEqual(case_api_result["is_recently_updated"], True)
+        self.assertEqual(case_api_result["next_review_date"], None)
+        self.assertEqual(case_api_result["organisation"]["name"], case.organisation.name)
+        expected_queues = [
+            {
+                "countersigning_queue": self.queue.countersigning_queue,
+                "id": str(self.queue.id),
+                "name": self.queue.name,
+                "team": {
+                    "alias": self.queue.team.alias,
+                    "id": str(self.queue.team.id),
+                    "is_ogd": self.queue.team.is_ogd,
+                    "name": self.queue.team.name,
+                    "part_of_ecju": self.queue.team.part_of_ecju,
+                },
+            }
+        ]
+        self.assertEqual(case_api_result["queues"], expected_queues)
+        self.assertEqual(case_api_result["reference_code"], case.reference_code)
+        self.assertEqual(case_api_result["sla_days"], 0)
+        self.assertEqual(case_api_result["sla_remaining_days"], None)
+        self.assertEqual(case_api_result["status"]["key"], case.status.status)
+        self.assertEqual(case_api_result["submitted_at"], case.submitted_at.isoformat(timespec="microseconds") + "Z")
