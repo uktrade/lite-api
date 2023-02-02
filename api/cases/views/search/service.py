@@ -1,5 +1,4 @@
 from datetime import timedelta
-import time
 from typing import List, Dict
 
 from django.conf import settings
