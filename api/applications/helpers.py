@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 
 from elasticsearch_dsl import Search, Q
@@ -47,6 +49,8 @@ from api.documents.libraries import s3_operations
 from api.external_data.models import SanctionMatch
 from api.licences.models import GoodOnLicence
 from lite_content.lite_api import strings
+
+logger = logging.getLogger(__name__)
 
 
 def get_application_view_serializer(application: BaseApplication):
@@ -176,6 +180,24 @@ def validate_and_create_goods_on_licence(application_id, licence_id, data):
                 errors[value_key] = value_error
         else:
             serializer.save()
+
+    # Exclude any NLR products that are associated with the licence
+    # Ideally these won't exist but in case of product assessment changes when the
+    # Case is sent back then it is possible
+    # Eg if we try to finalise it before consolidating final advice. In such cases
+    # initially a draft licence gets created and NLR products are also associated with
+    # the licence. After consolidation they would still remain because we update the
+    # draft if it exists hence we need to delete them manually
+    good_on_applications_ids = good_on_applications.values_list("id", flat=True)
+    nlr_products = GoodOnLicence.objects.filter(licence_id=licence_id).exclude(good_id__in=good_on_applications_ids)
+    if nlr_products.exists():
+        logger.info(
+            "Mismatch on the number of products on licence: Approved (%s), Products on licence (%s)",
+            good_on_applications.count(),
+            GoodOnLicence.objects.filter(licence_id=licence_id).count(),
+        )
+        logger.info("Removing %s NLR products from Licence Id (%s)", nlr_products.count(), licence_id)
+        nlr_products.delete()
 
     return errors
 
