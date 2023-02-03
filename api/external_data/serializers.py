@@ -104,7 +104,19 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 class DenialSearchSerializer(DocumentSerializer):
     class Meta:
         document = documents.DenialDocumentType
-        fields = ("denied_name",)
+        fields = (
+            "id",
+            "address",
+            "country",
+            "denied_name",
+            "end_use",
+            "item_description",
+            "item_list_codes",
+            "name",
+            "notifying_government",
+            "reference",
+            "regime_reg_ref",
+        )
 
 
 class SanctionMatchSerializer(serializers.ModelSerializer):
