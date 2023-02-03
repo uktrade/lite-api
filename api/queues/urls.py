@@ -12,4 +12,9 @@ urlpatterns = [
         case_assignments.CaseAssignments.as_view(),
         name="case_assignments",
     ),
+    path(
+        "<uuid:queue_id>/case-assignments/<uuid:assignment_id>/",
+        case_assignments.CaseAssignmentDetail.as_view(),
+        name="case_assignment_detail",
+    ),
 ]

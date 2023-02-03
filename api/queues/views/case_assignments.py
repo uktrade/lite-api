@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.http import JsonResponse
+from rest_framework import status
 from rest_framework import views
 
 from api.cases.libraries.get_case import get_case
@@ -62,3 +63,17 @@ class CaseAssignments(views.APIView):
 
         # Return the newly set case assignments
         return self.get(request, pk)
+
+
+class CaseAssignmentDetail(views.APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def delete(self, request, queue_id, assignment_id):
+        try:
+            assignment = CaseAssignment.objects.get(pk=assignment_id, queue_id=queue_id)
+        except CaseAssignment.DoesNotExist:
+            return JsonResponse(data={"error": "No such case assignment"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CaseAssignmentSerializer(assignment)
+        response_data = serializer.data
+        assignment.delete()
+        return JsonResponse(data=response_data)

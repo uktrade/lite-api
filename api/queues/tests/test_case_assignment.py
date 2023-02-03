@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
@@ -5,13 +7,14 @@ from rest_framework import status
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.models import CaseAssignment
+from api.cases.tests.factories import CaseAssignmentFactory
 from api.queues.models import Queue
 from test_helpers.clients import DataTestClient
 
 faker = Faker()
 
 
-class CaseAssignmentTests(DataTestClient):
+class CaseAssignmentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
@@ -114,3 +117,35 @@ class CaseAssignmentTests(DataTestClient):
         self.assertEqual(self.gov_user.case_assignments.count(), 0)
         self.assertFalse(CaseAssignment.objects.filter(user=self.gov_user).exists())
         self.assertEqual(CaseAssignment.objects.filter(user=self.gov_user_2).count(), 2)
+
+
+class CaseAssignmentDetailTest(DataTestClient):
+    def test_delete_assignment_does_not_exist(self):
+
+        url = reverse("queues:case_assignment_detail", kwargs={"queue_id": uuid4(), "assignment_id": uuid4()})
+        response = self.client.delete(url, **self.gov_headers)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "No such case assignment"}
+
+    def test_delete_assignment_success(self):
+
+        assignment = CaseAssignmentFactory()
+        url = reverse(
+            "queues:case_assignment_detail", kwargs={"queue_id": assignment.queue.id, "assignment_id": assignment.id}
+        )
+        response = self.client.delete(url, **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+        expected_response = {
+            "case": str(assignment.case_id),
+            "id": str(assignment.id),
+            "queue": str(assignment.queue_id),
+            "user": {
+                "email": assignment.user.email,
+                "first_name": assignment.user.first_name,
+                "id": str(assignment.user.baseuser_ptr.id),
+                "last_name": assignment.user.last_name,
+                "team": assignment.user.team.name,
+            },
+        }
+        assert response.json() == expected_response
+        assert not CaseAssignment.objects.filter(id=assignment.id).exists()
