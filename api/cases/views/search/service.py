@@ -244,7 +244,8 @@ def populate_activity_updates(cases: List[Dict]):
             case["activity_updates"] = [activity_obj]
     # filter down to 2 most recent records only
     for case in cases:
-        case["activity_updates"] = sorted(case["activity_updates"], key=lambda d: d["created_at"], reverse=True)
-        case["activity_updates"] = case["activity_updates"][:2]
+        if "activity_updates" in case:
+            case["activity_updates"] = sorted(case["activity_updates"], key=lambda d: d["created_at"], reverse=True)
+            case["activity_updates"] = case["activity_updates"][:2]
 
     return cases
