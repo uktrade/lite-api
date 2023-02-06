@@ -1,3 +1,4 @@
+from django.db.models import BinaryField, Case, When
 from django.http import JsonResponse
 from rest_framework.views import APIView
 
@@ -13,8 +14,22 @@ class ReportSummaryPrefixView(APIView):
         """
         Returns report summary prefixes
         """
-        prefixes = ReportSummaryPrefixSerializer(ReportSummaryPrefix.objects.all(), many=True).data
-        return JsonResponse(data={"report_summary_prefixes": prefixes})
+        name = self.request.GET.get("name")
+        prefixes = ReportSummaryPrefix.objects.all()
+
+        if name:
+            prefixes = prefixes.filter(name__icontains=name)
+            prefixes = prefixes.annotate(
+                is_prefixed=Case(
+                    When(name__istartswith=name.lower(), then=True),
+                    default=False,
+                    output_field=BinaryField(),
+                ),
+            )
+            prefixes = prefixes.order_by("-is_prefixed", "name")
+
+        prefix_serializer = ReportSummaryPrefixSerializer(prefixes, many=True)
+        return JsonResponse(data={"report_summary_prefixes": prefix_serializer.data})
 
 
 class ReportSummarySubjectView(APIView):
