@@ -181,6 +181,9 @@ class CaseQuerySet(models.QuerySet):
     def with_trigger_list(self):
         return self.filter(baseapplication__goods__nsg_list_type=NSGListType.TRIGGER_LIST)
 
+    def only_open_queries(self):
+        return self.filter(case_ecju_query__isnull=False, case_ecju_query__response__isnull=True)
+
     def order_by_date(self, order="-"):
         """
         :param order: ('', '-')
@@ -252,6 +255,7 @@ class CaseManager(models.Manager):
         sla_days_elapsed=None,
         is_nca_applicable=None,
         is_trigger_list=None,
+        only_open_queries=False,
         **kwargs,
     ):
         """
@@ -364,6 +368,9 @@ class CaseManager(models.Manager):
 
         if is_trigger_list:
             case_qs = case_qs.with_trigger_list()
+
+        if only_open_queries:
+            case_qs = case_qs.only_open_queries()
 
         if is_work_queue:
             case_qs = case_qs.annotate(
