@@ -233,7 +233,7 @@ def populate_activity_updates(cases: List[Dict]):
         # get case id from either of the audit record fields
         if activity.target_object_id in case_ids:
             case_id = activity.target_object_id
-        elif activity.action_object_object_id in case_ids:
+        else:
             case_id = activity.action_object_object_id
 
         activity_obj = AuditSerializer(activity).data
