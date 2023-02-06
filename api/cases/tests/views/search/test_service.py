@@ -14,6 +14,20 @@ class TestSearchService(DataTestClient):
         self.case = self.create_standard_application_case(self.organisation).get_case()
         new_status = "1"
         Audit.objects.create(
+            actor=self.exporter_user,
+            verb=AuditType.UPDATED_APPLICATION_NAME,
+            target_object_id=self.case.id,
+            target_content_type=ContentType.objects.get_for_model(Case),
+            payload={"old_name": "draft", "new_name": "2nd_draft"},
+        )
+        Audit.objects.create(
+            actor=self.exporter_user,
+            verb=AuditType.UPDATED_APPLICATION_NAME,
+            target_object_id=self.case.id,
+            target_content_type=ContentType.objects.get_for_model(Case),
+            payload={"old_name": "2nd_draft", "new_name": "3rd_draft"},
+        )
+        Audit.objects.create(
             actor=self.gov_user,
             verb=AuditType.UPDATED_STATUS,
             action_object_object_id=self.case.id,
