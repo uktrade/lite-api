@@ -39,5 +39,19 @@ class ReportSummarySubjectView(APIView):
         """
         Returns report summary subjects
         """
-        subjects = ReportSummarySubjectSerializer(ReportSummarySubject.objects.all(), many=True).data
-        return JsonResponse(data={"report_summary_subjects": subjects})
+        name = self.request.GET.get("name")
+        subjects = ReportSummarySubject.objects.all()
+
+        if name:
+            subjects = subjects.filter(name__icontains=name)
+            subjects = subjects.annotate(
+                is_prefixed=Case(
+                    When(name__istartswith=name.lower(), then=True),
+                    default=False,
+                    output_field=BinaryField(),
+                ),
+            )
+            subjects = subjects.order_by("-is_prefixed", "name")
+
+        subject_serializer = ReportSummarySubjectSerializer(subjects, many=True)
+        return JsonResponse(data={"report_summary_subjects": subject_serializer.data})
