@@ -217,6 +217,96 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.json()["application"], str(self.standard_application.id))
         self.assertEqual(Audit.objects.count(), 1)
 
+    def test_reissue_after_product_assessment_changes(self):
+        """
+        Test to check products on licence are correctly updated after product assessment changes
+
+        1. Initially we finalise an application to create a draft licence.
+        2. Now we update product assessment for few products on the application and try to finalise
+        without consolidating the advice. In this case products on the licence are not going to be
+        affected as we have not consolidated the advice.
+        3. Finally we consolidate the advice and finalise the application again. This time the
+        changes are picked up and only products that require licence are associated to the licence.
+        """
+        # Approve existing product on the application
+        self.create_advice(
+            self.gov_user,
+            self.standard_application,
+            "good",
+            AdviceType.APPROVE,
+            AdviceLevel.FINAL,
+            advice_text="approve",
+        )
+
+        # Add few more products
+        for i in range(3):
+            good_on_app = self.create_good_on_application(
+                self.standard_application, self.create_good(f"product{i+2}", self.organisation)
+            )
+            self.create_advice(
+                self.gov_user,
+                self.standard_application,
+                "",
+                AdviceType.APPROVE,
+                AdviceLevel.FINAL,
+                good=good_on_app.good,
+            )
+
+        # get the finalise form
+        response = self.client.get(self.url, **self.gov_headers)
+        data = response.json()["goods"]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(data), 4)
+
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 60}
+        for good_on_app in self.standard_application.goods.all():
+            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
+            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
+
+        data.update(self.post_date)
+
+        # finalise the application
+        # this creates draft licence - it becomes active when published to exporter
+        # for the purpose of this test that is not required
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response_data = response.json()
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["case"], str(self.standard_application.id))
+        self.assertEqual(response_data["reference_code"], f"{self.standard_application.reference_code}")
+        self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
+        self.assertTrue(Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).exists())
+
+        # Update product assessment on two products to NLR
+        for good_on_app in list(self.standard_application.goods.all())[-2:]:
+            good_on_app.is_good_controlled = False
+
+        # try to finalise again without consolidating
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response_data = response.json()
+        self.standard_application.refresh_from_db()
+        licence = Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).first()
+        self.assertEqual(licence.goods.count(), 4)
+
+        # consolidate advice now
+        for good_on_app in list(self.standard_application.goods.all())[-2:]:
+            advice = good_on_app.good.advice.filter(level=AdviceLevel.FINAL)
+            self.assertEqual(advice.count(), 1)
+            advice = advice.first()
+            advice.type = AdviceType.NO_LICENCE_REQUIRED
+            advice.save()
+
+        # finalise again
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response_data = response.json()
+        self.standard_application.refresh_from_db()
+
+        # Ensure only products that require licence are associated to the licence
+        licence = Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).first()
+        self.assertEqual(licence.goods.count(), 2)
+
 
 class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
     def setUp(self):
