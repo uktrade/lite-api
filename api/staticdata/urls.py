@@ -18,4 +18,5 @@ urlpatterns = [
     path("item-types/", include("api.staticdata.good_item_types.urls")),
     path("trade-control/", include("api.staticdata.trade_control.urls")),
     path("regimes/", include("api.staticdata.regimes.urls")),
+    path("report_summary/", include("api.staticdata.report_summaries.urls")),
 ]

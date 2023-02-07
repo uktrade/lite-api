@@ -184,6 +184,12 @@ class CaseQuerySet(models.QuerySet):
     def only_open_queries(self):
         return self.filter(case_ecju_query__isnull=False, case_ecju_query__response__isnull=True)
 
+    def only_my_cases(self, user):
+        assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
+        assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
+        cases = assigned_to_user_case_ids.union(assigned_as_case_officer_case_ids)
+        return self.filter(id__in=cases)
+
     def order_by_date(self, order="-"):
         """
         :param order: ('', '-')
@@ -255,7 +261,8 @@ class CaseManager(models.Manager):
         sla_days_elapsed=None,
         is_nca_applicable=None,
         is_trigger_list=None,
-        only_open_queries=False,
+        open_queries=None,
+        my_cases=None,
         **kwargs,
     ):
         """
@@ -369,8 +376,11 @@ class CaseManager(models.Manager):
         if is_trigger_list:
             case_qs = case_qs.with_trigger_list()
 
-        if only_open_queries:
+        if open_queries:
             case_qs = case_qs.only_open_queries()
+
+        if my_cases:
+            case_qs = case_qs.only_my_cases(user)
 
         if is_work_queue:
             case_qs = case_qs.annotate(

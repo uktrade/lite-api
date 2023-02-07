@@ -19,6 +19,7 @@ from api.goods.enums import (
 
 from api.organisations.models import Organisation
 from api.staticdata.control_list_entries.models import ControlListEntry
+from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.users.models import ExporterUser
 
 
@@ -161,6 +162,18 @@ class Good(TimestampableModel):
     grading_comment = models.TextField(default=None, blank=True, null=True, max_length=2000)
     # max length same as picklist
     report_summary = models.TextField(default=None, blank=True, null=True, max_length=5000)
+    # Report Summary prefix and subject
+    report_summary_prefix = models.ForeignKey(
+        ReportSummaryPrefix, on_delete=models.CASCADE, blank=True, null=True, related_name="report_summary_prefix_good"
+    )
+    report_summary_subject = models.ForeignKey(
+        ReportSummarySubject,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="report_summary_subject_good",
+    )
+
     has_security_features = models.BooleanField(default=None, blank=True, null=True)
     security_feature_details = models.TextField(
         default="", blank=True, null=True, help_text="what security features incorporated into the product"
