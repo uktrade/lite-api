@@ -94,7 +94,6 @@ class ApplicationPartyMixin:
         # delete party if application not submitted else 'expire' party
         if self.status.status == CaseStatusEnum.DRAFT:
             poa.delete(is_draft=True)
-            # Party.objects.get(pk=poa.party_id).delete()
         else:
             poa.delete()
 

@@ -5,6 +5,7 @@ from rest_framework import status
 
 from api.applications.enums import GoodsTypeCategory
 from api.applications.models import PartyOnApplication
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from lite_content.lite_api.strings import PartyErrors
 from api.parties.enums import PartyType
 from api.parties.models import Party
@@ -197,11 +198,12 @@ class UltimateEndUsersOnDraft(DataTestClient):
         Then 200 OK
         """
         self.assertEqual(self.draft.ultimate_end_users.count(), 1)
-
+        poa = self.draft.ultimate_end_users.first()
         url = reverse(
             "applications:party",
-            kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
+            kwargs={"pk": self.draft.id, "party_pk": poa.party.id},
         )
+        self.assertIsNone(poa.deleted_at)  # Not marked as deleted
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -210,9 +212,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
             PartyOnApplication.objects.filter(
                 application=self.draft,
                 party__type=PartyType.ULTIMATE_END_USER,
-                deleted_at__isnull=False,
             ).count(),
-            1,
+            0,
         )
         self.assertEqual(self.draft.ultimate_end_users.count(), 0)
         delete_s3_function.assert_not_called()
@@ -316,3 +317,46 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE_END_USER).count(), (pre_test_ueu_count + 1))
+
+
+class UltimateEndUsersOnSubmittedEditable(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.app = self.create_standard_application_with_incorporated_good(self.organisation)
+        self.submit_application(self.app)
+        self.app.status = get_case_status_by_status("applicant_editing")
+        self.app.save()
+        self.url = reverse("applications:parties", kwargs={"pk": self.app.id})
+        self.app.refresh_from_db()
+
+    @mock.patch("api.documents.models.Document.delete_s3")
+    def test_delete_ultimate_end_user_success(self, delete_s3_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an ultimate end user
+        And the draft contains an ultimate end user document
+        When there is an attempt to delete the document
+        Then 200 OK
+        """
+        self.assertEqual(self.app.ultimate_end_users.count(), 1)
+        poa = self.app.ultimate_end_users.first()
+        url = reverse(
+            "applications:party",
+            kwargs={"pk": self.app.id, "party_pk": poa.party.id},
+        )
+        self.assertIsNone(poa.deleted_at)  # Not marked as deleted
+
+        response = self.client.delete(url, **self.exporter_headers)
+        self.app.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            PartyOnApplication.objects.filter(
+                application=self.app,
+                party__type=PartyType.ULTIMATE_END_USER,
+                deleted_at__isnull=False,
+            ).count(),
+            1,
+        )
+        self.assertEqual(self.app.ultimate_end_users.count(), 0)
+        delete_s3_function.assert_not_called()

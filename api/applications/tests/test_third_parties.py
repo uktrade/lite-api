@@ -6,6 +6,7 @@ from rest_framework import status
 
 from api.applications.models import PartyOnApplication
 from api.audit_trail.models import Audit
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from lite_content.lite_api.strings import PartyErrors
 from api.parties.enums import PartyType, PartyRole, SubType
 from api.parties.models import Party, PartyDocument
@@ -225,22 +226,25 @@ class ThirdPartiesOnDraft(DataTestClient):
         When there is an attempt to delete third party
         Then 200 OK
         """
+        self.assertEqual(self.draft.third_parties.count(), 1)
         poa = self.draft.third_parties.first()
         remove_tp_url = reverse(
             "applications:party",
             kwargs={"pk": self.draft.id, "party_pk": poa.party.id},
         )
-
         self.assertIsNone(poa.deleted_at)  # Not marked as deleted
 
         response = self.client.delete(remove_tp_url, **self.exporter_headers)
-        poa.refresh_from_db()
 
-        self.assertIsNotNone(poa.deleted_at)  # Marked as deleted
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Party.objects.filter(type=PartyType.THIRD_PARTY).count(), 1)  # Party object still exists
+        self.assertEqual(
+            PartyOnApplication.objects.filter(
+                application=self.draft,
+                party__type=PartyType.THIRD_PARTY,
+            ).count(),
+            0,
+        )
         self.assertEqual(self.draft.third_parties.count(), 0)
-
         delete_s3_function.assert_not_called()
 
     def test_third_party_validate_only_success(self):
@@ -324,3 +328,46 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.draft.end_user.party.id, self.draft.third_parties.first().party.copy_of.id)
         self.assertEqual(response.json()["third_party"]["copy_of"], str(third_party["copy_of"]))
+
+
+class ThirdPartiesOnSubmittedEditable(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.app = self.create_draft_standard_application(self.organisation)
+        self.submit_application(self.app)
+        self.app.status = get_case_status_by_status("applicant_editing")
+        self.app.save()
+        self.url = reverse("applications:parties", kwargs={"pk": self.app.id})
+        self.app.refresh_from_db()
+
+    @mock.patch("api.documents.models.Document.delete_s3")
+    def test_delete_third_party_success(self, delete_s3_function):
+        """
+        Given a standard draft has been created
+        And the draft contains a third party
+        And the draft contains a third party document
+        When there is an attempt to delete third party
+        Then 200 OK
+        """
+        self.assertEqual(self.app.third_parties.count(), 1)
+        poa = self.app.third_parties.first()
+        remove_tp_url = reverse(
+            "applications:party",
+            kwargs={"pk": self.app.id, "party_pk": poa.party.id},
+        )
+        self.assertIsNone(poa.deleted_at)  # Not marked as deleted
+
+        response = self.client.delete(remove_tp_url, **self.exporter_headers)
+        poa.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            PartyOnApplication.objects.filter(
+                application=self.app,
+                party__type=PartyType.THIRD_PARTY,
+                deleted_at__isnull=False,
+            ).count(),
+            1,
+        )
+        self.assertEqual(self.app.third_parties.count(), 0)
+        delete_s3_function.assert_not_called()

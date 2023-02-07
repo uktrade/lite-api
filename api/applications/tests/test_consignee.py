@@ -5,6 +5,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import PartyOnApplication
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from lite_content.lite_api.strings import PartyErrors
 from api.parties.enums import PartyType, SubType
 from api.parties.models import PartyDocument
@@ -104,7 +105,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         Given a standard draft has been created
         And the draft contains a consignee
         When a new consignee is added
-        Then the old one is removed
+        Then the old one is deleted
         """
         old_consignee = PartyOnApplication.objects.get(
             application=self.draft, deleted_at__isnull=True, party__type=PartyType.CONSIGNEE
@@ -123,7 +124,7 @@ class ConsigneeOnDraftTests(DataTestClient):
 
         deleted_consignees = PartyOnApplication.objects.filter(party=old_consignee, deleted_at__isnull=False)
 
-        self.assertEqual(deleted_consignees.count(), 1)
+        self.assertEqual(deleted_consignees.count(), 0)
         delete_s3_function.assert_not_called()
 
     def test_set_consignee_on_open_draft_application_failure(self):
@@ -234,9 +235,8 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_consignee_success(self, delete_s3_function, scan_document_for_viruses_function):
+    def test_delete_consignee_success(self, delete_s3_function):
         """
         Given a standard draft has been created
         And the draft contains a consignee user
@@ -255,7 +255,7 @@ class ConsigneeOnDraftTests(DataTestClient):
             PartyOnApplication.objects.filter(
                 application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=False
             ).count(),
-            1,
+            0,
         )
         delete_s3_function.assert_not_called()
 
@@ -322,3 +322,74 @@ class ConsigneeOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["consignee"]["copy_of"], str(consignee["copy_of"]))
+
+
+class ConsigneeOnSubmittedEditableTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.app = self.create_draft_standard_application(self.organisation)
+        self.submit_application(self.app)
+        self.app.status = get_case_status_by_status("applicant_editing")
+        self.app.save()
+        self.url = reverse("applications:parties", kwargs={"pk": self.app.id})
+        self.app.refresh_from_db()
+
+    @mock.patch("api.documents.models.Document.delete_s3")
+    def test_consignee_deleted_when_new_one_added(self, delete_s3_function):
+        """
+        Given a standard draft has been created
+        And the draft contains a consignee
+        When a new consignee is added
+        Then the old one is removed ('expired
+        """
+        old_consignee = PartyOnApplication.objects.get(
+            application=self.app, deleted_at__isnull=True, party__type=PartyType.CONSIGNEE
+        ).party
+        new_consignee = {
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
+            "type": PartyType.CONSIGNEE,
+        }
+
+        self.client.post(self.url, new_consignee, **self.exporter_headers)
+        self.app.refresh_from_db()
+
+        self.assertEqual(
+            PartyOnApplication.objects.filter(party=old_consignee, deleted_at__isnull=False).count(),
+            1,
+        )
+
+        self.assertEqual(
+            PartyOnApplication.objects.filter(
+                application=self.app, party__type=PartyType.CONSIGNEE, deleted_at__isnull=False
+            ).count(),
+            1,
+        )
+        delete_s3_function.assert_not_called()
+
+    @mock.patch("api.documents.models.Document.delete_s3")
+    def test_delete_consignee_success(self, delete_s3_function):
+        """
+        Given a standard draft has been created
+        And the submitted app contains a consignee user
+        And the submitted aPP contains a consignee document
+        When there is an attempt to delete the consignee
+        Then 204 NO CONTENT is returned
+        """
+        consignee = PartyOnApplication.objects.get(
+            application=self.app, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
+        ).party
+        url = reverse("applications:party", kwargs={"pk": self.app.id, "party_pk": consignee.pk})
+        response = self.client.delete(url, **self.exporter_headers)
+        print(f"response:{response.json()}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            PartyOnApplication.objects.filter(
+                application=self.app, party__type=PartyType.CONSIGNEE, deleted_at__isnull=False
+            ).count(),
+            1,
+        )
+        delete_s3_function.assert_not_called()
