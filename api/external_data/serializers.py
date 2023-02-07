@@ -102,9 +102,25 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 
 
 class DenialSearchSerializer(DocumentSerializer):
+    entity_type = serializers.SerializerMethodField()
+
     class Meta:
         document = documents.DenialDocumentType
-        fields = ("denied_name",)
+        fields = (
+            "id",
+            "address",
+            "country",
+            "end_use",
+            "item_description",
+            "item_list_codes",
+            "name",
+            "notifying_government",
+            "reference",
+            "regime_reg_ref",
+        )
+
+    def get_entity_type(self, obj):
+        return get_denial_entity_type(obj.data.to_dict())
 
 
 class SanctionMatchSerializer(serializers.ModelSerializer):
