@@ -140,6 +140,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
 
         for good_on_application in [self.good_on_application, self.good_on_application2]:
             self.assertEqual(good_on_application.nsg_list_type, "")
+            self.assertIsNone(good_on_application.is_trigger_list_guidelines_applicable)
             self.assertIsNone(good_on_application.is_nca_applicable)
             self.assertEqual(good_on_application.nsg_assessment_note, "")
 
@@ -156,6 +157,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
                     "application": application.id,
                     "good": self.good_on_application.good.id,
                     "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_trigger_list_guidelines_applicable": True,
                     "is_nca_applicable": True,
                     "nsg_assessment_note": "Trigger list product1",
                 },
@@ -164,6 +166,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
                     "application": application.id,
                     "good": self.good_on_application2.good.id,
                     "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_trigger_list_guidelines_applicable": True,
                     "is_nca_applicable": True,
                     "nsg_assessment_note": "Trigger list product2",
                 },
@@ -175,6 +178,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
 
         for index, item in enumerate(response["data"], start=1):
             self.assertEqual(item["nsg_list_type"]["key"], NSGListType.TRIGGER_LIST)
+            self.assertTrue(item["is_trigger_list_guidelines_applicable"])
             self.assertTrue(item["is_nca_applicable"])
             self.assertEqual(item["nsg_assessment_note"], f"Trigger list product{index}")
 
@@ -202,6 +206,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
                     "application": application.id,
                     "good": self.good_on_application.good.id,
                     "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_trigger_list_guidelines_applicable": True,
                     "is_nca_applicable": True,
                     "nsg_assessment_note": "Trigger list product1",
                 },
@@ -210,6 +215,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
                     "application": application.id,
                     "good": self.good_on_application2.good.id,
                     "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_trigger_list_guidelines_applicable": False,
                     "is_nca_applicable": True,
                     "nsg_assessment_note": "Trigger list product2",
                 },
@@ -235,6 +241,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
                     "application": application.id,
                     "good": self.good_on_application.good.id,
                     "nsg_list_type": "INVALID_LIST_TYPE",
+                    "is_trigger_list_guidelines_applicable": False,
                     "is_nca_applicable": True,
                     "nsg_assessment_note": "Trigger list product1",
                 },
