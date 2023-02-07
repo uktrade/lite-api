@@ -140,6 +140,7 @@ class DenialSearchView(DataTestClient):
         response_json = response.json()
         self.assertEqual(len(response_json["results"]), 2)
         self.assertEqual(response_json["total_pages"], 1)
+        assert "entity_type" in response_json["results"][0]
 
 
 class DenialSearchViewTests(DataTestClient):
