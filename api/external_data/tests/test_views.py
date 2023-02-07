@@ -135,9 +135,11 @@ class DenialSearchView(DataTestClient):
         # then only 2 denials will be returned when searching
         url = reverse("external_data:denial_search-list")
 
-        response = self.client.get(url, {"search": "Example"}, **self.gov_headers)
+        response = self.client.get(url, {"search": "Example", "page": 1}, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()["hits"]["hits"]), 2)
+        response_json = response.json()
+        self.assertEqual(len(response_json["results"]), 2)
+        self.assertEqual(response_json["total_pages"], 1)
 
 
 class DenialSearchViewTests(DataTestClient):
