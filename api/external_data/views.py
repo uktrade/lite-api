@@ -11,6 +11,8 @@ from django.conf import settings
 from api.core.authentication import GovAuthentication
 from api.conf.pagination import MaxPageNumberPagination
 from api.external_data import documents, models, serializers
+from api.external_data.helpers import get_denial_entity_type
+
 
 
 class DenialViewSet(viewsets.ModelViewSet):
@@ -53,6 +55,19 @@ class DenialSearchView(DocumentViewSet):
             "field": "country.raw",
         }
     }
+
+    def list(self, request, *args, **kwargs):
+        page = request.GET.get("page")
+        queryset = self.filter_queryset(self.get_queryset())
+        if page:
+            page = super().paginate_queryset(queryset)
+            denials = serializers.DenialSearchSerializer(page, many=True).data
+            return super().get_paginated_response(denials)
+
+        results = queryset.execute().to_dict()
+        for denial in results["hits"]["hits"]:
+            denial["_source"]["entity_type"] = get_denial_entity_type(denial["_source"]["data"])
+        return Response(results)
 
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False)
