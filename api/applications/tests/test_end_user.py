@@ -135,22 +135,22 @@ class EndUserOnDraftTests(DataTestClient):
         When a new end user is added
         Then the old one is removed
         """
-        poa = PartyOnApplication.objects.get(
+        party_on_application = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         )
 
         self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
         try:
-            poa.refresh_from_db()
-            self.fail(f"poa not deleted: {poa}")
+            party_on_application.refresh_from_db()
+            self.fail(f"party_on_application not deleted: {party_on_application}")
         except PartyOnApplication.DoesNotExist:
             pass
 
-        new_poa = PartyOnApplication.objects.get(
+        new_party_on_application = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         )
 
-        self.assertNotEqual(poa.id, new_poa.id)
+        self.assertNotEqual(party_on_application.id, new_party_on_application.id)
         delete_s3_function.assert_not_called()
 
     def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(
@@ -161,13 +161,13 @@ class EndUserOnDraftTests(DataTestClient):
         When I try to delete an end user from the application
         Then a 404 NOT FOUND is returned
         """
-        poa = PartyOnApplication.objects.get(
+        party_on_application = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         )
 
-        poa.delete()
+        party_on_application.delete()
 
-        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": party_on_application.party.pk})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -414,21 +414,26 @@ class EndUserOnNonDraftTests(DataTestClient):
         super().setUp()
         self.submitted = self.create_standard_application_case(self.organisation)
 
-    def test_delete_end_user_on_standard_application_when_application_has_not_been_submitted(
+    def test_delete_end_user_on_standard_application_when_application_has_been_submitted(
         self,
     ):
         """
-        Deletes the poa instead of expiring
+        Deletes the party_on_application instead of expiring
         """
-        poa = PartyOnApplication.objects.get(
-            application=self.submitted, party__type=PartyType.END_USER, deleted_at__isnull=True
+        end_user = PartyOnApplication.objects.get(
+            application=self.app, party__type=PartyType.END_USER, deleted_at__isnull=True
+        ).party
+        url = reverse("applications:party", kwargs={"pk": self.app.id, "party_pk": end_user.pk})
+        response = self.client.delete(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            PartyOnApplication.objects.filter(
+                application=self.app, party__type=PartyType.END_USER, deleted_at__isnull=True
+            ).count(),
+            0,
         )
-
-        poa.delete()
         try:
-            poa = PartyOnApplication.objects.get(
-                application=self.submitted, party__type=PartyType.END_USER, deleted_at__isnull=True
-            )
-            self.fail(f"poa not deleted: {poa}")
+            party_on_application = PartyOnApplication.objects.get(pk=end_user.id)
+            self.fail(f"party_on_application not deleted: {party_on_application}")
         except PartyOnApplication.DoesNotExist:
             pass

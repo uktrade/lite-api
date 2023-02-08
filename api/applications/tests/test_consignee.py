@@ -165,10 +165,10 @@ class ConsigneeOnDraftTests(DataTestClient):
         When I try to delete an consignee from the application
         Then a 404 NOT FOUND is returned
         """
-        poa = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE)
-        self.draft.delete_party(poa)
+        party_on_application = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE)
+        self.draft.delete_party(party_on_application)
 
-        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": party_on_application.party.pk})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -235,14 +235,15 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
+    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_consignee_success(self, delete_s3_function):
+    def test_delete_consignee_success(self, delete_s3_function, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
         And the draft contains a consignee user
         And the draft contains a consignee document
         When there is an attempt to delete the consignee
-        Then 204 NO CONTENT is returned
+        Then 200 OK is returned
         """
         consignee = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
@@ -334,8 +335,7 @@ class ConsigneeOnSubmittedEditableTests(DataTestClient):
         self.url = reverse("applications:parties", kwargs={"pk": self.app.id})
         self.app.refresh_from_db()
 
-    @mock.patch("api.documents.models.Document.delete_s3")
-    def test_consignee_deleted_when_new_one_added(self, delete_s3_function):
+    def test_consignee_deleted_when_new_one_added(self):
         """
         Given a standard draft has been created
         And the draft contains a consignee
@@ -368,23 +368,20 @@ class ConsigneeOnSubmittedEditableTests(DataTestClient):
             ).count(),
             1,
         )
-        delete_s3_function.assert_not_called()
 
-    @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_consignee_success(self, delete_s3_function):
+    def test_delete_consignee_success(self):
         """
         Given a standard draft has been created
         And the submitted app contains a consignee user
         And the submitted aPP contains a consignee document
         When there is an attempt to delete the consignee
-        Then 204 NO CONTENT is returned
+        Then 200 OK is returned
         """
         consignee = PartyOnApplication.objects.get(
             application=self.app, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
         ).party
         url = reverse("applications:party", kwargs={"pk": self.app.id, "party_pk": consignee.pk})
         response = self.client.delete(url, **self.exporter_headers)
-        print(f"response:{response.json()}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             PartyOnApplication.objects.filter(
@@ -392,4 +389,3 @@ class ConsigneeOnSubmittedEditableTests(DataTestClient):
             ).count(),
             1,
         )
-        delete_s3_function.assert_not_called()

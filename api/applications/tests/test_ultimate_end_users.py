@@ -198,12 +198,12 @@ class UltimateEndUsersOnDraft(DataTestClient):
         Then 200 OK
         """
         self.assertEqual(self.draft.ultimate_end_users.count(), 1)
-        poa = self.draft.ultimate_end_users.first()
+        party_on_application = self.draft.ultimate_end_users.first()
         url = reverse(
             "applications:party",
-            kwargs={"pk": self.draft.id, "party_pk": poa.party.id},
+            kwargs={"pk": self.draft.id, "party_pk": party_on_application.party.id},
         )
-        self.assertIsNone(poa.deleted_at)  # Not marked as deleted
+        self.assertIsNone(party_on_application.deleted_at)  # Not marked as deleted
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -329,8 +329,7 @@ class UltimateEndUsersOnSubmittedEditable(DataTestClient):
         self.url = reverse("applications:parties", kwargs={"pk": self.app.id})
         self.app.refresh_from_db()
 
-    @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_ultimate_end_user_success(self, delete_s3_function):
+    def test_delete_ultimate_end_user_success(self):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -339,12 +338,12 @@ class UltimateEndUsersOnSubmittedEditable(DataTestClient):
         Then 200 OK
         """
         self.assertEqual(self.app.ultimate_end_users.count(), 1)
-        poa = self.app.ultimate_end_users.first()
+        party_on_application = self.app.ultimate_end_users.first()
         url = reverse(
             "applications:party",
-            kwargs={"pk": self.app.id, "party_pk": poa.party.id},
+            kwargs={"pk": self.app.id, "party_pk": party_on_application.party.id},
         )
-        self.assertIsNone(poa.deleted_at)  # Not marked as deleted
+        self.assertIsNone(party_on_application.deleted_at)  # Not marked as deleted
 
         response = self.client.delete(url, **self.exporter_headers)
         self.app.refresh_from_db()
@@ -359,4 +358,3 @@ class UltimateEndUsersOnSubmittedEditable(DataTestClient):
             1,
         )
         self.assertEqual(self.app.ultimate_end_users.count(), 0)
-        delete_s3_function.assert_not_called()

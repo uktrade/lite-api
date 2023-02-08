@@ -64,7 +64,7 @@ class ApplicationPartyMixin:
         if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
             raise ApplicationException({"bad_request": PartyErrors.BAD_CASE_TYPE})
 
-        old_poa = None
+        old_party_on_application = None
 
         # Alternate behaviour of adding a party depending on party type
         if party.type == PartyType.ULTIMATE_END_USER:
@@ -72,17 +72,17 @@ class ApplicationPartyMixin:
             pass
         elif party.type in [PartyType.END_USER, PartyType.CONSIGNEE]:
             # Rule: Replace
-            old_poa = getattr(self, party.type)
-            if old_poa:
-                self.delete_party(old_poa)
+            old_party_on_application = getattr(self, party.type)
+            if old_party_on_application:
+                self.delete_party(old_party_on_application)
         elif party.type == PartyType.THIRD_PARTY:
             # Rule: Append
             if not party.role:
                 raise ApplicationException({"required": PartyErrors.ROLE["null"]})
 
-        poa = PartyOnApplication.objects.create(application=self, party=party)
+        party_on_application = PartyOnApplication.objects.create(application=self, party=party)
 
-        return poa.party, old_poa.party if old_poa else None
+        return party_on_application.party, old_party_on_application.party if old_party_on_application else None
 
     def get_party(self, party_pk):
         try:
@@ -90,12 +90,12 @@ class ApplicationPartyMixin:
         except PartyOnApplication.DoesNotExist:
             pass
 
-    def delete_party(self, poa):
+    def delete_party(self, party_on_application):
         # delete party if application not submitted else 'expire' party
         if self.status.status == CaseStatusEnum.DRAFT:
-            poa.delete(is_draft=True)
+            party_on_application.delete(is_draft=True)
         else:
-            poa.delete()
+            party_on_application.delete()
 
     def is_major_editable(self):
         return self.status.status == CaseStatusEnum.APPLICANT_EDITING or is_case_status_draft(self.status.status)
@@ -572,7 +572,7 @@ class PartyOnApplication(TimestampableModel):
         )
 
     def delete(self, *args, **kwargs):
-        if "is_draft" in kwargs:
+        if kwargs.get("is_draft", False):
             super().delete()
         else:
             self.deleted_at = timezone.now()
