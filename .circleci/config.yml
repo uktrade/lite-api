@@ -241,7 +241,7 @@ jobs:
           name: Check lite-routing submodule sha
           command: |
             CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            CHANGED_FILES=$(git diff --name-only $CURRENT_BRANCH $(git merge-base $CURRENT_BRANCH master))
+            CHANGED_FILES=$(git diff --name-only $CURRENT_BRANCH $(git merge-base $CURRENT_BRANCH dev))
             if [[ "$CHANGED_FILES" == *"lite_routing"* ]]; then
                 cd lite_routing
                 SUBMODULE_SHA=$(git rev-parse HEAD)
