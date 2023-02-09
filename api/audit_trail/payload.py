@@ -40,7 +40,7 @@ audit_type_format = {
     AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE: strings.Audit.ADD_ADDITIONAL_CONTACT_TO_CASE,
     AuditType.MOVE_CASE: strings.Audit.MOVE_CASE,
     AuditType.ASSIGN_CASE: strings.Audit.ASSIGN_CASE,
-    AuditType.ASSIGN_USER_TO_CASE: strings.Audit.ASSIGN_USER_TO_CASE,
+    AuditType.ASSIGN_USER_TO_CASE: "allocated {user} as case adviser for {queue}",
     AuditType.REMOVE_CASE: strings.Audit.REMOVE_CASE,
     AuditType.REMOVE_CASE_FROM_ALL_QUEUES: "removed the case from all queues",
     AuditType.REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS: "removed the case from all user assignments",

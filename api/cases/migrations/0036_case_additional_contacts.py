@@ -27,6 +27,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("parties", "0007_auto_20200317_1730"),
+        ("applications", "0003_auto_20200210_1326"),
         ("cases", "0035_auto_20200611_1246"),
     ]
 

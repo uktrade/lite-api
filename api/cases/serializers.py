@@ -40,6 +40,7 @@ from api.licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from api.queries.serializers import QueryViewSerializer
 from api.queues.models import Queue
+from api.queues.serializers import QueueListSerializer
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.models import Team
@@ -108,6 +109,7 @@ class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
+    queues = PrimaryKeyRelatedSerializerField(many=True, queryset=Queue.objects.all(), serializer=QueueListSerializer)
     assignments = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
@@ -133,9 +135,10 @@ class CaseListSerializer(serializers.Serializer):
             return_value[user_id]["last_name"] = assignment.user.last_name
             return_value[user_id]["email"] = assignment.user.email
             return_value[user_id]["team_name"] = assignment.user.team.name
+            return_value[user_id]["team_id"] = str(assignment.user.team.id)
             if "queues" not in return_value[user_id]:
                 return_value[user_id]["queues"] = []
-            return_value[user_id]["queues"].append(assignment.queue.name)
+            return_value[user_id]["queues"].append({"name": assignment.queue.name, "id": str(assignment.queue.id)})
 
         return return_value
 
