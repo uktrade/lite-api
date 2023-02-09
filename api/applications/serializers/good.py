@@ -130,6 +130,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "is_onward_incorporated_comments",
             "regime_entries",
             "nsg_list_type",
+            "is_trigger_list_guidelines_applicable",
             "is_nca_applicable",
             "nsg_assessment_note",
         )
@@ -274,6 +275,7 @@ class GoodOnApplicationUpdateSerializer(serializers.ModelSerializer):
             "application",
             "good",
             "nsg_list_type",
+            "is_trigger_list_guidelines_applicable",
             "is_nca_applicable",
             "nsg_assessment_note",
         )
