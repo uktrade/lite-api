@@ -4,6 +4,7 @@ from rest_framework import status
 
 from api.applications.models import CountryOnApplication
 from api.cases.enums import CaseTypeEnum
+from api.cases.tests.factories import CaseAssignmentFactory
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from api.flags.tests.factories import FlagFactory
@@ -70,6 +71,29 @@ class CaseGetTests(DataTestClient):
         self.assertIn(actual_flags_on_case[0], expected_flags)
         for expected_flag in expected_flags:
             self.assertIn(expected_flag, actual_flags_on_goods)
+
+    def test_case_assignments(self):
+        case = self.submit_application(self.standard_application)
+        assignment = CaseAssignmentFactory(case=case)
+        url = reverse("cases:case", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        expected_assignments = {
+            assignment.queue.name: [
+                {
+                    "id": str(assignment.user.pk),
+                    "first_name": assignment.user.first_name,
+                    "last_name": assignment.user.last_name,
+                    "email": assignment.user.email,
+                    "assignment_id": str(assignment.id),
+                }
+            ]
+        }
+        assert response_data["case"]["assigned_users"] == expected_assignments
 
     def test_case_returns_expected_goods_types_flags(self):
         self.open_application = self.create_draft_open_application(self.organisation)

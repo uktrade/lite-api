@@ -11,7 +11,7 @@ from test_helpers.clients import DataTestClient
 faker = Faker()
 
 
-class CaseAssignmentTests(DataTestClient):
+class CaseAssignmentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
