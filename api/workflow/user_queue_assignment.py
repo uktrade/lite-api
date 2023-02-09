@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 
@@ -90,10 +92,19 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
                     },
                 )
 
-    # Move case to next non-terminal state if unassigned from all queues
-    if case.queues.count() == 0:
-        next_status = get_next_status_in_workflow_sequence(case)
-        if next_status:
-            case.status = next_status
-            case.save()
-            run_routing_rules(case)
+    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
+        # uses next_workflow_status to get the next case status
+        if case.queues.count() == 0:
+            next_status = case.status.next_workflow_status
+            if next_status:
+                case.status = next_status
+                case.save()
+                run_routing_rules(case)
+    else:
+        # Move case to next non-terminal state if unassigned from all queues
+        if case.queues.count() == 0:
+            next_status = get_next_status_in_workflow_sequence(case)
+            if next_status:
+                case.status = next_status
+                case.save()
+                run_routing_rules(case)
