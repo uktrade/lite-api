@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 
 from api.core.authentication import GovAuthentication
-from api.staticdata.report_summaries.helpers import filtered_ordered_queryset
+from api.staticdata.report_summaries.helpers import filter_and_order_by_name
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.report_summaries.serializers import ReportSummaryPrefixSerializer, ReportSummarySubjectSerializer
 
@@ -12,9 +12,7 @@ class ReportSummaryPrefixView(APIView):
 
     def get_queryset(self):
         part_of_name = self.request.GET.get("name")
-        model_class = ReportSummaryPrefix
-        prefixes = filtered_ordered_queryset(model_class, part_of_name)
-        return prefixes
+        return filter_and_order_by_name(ReportSummaryPrefix.objects.all(), part_of_name)
 
     def get(self, request):
         """
@@ -29,9 +27,7 @@ class ReportSummarySubjectView(APIView):
 
     def get_queryset(self):
         part_of_name = self.request.GET.get("name")
-        model_class = ReportSummarySubject
-        prefixes = filtered_ordered_queryset(model_class, part_of_name)
-        return prefixes
+        return filter_and_order_by_name(ReportSummarySubject.objects.all(), part_of_name)
 
     def get(self, request):
         """

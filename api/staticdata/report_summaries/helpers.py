@@ -1,15 +1,13 @@
 from django.db.models import BinaryField, Case, When
 
 
-def filtered_ordered_queryset(model_class, part_of_name):
+def filter_and_order_by_name(queryset, part_of_name):
     """
-    Creates a queryset to get rows for the model where the
-    'name' column contains the part_of_name parameter. The results
-    are sorted so that entries where the name is prefixed by
-    the part_of_name appear higher in the rankings and
-    alphabetically after that.
+    Filters a queryset to get rows where the 'name' column contains
+    the part_of_name parameter. The results are sorted so that entries
+    where the name is prefixed by the part_of_name appear higher in the
+    rankings and alphabetically after that.
     """
-    queryset = model_class.objects.all()
     if part_of_name:
         queryset = queryset.filter(name__icontains=part_of_name)
         queryset = queryset.annotate(
