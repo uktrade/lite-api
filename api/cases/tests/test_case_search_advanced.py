@@ -473,10 +473,10 @@ class FilterAndSortTests(DataTestClient):
             comment="Comment 3",
             report_summary="Report Summary 3",
         )
-        GoodOnApplicationFactory(application=application_1, good=good_1, nsg_list_type=NSGListType.TRIGGER_LIST)
-        GoodOnApplicationFactory(application=application_1, good=good_2, nsg_list_type=NSGListType.DUAL_USE)
+        GoodOnApplicationFactory(application=application_1, good=good_1, is_trigger_list_guidelines_applicable=True)
+        GoodOnApplicationFactory(application=application_1, good=good_2, is_trigger_list_guidelines_applicable=False)
         GoodOnApplicationFactory(application=application_1, good=good_3)
-        GoodOnApplicationFactory(application=application_2, good=good_1, nsg_list_type=NSGListType.DUAL_USE)
+        GoodOnApplicationFactory(application=application_2, good=good_1, is_trigger_list_guidelines_applicable=False)
         GoodOnApplicationFactory(application=application_3, good=good_1)
 
         qs_1 = Case.objects.search(is_trigger_list="True")
