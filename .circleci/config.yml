@@ -77,7 +77,7 @@ commands:
           name: Install Dependencies
           command: |
             pipenv sync --dev
-            pip install endesive==1.5.9
+            pipenv install endesive==1.5.9
       - run:
           name: Install code coverage
           command: |
