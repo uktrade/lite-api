@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from api.cases.views import views, case_notes, licences, case_actions
+from api.cases.views import views, case_notes, licences, case_actions, case_assignments
 from api.cases.views.search import views as search_views
 from api.cases.views.search.activity import CaseActivityView, CaseActivityFiltersView
 from api.cases.enforcement_check import views as enforcement_check
@@ -17,6 +17,11 @@ urlpatterns = [
     path("<uuid:pk>/queues/", views.SetQueues.as_view(), name="queues"),
     path("<uuid:pk>/case-notes/", case_notes.CaseNoteList.as_view(), name="case_notes"),
     path("<uuid:pk>/case-officer/", views.CaseOfficer.as_view(), name="case_officer"),
+    path(
+        "<uuid:case_id>/case-assignments/<uuid:assignment_id>/",
+        case_assignments.CaseAssignmentDetail.as_view(),
+        name="case_assignment_detail",
+    ),
     path("cases-update-case-officer/", views.CasesUpdateCaseOfficer.as_view(), name="cases_update_case_officer"),
     path("<uuid:pk>/activity/", CaseActivityView.as_view(), name="activity"),
     path("<uuid:pk>/activity/filters/", CaseActivityFiltersView.as_view(), name="activity_filters"),

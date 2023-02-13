@@ -6,7 +6,6 @@ from django.db import models, transaction
 from django.db.models import Q, Case, When, BinaryField
 from django.utils import timezone
 
-from api.applications.enums import NSGListType
 from api.cases.enums import AdviceLevel, CaseTypeEnum
 from api.cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from api.common.enums import SortOrder
@@ -179,7 +178,7 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(baseapplication__goods__is_nca_applicable=True)
 
     def with_trigger_list(self):
-        return self.filter(baseapplication__goods__nsg_list_type=NSGListType.TRIGGER_LIST)
+        return self.filter(baseapplication__goods__is_trigger_list_guidelines_applicable=True)
 
     def only_open_queries(self):
         return self.filter(case_ecju_query__isnull=False, case_ecju_query__response__isnull=True)

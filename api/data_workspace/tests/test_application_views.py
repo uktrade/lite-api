@@ -100,6 +100,7 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
             "good_application_documents",
             "is_precedent",
             "nsg_list_type",
+            "is_trigger_list_guidelines_applicable",
             "is_nca_applicable",
             "nsg_assessment_note",
         ]

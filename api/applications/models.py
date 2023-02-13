@@ -451,6 +451,9 @@ class GoodOnApplication(AbstractGoodOnApplication):
 
     # Trigger list fields
     nsg_list_type = models.CharField(choices=NSGListType.choices, max_length=32, blank=True, default="")
+    is_trigger_list_guidelines_applicable = models.BooleanField(
+        default=None, blank=True, null=True, help_text="Do the trigger list guidelines apply to this product?"
+    )
     is_nca_applicable = models.BooleanField(default=None, blank=True, null=True)
     nsg_assessment_note = models.TextField(help_text="Trigger list assessment note", default="", blank=True)
 

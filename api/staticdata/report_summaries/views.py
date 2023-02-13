@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 
 from api.core.authentication import GovAuthentication
+from api.staticdata.report_summaries.helpers import filter_and_order_by_name
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.report_summaries.serializers import ReportSummaryPrefixSerializer, ReportSummarySubjectSerializer
 
@@ -9,20 +10,28 @@ from api.staticdata.report_summaries.serializers import ReportSummaryPrefixSeria
 class ReportSummaryPrefixView(APIView):
     authentication_classes = (GovAuthentication,)
 
+    def get_queryset(self):
+        part_of_name = self.request.GET.get("name")
+        return filter_and_order_by_name(ReportSummaryPrefix.objects.all(), part_of_name)
+
     def get(self, request):
         """
         Returns report summary prefixes
         """
-        prefixes = ReportSummaryPrefixSerializer(ReportSummaryPrefix.objects.all(), many=True).data
-        return JsonResponse(data={"report_summary_prefixes": prefixes})
+        prefix_serializer = ReportSummaryPrefixSerializer(self.get_queryset(), many=True)
+        return JsonResponse(data={"report_summary_prefixes": prefix_serializer.data})
 
 
 class ReportSummarySubjectView(APIView):
     authentication_classes = (GovAuthentication,)
 
+    def get_queryset(self):
+        part_of_name = self.request.GET.get("name")
+        return filter_and_order_by_name(ReportSummarySubject.objects.all(), part_of_name)
+
     def get(self, request):
         """
         Returns report summary subjects
         """
-        subjects = ReportSummarySubjectSerializer(ReportSummarySubject.objects.all(), many=True).data
-        return JsonResponse(data={"report_summary_subjects": subjects})
+        subject_serializer = ReportSummarySubjectSerializer(self.get_queryset(), many=True)
+        return JsonResponse(data={"report_summary_subjects": subject_serializer.data})

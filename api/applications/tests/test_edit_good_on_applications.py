@@ -128,8 +128,7 @@ class EditGoodOnApplicationsTests(DataTestClient):
 
 
 class GovUserEditGoodOnApplicationsTests(DataTestClient):
-    @parameterized.expand(set(CaseStatusEnum.all()) - set(CaseStatusEnum.terminal_statuses()))
-    def test_edit_nsg_list_type_and_nca(self, non_terminal_status):
+    def test_edit_trigger_list_assessment_and_nca(self):
         "Test updating trigger list assessment on multiple products on application"
         draft = self.create_draft_standard_application(self.organisation)
         application = self.submit_application(draft, self.exporter_user)
@@ -137,9 +136,11 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
             application=application,
             good=GoodFactory(organisation=self.organisation, is_good_controlled=True),
         )
+        good_on_applications = [self.good_on_application, self.good_on_application2]
 
-        for good_on_application in [self.good_on_application, self.good_on_application2]:
+        for good_on_application in good_on_applications:
             self.assertEqual(good_on_application.nsg_list_type, "")
+            self.assertIsNone(good_on_application.is_trigger_list_guidelines_applicable)
             self.assertIsNone(good_on_application.is_nca_applicable)
             self.assertEqual(good_on_application.nsg_assessment_note, "")
 
@@ -148,35 +149,47 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
             kwargs={"pk": application.id},
         )
 
-        response = self.client.put(
-            url,
-            data=[
-                {
-                    "id": self.good_on_application.id,
-                    "application": application.id,
-                    "good": self.good_on_application.good.id,
-                    "nsg_list_type": NSGListType.TRIGGER_LIST,
-                    "is_nca_applicable": True,
-                    "nsg_assessment_note": "Trigger list product1",
-                },
-                {
-                    "id": self.good_on_application2.id,
-                    "application": application.id,
-                    "good": self.good_on_application2.good.id,
-                    "nsg_list_type": NSGListType.TRIGGER_LIST,
-                    "is_nca_applicable": True,
-                    "nsg_assessment_note": "Trigger list product2",
-                },
-            ],
-            **self.gov_headers,
-        )
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "application": application.id,
+                "good": self.good_on_application.good.id,
+                "nsg_list_type": NSGListType.TRIGGER_LIST,
+                "is_trigger_list_guidelines_applicable": True,
+                "is_nca_applicable": False,
+                "nsg_assessment_note": "Trigger list product1",
+            },
+            {
+                "id": self.good_on_application2.id,
+                "application": application.id,
+                "good": self.good_on_application2.good.id,
+                "nsg_list_type": NSGListType.TRIGGER_LIST,
+                "is_trigger_list_guidelines_applicable": False,
+                "is_nca_applicable": True,
+                "nsg_assessment_note": "Trigger list product2",
+            },
+        ]
+
+        response = self.client.put(url, data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()
 
-        for index, item in enumerate(response["data"], start=1):
-            self.assertEqual(item["nsg_list_type"]["key"], NSGListType.TRIGGER_LIST)
-            self.assertTrue(item["is_nca_applicable"])
-            self.assertEqual(item["nsg_assessment_note"], f"Trigger list product{index}")
+        for index, item in enumerate(response["data"]):
+            self.assertEqual(item["nsg_list_type"]["key"], data[index]["nsg_list_type"])
+            self.assertEqual(
+                item["is_trigger_list_guidelines_applicable"], data[index]["is_trigger_list_guidelines_applicable"]
+            )
+            self.assertEqual(item["is_nca_applicable"], data[index]["is_nca_applicable"])
+            self.assertEqual(item["nsg_assessment_note"], data[index]["nsg_assessment_note"])
+
+        for index, obj in enumerate(good_on_applications):
+            obj.refresh_from_db()
+            self.assertEqual(obj.nsg_list_type, data[index]["nsg_list_type"])
+            self.assertEqual(
+                obj.is_trigger_list_guidelines_applicable, data[index]["is_trigger_list_guidelines_applicable"]
+            )
+            self.assertEqual(obj.is_nca_applicable, data[index]["is_nca_applicable"])
+            self.assertEqual(obj.nsg_assessment_note, data[index]["nsg_assessment_note"])
 
     @parameterized.expand(CaseStatusEnum.terminal_statuses())
     def test_edit_good_on_terminal_status_application_forbidden(self, terminal_status):
@@ -202,6 +215,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
                     "application": application.id,
                     "good": self.good_on_application.good.id,
                     "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_trigger_list_guidelines_applicable": True,
                     "is_nca_applicable": True,
                     "nsg_assessment_note": "Trigger list product1",
                 },
@@ -210,6 +224,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
                     "application": application.id,
                     "good": self.good_on_application2.good.id,
                     "nsg_list_type": NSGListType.TRIGGER_LIST,
+                    "is_trigger_list_guidelines_applicable": False,
                     "is_nca_applicable": True,
                     "nsg_assessment_note": "Trigger list product2",
                 },
@@ -235,6 +250,7 @@ class GovUserEditGoodOnApplicationsTests(DataTestClient):
                     "application": application.id,
                     "good": self.good_on_application.good.id,
                     "nsg_list_type": "INVALID_LIST_TYPE",
+                    "is_trigger_list_guidelines_applicable": False,
                     "is_nca_applicable": True,
                     "nsg_assessment_note": "Trigger list product1",
                 },

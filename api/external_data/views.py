@@ -9,8 +9,8 @@ from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from django.conf import settings
 
 from api.core.authentication import GovAuthentication
+from api.conf.pagination import MaxPageNumberPagination
 from api.external_data import documents, models, serializers
-from api.external_data.helpers import get_denial_entity_type
 
 
 class DenialViewSet(viewsets.ModelViewSet):
@@ -39,6 +39,7 @@ class DenialSearchView(DocumentViewSet):
     document = documents.DenialDocumentType
     serializer_class = serializers.DenialSearchSerializer
     authentication_classes = (GovAuthentication,)
+    pagination_class = MaxPageNumberPagination
     lookup_field = "id"
     filter_backends = [
         filter_backends.SearchFilterBackend,
@@ -52,13 +53,6 @@ class DenialSearchView(DocumentViewSet):
             "field": "country.raw",
         }
     }
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        results = queryset.execute().to_dict()
-        for denial in results["hits"]["hits"]:
-            denial["_source"]["entity_type"] = get_denial_entity_type(denial["_source"]["data"])
-        return Response(results)
 
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False)
