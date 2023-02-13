@@ -39,7 +39,7 @@ commands:
           name: Install OS libraries
           command: |
             sudo apt-get update
-            sudo apt-get install swig libpango1.0-0 libcairo2 libpq-dev libpangocairo-1.0-0
+            sudo apt-get install swig libpango1.0-0 libcairo2 libpq-dev libpangocairo-1.0-0 imagemagick poppler-utils
 
   setup:
     steps:
@@ -75,7 +75,9 @@ commands:
       - install_os_libraries
       - run:
           name: Install Dependencies
-          command: pipenv sync --dev
+          command: |
+            pipenv sync --dev
+            pip install endesive==1.5.9
       - run:
           name: Install code coverage
           command: |
