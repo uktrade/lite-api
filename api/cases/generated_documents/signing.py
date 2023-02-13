@@ -7,10 +7,9 @@ from io import BytesIO
 from django.conf import settings
 from django.utils import timezone
 
-from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from PIL import Image, ImageFont, ImageDraw
 from cryptography.hazmat import backends
-from cryptography.hazmat.primitives.serialization import pkcs12
+from cryptography.hazmat.primitives.serialization import Encoding, pkcs12
 
 
 SIGNATURE_TITLE = "Digital Signature"
@@ -25,7 +24,7 @@ TEXT_POSITIONING = (500, 150)
 
 def get_certificate_data():
     _, cert, _ = _load_certificate_and_key()
-    return dump_certificate(FILETYPE_PEM, cert)
+    return cert.public_bytes(Encoding.PEM)
 
 
 def _load_certificate_and_key():
