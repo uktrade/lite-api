@@ -5,6 +5,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import PartyOnApplication
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from lite_content.lite_api.strings import PartyErrors
 from api.parties.enums import PartyType, SubType
 from api.parties.models import Party
@@ -167,7 +168,7 @@ class EndUserOnDraftTests(DataTestClient):
 
         party_on_application.delete()
 
-        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": party_on_application.party.pk})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": party_on_application.party_id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -412,7 +413,10 @@ class EndUserOnDraftTests(DataTestClient):
 class EndUserOnNonDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.submitted = self.create_standard_application_case(self.organisation)
+        self.app = self.create_standard_application_case(self.organisation)
+        self.app.status = get_case_status_by_status("applicant_editing")
+        self.app.save()
+        self.app.refresh_from_db()
 
     def test_delete_end_user_on_standard_application_when_application_has_been_submitted(
         self,
@@ -420,11 +424,11 @@ class EndUserOnNonDraftTests(DataTestClient):
         """
         Deletes the party_on_application instead of expiring
         """
-        end_user = PartyOnApplication.objects.get(
-            application=self.app, party__type=PartyType.END_USER, deleted_at__isnull=True
-        ).party
-        url = reverse("applications:party", kwargs={"pk": self.app.id, "party_pk": end_user.pk})
+        self.assertIsNotNone(self.app.end_user)
+        party_on_application = self.app.end_user
+        url = reverse("applications:party", kwargs={"pk": self.app.id, "party_pk": party_on_application.party_id})
         response = self.client.delete(url, **self.exporter_headers)
+        print(f"delete response:{response.json()}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             PartyOnApplication.objects.filter(
@@ -432,8 +436,3 @@ class EndUserOnNonDraftTests(DataTestClient):
             ).count(),
             0,
         )
-        try:
-            party_on_application = PartyOnApplication.objects.get(pk=end_user.id)
-            self.fail(f"party_on_application not deleted: {party_on_application}")
-        except PartyOnApplication.DoesNotExist:
-            pass

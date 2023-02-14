@@ -201,7 +201,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         party_on_application = self.draft.ultimate_end_users.first()
         url = reverse(
             "applications:party",
-            kwargs={"pk": self.draft.id, "party_pk": party_on_application.party.id},
+            kwargs={"pk": self.draft.id, "party_pk": party_on_application.party_id},
         )
         self.assertIsNone(party_on_application.deleted_at)  # Not marked as deleted
 
@@ -341,7 +341,7 @@ class UltimateEndUsersOnSubmittedEditable(DataTestClient):
         party_on_application = self.app.ultimate_end_users.first()
         url = reverse(
             "applications:party",
-            kwargs={"pk": self.app.id, "party_pk": party_on_application.party.id},
+            kwargs={"pk": self.app.id, "party_pk": party_on_application.party_id},
         )
         self.assertIsNone(party_on_application.deleted_at)  # Not marked as deleted
 

@@ -168,7 +168,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         party_on_application = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE)
         self.draft.delete_party(party_on_application)
 
-        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": party_on_application.party.pk})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": party_on_application.party_id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
