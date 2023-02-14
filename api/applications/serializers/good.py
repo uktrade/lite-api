@@ -29,6 +29,7 @@ from api.licences.models import GoodOnLicence
 from api.organisations.models import DocumentOnOrganisation
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from api.staticdata.regimes.serializers import RegimeEntrySerializer
+from api.staticdata.report_summaries.serializers import ReportSummaryPrefixSerializer, ReportSummarySubjectSerializer
 from api.staticdata.units.enums import Units
 from api.users.models import ExporterUser
 from api.users.serializers import ExporterUserSimpleSerializer
@@ -97,6 +98,8 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     firearm_details = FirearmDetailsSerializer()
     regime_entries = RegimeEntrySerializer(many=True, read_only=True)
     nsg_list_type = KeyValueChoiceField(choices=NSGListType.choices)
+    report_summary_prefix = ReportSummaryPrefixSerializer()
+    report_summary_subject = ReportSummarySubjectSerializer()
 
     class Meta:
         model = GoodOnApplication
@@ -118,6 +121,8 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "end_use_control",
             "comment",
             "report_summary",
+            "report_summary_prefix",
+            "report_summary_subject",
             "audit_trail",
             "firearm_details",
             "good_application_documents",
