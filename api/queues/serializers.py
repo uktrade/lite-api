@@ -21,6 +21,7 @@ class QueueViewSerializer(serializers.Serializer):
     name = serializers.CharField()
     is_system_queue = serializers.SerializerMethodField()
     countersigning_queue = serializers.SerializerMethodField()
+    alias = serializers.CharField(default=None)
 
     def get_countersigning_queue(self, instance):
         if isinstance(instance, Queue):
