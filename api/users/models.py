@@ -221,6 +221,12 @@ class GovUser(models.Model, BaseUserCompatMixin):
         user_permissions = self.role.permissions.values_list("id", flat=True)
         return permission.name in user_permissions
 
+    @property
+    def pending(self):
+        if self.baseuser_ptr.first_name:
+            return False
+        return True
+
 
 class UserOrganisationRelationship(TimestampableModel):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
