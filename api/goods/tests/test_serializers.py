@@ -1,4 +1,3 @@
-import pytest
 from django.utils import timezone
 
 from api.applications.tests.factories import (
@@ -11,9 +10,9 @@ from test_helpers.clients import DataTestClient
 
 from api.applications.tests.factories import PartyOnApplicationFactory
 
-from .factories import GoodFactory
-from ..serializers import GoodOnApplicationSerializer, GoodSerializerInternal
-from ...staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
+from api.goods.tests.factories import GoodFactory
+from api.goods.serializers import GoodOnApplicationSerializer, GoodSerializerInternal
+from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 
 
 class GoodOnApplicationSerializerTests(DataTestClient):

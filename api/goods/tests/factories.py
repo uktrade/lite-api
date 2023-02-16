@@ -1,12 +1,9 @@
-import uuid
-
 import factory
 from django.utils import timezone
 
 from api.goods import models
 from api.goods.enums import ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
-from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 
 
 class GoodFactory(factory.django.DjangoModelFactory):
