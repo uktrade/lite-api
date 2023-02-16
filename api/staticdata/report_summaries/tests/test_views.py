@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 
 def prefixes_url(name_filter=None):
     query = f"?name={name_filter}" if name_filter else ""
-    return reverse("staticdata:report_summaries:prefix") + query
+    return reverse("staticdata:report_summaries:prefixes") + query
 
 
 class ReportSummaryPrefixesWithNoFilterReturnsEverythingTests(DataTestClient):
@@ -76,7 +76,7 @@ class ReportSummaryPrefixesWithNoFilterReturnsEverythingTests(DataTestClient):
 
 def subjects_url(name_filter=None):
     query = f"?name={name_filter}" if name_filter else ""
-    return reverse("staticdata:report_summaries:subject") + query
+    return reverse("staticdata:report_summaries:subjects") + query
 
 
 class ReportSummarySubjectsTests(DataTestClient):

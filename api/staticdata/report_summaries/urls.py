@@ -6,6 +6,6 @@ from . import views
 app_name = "report_summaries"
 
 urlpatterns = [
-    path("prefixes/", views.ReportSummaryPrefixView.as_view(), name="prefix"),
-    path("subjects/", views.ReportSummarySubjectView.as_view(), name="subject"),
+    path("prefixes/", views.ReportSummaryPrefixesListView.as_view(), name="prefixes"),
+    path("subjects/", views.ReportSummarySubjectsListView.as_view(), name="subjects"),
 ]

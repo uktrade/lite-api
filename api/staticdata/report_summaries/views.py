@@ -7,7 +7,7 @@ from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSu
 from api.staticdata.report_summaries.serializers import ReportSummaryPrefixSerializer, ReportSummarySubjectSerializer
 
 
-class ReportSummaryPrefixView(APIView):
+class ReportSummaryPrefixesListView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get_queryset(self):
@@ -22,7 +22,7 @@ class ReportSummaryPrefixView(APIView):
         return JsonResponse(data={"report_summary_prefixes": prefix_serializer.data})
 
 
-class ReportSummarySubjectView(APIView):
+class ReportSummarySubjectsListView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get_queryset(self):
