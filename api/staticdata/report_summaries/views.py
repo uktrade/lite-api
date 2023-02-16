@@ -1,4 +1,6 @@
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+
 from rest_framework.views import APIView
 
 from api.core.authentication import GovAuthentication
@@ -22,6 +24,15 @@ class ReportSummaryPrefixesListView(APIView):
         return JsonResponse(data={"report_summary_prefixes": prefix_serializer.data})
 
 
+class ReportSummaryPrefixDetailView(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        prefix = get_object_or_404(ReportSummaryPrefix, pk=pk)
+        serializer = ReportSummaryPrefixSerializer(prefix)
+        return JsonResponse(data={"report_summary_prefix": serializer.data})
+
+
 class ReportSummarySubjectsListView(APIView):
     authentication_classes = (GovAuthentication,)
 
@@ -35,3 +46,12 @@ class ReportSummarySubjectsListView(APIView):
         """
         subject_serializer = ReportSummarySubjectSerializer(self.get_queryset(), many=True)
         return JsonResponse(data={"report_summary_subjects": subject_serializer.data})
+
+
+class ReportSummarySubjectDetailView(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        subject = get_object_or_404(ReportSummarySubject, pk=pk)
+        serializer = ReportSummarySubjectSerializer(subject)
+        return JsonResponse(data={"report_summary_subject": serializer.data})
