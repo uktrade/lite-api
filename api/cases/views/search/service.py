@@ -31,11 +31,14 @@ def get_case_type_type_list() -> List[Dict]:
 
 
 def get_gov_users_list():
-    return (
-        GovUser.objects.filter(status=UserStatuses.ACTIVE)
-        .annotate(full_name=Concat("baseuser_ptr__first_name", Value(" "), "baseuser_ptr__last_name"))
-        .values("full_name", id=F("baseuser_ptr_id"))
-    )
+    return [
+        {
+            "full_name": i.baseuser_ptr.first_name + " " + i.baseuser_ptr.last_name,
+            "id": i.baseuser_ptr.id,
+            "pending": i.pending,
+        }
+        for i in GovUser.objects.all()
+    ]
 
 
 def get_advice_types_list():
