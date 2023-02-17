@@ -10,7 +10,7 @@ from api.staticdata.statuses.models import CaseStatus
 from api.users.enums import SystemUser
 from api.users.models import BaseUser
 
-from lite_routing.routing_rules_internal.routing_engine import get_next_status_in_workflow_sequence, run_routing_rules
+from lite_routing.routing_rules_internal.routing_engine import move_case_forward
 
 
 def get_queues_with_case_assignments(case: Case):
@@ -70,9 +70,4 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
                 )
 
     # Move case to next non-terminal state if unassigned from all queues
-    if case.queues.count() == 0:
-        next_status = get_next_status_in_workflow_sequence(case)
-        if next_status:
-            case.status = next_status
-            case.save()
-            run_routing_rules(case)
+    move_case_forward(case)
