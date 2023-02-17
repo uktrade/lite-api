@@ -3,8 +3,7 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, F, Q, Value, OuterRef
-from django.db.models.functions import Concat
+from django.db.models import Count, F, Q, OuterRef
 from django.utils import timezone
 
 from api.applications.models import HmrcQuery, PartyOnApplication
@@ -37,7 +36,7 @@ def get_gov_users_list():
             "id": i.baseuser_ptr.id,
             "pending": i.pending,
         }
-        for i in GovUser.objects.all()
+        for i in GovUser.objects.filter(status=UserStatuses.ACTIVE)
     ]
 
 
