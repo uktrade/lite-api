@@ -20,8 +20,9 @@ from api.queues.models import Queue
 from api.queues.serializers import TinyQueueSerializer
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
-from api.workflow.automation import run_routing_rules
 from api.workflow.user_queue_assignment import user_queue_assignment_workflow
+
+from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
 
 class AssignedQueues(APIView):
