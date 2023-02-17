@@ -80,21 +80,19 @@ GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT = "Select a valid report summary subject"
 
 def get_new_report_summary_data(request):
     data = request.data
-    summary = data.get("report_summary", None)
+    summary = data.get("report_summary")
     rs_subject, rs_prefix = None, None
 
-    subject_id = data.get("report_summary_subject", None)
-    prefix_id = data.get("report_summary_prefix", None)
-
-    if subject_id is not None:
+    subject_id = data.get("report_summary_subject")
+    if subject_id:
         try:
             rs_subject = ReportSummarySubject.objects.get(id=subject_id)
         except ReportSummarySubject.DoesNotExist:
             raise ValidationError(GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT)
-
         summary = rs_subject.name
 
-    if prefix_id is not None:
+    prefix_id = data.get("report_summary_prefix")
+    if prefix_id:
         try:
             rs_prefix = ReportSummaryPrefix.objects.get(id=prefix_id)
         except ReportSummaryPrefix.DoesNotExist:
