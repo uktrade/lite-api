@@ -144,6 +144,7 @@ class Case(TimestampableModel):
                     "first_name": assignment.user.first_name,
                     "last_name": assignment.user.last_name,
                     "email": assignment.user.email,
+                    "assignment_id": assignment.pk,
                 }
             )
 

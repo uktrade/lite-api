@@ -1,6 +1,7 @@
 import os
 
 from elasticsearch_dsl import Index
+from parameterized import parameterized
 import pytest
 
 from django.core.management import call_command
@@ -114,7 +115,13 @@ class DenialViewSetTests(DataTestClient):
 
 class DenialSearchView(DataTestClient):
     @pytest.mark.elasticsearch
-    def test_search(self):
+    @parameterized.expand(
+        [
+            ({},),
+            ({"page": 1},),
+        ]
+    )
+    def test_search_denials(self, page_query):
         call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
         # given some denials exist
         url = reverse("external_data:denial-list")
@@ -135,9 +142,12 @@ class DenialSearchView(DataTestClient):
         # then only 2 denials will be returned when searching
         url = reverse("external_data:denial_search-list")
 
-        response = self.client.get(url, {"search": "Example"}, **self.gov_headers)
+        response = self.client.get(url, {**page_query, "search": "Example"}, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()["hits"]["hits"]), 2)
+        response_json = response.json()
+        self.assertEqual(len(response_json["results"]), 2)
+        self.assertEqual(response_json["total_pages"], 1)
+        assert "entity_type" in response_json["results"][0]
 
 
 class DenialSearchViewTests(DataTestClient):

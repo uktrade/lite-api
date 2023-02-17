@@ -14,6 +14,11 @@ MY_ASSIGNED_CASES_QUEUE_NAME = strings.MY_ASSIGNED_CASES_QUEUE_NAME
 MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID = "00000000-0000-0000-0000-000000000006"
 MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_NAME = strings.MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_NAME
 
+# Warning: Removing values from this dictionary should be done with care
+# Users may have a default_queue value which points to one of these and if that
+# is the case the following code will error with Queue.DoesNotExist;
+# https://github.com/uktrade/lite-api/blob/96e5d955a2a3e9fa21ce0bcae35815ecc0990124/api/gov_users/serializers.py#L98:L104
+# In this case, a data migration to adjust default_queue values will be required
 SYSTEM_QUEUES = {
     ALL_CASES_QUEUE_ID: ALL_CASES_QUEUE_NAME,
     OPEN_CASES_QUEUE_ID: OPEN_CASES_QUEUE_NAME,
