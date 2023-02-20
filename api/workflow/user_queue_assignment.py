@@ -1,7 +1,6 @@
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 
-from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.compliance.helpers import compliance_visit_case_complete
 from api.compliance.models import ComplianceVisitCase
@@ -10,6 +9,8 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.users.enums import SystemUser
 from api.users.models import BaseUser
+
+from lite_routing.routing_rules_internal.routing_engine import move_case_forward
 
 
 def get_queues_with_case_assignments(case: Case):
@@ -41,29 +42,7 @@ def get_next_compliance_visit_status(case):
         return CaseStatus.objects.get(status=CaseStatusEnum.compliance_visit_statuses[current_status_pos + 1])
 
 
-def get_next_status_in_workflow_sequence(case):
-    if case.case_type.reference == CaseTypeEnum.GOODS.reference:
-        return get_next_goods_query_status(case)
-    elif case.case_type.reference == CaseTypeEnum.COMPLIANCE_VISIT.reference:
-        return get_next_compliance_visit_status(case)
-    elif case.case_type.reference == CaseTypeEnum.HMRC.reference:
-        return None
-    else:
-        status = case.status
-        if status.workflow_sequence:
-            next_status_id = status.workflow_sequence + 1
-            try:
-                return CaseStatus.objects.get(workflow_sequence=next_status_id, is_terminal=False)
-            except CaseStatus.DoesNotExist:
-                # If case workflow does have not have a next status
-                # Try/catch also verifies that multiple statuses do not exist for a given sequence ID
-                pass
-
-        return None
-
-
 def user_queue_assignment_workflow(queues: [Queue], case: Case):
-    from api.workflow.automation import run_routing_rules
 
     # Remove case from queues where all gov users are done with the case
     queues_without_case_assignments = set(queues) - get_queues_with_case_assignments(case)
@@ -91,9 +70,4 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
                 )
 
     # Move case to next non-terminal state if unassigned from all queues
-    if case.queues.count() == 0:
-        next_status = get_next_status_in_workflow_sequence(case)
-        if next_status:
-            case.status = next_status
-            case.save()
-            run_routing_rules(case)
+    move_case_forward(case)

@@ -1,27 +1,20 @@
 import os
+import PyPDF2
+
 from base64 import b64decode
 from io import BytesIO
 
-import PyPDF2
-from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
-from PIL import Image, ImageFont, ImageDraw
-from cryptography.hazmat import backends
-from cryptography.hazmat.primitives.serialization import pkcs12
+from django.conf import settings
 from django.utils import timezone
 
-from api.conf.settings import (
-    BASE_DIR,
-    P12_CERTIFICATE,
-    CERTIFICATE_PASSWORD,
-    SIGNING_REASON,
-    SIGNING_LOCATION,
-    SIGNING_EMAIL,
-    DOCUMENT_SIGNING_ENABLED,
-)
+from PIL import Image, ImageFont, ImageDraw
+from cryptography.hazmat import backends
+from cryptography.hazmat.primitives.serialization import Encoding, pkcs12
+
 
 SIGNATURE_TITLE = "Digital Signature"
-FONT = os.path.join(os.path.dirname(BASE_DIR), "assets", "fonts", "light.ttf")
-BACKGROUND_IMAGE = os.path.join(os.path.dirname(BASE_DIR), "assets", "images", "dit_emblem.png")
+FONT = os.path.join(os.path.dirname(settings.BASE_DIR), "assets", "fonts", "light.ttf")
+BACKGROUND_IMAGE = os.path.join(os.path.dirname(settings.BASE_DIR), "assets", "images", "dit_emblem.png")
 TITLE_FONT_SIZE = 80
 FONT_SIZE = 50
 SIGNATURE_POSITIONING = (50, 675, 450, 775)
@@ -31,7 +24,7 @@ TEXT_POSITIONING = (500, 150)
 
 def get_certificate_data():
     _, cert, _ = _load_certificate_and_key()
-    return dump_certificate(FILETYPE_PEM, cert)
+    return cert.public_bytes(Encoding.PEM)
 
 
 def _load_certificate_and_key():
@@ -39,7 +32,9 @@ def _load_certificate_and_key():
     Extracts the key & certificate from the p12 file specified with CERTIFICATE_PATH & CERTIFICATE_PASSWORD
     """
     return pkcs12.load_key_and_certificates(
-        b64decode(P12_CERTIFICATE), str.encode(CERTIFICATE_PASSWORD), backends.default_backend()
+        b64decode(settings.P12_CERTIFICATE),
+        str.encode(settings.CERTIFICATE_PASSWORD),
+        backends.default_backend(),
     )
 
 
@@ -47,8 +42,8 @@ def _get_signature_text(date):
     return "\n\n".join(
         [
             f"Date: {date.strftime('%Y.%m.%d %H:%M:%S GMT')}",
-            f"Reason: {SIGNING_REASON}",
-            f"Location: {SIGNING_LOCATION}",
+            f"Reason: {settings.SIGNING_REASON}",
+            f"Location: {settings.SIGNING_LOCATION}",
         ]
     )
 
@@ -88,7 +83,7 @@ def sign_pdf(original_pdf: bytes):
     Relies on a p12 file specified in CERTIFICATE_PATH & CERTIFICATE_PASSWORD.
     Also uses SIGNING_EMAIL, SIGNING_LOCATION & SIGNING_REASON as key data in the signing process.
     """
-    if DOCUMENT_SIGNING_ENABLED:
+    if settings.DOCUMENT_SIGNING_ENABLED:
         from endesive.pdf.cms import sign  # noqa
 
         date = timezone.localtime()
@@ -97,10 +92,10 @@ def sign_pdf(original_pdf: bytes):
             "sigandcertify": True,
             "signaturebox": SIGNATURE_POSITIONING,
             "signature_img": _get_signature_image(_get_signature_text(date)),
-            "contact": SIGNING_EMAIL,
-            "location": SIGNING_LOCATION,
+            "contact": settings.SIGNING_EMAIL,
+            "location": settings.SIGNING_LOCATION,
             "signingdate": date.strftime("D:%Y%m%d%H%M%S+00'00'"),
-            "reason": SIGNING_REASON,
+            "reason": settings.SIGNING_REASON,
         }
 
         # Load key & certificate

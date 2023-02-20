@@ -5,6 +5,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import PartyOnApplication
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from lite_content.lite_api.strings import PartyErrors
 from api.parties.enums import PartyType, SubType
 from api.parties.models import Party
@@ -114,7 +115,7 @@ class EndUserOnDraftTests(DataTestClient):
             ],
         ]
     )
-    def test_set_end_user_on_draft_standard_application_failure(self, data):
+    def test_set_end_user_on_non_draft_standard_application_failure(self, data):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -135,18 +136,22 @@ class EndUserOnDraftTests(DataTestClient):
         When a new end user is added
         Then the old one is removed
         """
-        poa = PartyOnApplication.objects.get(
+        party_on_application = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         )
 
         self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
-        poa.refresh_from_db()
+        try:
+            party_on_application.refresh_from_db()
+            self.fail(f"party_on_application not deleted: {party_on_application}")
+        except PartyOnApplication.DoesNotExist:
+            pass
 
-        new_poa = PartyOnApplication.objects.get(
+        new_party_on_application = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         )
 
-        self.assertNotEqual(poa.id, new_poa.id)
+        self.assertNotEqual(party_on_application.id, new_party_on_application.id)
         delete_s3_function.assert_not_called()
 
     def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(
@@ -157,13 +162,13 @@ class EndUserOnDraftTests(DataTestClient):
         When I try to delete an end user from the application
         Then a 404 NOT FOUND is returned
         """
-        poa = PartyOnApplication.objects.get(
+        party_on_application = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         )
 
-        poa.delete()
+        party_on_application.delete()
 
-        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": party_on_application.party_id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -328,7 +333,7 @@ class EndUserOnDraftTests(DataTestClient):
             PartyOnApplication.objects.filter(
                 application=self.draft, deleted_at__isnull=False, party__type=PartyType.END_USER
             ).count(),
-            1,
+            0,
         )
         delete_s3_function.assert_not_called()
 
@@ -403,3 +408,31 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(self.url, end_user, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["end_user"]["copy_of"], str(end_user["copy_of"]))
+
+
+class EndUserOnNonDraftTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.app = self.create_standard_application_case(self.organisation)
+        self.app.status = get_case_status_by_status("applicant_editing")
+        self.app.save()
+        self.app.refresh_from_db()
+
+    def test_delete_end_user_on_standard_application_when_application_has_been_submitted(
+        self,
+    ):
+        """
+        Deletes the party_on_application instead of expiring
+        """
+        self.assertIsNotNone(self.app.end_user)
+        party_on_application = self.app.end_user
+        url = reverse("applications:party", kwargs={"pk": self.app.id, "party_pk": party_on_application.party_id})
+        response = self.client.delete(url, **self.exporter_headers)
+        print(f"delete response:{response.json()}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            PartyOnApplication.objects.filter(
+                application=self.app, party__type=PartyType.END_USER, deleted_at__isnull=True
+            ).count(),
+            0,
+        )

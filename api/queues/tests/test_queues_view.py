@@ -48,6 +48,8 @@ class QueuesViewTests(DataTestClient):
         View an individual queue
         """
         queue = self.create_queue("New Queue", self.team)
+        queue.alias = "QUEUE_ALIAS"
+        queue.save()
         url = reverse("queues:queue", kwargs={"pk": queue.id})
 
         response = self.client.get(url, **self.gov_headers)
@@ -55,5 +57,6 @@ class QueuesViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqualIgnoreType(response_data["id"], queue.id)
+        self.assertEqual(response_data["alias"], queue.alias)
         self.assertEqual(response_data["name"], queue.name)
         self.assertEqual(response_data["is_system_queue"], False)

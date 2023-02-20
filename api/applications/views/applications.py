@@ -90,8 +90,9 @@ from api.staticdata.statuses.libraries.case_status_validate import is_case_statu
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.notifications import get_case_notifications
 from api.users.models import ExporterUser
-from api.workflow.automation import run_routing_rules
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+
+from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
 
 class ApplicationList(ListCreateAPIView):
