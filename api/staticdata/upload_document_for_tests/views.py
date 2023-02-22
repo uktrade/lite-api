@@ -6,7 +6,13 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from api.core.authentication import SharedAuthentication
-from api.conf.settings import env, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+from api.conf.settings import (
+    env,
+    AWS_STORAGE_BUCKET_NAME,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_ENDPOINT_URL,
+)
 
 
 class UploadDocumentForTests(APIView):
@@ -21,10 +27,15 @@ class UploadDocumentForTests(APIView):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
+        additional_s3_params = {}
+        if AWS_ENDPOINT_URL:
+            additional_s3_params["endpoint_url"] = AWS_ENDPOINT_URL
+
         s3 = boto3.client(
             "s3",
             aws_access_key_id=AWS_ACCESS_KEY_ID,
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            **additional_s3_params,
         )
         s3_key = "lite-e2e-test-file.txt"
 

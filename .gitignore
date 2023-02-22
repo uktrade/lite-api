@@ -180,3 +180,5 @@ bank-holidays.csv
 
 # Merge tool backup file
 *.orig
+
+volumes/s3/
