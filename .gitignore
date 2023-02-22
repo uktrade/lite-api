@@ -177,3 +177,5 @@ bank-holidays.csv
 .pii-secret-hook
 
 *.prof
+
+volumes/s3/

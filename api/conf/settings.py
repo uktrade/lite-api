@@ -247,6 +247,7 @@ if VCAP_SERVICES:
     AWS_REGION = aws_credentials["aws_region"]
     AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
 else:
+    AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
     AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
     AWS_REGION = env("AWS_REGION")

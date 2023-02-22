@@ -5,6 +5,7 @@ import uuid
 import boto3
 from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ReadTimeoutError
+
 from django.http import StreamingHttpResponse
 
 from api.conf.settings import (
@@ -15,7 +16,12 @@ from api.conf.settings import (
     AWS_SECRET_ACCESS_KEY,
     AWS_REGION,
     AWS_STORAGE_BUCKET_NAME,
+    AWS_ENDPOINT_URL,
 )
+
+additional_s3_params = {}
+if AWS_ENDPOINT_URL:
+    additional_s3_params["endpoint_url"] = AWS_ENDPOINT_URL
 
 _client = boto3.client(
     "s3",
@@ -23,6 +29,7 @@ _client = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
     region_name=AWS_REGION,
     config=Config(connect_timeout=S3_CONNECT_TIMEOUT, read_timeout=S3_REQUEST_TIMEOUT),
+    **additional_s3_params,
 )
 
 
