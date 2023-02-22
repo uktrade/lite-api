@@ -1,6 +1,5 @@
 import os
 
-import boto3
 from django.conf import settings
 from django.http import JsonResponse
 from rest_framework import status
@@ -8,6 +7,7 @@ from rest_framework.views import APIView
 
 from api.core.authentication import SharedAuthentication
 from api.conf.settings import env
+from api.documents.libraries.s3_operations import get_client
 
 
 class UploadDocumentForTests(APIView):
@@ -22,16 +22,7 @@ class UploadDocumentForTests(APIView):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-        additional_s3_params = {}
-        if settings.AWS_ENDPOINT_URL:
-            additional_s3_params["endpoint_url"] = settings.AWS_ENDPOINT_URL
-
-        s3 = boto3.client(
-            "s3",
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            **additional_s3_params,
-        )
+        s3 = get_client()
         s3_key = "lite-e2e-test-file.txt"
 
         file_to_upload_abs_path = os.path.abspath(

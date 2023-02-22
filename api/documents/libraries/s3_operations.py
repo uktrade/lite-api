@@ -10,18 +10,24 @@ from django.conf import settings
 from django.http import StreamingHttpResponse
 
 
-additional_s3_params = {}
-if settings.AWS_ENDPOINT_URL:
-    additional_s3_params["endpoint_url"] = settings.AWS_ENDPOINT_URL
+def get_client():
+    additional_s3_params = {}
+    if settings.AWS_ENDPOINT_URL:
+        additional_s3_params["endpoint_url"] = settings.AWS_ENDPOINT_URL
 
-_client = boto3.client(
-    "s3",
-    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-    region_name=settings.AWS_REGION,
-    config=Config(connect_timeout=settings.S3_CONNECT_TIMEOUT, read_timeout=settings.S3_REQUEST_TIMEOUT),
-    **additional_s3_params,
-)
+    config = Config(connect_timeout=settings.S3_CONNECT_TIMEOUT, read_timeout=settings.S3_REQUEST_TIMEOUT)
+
+    return boto3.client(
+        "s3",
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_REGION,
+        config=config,
+        **additional_s3_params,
+    )
+
+
+_client = get_client()
 
 
 def get_object(document_id, s3_key):
