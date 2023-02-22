@@ -3,7 +3,8 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, F, Q, OuterRef
+from django.db.models import Count, F, Q, Value, OuterRef, ExpressionWrapper, BooleanField
+from django.db.models.functions import Concat
 from django.utils import timezone
 
 from api.applications.models import HmrcQuery, PartyOnApplication
@@ -30,14 +31,14 @@ def get_case_type_type_list() -> List[Dict]:
 
 
 def get_gov_users_list():
-    return [
-        {
-            "full_name": i.baseuser_ptr.first_name + " " + i.baseuser_ptr.last_name,
-            "id": i.baseuser_ptr.id,
-            "pending": i.pending,
-        }
-        for i in GovUser.objects.filter(status=UserStatuses.ACTIVE)
-    ]
+    return (
+        GovUser.objects.filter(status=UserStatuses.ACTIVE)
+        .annotate(
+            full_name=Concat("baseuser_ptr__first_name", Value(" "), "baseuser_ptr__last_name"),
+            pending=ExpressionWrapper(Q(baseuser_ptr__first_name=""), output_field=BooleanField()),
+        )
+        .values("full_name", "pending", id=F("baseuser_ptr_id"))
+    )
 
 
 def get_advice_types_list():

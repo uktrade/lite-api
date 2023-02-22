@@ -97,6 +97,12 @@ class BaseUser(AbstractUser, TimestampableModel):
     def send_notification(self, **kwargs):
         pass
 
+    @property
+    def pending(self):
+        if self.first_name:
+            return False
+        return True
+
 
 class BaseNotification(models.Model):
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
@@ -145,6 +151,10 @@ class BaseUserCompatMixin:
     @property
     def is_anonymous(self):
         return self.baseuser_ptr.is_anonymous
+
+    @property
+    def pending(self):
+        return self.baseuser_ptr.pending
 
     def save(self, *args, **kwargs):
         if not self.baseuser_ptr.type:
@@ -220,12 +230,6 @@ class GovUser(models.Model, BaseUserCompatMixin):
     def has_permission(self, permission):
         user_permissions = self.role.permissions.values_list("id", flat=True)
         return permission.name in user_permissions
-
-    @property
-    def pending(self):
-        if self.baseuser_ptr.first_name:
-            return False
-        return True
 
 
 class UserOrganisationRelationship(TimestampableModel):
