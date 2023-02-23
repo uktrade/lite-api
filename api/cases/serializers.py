@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
-from api.applications.serializers.advice import AdviceViewSerializer
+from api.applications.serializers.advice import AdviceViewSerializer, CountersignedAdviceWithDecisionViewSerializer
 from api.audit_trail.models import Audit
 from api.cases.enums import (
     CaseTypeTypeEnum,
@@ -182,6 +182,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     advice = AdviceViewSerializer(many=True)
+    countersigned_advice = CountersignedAdviceWithDecisionViewSerializer(many=True)
     data = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     next_review_date = serializers.SerializerMethodField()
@@ -198,6 +199,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "assigned_users",
             "has_advice",
             "advice",
+            "countersigned_advice",
             "all_flags",
             "case_officer",
             "audit_notification",

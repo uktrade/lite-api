@@ -1048,6 +1048,7 @@ class CountersignAdviceView(APIView):
 
 class CountersignAdviceV2(APIView):
     authentication_classes = (GovAuthentication,)
+    serializer_class = CountersignAdviceWithDecisionSerializer
 
     def dispatch(self, request, *args, **kwargs):
         if not settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
@@ -1055,26 +1056,16 @@ class CountersignAdviceV2(APIView):
                 data={"errors": ["LU Countersigning routing not enabled"]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        return super().dispatch(request, *args, **kwargs)
-
-    def post(self, request, **kwargs):
         case = get_case(kwargs["pk"])
-
         if CaseStatusEnum.is_terminal(case.status.status):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = request.data
+        return super().dispatch(request, *args, **kwargs)
 
-        serializer = CountersignAdviceWithDecisionSerializer(data=data, many=True)
-        if not serializer.is_valid():
-            return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save()
-
+    def audit_countersign(self, request, case):
         department = request.user.govuser.team.department
         if department is not None:
             department = department.name
@@ -1088,16 +1079,23 @@ class CountersignAdviceV2(APIView):
             payload={"department": department},
         )
 
+    def post(self, request, **kwargs):
+        case = get_case(kwargs["pk"])
+
+        data = request.data
+
+        serializer = self.serializer_class(data=data, many=True)
+        if not serializer.is_valid():
+            return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        self.audit_countersign(request, case)
+
         return JsonResponse({"countersigned_advice": serializer.data}, status=status.HTTP_201_CREATED)
 
     def put(self, request, **kwargs):
         case = get_case(kwargs["pk"])
-
-        if CaseStatusEnum.is_terminal(case.status.status):
-            return JsonResponse(
-                data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         countersign_ids = [item["id"] for item in request.data]
         serializer = CountersignAdviceWithDecisionSerializer(
@@ -1108,18 +1106,7 @@ class CountersignAdviceV2(APIView):
 
         serializer.save()
 
-        department = request.user.govuser.team.department
-        if department is not None:
-            department = department.name
-        else:
-            department = "department"
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.COUNTERSIGN_ADVICE,
-            target=case,
-            payload={"department": department},
-        )
+        self.audit_countersign(request, case)
 
         return JsonResponse({"countersigned_advice": serializer.data}, status=status.HTTP_200_OK)
 

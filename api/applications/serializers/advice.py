@@ -11,7 +11,7 @@ from api.flags.enums import FlagStatuses
 from api.goods.models import Good
 from api.applications.models import GoodOnApplication
 from api.goodstype.models import GoodsType
-from api.gov_users.serializers import GovUserListSerializer
+from api.gov_users.serializers import GovUserListSerializer, GovUserViewSerializer
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
 from api.parties.models import Party
@@ -211,8 +211,17 @@ class CountersignAdviceWithDecisionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CountersignAdvice
-        fields = "__all__"
+        fields = ("id", "order", "outcome_accepted", "reasons", "countersigned_user", "case", "advice")
         list_serializer_class = CountersignAdviceWithDecisionListSerializer
+
+
+class CountersignedAdviceWithDecisionViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    order = serializers.IntegerField()
+    outcome_accepted = serializers.BooleanField()
+    reasons = serializers.CharField()
+    countersigned_user = GovUserViewSerializer()
+    advice = AdviceViewSerializer()
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):
