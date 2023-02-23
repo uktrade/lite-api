@@ -537,6 +537,18 @@ class Advice(TimestampableModel):
         )
 
 
+class CountersignAdvice(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    order = models.PositiveIntegerField(help_text="Indicates countersigning order")
+    outcome_accepted = models.BooleanField()
+    reasons = models.TextField(
+        help_text="Reasons provided by the countersigner when they agree/disagree with the advice during countersigning",
+    )
+    countersigned_user = models.ForeignKey(GovUser, on_delete=models.DO_NOTHING, related_name="countersigned_user")
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="countersign_advice")
+    advice = models.ForeignKey(Advice, on_delete=models.CASCADE, related_name="countersign")
+
+
 class EcjuQuery(TimestampableModel):
     """
     Query from ECJU to exporters
