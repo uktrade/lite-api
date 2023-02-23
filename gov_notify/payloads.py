@@ -95,3 +95,11 @@ class ExporterNoLicenceRequired(EmailData):
     user_first_name: str
     application_reference: str
     exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
+class CaseWorkerCountersignCaseReturn(EmailData):
+    case_reference: str
+    countersigner_name: str
+    countersign_comments: str
+    recommendation_section_url: str
