@@ -92,7 +92,7 @@ urlpatterns = [
     path("<uuid:pk>/rerun-routing-rules/", case_actions.RerunRoutingRules.as_view(), name="rerun_routing_rules"),
     path("<uuid:pk>/review-date/", views.NextReviewDate.as_view(), name="review_date"),
     # Advice2.0
-    path("<uuid:pk>/countersign-advice/", views.CountersignAdvice.as_view(), name="countersign_advice"),
+    path("<uuid:pk>/countersign-advice/", views.CountersignAdviceView.as_view(), name="countersign_advice"),
     # LU countersigning
     path("<uuid:pk>/v2/countersign-advice/", views.CountersignAdviceV2.as_view(), name="countersign_advice_v2"),
     # Good precedents

@@ -20,6 +20,7 @@ from api.cases.enums import (
     AdviceType,
     AdviceLevel,
 )
+from api.cases.models import CountersignAdvice
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.libraries.advice import group_advice
@@ -1005,7 +1006,7 @@ class NextReviewDate(APIView):
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
-class CountersignAdvice(APIView):
+class CountersignAdviceView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, **kwargs):
@@ -1087,7 +1088,40 @@ class CountersignAdviceV2(APIView):
             payload={"department": department},
         )
 
-        return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
+        return JsonResponse({"countersigned_advice": serializer.data}, status=status.HTTP_201_CREATED)
+
+    def put(self, request, **kwargs):
+        case = get_case(kwargs["pk"])
+
+        if CaseStatusEnum.is_terminal(case.status.status):
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        countersign_ids = [item["id"] for item in request.data]
+        serializer = CountersignAdviceWithDecisionSerializer(
+            CountersignAdvice.objects.filter(id__in=countersign_ids), data=request.data, partial=True, many=True
+        )
+        if not serializer.is_valid():
+            return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        department = request.user.govuser.team.department
+        if department is not None:
+            department = department.name
+        else:
+            department = "department"
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.COUNTERSIGN_ADVICE,
+            target=case,
+            payload={"department": department},
+        )
+
+        return JsonResponse({"countersigned_advice": serializer.data}, status=status.HTTP_200_OK)
 
 
 class GoodOnPrecedentList(ListAPIView):

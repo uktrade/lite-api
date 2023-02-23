@@ -292,6 +292,9 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         response = self.client.post(self.url, **self.gov_headers, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+        response = self.client.put(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_countersign_advice_with_decision_terminal_status_failure(self):
         """Ensure we cannot countersign a case that is in one of the terminal state"""
@@ -301,6 +304,9 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = self.client.post(self.url, **self.gov_headers, data=[])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.put(self.url, **self.gov_headers, data=[])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
@@ -333,6 +339,57 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         response = self.client.post(self.url, **self.gov_headers, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CountersignAdvice.objects.count(), len(data))
+        audit_qs = Audit.objects.filter(verb=AuditType.COUNTERSIGN_ADVICE)
+        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.first().actor, self.gov_user)
+
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_countersign_advice_with_decision_update_success(self):
+        all_advice = [
+            Advice.objects.create(
+                **{
+                    "user": self.gov_user,
+                    "good": self.application.goods.first().good,
+                    "team": self.team,
+                    "case": self.case,
+                    "note": f"Advice {i}",
+                }
+            )
+            for i in range(4)
+        ]
+
+        for advice in all_advice:
+            CountersignAdvice.objects.create(
+                **{
+                    "order": 1,
+                    "outcome_accepted": True,
+                    "reasons": "Agree with original outcome",
+                    "countersigned_user": self.gov_user,
+                    "case": self.case,
+                    "advice": advice,
+                }
+            )
+
+        data = [
+            {
+                "id": item.id,
+                "outcome_accepted": False,
+                "reasons": "Disagree with the original outcome",
+                "countersigned_user": self.gov_user.baseuser_ptr.id,
+            }
+            for item in CountersignAdvice.objects.all()
+        ]
+
+        response = self.client.put(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        for item in response["countersigned_advice"]:
+            self.assertFalse(item["outcome_accepted"])
+            self.assertEqual(item["reasons"], "Disagree with the original outcome")
+        for item in CountersignAdvice.objects.all():
+            self.assertFalse(item.outcome_accepted)
+            self.assertEqual(item.reasons, "Disagree with the original outcome")
+
         audit_qs = Audit.objects.filter(verb=AuditType.COUNTERSIGN_ADVICE)
         self.assertEqual(audit_qs.count(), 1)
         self.assertEqual(audit_qs.first().actor, self.gov_user)
