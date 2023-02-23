@@ -72,7 +72,7 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(all_cases), len(response_data["cases"]))
         self.assertEqual(
             [
-                {"id": str(user.pk), "full_name": f"{user.first_name} {user.last_name}"}
+                {"full_name": f"{user.first_name} {user.last_name}", "id": str(user.pk), "pending": user.pending}
                 for user in GovUser.objects.filter(status=UserStatuses.ACTIVE)
             ],
             response_data["filters"]["gov_users"],

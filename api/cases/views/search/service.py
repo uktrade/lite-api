@@ -3,7 +3,7 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, F, Q, Value, OuterRef
+from django.db.models import Count, F, Q, Value, OuterRef, ExpressionWrapper, BooleanField
 from django.db.models.functions import Concat
 from django.utils import timezone
 
@@ -33,8 +33,11 @@ def get_case_type_type_list() -> List[Dict]:
 def get_gov_users_list():
     return (
         GovUser.objects.filter(status=UserStatuses.ACTIVE)
-        .annotate(full_name=Concat("baseuser_ptr__first_name", Value(" "), "baseuser_ptr__last_name"))
-        .values("full_name", id=F("baseuser_ptr_id"))
+        .annotate(
+            full_name=Concat("baseuser_ptr__first_name", Value(" "), "baseuser_ptr__last_name"),
+            pending=ExpressionWrapper(Q(baseuser_ptr__first_name=""), output_field=BooleanField()),
+        )
+        .values("full_name", "pending", id=F("baseuser_ptr_id"))
     )
 
 
