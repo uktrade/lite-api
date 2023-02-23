@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
@@ -6,7 +7,11 @@ from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView
 from rest_framework.views import APIView
 from api.applications.models import GoodOnApplication
-from api.applications.serializers.advice import CountersignAdviceSerializer, CountryWithFlagsSerializer
+from api.applications.serializers.advice import (
+    CountersignAdviceSerializer,
+    CountryWithFlagsSerializer,
+    CountersignAdviceWithDecisionSerializer,
+)
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases import notify
@@ -1038,6 +1043,51 @@ class CountersignAdvice(APIView):
         )
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
+
+
+class CountersignAdviceV2(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def dispatch(self, request, *args, **kwargs):
+        if not settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
+            return JsonResponse(
+                data={"errors": ["LU Countersigning routing not enabled"]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, **kwargs):
+        case = get_case(kwargs["pk"])
+
+        if CaseStatusEnum.is_terminal(case.status.status):
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = request.data
+
+        serializer = CountersignAdviceWithDecisionSerializer(data=data, many=True)
+        if not serializer.is_valid():
+            return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        department = request.user.govuser.team.department
+        if department is not None:
+            department = department.name
+        else:
+            department = "department"
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.COUNTERSIGN_ADVICE,
+            target=case,
+            payload={"department": department},
+        )
+
+        return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class GoodOnPrecedentList(ListAPIView):
