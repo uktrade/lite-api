@@ -607,7 +607,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         advice_text="This is some text",
         good=None,
         goods_type=None,
-        countersign_comments=None,
+        countersign_comments="",
         countersigned_by=None,
     ):
         advice = Advice(
