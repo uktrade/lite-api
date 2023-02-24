@@ -94,7 +94,7 @@ urlpatterns = [
     # Advice2.0
     path("<uuid:pk>/countersign-advice/", views.CountersignAdviceView.as_view(), name="countersign_advice"),
     # LU countersigning
-    path("<uuid:pk>/v2/countersign-advice/", views.CountersignAdviceV2.as_view(), name="countersign_advice_v2"),
+    path("<uuid:pk>/countersign-decision-advice/", views.CountersignDecisionAdvice.as_view(), name="countersign_decision_advice"),
     # Good precedents
     path("<uuid:pk>/good-precedents/", views.GoodOnPrecedentList.as_view(), name="good_precedents"),
 ]

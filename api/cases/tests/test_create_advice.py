@@ -279,7 +279,7 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         self.application = self.create_draft_standard_application(self.organisation)
         self.case = self.submit_application(self.application)
 
-        self.url = reverse("cases:countersign_advice_v2", kwargs={"pk": self.case.id})
+        self.url = reverse("cases:countersign_decision_advice", kwargs={"pk": self.case.id})
 
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=False)
     def test_countersign_advice_without_routing_enabled_fails(self):
@@ -407,7 +407,7 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         response = self.client.put(self.url, **self.gov_headers, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()
-        for index, item in enumerate(response["countersigned_advice"]):
+        for index, item in enumerate(response["countersign_advice"]):
             self.assertEqual(item["outcome_accepted"], data[index]["outcome_accepted"])
             self.assertEqual(item["reasons"], data[index]["reasons"])
 

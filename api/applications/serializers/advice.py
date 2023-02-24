@@ -204,7 +204,7 @@ class CountersignAdviceWithDecisionListSerializer(serializers.ListSerializer):
         return result
 
 
-class CountersignAdviceWithDecisionSerializer(serializers.ModelSerializer):
+class CountersignDecisionAdviceSerializer(serializers.ModelSerializer):
     countersigned_user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     advice = serializers.PrimaryKeyRelatedField(queryset=Advice.objects.all())
@@ -215,7 +215,7 @@ class CountersignAdviceWithDecisionSerializer(serializers.ModelSerializer):
         list_serializer_class = CountersignAdviceWithDecisionListSerializer
 
 
-class CountersignedAdviceWithDecisionViewSerializer(serializers.Serializer):
+class CountersignDecisionAdviceViewSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     order = serializers.IntegerField()
     outcome_accepted = serializers.BooleanField()

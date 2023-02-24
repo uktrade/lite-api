@@ -10,7 +10,7 @@ from api.applications.models import GoodOnApplication
 from api.applications.serializers.advice import (
     CountersignAdviceSerializer,
     CountryWithFlagsSerializer,
-    CountersignAdviceWithDecisionSerializer,
+    CountersignDecisionAdviceSerializer,
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -1046,9 +1046,9 @@ class CountersignAdviceView(APIView):
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
 
 
-class CountersignAdviceV2(APIView):
+class CountersignDecisionAdvice(APIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = CountersignAdviceWithDecisionSerializer
+    serializer_class = CountersignDecisionAdviceSerializer
 
     def dispatch(self, request, *args, **kwargs):
         if not settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
@@ -1092,13 +1092,13 @@ class CountersignAdviceV2(APIView):
 
         self.audit_countersign(request, case)
 
-        return JsonResponse({"countersigned_advice": serializer.data}, status=status.HTTP_201_CREATED)
+        return JsonResponse({"countersign_advice": serializer.data}, status=status.HTTP_201_CREATED)
 
     def put(self, request, **kwargs):
         case = get_case(kwargs["pk"])
 
         countersign_ids = [item["id"] for item in request.data]
-        serializer = CountersignAdviceWithDecisionSerializer(
+        serializer = CountersignDecisionAdviceSerializer(
             CountersignAdvice.objects.filter(id__in=countersign_ids), data=request.data, partial=True, many=True
         )
         if not serializer.is_valid():
@@ -1108,7 +1108,7 @@ class CountersignAdviceV2(APIView):
 
         self.audit_countersign(request, case)
 
-        return JsonResponse({"countersigned_advice": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse({"countersign_advice": serializer.data}, status=status.HTTP_200_OK)
 
 
 class GoodOnPrecedentList(ListAPIView):

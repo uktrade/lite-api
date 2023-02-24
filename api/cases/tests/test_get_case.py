@@ -4,7 +4,6 @@ from rest_framework import status
 
 from api.applications.models import CountryOnApplication
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import CountersignedAdvice
 from api.cases.tests.factories import CaseAssignmentFactory, FinalAdviceFactory, CountersignAdviceFactory
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
@@ -132,20 +131,20 @@ class CaseGetTests(DataTestClient):
         self.assertIn("my_team", has_advice_response_data)
         self.assertIn("final", has_advice_response_data)
 
-    def test_case_returns_countersigned_advice(self):
+    def test_case_returns_countersign_advice(self):
         case = self.submit_application(self.standard_application)
         url = reverse("cases:case", kwargs={"pk": case.id})
         advice = FinalAdviceFactory(case=case, user=self.gov_user)
-        countersigned_advice = CountersignAdviceFactory(case=case, advice=advice)
+        countersign_advice = CountersignAdviceFactory(case=case, advice=advice)
 
         response = self.client.get(url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()
-        response = response["case"]["countersigned_advice"]
+        response = response["case"]["countersign_advice"]
         self.assertEqual(len(response), 1)
-        self.assertEqual(response[0]["order"], countersigned_advice.order)
-        self.assertEqual(response[0]["outcome_accepted"], countersigned_advice.outcome_accepted)
-        self.assertEqual(response[0]["reasons"], countersigned_advice.reasons)
+        self.assertEqual(response[0]["order"], countersign_advice.order)
+        self.assertEqual(response[0]["outcome_accepted"], countersign_advice.outcome_accepted)
+        self.assertEqual(response[0]["reasons"], countersign_advice.reasons)
 
     @parameterized.expand(
         [
