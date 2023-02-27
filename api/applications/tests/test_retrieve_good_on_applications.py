@@ -18,7 +18,12 @@ class RetrieveGoodsTests(DataTestClient):
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("audit_trail", response.json())
+        response = response.json()
+        self.assertTrue(
+            {"audit_trail", "report_summary", "report_summary_prefix", "report_summary_subject"}.issubset(
+                response.keys()
+            )
+        )
 
     def test_caseworker_retrieve_a_good_on_application(self):
         self.create_draft_standard_application(self.organisation)
@@ -32,4 +37,9 @@ class RetrieveGoodsTests(DataTestClient):
 
         response = self.client.get(url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("audit_trail", response.json())
+        response = response.json()
+        self.assertTrue(
+            {"audit_trail", "report_summary", "report_summary_prefix", "report_summary_subject"}.issubset(
+                response.keys()
+            )
+        )

@@ -358,6 +358,13 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
                 "Sniper Rifles (3)",
                 "components for Sniper Rifles (3)",
             ),
+            (
+                "subject but no report_summary and empty string prefix",
+                None,
+                "",
+                "Sniper Rifles (3)",
+                "Sniper Rifles (3)",
+            ),
         ]
     )
     def test_report_summary_replaced_by_prefix_and_summary(
@@ -387,8 +394,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "is_precedent": False,
             "is_good_controlled": True,
             "end_use_control": [],
-            "report_summary_prefix": rs_prefix.id if rs_prefix else None,
-            "report_summary_subject": rs_subject.id if rs_subject else None,
+            "report_summary_prefix": rs_prefix.id if rs_prefix else rs_prefix,
+            "report_summary_subject": rs_subject.id if rs_subject else rs_subject,
             "comment": "report summary update test",
             "regime_entries": [],
         }

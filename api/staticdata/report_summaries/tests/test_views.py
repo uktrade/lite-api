@@ -4,10 +4,15 @@ from rest_framework.reverse import reverse
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from test_helpers.clients import DataTestClient
 
+from .factories import (
+    ReportSummaryPrefixFactory,
+    ReportSummarySubjectFactory,
+)
+
 
 def prefixes_url(name_filter=None):
     query = f"?name={name_filter}" if name_filter else ""
-    return reverse("staticdata:report_summaries:prefix") + query
+    return reverse("staticdata:report_summaries:prefixes") + query
 
 
 class ReportSummaryPrefixesWithNoFilterReturnsEverythingTests(DataTestClient):
@@ -76,7 +81,7 @@ class ReportSummaryPrefixesWithNoFilterReturnsEverythingTests(DataTestClient):
 
 def subjects_url(name_filter=None):
     query = f"?name={name_filter}" if name_filter else ""
-    return reverse("staticdata:report_summaries:subject") + query
+    return reverse("staticdata:report_summaries:subjects") + query
 
 
 class ReportSummarySubjectsTests(DataTestClient):
@@ -127,3 +132,71 @@ class ReportSummarySubjectsTests(DataTestClient):
         self.assertEqual(len(subjects), len(expected_results))
 
         self.assertEqual(subjects, expected_results)
+
+
+class ReportSummarySubjectDetailTests(DataTestClient):
+    def test_report_summary_subject_object_not_found(self):
+        url = reverse(
+            "staticdata:report_summaries:subject",
+            kwargs={
+                "pk": "fe1059fd-d756-42a6-bd1b-84d83396e3f9",
+            },
+        )
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_report_summary_subject_object_found(self):
+        report_summary_subject = ReportSummarySubjectFactory.create()
+        url = reverse(
+            "staticdata:report_summaries:subject",
+            kwargs={
+                "pk": report_summary_subject.pk,
+            },
+        )
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "report_summary_subject": {
+                    "id": str(report_summary_subject.pk),
+                    "name": report_summary_subject.name,
+                }
+            },
+        )
+
+
+class ReportSummaryPrefixDetailTests(DataTestClient):
+    def test_report_summary_prefix_object_not_found(self):
+        url = reverse(
+            "staticdata:report_summaries:prefix",
+            kwargs={
+                "pk": "fe1059fd-d756-42a6-bd1b-84d83396e3f9",
+            },
+        )
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_report_summary_prefix_object_found(self):
+        report_summary_prefix = ReportSummaryPrefixFactory.create()
+        url = reverse(
+            "staticdata:report_summaries:prefix",
+            kwargs={
+                "pk": report_summary_prefix.pk,
+            },
+        )
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "report_summary_prefix": {
+                    "id": str(report_summary_prefix.pk),
+                    "name": report_summary_prefix.name,
+                }
+            },
+        )

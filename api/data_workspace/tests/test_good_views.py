@@ -25,6 +25,8 @@ class DataWorkspaceTests(DataTestClient):
             "comment",
             "is_good_controlled",
             "report_summary",
+            "report_summary_prefix",
+            "report_summary_subject",
             "flags",
             "documents",
             "is_pv_graded",

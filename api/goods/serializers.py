@@ -25,6 +25,7 @@ from api.goods.helpers import (
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails, GoodControlListEntry
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.report_summaries.serializers import ReportSummaryPrefixSerializer, ReportSummarySubjectSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
 from api.queries.goods_query.models import GoodsQuery
@@ -778,6 +779,8 @@ class GoodSerializerInternal(serializers.Serializer):
     comment = serializers.CharField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
     report_summary = serializers.CharField(allow_blank=True, required=False)
+    report_summary_prefix = ReportSummaryPrefixSerializer()
+    report_summary_subject = ReportSummarySubjectSerializer()
     flags = GoodsFlagSerializer(many=True)
     documents = serializers.SerializerMethodField()
     is_pv_graded = serializers.CharField()
