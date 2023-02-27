@@ -68,6 +68,7 @@ class BaseUser(AbstractUser, TimestampableModel):
     last_login = None
     type = models.CharField(choices=UserType.choices(), null=False, blank=False, max_length=8)
     phone_number = PhoneNumberField(default="")
+    pending = models.BooleanField(default=True)
 
     @property
     def has_django_admin_permission(self):
@@ -97,11 +98,11 @@ class BaseUser(AbstractUser, TimestampableModel):
     def send_notification(self, **kwargs):
         pass
 
-    @property
-    def pending(self):
-        if self.first_name:
-            return False
-        return True
+    # @property
+    # def pending(self):
+    #     if self.first_name:
+    #         return False
+    #     return True
 
 
 class BaseNotification(models.Model):

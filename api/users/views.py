@@ -67,16 +67,23 @@ class AuthenticateExporterUser(APIView):
             )
         try:
             user = ExporterUser.objects.get(baseuser_ptr__email__iexact=data.get("email"))
+
             if first_name and last_name:
                 # Update the user's first and last names
                 user.baseuser_ptr.first_name = first_name
                 user.baseuser_ptr.last_name = last_name
+                user.baseuser_ptr.pending = False
                 user.baseuser_ptr.save()
+
             if not user.external_id and external_id:
                 # This is saving external_id from external SSO service only needs to be done once.
                 # If we have a sub we have an open_id from an external system
                 user.external_id = external_id
                 user.save()
+
+            if user.first_name and user.last_name:
+                user.baseuser_ptr.pending = False
+                user.baseuser_ptr.save()
 
         except ExporterUser.DoesNotExist:
             return JsonResponse(
