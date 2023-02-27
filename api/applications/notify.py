@@ -28,21 +28,16 @@ def notify_exporter_case_opened_for_editing(application):
     )
 
 
-def notify_caseworker_countersign_return(application):
-    advice = (
-        application.advice.filter(type=AdviceType.REFUSE, level=AdviceLevel.USER, countersigned_by__isnull=False)
-        .order_by("-updated_at")
-        .first()
-    )
+def notify_caseworker_countersign_return(user_email, application, countersign_advice):
     relative_url = reverse("cases:countersign_advice", kwargs={"pk": application.id})
+    countersigner = countersign_advice.countersigned_user
     data = {
         "case_reference": application.reference_code,
-        "countersigner_name": f"{advice.countersigned_by.first_name} {advice.countersigned_by.last_name}",
-        "countersign_comments": advice.countersign_comments,
+        "countersigned_user_name": f"{countersigner.first_name} {countersigner.last_name}",
+        "countersign_reasons": countersign_advice.reasons,
         "recommendation_section_url": get_caseworker_frontend_url(relative_url),
     }
-    email = advice.user.email
-    _notify_caseworker_countersign_return(email, data)
+    _notify_caseworker_countersign_return(user_email, data)
 
 
 def _notify_caseworker_countersign_return(email, data):

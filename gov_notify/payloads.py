@@ -100,6 +100,6 @@ class ExporterNoLicenceRequired(EmailData):
 @dataclass(frozen=True)
 class CaseWorkerCountersignCaseReturn(EmailData):
     case_reference: str
-    countersigner_name: str
-    countersign_comments: str
+    countersigned_user_name: str
+    countersign_reasons: str
     recommendation_section_url: str
