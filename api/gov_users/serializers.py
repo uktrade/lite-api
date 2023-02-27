@@ -72,6 +72,7 @@ class GovUserListSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=GovUserStatuses.choices)
     team = TeamReadOnlySerializer()
     role_name = serializers.CharField(source="role.name")
+    pending = serializers.BooleanField()
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):

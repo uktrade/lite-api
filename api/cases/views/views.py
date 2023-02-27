@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
@@ -6,7 +7,11 @@ from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView
 from rest_framework.views import APIView
 from api.applications.models import GoodOnApplication
-from api.applications.serializers.advice import CountersignAdviceSerializer, CountryWithFlagsSerializer
+from api.applications.serializers.advice import (
+    CountersignAdviceSerializer,
+    CountryWithFlagsSerializer,
+    CountersignDecisionAdviceSerializer,
+)
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases import notify
@@ -15,6 +20,7 @@ from api.cases.enums import (
     AdviceType,
     AdviceLevel,
 )
+from api.cases.models import CountersignAdvice
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.libraries.advice import group_advice
@@ -1000,7 +1006,7 @@ class NextReviewDate(APIView):
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
-class CountersignAdvice(APIView):
+class CountersignAdviceView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, **kwargs):
@@ -1038,6 +1044,71 @@ class CountersignAdvice(APIView):
         )
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
+
+
+class CountersignDecisionAdvice(APIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CountersignDecisionAdviceSerializer
+
+    def dispatch(self, request, *args, **kwargs):
+        if not settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
+            return JsonResponse(
+                data={"errors": ["LU Countersigning routing not enabled"]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        case = get_case(kwargs["pk"])
+        if CaseStatusEnum.is_terminal(case.status.status):
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def audit_countersign(self, request, case):
+        department = request.user.govuser.team.department
+        if department is not None:
+            department = department.name
+        else:
+            department = "department"
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.COUNTERSIGN_ADVICE,
+            target=case,
+            payload={"department": department},
+        )
+
+    def post(self, request, **kwargs):
+        case = get_case(kwargs["pk"])
+
+        data = request.data
+
+        serializer = self.serializer_class(data=data, many=True)
+        if not serializer.is_valid():
+            return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        self.audit_countersign(request, case)
+
+        return JsonResponse({"countersign_advice": serializer.data}, status=status.HTTP_201_CREATED)
+
+    def put(self, request, **kwargs):
+        case = get_case(kwargs["pk"])
+
+        countersign_ids = [item["id"] for item in request.data]
+        serializer = CountersignDecisionAdviceSerializer(
+            CountersignAdvice.objects.filter(id__in=countersign_ids), data=request.data, partial=True, many=True
+        )
+        if not serializer.is_valid():
+            return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        self.audit_countersign(request, case)
+
+        return JsonResponse({"countersign_advice": serializer.data}, status=status.HTTP_200_OK)
 
 
 class GoodOnPrecedentList(ListAPIView):

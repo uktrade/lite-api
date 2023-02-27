@@ -1,7 +1,7 @@
 import operator
 from functools import reduce
 
-from django.db.models import Q, F
+from django.db.models import Q, F, ExpressionWrapper, BooleanField
 from django.http import JsonResponse
 from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
@@ -57,7 +57,7 @@ class UsersList(generics.ListCreateAPIView):
         if _status:
             query.append(Q(relationship__status=UserStatuses.from_string(_status)))
 
-        values = ("baseuser_ptr_id", "first_name", "last_name", "email", "status", "role_name")
+        values = ("baseuser_ptr_id", "first_name", "last_name", "email", "status", "role_name", "pending")
         if (
             organisation.type == OrganisationType.COMMERCIAL
             or organisation.type == OrganisationType.HMRC
@@ -76,6 +76,7 @@ class UsersList(generics.ListCreateAPIView):
                 status=F("relationship__status"),
                 role_name=F("relationship__role__name"),
                 phone_number=F("baseuser_ptr__phone_number"),
+                pending=ExpressionWrapper(Q(baseuser_ptr__first_name=""), output_field=BooleanField()),
             )
             .values(*values)
         )
