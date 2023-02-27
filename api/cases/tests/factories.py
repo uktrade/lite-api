@@ -3,6 +3,7 @@ import factory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import (
     Advice,
+    CountersignAdvice,
     Case,
     CaseAssignment,
     CaseStatus,
@@ -47,6 +48,16 @@ class FinalAdviceFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Advice
+
+
+class CountersignAdviceFactory(factory.django.DjangoModelFactory):
+    order = factory.Faker("pyint", min_value=1, max_value=5)
+    outcome_accepted = factory.Faker("pybool")
+    reasons = factory.Faker("word")
+    countersigned_user = factory.SubFactory(GovUserFactory)
+
+    class Meta:
+        model = CountersignAdvice
 
 
 class GoodCountryDecisionFactory(factory.django.DjangoModelFactory):

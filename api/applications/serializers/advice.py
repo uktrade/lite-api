@@ -5,13 +5,13 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from api.cases.enums import AdviceType
-from api.cases.models import Advice
+from api.cases.models import Advice, Case, CountersignAdvice
 from api.core.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from api.flags.enums import FlagStatuses
 from api.goods.models import Good
 from api.applications.models import GoodOnApplication
 from api.goodstype.models import GoodsType
-from api.gov_users.serializers import GovUserListSerializer
+from api.gov_users.serializers import GovUserListSerializer, GovUserViewSerializer
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
 from api.parties.models import Party
@@ -20,6 +20,7 @@ from api.staticdata.denial_reasons.models import DenialReason
 from api.teams.models import Team
 from api.teams.serializers import TeamReadOnlySerializer
 from api.users.models import GovUser
+from api.users.enums import UserStatuses
 
 
 denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
@@ -194,6 +195,33 @@ class CountersignAdviceSerializer(serializers.ModelSerializer):
         model = Advice
         fields = ("id", "countersigned_by", "countersign_comments")
         list_serializer_class = CountersignAdviceListSerializer
+
+
+class CountersignAdviceWithDecisionListSerializer(serializers.ListSerializer):
+    def update(self, instances, validated_data):
+        instance_map = {index: instance for index, instance in enumerate(instances)}
+        result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
+        return result
+
+
+class CountersignDecisionAdviceSerializer(serializers.ModelSerializer):
+    countersigned_user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE))
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    advice = serializers.PrimaryKeyRelatedField(queryset=Advice.objects.all())
+
+    class Meta:
+        model = CountersignAdvice
+        fields = ("id", "order", "outcome_accepted", "reasons", "countersigned_user", "case", "advice")
+        list_serializer_class = CountersignAdviceWithDecisionListSerializer
+
+
+class CountersignDecisionAdviceViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    order = serializers.IntegerField()
+    outcome_accepted = serializers.BooleanField()
+    reasons = serializers.CharField()
+    countersigned_user = GovUserViewSerializer()
+    advice = AdviceViewSerializer()
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):
