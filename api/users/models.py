@@ -98,12 +98,6 @@ class BaseUser(AbstractUser, TimestampableModel):
     def send_notification(self, **kwargs):
         pass
 
-    # @property
-    # def pending(self):
-    #     if self.first_name:
-    #         return False
-    #     return True
-
 
 class BaseNotification(models.Model):
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)

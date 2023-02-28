@@ -45,12 +45,11 @@ class AuthenticateGovUser(APIView):
             logger.info("User not found: %s", email)
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
-        if first_name and last_name:
-            # Update the user's first and last names
-            user.baseuser_ptr.first_name = first_name
-            user.baseuser_ptr.last_name = last_name
-            user.baseuser_ptr.pending = False
-            user.baseuser_ptr.save()
+        # Update the user's first and last names
+        user.baseuser_ptr.first_name = first_name
+        user.baseuser_ptr.last_name = last_name
+        user.baseuser_ptr.pending = False
+        user.baseuser_ptr.save()
 
         if user.status == GovUserStatuses.DEACTIVATED:
             logger.info("User deactivated: %s", email)
