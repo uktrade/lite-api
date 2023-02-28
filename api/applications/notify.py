@@ -1,6 +1,5 @@
 from django.urls import reverse
 
-from api.cases.enums import AdviceLevel, AdviceType
 from api.core.helpers import get_caseworker_frontend_url, get_exporter_frontend_url
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import CaseWorkerCountersignCaseReturn, ExporterCaseOpenedForEditing
