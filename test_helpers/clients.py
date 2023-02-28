@@ -222,7 +222,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
-        base_user = BaseUser(first_name=first_name, last_name=last_name, email=self.faker.email())
+        base_user = BaseUser(first_name=first_name, last_name=last_name, email=self.faker.email(), pending=False)
         base_user.save()
         exporter_user = ExporterUser(baseuser_ptr=base_user)
         exporter_user.organisation = organisation
