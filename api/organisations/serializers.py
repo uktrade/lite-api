@@ -430,17 +430,11 @@ class OrganisationUserListSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="baseuser_ptr_id")
     role_name = serializers.CharField(read_only=True)
     status = serializers.CharField(read_only=True)
+    pending = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = ExporterUser
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-            "role_name",
-            "status",
-        )
+        fields = ("id", "first_name", "last_name", "email", "role_name", "status", "pending")
 
 
 class CommercialOrganisationUserListSerializer(OrganisationUserListSerializer):
