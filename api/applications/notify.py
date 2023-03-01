@@ -28,7 +28,7 @@ def notify_exporter_case_opened_for_editing(application):
 
 
 def notify_caseworker_countersign_return(user_email, application, countersign_advice):
-    relative_url = reverse("cases:countersign_advice", kwargs={"pk": application.id})
+    relative_url = reverse("cases:countersign_decision_advice", kwargs={"pk": application.id})
     countersigner = countersign_advice.countersigned_user
     data = {
         "case_reference": application.reference_code,

@@ -50,7 +50,7 @@ class NotifyTests(DataTestClient):
             reasons="misspelling",
             countersigned_user=self.gov_user,
         )
-        caseworker_frontend_url = f"https://internal.lite.service.localhost.uktrade.digital/cases/{self.standard_application.id}/countersign-advice/"
+        caseworker_frontend_url = f"https://internal.lite.service.localhost.uktrade.digital/cases/{self.standard_application.id}/countersign-decision-advice/"
         data = {
             "case_reference": self.standard_application.reference_code,
             "countersigned_user_name": f"{countersign_advice.countersigned_user.first_name} {countersign_advice.countersigned_user.last_name}",
