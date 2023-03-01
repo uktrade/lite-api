@@ -607,6 +607,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         advice_text="This is some text",
         good=None,
         goods_type=None,
+        countersign_comments="",
+        countersigned_by=None,
     ):
         advice = Advice(
             user=user,
@@ -616,6 +618,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             note="This is a note to the exporter",
             text=advice_text,
             pv_grading=pv_grading,
+            countersign_comments=countersign_comments,
+            countersigned_by=countersigned_by,
         )
 
         advice.team = user.team

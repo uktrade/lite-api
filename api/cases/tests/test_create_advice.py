@@ -1,16 +1,20 @@
 import pytest
 
+from django.test import override_settings
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
+from uuid import uuid4
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType
-from api.cases.models import Advice
+from api.cases.models import Advice, CountersignAdvice
+from api.cases.tests.factories import CountersignAdviceFactory
 from api.core.constants import GovPermissions
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.teams.models import Department
 from test_helpers.clients import DataTestClient
 
 
@@ -264,6 +268,154 @@ class CountersignAdviceTests(DataTestClient):
 
         response = self.client.put(self.url, **self.gov_headers, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        audit_qs = Audit.objects.filter(verb=AuditType.COUNTERSIGN_ADVICE)
+        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.first().actor, self.gov_user)
+
+
+class CountersignAdviceWithDecisionTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_draft_standard_application(self.organisation)
+        self.case = self.submit_application(self.application)
+
+        self.url = reverse("cases:countersign_decision_advice", kwargs={"pk": self.case.id})
+
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=False)
+    def test_countersign_advice_without_routing_enabled_fails(self):
+        data = [
+            {
+                "order": 1,
+                "outcome_accepted": True,
+                "reasons": "Agree with the original outcome",
+                "countersigned_user": self.gov_user.baseuser_ptr.id,
+                "advice": "1234",
+            }
+        ]
+        response = self.client.post(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.put(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_countersign_advice_with_decision_terminal_status_failure(self):
+        """Ensure we cannot countersign a case that is in one of the terminal state"""
+        case_url = reverse("cases:case", kwargs={"pk": self.case.id})
+        data = {"status": CaseStatusEnum.WITHDRAWN, "note": "test"}
+        response = self.client.patch(case_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.post(self.url, **self.gov_headers, data=[])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.put(self.url, **self.gov_headers, data=[])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_countersign_advice_with_decision_serializer_invalid_failure(self):
+        data = [
+            {
+                "order": 1,
+                "reasons": "Agree with the original outcome",
+                "countersigned_user": self.gov_user.baseuser_ptr.id,
+                "advice": str(uuid4()),
+            }
+        ]
+
+        response = self.client.post(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data[0]["id"] = str(uuid4())
+
+        response = self.client.put(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @parameterized.expand([["DIT"], [None]])
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_countersign_advice_with_decision_success(self, department_name):
+        if department_name:
+            self.gov_user.team.department = Department.objects.get(name=department_name)
+            self.gov_user.team.save()
+
+        all_advice = [
+            Advice.objects.create(
+                **{
+                    "user": self.gov_user,
+                    "good": self.application.goods.first().good,
+                    "team": self.team,
+                    "case": self.case,
+                    "note": f"Advice {i}",
+                }
+            )
+            for i in range(4)
+        ]
+
+        data = [
+            {
+                "order": 1,
+                "outcome_accepted": True,
+                "reasons": "Agree with the original outcome",
+                "countersigned_user": self.gov_user.baseuser_ptr.id,
+                "case": self.case.id,
+                "advice": advice.id,
+            }
+            for advice in all_advice
+        ]
+
+        response = self.client.post(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CountersignAdvice.objects.count(), len(data))
+        audit_qs = Audit.objects.filter(verb=AuditType.COUNTERSIGN_ADVICE)
+        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.first().actor, self.gov_user)
+
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_countersign_advice_with_decision_update_success(self):
+        all_advice = [
+            Advice.objects.create(
+                **{
+                    "user": self.gov_user,
+                    "good": self.application.goods.first().good,
+                    "team": self.team,
+                    "case": self.case,
+                    "note": f"Advice {i}",
+                }
+            )
+            for i in range(2)
+        ]
+
+        # create few instances of countersigned advice
+        countersign_advice = [CountersignAdviceFactory(case=self.case, advice=advice) for advice in all_advice]
+
+        data = [
+            {
+                "id": countersign_advice[0].id,
+                "outcome_accepted": False,
+                "reasons": "Agree with the original outcome",
+                "countersigned_user": self.gov_user.baseuser_ptr.id,
+            },
+            {
+                "id": countersign_advice[1].id,
+                "outcome_accepted": True,
+                "reasons": "Disagree with the original outcome",
+                "countersigned_user": self.gov_user.baseuser_ptr.id,
+            },
+        ]
+
+        # edit countersigned advice
+        response = self.client.put(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        for index, item in enumerate(response["countersign_advice"]):
+            self.assertEqual(item["outcome_accepted"], data[index]["outcome_accepted"])
+            self.assertEqual(item["reasons"], data[index]["reasons"])
+
+            obj = countersign_advice[index]
+            obj.refresh_from_db()
+            self.assertEqual(item["outcome_accepted"], obj.outcome_accepted)
+            self.assertEqual(item["reasons"], obj.reasons)
+
         audit_qs = Audit.objects.filter(verb=AuditType.COUNTERSIGN_ADVICE)
         self.assertEqual(audit_qs.count(), 1)
         self.assertEqual(audit_qs.first().actor, self.gov_user)
