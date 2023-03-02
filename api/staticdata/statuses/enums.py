@@ -50,7 +50,6 @@ class CaseStatusEnum:
         FINALISED,
         REGISTERED,
         REOPENED_DUE_TO_ORG_CHANGES,
-        UNDER_REVIEW,
         UNDER_ECJU_REVIEW,
         UNDER_FINAL_REVIEW,
         REVOKED,
