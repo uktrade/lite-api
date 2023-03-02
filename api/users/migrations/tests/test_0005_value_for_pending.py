@@ -6,8 +6,8 @@ from django_test_migrations.contrib.unittest_case import MigratorTestCase
 @pytest.mark.django_db()
 class TestUserPendingField(MigratorTestCase):
 
-    migrate_from = ("users", "0003_default_govuser_queue")
-    migrate_to = ("users", "0004_baseuser_pending")
+    migrate_from = ("users", "0004_baseuser_pending")
+    migrate_to = ("users", "0005_value_for_pending_field")
 
     def prepare(self):
         base_user = self.old_state.apps.get_model("users", "BaseUser")
@@ -20,3 +20,5 @@ class TestUserPendingField(MigratorTestCase):
     def test_migration_0004_baseuser_pending(self):
         base_user = self.new_state.apps.get_model("users", "BaseUser")
         assert base_user.objects.filter(pending=True).count() == 4
+        assert base_user.objects.filter(first_name="").first().pending is True
+        assert base_user.objects.filter(first_name="joe").first().pending is False
