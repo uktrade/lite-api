@@ -23,9 +23,14 @@ class GovUserAuthenticateTests(DataTestClient):
         response = self.client.post(self.url, data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert GovUser.objects.all()[1].first_name == self.gov_user.first_name
-        assert GovUser.objects.all()[1].last_name == self.gov_user.last_name
-        assert GovUser.objects.all()[1].pending is False
+        assert (
+            GovUser.objects.filter(baseuser_ptr__email=self.gov_user.email).first().first_name
+            == self.gov_user.first_name
+        )
+        assert (
+            GovUser.objects.filter(baseuser_ptr__email=self.gov_user.email).first().last_name == self.gov_user.last_name
+        )
+        assert GovUser.objects.filter(baseuser_ptr__email=self.gov_user.email).first().pending is False
 
     def test_cannot_authenticate_gov_user_with_empty_data(self):
         data = {
