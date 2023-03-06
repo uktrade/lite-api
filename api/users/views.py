@@ -69,10 +69,11 @@ class AuthenticateExporterUser(APIView):
             user = ExporterUser.objects.get(baseuser_ptr__email__iexact=data.get("email"))
 
             # Update the user's first and last names
-            user.baseuser_ptr.first_name = first_name
-            user.baseuser_ptr.last_name = last_name
-            user.baseuser_ptr.pending = False
-            user.baseuser_ptr.save()
+            if first_name and last_name:
+                user.baseuser_ptr.first_name = first_name
+                user.baseuser_ptr.last_name = last_name
+                user.baseuser_ptr.pending = False
+                user.baseuser_ptr.save()
 
             if not user.external_id and external_id:
                 # This is saving external_id from external SSO service only needs to be done once.
