@@ -72,11 +72,7 @@ from api.core.decorators import (
 )
 from api.core.helpers import convert_date_to_string, str_to_bool
 from api.core.permissions import assert_user_has_permission
-from api.applications.views.advice import (
-    get_lu_countersigning_flag_names,
-    validate_lu_countersignatures,
-    MissingCounterSignature,
-)
+from api.applications.views.helpers.advice import ensure_lu_countersign_complete
 from api.flags.enums import FlagStatuses, SystemFlags
 from api.flags.models import Flag
 from api.goods.serializers import GoodCreateSerializer
@@ -623,6 +619,10 @@ class ApplicationFinaliseView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Check countersigning requirements and required countersignatures are present
+        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
+            ensure_lu_countersign_complete(application)
+
         # Check if any blocking flags are on the case
         blocking_flags = (
             get_flags(application.get_case())
@@ -630,19 +630,6 @@ class ApplicationFinaliseView(APIView):
             .order_by("name")
             .values_list("name", flat=True)
         )
-
-        # Check countersigning requirements and required countersignatures are present
-        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
-            lu_countersign_flags_all = get_lu_countersigning_flag_names()
-            countersign_flags = blocking_flags.intersection(lu_countersign_flags_all)
-            if countersign_flags:
-                countersign_valid = validate_lu_countersignatures(application, countersign_flags)
-                if not countersign_valid:
-                    raise MissingCounterSignature(
-                        "This applications requires countersigning and the required countersignatures are not available on the application"
-                    )
-                blocking_flags = blocking_flags.difference(countersign_flags)
-
         if blocking_flags:
             raise PermissionDenied(
                 [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"]
