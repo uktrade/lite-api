@@ -327,7 +327,6 @@ jobs:
             fi
 
 workflows:
-  version: 2
   test:
     jobs:
       - tests
