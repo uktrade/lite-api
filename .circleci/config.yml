@@ -163,8 +163,11 @@ jobs:
       - run:
           name: Run lite_routing tests
           command: |
-            pipenv run pytest --gherkin-terminal-reporter -vv lite_routing/routing_rules_internal/tests/bdd
+            mkdir test_results
+            pipenv run pytest --gherkin-terminal-reporter -vv lite_routing/routing_rules_internal/tests/bdd --junitxml=test_results/output.xml
       - upload_code_coverage
+      - store_test_results:
+          path: test_results
 
   elastic_search_tests:
     docker:
