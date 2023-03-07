@@ -48,6 +48,7 @@ class AuthenticateGovUser(APIView):
         # Update the user's first and last names
         user.baseuser_ptr.first_name = first_name
         user.baseuser_ptr.last_name = last_name
+        user.baseuser_ptr.pending = False
         user.baseuser_ptr.save()
 
         if user.status == GovUserStatuses.DEACTIVATED:

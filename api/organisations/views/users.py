@@ -1,7 +1,7 @@
 import operator
 from functools import reduce
 
-from django.db.models import Q, F, ExpressionWrapper, BooleanField
+from django.db.models import Q, F
 from django.http import JsonResponse
 from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
@@ -64,7 +64,6 @@ class UsersList(generics.ListCreateAPIView):
             or hasattr(self.request.user, "exporteruser")
         ):
             values += ("phone_number",)
-
         return (
             ExporterUser.objects.filter(reduce(operator.and_, query))
             .exclude(relationship__role__permissions__in=[exclude_permission])
@@ -76,7 +75,7 @@ class UsersList(generics.ListCreateAPIView):
                 status=F("relationship__status"),
                 role_name=F("relationship__role__name"),
                 phone_number=F("baseuser_ptr__phone_number"),
-                pending=ExpressionWrapper(Q(baseuser_ptr__first_name=""), output_field=BooleanField()),
+                pending=F("baseuser_ptr__pending"),
             )
             .values(*values)
         )
