@@ -276,6 +276,56 @@ jobs:
                 fi
             fi
 
+  e2e_tests:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - run:
+          name: Kick off lite-frontend e2e pipeline
+          command: |
+            PIPELINE_ID=$(curl --location --request POST 'https://circleci.com/api/v2/project/github/uktrade/lite-frontend/pipeline' \
+            --header 'Content-Type: application/json' \
+            --header "Circle-Token: ${LITE_FRONTEND_E2E_CI_TOKEN}" \
+            --data-raw '{
+                "branch": "dev",
+                "parameters": {
+                  "run_ui_tests": true,
+                  "run_unit_tests": false,
+                  "api_git_tag": "'"$CIRCLE_BRANCH"'",
+                  "environment": "dev"
+                }
+              }' | jq -r '.id')
+
+            echo "export PIPELINE=$PIPELINE_ID" >> $BASH_ENV
+      - run:
+          name: Check lite-frontend e2e pipeline status
+          no_output_timeout: 30m
+          command: |
+            sleep 10
+            API_RESPONSE=$(curl "https://circleci.com/api/v2/pipeline/$PIPELINE/workflow?circle-token=$LITE_FRONTEND_E2E_CI_TOKEN")
+            STATUS=$(echo $API_RESPONSE | jq -r '.items[].status')
+            PIPELINE_NUMBER=$(echo $API_RESPONSE | jq -r '.items[].pipeline_number')
+            ID=$(echo $API_RESPONSE | jq -r '.items[].id')
+
+            echo $STATUS
+            echo "Job can be checked at circleci: https://app.circleci.com/pipelines/github/uktrade/lite-frontend/$PIPELINE_NUMBER/workflows/$ID"
+
+            while [ "$STATUS" == "running" ]; do
+              echo still running
+              sleep 10
+              STATUS=$(curl -s "https://circleci.com/api/v2/pipeline/$PIPELINE/workflow?circle-token=$LITE_FRONTEND_E2E_CI_TOKEN" | jq -r '.items[].status')
+            done
+
+            echo "finally done, checking final status: $STATUS"
+            if [[ "$STATUS" == "success" ]]; then
+              echo "Triggered lite-frontend e2e pipeline finished successfully"
+              exit 0
+            else
+              echo "Triggered lite-frontend e2e pipeline was unsuccessful"
+              echo https://app.circleci.com/pipelines/github/uktrade/lite-frontend/$PIPELINE_NUMBER/workflows/$ID
+              exit 1
+            fi
+
 workflows:
   version: 2
   test:
@@ -288,3 +338,4 @@ workflows:
       - check_migrations
       - linting
       - check-lite-routing-sha
+      - e2e_tests
