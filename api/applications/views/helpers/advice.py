@@ -90,17 +90,18 @@ def ensure_lu_countersign_complete(application):
         )
 
     # check countersignatures for the required orders
-    countersign_advice = CountersignAdvice.objects.filter(
-        order__in=countersign_orders,
-        case=case,
-        advice__team=lu_team,
-        advice__level=AdviceLevel.FINAL,
-        advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
-    )
-    if not (countersign_advice and all(advice.outcome_accepted for advice in countersign_advice)):
-        raise CounterSignatureIncompleteError(
-            "This applications requires countersigning and the required countersignatures are not completed"
+    for order in countersign_orders:
+        countersign_advice = CountersignAdvice.objects.filter(
+            order=order,
+            case=case,
+            advice__team=lu_team,
+            advice__level=AdviceLevel.FINAL,
+            advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
         )
+        if not (countersign_advice and all(advice.outcome_accepted for advice in countersign_advice)):
+            raise CounterSignatureIncompleteError(
+                "This applications requires countersigning and the required countersignatures are not completed"
+            )
 
     # Remove countersigning flags that block finalising
     # MANPADS and AP_LANDMINE are also countersigning flags but they are related

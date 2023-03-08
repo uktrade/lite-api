@@ -369,14 +369,29 @@ class FinaliseApplicationTests(DataTestClient):
     @parameterized.expand(
         [
             [
-                (CountersignOrder.FIRST_COUNTERSIGN,),
+                ({"order": CountersignOrder.FIRST_COUNTERSIGN, "reject": True},),
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                 ),
             ],
             [
-                (CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN),
+                (
+                    {"order": CountersignOrder.FIRST_COUNTERSIGN, "reject": False},
+                    {"order": CountersignOrder.SECOND_COUNTERSIGN, "reject": True},
+                ),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                    {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
+                ),
+            ],
+            [
+                (
+                    {"order": CountersignOrder.FIRST_COUNTERSIGN, "reject": False},
+                    {"order": CountersignOrder.SECOND_COUNTERSIGN, "skip": True},
+                ),
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
@@ -387,7 +402,7 @@ class FinaliseApplicationTests(DataTestClient):
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_finalise_application_failure_with_insufficient_countersignatures(self, required_countersign, flags):
+    def test_finalise_application_failure_with_insufficient_countersignatures(self, countersign_data, flags):
         """Test to ensure if a particular countersigning is not fully approved then we raise error"""
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
         data = {"action": AdviceType.APPROVE, "duration": 24}
@@ -410,11 +425,17 @@ class FinaliseApplicationTests(DataTestClient):
         # Create Advice objects for all entities
         case = Case.objects.get(id=self.standard_application.id)
         advice_qs = Advice.objects.filter(case=case, level=AdviceLevel.FINAL, type=AdviceType.APPROVE)
-        for order in required_countersign:
+        for countersign in countersign_data:
+            if countersign.get("skip"):
+                continue
             for index, advice in enumerate(list(advice_qs)):
+                outcome_accepted = True
+                if countersign.get("reject"):
+                    outcome_accepted = False if index % 2 else True  # reject alternate advice
+
                 CountersignAdviceFactory(
-                    order=order,
-                    outcome_accepted=False if index % 2 else True,  # reject alternate advice
+                    order=countersign["order"],
+                    outcome_accepted=outcome_accepted,
                     reasons="countersigning reasons",
                     case=case,
                     advice=advice,
