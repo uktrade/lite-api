@@ -515,6 +515,11 @@ class FinaliseApplicationTests(DataTestClient):
         [
             [
                 AdviceType.APPROVE,
+                (),
+                (),
+            ],
+            [
+                AdviceType.APPROVE,
                 (CountersignOrder.FIRST_COUNTERSIGN,),
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
@@ -552,7 +557,7 @@ class FinaliseApplicationTests(DataTestClient):
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_finalise_application_sucess_with_countersigning(self, advice_type, required_countersign, flags):
+    def test_finalise_application_success_with_countersigning(self, advice_type, required_countersign, flags):
         """Test to ensure if a particular countersigning order is fully approved then we can finalise Case"""
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
         data = {"action": advice_type, "duration": 24}
@@ -569,7 +574,10 @@ class FinaliseApplicationTests(DataTestClient):
             if flag["level"] == FlagLevels.CASE:
                 self.standard_application.flags.add(Flag.objects.get(id=flag["id"]))
             if flag["level"] == FlagLevels.DESTINATION:
-                for party_on_application in self.standard_application.parties.all():
+                # We emit audit entry of removing flags only if countersigning flags are set
+                # on the Party and skip otherwise. To cover the case where we skip it, don't
+                # set flags on one party (in this case last item is selected)
+                for party_on_application in list(self.standard_application.parties.all())[:-1]:
                     party_on_application.party.flags.add(Flag.objects.get(id=flag["id"]))
 
         # Create Advice objects for all entities
@@ -597,13 +605,13 @@ class FinaliseApplicationTests(DataTestClient):
             expected_flags_to_remove.append(FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED)
         for flag_id in expected_flags_to_remove:
             flag = Flag.objects.get(id=flag_id)
-            self.assertFalse(flag in case.parameter_set())
+            self.assertNotIn(flag, case.parameter_set())
 
         # Finally check for expected audit events
         audit_qs = Audit.objects.filter(verb=AuditType.DESTINATION_REMOVE_FLAGS, target_object_id=case.id)
-        flag_names = list(Flag.objects.filter(id__in=expected_flags_to_remove).values_list("name", flat=True))
+        flag_names = sorted(list(Flag.objects.filter(id__in=expected_flags_to_remove).values_list("name", flat=True)))
         for item in audit_qs:
-            self.assertEqual(item.payload["removed_flags"], flag_names)
+            self.assertEqual(sorted(item.payload["removed_flags"]), flag_names)
 
 
 class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
