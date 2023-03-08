@@ -7,6 +7,8 @@ common_env_vars: &common_env_vars
 image_python: &image_python
   image: cimg/python:3.7.15
 
+image_python_node: &image_python_node
+  image: cimg/python:3.7.15-node
 
 image_postgres: &image_postgres
   image: circleci/postgres:11
@@ -150,7 +152,7 @@ jobs:
 
   lite_routing_bdd_tests:
     docker:
-      - <<: *image_python
+      - <<: *image_python_node
       - <<: *image_postgres
       - <<: *image_elasticsearch
       - <<: *image_redis
@@ -161,10 +163,26 @@ jobs:
     steps:
       - setup
       - run:
-          name: Run lite_routing tests
+          name: Install cucumber reporter package
+          command: npm install multiple-cucumber-html-reporter
+      - run:
+          name: Create report directories
           command: |
-            pipenv run pytest lite_routing/routing_rules_internal/tests/bdd
+            mkdir test_results
+            mkdir cucumber_results
+            mkdir cucumber_html
+      - run:
+          name: Run lite_routing tests
+          command: pipenv run pytest --gherkin-terminal-reporter -vv lite_routing/routing_rules_internal/tests/bdd --junitxml=test_results/output.xml --cucumberjson=cucumber_results/cuc.json
+      - run:
+          name: Generate html cucumber report
+          command: node generate_cucumber_report.js
+          when: always
       - upload_code_coverage
+      - store_test_results:
+          path: test_results
+      - store_artifacts:
+          path: cucumber_html
 
   elastic_search_tests:
     docker:
