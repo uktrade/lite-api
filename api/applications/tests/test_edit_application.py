@@ -81,6 +81,26 @@ class EditStandardApplicationTests(DataTestClient):
         # Unsubmitted (draft) applications should not create audit entries when edited
         self.assertEqual(Audit.objects.count(), 0)
 
+    def test_edit_under_review_application_success(self):
+        old_name = "Old Name"
+        application = self.create_draft_standard_application(self.organisation, reference_name=old_name)
+        self.submit_application(application)
+        application.status = get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW)
+        application.save()
+        url = reverse("applications:application", kwargs={"pk": application.id})
+        updated_at = application.updated_at
+        response = self.client.put(url, self.data, **self.exporter_headers)
+        application.refresh_from_db()
+        audit_qs = Audit.objects.all()
+        audit_object = audit_qs.first()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.name, self.data["name"])
+        self.assertNotEqual(application.updated_at, updated_at)
+        self.assertEqual(audit_qs.count(), 2)
+        self.assertEqual(audit_object.verb, AuditType.UPDATED_APPLICATION_NAME)
+        self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
+
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
         old_name = "Old Name"
