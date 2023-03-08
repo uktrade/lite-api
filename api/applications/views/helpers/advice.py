@@ -80,7 +80,7 @@ def ensure_lu_countersign_complete(application):
     refused_countersign_advice = CountersignAdvice.objects.filter(
         order__in=countersign_orders,
         case=case,
-        advice__team=lu_team,
+        advice__user__team=lu_team,
         advice__level=AdviceLevel.FINAL,
         advice__type=AdviceType.REFUSE,
     )
@@ -94,7 +94,7 @@ def ensure_lu_countersign_complete(application):
         countersign_advice = CountersignAdvice.objects.filter(
             order=order,
             case=case,
-            advice__team=lu_team,
+            advice__user__team=lu_team,
             advice__level=AdviceLevel.FINAL,
             advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
         )
