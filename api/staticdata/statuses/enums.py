@@ -1,3 +1,4 @@
+from django.conf import settings
 from uuid import UUID
 
 
@@ -49,7 +50,6 @@ class CaseStatusEnum:
         FINALISED,
         REGISTERED,
         REOPENED_DUE_TO_ORG_CHANGES,
-        UNDER_REVIEW,
         UNDER_ECJU_REVIEW,
         UNDER_FINAL_REVIEW,
         REVOKED,
@@ -73,6 +73,15 @@ class CaseStatusEnum:
     compliance_site_statuses = [OPEN, CLOSED]
 
     compliance_visit_statuses = [OPEN, UNDER_INTERNAL_REVIEW, RETURN_TO_INSPECTOR, AWAITING_EXPORTER_RESPONSE, CLOSED]
+
+    _lu_countersign_statuses = (
+        [
+            (FINAL_REVIEW_COUNTERSIGN, "final review countersign"),
+            (FINAL_REVIEW_SECOND_COUNTERSIGN, "final review second countersign"),
+        ]
+        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED
+        else []
+    )
 
     choices = [
         (APPEAL_FINAL_REVIEW, "Appeal final review"),
@@ -106,7 +115,7 @@ class CaseStatusEnum:
         (WITHDRAWN, "Withdrawn"),
         (OGD_ADVICE, "OGD Advice"),
         (OGD_CONSOLIDATION, "OGD Consolidation"),
-    ]
+    ] + _lu_countersign_statuses
 
     priority = {
         SUBMITTED: 1,

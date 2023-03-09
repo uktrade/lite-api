@@ -222,7 +222,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
-        base_user = BaseUser(first_name=first_name, last_name=last_name, email=self.faker.email())
+        base_user = BaseUser(first_name=first_name, last_name=last_name, email=self.faker.email(), pending=False)
         base_user.save()
         exporter_user = ExporterUser(baseuser_ptr=base_user)
         exporter_user.organisation = organisation
@@ -607,6 +607,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         advice_text="This is some text",
         good=None,
         goods_type=None,
+        countersign_comments="",
+        countersigned_by=None,
     ):
         advice = Advice(
             user=user,
@@ -616,6 +618,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             note="This is a note to the exporter",
             text=advice_text,
             pv_grading=pv_grading,
+            countersign_comments=countersign_comments,
+            countersigned_by=countersigned_by,
         )
 
         advice.team = user.team

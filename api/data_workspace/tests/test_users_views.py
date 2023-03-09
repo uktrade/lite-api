@@ -26,6 +26,7 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
             "email",
             "type",
             "phone_number",
+            "pending",
             "groups",
             "user_permissions",
         }
