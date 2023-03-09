@@ -117,6 +117,9 @@ def ensure_lu_countersign_complete(application):
     )
     flags_to_remove = countersign_flags.intersection(countersign_process_flags)
     for party_on_application in application.parties.all():
+        if not flags_to_remove.intersection(party_on_application.party.flags.all()):
+            continue
+
         party_on_application.party.flags.remove(*flags_to_remove)
         audit_trail_service.create_system_user_audit(
             verb=AuditType.DESTINATION_REMOVE_FLAGS,
