@@ -356,6 +356,11 @@ class AdviceLevel:
     ]
 
 
+class CountersignOrder:
+    FIRST_COUNTERSIGN = 1
+    SECOND_COUNTERSIGN = 2
+
+
 class CaseDocumentState:
     UPLOADED = "UPLOADED"
     GENERATED = "GENERATED"

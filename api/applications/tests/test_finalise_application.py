@@ -1,21 +1,33 @@
+import pytest
+
+from datetime import datetime
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.enums import LicenceDuration
+from api.applications.views.helpers.advice import CounterSignatureIncompleteError, CountersignInvalidAdviceTypeError
 from api.applications.libraries.licence import get_default_duration
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
+from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel, CountersignOrder
+from api.cases.models import Advice, Case
+from api.cases.tests.factories import CountersignAdviceFactory
 from api.core.constants import GovPermissions
 from api.flags.enums import FlagLevels
+from api.flags.models import Flag
 from api.flags.tests.factories import FlagFactory
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence, GoodOnLicence
 from lite_content.lite_api import strings
 from api.staticdata.statuses.models import CaseStatus
+from api.teams.models import Team
 from test_helpers.clients import DataTestClient
 from api.users.models import Role
+
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
 class FinaliseApplicationTests(DataTestClient):
@@ -306,6 +318,300 @@ class FinaliseApplicationTests(DataTestClient):
         # Ensure only products that require licence are associated to the licence
         licence = Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).first()
         self.assertEqual(licence.goods.count(), 2)
+
+    @parameterized.expand(
+        [
+            FlagsEnum.LU_COUNTER_REQUIRED,
+            FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED,
+            FlagsEnum.MANPADS,
+            FlagsEnum.AP_LANDMINE,
+        ]
+    )
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_finalise_application_failure_with_countersigning_flags_but_no_countersignatures(self, flag_id):
+        flag = Flag.objects.get(id=flag_id)
+        self.standard_application.flags.add(flag)
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 60}
+        data.update(self.post_date)
+
+        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.save()
+
+        with pytest.raises(CounterSignatureIncompleteError) as err:
+            self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.assertEqual(
+            str(err.value),
+            "This applications requires countersigning and the required countersignatures are not completed",
+        )
+
+    def _setup_advice_for_application(self, application, advice_type, advice_level):
+        # Create Advice objects for all entities
+        for good_on_application in application.goods.all():
+            self.create_advice(
+                self.gov_user,
+                application,
+                "",
+                advice_type,
+                advice_level,
+                good=good_on_application.good,
+            )
+        for party_on_application in application.parties.all():
+            self.create_advice(
+                self.gov_user,
+                application,
+                party_on_application.party.type,
+                advice_type,
+                advice_level,
+            )
+
+    @parameterized.expand(
+        [
+            [
+                ({"order": CountersignOrder.FIRST_COUNTERSIGN, "reject": True},),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                ),
+            ],
+            [
+                (
+                    {"order": CountersignOrder.FIRST_COUNTERSIGN, "reject": False},
+                    {"order": CountersignOrder.SECOND_COUNTERSIGN, "reject": True},
+                ),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                    {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
+                ),
+            ],
+            [
+                (
+                    {"order": CountersignOrder.FIRST_COUNTERSIGN, "reject": False},
+                    {"order": CountersignOrder.SECOND_COUNTERSIGN, "skip": True},
+                ),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                    {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
+                ),
+            ],
+        ]
+    )
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_finalise_application_failure_with_insufficient_countersignatures(self, countersign_data, flags):
+        """Test to ensure if a particular countersigning is not fully approved then we raise error"""
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 24}
+        data.update(self.post_date)
+
+        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.save()
+
+        # setup flags
+        for flag in flags:
+            if flag["level"] == FlagLevels.CASE:
+                self.standard_application.flags.add(Flag.objects.get(id=flag["id"]))
+            if flag["level"] == FlagLevels.DESTINATION:
+                for party_on_application in self.standard_application.parties.all():
+                    party_on_application.party.flags.add(Flag.objects.get(id=flag["id"]))
+
+        # Create Advice objects for all entities
+        self._setup_advice_for_application(self.standard_application, AdviceType.APPROVE, AdviceLevel.FINAL)
+
+        # Create Advice objects for all entities
+        case = Case.objects.get(id=self.standard_application.id)
+        advice_qs = Advice.objects.filter(case=case, level=AdviceLevel.FINAL, type=AdviceType.APPROVE)
+        for countersign in countersign_data:
+            if countersign.get("skip"):
+                continue
+            for index, advice in enumerate(list(advice_qs)):
+                outcome_accepted = True
+                if countersign.get("reject"):
+                    outcome_accepted = False if index % 2 else True  # reject alternate advice
+
+                CountersignAdviceFactory(
+                    order=countersign["order"],
+                    outcome_accepted=outcome_accepted,
+                    reasons="countersigning reasons",
+                    case=case,
+                    advice=advice,
+                )
+
+        with pytest.raises(CounterSignatureIncompleteError) as err:
+            self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.assertEqual(
+            str(err.value),
+            "This applications requires countersigning and the required countersignatures are not completed",
+        )
+
+    @parameterized.expand(
+        [
+            [
+                (CountersignOrder.FIRST_COUNTERSIGN,),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                ),
+            ],
+            [
+                (CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                    {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
+                ),
+            ],
+        ]
+    )
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_finalise_application_failure_with_refuse_advice(self, required_countersign, flags):
+        """Test to ensure if a particular countersigning is not fully approved then we raise error"""
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 24}
+        data.update(self.post_date)
+
+        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.save()
+
+        # setup flags
+        for flag in flags:
+            if flag["level"] == FlagLevels.CASE:
+                self.standard_application.flags.add(Flag.objects.get(id=flag["id"]))
+            if flag["level"] == FlagLevels.DESTINATION:
+                for party_on_application in self.standard_application.parties.all():
+                    party_on_application.party.flags.add(Flag.objects.get(id=flag["id"]))
+
+        # Create Advice objects for all entities
+        self._setup_advice_for_application(self.standard_application, AdviceType.REFUSE, AdviceLevel.FINAL)
+
+        # Create Advice objects for all entities
+        case = Case.objects.get(id=self.standard_application.id)
+        advice_qs = Advice.objects.filter(case=case, level=AdviceLevel.FINAL, type=AdviceType.REFUSE)
+        for order in required_countersign:
+            for index, advice in enumerate(list(advice_qs)):
+                CountersignAdviceFactory(
+                    order=order,
+                    outcome_accepted=True,
+                    reasons="countersigning reasons",
+                    case=case,
+                    advice=advice,
+                )
+
+        with pytest.raises(CountersignInvalidAdviceTypeError) as err:
+            self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.assertEqual(
+            str(err.value),
+            "This application cannot be finalised as the countersigning has been refused",
+        )
+
+    @parameterized.expand(
+        [
+            [
+                AdviceType.APPROVE,
+                (),
+                (),
+            ],
+            [
+                AdviceType.APPROVE,
+                (CountersignOrder.FIRST_COUNTERSIGN,),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                ),
+            ],
+            [
+                AdviceType.PROVISO,
+                (CountersignOrder.FIRST_COUNTERSIGN,),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                ),
+            ],
+            [
+                AdviceType.APPROVE,
+                (CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                    {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
+                ),
+            ],
+            [
+                AdviceType.PROVISO,
+                (CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                    {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
+                ),
+            ],
+        ]
+    )
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_finalise_application_success_with_countersigning(self, advice_type, required_countersign, flags):
+        """Test to ensure if a particular countersigning order is fully approved then we can finalise Case"""
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": advice_type, "duration": 24}
+        data.update(self.post_date)
+        for good_on_application in self.standard_application.goods.all():
+            data[f"quantity-{str(good_on_application.id)}"] = good_on_application.quantity
+            data[f"value-{str(good_on_application.id)}"] = good_on_application.value
+
+        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.save()
+
+        # setup flags
+        for flag in flags:
+            if flag["level"] == FlagLevels.CASE:
+                self.standard_application.flags.add(Flag.objects.get(id=flag["id"]))
+            if flag["level"] == FlagLevels.DESTINATION:
+                # We emit audit entry of removing flags only if countersigning flags are set
+                # on the Party and skip otherwise. To cover the case where we skip it, don't
+                # set flags on one party (in this case last item is selected)
+                for party_on_application in list(self.standard_application.parties.all())[:-1]:
+                    party_on_application.party.flags.add(Flag.objects.get(id=flag["id"]))
+
+        # Create Advice objects for all entities
+        self._setup_advice_for_application(self.standard_application, advice_type, AdviceLevel.FINAL)
+
+        # Create Advice objects for all entities
+        case = Case.objects.get(id=self.standard_application.id)
+        advice_qs = Advice.objects.filter(case=case, level=AdviceLevel.FINAL, type=advice_type)
+        for order in required_countersign:
+            for advice in advice_qs:
+                CountersignAdviceFactory(
+                    order=order, outcome_accepted=True, reasons="Agree with original outcome", case=case, advice=advice
+                )
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(response["reference_code"], case.reference_code)
+        self.assertEqual(response["start_date"], datetime.strftime(datetime.now(), "%Y-%m-%d"))
+        self.assertEqual(response["duration"], 24)
+
+        # Assert Countersign flags removed from the Case
+        expected_flags_to_remove = [FlagsEnum.LU_COUNTER_REQUIRED]
+        if CountersignOrder.SECOND_COUNTERSIGN in required_countersign:
+            expected_flags_to_remove.append(FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED)
+        for flag_id in expected_flags_to_remove:
+            flag = Flag.objects.get(id=flag_id)
+            self.assertNotIn(flag, case.parameter_set())
+
+        # Finally check for expected audit events
+        audit_qs = Audit.objects.filter(verb=AuditType.DESTINATION_REMOVE_FLAGS, target_object_id=case.id)
+        flag_names = sorted(list(Flag.objects.filter(id__in=expected_flags_to_remove).values_list("name", flat=True)))
+        for item in audit_qs:
+            self.assertEqual(sorted(item.payload["removed_flags"]), flag_names)
 
 
 class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
