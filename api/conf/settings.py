@@ -345,28 +345,25 @@ GOOD_ON_APPLICATION_COPY_LOGGER = "good_on_application_copy_logger"
 GOOD_OVERVIEW_PUT_DELETION_LOGGER = "good_overview_put_deletion_logger"
 
 
-if "test" not in sys.argv:
-    LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
-            "ecs_formatter": {"()": ECSFormatter},
-        },
-        "handlers": {
-            "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
-            "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
-            "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
-        },
-        "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
-        "loggers": {
-            DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
-            GOOD_ON_APPLICATION_COPY_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
-            GOOD_OVERVIEW_PUT_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
-        },
-    }
-else:
-    LOGGING = {"version": 1, "disable_existing_loggers": True}
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
+        "ecs_formatter": {"()": ECSFormatter},
+    },
+    "handlers": {
+        "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
+        "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
+        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
+    },
+    "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
+    "loggers": {
+        DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
+        GOOD_ON_APPLICATION_COPY_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
+        GOOD_OVERVIEW_PUT_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
+    },
+}
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
