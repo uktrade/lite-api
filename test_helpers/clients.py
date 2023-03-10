@@ -625,7 +625,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         advice.team = user.team
         advice.save()
 
+        if advice_field == "consignee":
+            advice.end_user = StandardApplication.objects.get(pk=case.id).end_user.party
         if advice_field == "end_user":
+            advice.end_user = StandardApplication.objects.get(pk=case.id).end_user.party
+        if advice_field == "third_party":
             advice.end_user = StandardApplication.objects.get(pk=case.id).end_user.party
 
         if good:
