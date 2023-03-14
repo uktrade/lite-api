@@ -167,6 +167,38 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
                 self.initial_data[i]["footnote_required"] = None
 
 
+class AdviceUpdateListSerializer(serializers.ListSerializer):
+    def update(self, instances, validated_data):
+        instance_map = {index: instance for index, instance in enumerate(instances)}
+        result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
+        return result
+
+
+class AdviceUpdateSerializer(AdviceCreateSerializer):
+    class Meta:
+        model = Advice
+        list_serializer_class = AdviceUpdateListSerializer
+        fields = (
+            "id",
+            "text",
+            "note",
+            "proviso",
+            "type",
+            "level",
+            "denial_reasons",
+            "footnote",
+            "footnote_required",
+            "user",
+            "team",
+            "good",
+            "end_user",
+            "ultimate_end_user",
+            "consignee",
+            "third_party",
+            "country",
+        )
+
+
 class CountersignAdviceListSerializer(serializers.ListSerializer):
     def update(self, instances, validated_data):
         instance_map = {index: instance for index, instance in enumerate(instances)}
