@@ -3,6 +3,7 @@ from uuid import UUID
 
 from django.db import transaction
 from django.db.models import F, Q
+from django.conf import settings
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
@@ -71,6 +72,7 @@ from api.core.decorators import (
 )
 from api.core.helpers import convert_date_to_string, str_to_bool
 from api.core.permissions import assert_user_has_permission
+from api.applications.views.helpers.advice import ensure_lu_countersign_complete
 from api.flags.enums import FlagStatuses, SystemFlags
 from api.flags.models import Flag
 from api.goods.serializers import GoodCreateSerializer
@@ -616,6 +618,10 @@ class ApplicationFinaliseView(APIView):
                 data={"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # Check countersigning requirements and required countersignatures are present
+        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
+            ensure_lu_countersign_complete(application)
 
         # Check if any blocking flags are on the case
         blocking_flags = (
