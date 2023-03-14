@@ -166,22 +166,6 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
                 self.initial_data[i]["footnote"] = None
                 self.initial_data[i]["footnote_required"] = None
 
-    def update(self, instance, validated_data):
-        previous_denial_reasons = list(instance.denial_reasons.values_list("pk", flat=True))
-
-        instance = super().update(instance, validated_data)
-
-        if not instance.denial_reasons.exists():
-            denial_reasons_logger.warning(
-                "Updating advice object with no denial reasons: %s (%s) - %s",
-                instance,
-                instance.pk,
-                previous_denial_reasons,
-                exc_info=True,
-            )
-
-        return instance
-
 
 class CountersignAdviceListSerializer(serializers.ListSerializer):
     def update(self, instances, validated_data):
