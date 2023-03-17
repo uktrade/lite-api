@@ -49,6 +49,37 @@ def lu_sr_mgr_countersigning_flags():
     )
 
 
+def get_required_countersign_orders(case):
+    countersign_orders = []
+
+    all_case_flags = {item for item in case.parameter_set() if isinstance(item, Flag)}
+    countersign_flags = all_case_flags.intersection(lu_countersigning_flags_all())
+    if not countersign_flags:
+        return countersign_orders
+
+    # We are here means atleast first countersign is required so
+    # check if second countersign is also required
+    countersign_orders = [CountersignOrder.FIRST_COUNTERSIGN]
+    lu_sr_mgr_countersign_required = countersign_flags.intersection(lu_sr_mgr_countersigning_flags())
+    if lu_sr_mgr_countersign_required:
+        countersign_orders = [CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN]
+
+    return countersign_orders
+
+
+def check_refused_outcome_exists(case, team, countersign_orders):
+    # If a Case is being refused then it won't reach countersigning queues but
+    # if it is routed unexpectedly then we need to catch and raise error
+    return CountersignAdvice.objects.filter(
+        order__in=countersign_orders,
+        valid=True,
+        case=case,
+        advice__user__team=team,
+        advice__level=AdviceLevel.FINAL,
+        advice__type=AdviceType.REFUSE,
+    ).exists()
+
+
 def ensure_lu_countersign_complete(application):
     """
     If a Case requires LU countersigning then it ensure necessary countersignatures
@@ -65,26 +96,9 @@ def ensure_lu_countersign_complete(application):
 
     all_case_flags = {item for item in case.parameter_set() if isinstance(item, Flag)}
     countersign_flags = all_case_flags.intersection(lu_countersigning_flags_all())
-    if not countersign_flags:
-        return
+    countersign_orders = get_required_countersign_orders(case)
 
-    # We are here means atleast first countersign is required so
-    # check if second countersign is also required
-    countersign_orders = [CountersignOrder.FIRST_COUNTERSIGN]
-    lu_sr_mgr_countersign_required = countersign_flags.intersection(lu_sr_mgr_countersigning_flags())
-    if lu_sr_mgr_countersign_required:
-        countersign_orders = [CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN]
-
-    # If a Case is being refused then it won't reach countersigning queues but
-    # if it is routed unexpectedly then we need to catch and raise error
-    refused_countersign_advice = CountersignAdvice.objects.filter(
-        order__in=countersign_orders,
-        case=case,
-        advice__user__team=lu_team,
-        advice__level=AdviceLevel.FINAL,
-        advice__type=AdviceType.REFUSE,
-    )
-    if refused_countersign_advice.exists():
+    if check_refused_outcome_exists(case, lu_team, countersign_orders):
         raise CountersignInvalidAdviceTypeError(
             "This application cannot be finalised as the countersigning has been refused"
         )
@@ -93,6 +107,7 @@ def ensure_lu_countersign_complete(application):
     for order in countersign_orders:
         countersign_advice = CountersignAdvice.objects.filter(
             order=order,
+            valid=True,
             case=case,
             advice__user__team=lu_team,
             advice__level=AdviceLevel.FINAL,
