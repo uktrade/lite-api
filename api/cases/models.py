@@ -537,6 +537,12 @@ class Advice(TimestampableModel):
 
 class CountersignAdvice(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    valid = models.BooleanField(
+        default=True,
+        blank=True,
+        null=True,
+        help_text="Indicates whether it is valid or not. Existing countersignatures become invalid if original outcome is edited following countersigning comments. In this case we want to keep the CountersignAdvice object for audit but we do not want to consider this as valid advice anymore, hence we set `valid=False`.",
+    )
     order = models.PositiveIntegerField(help_text="Indicates countersigning order")
     outcome_accepted = models.BooleanField()
     reasons = models.TextField(
