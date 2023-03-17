@@ -146,3 +146,59 @@ def ensure_lu_countersign_complete(application):
                 "additional_text": "Removing flags as required countersignatures present and approved",
             },
         )
+
+
+def mark_rejected_countersignatures_as_invalid(case):
+    """
+    When countersigning is rejected and sent back then caseworkers edit their outcome before
+    moving the case forward again for countersigning. This is now considered as if it has
+    come for the first time and possibly by a different officer so we can mark them as invalid.
+    They are still available on the case for the officer to check previous history but to prevent
+    using the same (eg by editing) these are marked as invalid.
+
+    Countersigning officers will provide new countersignatures to move it forward.
+
+    This is only done if there is a rejected countersignature. If all are approved it will go
+    back to caseworker for finalising.
+    """
+    lu_team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+    countersign_orders = get_required_countersign_orders(case)
+
+    if check_refused_outcome_exists(case, lu_team, countersign_orders):
+        raise CountersignInvalidAdviceTypeError("Cannot invalidate countersignatures as the outcome is refused")
+
+    # check if any rejected countersignatures present
+    countersign_orders_to_invalidate = []
+    for order in countersign_orders:
+        countersign_advice = CountersignAdvice.objects.filter(
+            order=order,
+            valid=True,
+            case=case,
+            outcome_accepted=False,
+            advice__user__team=lu_team,
+            advice__level=AdviceLevel.FINAL,
+            advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
+        )
+        if countersign_advice.exists():
+            countersign_orders_to_invalidate.append(order)
+
+    # nothing to invalidate if all countersignatures are approved
+    if not countersign_orders_to_invalidate:
+        return
+
+    # Mark countersignatures as invalid in the required orders
+    # Usually either first or second countersign is rejected but not both because
+    # routing engine would've moved the Case back when first countersign is rejected
+    # But in the case where second countersign is rejected, then we also need to
+    # invalidate first countersign hence take the max_order
+    max_order = max(countersign_orders_to_invalidate)
+    for order in range(1, max_order + 1):  # +1 because the end is not included
+        countersign_advice = CountersignAdvice.objects.filter(
+            order=order,
+            valid=True,
+            case=case,
+            advice__user__team=lu_team,
+            advice__level=AdviceLevel.FINAL,
+            advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
+        )
+        countersign_advice.update(valid=False)
