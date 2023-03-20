@@ -146,6 +146,8 @@ class AdviceFinalLevelUpdateTests(DataTestClient):
             [
                 {"type": ['"invalid" is not a valid choice.']},
                 {"type": ['"invalid" is not a valid choice.']},
+                {"type": ['"invalid" is not a valid choice.']},
+                {"type": ['"invalid" is not a valid choice.']},
             ],
         )
 
@@ -194,6 +196,7 @@ class AdviceFinalLevelUpdateTests(DataTestClient):
 
         self._setup_advice_for_application(self.application, advice_type, AdviceLevel.FINAL)
         advice_qs = Advice.objects.filter(case=self.case, level=AdviceLevel.FINAL, type=advice_type)
+        advice_ids = advice_qs.values_list("id", flat=True)
 
         data = []
         for advice in advice_qs:
@@ -216,3 +219,8 @@ class AdviceFinalLevelUpdateTests(DataTestClient):
             self.assertEqual(advice.proviso, data[index]["proviso"])
             self.assertEqual(advice.note, data[index]["note"])
             self.assertEqual([d.id for d in advice.denial_reasons.all()], data[index]["denial_reasons"])
+
+        ids_after_update = Advice.objects.filter(case=self.case, level=AdviceLevel.FINAL, type=advice_type).values_list(
+            "id", flat=True
+        )
+        self.assertEqual(sorted(advice_ids), sorted(ids_after_update))

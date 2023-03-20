@@ -470,30 +470,6 @@ class Advice(TimestampableModel):
                         exc_info=True,
                     )
                 old_advice.delete()
-            elif self.level == AdviceLevel.FINAL:
-                old_advice = Advice.objects.get(
-                    case=self.case,
-                    good=self.good,
-                    level=AdviceLevel.FINAL,
-                    goods_type=self.goods_type,
-                    country=self.country,
-                    end_user=self.end_user,
-                    ultimate_end_user=self.ultimate_end_user,
-                    consignee=self.consignee,
-                    third_party=self.third_party,
-                )
-                self.footnote = old_advice.footnote
-                self.footnote_required = old_advice.footnote_required
-                if old_advice.denial_reasons.exists():
-                    denial_reasons = old_advice.denial_reasons.values_list("pk", flat=True)
-                    denial_reasons_logger.warning(
-                        "Deleting advice object that had denial reasons: %s (%s) - %s",
-                        old_advice,
-                        old_advice.pk,
-                        denial_reasons,
-                        exc_info=True,
-                    )
-                old_advice.delete()
             elif self.level == AdviceLevel.USER:
                 old_advice = Advice.objects.get(
                     case=self.case,
