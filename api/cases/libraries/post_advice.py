@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
 from api.applications.serializers.advice import AdviceCreateSerializer, AdviceUpdateSerializer
-from api.applications.views.helpers.advice import mark_rejected_countersignatures_as_invalid
+from api.applications.views.helpers.advice import mark_lu_rejected_countersignatures_as_invalid
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType
@@ -161,7 +161,7 @@ def update_advice(request, case, level):
 
     lu_team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
     if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and request.user.govuser.team == lu_team:
-        mark_rejected_countersignatures_as_invalid(case)
+        mark_lu_rejected_countersignatures_as_invalid(case)
 
     return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
 

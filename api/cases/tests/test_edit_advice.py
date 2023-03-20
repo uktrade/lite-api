@@ -276,6 +276,7 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
     @parameterized.expand(
         [
             [
+                # 1. Only licensing manager countersigning required and they reject the case
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
@@ -284,6 +285,9 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
                 False,
             ],
             [
+                # 2. Senior licensing manager countersigning required and they reject the case. In this case
+                # even if licensing manager accepts, that needs invalidating as the Case starts the journey
+                # from the beginning when it comes back again
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
@@ -297,6 +301,7 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
                 False,
             ],
             [
+                # 3. Both manager accepts - nothings needs invalidating in this case
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
@@ -322,13 +327,6 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
         - Makes API call to edit caseworker's recommendation
         - Verifies that countersignatures are invalidated and their count matches.
         - `expected_countersign_status` is the expected CountersignAdvice status after editing recommendation
-
-        Scenarios:
-        1. Only licensing manager countersigning required and they reject the case
-        2. Senior licensing manager countersigning required and they reject the case. In this case
-           even if licensing manager accepts, that needs invalidating as the Case starts the journey
-           from the beginning when it comes back again
-        3. Both manager accepts - nothings needs invalidating in this case
         """
         # setup flags
         for flag in flags:

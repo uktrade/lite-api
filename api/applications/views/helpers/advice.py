@@ -49,7 +49,7 @@ def lu_sr_mgr_countersigning_flags():
     )
 
 
-def get_required_countersign_orders(case):
+def get_lu_required_countersign_orders(case):
     countersign_orders = []
 
     all_case_flags = {item for item in case.parameter_set() if isinstance(item, Flag)}
@@ -67,7 +67,7 @@ def get_required_countersign_orders(case):
     return countersign_orders
 
 
-def check_refused_outcome_exists(case, team, countersign_orders):
+def check_lu_refused_outcome_exists(case, team, countersign_orders):
     # If a Case is being refused then it won't reach countersigning queues but
     # if it is routed unexpectedly then we need to catch and raise error
     return CountersignAdvice.objects.filter(
@@ -96,9 +96,9 @@ def ensure_lu_countersign_complete(application):
 
     all_case_flags = {item for item in case.parameter_set() if isinstance(item, Flag)}
     countersign_flags = all_case_flags.intersection(lu_countersigning_flags_all())
-    countersign_orders = get_required_countersign_orders(case)
+    countersign_orders = get_lu_required_countersign_orders(case)
 
-    if check_refused_outcome_exists(case, lu_team, countersign_orders):
+    if check_lu_refused_outcome_exists(case, lu_team, countersign_orders):
         raise CountersignInvalidAdviceTypeError(
             "This application cannot be finalised as the countersigning has been refused"
         )
@@ -148,7 +148,7 @@ def ensure_lu_countersign_complete(application):
         )
 
 
-def mark_rejected_countersignatures_as_invalid(case):
+def mark_lu_rejected_countersignatures_as_invalid(case):
     """
     When countersigning is rejected and sent back then caseworkers edit their outcome before
     moving the case forward again for countersigning. This is now considered as if it has
@@ -162,9 +162,11 @@ def mark_rejected_countersignatures_as_invalid(case):
     back to caseworker for finalising.
     """
     lu_team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
-    countersign_orders = get_required_countersign_orders(case)
+    countersign_orders = get_lu_required_countersign_orders(case)
 
-    if check_refused_outcome_exists(case, lu_team, countersign_orders):
+    # If the original outcome is refused then they don't get routed to countersigning queues
+    # but if something is routed unintentionally then guard against those cases
+    if check_lu_refused_outcome_exists(case, lu_team, countersign_orders):
         raise CountersignInvalidAdviceTypeError("Cannot invalidate countersignatures as the outcome is refused")
 
     # check if any rejected countersignatures present
