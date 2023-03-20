@@ -244,22 +244,7 @@ jobs:
     docker:
       - <<: *image_python
     steps:
-      - checkout
-      - run:
-          name: Git Submodule Checkout
-          command: |
-            git submodule sync
-            git submodule update --init
-      - restore_cache:
-          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-      - install_os_libraries
-      - run:
-          name: Install Dependencies
-          command: pipenv sync --dev
-      - save_cache:
-          paths:
-            - ./venv
-          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+      - setup
       - run:
           name: Prospector
           command: pipenv run prospector -W pylint -W pep257 -W mccabe
