@@ -233,6 +233,7 @@ class CountersignDecisionAdviceSerializer(serializers.ModelSerializer):
 
 class CountersignDecisionAdviceViewSerializer(serializers.Serializer):
     id = serializers.UUIDField()
+    valid = serializers.BooleanField()
     order = serializers.IntegerField()
     outcome_accepted = serializers.BooleanField()
     reasons = serializers.CharField()
