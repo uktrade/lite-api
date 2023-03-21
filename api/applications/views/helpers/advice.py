@@ -4,6 +4,7 @@ from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
 from api.cases.models import CountersignAdvice
 from api.flags.models import Flag
 from api.flags.enums import FlagStatuses
+from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
@@ -92,7 +93,7 @@ def ensure_lu_countersign_complete(application):
     finalising the Case.
     """
     case = application.get_case()
-    lu_team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+    lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
 
     all_case_flags = {item for item in case.parameter_set() if isinstance(item, Flag)}
     countersign_flags = all_case_flags.intersection(lu_countersigning_flags_all())
@@ -161,7 +162,7 @@ def mark_lu_rejected_countersignatures_as_invalid(case):
     This is only done if there is a rejected countersignature. If all are approved it will go
     back to caseworker for finalising.
     """
-    lu_team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+    lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
     countersign_orders = get_lu_required_countersign_orders(case)
 
     # If the original outcome is refused then they don't get routed to countersigning queues

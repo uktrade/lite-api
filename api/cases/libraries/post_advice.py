@@ -19,6 +19,7 @@ from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from lite_content.lite_api import strings
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 
 
@@ -159,7 +160,7 @@ def update_advice(request, case, level):
 
     serializer.save()
 
-    lu_team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+    lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
     if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and request.user.govuser.team == lu_team:
         mark_lu_rejected_countersignatures_as_invalid(case)
 

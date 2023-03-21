@@ -16,6 +16,7 @@ from api.flags.enums import FlagLevels
 from api.flags.models import Flag
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
+from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 from api.users.models import Role
 
@@ -339,7 +340,7 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
                 for party_on_application in list(self.application.parties.all())[:-1]:
                     party_on_application.party.flags.add(Flag.objects.get(id=flag["id"]))
 
-        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         self.gov_user.save()
 
         countersign_orders = []
@@ -431,7 +432,7 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
                 for party_on_application in list(self.application.parties.all())[:-1]:
                     party_on_application.party.flags.add(Flag.objects.get(id=flag["id"]))
 
-        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         self.gov_user.save()
 
         countersign_orders = []

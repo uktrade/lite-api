@@ -23,6 +23,7 @@ from api.licences.enums import LicenceStatus
 from api.licences.models import Licence, GoodOnLicence
 from lite_content.lite_api import strings
 from api.staticdata.statuses.models import CaseStatus
+from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 from test_helpers.clients import DataTestClient
 from api.users.models import Role
@@ -335,7 +336,7 @@ class FinaliseApplicationTests(DataTestClient):
         data = {"action": AdviceType.APPROVE, "duration": 60}
         data.update(self.post_date)
 
-        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         self.gov_user.save()
 
         with pytest.raises(CounterSignatureIncompleteError) as err:
@@ -408,7 +409,7 @@ class FinaliseApplicationTests(DataTestClient):
         data = {"action": AdviceType.APPROVE, "duration": 24}
         data.update(self.post_date)
 
-        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         self.gov_user.save()
 
         # setup flags
@@ -476,7 +477,7 @@ class FinaliseApplicationTests(DataTestClient):
         data = {"action": AdviceType.APPROVE, "duration": 24}
         data.update(self.post_date)
 
-        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         self.gov_user.save()
 
         # setup flags
@@ -566,7 +567,7 @@ class FinaliseApplicationTests(DataTestClient):
             data[f"quantity-{str(good_on_application.id)}"] = good_on_application.quantity
             data[f"value-{str(good_on_application.id)}"] = good_on_application.value
 
-        self.gov_user.team = Team.objects.get(id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         self.gov_user.save()
 
         # setup flags
