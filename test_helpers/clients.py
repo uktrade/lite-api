@@ -616,6 +616,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             type=advice_type,
             level=level,
             note="This is a note to the exporter",
+            proviso="",
             text=advice_text,
             pv_grading=pv_grading,
             countersign_comments=countersign_comments,

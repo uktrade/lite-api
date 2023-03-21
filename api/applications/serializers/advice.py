@@ -166,21 +166,37 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
                 self.initial_data[i]["footnote"] = None
                 self.initial_data[i]["footnote_required"] = None
 
-    def update(self, instance, validated_data):
-        previous_denial_reasons = list(instance.denial_reasons.values_list("pk", flat=True))
 
-        instance = super().update(instance, validated_data)
+class AdviceUpdateListSerializer(serializers.ListSerializer):
+    def update(self, instances, validated_data):
+        instance_map = {index: instance for index, instance in enumerate(instances)}
+        result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
+        return result
 
-        if not instance.denial_reasons.exists():
-            denial_reasons_logger.warning(
-                "Updating advice object with no denial reasons: %s (%s) - %s",
-                instance,
-                instance.pk,
-                previous_denial_reasons,
-                exc_info=True,
-            )
 
-        return instance
+class AdviceUpdateSerializer(AdviceCreateSerializer):
+    class Meta:
+        model = Advice
+        list_serializer_class = AdviceUpdateListSerializer
+        fields = (
+            "id",
+            "text",
+            "note",
+            "proviso",
+            "type",
+            "level",
+            "denial_reasons",
+            "footnote",
+            "footnote_required",
+            "user",
+            "team",
+            "good",
+            "end_user",
+            "ultimate_end_user",
+            "consignee",
+            "third_party",
+            "country",
+        )
 
 
 class CountersignAdviceListSerializer(serializers.ListSerializer):

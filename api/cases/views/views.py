@@ -36,6 +36,7 @@ from api.cases.libraries.get_goods_type_countries_decisions import (
 )
 from api.cases.libraries.post_advice import (
     post_advice,
+    update_advice,
     check_if_final_advice_exists,
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
@@ -439,6 +440,13 @@ class FinalAdvice(APIView):
         """
         assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         return post_advice(request, self.case, AdviceLevel.FINAL, team=True)
+
+    def put(self, request, pk):
+        """
+        Updates advice for a case
+        """
+        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        return update_advice(request, self.case, AdviceLevel.FINAL)
 
     def delete(self, request, pk):
         """

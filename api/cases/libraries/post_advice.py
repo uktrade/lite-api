@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from api.applications.serializers.advice import AdviceCreateSerializer
+from api.applications.serializers.advice import AdviceCreateSerializer, AdviceUpdateSerializer
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType
@@ -120,6 +120,43 @@ def post_advice(request, case, level, team=False):
     if refusal_error:
         errors.update(refusal_error)
     return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def update_advice(request, case, level):
+    if CaseStatusEnum.is_terminal(case.status.status):
+        return JsonResponse(
+            data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    for item in request.data:
+        current_level = item.get("level")
+        if current_level and current_level != level:
+            return JsonResponse(
+                data={"errors": ["Advice level cannot be updated once it is created"]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    # we only need to know if the user has the permission if not final advice
+    footnote_permission = (
+        request.user.govuser.has_permission(GovPermissions.MAINTAIN_FOOTNOTES) and level != AdviceLevel.FINAL
+    )
+
+    data = request.data
+    advice_ids = [item["id"] for item in data]
+    serializer = AdviceUpdateSerializer(
+        Advice.objects.filter(id__in=advice_ids),
+        data=data,
+        partial=True,
+        many=True,
+        context={"footnote_permission": footnote_permission},
+    )
+    if not serializer.is_valid():
+        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer.save()
+
+    return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
 
 
 def case_advice_contains_refusal(case_id):

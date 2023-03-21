@@ -110,10 +110,16 @@ jobs:
     steps:
       - setup
       - run:
+          name: Create report directories
+          command: |
+            mkdir test_results
+      - run:
           name: Run tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance"
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance" --junitxml=test_results/output.xml
       - upload_code_coverage
+      - store_test_results:
+          path: test_results
 
   seeding_tests:
     docker:
@@ -127,10 +133,16 @@ jobs:
     steps:
       - setup
       - run:
+          name: Create report directories
+          command: |
+            mkdir test_results
+      - run:
           name: Run seeding tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding --junitxml=test_results/output.xml
       - upload_code_coverage
+      - store_test_results:
+          path: test_results
 
   lite_routing_tests:
     docker:
@@ -145,10 +157,16 @@ jobs:
     steps:
       - setup
       - run:
+          name: Create report directories
+          command: |
+            mkdir test_results
+      - run:
           name: Run lite_routing tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing --junitxml=test_results/output.xml
       - upload_code_coverage
+      - store_test_results:
+          path: test_results
 
   lite_routing_bdd_tests:
     docker:
@@ -196,10 +214,16 @@ jobs:
     steps:
       - setup
       - run:
+          name: Create report directories
+          command: |
+            mkdir test_results
+      - run:
           name: Run elasticsearch tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch --junitxml=test_results/output.xml
       - upload_code_coverage
+      - store_test_results:
+          path: test_results
 
   check_migrations:
     docker:
@@ -220,22 +244,7 @@ jobs:
     docker:
       - <<: *image_python
     steps:
-      - checkout
-      - run:
-          name: Git Submodule Checkout
-          command: |
-            git submodule sync
-            git submodule update --init
-      - restore_cache:
-          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-      - install_os_libraries
-      - run:
-          name: Install Dependencies
-          command: pipenv sync --dev
-      - save_cache:
-          paths:
-            - ./venv
-          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+      - setup
       - run:
           name: Prospector
           command: pipenv run prospector -W pylint -W pep257 -W mccabe
