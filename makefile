@@ -29,3 +29,8 @@ start-e2e:
 
 stop-e2e:
 	$(docker-base) down --remove-orphans
+
+seed:
+	./manage.py seedrolepermissions
+	./manage.py seedinternalusers
+	./manage.py seedexporterusers

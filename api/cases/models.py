@@ -446,8 +446,6 @@ class Advice(TimestampableModel):
         return getattr(self, self.entity_field, None)
 
     def save(self, *args, **kwargs):
-        if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
-            self.proviso = None
         try:
             if self.level == AdviceLevel.TEAM:
                 old_advice = Advice.objects.get(
