@@ -57,8 +57,18 @@ def generate_preview(
     include_css=True,
 ):
     template_name = f"letter_templates/{layout}.html"
+    title = ""
 
-    context = {"include_digital_signature": include_digital_signature, "user_content": text}
+    if layout == "nlr":
+        title = "No licence required letter "
+    if layout == "refusal":
+        title = "Refusal letter "
+    if layout == "application_form":
+        title = "Application form "
+    if layout == "siel":
+        title = "Standard individual export licence "
+
+    context = {"include_digital_signature": include_digital_signature, "user_content": text, "title": title}
     if case:
         context = {**context, **get_document_context(case, additional_contact)}
 
