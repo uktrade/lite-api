@@ -52,6 +52,7 @@ class FinalAdviceFactory(factory.django.DjangoModelFactory):
 
 class CountersignAdviceFactory(factory.django.DjangoModelFactory):
     order = factory.Faker("pyint", min_value=1, max_value=5)
+    valid = True
     outcome_accepted = factory.Faker("pybool")
     reasons = factory.Faker("word")
     countersigned_user = factory.SubFactory(GovUserFactory)

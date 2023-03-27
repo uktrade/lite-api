@@ -1,9 +1,11 @@
 from django.db.models import Q
+from django.conf import settings
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
 from api.applications.serializers.advice import AdviceCreateSerializer, AdviceUpdateSerializer
+from api.applications.views.helpers.advice import mark_lu_rejected_countersignatures_as_invalid
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType
@@ -17,6 +19,8 @@ from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from lite_content.lite_api import strings
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.teams.enums import TeamIdEnum
+from api.teams.models import Team
 
 
 def check_if_user_cannot_manage_team_advice(case, user):
@@ -155,6 +159,10 @@ def update_advice(request, case, level):
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer.save()
+
+    lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and request.user.govuser.team == lu_team:
+        mark_lu_rejected_countersignatures_as_invalid(case)
 
     return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
 
