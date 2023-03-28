@@ -1,6 +1,7 @@
+{% extends "letter_templates/pdf_generation_base.html" %}
 {% load static custom_tags %}
-{% include "letter_templates/base.html" %}
 
+{% block content %}
 <div class="document">
   <p id="references">
     Our Ref: {{ case_reference }}<br>
@@ -60,3 +61,4 @@
   </table>
   {% endblock %}
 </div>
+{% endblock %}

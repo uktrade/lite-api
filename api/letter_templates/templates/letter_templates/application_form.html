@@ -1,6 +1,7 @@
+{% extends "letter_templates/pdf_generation_base.html" %}
 {% load custom_tags %}
-{% include "letter_templates/base.html" %}
 
+{% block content %}
 <div class="document">
 	<b>OFFICIAL-SENSITIVE</b>
 	<table class="govuk-table">
@@ -982,3 +983,4 @@
 		</table>
 	{% endif %}
 </div>
+{% endblock %}

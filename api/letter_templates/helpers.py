@@ -9,7 +9,7 @@ from api.core.exceptions import NotFoundError
 from api.conf.settings import CSS_ROOT
 from api.letter_templates.context_generator import get_document_context
 from api.letter_templates.models import LetterTemplate
-
+from api.letter_templates.constants import TemplateTitles
 
 ALLOWED_TAGS = ["b", "strong", "em", "u", "h1", "h2", "h3", "h4", "h5", "h6"]
 
@@ -60,13 +60,13 @@ def generate_preview(
     title = ""
 
     if layout == "nlr":
-        title = "No licence required letter "
+        title = TemplateTitles.NLR
     if layout == "refusal":
-        title = "Refusal letter "
+        title = TemplateTitles.REFUSAL_LETTER
     if layout == "application_form":
-        title = "Application form "
+        title = TemplateTitles.APPLICATION_FORM
     if layout == "siel":
-        title = "Standard individual export licence "
+        title = TemplateTitles.SIEL
 
     context = {"include_digital_signature": include_digital_signature, "user_content": text, "title": title}
     if case:
