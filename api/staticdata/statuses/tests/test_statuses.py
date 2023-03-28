@@ -19,14 +19,16 @@ class TestCaseStatus:
         editable_case_status = get_case_status_by_status(status)
         assert editable_case_status.is_read_only is False
 
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_read_only_status_contains_lu_countersign_statuses(self):
-        statuses = get_case_statuses(read_only=True)
-        assert CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN in statuses
-        assert CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN in statuses
+    @parameterized.expand([(True,), (False,)])
+    def test_read_only_status_contains_lu_countersign_statuses(self, flag_status):
+        with override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=flag_status):
+            statuses = get_case_statuses(read_only=True)
+            assert (CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN in statuses) is flag_status
+            assert (CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN in statuses) is flag_status
 
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_all_status_contains_lu_countersign_statuses(self):
-        statuses = CaseStatusEnum.all()
-        assert CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN in statuses
-        assert CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN in statuses
+    @parameterized.expand([(True,), (False,)])
+    def test_all_status_contains_lu_countersign_statuses(self, flag_status):
+        with override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=flag_status):
+            statuses = CaseStatusEnum.all()
+            assert (CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN in statuses) is flag_status
+            assert (CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN in statuses) is flag_status
