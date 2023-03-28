@@ -1,6 +1,7 @@
 import datetime
 
 from django.urls import reverse
+from django import utils as django_utils
 from rest_framework import status
 
 from api.audit_trail.models import Audit
@@ -591,7 +592,7 @@ class SearchAPITest(DataTestClient):
 
     def test_api_success(self):
         case = CaseSIELFactory()
-        case.submitted_at = datetime.datetime.now()
+        case.submitted_at = django_utils.timezone.now()
         case.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         case.save()
         self.queue.cases.add(case)
@@ -646,4 +647,8 @@ class SearchAPITest(DataTestClient):
         self.assertEqual(case_api_result["sla_days"], 0)
         self.assertEqual(case_api_result["sla_remaining_days"], None)
         self.assertEqual(case_api_result["status"]["key"], case.status.status)
-        self.assertEqual(case_api_result["submitted_at"], case.submitted_at.isoformat(timespec="microseconds") + "Z")
+        # Reflect rest framework's way of rendering datetime objects... https://github.com/encode/django-rest-framework/blob/c9e7b68a4c1db1ac60e962053380acda549609f3/rest_framework/utils/encoders.py#L29
+        expected_submitted_at = case.submitted_at.isoformat()
+        if expected_submitted_at.endswith("+00:00"):
+            expected_submitted_at = expected_submitted_at[:-6] + "Z"
+        self.assertEqual(case_api_result["submitted_at"], expected_submitted_at)
