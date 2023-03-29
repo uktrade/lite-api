@@ -123,6 +123,8 @@ def ensure_lu_countersign_complete(application):
             target=case,
             payload={
                 "removed_flags": [flag.name for flag in flags_to_remove],
+                "destination_name": party_on_application.party.name,
+                "is_lu_countersigning": True,
             },
         )
 

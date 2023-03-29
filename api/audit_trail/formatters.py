@@ -1,11 +1,14 @@
 from datetime import datetime
 from string import Formatter
 
+from django.conf import settings
+
 from api.cases.enums import AdviceType
 from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from lite_content.lite_api import strings
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
 class DefaultValueParameterFormatter(Formatter):
@@ -113,11 +116,19 @@ def destination_add_flags(**payload):
 def destination_remove_flags(**payload):
     flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
     destination_name = payload["destination_name"].title()
-    if len(flags) == 1:
-        return f"removed the flag '{flags[0]}' from the destination '{destination_name}'."
-    elif len(flags) >= 2:
-        formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
-        return f"removed the flags {formatted_flags} from the destination '{destination_name}'."
+    is_lu_countersigning = bool(payload["is_lu_countersigning"] if not None else False)
+    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and is_lu_countersigning:
+        if len(flags) == 1:
+            return f"removed the flag '{flags[0]}'."
+        elif len(flags) >= 2:
+            formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
+            return f"removed the flags {formatted_flags}."
+    else:
+        if len(flags) == 1:
+            return f"removed the flag '{flags[0]}' from the destination '{destination_name}'."
+        elif len(flags) >= 2:
+            formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
+            return f"removed the flags {formatted_flags} from the destination '{destination_name}'."
 
 
 def get_party_type_value(party_type):
