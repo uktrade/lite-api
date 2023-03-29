@@ -112,19 +112,23 @@ def ensure_lu_countersign_complete(application):
         status=FlagStatuses.ACTIVE,
     )
     flags_to_remove = countersign_flags.intersection(countersign_process_flags)
+    any_flags_removed = False
     for party_on_application in application.parties.all():
         if not flags_to_remove.intersection(party_on_application.party.flags.all()):
             continue
 
         party_on_application.party.flags.remove(*flags_to_remove)
+        any_flags_removed = True
+    if any_flags_removed:
+        # Even though flags may be removed from multiple parties,
+        # we only ever want to show max one audit event message to the user,
+        # hence the following is done once outside the for loop.
         audit_trail_service.create_system_user_audit(
             verb=AuditType.DESTINATION_REMOVE_FLAGS,
-            action_object=party_on_application.party,
             target=case,
             payload={
                 "removed_flags": [flag.name for flag in flags_to_remove],
-                "destination_name": party_on_application.party.name,
-                "is_lu_countersigning": True,
+                "is_finalise_case": True,
             },
         )
 

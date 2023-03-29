@@ -114,15 +114,16 @@ def destination_add_flags(**payload):
 
 def destination_remove_flags(**payload):
     flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
-    destination_name = payload["destination_name"].title()
-    is_lu_countersigning = bool(payload["is_lu_countersigning"] if not None else False)
-    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and is_lu_countersigning:
+    # short audit message for LU countersigning case finalising only
+    is_finalise_case = bool(payload.get("is_finalise_case", False))
+    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and is_finalise_case:
         if len(flags) == 1:
             return f"removed the flag '{flags[0]}'."
         elif len(flags) >= 2:
             formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
             return f"removed the flags {formatted_flags}."
     else:
+        destination_name = payload["destination_name"].title()
         if len(flags) == 1:
             return f"removed the flag '{flags[0]}' from the destination '{destination_name}'."
         elif len(flags) >= 2:
