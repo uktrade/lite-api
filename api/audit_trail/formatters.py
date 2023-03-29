@@ -8,7 +8,6 @@ from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from lite_content.lite_api import strings
-from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
 class DefaultValueParameterFormatter(Formatter):
