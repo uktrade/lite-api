@@ -148,8 +148,8 @@ class CaseStatusEnum:
         if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
             lu_countersign_statuses.extend(
                 [
-                    (cls.FINAL_REVIEW_COUNTERSIGN, "final review countersign"),
-                    (cls.FINAL_REVIEW_SECOND_COUNTERSIGN, "final review second countersign"),
+                    (cls.FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
+                    (cls.FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
                 ]
             )
 
