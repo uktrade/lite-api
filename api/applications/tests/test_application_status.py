@@ -169,7 +169,7 @@ class ApplicationManageStatusTests(DataTestClient):
     @parameterized.expand(
         [
             status
-            for status, value in CaseStatusEnum.choices
+            for status, value in CaseStatusEnum.get_choices()
             if status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.FINALISED, CaseStatusEnum.WITHDRAWN]
         ]
     )
@@ -266,7 +266,7 @@ class ApplicationManageStatusTests(DataTestClient):
     @parameterized.expand(
         [
             status
-            for status, value in CaseStatusEnum.choices
+            for status, value in CaseStatusEnum.get_choices()
             if status
             not in [
                 CaseStatusEnum.APPLICANT_EDITING,
