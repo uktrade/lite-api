@@ -115,6 +115,15 @@ def post_advice(request, case, level, team=False):
             GeneratedCaseDocument.objects.filter(
                 case_id=case.id, advice_type__isnull=False, visible_to_exporter=False
             ).delete()
+            if is_in_lu_team(request.user):
+                audit_payload = {
+                    "firstname": request.user.first_name,  # /PS-IGNORE
+                    "lastname": request.user.last_name,  # /PS-IGNORE
+                    "advice_type": (lu_advice_type(request)),
+                }
+                audit_trail_service.create(
+                    actor=request.user, verb=AuditType.LU_ADVICE, target=case, payload=audit_payload
+                )
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
     errors = {}
@@ -124,6 +133,15 @@ def post_advice(request, case, level, team=False):
     if refusal_error:
         errors.update(refusal_error)
     return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def lu_advice_type(request):
+    data = request.data
+    return [
+        advice["type"]
+        for advice in data
+        if advice["team"] == str(request.user.govuser.team.id) and advice["level"] == AdviceLevel.FINAL
+    ][0]
 
 
 def update_advice(request, case, level):
@@ -148,8 +166,9 @@ def update_advice(request, case, level):
 
     data = request.data
     advice_ids = [item["id"] for item in data]
+    advice_to_update = Advice.objects.filter(id__in=advice_ids)
     serializer = AdviceUpdateSerializer(
-        Advice.objects.filter(id__in=advice_ids),
+        advice_to_update,
         data=data,
         partial=True,
         many=True,
@@ -160,11 +179,25 @@ def update_advice(request, case, level):
 
     serializer.save()
 
-    lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
-    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and request.user.govuser.team == lu_team:
+    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and is_in_lu_team(request.user):
         mark_lu_rejected_countersignatures_as_invalid(case)
+        advice_type = advice_to_update.first().type
+        new_text = data[0]["text"]
+        audit_payload = {
+            "firstname": request.user.first_name,  # /PS-IGNORE
+            "lastname": request.user.last_name,  # /PS-IGNORE
+            "advice_type": advice_type,
+            "additional_text": new_text,
+        }
+        audit_trail_service.create(
+            actor=request.user, verb=AuditType.LU_EDIT_ADVICE, target=case, payload=audit_payload
+        )
 
     return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
+
+
+def is_in_lu_team(user):
+    return user.govuser.team == Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
 
 
 def case_advice_contains_refusal(case_id):

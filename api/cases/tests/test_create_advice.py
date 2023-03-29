@@ -11,10 +11,12 @@ from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType
 from api.cases.models import Advice, CountersignAdvice
 from api.cases.tests.factories import CountersignAdviceFactory
-from api.core.constants import GovPermissions
+from api.core.constants import GovPermissions, Roles
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
-from api.teams.models import Department
+from api.teams.enums import TeamIdEnum
+from api.teams.models import Department, Team
+from api.users.models import GovUser, Role
 from test_helpers.clients import DataTestClient
 
 
@@ -25,6 +27,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.case = self.submit_application(self.application)
 
         self.standard_case_url = reverse("cases:user_advice", kwargs={"pk": self.case.id})
+        self.final_case_url = reverse("cases:case_final_advice", kwargs={"pk": self.case.id})
 
     def test_create_advice_good(self):
         data = {
@@ -221,6 +224,91 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["footnote"], "footnote")
         self.assertEqual(Advice.objects.filter(footnote_required=True, footnote=data["footnote"]).count(), 1)
+
+    @parameterized.expand(
+        [
+            [AdviceType.APPROVE],
+            [AdviceType.REFUSE],
+        ]
+    )
+    def test_create_lu_final_advice_has_audit(self, advice_type):
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": advice_type,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": [] if advice_type == AdviceType.APPROVE else ["WMD"],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Advice.objects.get() is not None
+
+        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_ADVICE)
+        assert lu_advice_audit.exists()
+        audit_obj = lu_advice_audit.first()
+        assert audit_obj.payload["firstname"] == "John"  # /PS-IGNORE
+        assert audit_obj.payload["lastname"] == "Smith"  # /PS-IGNORE
+        assert audit_obj.payload["advice_type"] == advice_type
+
+    @parameterized.expand(
+        [
+            [AdviceType.APPROVE],
+            [AdviceType.REFUSE],
+        ]
+    )
+    def test_update_lu_final_advice_has_audit(self, advice_type):
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": advice_type,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": [] if advice_type == AdviceType.APPROVE else ["WMD"],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        # Add initial advice to DB:
+        resp = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+        data["text"] = "Updated Text"
+        data["id"] = resp.json()["advice"][0]["id"]
+
+        # Update advice
+        response = self.client.put(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_200_OK
+
+        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_ADVICE)
+        assert lu_advice_audit.exists()
+        audit_obj = lu_advice_audit.first()
+        assert audit_obj.payload["firstname"] == "John"  # /PS-IGNORE
+        assert audit_obj.payload["lastname"] == "Smith"  # /PS-IGNORE
+        assert audit_obj.payload["advice_type"] == advice_type
+        assert audit_obj.payload["additional_text"] == "Updated Text"
 
 
 class CountersignAdviceTests(DataTestClient):

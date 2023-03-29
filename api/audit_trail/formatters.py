@@ -261,3 +261,12 @@ def generate_decision_letter(**payload):
         return "created a 'no licence required' letter."
 
     return f"invalid decision {decision} for this event."
+
+
+def create_lu_advice(firstname, lastname, advice_type):  # /PS-IGNORE
+    return f"{firstname} {lastname} added a recommendation to {advice_type}."  # /PS-IGNORE
+
+
+def update_lu_advice(firstname, lastname, advice_type, **payload):  # /PS-IGNORE
+    advice_type_noun = {AdviceType.APPROVE: "recommendation", AdviceType.REFUSE: "refusal"}[advice_type]
+    return f"{firstname} {lastname} edited their {advice_type_noun} reason."  # /PS-IGNORE

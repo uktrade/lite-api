@@ -447,3 +447,23 @@ class FormattersTest(DataTestClient):
     def test_generate_decision_letter(self, payload, expected_result):
         result = formatters.generate_decision_letter(**payload)
         self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            ("Test", "User", AdviceType.APPROVE, "Test User added a recommendation to approve."),
+            ("Test", "User", AdviceType.REFUSE, "Test User added a recommendation to refuse."),
+        ]
+    )
+    def test_create_lu_advice(self, firstname, lastname, advice_status, expected_text):  # /PS-IGNORE
+        result = formatters.create_lu_advice(firstname, lastname, advice_status)  # /PS-IGNORE
+        assert result == expected_text
+
+    @parameterized.expand(
+        [
+            ("Test", "User", AdviceType.APPROVE, "Test User edited their recommendation reason."),
+            ("Test", "User", AdviceType.REFUSE, "Test User edited their refusal reason."),
+        ]
+    )
+    def test_update_lu_advice(self, firstname, lastname, advice_status, expected_text):  # /PS-IGNORE
+        result = formatters.update_lu_advice(firstname, lastname, advice_status)  # /PS-IGNORE
+        assert result == expected_text
