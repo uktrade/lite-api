@@ -1,7 +1,7 @@
 from datetime import datetime
 from string import Formatter
 
-from api.cases.enums import AdviceType
+from api.cases.enums import AdviceType, CountersignOrder
 from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -268,5 +268,12 @@ def create_lu_advice(firstname, lastname, advice_type):  # /PS-IGNORE
 
 
 def update_lu_advice(firstname, lastname, advice_type, **payload):  # /PS-IGNORE
-    advice_type_noun = {AdviceType.APPROVE: "recommendation", AdviceType.REFUSE: "refusal"}[advice_type]
+    advice_type_noun = {AdviceType.APPROVE: "approval", AdviceType.REFUSE: "refusal"}[advice_type]
     return f"{firstname} {lastname} edited their {advice_type_noun} reason."  # /PS-IGNORE
+
+
+def countersign_advice(firstname, lastname, department, order, countersign_accepted, **payload):  # /PS-IGNORE
+    senior_text = "senior " if order == CountersignOrder.SECOND_COUNTERSIGN else ""
+    if countersign_accepted:
+        return f"{firstname} {lastname} {senior_text}countersigned all {department} recommendations."  # /PS-IGNORE
+    return f"{firstname} {lastname} declined to {senior_text}countersign {department} recommendations."  # /PS-IGNORE

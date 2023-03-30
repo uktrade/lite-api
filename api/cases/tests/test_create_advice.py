@@ -255,7 +255,6 @@ class CreateCaseAdviceTests(DataTestClient):
         response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert Advice.objects.get() is not None
 
         lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_ADVICE)
         assert lu_advice_audit.exists()
@@ -419,11 +418,18 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         response = self.client.put(self.url, **self.gov_headers, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @parameterized.expand([["DIT"], [None]])
+    @parameterized.expand(
+        [
+            ["DIT", 1, True, "Accepted reason"],
+            [None, 1, False, "Refused reason"],
+            [None, 2, True, "Senior accepted reason"],
+            ["MOD", 2, False, "Senior refused reason"],
+        ]
+    )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_countersign_advice_with_decision_success(self, department_name):
-        if department_name:
-            self.gov_user.team.department = Department.objects.get(name=department_name)
+    def test_countersign_advice_with_decision_success(self, dept, order, outcome_accepted, reason):
+        if dept:
+            self.gov_user.team.department = Department.objects.get(name=dept)
             self.gov_user.team.save()
 
         all_advice = [
@@ -441,9 +447,9 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
 
         data = [
             {
-                "order": 1,
-                "outcome_accepted": True,
-                "reasons": "Agree with the original outcome",
+                "order": order,
+                "outcome_accepted": outcome_accepted,
+                "reasons": reason,
                 "countersigned_user": self.gov_user.baseuser_ptr.id,
                 "case": self.case.id,
                 "advice": advice.id,
@@ -452,11 +458,22 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         ]
 
         response = self.client.post(self.url, **self.gov_headers, data=data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(CountersignAdvice.objects.count(), len(data))
+        assert response.status_code == status.HTTP_201_CREATED
+        assert CountersignAdvice.objects.count() == len(data)
         audit_qs = Audit.objects.filter(verb=AuditType.COUNTERSIGN_ADVICE)
-        self.assertEqual(audit_qs.count(), 1)
-        self.assertEqual(audit_qs.first().actor, self.gov_user)
+        assert audit_qs.count() == 1
+        audit = audit_qs.first()
+        assert audit.actor == self.gov_user
+        payload = audit.payload
+        assert payload["firstname"] == self.gov_user.first_name  # /PS-IGNORE
+        assert payload["lastname"] == self.gov_user.last_name  # /PS-IGNORE
+        assert payload["department"] == dept if dept else "department"
+        assert payload["order"] == order
+        assert payload["countersign_accepted"] == outcome_accepted
+        if not outcome_accepted:
+            assert payload["additional_text"] == reason
+        else:
+            assert "additional_text" not in payload
 
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_countersign_advice_with_decision_update_success(self):

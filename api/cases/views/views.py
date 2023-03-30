@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -1073,7 +1075,7 @@ class CountersignDecisionAdvice(APIView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def audit_countersign(self, request, case):
+    def audit_update_countersign(self, request, case):
         department = request.user.govuser.team.department
         if department is not None:
             department = department.name
@@ -1085,6 +1087,35 @@ class CountersignDecisionAdvice(APIView):
             verb=AuditType.COUNTERSIGN_ADVICE,
             target=case,
             payload={"department": department},
+        )
+
+    def audit_countersign(self, request, case):
+        govuser = request.user.govuser
+        department = govuser.team.department
+        data = request.data
+        if department is not None:
+            department = department.name
+        else:
+            department = "department"
+
+        case_countersignature = [cs for cs in data if UUID(cs["case"]) == case.id][0]
+
+        accepted = case_countersignature["outcome_accepted"]
+        payload = {
+            "firstname": govuser.first_name,  # /PS-IGNORE
+            "lastname": govuser.last_name,  # /PS-IGNORE
+            "department": department,
+            "order": case_countersignature["order"],
+            "countersign_accepted": accepted,
+        }
+        if not accepted:
+            payload["additional_text"] = case_countersignature["reasons"]
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.COUNTERSIGN_ADVICE,
+            target=case,
+            payload=payload,
         )
 
     def post(self, request, **kwargs):
@@ -1114,7 +1145,7 @@ class CountersignDecisionAdvice(APIView):
 
         serializer.save()
 
-        self.audit_countersign(request, case)
+        self.audit_update_countersign(request, case)
 
         return JsonResponse({"countersign_advice": serializer.data}, status=status.HTTP_200_OK)
 

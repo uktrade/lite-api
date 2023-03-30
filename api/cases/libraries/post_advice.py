@@ -119,7 +119,7 @@ def post_advice(request, case, level, team=False):
                 audit_payload = {
                     "firstname": request.user.first_name,  # /PS-IGNORE
                     "lastname": request.user.last_name,  # /PS-IGNORE
-                    "advice_type": (lu_advice_type(request)),
+                    "advice_type": lu_advice_type(request),
                 }
                 audit_trail_service.create(
                     actor=request.user, verb=AuditType.LU_ADVICE, target=case, payload=audit_payload
@@ -136,10 +136,9 @@ def post_advice(request, case, level, team=False):
 
 
 def lu_advice_type(request):
-    data = request.data
     return [
         advice["type"]
-        for advice in data
+        for advice in request.data
         if advice["team"] == str(request.user.govuser.team.id) and advice["level"] == AdviceLevel.FINAL
     ][0]
 
