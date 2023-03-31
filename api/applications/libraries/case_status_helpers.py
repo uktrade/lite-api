@@ -10,7 +10,7 @@ def get_case_statuses(read_only):
     if read_only:
         return CaseStatusEnum.read_only_statuses()
     else:
-        return [status for status, value in CaseStatusEnum.choices if not CaseStatusEnum.is_read_only(status)]
+        return [status for status, value in CaseStatusEnum.get_choices() if not CaseStatusEnum.is_read_only(status)]
 
 
 def submit_application(application):

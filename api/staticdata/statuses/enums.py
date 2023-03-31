@@ -58,8 +58,6 @@ class CaseStatusEnum:
         WITHDRAWN,
         OGD_ADVICE,
         OGD_CONSOLIDATION,
-        FINAL_REVIEW_COUNTERSIGN,
-        FINAL_REVIEW_SECOND_COUNTERSIGN,
     ]
 
     _major_editable_statuses = [APPLICANT_EDITING, DRAFT]
@@ -73,15 +71,6 @@ class CaseStatusEnum:
     compliance_site_statuses = [OPEN, CLOSED]
 
     compliance_visit_statuses = [OPEN, UNDER_INTERNAL_REVIEW, RETURN_TO_INSPECTOR, AWAITING_EXPORTER_RESPONSE, CLOSED]
-
-    _lu_countersign_statuses = (
-        [
-            (FINAL_REVIEW_COUNTERSIGN, "final review countersign"),
-            (FINAL_REVIEW_SECOND_COUNTERSIGN, "final review second countersign"),
-        ]
-        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED
-        else []
-    )
 
     choices = [
         (APPEAL_FINAL_REVIEW, "Appeal final review"),
@@ -115,7 +104,7 @@ class CaseStatusEnum:
         (WITHDRAWN, "Withdrawn"),
         (OGD_ADVICE, "OGD Advice"),
         (OGD_CONSOLIDATION, "OGD Consolidation"),
-    ] + _lu_countersign_statuses
+    ]
 
     priority = {
         SUBMITTED: 1,
@@ -154,22 +143,48 @@ class CaseStatusEnum:
     }
 
     @classmethod
+    def get_choices(cls):
+        lu_countersign_statuses = []
+        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
+            lu_countersign_statuses.extend(
+                [
+                    (cls.FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
+                    (cls.FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
+                ]
+            )
+
+        return cls.choices + lu_countersign_statuses
+
+    @classmethod
+    def get_read_only_choices(cls):
+        lu_countersign_statuses = []
+        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
+            lu_countersign_statuses.extend(
+                [
+                    cls.FINAL_REVIEW_COUNTERSIGN,
+                    cls.FINAL_REVIEW_SECOND_COUNTERSIGN,
+                ]
+            )
+
+        return cls._read_only_statuses + lu_countersign_statuses
+
+    @classmethod
     def get_text(cls, status):
         # All available statuses and DRAFT (System only status)
-        for k, v in [*cls.choices, (cls.DRAFT, "Draft")]:
+        for k, v in [*cls.get_choices(), (cls.DRAFT, "Draft")]:
             if status == k:
                 return v
 
     @classmethod
     def get_value(cls, status):
         # All available statuses and DRAFT (System only status)
-        for k, v in [*cls.choices, (cls.DRAFT, "Draft")]:
+        for k, v in [*cls.get_choices(), (cls.DRAFT, "Draft")]:
             if status == v:
                 return k
 
     @classmethod
     def is_read_only(cls, status):
-        return status in cls._read_only_statuses
+        return status in cls.get_read_only_choices()
 
     @classmethod
     def is_terminal(cls, status):
@@ -181,7 +196,7 @@ class CaseStatusEnum:
 
     @classmethod
     def read_only_statuses(cls):
-        return cls._read_only_statuses
+        return cls.get_read_only_choices()
 
     @classmethod
     def major_editable_statuses(cls):
@@ -202,7 +217,7 @@ class CaseStatusEnum:
 
     @classmethod
     def all(cls):
-        return [k for k, _ in [*cls.choices, (cls.DRAFT, "Draft")]]
+        return [k for k, _ in [*cls.get_choices(), (cls.DRAFT, "Draft")]]
 
 
 class CaseStatusIdEnum:

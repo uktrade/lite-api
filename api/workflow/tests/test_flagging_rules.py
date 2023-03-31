@@ -334,7 +334,7 @@ class FlaggingRulesAutomation(DataTestClient):
         self.assertTrue(active_flag in [rule.flag for rule in flagging_rules])
         self.assertTrue(deactivated_flag not in [rule.flag for rule in flagging_rules])
 
-    @parameterized.expand([k for k, v in CaseStatusEnum.choices])
+    @parameterized.expand([k for k, v in CaseStatusEnum.get_choices()])
     def test_apply_flagging_rule_to_open_cases(self, case_status):
         if case_status == CaseStatusEnum.DRAFT:
             case = self.create_draft_standard_application(self.organisation)
