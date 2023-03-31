@@ -231,6 +231,7 @@ class CreateCaseAdviceTests(DataTestClient):
             [AdviceType.REFUSE],
         ]
     )
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_create_lu_final_advice_has_audit(self, advice_type):
         lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
@@ -269,6 +270,7 @@ class CreateCaseAdviceTests(DataTestClient):
             [AdviceType.REFUSE],
         ]
     )
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_update_lu_final_advice_has_audit(self, advice_type):
         lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
