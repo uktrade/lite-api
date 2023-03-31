@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
+from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import AdviceType
 from api.cases.models import Advice, CountersignAdvice
 from api.cases.tests.factories import CountersignAdviceFactory
@@ -422,14 +423,26 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
 
     @parameterized.expand(
         [
-            ["DIT", 1, True, "Accepted reason"],
-            [None, 1, False, "Refused reason"],
-            [None, 2, True, "Senior accepted reason"],
-            ["MOD", 2, False, "Senior refused reason"],
+            ["DIT", 1, True, "Accepted reason", "John Smith countersigned all DIT recommendations."],
+            [None, 1, False, "Refused reason", "John Smith declined to countersign department recommendations."],
+            [
+                None,
+                2,
+                True,
+                "Senior accepted reason",
+                "John Smith senior countersigned all department recommendations.",
+            ],
+            [
+                "MOD",
+                2,
+                False,
+                "Senior refused reason",
+                "John Smith declined to senior countersign MOD recommendations.",
+            ],
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_countersign_advice_with_decision_success(self, dept, order, outcome_accepted, reason):
+    def test_countersign_advice_with_decision_success(self, dept, order, outcome_accepted, reason, expected_text):
         if dept:
             self.gov_user.team.department = Department.objects.get(name=dept)
             self.gov_user.team.save()
@@ -462,16 +475,13 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         response = self.client.post(self.url, **self.gov_headers, data=data)
         assert response.status_code == status.HTTP_201_CREATED
         assert CountersignAdvice.objects.count() == len(data)
-        audit_qs = Audit.objects.filter(verb=AuditType.COUNTERSIGN_ADVICE)
+        audit_qs = Audit.objects.filter(verb=AuditType.LU_COUNTERSIGN)
         assert audit_qs.count() == 1
         audit = audit_qs.first()
+        audit_text = AuditSerializer(audit).data["text"]
         assert audit.actor == self.gov_user
+        assert audit_text == expected_text
         payload = audit.payload
-        assert payload["firstname"] == self.gov_user.first_name  # /PS-IGNORE
-        assert payload["lastname"] == self.gov_user.last_name  # /PS-IGNORE
-        assert payload["department"] == dept if dept else "department"
-        assert payload["order"] == order
-        assert payload["countersign_accepted"] == outcome_accepted
         if not outcome_accepted:
             assert payload["additional_text"] == reason
         else:

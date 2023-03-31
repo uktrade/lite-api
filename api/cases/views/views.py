@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -1075,7 +1073,7 @@ class CountersignDecisionAdvice(APIView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def audit_countersign(self, request, case, payload):
+    def audit_countersign(self, request, case, verb, payload):
         if payload.get("department"):
             payload["department"] = payload["department"].name
         else:
@@ -1083,7 +1081,7 @@ class CountersignDecisionAdvice(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=AuditType.COUNTERSIGN_ADVICE,
+            verb=verb,
             target=case,
             payload=payload,
         )
@@ -1100,7 +1098,7 @@ class CountersignDecisionAdvice(APIView):
 
         gov_user = request.user.govuser
         data = request.data
-        case_countersignature = [cs for cs in data if UUID(cs["case"]) == case.id][0]
+        case_countersignature = data[0]
         accepted = case_countersignature["outcome_accepted"]
         payload = {
             "firstname": gov_user.first_name,  # /PS-IGNORE
@@ -1112,7 +1110,7 @@ class CountersignDecisionAdvice(APIView):
         if not accepted:
             payload["additional_text"] = case_countersignature["reasons"]
 
-        self.audit_countersign(request, case, payload)
+        self.audit_countersign(request, case, AuditType.LU_COUNTERSIGN, payload)
 
         return JsonResponse({"countersign_advice": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -1129,7 +1127,7 @@ class CountersignDecisionAdvice(APIView):
         serializer.save()
 
         payload = {"department": request.user.govuser.team.department}
-        self.audit_countersign(request, case, payload)
+        self.audit_countersign(request, case, AuditType.COUNTERSIGN_ADVICE, payload)
 
         return JsonResponse({"countersign_advice": serializer.data}, status=status.HTTP_200_OK)
 
