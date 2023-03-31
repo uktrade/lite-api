@@ -1075,41 +1075,11 @@ class CountersignDecisionAdvice(APIView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def audit_update_countersign(self, request, case):
-        department = request.user.govuser.team.department
-        if department is not None:
-            department = department.name
+    def audit_countersign(self, request, case, payload):
+        if payload.get("department"):
+            payload["department"] = payload["department"].name
         else:
-            department = "department"
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.COUNTERSIGN_ADVICE,
-            target=case,
-            payload={"department": department},
-        )
-
-    def audit_countersign(self, request, case):
-        govuser = request.user.govuser
-        department = govuser.team.department
-        data = request.data
-        if department is not None:
-            department = department.name
-        else:
-            department = "department"
-
-        case_countersignature = [cs for cs in data if UUID(cs["case"]) == case.id][0]
-
-        accepted = case_countersignature["outcome_accepted"]
-        payload = {
-            "firstname": govuser.first_name,  # /PS-IGNORE
-            "lastname": govuser.last_name,  # /PS-IGNORE
-            "department": department,
-            "order": case_countersignature["order"],
-            "countersign_accepted": accepted,
-        }
-        if not accepted:
-            payload["additional_text"] = case_countersignature["reasons"]
+            payload["department"] = "department"
 
         audit_trail_service.create(
             actor=request.user,
@@ -1120,7 +1090,6 @@ class CountersignDecisionAdvice(APIView):
 
     def post(self, request, **kwargs):
         case = get_case(kwargs["pk"])
-
         data = request.data
 
         serializer = self.serializer_class(data=data, many=True)
@@ -1129,7 +1098,21 @@ class CountersignDecisionAdvice(APIView):
 
         serializer.save()
 
-        self.audit_countersign(request, case)
+        gov_user = request.user.govuser
+        data = request.data
+        case_countersignature = [cs for cs in data if UUID(cs["case"]) == case.id][0]
+        accepted = case_countersignature["outcome_accepted"]
+        payload = {
+            "firstname": gov_user.first_name,  # /PS-IGNORE
+            "lastname": gov_user.last_name,  # /PS-IGNORE
+            "department": gov_user.team.department,
+            "order": case_countersignature["order"],
+            "countersign_accepted": accepted,
+        }
+        if not accepted:
+            payload["additional_text"] = case_countersignature["reasons"]
+
+        self.audit_countersign(request, case, payload)
 
         return JsonResponse({"countersign_advice": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -1145,7 +1128,8 @@ class CountersignDecisionAdvice(APIView):
 
         serializer.save()
 
-        self.audit_update_countersign(request, case)
+        payload = {"department": request.user.govuser.team.department}
+        self.audit_countersign(request, case, payload)
 
         return JsonResponse({"countersign_advice": serializer.data}, status=status.HTTP_200_OK)
 
