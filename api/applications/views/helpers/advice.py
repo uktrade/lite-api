@@ -9,6 +9,8 @@ from api.teams.models import Team
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 
+LU_COUNTERSIGN_ADVICE_TYPES = [AdviceType.APPROVE, AdviceType.PROVISO, AdviceType.NO_LICENCE_REQUIRED]
+
 
 class CounterSignatureIncompleteError(Exception):
     """
@@ -112,11 +114,7 @@ def ensure_lu_countersign_complete(application):
             case=case,
             advice__user__team=lu_team,
             advice__level=AdviceLevel.FINAL,
-            advice__type__in=[
-                AdviceType.APPROVE,
-                AdviceType.PROVISO,
-                AdviceType.NO_LICENCE_REQUIRED,
-            ],
+            advice__type__in=LU_COUNTERSIGN_ADVICE_TYPES,
         )
         if not (countersign_advice and all(advice.outcome_accepted for advice in countersign_advice)):
             raise CounterSignatureIncompleteError(
@@ -184,11 +182,7 @@ def mark_lu_rejected_countersignatures_as_invalid(case):
             outcome_accepted=False,
             advice__user__team=lu_team,
             advice__level=AdviceLevel.FINAL,
-            advice__type__in=[
-                AdviceType.APPROVE,
-                AdviceType.PROVISO,
-                AdviceType.NO_LICENCE_REQUIRED,
-            ],
+            advice__type__in=LU_COUNTERSIGN_ADVICE_TYPES,
         )
         if countersign_advice.exists():
             countersign_orders_to_invalidate.append(order)
@@ -210,10 +204,6 @@ def mark_lu_rejected_countersignatures_as_invalid(case):
             case=case,
             advice__user__team=lu_team,
             advice__level=AdviceLevel.FINAL,
-            advice__type__in=[
-                AdviceType.APPROVE,
-                AdviceType.PROVISO,
-                AdviceType.NO_LICENCE_REQUIRED,
-            ],
+            advice__type__in=LU_COUNTERSIGN_ADVICE_TYPES,
         )
         countersign_advice.update(valid=False)

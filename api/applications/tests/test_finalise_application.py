@@ -614,9 +614,13 @@ class FinaliseApplicationTests(DataTestClient):
         response = self.client.put(self.url, data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()
-        self.assertEqual(response["reference_code"], case.reference_code)
-        self.assertEqual(response["start_date"], datetime.strftime(datetime.now(), "%Y-%m-%d"))
-        self.assertEqual(response["duration"], 24)
+
+        # In case of NLR there won't be any products on the licence to finalise
+        # so below details will be missing from the response
+        if advice_type != AdviceType.NO_LICENCE_REQUIRED:
+            self.assertEqual(response["reference_code"], case.reference_code)
+            self.assertEqual(response["start_date"], datetime.strftime(datetime.now(), "%Y-%m-%d"))
+            self.assertEqual(response["duration"], 24)
 
         # Assert Countersign flags removed from the Case
         expected_flags_to_remove = [FlagsEnum.LU_COUNTER_REQUIRED]
