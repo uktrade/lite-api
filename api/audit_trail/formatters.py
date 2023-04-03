@@ -115,7 +115,7 @@ def destination_add_flags(**payload):
 def destination_remove_flags(**payload):
     flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
     # short audit message for LU countersigning case finalising only
-    is_finalise_case = bool(payload.get("is_finalise_case", False))
+    is_finalise_case = payload.get("is_finalise_case", False)
     if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and is_finalise_case:
         if len(flags) == 1:
             return f"removed the flag '{flags[0]}'."

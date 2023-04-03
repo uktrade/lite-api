@@ -118,8 +118,8 @@ def ensure_lu_countersign_complete(application):
             continue
 
         party_on_application.party.flags.remove(*flags_to_remove)
-        any_flags_removed = True
-    if any_flags_removed:
+
+    if flags_to_remove:
         # Even though flags may be removed from multiple parties,
         # we only ever want to show max one audit event message to the user,
         # hence the following is done once outside the for loop.

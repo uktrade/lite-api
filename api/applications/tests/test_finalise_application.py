@@ -12,6 +12,7 @@ from api.applications.views.helpers.advice import CounterSignatureIncompleteErro
 from api.applications.libraries.licence import get_default_duration
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
+from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel, CountersignOrder
 from api.cases.models import Advice, Case
 from api.cases.tests.factories import CountersignAdviceFactory
@@ -627,7 +628,14 @@ class FinaliseApplicationTests(DataTestClient):
         # Finally check for expected audit events
         audit_qs = Audit.objects.filter(verb=AuditType.DESTINATION_REMOVE_FLAGS, target_object_id=case.id)
         flag_names = sorted(list(Flag.objects.filter(id__in=expected_flags_to_remove).values_list("name", flat=True)))
+        expected_text = {
+            1: "removed the flag 'LU Countersign Required'.",
+            2: "removed the flags 'LU Countersign Required' and 'LU Senior Manager check required'.",
+        }
+        key = len(flag_names)
         for item in audit_qs:
+            audit_text = AuditSerializer(item).data["text"]
+            self.assertEqual(audit_text, expected_text[key])
             self.assertEqual(sorted(item.payload["removed_flags"]), flag_names)
 
 
