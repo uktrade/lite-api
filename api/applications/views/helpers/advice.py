@@ -112,7 +112,7 @@ def ensure_lu_countersign_complete(application):
         status=FlagStatuses.ACTIVE,
     )
     flags_to_remove = countersign_flags.intersection(countersign_process_flags)
-    any_flags_removed = False
+
     for party_on_application in application.parties.all():
         if not flags_to_remove.intersection(party_on_application.party.flags.all()):
             continue
