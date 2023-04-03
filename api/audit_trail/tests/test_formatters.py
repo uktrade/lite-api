@@ -483,7 +483,7 @@ class FormattersTest(DataTestClient):
         ]
     )
     def test_lu_countersign_advice(self, first, last, dept, order, countersign_accepted, expected_text):
-        result = formatters.countersign_advice(
+        result = formatters.lu_countersign_advice(
             first, last, dept, order, countersign_accepted, other_param="ignore_other_params"
         )
         assert result == expected_text

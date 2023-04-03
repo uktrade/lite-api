@@ -272,7 +272,7 @@ def update_lu_advice(firstname, lastname, advice_type, **payload):  # /PS-IGNORE
     return f"{firstname} {lastname} edited their {advice_type_noun} reason."  # /PS-IGNORE
 
 
-def countersign_advice(firstname, lastname, department, order, countersign_accepted, **payload):  # /PS-IGNORE
+def lu_countersign_advice(firstname, lastname, department, order, countersign_accepted, **payload):  # /PS-IGNORE
     senior_text = "senior " if order == CountersignOrder.SECOND_COUNTERSIGN else ""
     if countersign_accepted:
         return f"{firstname} {lastname} {senior_text}countersigned all {department} recommendations."  # /PS-IGNORE

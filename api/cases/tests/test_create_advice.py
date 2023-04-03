@@ -9,7 +9,7 @@ from uuid import uuid4
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
-from api.cases.enums import AdviceType
+from api.cases.enums import AdviceType, CountersignOrder
 from api.cases.models import Advice, CountersignAdvice
 from api.cases.tests.factories import CountersignAdviceFactory
 from api.core.constants import GovPermissions, Roles
@@ -228,12 +228,12 @@ class CreateCaseAdviceTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [AdviceType.APPROVE],
-            [AdviceType.REFUSE],
+            [AdviceType.APPROVE, "John Smith added a recommendation to approve."],
+            [AdviceType.REFUSE, "John Smith added a recommendation to refuse."],
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_create_lu_final_advice_has_audit(self, advice_type):
+    def test_create_lu_final_advice_has_audit(self, advice_type, expected_text):
         lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
         super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
@@ -259,20 +259,23 @@ class CreateCaseAdviceTests(DataTestClient):
         assert response.status_code == status.HTTP_201_CREATED
 
         lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_ADVICE)
+
         assert lu_advice_audit.exists()
         audit_obj = lu_advice_audit.first()
+        audit_text = AuditSerializer(audit_obj).data["text"]
+        assert audit_text == expected_text
         assert audit_obj.payload["firstname"] == "John"  # /PS-IGNORE
         assert audit_obj.payload["lastname"] == "Smith"  # /PS-IGNORE
         assert audit_obj.payload["advice_type"] == advice_type
 
     @parameterized.expand(
         [
-            [AdviceType.APPROVE],
-            [AdviceType.REFUSE],
+            [AdviceType.APPROVE, "John Smith edited their approval reason."],
+            [AdviceType.REFUSE, "John Smith edited their refusal reason."],
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_update_lu_final_advice_has_audit(self, advice_type):
+    def test_update_lu_final_advice_has_audit(self, advice_type, expected_text):
         lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
         super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
@@ -307,6 +310,8 @@ class CreateCaseAdviceTests(DataTestClient):
         lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_ADVICE)
         assert lu_advice_audit.exists()
         audit_obj = lu_advice_audit.first()
+        audit_text = AuditSerializer(audit_obj).data["text"]
+        assert audit_text == expected_text
         assert audit_obj.payload["firstname"] == "John"  # /PS-IGNORE
         assert audit_obj.payload["lastname"] == "Smith"  # /PS-IGNORE
         assert audit_obj.payload["advice_type"] == advice_type
@@ -375,7 +380,7 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
     def test_countersign_advice_without_routing_enabled_fails(self):
         data = [
             {
-                "order": 1,
+                "order": CountersignOrder.FIRST_COUNTERSIGN,
                 "outcome_accepted": True,
                 "reasons": "Agree with the original outcome",
                 "countersigned_user": self.gov_user.baseuser_ptr.id,
@@ -406,7 +411,7 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
     def test_countersign_advice_with_decision_serializer_invalid_failure(self):
         data = [
             {
-                "order": 1,
+                "order": CountersignOrder.FIRST_COUNTERSIGN,
                 "reasons": "Agree with the original outcome",
                 "countersigned_user": self.gov_user.baseuser_ptr.id,
                 "advice": str(uuid4()),
@@ -423,18 +428,30 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
 
     @parameterized.expand(
         [
-            ["DIT", 1, True, "Accepted reason", "John Smith countersigned all DIT recommendations."],
-            [None, 1, False, "Refused reason", "John Smith declined to countersign department recommendations."],
+            [
+                "DIT",
+                CountersignOrder.FIRST_COUNTERSIGN,
+                True,
+                "Accepted reason",
+                "John Smith countersigned all DIT recommendations.",
+            ],
             [
                 None,
-                2,
+                CountersignOrder.FIRST_COUNTERSIGN,
+                False,
+                "Refused reason",
+                "John Smith declined to countersign department recommendations.",
+            ],
+            [
+                None,
+                CountersignOrder.SECOND_COUNTERSIGN,
                 True,
                 "Senior accepted reason",
                 "John Smith senior countersigned all department recommendations.",
             ],
             [
                 "MOD",
-                2,
+                CountersignOrder.SECOND_COUNTERSIGN,
                 False,
                 "Senior refused reason",
                 "John Smith declined to senior countersign MOD recommendations.",
