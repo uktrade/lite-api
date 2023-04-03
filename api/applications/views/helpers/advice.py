@@ -112,7 +112,11 @@ def ensure_lu_countersign_complete(application):
             case=case,
             advice__user__team=lu_team,
             advice__level=AdviceLevel.FINAL,
-            advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
+            advice__type__in=[
+                AdviceType.APPROVE,
+                AdviceType.PROVISO,
+                AdviceType.NO_LICENCE_REQUIRED,
+            ],
         )
         if not (countersign_advice and all(advice.outcome_accepted for advice in countersign_advice)):
             raise CounterSignatureIncompleteError(
@@ -180,7 +184,11 @@ def mark_lu_rejected_countersignatures_as_invalid(case):
             outcome_accepted=False,
             advice__user__team=lu_team,
             advice__level=AdviceLevel.FINAL,
-            advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
+            advice__type__in=[
+                AdviceType.APPROVE,
+                AdviceType.PROVISO,
+                AdviceType.NO_LICENCE_REQUIRED,
+            ],
         )
         if countersign_advice.exists():
             countersign_orders_to_invalidate.append(order)
@@ -202,6 +210,10 @@ def mark_lu_rejected_countersignatures_as_invalid(case):
             case=case,
             advice__user__team=lu_team,
             advice__level=AdviceLevel.FINAL,
-            advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
+            advice__type__in=[
+                AdviceType.APPROVE,
+                AdviceType.PROVISO,
+                AdviceType.NO_LICENCE_REQUIRED,
+            ],
         )
         countersign_advice.update(valid=False)
