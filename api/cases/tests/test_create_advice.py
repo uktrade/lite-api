@@ -76,11 +76,11 @@ class CreateCaseAdviceTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [AdviceType.APPROVE],
-            [AdviceType.PROVISO],
-            [AdviceType.REFUSE],
-            [AdviceType.NO_LICENCE_REQUIRED],
-            [AdviceType.NOT_APPLICABLE],
+            AdviceType.APPROVE,
+            AdviceType.PROVISO,
+            AdviceType.REFUSE,
+            AdviceType.NO_LICENCE_REQUIRED,
+            AdviceType.NOT_APPLICABLE,
         ]
     )
     def test_create_end_user_case_advice(self, advice_type):
@@ -316,6 +316,55 @@ class CreateCaseAdviceTests(DataTestClient):
         assert audit_obj.payload["lastname"] == "Smith"  # /PS-IGNORE
         assert audit_obj.payload["advice_type"] == advice_type
         assert audit_obj.payload["additional_text"] == "Updated Text"
+
+    @parameterized.expand(
+        [
+            (AdviceType.PROVISO,),
+            (AdviceType.CONFLICTING,),
+            (AdviceType.NOT_APPLICABLE,),
+            (AdviceType.NO_LICENCE_REQUIRED,),
+            (AdviceType.PROVISO,),
+            (AdviceType.CONFLICTING,),
+            (AdviceType.NOT_APPLICABLE,),
+            (AdviceType.NO_LICENCE_REQUIRED,),
+        ]
+    )
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_advice_has_no_audit_for_unsupported_advice_types(self, advice_type):
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": advice_type,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "Provided you buy me an ice-cream",
+            "denial_reasons": [] if advice_type == AdviceType.APPROVE else ["WMD"],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        # Add initial advice to DB:
+        resp = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+        data["id"] = resp.json()["advice"][0]["id"]
+
+        # Update advice
+        response = self.client.put(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_200_OK
+
+        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_ADVICE)
+        lu_advice_update_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_ADVICE)
+        assert not lu_advice_audit.exists()
+        assert not lu_advice_update_audit.exists()
 
 
 class CountersignAdviceTests(DataTestClient):

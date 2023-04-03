@@ -169,8 +169,10 @@ def update_advice(request, case, level):
 
 
 def audit_lu_countersigning(audit_type, advice_type, additional_text, case, request):
-    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and request.user.govuser.team == Team.objects.get(
-        id=TeamIdEnum.LICENSING_UNIT
+    if (
+        settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED
+        and request.user.govuser.team == Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        and advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]
     ):
         audit_payload = {
             "firstname": request.user.first_name,  # /PS-IGNORE
