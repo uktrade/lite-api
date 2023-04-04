@@ -230,6 +230,7 @@ class CreateCaseAdviceTests(DataTestClient):
         [
             [AdviceType.APPROVE, "John Smith added a recommendation to approve."],
             [AdviceType.REFUSE, "John Smith added a recommendation to refuse."],
+            [AdviceType.PROVISO, "John Smith added a licence condition."],
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
@@ -246,7 +247,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "type": advice_type,
             "level": "final",
             "team": self.team.id,
-            "proviso": "",
+            "proviso": "Proviso text" if advice_type == AdviceType.PROVISO else "",
             "denial_reasons": [] if advice_type == AdviceType.APPROVE else ["WMD"],
             "note": "",
             "footnote": None,
@@ -267,11 +268,16 @@ class CreateCaseAdviceTests(DataTestClient):
         assert audit_obj.payload["firstname"] == "John"  # /PS-IGNORE
         assert audit_obj.payload["lastname"] == "Smith"  # /PS-IGNORE
         assert audit_obj.payload["advice_type"] == advice_type
+        if advice_type == AdviceType.PROVISO:
+            assert audit_obj.payload.get("additional_text") == data["proviso"]
+        else:
+            assert audit_obj.payload.get("additional_text") is None
 
     @parameterized.expand(
         [
             [AdviceType.APPROVE, "John Smith edited their approval reason."],
             [AdviceType.REFUSE, "John Smith edited their refusal reason."],
+            [AdviceType.PROVISO, "John Smith edited a licence condition."],
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
@@ -289,7 +295,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "type": advice_type,
             "level": "final",
             "team": self.team.id,
-            "proviso": "",
+            "proviso": "Proviso text" if advice_type == AdviceType.PROVISO else "",
             "denial_reasons": [] if advice_type == AdviceType.APPROVE else ["WMD"],
             "note": "",
             "footnote": None,
@@ -300,6 +306,8 @@ class CreateCaseAdviceTests(DataTestClient):
         # Add initial advice to DB:
         resp = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
         data["text"] = "Updated Text"
+        if advice_type == AdviceType.PROVISO:
+            data["proviso"] = "Edited Proviso text"
         data["id"] = resp.json()["advice"][0]["id"]
 
         # Update advice
@@ -315,15 +323,16 @@ class CreateCaseAdviceTests(DataTestClient):
         assert audit_obj.payload["firstname"] == "John"  # /PS-IGNORE
         assert audit_obj.payload["lastname"] == "Smith"  # /PS-IGNORE
         assert audit_obj.payload["advice_type"] == advice_type
-        assert audit_obj.payload["additional_text"] == "Updated Text"
+        if advice_type == AdviceType.PROVISO:
+            assert audit_obj.payload.get("additional_text") == "Edited Proviso text"
+        else:
+            assert audit_obj.payload["additional_text"] == "Updated Text"
 
     @parameterized.expand(
         [
-            (AdviceType.PROVISO,),
             (AdviceType.CONFLICTING,),
             (AdviceType.NOT_APPLICABLE,),
             (AdviceType.NO_LICENCE_REQUIRED,),
-            (AdviceType.PROVISO,),
             (AdviceType.CONFLICTING,),
             (AdviceType.NOT_APPLICABLE,),
             (AdviceType.NO_LICENCE_REQUIRED,),

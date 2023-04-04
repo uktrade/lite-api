@@ -451,7 +451,8 @@ class FormattersTest(DataTestClient):
     @parameterized.expand(
         [
             ("Test", "User", AdviceType.APPROVE, "Test User added a recommendation to approve."),
-            ("Test", "User", AdviceType.REFUSE, "Test User added a recommendation to refuse."),
+            ("Dark", "Knight", AdviceType.REFUSE, "Dark Knight added a recommendation to refuse."),
+            ("Robin", "Hood", AdviceType.PROVISO, "Robin Hood added a licence condition."),
         ]
     )
     def test_create_lu_advice(self, first, last, advice_status, expected_text):
@@ -462,6 +463,7 @@ class FormattersTest(DataTestClient):
         [
             ("Test", "User", AdviceType.APPROVE, "Test User edited their approval reason."),
             ("Dark", "Knight", AdviceType.REFUSE, "Dark Knight edited their refusal reason."),
+            ("Robin", "Hood", AdviceType.PROVISO, "Robin Hood edited a licence condition."),
         ]
     )
     def test_update_lu_advice(self, first, last, advice_status, expected_text):
