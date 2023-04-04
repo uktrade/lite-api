@@ -2,7 +2,7 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
 from api.cases.models import CountersignAdvice
-from api.conf import settings
+from django.conf import settings
 from api.flags.models import Flag
 from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
