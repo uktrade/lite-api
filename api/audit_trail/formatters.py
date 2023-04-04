@@ -286,11 +286,15 @@ def generate_decision_letter(**payload):
     return f"invalid decision {decision} for this event."
 
 
-def create_lu_advice(firstname, lastname, advice_type):  # /PS-IGNORE
+def create_lu_advice(firstname, lastname, advice_type, **payload):  # /PS-IGNORE
+    if advice_type == AdviceType.PROVISO:
+        return f"{firstname} {lastname} added a licence condition."  # /PS-IGNORE
     return f"{firstname} {lastname} added a recommendation to {advice_type}."  # /PS-IGNORE
 
 
 def update_lu_advice(firstname, lastname, advice_type, **payload):  # /PS-IGNORE
+    if advice_type == AdviceType.PROVISO:
+        return f"{firstname} {lastname} edited a licence condition."  # /PS-IGNORE
     advice_type_noun = {AdviceType.APPROVE: "approval", AdviceType.REFUSE: "refusal"}[advice_type]
     return f"{firstname} {lastname} edited their {advice_type_noun} reason."  # /PS-IGNORE
 
