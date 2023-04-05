@@ -289,7 +289,7 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
                 # from the beginning when it comes back again
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
-                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
@@ -303,7 +303,7 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
                 # 3. Both manager accepts - nothings needs invalidating in this case
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
-                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
@@ -397,7 +397,7 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
             [
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
-                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),

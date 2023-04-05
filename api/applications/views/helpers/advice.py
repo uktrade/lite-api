@@ -30,7 +30,7 @@ def lu_countersigning_flags_all():
     return Flag.objects.filter(
         id__in=[
             FlagsEnum.LU_COUNTER_REQUIRED,
-            FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED,
+            FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED,
             FlagsEnum.MANPADS,
             FlagsEnum.AP_LANDMINE,
         ],
@@ -41,7 +41,7 @@ def lu_countersigning_flags_all():
 def lu_sr_mgr_countersigning_flags():
     return Flag.objects.filter(
         id__in=[
-            FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED,
+            FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED,
             FlagsEnum.MANPADS,
         ],
         status=FlagStatuses.ACTIVE,
@@ -107,7 +107,7 @@ def ensure_lu_countersign_complete(application):
     countersign_process_flags = Flag.objects.filter(
         id__in=[
             FlagsEnum.LU_COUNTER_REQUIRED,
-            FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED,
+            FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED,
         ],
         status=FlagStatuses.ACTIVE,
     )

@@ -323,7 +323,7 @@ class FinaliseApplicationTests(DataTestClient):
     @parameterized.expand(
         [
             FlagsEnum.LU_COUNTER_REQUIRED,
-            FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED,
+            FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED,
             FlagsEnum.MANPADS,
             FlagsEnum.AP_LANDMINE,
         ]
@@ -383,7 +383,7 @@ class FinaliseApplicationTests(DataTestClient):
                 ),
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
-                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
@@ -395,7 +395,7 @@ class FinaliseApplicationTests(DataTestClient):
                 ),
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
-                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
@@ -463,7 +463,7 @@ class FinaliseApplicationTests(DataTestClient):
                 (CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN),
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
-                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
@@ -542,7 +542,7 @@ class FinaliseApplicationTests(DataTestClient):
                 (CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN),
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
-                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
@@ -552,7 +552,7 @@ class FinaliseApplicationTests(DataTestClient):
                 (CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN),
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
-                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
@@ -562,7 +562,7 @@ class FinaliseApplicationTests(DataTestClient):
                 (CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN),
                 (
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
-                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
@@ -619,7 +619,7 @@ class FinaliseApplicationTests(DataTestClient):
         # Assert Countersign flags removed from the Case
         expected_flags_to_remove = [FlagsEnum.LU_COUNTER_REQUIRED]
         if CountersignOrder.SECOND_COUNTERSIGN in required_countersign:
-            expected_flags_to_remove.append(FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED)
+            expected_flags_to_remove.append(FlagsEnum.LU_SENIOR_COUNTERSIGN_REQUIRED)
         for flag_id in expected_flags_to_remove:
             flag = Flag.objects.get(id=flag_id)
             self.assertNotIn(flag, case.parameter_set())
