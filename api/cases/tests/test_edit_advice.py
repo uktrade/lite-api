@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+import pytest
 from django.test import override_settings
 from django.urls import reverse
 from parameterized import parameterized
@@ -383,3 +384,87 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
             ).count(),
             self.advice_qs.count() * len(countersign_orders),
         )
+
+    @parameterized.expand(
+        [
+            [
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                ),
+                ((CountersignOrder.FIRST_COUNTERSIGN, False),),
+            ],
+            [
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                    {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
+                ),
+                (
+                    (CountersignOrder.FIRST_COUNTERSIGN, True),
+                    (CountersignOrder.SECOND_COUNTERSIGN, False),
+                ),
+            ],
+        ]
+    )
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_countersignatures_invalidated_after_refuse_outcome_is_edited(self, flags, countersignatures):
+        """
+        Test to ensure Countersignatures are not invalidated when the original outcome is of REFUSE type
+        """
+        for advice in self.advice_qs:
+            advice.type = AdviceType.REFUSE
+            advice.text = "Recommending refuse"
+            # advice.denial_reasons = ["1", "1b"]
+            advice.save()
+
+        # setup flags
+        for flag in flags:
+            if flag["level"] == FlagLevels.CASE:
+                self.application.flags.add(Flag.objects.get(id=flag["id"]))
+            if flag["level"] == FlagLevels.DESTINATION:
+                # We emit audit entry of removing flags only if countersigning flags are set
+                # on the Party and skip otherwise. To cover the case where we skip it, don't
+                # set flags on one party (in this case last item is selected)
+                for party_on_application in list(self.application.parties.all())[:-1]:
+                    party_on_application.party.flags.add(Flag.objects.get(id=flag["id"]))
+
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        self.gov_user.save()
+
+        countersign_orders = []
+
+        for order, outcome in countersignatures:
+            countersign_orders.append(order)
+            for advice in self.advice_qs:
+                CountersignAdviceFactory(
+                    order=order,
+                    valid=True,
+                    outcome_accepted=outcome,
+                    reasons="reasons",
+                    case=self.case,
+                    advice=advice,
+                )
+        self.assertEqual(
+            CountersignAdvice.objects.filter(
+                order__in=countersign_orders,
+                case=self.case,
+                valid=True,
+            ).count(),
+            self.advice_qs.count() * len(countersign_orders),
+        )
+
+        data = [
+            {
+                "id": advice.id,
+                "text": "",
+                "proviso": "",
+                "note": "",
+                "denial_reasons": [],
+            }
+            for advice in self.advice_qs
+        ]
+
+        response = self.client.put(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

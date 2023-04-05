@@ -453,6 +453,63 @@ class FinaliseApplicationTests(DataTestClient):
     @parameterized.expand(
         [
             [
+                (CountersignOrder.FIRST_COUNTERSIGN,),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                ),
+            ],
+            [
+                (CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN),
+                (
+                    {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED, "level": FlagLevels.DESTINATION},
+                    {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
+                    {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
+                ),
+            ],
+        ]
+    )
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    def test_finalise_application_success_with_refuse_advice(self, required_countersign, flags):
+        """Test to ensure if a particular countersigning is not fully approved then we raise error"""
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 24}
+        data.update(self.post_date)
+
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        self.gov_user.save()
+
+        # setup flags
+        for flag in flags:
+            if flag["level"] == FlagLevels.CASE:
+                self.standard_application.flags.add(Flag.objects.get(id=flag["id"]))
+            if flag["level"] == FlagLevels.DESTINATION:
+                for party_on_application in self.standard_application.parties.all():
+                    party_on_application.party.flags.add(Flag.objects.get(id=flag["id"]))
+
+        # Create Advice objects for all entities
+        self._setup_advice_for_application(self.standard_application, AdviceType.REFUSE, AdviceLevel.FINAL)
+
+        # Create Advice objects for all entities
+        case = Case.objects.get(id=self.standard_application.id)
+        advice_qs = Advice.objects.filter(case=case, level=AdviceLevel.FINAL, type=AdviceType.REFUSE)
+        for order in required_countersign:
+            for index, advice in enumerate(list(advice_qs)):
+                CountersignAdviceFactory(
+                    order=order,
+                    outcome_accepted=True,
+                    reasons="countersigning reasons",
+                    case=case,
+                    advice=advice,
+                )
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    @parameterized.expand(
+        [
+            [
                 AdviceType.APPROVE,
                 (),
                 (),
