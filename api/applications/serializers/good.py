@@ -146,11 +146,11 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     def get_good_application_documents(self, instance):
         documents = GoodOnApplicationDocument.objects.filter(
             application=instance.application, good=instance.good, safe=True
-        )
+        ).select_related("user")
         return GoodOnApplicationDocumentViewSerializer(documents, many=True).data
 
     def get_good_application_internal_documents(self, instance):
-        documents = GoodOnApplicationInternalDocument.objects.filter(good_on_application=instance.id, safe=True)
+        documents = instance.good_on_application_internal_documents.filter(safe=True)
         return GoodOnApplicationInternalDocumentViewSerializer(documents, many=True).data
 
     def get_audit_trail(self, instance):

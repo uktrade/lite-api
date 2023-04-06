@@ -38,6 +38,22 @@ def get_application(pk, organisation_id=None):
                 "goods__good__flags",
                 "goods__good__gooddocument_set",
                 "goods__good__firearm_details",
+                "goods__regime_entries",
+                "goods__regime_entries__subsection",
+                "goods__regime_entries__subsection__regime",
+                "goods__good__report_summary_prefix",
+                "goods__good__report_summary_subject",
+                "goods__audit_trail",
+                "denial_matches",
+                "application_sites",
+                "application_sites__site",
+                "application_sites__site__address",
+                "application_sites__site__address__country",
+                "external_application_sites",
+                "external_application_sites__site",
+                "external_application_sites__site__address",
+                "external_application_sites__site__address__country",
+                "applicationdocument_set",
             )
             obj = qs.get(pk=pk, **kwargs)
             return obj

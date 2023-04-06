@@ -119,8 +119,16 @@ class ApplicationPartyMixin:
         return self.all_parties().filter(deleted_at__isnull=True)
 
     def all_parties(self):
-        return self.parties.prefetch_related("party__flags").select_related(
-            "party", "party__organisation", "party__country"
+        return self.parties.prefetch_related(
+            "party__flags",
+            "party__flags__team",
+            "party__partydocument_set",
+            "party__parties_on_application",
+            "party__parties_on_application__flags",
+        ).select_related(
+            "party",
+            "party__organisation",
+            "party__country",
         )
 
     @property
