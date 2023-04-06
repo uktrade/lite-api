@@ -1,6 +1,8 @@
 import logging
 
 from django.http import JsonResponse
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
@@ -108,11 +110,15 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
 class GovUserDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
+    @method_decorator(cache_page(5))
     def get(self, request, pk):
         """
         Get user from pk
         """
-        gov_user = get_user_by_pk(pk)
+        try:
+            gov_user = GovUser.objects.select_related("team", "role").get(pk=pk)
+        except GovUser.DoesNotExist:
+            raise NotFoundError({"user": "User not found - " + str(pk)})
 
         serializer = GovUserViewSerializer(gov_user)
         return JsonResponse(data={"user": serializer.data})

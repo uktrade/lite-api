@@ -144,9 +144,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
         return list(instance.good.flags.values("id", "name", "colour", "label"))
 
     def get_good_application_documents(self, instance):
-        documents = GoodOnApplicationDocument.objects.filter(
-            application=instance.application, good=instance.good, safe=True
-        ).select_related("user")
+        documents = instance.goodonapplicationdocument_set.filter(safe=True)
         return GoodOnApplicationDocumentViewSerializer(documents, many=True).data
 
     def get_good_application_internal_documents(self, instance):

@@ -756,8 +756,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
 
     def get_destinations(self, obj):
         destinations = (
-            PartyOnApplication.objects.filter(
-                application=obj.application,
+            obj.application.parties.filter(
                 deleted_at__isnull=True,
             )
             .values(

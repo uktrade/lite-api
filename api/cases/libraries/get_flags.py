@@ -73,16 +73,16 @@ def get_ordered_flags(case: Case, team: Team, limit: int = None, distinct: bool 
     """
     all_flags = get_flags(case)
 
-    all_flags = all_flags.annotate(
-        my_team=DB_Case(When(team_id=team.id, then=True), default=False, output_field=BinaryField()),
-        order=DB_Case(
-            When(level=FlagLevels.GOOD, then=0),
-            When(level=FlagLevels.DESTINATION, then=1),
-            When(level=FlagLevels.CASE, then=2),
-            default=3,
-            output_field=IntegerField(),
-        ),
-    ).order_by("-my_team", "order", "priority")
+    # all_flags = all_flags.annotate(
+    #    my_team=DB_Case(When(team_id=team.id, then=True), default=False, output_field=BinaryField()),
+    #    order=DB_Case(
+    #        When(level=FlagLevels.GOOD, then=0),
+    #        When(level=FlagLevels.DESTINATION, then=1),
+    #        When(level=FlagLevels.CASE, then=2),
+    #        default=3,
+    #        output_field=IntegerField(),
+    #    ),
+    # ).order_by("-my_team", "order", "priority")
 
     if distinct:
         all_flags = all_flags.distinct()
