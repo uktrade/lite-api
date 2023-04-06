@@ -474,3 +474,10 @@ if GIT_COMMIT_SHA == "UNKNOWN" and ENV == "local":
         GIT_COMMIT_SHA = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()  # nosec
     except Exception:
         GIT_COMMIT_SHA = "UNKNOWN"
+
+ENABLE_DJANGO_SILK = env.bool("ENABLE_DJANGO_SILK", False)
+
+if ENABLE_DJANGO_SILK:
+    INSTALLED_APPS.append("silk")
+    middleware_index = MIDDLEWARE.index("django.contrib.messages.middleware.MessageMiddleware") + 1
+    MIDDLEWARE.insert(middleware_index, "silk.middleware.SilkyMiddleware")
