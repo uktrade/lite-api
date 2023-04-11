@@ -1,2 +1,4 @@
 class TeamIdEnum:
     LICENSING_UNIT = "58e77e47-42c8-499f-a58d-94f94541f8c6"
+    TECHNICAL_ASSESSMENT_UNIT = "b359f92b-15f8-4ec8-87ee-c0fff0a5332b"
+    NCSC = "2b5492ad-0ef5-4a2c-bba2-b208fbe80956"
