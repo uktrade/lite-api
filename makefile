@@ -12,6 +12,9 @@ runserver:
 migrate:
 	pipenv run ./manage.py migrate
 
+doc-migrate:
+	docker exec -it api ./manage.py migrate
+
 manage:
 	pipenv run ./manage.py $(ARGUMENTS)
 
