@@ -472,7 +472,6 @@ class FinaliseApplicationTests(DataTestClient):
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_finalise_application_success_with_refuse_advice(self, required_countersign, flags):
-        """Test to ensure if a particular countersigning is not fully approved then we raise error"""
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
         data = {"action": AdviceType.APPROVE, "duration": 24}
         data.update(self.post_date)

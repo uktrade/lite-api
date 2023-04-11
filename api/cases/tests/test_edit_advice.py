@@ -409,14 +409,10 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_countersignatures_invalidated_after_refuse_outcome_is_edited(self, flags, countersignatures):
-        """
-        Test to ensure Countersignatures are not invalidated when the original outcome is of REFUSE type
-        """
+    def test_countersignatures_are_invalidated_after_refuse_outcome_is_edited(self, flags, countersignatures):
         for advice in self.advice_qs:
             advice.type = AdviceType.REFUSE
             advice.text = "Recommending refuse"
-            # advice.denial_reasons = ["1", "1b"]
             advice.save()
 
         # setup flags
