@@ -2,14 +2,18 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
 from api.cases.models import CountersignAdvice
-from api.flags.models import Flag
 from api.flags.enums import FlagStatuses
+from api.flags.models import Flag
 from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
-
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 
-LU_COUNTERSIGN_ADVICE_TYPES = [AdviceType.APPROVE, AdviceType.PROVISO, AdviceType.NO_LICENCE_REQUIRED]
+LU_COUNTERSIGN_ADVICE_TYPES = [
+    AdviceType.APPROVE,
+    AdviceType.PROVISO,
+    AdviceType.NO_LICENCE_REQUIRED,
+    AdviceType.REFUSE,
+]
 
 
 class CounterSignatureIncompleteError(Exception):
@@ -17,14 +21,6 @@ class CounterSignatureIncompleteError(Exception):
     Exception raised if we countersignatures are incomplete
      - When required countersignatures are missing
      - When required countersignatures are present but if atleast one of them is rejected
-    """
-
-    pass
-
-
-class CountersignInvalidAdviceTypeError(Exception):
-    """
-    Exception raised if we encounter invalid Advice types for countersigning, eg REFUSE type
     """
 
     pass
@@ -60,7 +56,7 @@ def get_lu_required_countersign_orders(case):
     if not countersign_flags:
         return countersign_orders
 
-    # We are here means atleast first countersign is required so
+    # We are here means at least first countersign is required so
     # check if second countersign is also required
     countersign_orders = [CountersignOrder.FIRST_COUNTERSIGN]
     lu_sr_mgr_countersign_required = countersign_flags.intersection(lu_sr_mgr_countersigning_flags())
@@ -68,19 +64,6 @@ def get_lu_required_countersign_orders(case):
         countersign_orders = [CountersignOrder.FIRST_COUNTERSIGN, CountersignOrder.SECOND_COUNTERSIGN]
 
     return countersign_orders
-
-
-def check_lu_refused_outcome_exists(case, team, countersign_orders):
-    # If a Case is being refused then it won't reach countersigning queues but
-    # if it is routed unexpectedly then we need to catch and raise error
-    return CountersignAdvice.objects.filter(
-        order__in=countersign_orders,
-        valid=True,
-        case=case,
-        advice__user__team=team,
-        advice__level=AdviceLevel.FINAL,
-        advice__type=AdviceType.REFUSE,
-    ).exists()
 
 
 def ensure_lu_countersign_complete(application):
@@ -100,11 +83,6 @@ def ensure_lu_countersign_complete(application):
     all_case_flags = {item for item in case.parameter_set() if isinstance(item, Flag)}
     countersign_flags = all_case_flags.intersection(lu_countersigning_flags_all())
     countersign_orders = get_lu_required_countersign_orders(case)
-
-    if check_lu_refused_outcome_exists(case, lu_team, countersign_orders):
-        raise CountersignInvalidAdviceTypeError(
-            "This application cannot be finalised as the countersigning has been refused"
-        )
 
     # check countersignatures for the required orders
     for order in countersign_orders:
@@ -166,11 +144,6 @@ def mark_lu_rejected_countersignatures_as_invalid(case):
     """
     lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
     countersign_orders = get_lu_required_countersign_orders(case)
-
-    # If the original outcome is refused then they don't get routed to countersigning queues
-    # but if something is routed unintentionally then guard against those cases
-    if check_lu_refused_outcome_exists(case, lu_team, countersign_orders):
-        raise CountersignInvalidAdviceTypeError("Cannot invalidate countersignatures as the outcome is refused")
 
     # check if any rejected countersignatures present
     countersign_orders_to_invalidate = []

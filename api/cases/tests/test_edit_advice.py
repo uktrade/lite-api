@@ -1,13 +1,12 @@
-import pytest
-
 from copy import deepcopy
+
+import pytest
 from django.test import override_settings
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import StandardApplication
-from api.applications.views.helpers.advice import CountersignInvalidAdviceTypeError
 from api.cases.enums import AdviceType, AdviceLevel, CountersignOrder
 from api.cases.models import Advice, CountersignAdvice
 from api.cases.tests.factories import CountersignAdviceFactory
@@ -19,7 +18,6 @@ from api.staticdata.statuses.models import CaseStatus
 from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 from api.users.models import Role
-
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 from test_helpers.clients import DataTestClient
 
@@ -411,14 +409,10 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_countersignatures_invalidated_raises_error_for_refuse_outcome(self, flags, countersignatures):
-        """
-        Test to ensure Countersignatures are not invalidated when the original outcome is of REFUSE type
-        """
+    def test_countersignatures_are_invalidated_after_refuse_outcome_is_edited(self, flags, countersignatures):
         for advice in self.advice_qs:
             advice.type = AdviceType.REFUSE
             advice.text = "Recommending refuse"
-            # advice.denial_reasons = ["1", "1b"]
             advice.save()
 
         # setup flags
@@ -468,10 +462,5 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
             for advice in self.advice_qs
         ]
 
-        with pytest.raises(CountersignInvalidAdviceTypeError) as err:
-            self.client.put(self.url, **self.gov_headers, data=data)
-
-        self.assertEqual(
-            str(err.value),
-            "Cannot invalidate countersignatures as the outcome is refused",
-        )
+        response = self.client.put(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
