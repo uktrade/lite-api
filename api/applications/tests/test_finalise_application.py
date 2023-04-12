@@ -8,7 +8,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.enums import LicenceDuration
-from api.applications.views.helpers.advice import CounterSignatureIncompleteError, CountersignInvalidAdviceTypeError
+from api.applications.views.helpers.advice import CounterSignatureIncompleteError
 from api.applications.libraries.licence import get_default_duration
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -471,8 +471,7 @@ class FinaliseApplicationTests(DataTestClient):
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_finalise_application_failure_with_refuse_advice(self, required_countersign, flags):
-        """Test to ensure if a particular countersigning is not fully approved then we raise error"""
+    def test_finalise_application_success_with_refuse_advice(self, required_countersign, flags):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
         data = {"action": AdviceType.APPROVE, "duration": 24}
         data.update(self.post_date)
@@ -504,13 +503,8 @@ class FinaliseApplicationTests(DataTestClient):
                     advice=advice,
                 )
 
-        with pytest.raises(CountersignInvalidAdviceTypeError) as err:
-            self.client.put(self.url, data=data, **self.gov_headers)
-
-        self.assertEqual(
-            str(err.value),
-            "This application cannot be finalised as the countersigning has been refused",
-        )
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @parameterized.expand(
         [
