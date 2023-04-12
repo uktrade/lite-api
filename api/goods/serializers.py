@@ -755,14 +755,8 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
         return obj.good.flags.filter(name="WASSENAAR").exists()
 
     def get_destinations(self, obj):
-        destinations = (
-            obj.application.parties.filter(
-                deleted_at__isnull=True,
-            )
-            .values(
-                "party__country__name",
-            )
-            .distinct()
+        destinations = obj.application.parties.filter(deleted_at__isnull=True,).values(
+            "party__country__name",
         )
 
         return [dest["party__country__name"] for dest in destinations]
@@ -799,7 +793,8 @@ class GoodSerializerInternal(serializers.Serializer):
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
     is_precedent = serializers.BooleanField(required=False, default=False)
-    precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
+    # TODO; Find some way to avoid populating this field on CaseDetail API endpoint
+    # precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
     product_description = serializers.CharField()
 
     def get_documents(self, instance):

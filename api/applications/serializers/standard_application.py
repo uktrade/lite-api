@@ -32,17 +32,19 @@ from .good import GoodOnApplicationViewSerializer
 from .fields import CaseStatusField
 
 
+# ~550ms overall..
+#   PartiesSerializerMixin; ~200ms
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
-    goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
-    destinations = serializers.SerializerMethodField()
-    denial_matches = serializers.SerializerMethodField()
-    additional_documents = serializers.SerializerMethodField()
-    licence = serializers.SerializerMethodField()
+    goods = GoodOnApplicationViewSerializer(many=True, read_only=True)  # ~50ms
+    destinations = serializers.SerializerMethodField()  # ~50ms
+    denial_matches = serializers.SerializerMethodField()  # ~100ms
+    additional_documents = serializers.SerializerMethodField()  # ~50ms
+    licence = serializers.SerializerMethodField()  # ~50ms
     proposed_return_date = serializers.DateField(required=False)
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
     sanction_matches = serializers.SerializerMethodField()
-    is_amended = serializers.SerializerMethodField()
+    is_amended = serializers.SerializerMethodField()  # ~100ms
     goods_starting_point = serializers.CharField()
     goods_recipients = serializers.CharField()
 

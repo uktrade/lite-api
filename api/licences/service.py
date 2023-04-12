@@ -55,7 +55,7 @@ class LicenceSerializer(serializers.ModelSerializer):
 def get_case_licences(case):
     licences = (
         Licence.objects.prefetch_related(
-            "goods", "goods__good", "goods__good__good", "goods__good__good__control_list_entries"
+            "goods", "goods__good", "goods__good__control_list_entries", "goods__good__good"
         )
         .filter(case=case)
         .order_by("created_at")

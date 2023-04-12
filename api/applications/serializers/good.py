@@ -22,6 +22,7 @@ from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import GoodControlled, ItemType
+from api.flags.serializers import CaseListFlagSerializer
 from api.goods.helpers import update_firearms_certificate_data
 from api.goods.models import Good
 from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializer
@@ -88,8 +89,9 @@ class GoodOnApplicationRegimeEntrySerializer(serializers.ModelSerializer):
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializerInternal(read_only=True)
-    good_application_documents = serializers.SerializerMethodField()
-    good_application_internal_documents = serializers.SerializerMethodField()
+    # TODO: hide these fields when called from CaseDetail API
+    # good_application_documents = serializers.SerializerMethodField()
+    # good_application_internal_documents = serializers.SerializerMethodField()
     unit = KeyValueChoiceField(choices=Units.choices)
     flags = serializers.SerializerMethodField()
     control_list_entries = ControlListEntrySerializer(many=True)
@@ -125,8 +127,8 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "report_summary_subject",
             "audit_trail",
             "firearm_details",
-            "good_application_documents",
-            "good_application_internal_documents",
+            # "good_application_documents",
+            # "good_application_internal_documents",
             "is_precedent",
             "is_onward_exported",
             "is_onward_altered_processed",
@@ -141,7 +143,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
         )
 
     def get_flags(self, instance):
-        return list(instance.good.flags.values("id", "name", "colour", "label"))
+        return CaseListFlagSerializer(instance.good.flags, many=True).data
 
     def get_good_application_documents(self, instance):
         documents = instance.goodonapplicationdocument_set.filter(safe=True)
