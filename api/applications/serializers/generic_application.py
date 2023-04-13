@@ -113,7 +113,6 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
         return f"{instance.submitted_by.first_name} {instance.submitted_by.last_name}" if instance.submitted_by else ""
 
     def get_export_type(self, instance):
-        instance = get_application(instance.pk)
         if hasattr(instance, "export_type"):
             return {
                 "key": instance.export_type,
@@ -139,12 +138,12 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
         return instance.is_major_editable()
 
     def get_goods_locations(self, application):
-        sites = Site.objects.filter(sites_on_application__application=application)
+        sites = [soa.site for soa in application.application_sites.all()]
         if sites:
             serializer = SiteListSerializer(sites, many=True)
             return {"type": "sites", "data": serializer.data}
 
-        external_locations = ExternalLocation.objects.filter(external_locations_on_application__application=application)
+        external_locations = [eoa.site for eoa in application.external_application_sites.all()]
         if external_locations:
             serializer = ExternalLocationSerializer(external_locations, many=True)
             return {"type": "external_locations", "data": serializer.data}
@@ -162,7 +161,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
             return {"type": "end_user", "data": ""}
 
     def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance).order_by("created_at")
+        documents = instance.applicationdocument_set.all().order_by("created_at")
         return ApplicationDocumentSerializer(documents, many=True).data
 
 

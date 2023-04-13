@@ -236,7 +236,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             return ComplianceVisitSerializer(compliance).data
 
     def get_flags(self, instance):
-        return list(instance.flags.all().values("id", "name", "colour", "label", "priority", "alias"))
+        return list(instance.flags.values("id", "name", "colour", "label", "priority", "alias"))
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))
@@ -251,22 +251,19 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     def get_has_advice(self, instance):
         has_advice = {"user": False, "my_user": False, "team": False, "my_team": False, "final": False}
 
-        team_advice = Advice.objects.filter(case=instance).values_list("id", flat=True)
+        team_advice = instance.advice.all()
         if team_advice.exists():
             has_advice["team"] = True
 
-        final_advice = Advice.objects.filter(case=instance).values_list("id", flat=True)
+        final_advice = instance.advice.all()
         if final_advice.exists():
             has_advice["final"] = True
 
-        if Advice.objects.filter(case=instance).exclude(id__in=team_advice.union(final_advice)).exists():
-            has_advice["user"] = True
-
-        my_team_advice = Advice.objects.filter(case=instance, team=self.team).values_list("id", flat=True)
+        my_team_advice = instance.advice.filter(team=self.team).values_list("id", flat=True)
         if my_team_advice.exists():
             has_advice["my_team"] = True
 
-        if Advice.objects.filter(case=instance, user=self.user).exclude(id__in=my_team_advice).exists():
+        if instance.advice.filter(user=self.user).exclude(id__in=my_team_advice).exists():
             has_advice["my_user"] = True
 
         return has_advice
@@ -289,9 +286,10 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             return CaseCopyOfSerializer(instance.copy_of).data
 
     def get_next_review_date(self, instance):
-        next_review_date = CaseReviewDate.objects.filter(case_id=instance.id, team_id=self.team.id)
-        if next_review_date.exists():
-            return next_review_date.get().next_review_date
+        try:
+            return instance.case_review_date.get(case_id=instance.id, team_id=self.team.id).next_review_date
+        except CaseReviewDate.DoesNotExist:
+            pass
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):

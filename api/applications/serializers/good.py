@@ -22,6 +22,7 @@ from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import GoodControlled, ItemType
+from api.flags.serializers import CaseListFlagSerializer
 from api.goods.helpers import update_firearms_certificate_data
 from api.goods.models import Good
 from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializer
@@ -142,16 +143,14 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
         )
 
     def get_flags(self, instance):
-        return list(instance.good.flags.values("id", "name", "colour", "label"))
+        return CaseListFlagSerializer(instance.good.flags, many=True).data
 
     def get_good_application_documents(self, instance):
-        documents = GoodOnApplicationDocument.objects.filter(
-            application=instance.application, good=instance.good, safe=True
-        )
+        documents = instance.goodonapplicationdocument_set.filter(safe=True)
         return GoodOnApplicationDocumentViewSerializer(documents, many=True).data
 
     def get_good_application_internal_documents(self, instance):
-        documents = GoodOnApplicationInternalDocument.objects.filter(good_on_application=instance.id, safe=True)
+        documents = instance.good_on_application_internal_documents.filter(safe=True)
         return GoodOnApplicationInternalDocumentViewSerializer(documents, many=True).data
 
     def get_audit_trail(self, instance):
