@@ -104,8 +104,8 @@ def good_add_remove_flags(**payload):
 
 def destination_add_flags(**payload):
     flags = [flag.strip() for flag in payload["added_flags"].split(",")]
-    destination_name = payload["destination_name"].title()
     action = "added"
+    destination_name = payload["destination_name"].title()
     return format_flags_message(flags, action, destination_name)
 
 
@@ -132,11 +132,11 @@ def format_flags_message(flags, action, destination_name=None):
         formatted_flags = f"{all_but_last_flag} and '{flags[-1]}'"
         message = f"{action} the flags {formatted_flags}"
 
-    if destination_name and action == "removed":
-        message += f" from the destination '{destination_name}'"
-
     if destination_name and action == "added":
         message += f" to the destination '{destination_name}'"
+
+    if destination_name and action == "removed":
+        message += f" from the destination '{destination_name}'"
 
     return message + "."
 
