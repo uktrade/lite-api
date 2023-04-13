@@ -121,15 +121,15 @@ class FormattersTest(DataTestClient):
         [
             (
                 {"added_flags": "flag1", "destination_name": "SPECIAL SERVICE CENTRE"},
-                "added the flag 'flag1' from the destination 'Special Service Centre'.",
+                "added the flag 'flag1' to the destination 'Special Service Centre'.",
             ),
             (
                 {"added_flags": "flag1, flag2", "destination_name": "SPECIAL SERVICE CENTRE"},
-                "added the flags 'flag1' and 'flag2' from the destination 'Special Service Centre'.",
+                "added the flags 'flag1' and 'flag2' to the destination 'Special Service Centre'.",
             ),
             (
                 {"added_flags": "flag1, flag2, flag3", "destination_name": "SPECIAL SERVICE CENTRE"},
-                "added the flags 'flag1', 'flag2' and 'flag3' from the destination 'Special Service Centre'.",
+                "added the flags 'flag1', 'flag2' and 'flag3' to the destination 'Special Service Centre'.",
             ),
         ]
     )
