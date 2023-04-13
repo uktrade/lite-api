@@ -1,0 +1,11 @@
+<html lang="en-gb">
+    <head>
+        {{ css|safe }}
+        <meta charset="utf-8">
+        <title>{{title}} {{ case_reference }}</title>
+    </head>
+
+    <body>
+        {% block content %}{% endblock %}
+    </body>
+</html>
