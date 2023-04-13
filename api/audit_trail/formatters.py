@@ -106,7 +106,7 @@ def destination_add_flags(**payload):
     flags = [flag.strip() for flag in payload["added_flags"].split(",")]
     destination_name = payload["destination_name"].title()
     action = "added"
-    return format_flags_message(flags, destination_name, action)
+    return format_flags_message(flags, action, destination_name)
 
 
 def destination_remove_flags(**payload):
@@ -118,10 +118,10 @@ def destination_remove_flags(**payload):
         return format_flags_message(flags, action)
     else:
         destination_name = payload["destination_name"].title()
-        return format_flags_message(flags, destination_name, action)
+        return format_flags_message(flags, action, destination_name)
 
 
-def format_flags_message(flags, destination_name=None, action="removed"):
+def format_flags_message(flags, action, destination_name=None):
     number_of_flags = len(flags)
 
     if number_of_flags == 1:
