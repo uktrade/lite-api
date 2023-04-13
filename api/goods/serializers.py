@@ -793,7 +793,6 @@ class GoodSerializerInternal(serializers.Serializer):
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
     is_precedent = serializers.BooleanField(required=False, default=False)
-    precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
     product_description = serializers.CharField()
 
     def get_documents(self, instance):
