@@ -755,16 +755,9 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
         return obj.good.flags.filter(name="WASSENAAR").exists()
 
     def get_destinations(self, obj):
-        destinations = (
-            PartyOnApplication.objects.filter(
-                application=obj.application,
-                deleted_at__isnull=True,
-            )
-            .values(
-                "party__country__name",
-            )
-            .distinct()
-        )
+        destinations = obj.application.parties.filter(deleted_at__isnull=True,).values(
+            "party__country__name",
+        ).distinct()
 
         return [dest["party__country__name"] for dest in destinations]
 
