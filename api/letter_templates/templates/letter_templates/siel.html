@@ -1,7 +1,7 @@
+{% extends "letter_templates/pdf_generation_base.html" %}
 {% load static custom_tags %}
 
-{{ css|safe }}
-
+{% block content %}
 <div class="document">
     <h1>Standard Individual Export Licence</h1>
     <img src="{% static 'images/dit.png' %}">
@@ -621,3 +621,4 @@
       </tr>
     </table>
 </div>
+{% endblock %}
