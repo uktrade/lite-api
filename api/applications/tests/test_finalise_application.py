@@ -535,6 +535,7 @@ class FinaliseApplicationTests(DataTestClient):
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                 ),
+                "removed the flag 'LU Countersign Required'.",
             ],
             [
                 AdviceType.APPROVE,
@@ -567,6 +568,7 @@ class FinaliseApplicationTests(DataTestClient):
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
+                "removed the flags 'LU Countersign Required' and 'LU Senior Manager check required'.",
             ],
         ]
     )
