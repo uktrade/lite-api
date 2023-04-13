@@ -125,20 +125,20 @@ def format_flags_message(flags, action, destination_name=None):
     number_of_flags = len(flags)
 
     if number_of_flags == 1:
-        message = f"{action} the flag '{flags[0]}'"
+        message = f"{action} the flag '{flags[0]}'."
 
     elif number_of_flags >= 2:
         all_but_last_flag = ", ".join(f"'{flag}'" for flag in flags[:-1])
         formatted_flags = f"{all_but_last_flag} and '{flags[-1]}'"
-        message = f"{action} the flags {formatted_flags}"
+        message = f"{action} the flags {formatted_flags}."
 
     if destination_name and action == "added":
-        message += f" to the destination '{destination_name}'"
+        message += f" to the destination '{destination_name}'."
 
     if destination_name and action == "removed":
-        message += f" from the destination '{destination_name}'"
+        message += f" from the destination '{destination_name}'."
 
-    return message + "."
+    return message
 
 
 def get_party_type_value(party_type):
