@@ -138,6 +138,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "is_trigger_list_guidelines_applicable",
             "is_nca_applicable",
             "nsg_assessment_note",
+            "is_ncsc_military_information_security",
         )
 
     def get_flags(self, instance):

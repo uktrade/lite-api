@@ -174,4 +174,5 @@ class GoodControlReviewSerializer(serializers.ModelSerializer):
             "is_good_controlled",
             "comment",
             "report_summary",
+            "is_ncsc_military_information_security",
         )
