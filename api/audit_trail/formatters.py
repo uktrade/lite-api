@@ -127,7 +127,7 @@ def format_flags_message(flags, action, destination_name=None):
     if number_of_flags == 1:
         message = f"{action} the flag '{flags[0]}'"
 
-    elif number_of_flags >= 2:
+    if number_of_flags >= 2:
         all_but_last_flag = ", ".join(f"'{flag}'" for flag in flags[:-1])
         formatted_flags = f"{all_but_last_flag} and '{flags[-1]}'"
         message = f"{action} the flags {formatted_flags}"
