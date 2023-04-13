@@ -509,11 +509,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [
-                AdviceType.APPROVE,
-                (),
-                (),
-            ],
+            [AdviceType.APPROVE, (), (), ""],
             [
                 AdviceType.APPROVE,
                 (CountersignOrder.FIRST_COUNTERSIGN,),
@@ -521,6 +517,7 @@ class FinaliseApplicationTests(DataTestClient):
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                 ),
+                "removed the flag 'LU Countersign Required'.",
             ],
             [
                 AdviceType.PROVISO,
@@ -529,6 +526,7 @@ class FinaliseApplicationTests(DataTestClient):
                     {"id": FlagsEnum.LU_COUNTER_REQUIRED, "level": FlagLevels.DESTINATION},
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                 ),
+                "removed the flag 'LU Countersign Required'.",
             ],
             [
                 AdviceType.NO_LICENCE_REQUIRED,
@@ -547,6 +545,7 @@ class FinaliseApplicationTests(DataTestClient):
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
+                "removed the flags 'LU Countersign Required' and 'LU Senior Manager check required'.",
             ],
             [
                 AdviceType.PROVISO,
@@ -557,6 +556,7 @@ class FinaliseApplicationTests(DataTestClient):
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
+                "removed the flags 'LU Countersign Required' and 'LU Senior Manager check required'.",
             ],
             [
                 AdviceType.NO_LICENCE_REQUIRED,
@@ -571,7 +571,9 @@ class FinaliseApplicationTests(DataTestClient):
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
-    def test_finalise_application_success_with_countersigning(self, advice_type, required_countersign, flags):
+    def test_finalise_application_success_with_countersigning(
+        self, advice_type, required_countersign, flags, expected_text
+    ):
         """Test to ensure if a particular countersigning order is fully approved then we can finalise Case"""
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
         data = {"action": advice_type, "duration": 24}
@@ -628,14 +630,10 @@ class FinaliseApplicationTests(DataTestClient):
         # Finally check for expected audit events
         audit_qs = Audit.objects.filter(verb=AuditType.DESTINATION_REMOVE_FLAGS, target_object_id=case.id)
         flag_names = sorted(list(Flag.objects.filter(id__in=expected_flags_to_remove).values_list("name", flat=True)))
-        expected_text = {
-            1: "removed the flag 'LU Countersign Required'.",
-            2: "removed the flags 'LU Countersign Required' and 'LU Senior Manager check required'.",
-        }
-        key = len(flag_names)
+
         for item in audit_qs:
             audit_text = AuditSerializer(item).data["text"]
-            self.assertEqual(audit_text, expected_text[key])
+            self.assertEqual(audit_text, expected_text)
             self.assertEqual(sorted(item.payload["removed_flags"]), flag_names)
 
 
