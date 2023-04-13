@@ -2,6 +2,7 @@ from django.urls import reverse
 
 from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
 from api.cases.models import CountersignAdvice
+from api.core.exceptions import NotFoundError
 from api.core.helpers import get_caseworker_frontend_url, get_exporter_frontend_url
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.enums import TeamIdEnum
@@ -32,22 +33,30 @@ def notify_exporter_case_opened_for_editing(application):
     )
 
 
-# def notify_caseworker_countersign_return(user_email, application, countersign_advice):
 def notify_caseworker_countersign_return(case):
     countersign_order = (
         CountersignOrder.FIRST_COUNTERSIGN
         if case._previous_status.status == CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN
         else CountersignOrder.SECOND_COUNTERSIGN
     )
-    countersign_advice = CountersignAdvice.objects.get(
+    countersign_advices = CountersignAdvice.objects.filter(
         case=case,
         valid=True,
-        order=countersign_order,
         outcome_accepted=False,
         advice__user__team=Team.objects.get(id=TeamIdEnum.LICENSING_UNIT),
         advice__level=AdviceLevel.FINAL,
-        advice__type=AdviceType.REFUSE,
+        advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE, AdviceType.NLR],
     )
+    # there will only be one rejection even with 2 countersigners and
+    # old countersign data is marked invalid when case is resubmitted for countersign
+    if len(countersign_advices) == 1:
+        countersign_advice = countersign_advices[0]
+    else:
+        raise NotFoundError(
+            {
+                "countersign_advice": f"A single rejection countersign_advice was not found for case {case.referrence_code}"
+            }
+        )
     relative_url = reverse("cases:countersign_decision_advice", kwargs={"pk": case.id})
     countersigner = countersign_advice.countersigned_user
     data = {

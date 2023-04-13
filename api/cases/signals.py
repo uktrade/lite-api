@@ -33,8 +33,7 @@ def _check_for_countersign_rejection(case):
     if (
         settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED
         and case.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
-        and case._previous_status.status
-        in [CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN, CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN]
+        and case._previous_status.status == CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN
     ):
         # send notification as advice has been rejected by countersigner
         notify_caseworker_countersign_return(case)
