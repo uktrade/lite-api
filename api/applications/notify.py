@@ -1,10 +1,9 @@
 from django.urls import reverse
 
-from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
+from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.models import CountersignAdvice
 from api.core.exceptions import NotFoundError
 from api.core.helpers import get_caseworker_frontend_url, get_exporter_frontend_url
-from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 from gov_notify.enums import TemplateType
