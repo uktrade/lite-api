@@ -34,29 +34,23 @@ def notify_exporter_case_opened_for_editing(application):
 
 
 def notify_caseworker_countersign_return(case):
-    countersign_order = (
-        CountersignOrder.FIRST_COUNTERSIGN
-        if case._previous_status.status == CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN
-        else CountersignOrder.SECOND_COUNTERSIGN
-    )
     countersign_advices = CountersignAdvice.objects.filter(
         case=case,
         valid=True,
         outcome_accepted=False,
         advice__user__team=Team.objects.get(id=TeamIdEnum.LICENSING_UNIT),
         advice__level=AdviceLevel.FINAL,
-        advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE, AdviceType.NLR],
+        advice__type__in=[AdviceType.APPROVE, AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED],
     )
     # there will only be one rejection even with 2 countersigners and
     # old countersign data is marked invalid when case is resubmitted for countersign
-    if len(countersign_advices) == 1:
-        countersign_advice = countersign_advices[0]
-    else:
+    if len(countersign_advices) != 1:
         raise NotFoundError(
             {
                 "countersign_advice": f"A single rejection countersign_advice was not found for case {case.referrence_code}"
             }
         )
+    countersign_advice = countersign_advices[0]
     relative_url = reverse("cases:countersign_decision_advice", kwargs={"pk": case.id})
     countersigner = countersign_advice.countersigned_user
     data = {
