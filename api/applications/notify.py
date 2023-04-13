@@ -43,12 +43,8 @@ def notify_caseworker_countersign_return(case):
     )
     # there will only be one rejection even with 2 countersigners and
     # old countersign data is marked invalid when case is resubmitted for countersign
-    if len(countersign_advices) != 1:
-        raise NotFoundError(
-            {
-                "countersign_advice": f"A single rejection countersign_advice was not found for case {case.referrence_code}"
-            }
-        )
+    if not countersign_advices.exists():
+        return
     countersign_advice = countersign_advices[0]
     relative_url = reverse("cases:countersign_decision_advice", kwargs={"pk": case.id})
     countersigner = countersign_advice.countersigned_user
