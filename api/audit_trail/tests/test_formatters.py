@@ -447,3 +447,20 @@ class FormattersTest(DataTestClient):
     def test_generate_decision_letter(self, payload, expected_result):
         result = formatters.generate_decision_letter(**payload)
         self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            # Test cases: (flags, destination_name, action, expected_message)
+            (["A"], None, "removed", "removed the flag 'A'."),
+            (["A", "B"], None, "removed", "removed the flags 'A' and 'B'."),
+            (["A"], "Dest", "removed", "removed the flag 'A' from the destination 'Dest'."),
+            (["A", "B"], "Dest", "removed", "removed the flags 'A' and 'B' from the destination 'Dest'."),
+            (["A"], None, "added", "added the flag 'A'."),
+            (["A", "B"], None, "added", "added the flags 'A' and 'B'."),
+            (["A"], "Dest", "added", "added the flag 'A' to the destination 'Dest'."),
+            (["A", "B"], "Dest", "added", "added the flags 'A' and 'B' to the destination 'Dest'."),
+        ]
+    )
+    def test_format_flags_message(self, flags, destination_name, action, expected_message):
+        result = formatters.format_flags_message(flags, destination_name, action)
+        self.assertEqual(result, expected_message)
