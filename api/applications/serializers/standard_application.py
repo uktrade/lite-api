@@ -10,7 +10,7 @@ from api.applications.enums import (
     GoodsRecipients,
 )
 from api.applications.mixins.serializers import PartiesSerializerMixin
-from api.applications.models import DenialMatchOnApplication, StandardApplication
+from api.applications.models import StandardApplication
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from api.applications.serializers.serializer_helper import validate_field
 from api.audit_trail.enums import AuditType

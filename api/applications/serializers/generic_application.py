@@ -8,7 +8,7 @@ from api.applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from api.applications.libraries.get_applications import get_application
-from api.applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
+from api.applications.models import BaseApplication, ApplicationDenialReason
 from api.applications.serializers.document import ApplicationDocumentSerializer
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import CaseType
@@ -17,7 +17,7 @@ from api.core.serializers import KeyValueChoiceField
 from api.flags.serializers import FlagSerializer
 from api.gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
-from api.organisations.models import Organisation, Site, ExternalLocation
+from api.organisations.models import Organisation
 from api.organisations.serializers import OrganisationDetailSerializer, ExternalLocationSerializer, SiteListSerializer
 from api.parties.serializers import PartySerializer
 from api.staticdata.denial_reasons.models import DenialReason
