@@ -923,6 +923,7 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
             "regime_entries",
             "report_summary_prefix",
             "report_summary_subject",
+            "is_ncsc_military_information_security",
         )
 
     def update(self, instance, validated_data):
