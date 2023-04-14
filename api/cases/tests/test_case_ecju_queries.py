@@ -7,6 +7,9 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import BaseApplication
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
+from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
@@ -280,6 +283,13 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
+
+        query_response_audit = Audit.objects.filter(verb=AuditType.ECJU_QUERY_RESPONSE)
+        self.assertTrue(query_response_audit.exists())
+        audit_obj = query_response_audit.first()
+        audit_text = AuditSerializer(audit_obj).data["text"]
+        self.assertEqual(audit_text, " responded to an ECJU Query: Attached the requested documents.")
+        self.assertEqual(audit_obj.target.id, case.id)
 
         if add_documents:
             self.assertEqual(len(response["documents"]), len(documents_to_be_added))

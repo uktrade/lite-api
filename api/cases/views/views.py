@@ -557,7 +557,13 @@ class EcjuQueryDetail(APIView):
         if serializer.is_valid():
             if "validate_only" not in request.data or not request.data["validate_only"]:
                 serializer.save()
-
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ECJU_QUERY_RESPONSE,
+                    action_object=serializer.instance,
+                    target=serializer.instance.case,
+                    payload={"ecju_response": data["response"]},
+                )
                 return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
