@@ -35,5 +35,6 @@ def _check_for_countersign_rejection(case):
         and case.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
         and case._previous_status.status == CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN
     ):
-        # send notification as advice has been rejected by countersigner
-        notify_caseworker_countersign_return(case)
+        # send notification to case officer as advice has been rejected by countersigner
+        if case.case_officer and case.case_officer.email:
+            notify_caseworker_countersign_return(case)
