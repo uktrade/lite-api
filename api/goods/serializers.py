@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from api.applications.models import PartyOnApplication
 from api.core.helpers import str_to_bool
 from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
 from api.documents.libraries.process_document import process_document
@@ -755,9 +754,15 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
         return obj.good.flags.filter(name="WASSENAAR").exists()
 
     def get_destinations(self, obj):
-        destinations = obj.application.parties.filter(deleted_at__isnull=True,).values(
-            "party__country__name",
-        ).distinct()
+        destinations = (
+            obj.application.parties.filter(
+                deleted_at__isnull=True,
+            )
+            .values(
+                "party__country__name",
+            )
+            .distinct()
+        )
 
         return [dest["party__country__name"] for dest in destinations]
 
