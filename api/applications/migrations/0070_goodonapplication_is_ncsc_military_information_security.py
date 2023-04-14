@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             model_name="goodonapplication",
             name="is_ncsc_military_information_security",
             field=models.BooleanField(
-                blank=True, default=None, help_text="triggers to NCSC for a recommendation", null=True
+                blank=True, default=None, help_text="trigger to NCSC for a recommendation", null=True
             ),
         ),
     ]
