@@ -101,6 +101,7 @@ class TestSignals(DataTestClient):
     def test_case_post_save_handler_notification(self, mocked_flagging_func, mock_notify_func):
         countersign_status = CaseStatus.objects.get(status=CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN)
         case = CaseFactory(status=countersign_status)
+        case.case_officer = self.gov_user
         case.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
         case.save()
         assert mock_notify_func.called
