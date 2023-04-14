@@ -28,7 +28,7 @@ from .generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from .good import GoodOnApplicationViewSerializer
+from .good import GoodOnApplicationViewSerializer, GoodOnApplicationDataWorkspaceSerializer
 from .fields import CaseStatusField
 
 
@@ -145,6 +145,10 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 return True
 
         return any([is_reference_name_updated, app_letter_ref_updated, is_product_removed])
+
+
+class StandardApplicationDataWorkspaceSerializer(StandardApplicationViewSerializer):
+    goods = GoodOnApplicationDataWorkspaceSerializer(many=True, read_only=True)
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):

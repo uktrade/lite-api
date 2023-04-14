@@ -25,7 +25,11 @@ from api.goods.enums import GoodControlled, ItemType
 from api.flags.serializers import CaseListFlagSerializer
 from api.goods.helpers import update_firearms_certificate_data
 from api.goods.models import Good
-from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializer
+from api.goods.serializers import (
+    GoodSerializerInternal,
+    FirearmDetailsSerializer,
+    GoodSerializerInternalIncludingPrecedents,
+)
 from api.licences.models import GoodOnLicence
 from api.organisations.models import DocumentOnOrganisation
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
@@ -153,6 +157,31 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             firearm_details_serializer.update(instance.firearm_details, firearm_details_validated_data)
 
         return super().update(instance, validated_data)
+
+
+class GoodOnApplicationDataWorkspaceSerializer(GoodOnApplicationViewSerializer):
+
+    good = GoodSerializerInternalIncludingPrecedents(read_only=True)
+    good_application_documents = serializers.SerializerMethodField()
+    good_application_internal_documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GoodOnApplication
+        base_fields = list(GoodOnApplicationViewSerializer.Meta.fields)
+        fields = base_fields + [
+            "good_application_documents",
+            "good_application_internal_documents",
+        ]
+
+    def get_good_application_documents(self, instance):
+        documents = GoodOnApplicationDocument.objects.filter(
+            application=instance.application, good=instance.good, safe=True
+        )
+        return GoodOnApplicationDocumentViewSerializer(documents, many=True).data
+
+    def get_good_application_internal_documents(self, instance):
+        documents = GoodOnApplicationInternalDocument.objects.filter(good_on_application=instance.id, safe=True)
+        return GoodOnApplicationInternalDocumentViewSerializer(documents, many=True).data
 
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):

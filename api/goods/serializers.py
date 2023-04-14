@@ -805,6 +805,10 @@ class GoodSerializerInternal(serializers.Serializer):
         return SimpleGoodDocumentViewSerializer(documents, many=True).data
 
 
+class GoodSerializerInternalIncludingPrecedents(GoodSerializerInternal):
+    precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
+
+
 class TinyGoodDetailsSerializer(serializers.ModelSerializer):
     firearm_details = FirearmDetailsSerializer(read_only=True)
 
