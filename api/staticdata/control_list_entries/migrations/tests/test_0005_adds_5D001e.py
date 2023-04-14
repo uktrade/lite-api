@@ -10,5 +10,6 @@ class TestNCSC(MigratorTestCase):
 
     def test_0005_adds_5D001e(self):
         ControlListEntry = self.old_state.apps.get_model("control_list_entries", "ControlListEntry")
+        parent_id = ControlListEntry.objects.get(rating="5D1").id
 
-        assert ControlListEntry.objects.filter(rating="5D001e").count() == 1
+        assert ControlListEntry.objects.filter(rating="5D001e", parent_id=parent_id).count() == 1
