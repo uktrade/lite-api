@@ -7,19 +7,31 @@ clean:
 	-find . -type d -name "__pycache__" -delete
 
 runserver:
-	pipenv run ./manage.py runserver localhost:8100
+	./manage.py runserver localhost:8100
 
 migrate:
+	./manage.py migrate
+
+pip-runserver:
+	pipenv run ./manage.py runserver localhost:8100
+
+pip-migrate:
 	pipenv run ./manage.py migrate
 
 doc-migrate:
 	docker exec -it api ./manage.py migrate
 
-manage:
+pip-manage:
 	pipenv run ./manage.py $(ARGUMENTS)
 
-test:
+manage:
+	./manage.py $(ARGUMENTS)
+
+pip-test:
 	pipenv run ./manage.py test
+
+test:
+	./manage.py test
 
 secrets:
 	cp local.env .env
