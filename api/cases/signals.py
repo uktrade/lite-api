@@ -30,6 +30,9 @@ def case_post_save_handler(sender, instance, raw=False, **kwargs):
 
 
 def _check_for_countersign_rejection(case):
+    # If a Case requires both countersignatures and first countersign is rejected then it doesn't go to second countersign queue
+    # and it immediately goes back to finalise queue to edit the recommendation. In terms of status changes however the status still
+    # progresses to second countersign status (rules etc are not triggered) and the case is progressed again to under final review status.
     if (
         settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED
         and case.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
