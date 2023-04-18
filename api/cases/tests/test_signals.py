@@ -58,7 +58,7 @@ class TestSignals(DataTestClient):
     @override_settings(FEATURE_C5_ROUTING_ENABLED=True)
     @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
     def test_case_post_save_handler_no_case_id(self, mocked_flagging_func):
-        case_post_save_handler(Case, {"id":None}, raw=True)
+        case_post_save_handler(Case, {"id": None}, raw=True)
         assert not mocked_flagging_func.called
 
     @override_settings(FEATURE_C5_ROUTING_ENABLED=False)

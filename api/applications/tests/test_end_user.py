@@ -428,7 +428,6 @@ class EndUserOnNonDraftTests(DataTestClient):
         party_on_application = self.app.end_user
         url = reverse("applications:party", kwargs={"pk": self.app.id, "party_pk": party_on_application.party_id})
         response = self.client.delete(url, **self.exporter_headers)
-        print(f"delete response:{response.json()}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             PartyOnApplication.objects.filter(
