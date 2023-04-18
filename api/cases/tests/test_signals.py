@@ -5,6 +5,7 @@ from django.test import override_settings
 from api.cases.models import Case
 from api.cases.signals import case_post_save_handler
 from api.cases.tests.factories import CaseFactory
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 
@@ -54,6 +55,15 @@ class TestSignals(DataTestClient):
         case_post_save_handler(Case, case, raw=True)
         assert not mocked_flagging_func.called
 
+    @override_settings(FEATURE_C5_ROUTING_ENABLED=True)
+    @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
+    def test_case_post_save_handler_no_case_id(self, mocked_flagging_func):
+        submitted = CaseStatus.objects.get(status="submitted")
+        case = CaseFactory(status=submitted)
+        case.id = None
+        case_post_save_handler(Case, case)
+        assert not mocked_flagging_func.called
+
     @override_settings(FEATURE_C5_ROUTING_ENABLED=False)
     @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
     def test_case_post_save_handler_no_flag(self, mocked_flagging_func):
@@ -92,3 +102,15 @@ class TestSignals(DataTestClient):
         case.status = CaseStatus.objects.get(status="ogd_advice")
         case.save()
         assert mocked_flagging_func.call_count == 2
+
+    @override_settings(FEATURE_C5_ROUTING_ENABLED=True)
+    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
+    @mock.patch("api.cases.signals.notify_caseworker_countersign_return")
+    @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
+    def test_case_post_save_handler_notification(self, mocked_flagging_func, mock_notify_func):
+        countersign_status = CaseStatus.objects.get(status=CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN)
+        case = CaseFactory(status=countersign_status)
+        case.case_officer = self.gov_user
+        case.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
+        case.save()
+        assert mock_notify_func.called
