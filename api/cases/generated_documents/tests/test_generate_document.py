@@ -1,20 +1,24 @@
-import os
+import os, io
 from unittest import mock
+from parameterized import parameterized
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
 from rest_framework.reverse import reverse
 from tempfile import NamedTemporaryFile
+from PyPDF2 import PdfFileReader
 
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, AdviceType
 from api.cases.generated_documents.helpers import html_to_pdf
+from api.letter_templates.helpers import generate_preview
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.licences.enums import LicenceStatus
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 from api.users.models import ExporterNotification
+from api.letter_templates.constants import TemplateTitles
 
 
 class GenerateDocumentTests(DataTestClient):
@@ -390,3 +394,22 @@ class GetGeneratedDocumentsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertFalse(str(document.pk) in [doc["id"] for doc in response_data])
+
+
+class TestGeneratedTemplatePDF(DataTestClient):
+    @parameterized.expand(
+        [
+            ("application_form", TemplateTitles.APPLICATION_FORM),
+            ("nlr", TemplateTitles.NLR),
+            ("refusal", TemplateTitles.REFUSAL_LETTER),
+            ("siel", TemplateTitles.SIEL),
+        ],
+    )
+    def test_pdf_titles(self, temp, title):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        html = generate_preview(layout=temp, case=case, text="")
+        pdf = html_to_pdf(html, temp, None)
+        with io.BytesIO(pdf) as open_pdf_file:
+            reader = PdfFileReader(open_pdf_file)
+            meta = reader.getDocumentInfo()
+            self.assertEqual(meta.title, f"{title} {case.reference_code}")
