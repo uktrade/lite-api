@@ -546,7 +546,7 @@ class FinaliseApplicationTests(DataTestClient):
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
-                "removed the flags 'LU Countersign Required' and 'LU Senior Manager check required'.",
+                "removed the flags 'LU Countersign Required' and 'LU senior countersign required'.",
             ],
             [
                 AdviceType.PROVISO,
@@ -557,7 +557,7 @@ class FinaliseApplicationTests(DataTestClient):
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
-                "removed the flags 'LU Countersign Required' and 'LU Senior Manager check required'.",
+                "removed the flags 'LU Countersign Required' and 'LU senior countersign required'.",
             ],
             [
                 AdviceType.NO_LICENCE_REQUIRED,
@@ -568,7 +568,7 @@ class FinaliseApplicationTests(DataTestClient):
                     {"id": FlagsEnum.AP_LANDMINE, "level": FlagLevels.CASE},
                     {"id": FlagsEnum.MANPADS, "level": FlagLevels.CASE},
                 ),
-                "removed the flags 'LU Countersign Required' and 'LU Senior Manager check required'.",
+                "removed the flags 'LU Countersign Required' and 'LU senior countersign required'.",
             ],
         ]
     )
