@@ -1,6 +1,10 @@
 from django.urls import reverse
 
+from api.cases.enums import AdviceLevel, AdviceType
+from api.cases.models import CountersignAdvice
 from api.core.helpers import get_caseworker_frontend_url, get_exporter_frontend_url
+from api.teams.enums import TeamIdEnum
+from api.teams.models import Team
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import CaseWorkerCountersignCaseReturn, ExporterCaseOpenedForEditing
 from gov_notify.service import send_email
@@ -27,16 +31,29 @@ def notify_exporter_case_opened_for_editing(application):
     )
 
 
-def notify_caseworker_countersign_return(user_email, application, countersign_advice):
-    relative_url = reverse("cases:countersign_decision_advice", kwargs={"pk": application.id})
+def notify_caseworker_countersign_return(case):
+    countersign_advices = CountersignAdvice.objects.filter(
+        case=case,
+        valid=True,
+        outcome_accepted=False,
+        advice__user__team=Team.objects.get(id=TeamIdEnum.LICENSING_UNIT),
+        advice__level=AdviceLevel.FINAL,
+        advice__type__in=[AdviceType.APPROVE, AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED],
+    )
+    # there will only be one rejection even with 2 countersigners and
+    # old countersign data is marked invalid when case is resubmitted for countersign
+    if not countersign_advices.exists():
+        return
+    countersign_advice = countersign_advices[0]
+    relative_url = reverse("cases:countersign_decision_advice", kwargs={"pk": case.id})
     countersigner = countersign_advice.countersigned_user
     data = {
-        "case_reference": application.reference_code,
+        "case_reference": case.reference_code,
         "countersigned_user_name": f"{countersigner.first_name} {countersigner.last_name}",
         "countersign_reasons": countersign_advice.reasons,
         "recommendation_section_url": get_caseworker_frontend_url(relative_url),
     }
-    _notify_caseworker_countersign_return(user_email, data)
+    _notify_caseworker_countersign_return(case.case_officer.email, data)
 
 
 def _notify_caseworker_countersign_return(email, data):
