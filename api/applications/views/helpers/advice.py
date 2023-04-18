@@ -2,6 +2,8 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
 from api.cases.models import CountersignAdvice
+from django.conf import settings
+
 from api.flags.enums import FlagStatuses
 from api.flags.models import Flag
 from api.teams.enums import TeamIdEnum
@@ -112,24 +114,28 @@ def ensure_lu_countersign_complete(application):
         status=FlagStatuses.ACTIVE,
     )
     flags_to_remove = countersign_flags.intersection(countersign_process_flags)
+
     for party_on_application in application.parties.all():
         if not flags_to_remove.intersection(party_on_application.party.flags.all()):
             continue
 
         party_on_application.party.flags.remove(*flags_to_remove)
+
+    if flags_to_remove:
+        # Even though flags may be removed from multiple parties,
+        # we only ever want to show max one audit event message to the user,
+        # hence the following is done once outside the for loop.
         audit_trail_service.create_system_user_audit(
             verb=AuditType.DESTINATION_REMOVE_FLAGS,
-            action_object=party_on_application.party,
             target=case,
             payload={
                 "removed_flags": [flag.name for flag in flags_to_remove],
-                "destination_name": party_on_application.party.name,
-                "additional_text": "Removing flags as required countersignatures present and approved",
+                "is_lu_countersign_finalise_case": True,
             },
         )
 
 
-def mark_lu_rejected_countersignatures_as_invalid(case):
+def mark_lu_rejected_countersignatures_as_invalid(case, user):
     """
     When countersigning is rejected and sent back then caseworkers edit their outcome before
     moving the case forward again for countersigning. This is now considered as if it has
@@ -143,6 +149,9 @@ def mark_lu_rejected_countersignatures_as_invalid(case):
     back to caseworker for finalising.
     """
     lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+    if not settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED or not (user.govuser.team == lu_team):
+        return
+
     countersign_orders = get_lu_required_countersign_orders(case)
 
     # check if any rejected countersignatures present
