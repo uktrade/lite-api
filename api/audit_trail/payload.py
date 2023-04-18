@@ -139,4 +139,7 @@ audit_type_format = {
     AuditType.LICENCE_UPDATED_PRODUCT_USAGE: formatters.update_product_usage_data,
     AuditType.CREATED_FINAL_RECOMMENDATION: formatters.create_final_recommendation,
     AuditType.GENERATE_DECISION_LETTER: formatters.generate_decision_letter,
+    AuditType.LU_ADVICE: formatters.create_lu_advice,
+    AuditType.LU_EDIT_ADVICE: formatters.update_lu_advice,
+    AuditType.LU_COUNTERSIGN: formatters.lu_countersign_advice,
 }

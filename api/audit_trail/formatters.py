@@ -2,8 +2,8 @@ from datetime import datetime
 from string import Formatter
 
 from django.conf import settings
+from api.cases.enums import AdviceType, CountersignOrder
 
-from api.cases.enums import AdviceType
 from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -284,3 +284,19 @@ def generate_decision_letter(**payload):
         return "created a 'no licence required' letter."
 
     return f"invalid decision {decision} for this event."
+
+
+def create_lu_advice(firstname, lastname, advice_type):  # /PS-IGNORE
+    return f"{firstname} {lastname} added a recommendation to {advice_type}."  # /PS-IGNORE
+
+
+def update_lu_advice(firstname, lastname, advice_type, **payload):  # /PS-IGNORE
+    advice_type_noun = {AdviceType.APPROVE: "approval", AdviceType.REFUSE: "refusal"}[advice_type]
+    return f"{firstname} {lastname} edited their {advice_type_noun} reason."  # /PS-IGNORE
+
+
+def lu_countersign_advice(firstname, lastname, department, order, countersign_accepted, **payload):  # /PS-IGNORE
+    senior_text = "senior " if order == CountersignOrder.SECOND_COUNTERSIGN else ""
+    if countersign_accepted:
+        return f"{firstname} {lastname} {senior_text}countersigned all {department} recommendations."  # /PS-IGNORE
+    return f"{firstname} {lastname} declined to {senior_text}countersign {department} recommendations."  # /PS-IGNORE

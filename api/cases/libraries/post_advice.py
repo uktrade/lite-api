@@ -115,6 +115,7 @@ def post_advice(request, case, level, team=False):
             GeneratedCaseDocument.objects.filter(
                 case_id=case.id, advice_type__isnull=False, visible_to_exporter=False
             ).delete()
+            audit_lu_countersigning(AuditType.LU_ADVICE, data[0]["type"], None, case, request)
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
     errors = {}
@@ -148,8 +149,9 @@ def update_advice(request, case, level):
 
     data = request.data
     advice_ids = [item["id"] for item in data]
+    advice_to_update = Advice.objects.filter(id__in=advice_ids)
     serializer = AdviceUpdateSerializer(
-        Advice.objects.filter(id__in=advice_ids),
+        advice_to_update,
         data=data,
         partial=True,
         many=True,
@@ -160,11 +162,27 @@ def update_advice(request, case, level):
 
     serializer.save()
 
-    lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
-    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and request.user.govuser.team == lu_team:
-        mark_lu_rejected_countersignatures_as_invalid(case)
+    mark_lu_rejected_countersignatures_as_invalid(case, request.user)
+    audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_to_update.first().type, data[0]["text"], case, request)
 
     return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
+
+
+def audit_lu_countersigning(audit_type, advice_type, additional_text, case, request):
+    if (
+        settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED
+        and request.user.govuser.team == Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        and advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]
+    ):
+        audit_payload = {
+            "firstname": request.user.first_name,  # /PS-IGNORE
+            "lastname": request.user.last_name,  # /PS-IGNORE
+            "advice_type": advice_type,
+        }
+        if additional_text:
+            audit_payload["additional_text"] = additional_text
+
+        audit_trail_service.create(actor=request.user, verb=audit_type, target=case, payload=audit_payload)
 
 
 def case_advice_contains_refusal(case_id):
