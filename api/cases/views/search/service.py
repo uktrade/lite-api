@@ -6,6 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, F, Q, Value, OuterRef
 from django.db.models.functions import Concat
 from django.utils import timezone
+from api.staticdata.countries.models import Country
+from api.staticdata.countries.serializers import CountrySerializer
 
 from api.applications.models import HmrcQuery, PartyOnApplication
 from api.audit_trail.models import Audit
@@ -201,8 +203,10 @@ def populate_destinations(cases: List[Dict]):
         destinations = []
 
         if case["case_type"]["type"]["key"] == CaseTypeTypeEnum.APPLICATION:
-            for poa in PartyOnApplication.objects.filter(application=id, deleted_at=None):
-                serializer = PartySerializer(poa.party)
+            for poa in PartyOnApplication.objects.select_related("party", "party__country").filter(
+                application=id, deleted_at=None
+            ):
+                serializer = CountrySerializer(poa.party.country)
                 data = serializer.data
                 destinations.append(data)
 

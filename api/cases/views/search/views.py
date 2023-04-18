@@ -73,6 +73,7 @@ class CasesSearchView(generics.ListAPIView):
         service.populate_is_recently_updated(cases)
         service.get_hmrc_sla_hours(cases)
         service.populate_activity_updates(cases)
+        service.populate_destinations(cases)
 
         # Get queue from system & my queues.
         # If this fails (i.e. I'm on a non team queue) fetch the queue data
@@ -85,8 +86,6 @@ class CasesSearchView(generics.ListAPIView):
         case_types = service.get_case_type_type_list()
         gov_users = service.get_gov_users_list()
         advice_types = service.get_advice_types_list()
-        # Add destinations.
-        service.populate_destinations(cases)
 
         return self.get_paginated_response(
             {
