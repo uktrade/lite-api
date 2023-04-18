@@ -6,7 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, F, Q, Value, OuterRef
 from django.db.models.functions import Concat
 from django.utils import timezone
-from api.staticdata.countries.models import Country
 from api.staticdata.countries.serializers import CountrySerializer
 
 from api.applications.models import HmrcQuery, PartyOnApplication
@@ -21,7 +20,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
 from api.cases.enums import CaseTypeTypeEnum
-from api.parties.serializers import PartySerializer
 
 
 def get_case_status_list() -> List[Dict]:
