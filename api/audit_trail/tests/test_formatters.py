@@ -466,8 +466,8 @@ class FormattersTest(DataTestClient):
     def test_format_flags_message(self, flags, action, destination_name, expected_message):
         result = formatters.format_flags_message(flags, action, destination_name)
         self.assertEqual(result, expected_message)
-    
-    @parameterize.expand(
+
+    @parameterized.expand(
         [
             ("Test", "User", AdviceType.APPROVE, "Test User added a recommendation to approve."),
             ("Test", "User", AdviceType.REFUSE, "Test User added a recommendation to refuse."),
