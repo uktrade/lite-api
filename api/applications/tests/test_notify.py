@@ -91,24 +91,6 @@ class NotifyTests(DataTestClient):
             AdviceType.REFUSE,
             AdviceLevel.FINAL,
         )
-        # countersign_advice = CountersignAdviceFactory(
-        #     order=CountersignOrder.FIRST_COUNTERSIGN,
-        #     valid=True,
-        #     outcome_accepted=False,
-        #     reasons="reasons",
-        #     case=self.case,
-        #     advice=advice,
-        # )
-        # frontend_url = (
-        #     f"https://internal.lite.service.localhost.uktrade.digital/cases/{self.case.id}/countersign-decision-advice/"
-        # )
-        # data = {
-        #     "case_reference": self.case.reference_code,
-        #     "countersigned_user_name": f"{countersign_advice.countersigned_user.first_name} {countersign_advice.countersigned_user.last_name}",
-        #     "countersign_reasons": countersign_advice.reasons,
-        #     "recommendation_section_url": frontend_url,
-        # }
-        # expected_payload = CaseWorkerCountersignCaseReturn(**data)
         notify.notify_caseworker_countersign_return(self.case)
 
         mock_send_email.assert_not_called()
