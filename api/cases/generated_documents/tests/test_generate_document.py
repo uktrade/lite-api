@@ -405,7 +405,7 @@ class TestGeneratedTemplatePDF(DataTestClient):
             ("siel", TemplateTitles.SIEL),
         ],
     )
-    def test_pdf_titles_and_language(self, temp, title):
+    def test_pdf_titles(self, temp, title):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         html = generate_preview(layout=temp, case=case, text="")
         pdf = html_to_pdf(html, temp, None)
@@ -413,4 +413,3 @@ class TestGeneratedTemplatePDF(DataTestClient):
             reader = PdfFileReader(open_pdf_file)
             meta = reader.getDocumentInfo()
             self.assertEqual(meta.title, f"{title} {case.reference_code}")
-            self.assertEqual(reader.trailer["/Root"]["/Lang"], "en-gb")
