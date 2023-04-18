@@ -121,15 +121,15 @@ class FormattersTest(DataTestClient):
         [
             (
                 {"added_flags": "flag1", "destination_name": "SPECIAL SERVICE CENTRE"},
-                "added the flag 'flag1' from the destination 'Special Service Centre'.",
+                "added the flag 'flag1' to the destination 'Special Service Centre'.",
             ),
             (
                 {"added_flags": "flag1, flag2", "destination_name": "SPECIAL SERVICE CENTRE"},
-                "added the flags 'flag1' and 'flag2' from the destination 'Special Service Centre'.",
+                "added the flags 'flag1' and 'flag2' to the destination 'Special Service Centre'.",
             ),
             (
                 {"added_flags": "flag1, flag2, flag3", "destination_name": "SPECIAL SERVICE CENTRE"},
-                "added the flags 'flag1', 'flag2' and 'flag3' from the destination 'Special Service Centre'.",
+                "added the flags 'flag1', 'flag2' and 'flag3' to the destination 'Special Service Centre'.",
             ),
         ]
     )
@@ -447,3 +447,22 @@ class FormattersTest(DataTestClient):
     def test_generate_decision_letter(self, payload, expected_result):
         result = formatters.generate_decision_letter(**payload)
         self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            # Test cases: (flags, action, destination_name, expected_message)
+            (["A"], "removed", None, "removed the flag 'A'."),
+            (["A", "B"], "removed", None, "removed the flags 'A' and 'B'."),
+            (["A"], "removed", "Dest", "removed the flag 'A' from the destination 'Dest'."),
+            (["A", "B"], "removed", "Dest", "removed the flags 'A' and 'B' from the destination 'Dest'."),
+            (["A", "B", "C"], "removed", "Dest", "removed the flags 'A', 'B' and 'C' from the destination 'Dest'."),
+            (["A"], "added", None, "added the flag 'A'."),
+            (["A", "B"], "added", None, "added the flags 'A' and 'B'."),
+            (["A"], "added", "Dest", "added the flag 'A' to the destination 'Dest'."),
+            (["A", "B"], "added", "Dest", "added the flags 'A' and 'B' to the destination 'Dest'."),
+            (["A", "B", "C"], "added", "Dest", "added the flags 'A', 'B' and 'C' to the destination 'Dest'."),
+        ]
+    )
+    def test_format_flags_message(self, flags, action, destination_name, expected_message):
+        result = formatters.format_flags_message(flags, action, destination_name)
+        self.assertEqual(result, expected_message)
