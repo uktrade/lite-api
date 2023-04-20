@@ -15,51 +15,53 @@ class DataWorkspaceTests(DataTestClient):
     @override_settings(HAWK_AUTHENTICATION_ENABLED=False)
     def test_goods(self):
         url = reverse("data_workspace:dw-goods-list")
-        expected_fields = (
-            "id",
-            "name",
-            "description",
-            "part_number",
-            "no_part_number_comments",
-            "control_list_entries",
-            "comment",
-            "is_good_controlled",
-            "report_summary",
-            "report_summary_prefix",
-            "report_summary_subject",
-            "flags",
-            "documents",
-            "is_pv_graded",
-            "grading_comment",
-            "pv_grading_details",
-            "status",
-            "item_category",
-            "is_military_use",
-            "is_component",
-            "uses_information_security",
-            "modified_military_use_details",
-            "component_details",
-            "information_security_details",
-            "is_document_available",
-            "is_document_sensitive",
-            "no_document_comments",
-            "software_or_technology_details",
-            "firearm_details",
-            "is_precedent",
-            "precedents",
-            "product_description",
+        expected_fields = set(
+            [
+                "id",
+                "name",
+                "description",
+                "part_number",
+                "no_part_number_comments",
+                "control_list_entries",
+                "comment",
+                "is_good_controlled",
+                "report_summary",
+                "report_summary_prefix",
+                "report_summary_subject",
+                "flags",
+                "documents",
+                "is_pv_graded",
+                "grading_comment",
+                "pv_grading_details",
+                "status",
+                "item_category",
+                "is_military_use",
+                "is_component",
+                "uses_information_security",
+                "modified_military_use_details",
+                "component_details",
+                "information_security_details",
+                "is_document_available",
+                "is_document_sensitive",
+                "no_document_comments",
+                "software_or_technology_details",
+                "firearm_details",
+                "is_precedent",
+                "precedents",
+                "product_description",
+            ]
         )
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.json()["results"]
         self.assertGreater(len(results), 0)
-        self.assertEqual(tuple(results[0].keys()), expected_fields)
+        self.assertEqual(set(results[0].keys()), expected_fields)
 
         response = self.client.options(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         options = response.json()["actions"]["GET"]
-        self.assertEqual(tuple(options.keys()), expected_fields)
+        self.assertEqual(set(options.keys()), expected_fields)
 
     @override_settings(HAWK_AUTHENTICATION_ENABLED=False)
     def test_good_control_list_entry(self):

@@ -138,11 +138,12 @@ class PartySerializer(serializers.ModelSerializer):
             return ""
 
     def get_document(self, instance):
-        docs = PartyDocument.objects.filter(party=instance)
-        return docs.values()[0] if docs.exists() else None
+        if not instance.partydocument_set.exists():
+            return None
+        return instance.partydocument_set.values()[0]
 
     def get_documents(self, instance):
-        docs = PartyDocument.objects.filter(party=instance)
+        docs = instance.partydocument_set.all()
         return PartyDocumentSerializer(docs, many=True).data
 
     def get_type_display_value(self, instance):
