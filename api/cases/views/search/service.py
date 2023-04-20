@@ -205,9 +205,9 @@ def populate_destinations(cases: List[Dict]):
         data = serializer.data
         case = case_map[str(poa.application_id)]
         if case.get("destinations"):
-            case["destinations"].append(data)
+            case["destinations"].append({"country":data})
         else:
-            case["destinations"] = [data]
+            case["destinations"] = [{"country":data}]
     return list(case_map.values())
 
 
