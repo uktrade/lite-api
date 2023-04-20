@@ -121,15 +121,15 @@ class FormattersTest(DataTestClient):
         [
             (
                 {"added_flags": "flag1", "destination_name": "SPECIAL SERVICE CENTRE"},
-                "added the flag 'flag1' from the destination 'Special Service Centre'.",
+                "added the flag 'flag1' to the destination 'Special Service Centre'.",
             ),
             (
                 {"added_flags": "flag1, flag2", "destination_name": "SPECIAL SERVICE CENTRE"},
-                "added the flags 'flag1' and 'flag2' from the destination 'Special Service Centre'.",
+                "added the flags 'flag1' and 'flag2' to the destination 'Special Service Centre'.",
             ),
             (
                 {"added_flags": "flag1, flag2, flag3", "destination_name": "SPECIAL SERVICE CENTRE"},
-                "added the flags 'flag1', 'flag2' and 'flag3' from the destination 'Special Service Centre'.",
+                "added the flags 'flag1', 'flag2' and 'flag3' to the destination 'Special Service Centre'.",
             ),
         ]
     )
@@ -447,3 +447,64 @@ class FormattersTest(DataTestClient):
     def test_generate_decision_letter(self, payload, expected_result):
         result = formatters.generate_decision_letter(**payload)
         self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            # Test cases: (flags, action, destination_name, expected_message)
+            (["A"], "removed", None, "removed the flag 'A'."),
+            (["A", "B"], "removed", None, "removed the flags 'A' and 'B'."),
+            (["A"], "removed", "Dest", "removed the flag 'A' from the destination 'Dest'."),
+            (["A", "B"], "removed", "Dest", "removed the flags 'A' and 'B' from the destination 'Dest'."),
+            (["A", "B", "C"], "removed", "Dest", "removed the flags 'A', 'B' and 'C' from the destination 'Dest'."),
+            (["A"], "added", None, "added the flag 'A'."),
+            (["A", "B"], "added", None, "added the flags 'A' and 'B'."),
+            (["A"], "added", "Dest", "added the flag 'A' to the destination 'Dest'."),
+            (["A", "B"], "added", "Dest", "added the flags 'A' and 'B' to the destination 'Dest'."),
+            (["A", "B", "C"], "added", "Dest", "added the flags 'A', 'B' and 'C' to the destination 'Dest'."),
+        ]
+    )
+    def test_format_flags_message(self, flags, action, destination_name, expected_message):
+        result = formatters.format_flags_message(flags, action, destination_name)
+        self.assertEqual(result, expected_message)
+
+    @parameterized.expand(
+        [
+            ("Test", "User", AdviceType.APPROVE, "Test User added a recommendation to approve."),
+            ("Dark", "Knight", AdviceType.REFUSE, "Dark Knight added a recommendation to refuse."),
+            ("Robin", "Hood", AdviceType.PROVISO, "Robin Hood added a licence condition."),
+        ]
+    )
+    def test_create_lu_advice(self, first, last, advice_status, expected_text):
+        result = formatters.create_lu_advice(first, last, advice_status)
+        assert result == expected_text
+
+    @parameterized.expand(
+        [
+            ("Test", "User", AdviceType.APPROVE, "Test User edited their approval reason."),
+            ("Dark", "Knight", AdviceType.REFUSE, "Dark Knight edited their refusal reason."),
+            ("Robin", "Hood", AdviceType.PROVISO, "Robin Hood edited a licence condition."),
+        ]
+    )
+    def test_update_lu_advice(self, first, last, advice_status, expected_text):
+        result = formatters.update_lu_advice(
+            first, last, advice_status, other_param="ignore_other_params"
+        )  # /PS-IGNORE
+        assert result == expected_text
+
+    @parameterized.expand(
+        [
+            ("Test", "User", "DIT", 1, True, "Test User countersigned all DIT recommendations."),
+            ("Sweeney", "Todd", "MOD", 1, True, "Sweeney Todd countersigned all MOD recommendations."),
+            ("Black", "Beard", "DIT", 1, False, "Black Beard declined to countersign DIT recommendations."),
+            ("Calico", "Jack", "MOD", 1, False, "Calico Jack declined to countersign MOD recommendations."),
+            ("Test", "User", "DIT", 2, True, "Test User senior countersigned all DIT recommendations."),
+            ("Sweeney", "Todd", "MOD", 2, True, "Sweeney Todd senior countersigned all MOD recommendations."),
+            ("Black", "Beard", "DIT", 2, False, "Black Beard declined to senior countersign DIT recommendations."),
+            ("Calico", "Jack", "MOD", 2, False, "Calico Jack declined to senior countersign MOD recommendations."),
+        ]
+    )
+    def test_lu_countersign_advice(self, first, last, dept, order, countersign_accepted, expected_text):
+        result = formatters.lu_countersign_advice(
+            first, last, dept, order, countersign_accepted, other_param="ignore_other_params"
+        )
+        assert result == expected_text

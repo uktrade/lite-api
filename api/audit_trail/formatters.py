@@ -1,7 +1,9 @@
 from datetime import datetime
 from string import Formatter
 
-from api.cases.enums import AdviceType
+from django.conf import settings
+from api.cases.enums import AdviceType, CountersignOrder
+
 from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyType
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -102,22 +104,43 @@ def good_add_remove_flags(**payload):
 
 def destination_add_flags(**payload):
     flags = [flag.strip() for flag in payload["added_flags"].split(",")]
+    action = "added"
     destination_name = payload["destination_name"].title()
-    if len(flags) == 1:
-        return f"added the flag '{flags[0]}' from the destination '{destination_name}'."
-    elif len(flags) >= 2:
-        formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
-        return f"added the flags {formatted_flags} from the destination '{destination_name}'."
+    return format_flags_message(flags, action, destination_name)
 
 
 def destination_remove_flags(**payload):
     flags = [flag.strip() for flag in payload["removed_flags"].split(",")]
-    destination_name = payload["destination_name"].title()
-    if len(flags) == 1:
-        return f"removed the flag '{flags[0]}' from the destination '{destination_name}'."
-    elif len(flags) >= 2:
-        formatted_flags = f"{str(flags[:-1])[1:-1]} and '{flags[-1]}'"
-        return f"removed the flags {formatted_flags} from the destination '{destination_name}'."
+    # short audit message for LU countersigning case finalising only
+    action = "removed"
+    is_lu_countersign_finalise_case = payload.get("is_lu_countersign_finalise_case", False)
+    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and is_lu_countersign_finalise_case:
+        return format_flags_message(flags, action)
+    else:
+        destination_name = payload["destination_name"].title()
+        return format_flags_message(flags, action, destination_name)
+
+
+def format_flags_message(flags, action, destination_name=None):
+    number_of_flags = len(flags)
+
+    if number_of_flags == 1:
+        message = f"{action} the flag '{flags[0]}'"
+
+    if number_of_flags >= 2:
+        all_but_last_flag = ", ".join(f"'{flag}'" for flag in flags[:-1])
+        formatted_flags = f"{all_but_last_flag} and '{flags[-1]}'"
+        message = f"{action} the flags {formatted_flags}"
+
+    if destination_name and action == "added":
+        message += f" to the destination '{destination_name}'"
+
+    if destination_name and action == "removed":
+        message += f" from the destination '{destination_name}'"
+
+    message += "."
+
+    return message
 
 
 def get_party_type_value(party_type):
@@ -261,3 +284,23 @@ def generate_decision_letter(**payload):
         return "created a 'no licence required' letter."
 
     return f"invalid decision {decision} for this event."
+
+
+def create_lu_advice(firstname, lastname, advice_type, **payload):  # /PS-IGNORE
+    if advice_type == AdviceType.PROVISO:
+        return f"{firstname} {lastname} added a licence condition."  # /PS-IGNORE
+    return f"{firstname} {lastname} added a recommendation to {advice_type}."  # /PS-IGNORE
+
+
+def update_lu_advice(firstname, lastname, advice_type, **payload):  # /PS-IGNORE
+    if advice_type == AdviceType.PROVISO:
+        return f"{firstname} {lastname} edited a licence condition."  # /PS-IGNORE
+    advice_type_noun = {AdviceType.APPROVE: "approval", AdviceType.REFUSE: "refusal"}[advice_type]
+    return f"{firstname} {lastname} edited their {advice_type_noun} reason."  # /PS-IGNORE
+
+
+def lu_countersign_advice(firstname, lastname, department, order, countersign_accepted, **payload):  # /PS-IGNORE
+    senior_text = "senior " if order == CountersignOrder.SECOND_COUNTERSIGN else ""
+    if countersign_accepted:
+        return f"{firstname} {lastname} {senior_text}countersigned all {department} recommendations."  # /PS-IGNORE
+    return f"{firstname} {lastname} declined to {senior_text}countersign {department} recommendations."  # /PS-IGNORE
