@@ -288,13 +288,13 @@ def generate_decision_letter(**payload):
 
 def create_lu_advice(advice_type, **payload):  # /PS-IGNORE
     if advice_type == AdviceType.PROVISO:
-        return f" added a licence condition."  # /PS-IGNORE
+        return " added a licence condition."  # /PS-IGNORE
     return f" added a recommendation to {advice_type}."  # /PS-IGNORE
 
 
 def update_lu_advice(advice_type, **payload):  # /PS-IGNORE
     if advice_type == AdviceType.PROVISO:
-        return f" edited a licence condition."  # /PS-IGNORE
+        return " edited a licence condition."  # /PS-IGNORE
     advice_type_noun = {AdviceType.APPROVE: "approval", AdviceType.REFUSE: "refusal"}[advice_type]
     return f" edited their {advice_type_noun} reason."  # /PS-IGNORE
 
