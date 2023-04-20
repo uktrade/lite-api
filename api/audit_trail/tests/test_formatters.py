@@ -469,42 +469,38 @@ class FormattersTest(DataTestClient):
 
     @parameterized.expand(
         [
-            ("Test", "User", AdviceType.APPROVE, "Test User added a recommendation to approve."),
-            ("Dark", "Knight", AdviceType.REFUSE, "Dark Knight added a recommendation to refuse."),
-            ("Robin", "Hood", AdviceType.PROVISO, "Robin Hood added a licence condition."),
+            (AdviceType.APPROVE, " added a recommendation to approve."),
+            (AdviceType.REFUSE, " added a recommendation to refuse."),
+            (AdviceType.PROVISO, " added a licence condition."),
         ]
     )
-    def test_create_lu_advice(self, first, last, advice_status, expected_text):
-        result = formatters.create_lu_advice(first, last, advice_status)
+    def test_create_lu_advice(self, advice_status, expected_text):
+        result = formatters.create_lu_advice(advice_status)
         assert result == expected_text
 
     @parameterized.expand(
         [
-            ("Test", "User", AdviceType.APPROVE, "Test User edited their approval reason."),
-            ("Dark", "Knight", AdviceType.REFUSE, "Dark Knight edited their refusal reason."),
-            ("Robin", "Hood", AdviceType.PROVISO, "Robin Hood edited a licence condition."),
+            (AdviceType.APPROVE, " edited their approval reason."),
+            (AdviceType.REFUSE, " edited their refusal reason."),
+            (AdviceType.PROVISO, " edited a licence condition."),
         ]
     )
-    def test_update_lu_advice(self, first, last, advice_status, expected_text):
-        result = formatters.update_lu_advice(
-            first, last, advice_status, other_param="ignore_other_params"
-        )  # /PS-IGNORE
+    def test_update_lu_advice(self, advice_status, expected_text):
+        result = formatters.update_lu_advice(advice_status, other_param="ignore_other_params")  # /PS-IGNORE
         assert result == expected_text
 
     @parameterized.expand(
         [
-            ("Test", "User", "DIT", 1, True, "Test User countersigned all DIT recommendations."),
-            ("Sweeney", "Todd", "MOD", 1, True, "Sweeney Todd countersigned all MOD recommendations."),
-            ("Black", "Beard", "DIT", 1, False, "Black Beard declined to countersign DIT recommendations."),
-            ("Calico", "Jack", "MOD", 1, False, "Calico Jack declined to countersign MOD recommendations."),
-            ("Test", "User", "DIT", 2, True, "Test User senior countersigned all DIT recommendations."),
-            ("Sweeney", "Todd", "MOD", 2, True, "Sweeney Todd senior countersigned all MOD recommendations."),
-            ("Black", "Beard", "DIT", 2, False, "Black Beard declined to senior countersign DIT recommendations."),
-            ("Calico", "Jack", "MOD", 2, False, "Calico Jack declined to senior countersign MOD recommendations."),
+            ("DIT", 1, True, " countersigned all DIT recommendations."),
+            ("MOD", 1, True, " countersigned all MOD recommendations."),
+            ("DIT", 1, False, " declined to countersign DIT recommendations."),
+            ("MOD", 1, False, " declined to countersign MOD recommendations."),
+            ("DIT", 2, True, " senior countersigned all DIT recommendations."),
+            ("MOD", 2, True, " senior countersigned all MOD recommendations."),
+            ("DIT", 2, False, " declined to senior countersign DIT recommendations."),
+            ("MOD", 2, False, " declined to senior countersign MOD recommendations."),
         ]
     )
-    def test_lu_countersign_advice(self, first, last, dept, order, countersign_accepted, expected_text):
-        result = formatters.lu_countersign_advice(
-            first, last, dept, order, countersign_accepted, other_param="ignore_other_params"
-        )
+    def test_lu_countersign_advice(self, dept, order, countersign_accepted, expected_text):
+        result = formatters.lu_countersign_advice(dept, order, countersign_accepted, other_param="ignore_other_params")
         assert result == expected_text
