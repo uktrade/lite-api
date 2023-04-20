@@ -19,7 +19,6 @@ from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
-from api.cases.enums import CaseTypeTypeEnum
 
 
 def get_case_status_list() -> List[Dict]:
