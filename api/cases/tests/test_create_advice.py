@@ -228,9 +228,9 @@ class CreateCaseAdviceTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [AdviceType.APPROVE, "John Smith added a recommendation to approve."],
-            [AdviceType.REFUSE, "John Smith added a recommendation to refuse."],
-            [AdviceType.PROVISO, "John Smith added a licence condition."],
+            [AdviceType.APPROVE, " added a recommendation to approve."],
+            [AdviceType.REFUSE, " added a recommendation to refuse."],
+            [AdviceType.PROVISO, " added a licence condition."],
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
@@ -275,9 +275,9 @@ class CreateCaseAdviceTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [AdviceType.APPROVE, "John Smith edited their approval reason."],
-            [AdviceType.REFUSE, "John Smith edited their refusal reason."],
-            [AdviceType.PROVISO, "John Smith edited a licence condition."],
+            [AdviceType.APPROVE, " edited their approval reason."],
+            [AdviceType.REFUSE, " edited their refusal reason."],
+            [AdviceType.PROVISO, " edited a licence condition."],
         ]
     )
     @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
@@ -491,28 +491,28 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
                 CountersignOrder.FIRST_COUNTERSIGN,
                 True,
                 "Accepted reason",
-                "John Smith countersigned all DIT recommendations.",
+                " countersigned all DIT recommendations.",
             ],
             [
                 None,
                 CountersignOrder.FIRST_COUNTERSIGN,
                 False,
                 "Refused reason",
-                "John Smith declined to countersign department recommendations.",
+                " declined to countersign department recommendations.",
             ],
             [
                 None,
                 CountersignOrder.SECOND_COUNTERSIGN,
                 True,
                 "Senior accepted reason",
-                "John Smith senior countersigned all department recommendations.",
+                " senior countersigned all department recommendations.",
             ],
             [
                 "MOD",
                 CountersignOrder.SECOND_COUNTERSIGN,
                 False,
                 "Senior refused reason",
-                "John Smith declined to senior countersign MOD recommendations.",
+                " declined to senior countersign MOD recommendations.",
             ],
         ]
     )
