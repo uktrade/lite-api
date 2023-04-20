@@ -196,21 +196,20 @@ def get_hmrc_sla_hours(cases: List[Dict]):
 
 
 def populate_destinations(cases: List[Dict]):
-    for case in cases:
-        id = case["id"]
-        destinations = []
+    case_map = {case["id"]: case for case in cases}
+    poas = PartyOnApplication.objects.select_related("party", "party__country").filter(
+        application__in=list(case_map.keys()), deleted_at=None
+    )
+    for poa in poas:
+        serializer = CountrySerializer(poa.party.country)
+        data = serializer.data
+        case = case_map[str(poa.application_id)]
+        if case.get("destinations"):
+            case["destinations"].append(data)
+        else:
+            case["destinations"] = [data]
+    return list(case_map.values())
 
-        if case["case_type"]["type"]["key"] == CaseTypeTypeEnum.APPLICATION:
-            for poa in PartyOnApplication.objects.select_related("party", "party__country").filter(
-                application=id, deleted_at=None
-            ):
-                serializer = CountrySerializer(poa.party.country)
-                data = serializer.data
-                destinations.append(data)
-
-        case["destinations"] = destinations
-
-    return cases
 
 
 def populate_activity_updates(cases: List[Dict]):
