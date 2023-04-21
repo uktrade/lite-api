@@ -210,7 +210,6 @@ def populate_destinations(cases: List[Dict]):
     return list(case_map.values())
 
 
-
 def populate_activity_updates(cases: List[Dict]):
     """
     retrieve the last 2 activities per case for the provided list of cases
