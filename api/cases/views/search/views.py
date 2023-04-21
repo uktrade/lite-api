@@ -78,6 +78,9 @@ class CasesSearchView(generics.ListAPIView):
         service.get_hmrc_sla_hours(cases)
         service.populate_activity_updates(case_map)
         service.populate_destinations(case_map)
+        service.populate_good_details(cases)
+        service.populate_denials(cases)
+        service.populate_ecju_queries(cases)
 
         # Get queue from system & my queues.
         # If this fails (i.e. I'm on a non team queue) fetch the queue data
