@@ -450,8 +450,7 @@ PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
 # See LTD-1159
 FEATURE_SIEL_COMPLIANCE_ENABLED = env.bool("FEATURE_SIEL_COMPLIANCE_ENABLED", False)
 
-FEATURE_C5_ROUTING_ENABLED = env.bool("FEATURE_C5_ROUTING_ENABLED", True)
-FEATURE_C6_ROUTING_ENABLED = env.bool("FEATURE_C6_ROUTING_ENABLED", True)
+FEATURE_C7_ROUTING_ENABLED = env.bool("FEATURE_C7_ROUTING_ENABLED", False)
 
 FEATURE_COUNTERSIGN_ROUTING_ENABLED = env.bool("FEATURE_COUNTERSIGN_ROUTING_ENABLED", True)
 
@@ -474,3 +473,10 @@ if GIT_COMMIT_SHA == "UNKNOWN" and ENV == "local":
         GIT_COMMIT_SHA = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()  # nosec
     except Exception:
         GIT_COMMIT_SHA = "UNKNOWN"
+
+ENABLE_DJANGO_SILK = env.bool("ENABLE_DJANGO_SILK", False)
+
+if ENABLE_DJANGO_SILK:
+    INSTALLED_APPS.append("silk")
+    middleware_index = MIDDLEWARE.index("django.contrib.messages.middleware.MessageMiddleware") + 1
+    MIDDLEWARE.insert(middleware_index, "silk.middleware.SilkyMiddleware")

@@ -42,7 +42,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         Initiate parties queryset cache, split parties by type including non data store type: inactive_parties
         """
         self.__cache = defaultdict(list)
-        for poa in instance.all_parties():
+        for poa in instance.all_parties:
             party = PartySerializer(poa.party).data
             party["flags"] += FlagSerializer(poa.flags, many=True).data
             if poa.deleted_at:
@@ -94,8 +94,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
 
         """
         parties_on_application = (
-            instance.all_parties()
-            .filter(party__type=party_type, deleted_at__isnull=True)
+            instance.all_parties.filter(party__type=party_type, deleted_at__isnull=True)
             .annotate(
                 highest_flag_priority=Min("party__flags__priority"),
                 contains_flags=Case(When(party__flags__isnull=True, then=0), default=1, output_field=BinaryField()),

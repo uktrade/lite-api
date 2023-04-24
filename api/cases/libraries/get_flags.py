@@ -55,7 +55,10 @@ def get_flags(case: Case) -> QuerySet:
     goods_flags = get_goods_flags(case, case_type)
     destination_flags = get_destination_flags(case, case_type)
     case_flags = case.flags.all()
-    org_flags = Flag.objects.filter(organisations__cases__id=case.id)
+    # Prefetch the organisation flag IDs to avoid generating SLOW queries elsewhere
+    # (e.g. get_ordered_flags which uses this result)
+    org_flag_ids = case.organisation.flags.values_list("id", flat=True)
+    org_flags = Flag.objects.filter(id__in=org_flag_ids)
 
     return goods_flags | destination_flags | case_flags | org_flags
 

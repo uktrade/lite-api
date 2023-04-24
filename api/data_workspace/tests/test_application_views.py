@@ -73,7 +73,7 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
         for key in expected_keys:
             self.assertTrue(key in actual_keys)
 
-    def test_dw_good_on_application_views(self):
+    def test_dw_good_on_application_views_OPTIONS(self):
         self.good = GoodFactory(
             organisation=self.organisation, flags=[FlagFactory(level=FlagLevels.GOOD, team=self.team)]
         )
@@ -98,6 +98,7 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
             "report_summary",
             "firearm_details",
             "good_application_documents",
+            "good_application_internal_documents",
             "is_precedent",
             "nsg_list_type",
             "is_trigger_list_guidelines_applicable",
@@ -110,6 +111,47 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
         response = self.client.options(self.party_on_applications)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         actual_keys = response.json()["actions"]["GET"].keys()
+        expected_keys = ("id", "created_at", "updated_at", "deleted_at", "application", "party", "flags")
+        self.assertEqual(tuple(actual_keys), expected_keys)
+
+    def test_dw_good_on_application_views_GET(self):
+        self.good = GoodFactory(
+            organisation=self.organisation, flags=[FlagFactory(level=FlagLevels.GOOD, team=self.team)]
+        )
+        self.application = self.create_draft_standard_application(organisation=self.organisation)
+        self.good_on_application = GoodOnApplication.objects.create(
+            good=self.good, application=self.application, quantity=10, unit=Units.NAR, value=500
+        )
+        response = self.client.get(self.good_on_applications)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        actual_keys = response.json()["results"][0].keys()
+        expected_keys = [
+            "id",
+            "good",
+            "application",
+            "quantity",
+            "unit",
+            "value",
+            "is_good_incorporated",
+            "flags",
+            "is_good_controlled",
+            "control_list_entries",
+            "report_summary",
+            "firearm_details",
+            "good_application_documents",
+            "good_application_internal_documents",
+            "is_precedent",
+            "nsg_list_type",
+            "is_trigger_list_guidelines_applicable",
+            "is_nca_applicable",
+            "nsg_assessment_note",
+        ]
+        for key in expected_keys:
+            self.assertTrue(key in actual_keys)
+
+        response = self.client.get(self.party_on_applications)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        actual_keys = response.json()["results"][0].keys()
         expected_keys = ("id", "created_at", "updated_at", "deleted_at", "application", "party", "flags")
         self.assertEqual(tuple(actual_keys), expected_keys)
 
