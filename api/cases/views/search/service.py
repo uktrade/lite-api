@@ -17,8 +17,8 @@ from api.common.dates import working_days_in_range, number_of_days_since, workin
 from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.users.enums import UserStatuses
-from api.users.models import GovUser
+from api.users.enums import UserStatuses, UserType
+from api.users.models import BaseUser, GovUser
 
 
 def get_case_status_list() -> List[Dict]:
@@ -215,7 +215,8 @@ def populate_activity_updates(cases: List[Dict]):
     retrieve the last 2 activities per case for the provided list of cases
     """
     obj_type = ContentType.objects.get_for_model(Case)
-    case_ids = [case["id"] for case in cases]
+    case_map = {case["id"]: case for case in cases}
+    case_ids = list(case_map.keys())
     # iterate over audit records once and add max of 2 records per matching
     # action_object_content_type or target_content_type (up to 4 total)
     top_2_per_case = Audit.objects.filter(
@@ -227,8 +228,11 @@ def populate_activity_updates(cases: List[Dict]):
         Q(target_object_id__in=case_ids, target_content_type=obj_type)
         | Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type),
     )
-    # dictionary used to avoid nested looping while adding activities to cases
-    case_id_indexes = {case["id"]: i for i, case in enumerate(cases)}
+    # get users data for activities en bulk to reduce query count
+    user_ids = {activity.actor_object_id for activity in activities_qs}
+    users = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").filter(id__in=user_ids)
+    user_map = {str(user.id): user for user in users}
+
     for activity in activities_qs:
         case_id = None
         # get case id from either of the audit record fields
@@ -236,9 +240,15 @@ def populate_activity_updates(cases: List[Dict]):
             case_id = activity.target_object_id
         else:
             case_id = activity.action_object_object_id
-
+        # prepopulate actor for AuditSerializer
+        actor = user_map[activity.actor_object_id]
+        if actor.type == UserType.INTERNAL:
+            actor = actor.govuser
+        elif actor.type == UserType.EXPORTER:
+            actor = actor.exporteruser
+        activity.actor = actor
         activity_obj = AuditSerializer(activity).data
-        case = cases[case_id_indexes[case_id]]
+        case = case_map[case_id]
         if "activity_updates" in case:
             case["activity_updates"].append(activity_obj)
         else:
