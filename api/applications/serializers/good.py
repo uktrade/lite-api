@@ -22,9 +22,14 @@ from api.cases.models import Case
 from api.core.serializers import KeyValueChoiceField
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import GoodControlled, ItemType
+from api.flags.serializers import CaseListFlagSerializer
 from api.goods.helpers import update_firearms_certificate_data
 from api.goods.models import Good
-from api.goods.serializers import GoodSerializerInternal, FirearmDetailsSerializer
+from api.goods.serializers import (
+    GoodSerializerInternal,
+    FirearmDetailsSerializer,
+    GoodSerializerInternalIncludingPrecedents,
+)
 from api.licences.models import GoodOnLicence
 from api.organisations.models import DocumentOnOrganisation
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
@@ -88,8 +93,6 @@ class GoodOnApplicationRegimeEntrySerializer(serializers.ModelSerializer):
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializerInternal(read_only=True)
-    good_application_documents = serializers.SerializerMethodField()
-    good_application_internal_documents = serializers.SerializerMethodField()
     unit = KeyValueChoiceField(choices=Units.choices)
     flags = serializers.SerializerMethodField()
     control_list_entries = ControlListEntrySerializer(many=True)
@@ -125,8 +128,6 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "report_summary_subject",
             "audit_trail",
             "firearm_details",
-            "good_application_documents",
-            "good_application_internal_documents",
             "is_precedent",
             "is_onward_exported",
             "is_onward_altered_processed",
@@ -138,20 +139,11 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "is_trigger_list_guidelines_applicable",
             "is_nca_applicable",
             "nsg_assessment_note",
+            "is_ncsc_military_information_security",
         )
 
     def get_flags(self, instance):
-        return list(instance.good.flags.values("id", "name", "colour", "label"))
-
-    def get_good_application_documents(self, instance):
-        documents = GoodOnApplicationDocument.objects.filter(
-            application=instance.application, good=instance.good, safe=True
-        )
-        return GoodOnApplicationDocumentViewSerializer(documents, many=True).data
-
-    def get_good_application_internal_documents(self, instance):
-        documents = GoodOnApplicationInternalDocument.objects.filter(good_on_application=instance.id, safe=True)
-        return GoodOnApplicationInternalDocumentViewSerializer(documents, many=True).data
+        return CaseListFlagSerializer(instance.good.flags, many=True).data
 
     def get_audit_trail(self, instance):
         # this serializer is used by a few views. Most views do not need to know audit trail
@@ -166,6 +158,31 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             firearm_details_serializer.update(instance.firearm_details, firearm_details_validated_data)
 
         return super().update(instance, validated_data)
+
+
+class GoodOnApplicationDataWorkspaceSerializer(GoodOnApplicationViewSerializer):
+
+    good = GoodSerializerInternalIncludingPrecedents(read_only=True)
+    good_application_documents = serializers.SerializerMethodField()
+    good_application_internal_documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GoodOnApplication
+        base_fields = list(GoodOnApplicationViewSerializer.Meta.fields)
+        fields = base_fields + [
+            "good_application_documents",
+            "good_application_internal_documents",
+        ]
+
+    def get_good_application_documents(self, instance):
+        documents = GoodOnApplicationDocument.objects.filter(
+            application=instance.application, good=instance.good, safe=True
+        )
+        return GoodOnApplicationDocumentViewSerializer(documents, many=True).data
+
+    def get_good_application_internal_documents(self, instance):
+        documents = GoodOnApplicationInternalDocument.objects.filter(good_on_application=instance.id, safe=True)
+        return GoodOnApplicationInternalDocumentViewSerializer(documents, many=True).data
 
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):

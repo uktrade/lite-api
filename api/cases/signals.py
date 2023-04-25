@@ -1,6 +1,6 @@
-from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.conf import settings
 
 from api.applications.notify import notify_caseworker_countersign_return
 from api.cases.models import Case
@@ -11,9 +11,6 @@ from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 @receiver(post_save, sender=Case)
 def case_post_save_handler(sender, instance, raw=False, **kwargs):
-    if not settings.FEATURE_C5_ROUTING_ENABLED:
-        return
-
     if raw:
         return
 
