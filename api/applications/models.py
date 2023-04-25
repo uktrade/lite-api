@@ -470,6 +470,9 @@ class GoodOnApplication(AbstractGoodOnApplication):
     )
     is_nca_applicable = models.BooleanField(default=None, blank=True, null=True)
     nsg_assessment_note = models.TextField(help_text="Trigger list assessment note", default="", blank=True)
+    is_ncsc_military_information_security = models.BooleanField(
+        default=None, blank=True, null=True, help_text="trigger to NCSC for a recommendation"
+    )
 
     class Meta:
         ordering = ["created_at"]

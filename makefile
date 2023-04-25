@@ -2,30 +2,63 @@ ARGUMENTS = $(filter-out $@,$(MAKECMDGOALS)) $(filter-out --,$(MAKEFLAGS))
 
 docker-base = docker-compose -f docker-compose.e2e.yml
 
+build-e2e:
+	$(docker-base) build --build-arg GIT_ACCESS_CODE=${GIT_ACCESS_CODE}
+
 clean:
 	-find . -type f -name "*.pyc" -delete
 	-find . -type d -name "__pycache__" -delete
 
-runserver:
-	pipenv run ./manage.py runserver localhost:8100
-
-migrate:
-	pipenv run ./manage.py migrate
+doc-manage:
+	docker exec -it api ./manage.py $(ARGUMENTS)
 
 doc-migrate:
 	docker exec -it api ./manage.py migrate
 
+doc-runserver:
+	docker exec -it api ./manage.py runserver localhost:8100
+
+doc-seed:
+	docker exec -it api ./manage.py seedrolepermissions
+	docker exec -it api ./manage.py seedinternalusers
+	docker exec -it api ./manage.py seedexporterusers
+
+doc-test:
+	docker exec -it api ./manage.py test
+
 manage:
+	./manage.py $(ARGUMENTS)
+
+migrate:
+	./manage.py migrate
+
+pip-manage:
 	pipenv run ./manage.py $(ARGUMENTS)
 
-test:
+pip-migrate:
+	pipenv run ./manage.py migrate
+
+pip-runserver:
+	pipenv run ./manage.py runserver localhost:8100
+
+pip-seed:
+	pipenv run ./manage.py seedrolepermissions
+	pipenv run ./manage.py seedinternalusers
+	pipenv run ./manage.py seedexporterusers
+
+pip-test:
 	pipenv run ./manage.py test
+
+runserver:
+	./manage.py runserver localhost:8100
 
 secrets:
 	cp local.env .env
 
-build-e2e:
-	$(docker-base) build --build-arg GIT_ACCESS_CODE=${GIT_ACCESS_CODE}
+seed:
+	./manage.py seedrolepermissions
+	./manage.py seedinternalusers
+	./manage.py seedexporterusers
 
 start-e2e:
 	$(docker-base) up
@@ -33,7 +66,5 @@ start-e2e:
 stop-e2e:
 	$(docker-base) down --remove-orphans
 
-seed:
-	./manage.py seedrolepermissions
-	./manage.py seedinternalusers
-	./manage.py seedexporterusers
+test:
+	./manage.py test
