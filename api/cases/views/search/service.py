@@ -195,7 +195,10 @@ def get_hmrc_sla_hours(cases: List[Dict]):
 
 
 def populate_destinations(cases: List[Dict]):
-    case_map = {case["id"]: case for case in cases}
+    case_map = {}
+    for case in cases:
+        case_map[case["id"]] = case
+        case["destinations"] = []
     poas = PartyOnApplication.objects.select_related("party", "party__country").filter(
         application__in=list(case_map.keys()), deleted_at=None
     )

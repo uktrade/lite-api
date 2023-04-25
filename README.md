@@ -84,6 +84,8 @@ Run the following command to initially add users (after setting `INTERNAL_USERS`
 ./manage.py seedexporterusers
 ```
 
+There is also the `make seed` command which does the same thing as the above. See the section Makefile commands below.
+
 to add subsequent new users:
 
 ```
@@ -163,3 +165,23 @@ Once the changes are done run the seed command to populate the database with the
 Deploy the API so that it picks up the updated entries in the corresponding environment. Because of the way the seeding commands are executed during deployment we have to deploy twice to see these changes. During deployment it first runs the seed commands and then deploys new changes so during the first deployment we are still seeding existing entries. If we deploy twice then the updated entries get seeded.
 
 Once the API is deployed then restart the frontends because the control list entries are cached in the frontend and to discard them and pull the updated list we need to restart the app.
+
+## Makefile commands
+
+The `makefile` in the top-level directory is where frequently used shell commands can be stored for convenience. For example, running the command:
+
+```sh
+make seed
+```
+
+is equivalent to
+
+```sh
+./manage.py seedrolepermissions
+./manage.py seedinternalusers
+./manage.py seedexporterusers
+```
+
+but is more convenient to use. This is helpful to have when doing things like tearing down and setting up the database multiple times per day.
+
+The commands should be self-documenting with a name that clearly describes what the command does.
