@@ -149,7 +149,7 @@ def mark_lu_rejected_countersignatures_as_invalid(case, user):
     back to caseworker for finalising.
     """
     lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
-    if not settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED or not (user.govuser.team == lu_team):
+    if not (user.govuser.team == lu_team):
         return
 
     countersign_orders = get_lu_required_countersign_orders(case)

@@ -114,7 +114,7 @@ def destination_remove_flags(**payload):
     # short audit message for LU countersigning case finalising only
     action = "removed"
     is_lu_countersign_finalise_case = payload.get("is_lu_countersign_finalise_case", False)
-    if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED and is_lu_countersign_finalise_case:
+    if is_lu_countersign_finalise_case:
         return format_flags_message(flags, action)
     else:
         destination_name = payload["destination_name"].title()

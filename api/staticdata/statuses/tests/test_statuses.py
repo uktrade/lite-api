@@ -21,14 +21,12 @@ class TestCaseStatus:
 
     @parameterized.expand([(True,), (False,)])
     def test_read_only_status_contains_lu_countersign_statuses(self, flag_status):
-        with override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=flag_status):
-            statuses = get_case_statuses(read_only=True)
-            assert (CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN in statuses) is flag_status
-            assert (CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN in statuses) is flag_status
+        statuses = get_case_statuses(read_only=True)
+        assert (CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN in statuses) is flag_status
+        assert (CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN in statuses) is flag_status
 
     @parameterized.expand([(True,), (False,)])
     def test_all_status_contains_lu_countersign_statuses(self, flag_status):
-        with override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=flag_status):
-            statuses = CaseStatusEnum.all()
-            assert (CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN in statuses) is flag_status
-            assert (CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN in statuses) is flag_status
+        statuses = CaseStatusEnum.all()
+        assert (CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN in statuses) is flag_status
+        assert (CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN in statuses) is flag_status

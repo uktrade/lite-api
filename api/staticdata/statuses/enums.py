@@ -145,26 +145,24 @@ class CaseStatusEnum:
     @classmethod
     def get_choices(cls):
         lu_countersign_statuses = []
-        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
-            lu_countersign_statuses.extend(
-                [
-                    (cls.FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
-                    (cls.FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
-                ]
-            )
+        lu_countersign_statuses.extend(
+            [
+                (cls.FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
+                (cls.FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
+            ]
+        )
 
         return cls.choices + lu_countersign_statuses
 
     @classmethod
     def get_read_only_choices(cls):
         lu_countersign_statuses = []
-        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
-            lu_countersign_statuses.extend(
-                [
-                    cls.FINAL_REVIEW_COUNTERSIGN,
-                    cls.FINAL_REVIEW_SECOND_COUNTERSIGN,
-                ]
-            )
+        lu_countersign_statuses.extend(
+            [
+                cls.FINAL_REVIEW_COUNTERSIGN,
+                cls.FINAL_REVIEW_SECOND_COUNTERSIGN,
+            ]
+        )
 
         return cls._read_only_statuses + lu_countersign_statuses
 

@@ -31,8 +31,7 @@ def _check_for_countersign_rejection(case):
     # and it immediately goes back to finalise queue to edit the recommendation. In terms of status changes however the status still
     # progresses to second countersign status (rules etc are not triggered) and the case is progressed again to under final review status.
     if (
-        settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED
-        and case.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
+        case.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
         and case._previous_status.status == CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN
     ):
         # send notification to case officer as advice has been rejected by countersigner
