@@ -59,7 +59,6 @@ def populate_other_flags(cases: List[Dict]):
         case_id = str(case["id"])
         flags = [flag for flag in union_flags if str(flag.case_id) == case_id]
         case["flags"] = CaseListFlagSerializer(flags, many=True).data
-    return cases
 
 
 def populate_goods_flags(cases: List[Dict]):
@@ -81,8 +80,6 @@ def populate_goods_flags(cases: List[Dict]):
         case["goods_flags"] = CaseListFlagSerializer(
             {flag for flag in flags if str(flag.case_id) == str(case["id"])}, many=True
         ).data
-
-    return cases
 
 
 def populate_destinations_flags(cases: List[Dict]):
@@ -121,8 +118,6 @@ def populate_destinations_flags(cases: List[Dict]):
         case_flags = {flag for flag in flags if str(flag.case_id) == str(case["id"])}
         case["destinations_flags"] = CaseListFlagSerializer(case_flags, many=True).data
 
-    return cases
-
 
 def populate_organisation(cases: List[Dict]):
     from api.organisations.serializers import OrganisationCaseSerializer
@@ -146,8 +141,6 @@ def populate_organisation(cases: List[Dict]):
             organisation for organisation in organisations if str(organisation.case_id) == str(case["id"])
         )
         case["organisation"] = OrganisationCaseSerializer(organisation).data
-
-    return cases
 
 
 def populate_is_recently_updated(cases: List[Dict]):
@@ -210,7 +203,6 @@ def populate_destinations(cases: List[Dict]):
             case["destinations"].append({"country": data})
         else:
             case["destinations"] = [{"country": data}]
-    return list(case_map.values())
 
 
 def populate_activity_updates(cases: List[Dict]):
@@ -261,5 +253,3 @@ def populate_activity_updates(cases: List[Dict]):
         if "activity_updates" in case:
             case["activity_updates"] = sorted(case["activity_updates"], key=lambda d: d["created_at"], reverse=True)
             case["activity_updates"] = case["activity_updates"][:2]
-
-    return cases

@@ -43,7 +43,8 @@ class TestSearchService(DataTestClient):
             target_content_type=ContentType.objects.get_for_model(Case),
             payload={"old_name": old_name, "new_name": new_name},
         )
-        cases = service.populate_activity_updates([{"id": str(self.case.id)}])
+        cases = [{"id": str(self.case.id)}]
+        service.populate_activity_updates(cases)
         # check only 2 records are present, sorted newest first
         assert len(cases[0]["activity_updates"]) == 2
         assert (
