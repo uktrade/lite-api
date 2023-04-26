@@ -187,11 +187,7 @@ def get_hmrc_sla_hours(cases: List[Dict]):
             case["sla_hours_since_raised"] = working_hours_in_range(case["submitted_at"], timezone.now())
 
 
-def populate_destinations(cases: List[Dict]):
-    case_map = {}
-    for case in cases:
-        case_map[case["id"]] = case
-        case["destinations"] = []
+def populate_destinations(case_map):
     poas = PartyOnApplication.objects.select_related("party", "party__country").filter(
         application__in=list(case_map.keys()), deleted_at=None
     )
@@ -205,12 +201,11 @@ def populate_destinations(cases: List[Dict]):
             case["destinations"] = [{"country": data}]
 
 
-def populate_activity_updates(cases: List[Dict]):
+def populate_activity_updates(case_map):
     """
     retrieve the last 2 activities per case for the provided list of cases
     """
     obj_type = ContentType.objects.get_for_model(Case)
-    case_map = {case["id"]: case for case in cases}
     case_ids = list(case_map.keys())
     # iterate over audit records once and add max of 2 records per matching
     # action_object_content_type or target_content_type (up to 4 total)
@@ -249,7 +244,7 @@ def populate_activity_updates(cases: List[Dict]):
         else:
             case["activity_updates"] = [activity_obj]
     # filter down to 2 most recent records only
-    for case in cases:
+    for case in case_map.values():
         if "activity_updates" in case:
             case["activity_updates"] = sorted(case["activity_updates"], key=lambda d: d["created_at"], reverse=True)
             case["activity_updates"] = case["activity_updates"][:2]

@@ -64,7 +64,11 @@ class CasesSearchView(generics.ListAPIView):
         )
 
         cases = CaseListSerializer(page, context=context, team=user.team, include_hidden=include_hidden, many=True).data
-
+        # performance
+        case_map = {}
+        for case in cases:
+            case["destinations"] = []
+            case_map[case["id"]] = case
         # Populate certain fields outside of the serializer for performance improvements
         service.populate_goods_flags(cases)
         service.populate_destinations_flags(cases)
@@ -72,8 +76,8 @@ class CasesSearchView(generics.ListAPIView):
         service.populate_organisation(cases)
         service.populate_is_recently_updated(cases)
         service.get_hmrc_sla_hours(cases)
-        service.populate_activity_updates(cases)
-        service.populate_destinations(cases)
+        service.populate_activity_updates(case_map)
+        service.populate_destinations(case_map)
 
         # Get queue from system & my queues.
         # If this fails (i.e. I'm on a non team queue) fetch the queue data
