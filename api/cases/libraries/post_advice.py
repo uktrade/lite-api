@@ -1,5 +1,4 @@
 from django.db.models import Q
-from django.conf import settings
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail

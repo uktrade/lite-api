@@ -1,6 +1,5 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.conf import settings
 
 from api.applications.notify import notify_caseworker_countersign_return
 from api.cases.models import Case

@@ -1,7 +1,6 @@
 from datetime import datetime
 from string import Formatter
 
-from django.conf import settings
 from api.cases.enums import AdviceType, CountersignOrder
 
 from api.licences.enums import LicenceStatus
