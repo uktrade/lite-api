@@ -2,12 +2,15 @@ import datetime
 
 from django.urls import reverse
 from django import utils as django_utils
+from parameterized import parameterized
 from rest_framework import status
 
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case, CaseAssignment, EcjuQuery
+from api.flags.models import Flag
+from api.flags.enums import FlagLevels
 from api.picklists.enums import PicklistType
 from api.cases.tests.factories import CaseSIELFactory
 from api.queues.constants import (
@@ -22,6 +25,8 @@ from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import GovUser
+
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
 class FilterAndSortTests(DataTestClient):
@@ -393,6 +398,35 @@ class FilterAndSortTests(DataTestClient):
         response_headers = response.headers
 
         self.assertEqual(response_headers["Resource-Count"], "2")
+
+    @parameterized.expand(
+        [
+            [FlagsEnum.SMALL_ARMS, "goods_flags"],
+            [FlagsEnum.LU_COUNTER_REQUIRED, "destinations_flags"],
+        ]
+    )
+    def test_filter_cases_by_flags(self, flag_id, flags_key):
+
+        # set required flags
+        for application in self.application_cases:
+            case = Case.objects.get(id=application.id)
+
+            good_on_application = application.goods.first()
+            good_on_application.good.flags.add(Flag.objects.get(id=FlagsEnum.SMALL_ARMS))
+
+            party_on_application = application.parties.first()
+            party_on_application.party.flags.add(Flag.objects.get(id=FlagsEnum.LU_COUNTER_REQUIRED))
+
+        url = f"{self.url}?flags={flag_id}"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(self.application_cases), len(response_data["cases"]))
+
+        for case in response_data["cases"]:
+            self.assertIn(flag_id, [item["id"] for item in case[flags_key]])
 
 
 class UpdatedCasesQueueTests(DataTestClient):
