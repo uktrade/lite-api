@@ -43,12 +43,13 @@ class TestSearchService(DataTestClient):
             target_content_type=ContentType.objects.get_for_model(Case),
             payload={"old_name": old_name, "new_name": new_name},
         )
-        case_map = {str(self.case.id), {"id": str(self.case.id)}}
+        case_id = str(self.case.id)
+        case_map = {case_id: {"id": case_id}}
         service.populate_activity_updates(case_map)
         # check only 2 records are present, sorted newest first
-        assert len(case_map.values()[0]["activity_updates"]) == 2
+        assert len(case_map[case_id]["activity_updates"]) == 2
         assert (
-            case_map.values()[0]["activity_updates"][0]["text"]
+            case_map[case_id]["activity_updates"][0]["text"]
             == f'updated the application name from "{old_name}" to "{new_name}".'
         )
-        assert case_map.values()[0]["activity_updates"][1]["text"] == f"updated the status to: {new_status}."
+        assert case_map[case_id]["activity_updates"][1]["text"] == f"updated the status to: {new_status}."
