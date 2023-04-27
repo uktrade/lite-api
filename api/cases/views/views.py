@@ -118,9 +118,19 @@ class CaseDetail(APIView):
                 "advice__countersigned_by__team",
                 "advice__countersigned_by__role",
                 "advice__denial_reasons",
+                "advice__good",
+                "advice__good__good",
+                "countersign_advice",
+                "flags",
+                "queues",
+                "copy_of",
+                "copy_of__status",
+                "copy_of__status__status",
             ],
             select_related=[
                 "case_type",
+                "case_officer",
+                "case_officer__team",
             ],
         )
         data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data
@@ -547,7 +557,13 @@ class EcjuQueryDetail(APIView):
         if serializer.is_valid():
             if "validate_only" not in request.data or not request.data["validate_only"]:
                 serializer.save()
-
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ECJU_QUERY_RESPONSE,
+                    action_object=serializer.instance,
+                    target=serializer.instance.case,
+                    payload={"ecju_response": data["response"]},
+                )
                 return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)

@@ -10,7 +10,7 @@ from api.applications.enums import (
     GoodsRecipients,
 )
 from api.applications.mixins.serializers import PartiesSerializerMixin
-from api.applications.models import DenialMatchOnApplication, StandardApplication
+from api.applications.models import StandardApplication
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from api.applications.serializers.serializer_helper import validate_field
 from api.audit_trail.enums import AuditType
@@ -28,7 +28,7 @@ from .generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from .good import GoodOnApplicationViewSerializer
+from .good import GoodOnApplicationViewSerializer, GoodOnApplicationDataWorkspaceSerializer
 from .fields import CaseStatusField
 
 
@@ -117,7 +117,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
         ]
 
     def get_denial_matches(self, instance):
-        denial_matches = DenialMatchOnApplication.objects.filter(application=instance, denial__is_revoked=False)
+        denial_matches = instance.denial_matches.filter(denial__is_revoked=False)
         return DenialMatchOnApplicationViewSerializer(denial_matches, many=True).data
 
     def get_is_amended(self, instance):
@@ -145,6 +145,10 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 return True
 
         return any([is_reference_name_updated, app_letter_ref_updated, is_product_removed])
+
+
+class StandardApplicationDataWorkspaceSerializer(StandardApplicationViewSerializer):
+    goods = GoodOnApplicationDataWorkspaceSerializer(many=True, read_only=True)
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):

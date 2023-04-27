@@ -8,14 +8,14 @@ from api.core.authentication import DataWorkspaceOnlyAuthentication
 
 class StandardApplicationListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = standard_application.StandardApplicationViewSerializer
+    serializer_class = standard_application.StandardApplicationDataWorkspaceSerializer
     pagination_class = LimitOffsetPagination
     queryset = models.StandardApplication.objects.all()
 
 
 class GoodOnApplicationListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = good.GoodOnApplicationViewSerializer
+    serializer_class = good.GoodOnApplicationDataWorkspaceSerializer
     pagination_class = LimitOffsetPagination
     queryset = models.GoodOnApplication.objects.all()
 

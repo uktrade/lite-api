@@ -123,7 +123,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def setUpClass(cls):
         """Run seed operations ONCE for the entire test suite."""
         if not Static.seeded:
-
             # HACK: Don't seed if we already seeeded and use --reuse-db or similar
             if "--reuse-db" in sys.argv or "--keepdb" in sys.argv:
                 from django.contrib.auth import get_user_model
@@ -874,7 +873,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         good_cles=None,
         good_kwargs=None,
     ):
-
         application = self.create_draft_standard_application(
             organisation, reference_name, safe_document, num_products=0
         )
@@ -1118,7 +1116,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         licence.decisions.set(decisions)
         return licence
 
-    def create_routing_rule(self, team_id, queue_id, tier, status_id, additional_rules: list, is_python_criteria=False):
+    def create_routing_rule(
+        self, team_id, queue_id, tier, status_id, additional_rules: list, is_python_criteria=False, active=True
+    ):
         user = self.gov_user.pk if RoutingRulesAdditionalFields.USERS in additional_rules else None
         flags = (
             [self.create_flag("routing_flag", FlagLevels.CASE, self.team).id]
@@ -1139,6 +1139,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             user_id=user,
             country_id=country,
             is_python_criteria=is_python_criteria,
+            active=active,
         )
 
         if case_types:

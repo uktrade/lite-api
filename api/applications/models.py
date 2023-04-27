@@ -6,6 +6,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 from rest_framework.exceptions import APIException
 from separatedvaluesfield.models import SeparatedValuesField
 
@@ -116,11 +117,20 @@ class ApplicationPartyMixin:
 
     @property
     def active_parties(self):
-        return self.all_parties().filter(deleted_at__isnull=True)
+        return self.all_parties.filter(deleted_at__isnull=True)
 
+    @cached_property
     def all_parties(self):
-        return self.parties.prefetch_related("party__flags").select_related(
-            "party", "party__organisation", "party__country"
+        return self.parties.prefetch_related(
+            "party__flags",
+            "party__flags__team",
+            "party__partydocument_set",
+            "party__parties_on_application",
+            "party__parties_on_application__flags",
+        ).select_related(
+            "party",
+            "party__organisation",
+            "party__country",
         )
 
     @property
@@ -460,6 +470,9 @@ class GoodOnApplication(AbstractGoodOnApplication):
     )
     is_nca_applicable = models.BooleanField(default=None, blank=True, null=True)
     nsg_assessment_note = models.TextField(help_text="Trigger list assessment note", default="", blank=True)
+    is_ncsc_military_information_security = models.BooleanField(
+        default=None, blank=True, null=True, help_text="trigger to NCSC for a recommendation"
+    )
 
     class Meta:
         ordering = ["created_at"]

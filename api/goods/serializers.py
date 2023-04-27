@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from api.applications.models import PartyOnApplication
 from api.core.helpers import str_to_bool
 from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
 from api.documents.libraries.process_document import process_document
@@ -756,8 +755,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
 
     def get_destinations(self, obj):
         destinations = (
-            PartyOnApplication.objects.filter(
-                application=obj.application,
+            obj.application.parties.filter(
                 deleted_at__isnull=True,
             )
             .values(
@@ -800,12 +798,15 @@ class GoodSerializerInternal(serializers.Serializer):
     software_or_technology_details = serializers.CharField()
     firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
     is_precedent = serializers.BooleanField(required=False, default=False)
-    precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
     product_description = serializers.CharField()
 
     def get_documents(self, instance):
         documents = instance.gooddocument_set.all()
         return SimpleGoodDocumentViewSerializer(documents, many=True).data
+
+
+class GoodSerializerInternalIncludingPrecedents(GoodSerializerInternal):
+    precedents = GoodOnApplicationSerializer(many=True, source="get_precedents")
 
 
 class TinyGoodDetailsSerializer(serializers.ModelSerializer):
@@ -923,6 +924,7 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
             "regime_entries",
             "report_summary_prefix",
             "report_summary_subject",
+            "is_ncsc_military_information_security",
         )
 
     def update(self, instance, validated_data):

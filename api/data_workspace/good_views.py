@@ -7,7 +7,7 @@ from api.core.authentication import DataWorkspaceOnlyAuthentication
 
 class GoodListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = serializers.GoodSerializerInternal
+    serializer_class = serializers.GoodSerializerInternalIncludingPrecedents
     pagination_class = LimitOffsetPagination
     queryset = models.Good.objects.all()
 
