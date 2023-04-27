@@ -3,6 +3,7 @@ from api.audit_trail.models import Audit
 from api.cases.models import Case
 from api.cases.views.search import service
 from django.contrib.contenttypes.models import ContentType
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -13,6 +14,13 @@ class TestSearchService(DataTestClient):
     def test_populate_activity_updates(self):
         self.case = self.create_standard_application_case(self.organisation).get_case()
         new_status = "1"
+        Audit.objects.create(
+            actor=self.system_user,
+            verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
+            target_object_id=self.case.id,
+            target_content_type=ContentType.objects.get_for_model(Case),
+            payload={"flag_name": FlagsEnum.AG_CHEMICAL, "additional_text": "additional note here"},
+        )
         Audit.objects.create(
             actor=self.exporter_user,
             verb=AuditType.UPDATED_APPLICATION_NAME,
