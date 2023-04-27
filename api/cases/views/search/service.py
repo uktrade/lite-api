@@ -236,6 +236,8 @@ def populate_activity_updates(case_map):
             actor = actor.govuser
         elif actor.type == UserType.EXPORTER:
             actor = actor.exporteruser
+        else:  # pragma: no cover
+            raise NotImplementedError(f"Audit types with actor type {actor.type} not implemented")
         activity.actor = actor
         activity_obj = AuditSerializer(activity).data
         case = case_map[case_id]
