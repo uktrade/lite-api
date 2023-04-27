@@ -118,6 +118,7 @@ class CaseListSerializer(serializers.Serializer):
     next_review_date = serializers.DateField()
     has_open_queries = serializers.BooleanField()
     case_officer = serializers.SerializerMethodField()
+    intended_end_use = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -157,6 +158,9 @@ class CaseListSerializer(serializers.Serializer):
                 "last_name": instance.case_officer.last_name,
                 "email": instance.case_officer.email,
             }
+
+    def get_intended_end_use(self, instance):
+        return instance.baseapplication.intended_end_use
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):

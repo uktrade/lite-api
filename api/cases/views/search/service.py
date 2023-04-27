@@ -289,7 +289,7 @@ def populate_ecju_queries(cases: List[Dict]):
     return list(case_map.values())
 
 
-def populate_activity_updates(cases: List[Dict]):
+def populate_activity_updates(case_map):
     """
     retrieve the last 2 activities per case for the provided list of cases
     """
