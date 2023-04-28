@@ -1,5 +1,4 @@
 import pytest
-from django.test import override_settings
 from parameterized import parameterized
 
 from api.staticdata.statuses.enums import CaseStatusEnum
