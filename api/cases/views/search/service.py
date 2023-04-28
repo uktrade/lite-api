@@ -235,6 +235,7 @@ def populate_activity_updates(case_map):
         if actor.type == UserType.INTERNAL:
             actor = actor.govuser
         elif actor.type == UserType.EXPORTER:
+            raise Exception("No coverage here")
             actor = actor.exporteruser
         else:  # pragma: no cover
             pass
