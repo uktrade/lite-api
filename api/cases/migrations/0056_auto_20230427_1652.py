@@ -51,6 +51,7 @@ class Migration(migrations.Migration):
                 (
                     "team",
                     models.ForeignKey(
+                        blank=True,
                         null=True,
                         on_delete=django.db.models.deletion.DO_NOTHING,
                         related_name="case_note_mentions",
