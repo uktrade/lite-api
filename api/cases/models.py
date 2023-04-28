@@ -299,11 +299,12 @@ class CaseReferenceCode(models.Model):
 
 class CaseNoteMentions(TimestampableModel):
 
-    user = models.ForeignKey(BaseUser, on_delete=models.DO_NOTHING, null=True)
-    team = models.ForeignKey(Team, on_delete=models.DO_NOTHING, null=True)
-    case = models.ForeignKey("cases.Case", on_delete=models.DO_NOTHING, null=False)
-    is_urgent = models.BooleanField(default=False, blank=False, null=False)
-    is_new = models.BooleanField(default=True, blank=False, null=False)
+    user = models.ForeignKey(GovUser, on_delete=models.DO_NOTHING, related_name="case_note_mentions")
+    team = models.ForeignKey(
+        Team, on_delete=models.DO_NOTHING, null=True, blank=True, related_name="case_note_mentions"
+    )
+    case = models.ForeignKey("cases.Case", on_delete=models.DO_NOTHING, related_name="case_note_mentions")
+    is_new = models.BooleanField(default=True, help_text="indicates if a user has accessed this mention")
 
 
 class CaseNote(TimestampableModel):
@@ -324,8 +325,14 @@ class CaseNote(TimestampableModel):
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
     notifications = GenericRelation(ExporterNotification, related_query_name="case_note")
+    is_urgent = models.BooleanField(default=False, help_text="indicates if a case note mention is urgent")
     mentions = models.ForeignKey(
-        CaseNoteMentions, on_delete=models.CASCADE, default=None, related_query_name="case_note_mentions"
+        CaseNoteMentions,
+        on_delete=models.CASCADE,
+        default=None,
+        blank=True,
+        null=True,
+        related_query_name="case_note",
     )
 
     def save(self, *args, **kwargs):
