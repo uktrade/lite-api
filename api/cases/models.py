@@ -304,7 +304,7 @@ class CaseNoteMentions(TimestampableModel):
         Team, on_delete=models.DO_NOTHING, null=True, blank=True, related_name="case_note_mentions"
     )
     case = models.ForeignKey("cases.Case", on_delete=models.DO_NOTHING, related_name="case_note_mentions")
-    is_new = models.BooleanField(default=True, help_text="indicates if a user has accessed this mention")
+    is_accessed = models.BooleanField(default=False, help_text="indicates if a user has accessed this mention")
 
 
 class CaseNote(TimestampableModel):

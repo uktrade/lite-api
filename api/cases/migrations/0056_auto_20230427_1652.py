@@ -37,8 +37,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "is_new",
-                    models.BooleanField(default=True, help_text="indicates if a user has accessed this mention"),
+                    "is_accessed",
+                    models.BooleanField(default=False, help_text="indicates if a user has accessed this mention"),
                 ),
                 (
                     "case",
