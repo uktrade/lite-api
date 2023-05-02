@@ -2,6 +2,7 @@ import django
 from django.db.models import F, When, DateField, Exists, OuterRef
 from django.http import HttpResponse
 from django.utils import timezone
+from api.queues.serializers import QueueListSerializer
 from rest_framework import generics
 
 from api.cases.libraries.dates import make_date_from_params
@@ -29,12 +30,6 @@ class CasesSearchView(generics.ListAPIView):
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
         is_system_queue = queue_id in SYSTEM_QUEUES.keys()
 
-        context = {
-            "queue_id": queue_id,
-            "is_system_queue": is_system_queue,
-            "is_work_queue": is_work_queue,
-        }
-
         # we include hidden cases in non work queues (all cases, all open cases)
         # and if the flag to include hidden is added
         include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
@@ -59,9 +54,12 @@ class CasesSearchView(generics.ListAPIView):
             )
         )
 
-        queues = get_system_queues(include_team_info=False, include_case_count=True, user=user) + get_team_queues(
-            team_id=user.team_id, include_team_info=False, include_case_count=True
-        )
+        context = {
+            "queue_id": queue_id,
+            "is_system_queue": is_system_queue,
+            "is_work_queue": is_work_queue,
+            "queue_list": QueueListSerializer(Queue.objects.select_related("team", "countersigning_queue").all()),
+        }
 
         cases = CaseListSerializer(page, context=context, team=user.team, include_hidden=include_hidden, many=True).data
         # performance
@@ -81,6 +79,9 @@ class CasesSearchView(generics.ListAPIView):
 
         # Get queue from system & my queues.
         # If this fails (i.e. I'm on a non team queue) fetch the queue data
+        queues = get_system_queues(include_team_info=False, include_case_count=True, user=user) + get_team_queues(
+            team_id=user.team_id, include_team_info=False, include_case_count=True
+        )
         queue = (
             next((q for q in queues if str(q["id"]) == str(queue_id)), None)
             or Queue.objects.filter(id=queue_id).values()[0]

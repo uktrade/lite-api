@@ -204,7 +204,7 @@ class GovAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
-            gov_user = GovUser.objects.get(pk=user_id)
+            gov_user = GovUser.objects.select_related("baseuser_ptr", "team").get(pk=user_id)
         except GovUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
