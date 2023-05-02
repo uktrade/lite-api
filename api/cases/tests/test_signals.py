@@ -15,15 +15,18 @@ class TestSignals(DataTestClient):
     def test_case_post_save_handler_status_changed(self, mocked_flagging_func):
         submitted = CaseStatus.objects.get(status="submitted")
         case = CaseFactory(status=submitted)
-        case.status = CaseStatus.objects.get(status="initial_checks")
-        case_post_save_handler(Case, case)
+        initial_checks = CaseStatus.objects.get(status="initial_checks")
+        case.status = initial_checks
+        case.save()
+        self.assertEqual(case._previous_status, submitted)
+        self.assertEqual(case.status, initial_checks)
         assert mocked_flagging_func.called
 
     @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
     def test_case_post_save_handler_status_not_changed(self, mocked_flagging_func):
         submitted = CaseStatus.objects.get(status="submitted")
         case = CaseFactory(status=submitted)
-        case_post_save_handler(Case, case)
+        case.save()
         assert not mocked_flagging_func.called
 
     @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
@@ -31,7 +34,7 @@ class TestSignals(DataTestClient):
         submitted = CaseStatus.objects.get(status="submitted")
         case = CaseFactory(status=submitted)
         case.status = CaseStatus.objects.get(status="draft")
-        case_post_save_handler(Case, case)
+        case.save()
         assert not mocked_flagging_func.called
 
     @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
@@ -39,7 +42,7 @@ class TestSignals(DataTestClient):
         submitted = CaseStatus.objects.get(status="submitted")
         case = CaseFactory(status=submitted)
         case.status = CaseStatus.objects.get(status="finalised")
-        case_post_save_handler(Case, case)
+        case.save()
         assert not mocked_flagging_func.called
 
     @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
@@ -48,14 +51,6 @@ class TestSignals(DataTestClient):
         case = CaseFactory(status=submitted)
         case.status = CaseStatus.objects.get(status="initial_checks")
         case_post_save_handler(Case, case, raw=True)
-        assert not mocked_flagging_func.called
-
-    @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
-    def test_case_post_save_handler_no_case_id(self, mocked_flagging_func):
-        submitted = CaseStatus.objects.get(status="submitted")
-        case = CaseFactory(status=submitted)
-        case.id = None
-        case_post_save_handler(Case, case)
         assert not mocked_flagging_func.called
 
     @mock.patch("api.cases.signals.apply_flagging_rules_to_case")

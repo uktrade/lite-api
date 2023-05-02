@@ -118,10 +118,6 @@ class Case(TimestampableModel):
 
         super(Case, self).save(*args, **kwargs)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._previous_status = self.status
-
     def get_case(self):
         """
         For any child models, this method allows easy access to the parent Case.

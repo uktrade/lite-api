@@ -28,11 +28,11 @@ def get_queues_qs(filters=None, include_team_info=True, include_case_count=False
     Returns a queryset of queues with optional team and case count information
     """
     queue_qs = (
-        Queue.objects.select_related("case_queues", "case_queues__case", "team", "countersigning_queue").filter(
+        Queue.objects.select_related("team", "countersigning_queue").filter(
             **filters
         )
         if filters
-        else Queue.objects.select_related("case_queues", "case_queues__case", "team", "countersigning_queue").all()
+        else Queue.objects.select_related("team", "countersigning_queue").all()
     )
 
     if not include_team_info:
