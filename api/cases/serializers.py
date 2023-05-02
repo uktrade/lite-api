@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
 from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
+from api.applications.models import BaseApplication
 from api.audit_trail.models import Audit
 from api.cases.enums import (
     CaseTypeTypeEnum,
@@ -124,6 +125,7 @@ class CaseListSerializer(serializers.Serializer):
     next_review_date = serializers.DateField()
     has_open_queries = serializers.BooleanField()
     case_officer = serializers.SerializerMethodField()
+    intended_end_use = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -163,6 +165,12 @@ class CaseListSerializer(serializers.Serializer):
                 "last_name": instance.case_officer.last_name,
                 "email": instance.case_officer.email,
             }
+
+    def get_intended_end_use(self, instance):
+        try:
+            return instance.baseapplication.intended_end_use or ""
+        except BaseApplication.DoesNotExist:
+            return ""
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):

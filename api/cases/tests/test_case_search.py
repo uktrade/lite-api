@@ -7,10 +7,17 @@ from rest_framework import status
 
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
+from api.applications.tests.factories import (
+    GoodOnApplicationFactory,
+    StandardApplicationFactory,
+    DenialMatchOnApplicationFactory,
+    DenialMatchFactory,
+)
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import Case, CaseAssignment, EcjuQuery
+from api.cases.models import Case, CaseAssignment, EcjuQuery, CaseType
 from api.flags.models import Flag
 from api.flags.enums import FlagLevels
+from api.goods.tests.factories import GoodFactory
 from api.picklists.enums import PicklistType
 from api.cases.tests.factories import CaseSIELFactory
 from api.queues.constants import (
@@ -19,6 +26,8 @@ from api.queues.constants import (
 )
 from api.queues.tests.factories import QueueFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.control_list_entries.models import ControlListEntry
+from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
@@ -624,15 +633,43 @@ class SearchAPITest(DataTestClient):
         super().setUp()
         self.url = reverse("cases:search")
 
-    def test_api_success(self):
-        case = CaseSIELFactory()
-        case.submitted_at = django_utils.timezone.now()
-        case.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        case.save()
-        self.queue.cases.add(case)
+    def _create_data(self):
+        self.application = StandardApplicationFactory(case_type=CaseType.objects.get(reference="siel"))
+        self.case = Case.objects.get(id=self.application.id)
+        self.case.submitted_at = django_utils.timezone.now()
+        self.case.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        self.case.save()
+        self.queue.cases.add(self.case)
         self.queue.save()
-        assignment = CaseAssignment(user=self.gov_user, case=case, queue=self.queue)
-        assignment.save()
+        self.assignment = CaseAssignment(user=self.gov_user, case=self.case, queue=self.queue)
+        self.assignment.save()
+        self.denial = DenialMatchFactory()
+        self.denial_on_application = DenialMatchOnApplicationFactory(
+            application=self.application, category="exact", denial=self.denial
+        )
+        self.good = GoodFactory(organisation=self.case.organisation)
+        self.good_on_application = GoodOnApplicationFactory(
+            application=self.application,
+            good=self.good,
+            is_good_controlled=True,
+            quantity=10,
+            value=20,
+        )
+        self.good_on_application.control_list_entries.add(ControlListEntry.objects.first())
+        self.good_on_application.regime_entries.add(RegimeEntry.objects.first())
+        self.ecju_query = EcjuQuery(
+            question="ECJU Query 2",
+            case=self.case,
+            response="I have a response",
+            raised_by_user=self.gov_user,
+            responded_by_user=self.exporter_user,
+            query_type=PicklistType.ECJU,
+            responded_at=datetime.datetime.now(),
+        )
+        self.ecju_query.save()
+
+    def test_api_success(self):
+        self._create_data()
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["results"]
@@ -658,10 +695,48 @@ class SearchAPITest(DataTestClient):
         self.assertEqual(case_api_result["flags"], [])
         self.assertEqual(case_api_result["goods_flags"], [])
         self.assertEqual(case_api_result["has_open_queries"], False)
-        self.assertEqual(case_api_result["id"], str(case.id))
+        self.assertEqual(case_api_result["id"], str(self.case.id))
         self.assertEqual(case_api_result["is_recently_updated"], True)
         self.assertEqual(case_api_result["next_review_date"], None)
-        self.assertEqual(case_api_result["organisation"]["name"], case.organisation.name)
+        self.assertEqual(case_api_result["organisation"]["name"], self.case.organisation.name)
+        self.assertEqual(
+            case_api_result["denials"],
+            [
+                {
+                    "name": self.denial.name,
+                    "reference": self.denial.reference,
+                    "category": self.denial_on_application.category,
+                    "address": self.denial.address,
+                }
+            ],
+        )
+        self.assertEqual(
+            case_api_result["ecju_queries"],
+            [
+                {
+                    "question": self.ecju_query.question,
+                    "response": self.ecju_query.response,
+                    "raised_by_user": f"{self.ecju_query.raised_by_user.first_name} {self.ecju_query.raised_by_user.last_name}",
+                    "responded_by_user": f"{self.ecju_query.responded_by_user.first_name} {self.ecju_query.responded_by_user.last_name}",
+                    "query_type": self.ecju_query.query_type,
+                }
+            ],
+        )
+        self.assertEqual(
+            case_api_result["goods"],
+            [
+                {
+                    "name": self.good_on_application.name,
+                    "cles": [self.good_on_application.control_list_entries.all()[0].rating],
+                    "report_summary_subject": None,
+                    "report_summary_prefix": None,
+                    "quantity": self.good_on_application.quantity,
+                    "value": self.good_on_application.value,
+                    "regimes": [self.good_on_application.regime_entries.all()[0].name],
+                }
+            ],
+        )
+        self.assertEqual(case_api_result["intended_end_use"], self.application.intended_end_use)
         expected_queues = [
             {
                 "countersigning_queue": self.queue.countersigning_queue,
@@ -677,12 +752,12 @@ class SearchAPITest(DataTestClient):
             }
         ]
         self.assertEqual(case_api_result["queues"], expected_queues)
-        self.assertEqual(case_api_result["reference_code"], case.reference_code)
+        self.assertEqual(case_api_result["reference_code"], self.case.reference_code)
         self.assertEqual(case_api_result["sla_days"], 0)
         self.assertEqual(case_api_result["sla_remaining_days"], None)
-        self.assertEqual(case_api_result["status"]["key"], case.status.status)
+        self.assertEqual(case_api_result["status"]["key"], self.case.status.status)
         # Reflect rest framework's way of rendering datetime objects... https://github.com/encode/django-rest-framework/blob/c9e7b68a4c1db1ac60e962053380acda549609f3/rest_framework/utils/encoders.py#L29
-        expected_submitted_at = case.submitted_at.isoformat()
+        expected_submitted_at = self.case.submitted_at.isoformat()
         if expected_submitted_at.endswith("+00:00"):
             expected_submitted_at = expected_submitted_at[:-6] + "Z"
         self.assertEqual(case_api_result["submitted_at"], expected_submitted_at)
