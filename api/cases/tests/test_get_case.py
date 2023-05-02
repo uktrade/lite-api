@@ -19,6 +19,28 @@ class CaseGetTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_draft_standard_application(self.organisation)
 
+    def test_case_endpoint_responds_ok(self):
+        case = self.submit_application(self.standard_application)
+        url = reverse("cases:case", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_case_copy_of_another_case_endpoint_responds_ok(self):
+        self.submit_application(self.standard_application)
+
+        copied_case = self.create_draft_standard_application(self.organisation)
+        copied_case.copy_of = self.standard_application
+        copied_case.save()
+        self.submit_application(copied_case)
+
+        url = reverse("cases:case", kwargs={"pk": copied_case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_case_returns_expected_third_party(self):
         """
         Given a case with a third party exists
