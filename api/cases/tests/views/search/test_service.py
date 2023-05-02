@@ -15,13 +15,6 @@ class TestSearchService(DataTestClient):
         self.case = self.create_standard_application_case(self.organisation).get_case()
         new_status = "1"
         Audit.objects.create(
-            actor=self.system_user,
-            verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
-            target_object_id=self.case.id,
-            target_content_type=ContentType.objects.get_for_model(Case),
-            payload={"flag_name": FlagsEnum.AG_CHEMICAL, "additional_text": "additional note here"},
-        )
-        Audit.objects.create(
             actor=self.exporter_user,
             verb=AuditType.UPDATED_APPLICATION_NAME,
             target_object_id=self.case.id,
@@ -34,6 +27,13 @@ class TestSearchService(DataTestClient):
             target_object_id=self.case.id,
             target_content_type=ContentType.objects.get_for_model(Case),
             payload={"old_name": "2nd_draft", "new_name": "3rd_draft"},
+        )
+        Audit.objects.create(
+            actor=self.system_user,
+            verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
+            target_object_id=self.case.id,
+            target_content_type=ContentType.objects.get_for_model(Case),
+            payload={"flag_name": FlagsEnum.AG_CHEMICAL, "additional_text": "additional note here"},
         )
         Audit.objects.create(
             actor=self.gov_user,
