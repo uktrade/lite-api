@@ -195,10 +195,7 @@ def populate_destinations(case_map):
         serializer = CountrySerializer(poa.party.country)
         data = serializer.data
         case = case_map[str(poa.application_id)]
-        if case.get("destinations"):
-            case["destinations"].append({"country": data})
-        else:
-            case["destinations"] = [{"country": data}]
+        case["destinations"].append({"country": data})
 
 
 def populate_activity_updates(case_map):
