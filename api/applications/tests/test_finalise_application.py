@@ -329,7 +329,6 @@ class FinaliseApplicationTests(DataTestClient):
             FlagsEnum.AP_LANDMINE,
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_finalise_application_failure_with_countersigning_flags_but_no_countersignatures(self, flag_id):
         flag = Flag.objects.get(id=flag_id)
         self.standard_application.flags.add(flag)
@@ -403,7 +402,6 @@ class FinaliseApplicationTests(DataTestClient):
             ],
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_finalise_application_failure_with_insufficient_countersignatures(self, countersign_data, flags):
         """Test to ensure if a particular countersigning is not fully approved then we raise error"""
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
@@ -471,7 +469,6 @@ class FinaliseApplicationTests(DataTestClient):
             ],
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_finalise_application_success_with_refuse_advice(self, required_countersign, flags):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
         data = {"action": AdviceType.APPROVE, "duration": 24}
@@ -572,7 +569,6 @@ class FinaliseApplicationTests(DataTestClient):
             ],
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_finalise_application_success_with_countersigning(
         self, advice_type, required_countersign, flags, expected_text
     ):
