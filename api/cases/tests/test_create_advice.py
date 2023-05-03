@@ -233,7 +233,6 @@ class CreateCaseAdviceTests(DataTestClient):
             [AdviceType.PROVISO, " added a licence condition."],
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_create_lu_final_advice_has_audit(self, advice_type, expected_text):
         lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
@@ -280,7 +279,6 @@ class CreateCaseAdviceTests(DataTestClient):
             [AdviceType.PROVISO, " edited a licence condition."],
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_update_lu_final_advice_has_audit(self, advice_type, expected_text):
         lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
@@ -338,7 +336,6 @@ class CreateCaseAdviceTests(DataTestClient):
             (AdviceType.NO_LICENCE_REQUIRED,),
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_advice_has_no_audit_for_unsupported_advice_types(self, advice_type):
         lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
@@ -434,24 +431,6 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
 
         self.url = reverse("cases:countersign_decision_advice", kwargs={"pk": self.case.id})
 
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=False)
-    def test_countersign_advice_without_routing_enabled_fails(self):
-        data = [
-            {
-                "order": CountersignOrder.FIRST_COUNTERSIGN,
-                "outcome_accepted": True,
-                "reasons": "Agree with the original outcome",
-                "countersigned_user": self.gov_user.baseuser_ptr.id,
-                "advice": "1234",
-            }
-        ]
-        response = self.client.post(self.url, **self.gov_headers, data=data)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        response = self.client.put(self.url, **self.gov_headers, data=data)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_countersign_advice_with_decision_terminal_status_failure(self):
         """Ensure we cannot countersign a case that is in one of the terminal state"""
         case_url = reverse("cases:case", kwargs={"pk": self.case.id})
@@ -465,7 +444,6 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         response = self.client.put(self.url, **self.gov_headers, data=[])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_countersign_advice_with_decision_serializer_invalid_failure(self):
         data = [
             {
@@ -516,7 +494,6 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
             ],
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_countersign_advice_with_decision_success(self, dept, order, outcome_accepted, reason, expected_text):
         if dept:
             self.gov_user.team.department = Department.objects.get(name=dept)
@@ -562,7 +539,6 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
         else:
             assert "additional_text" not in payload
 
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_countersign_advice_with_decision_update_success(self):
         all_advice = [
             Advice.objects.create(

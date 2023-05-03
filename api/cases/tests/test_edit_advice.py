@@ -315,7 +315,6 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
             ],
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_countersignatures_invalidated_after_outcome_is_edited(
         self, flags, countersignatures, expected_countersign_status
     ):
@@ -408,7 +407,6 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
             ],
         ]
     )
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     def test_countersignatures_are_invalidated_after_refuse_outcome_is_edited(self, flags, countersignatures):
         for advice in self.advice_qs:
             advice.type = AdviceType.REFUSE

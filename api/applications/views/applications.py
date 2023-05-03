@@ -3,7 +3,6 @@ from uuid import UUID
 
 from django.db import transaction
 from django.db.models import F, Q
-from django.conf import settings
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
@@ -620,8 +619,7 @@ class ApplicationFinaliseView(APIView):
             )
 
         # Check countersigning requirements and required countersignatures are present
-        if settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
-            ensure_lu_countersign_complete(application)
+        ensure_lu_countersign_complete(application)
 
         # Check if any blocking flags are on the case
         blocking_flags = (
