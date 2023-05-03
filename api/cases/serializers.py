@@ -173,6 +173,48 @@ class CaseListSerializer(serializers.Serializer):
             return ""
 
 
+class GoodOnApplicationSummarySerializer(serializers.Serializer):
+    name = serializers.CharField()
+    cles = serializers.SerializerMethodField()
+    report_summary_subject = serializers.CharField(source="report_summary_subject.name", default=None)
+    report_summary_prefix = serializers.CharField(source="report_summary_prefix.name", default=None)
+    quantity = serializers.DecimalField(max_digits=None, decimal_places=2)
+    value = serializers.DecimalField(max_digits=None, decimal_places=2)
+    regimes = serializers.SerializerMethodField()
+
+    def get_cles(self, instance):
+        return [cle.rating for cle in instance.control_list_entries.all()]
+
+    def get_regimes(self, instance):
+        return [regime_entry.name for regime_entry in instance.regime_entries.all()]
+
+
+class DenialSummarySerializer(serializers.Serializer):
+    name = serializers.CharField(source="denial.name")
+    reference = serializers.CharField(source="denial.reference")
+    category = serializers.CharField()
+    address = serializers.CharField(source="denial.address")
+
+
+class ECJUQuerySummarySerializer(serializers.Serializer):
+    question = serializers.CharField()
+    response = serializers.CharField()
+    raised_by_user = serializers.SerializerMethodField()
+    responded_by_user = serializers.SerializerMethodField()
+    query_type = serializers.CharField()
+
+    def _user_name(self, user):
+        if not user:
+            return None
+        return f"{user.first_name} {user.last_name}" if (user.first_name and user.last_name) else user.email
+
+    def get_raised_by_user(self, instance):
+        return self._user_name(instance.raised_by_user)
+
+    def get_responded_by_user(self, instance):
+        return self._user_name(instance.responded_by_user)
+
+
 class CaseCopyOfSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case

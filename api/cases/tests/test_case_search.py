@@ -28,6 +28,7 @@ from api.queues.tests.factories import QueueFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.report_summaries.tests.factories import ReportSummaryPrefixFactory, ReportSummarySubjectFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
@@ -647,6 +648,8 @@ class SearchAPITest(DataTestClient):
         self.denial_on_application = DenialMatchOnApplicationFactory(
             application=self.application, category="exact", denial=self.denial
         )
+        prefix = ReportSummaryPrefixFactory()
+        subject = ReportSummarySubjectFactory()
         self.good = GoodFactory(organisation=self.case.organisation)
         self.good_on_application = GoodOnApplicationFactory(
             application=self.application,
@@ -654,6 +657,8 @@ class SearchAPITest(DataTestClient):
             is_good_controlled=True,
             quantity=10,
             value=20,
+            report_summary_subject=subject,
+            report_summary_prefix=prefix,
         )
         self.good_on_application.control_list_entries.add(ControlListEntry.objects.first())
         self.good_on_application.regime_entries.add(RegimeEntry.objects.first())
@@ -728,10 +733,10 @@ class SearchAPITest(DataTestClient):
                 {
                     "name": self.good_on_application.name,
                     "cles": [self.good_on_application.control_list_entries.all()[0].rating],
-                    "report_summary_subject": None,
-                    "report_summary_prefix": None,
-                    "quantity": self.good_on_application.quantity,
-                    "value": self.good_on_application.value,
+                    "report_summary_subject": self.good_on_application.report_summary_subject.name,
+                    "report_summary_prefix": self.good_on_application.report_summary_prefix.name,
+                    "quantity": "10.00",
+                    "value": "20.00",
                     "regimes": [self.good_on_application.regime_entries.all()[0].name],
                 }
             ],

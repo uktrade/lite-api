@@ -12,6 +12,7 @@ from api.applications.models import HmrcQuery, PartyOnApplication, GoodOnApplica
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
+from api.cases import serializers as cases_serializers
 from api.cases.models import Case, EcjuQuery
 from api.common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
 from api.flags.serializers import CaseListFlagSerializer
@@ -216,16 +217,8 @@ def populate_good_details(case_map):
     )
     for goa in goas:
         case = case_map[str(goa.application_id)]
-        good = {
-            "name": goa.name,
-            "cles": [cle.rating for cle in goa.control_list_entries.all()],
-            "report_summary_subject": goa.report_summary_subject.name if goa.report_summary_subject else None,
-            "report_summary_prefix": goa.report_summary_prefix.name if goa.report_summary_prefix else None,
-            "quantity": goa.quantity,
-            "value": goa.value,
-            "regimes": [regime_entry.name for regime_entry in goa.regime_entries.all()],
-        }
-        case["goods"].append(good)
+        serializer = cases_serializers.GoodOnApplicationSummarySerializer(goa)
+        case["goods"].append(serializer.data)
     return list(case_map.values())
 
 
@@ -242,13 +235,8 @@ def populate_denials(case_map):
     )
     for doa in doas:
         case = case_map[str(doa.application_id)]
-        denial = {
-            "name": doa.denial.name,
-            "reference": doa.denial.reference,
-            "category": doa.category,
-            "address": doa.denial.address,
-        }
-        case["denials"].append(denial)
+        serializer = cases_serializers.DenialSummarySerializer(doa)
+        case["denials"].append(serializer.data)
     return list(case_map.values())
 
 
@@ -268,18 +256,8 @@ def populate_ecju_queries(case_map):
     )
     for query in queries:
         case = case_map[str(query.case_id)]
-        query = {
-            "question": query.question,
-            "response": query.response,
-            "raised_by_user": f"{query.raised_by_user.first_name} {query.raised_by_user.last_name}"
-            if query.raised_by_user
-            else None,
-            "responded_by_user": f"{query.responded_by_user.first_name} {query.responded_by_user.last_name}"
-            if query.responded_by_user
-            else None,
-            "query_type": query.query_type,
-        }
-        case["ecju_queries"].append(query)
+        serializer = cases_serializers.ECJUQuerySummarySerializer(query)
+        case["ecju_queries"].append(serializer.data)
     return list(case_map.values())
 
 
