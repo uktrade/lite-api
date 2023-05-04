@@ -3,6 +3,7 @@ from api.audit_trail.models import Audit
 from api.cases.models import Case
 from api.cases.views.search import service
 from django.contrib.contenttypes.models import ContentType
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -28,6 +29,13 @@ class TestSearchService(DataTestClient):
             payload={"old_name": "2nd_draft", "new_name": "3rd_draft"},
         )
         Audit.objects.create(
+            actor=self.system_user,
+            verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
+            target_object_id=self.case.id,
+            target_content_type=ContentType.objects.get_for_model(Case),
+            payload={"flag_name": FlagsEnum.AG_CHEMICAL, "additional_text": "additional note here"},
+        )
+        Audit.objects.create(
             actor=self.gov_user,
             verb=AuditType.UPDATED_STATUS,
             action_object_object_id=self.case.id,
@@ -43,11 +51,13 @@ class TestSearchService(DataTestClient):
             target_content_type=ContentType.objects.get_for_model(Case),
             payload={"old_name": old_name, "new_name": new_name},
         )
-        cases = service.populate_activity_updates([{"id": str(self.case.id)}])
+        case_id = str(self.case.id)
+        case_map = {case_id: {"id": case_id}}
+        service.populate_activity_updates(case_map)
         # check only 2 records are present, sorted newest first
-        assert len(cases[0]["activity_updates"]) == 2
+        assert len(case_map[case_id]["activity_updates"]) == 2
         assert (
-            cases[0]["activity_updates"][0]["text"]
+            case_map[case_id]["activity_updates"][0]["text"]
             == f'updated the application name from "{old_name}" to "{new_name}".'
         )
-        assert cases[0]["activity_updates"][1]["text"] == f"updated the status to: {new_status}."
+        assert case_map[case_id]["activity_updates"][1]["text"] == f"updated the status to: {new_status}."
