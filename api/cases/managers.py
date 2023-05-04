@@ -110,19 +110,12 @@ class CaseQuerySet(models.QuerySet):
     def with_flags(self, flags):
         case_flag_ids = self.filter(flags__id__in=flags).values_list("id", flat=True)
         org_flag_ids = self.filter(organisation__flags__id__in=flags).values_list("id", flat=True)
-        open_flag_ids = self.filter(
-            baseapplication__openapplication__application_countries__country__flags__id__in=flags
-        ).values_list("id", flat=True)
         goods_flag_ids = self.filter(baseapplication__goods__good__flags__id__in=flags).values_list("id", flat=True)
-        goods_type_flag_ids = self.filter(baseapplication__goods_type__flags__id__in=flags).values_list("id", flat=True)
-
-        case_ids = set(
-            list(case_flag_ids)
-            + list(org_flag_ids)
-            + list(open_flag_ids)
-            + list(goods_flag_ids)
-            + list(goods_type_flag_ids)
+        parties_flag_ids = self.filter(baseapplication__parties__party__flags__id__in=flags).values_list(
+            "id", flat=True
         )
+
+        case_ids = set(list(case_flag_ids) + list(org_flag_ids) + list(goods_flag_ids) + list(parties_flag_ids))
         return self.filter(id__in=case_ids)
 
     def with_country(self, country_id):
