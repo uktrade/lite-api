@@ -33,6 +33,7 @@ from api.applications.models import (
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
+from api.bookmarks.models import Bookmark
 from api.cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import (
@@ -1182,6 +1183,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             send_notification=send_notification,
         )
 
+    def add_users(self, count=3):
+        out = []
+        for i in range(count):
+            user = GovUserFactory(
+                baseuser_ptr__email=f"test{i}@mail.com",
+                baseuser_ptr__first_name=f"John{i}",
+                baseuser_ptr__last_name=f"Smith{i}",
+                team=self.team,
+                role=self.default_role,
+            )
+            out.append(user)
+        return out
+
 
 @pytest.mark.performance
 # we need to set debug to true otherwise we can't see the amount of queries
@@ -1244,3 +1258,7 @@ class PerformanceTestClient(DataTestClient):
         print(f"creating {queue_count} queues")
         queue_details = {"name": "random", "team": self.team}
         Queue.objects.bulk_create([Queue(**queue_details) for i in range(0, queue_count)])
+
+    @staticmethod
+    def add_bookmark(user_id, name, description, filter_json):
+        Bookmark(id=uuid.uuid4(), user=user_id, name=name, description=description, filter_json=filter_json)

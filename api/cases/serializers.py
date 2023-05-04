@@ -40,7 +40,6 @@ from api.documents.libraries.process_document import process_document
 from api.goodstype.models import GoodsType
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.licences.helpers import get_open_general_export_licence_case
-from lite_content.lite_api import strings
 from api.queries.serializers import QueryViewSerializer
 from api.queues.models import Queue
 from api.queues.serializers import QueueListSerializer
@@ -57,6 +56,7 @@ from api.users.serializers import (
     ExporterUserSimpleSerializer,
 )
 from api.queues.constants import ALL_CASES_QUEUE_ID
+from lite_content.lite_api import strings
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
