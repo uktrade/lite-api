@@ -2,7 +2,6 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
 from api.cases.models import CountersignAdvice
-from django.conf import settings
 
 from api.flags.enums import FlagStatuses
 from api.flags.models import Flag
@@ -149,7 +148,7 @@ def mark_lu_rejected_countersignatures_as_invalid(case, user):
     back to caseworker for finalising.
     """
     lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
-    if not settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED or not (user.govuser.team == lu_team):
+    if user.govuser.team != lu_team:
         return
 
     countersign_orders = get_lu_required_countersign_orders(case)
