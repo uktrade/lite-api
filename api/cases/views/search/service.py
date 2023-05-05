@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, F, Q, Value, OuterRef
 from django.db.models.functions import Concat
 from django.utils import timezone
+from api.staticdata.countries.serializers import CountrySerializer
 
 from api.applications.models import HmrcQuery, PartyOnApplication
 from api.audit_trail.models import Audit
@@ -16,10 +17,8 @@ from api.common.dates import working_days_in_range, number_of_days_since, workin
 from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.users.enums import UserStatuses
-from api.users.models import GovUser
-from api.cases.enums import CaseTypeTypeEnum
-from api.parties.serializers import PartySerializer
+from api.users.enums import UserStatuses, UserType
+from api.users.models import BaseUser, GovUser
 
 
 def get_case_status_list() -> List[Dict]:
@@ -60,7 +59,6 @@ def populate_other_flags(cases: List[Dict]):
         case_id = str(case["id"])
         flags = [flag for flag in union_flags if str(flag.case_id) == case_id]
         case["flags"] = CaseListFlagSerializer(flags, many=True).data
-    return cases
 
 
 def populate_goods_flags(cases: List[Dict]):
@@ -82,8 +80,6 @@ def populate_goods_flags(cases: List[Dict]):
         case["goods_flags"] = CaseListFlagSerializer(
             {flag for flag in flags if str(flag.case_id) == str(case["id"])}, many=True
         ).data
-
-    return cases
 
 
 def populate_destinations_flags(cases: List[Dict]):
@@ -122,8 +118,6 @@ def populate_destinations_flags(cases: List[Dict]):
         case_flags = {flag for flag in flags if str(flag.case_id) == str(case["id"])}
         case["destinations_flags"] = CaseListFlagSerializer(case_flags, many=True).data
 
-    return cases
-
 
 def populate_organisation(cases: List[Dict]):
     from api.organisations.serializers import OrganisationCaseSerializer
@@ -147,8 +141,6 @@ def populate_organisation(cases: List[Dict]):
             organisation for organisation in organisations if str(organisation.case_id) == str(case["id"])
         )
         case["organisation"] = OrganisationCaseSerializer(organisation).data
-
-    return cases
 
 
 def populate_is_recently_updated(cases: List[Dict]):
@@ -195,28 +187,23 @@ def get_hmrc_sla_hours(cases: List[Dict]):
             case["sla_hours_since_raised"] = working_hours_in_range(case["submitted_at"], timezone.now())
 
 
-def populate_destinations(cases: List[Dict]):
-    for case in cases:
-        id = case["id"]
-        destinations = []
-
-        if case["case_type"]["type"]["key"] == CaseTypeTypeEnum.APPLICATION:
-            for poa in PartyOnApplication.objects.filter(application=id, deleted_at=None):
-                serializer = PartySerializer(poa.party)
-                data = serializer.data
-                destinations.append(data)
-
-        case["destinations"] = destinations
-
-    return cases
+def populate_destinations(case_map):
+    poas = PartyOnApplication.objects.select_related("party", "party__country").filter(
+        application__in=list(case_map.keys()), deleted_at=None
+    )
+    for poa in poas:
+        serializer = CountrySerializer(poa.party.country)
+        data = serializer.data
+        case = case_map[str(poa.application_id)]
+        case["destinations"].append({"country": data})
 
 
-def populate_activity_updates(cases: List[Dict]):
+def populate_activity_updates(case_map):
     """
     retrieve the last 2 activities per case for the provided list of cases
     """
     obj_type = ContentType.objects.get_for_model(Case)
-    case_ids = [case["id"] for case in cases]
+    case_ids = list(case_map.keys())
     # iterate over audit records once and add max of 2 records per matching
     # action_object_content_type or target_content_type (up to 4 total)
     top_2_per_case = Audit.objects.filter(
@@ -228,8 +215,11 @@ def populate_activity_updates(cases: List[Dict]):
         Q(target_object_id__in=case_ids, target_content_type=obj_type)
         | Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type),
     )
-    # dictionary used to avoid nested looping while adding activities to cases
-    case_id_indexes = {case["id"]: i for i, case in enumerate(cases)}
+    # get users data for activities en bulk to reduce query count
+    user_ids = {activity.actor_object_id for activity in activities_qs}
+    users = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").filter(id__in=user_ids)
+    user_map = {str(user.id): user for user in users}
+
     for activity in activities_qs:
         case_id = None
         # get case id from either of the audit record fields
@@ -237,17 +227,21 @@ def populate_activity_updates(cases: List[Dict]):
             case_id = activity.target_object_id
         else:
             case_id = activity.action_object_object_id
-
+        # prepopulate actor for AuditSerializer
+        actor = user_map[activity.actor_object_id]
+        if actor.type == UserType.INTERNAL:
+            actor = actor.govuser
+        elif actor.type == UserType.EXPORTER:
+            actor = actor.exporteruser
+        activity.actor = actor
         activity_obj = AuditSerializer(activity).data
-        case = cases[case_id_indexes[case_id]]
+        case = case_map[case_id]
         if "activity_updates" in case:
             case["activity_updates"].append(activity_obj)
         else:
             case["activity_updates"] = [activity_obj]
     # filter down to 2 most recent records only
-    for case in cases:
+    for case in case_map.values():
         if "activity_updates" in case:
             case["activity_updates"] = sorted(case["activity_updates"], key=lambda d: d["created_at"], reverse=True)
             case["activity_updates"] = case["activity_updates"][:2]
-
-    return cases
