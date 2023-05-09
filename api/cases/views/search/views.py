@@ -2,7 +2,6 @@ import django
 from django.db.models import F, When, DateField, Exists, OuterRef
 from django.http import HttpResponse
 from django.utils import timezone
-from api.queues.serializers import QueueListSerializer
 from rest_framework import generics
 
 from api.cases.libraries.dates import make_date_from_params
