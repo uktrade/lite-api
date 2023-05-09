@@ -18,6 +18,7 @@ from api.cases.libraries.get_flags import get_ordered_flags
 from api.cases.models import (
     Case,
     CaseNote,
+    CaseNoteMentions,
     CaseAssignment,
     CaseAssignmentSLA,
     CaseDocument,
@@ -46,7 +47,12 @@ from api.teams.models import Team
 from api.teams.serializers import TeamSerializer
 from api.users.enums import UserStatuses
 from api.users.models import BaseUser, GovUser, GovNotification, ExporterUser
-from api.users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer, ExporterUserSimpleSerializer
+from api.users.serializers import (
+    BaseUserViewSerializer,
+    GovUserViewSerializer,
+    ExporterUserViewSerializer,
+    ExporterUserSimpleSerializer,
+)
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -294,6 +300,25 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             pass
 
 
+class CaseNoteMentionsSerializer(serializers.ModelSerializer):
+    """
+    Serializes case notes mentions
+    """
+
+    user = PrimaryKeyRelatedSerializerField(
+        queryset=GovUser.objects.all(), serializer=GovUserViewSerializer, required=False
+    )
+
+    class Meta:
+        model = CaseNoteMentions
+        fields = (
+            "case_note",
+            "team",
+            "is_accessed",
+            "user",
+        )
+
+
 class CaseNoteSerializer(serializers.ModelSerializer):
     """
     Serializes case notes
@@ -308,10 +333,19 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     user = PrimaryKeyRelatedSerializerField(queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer)
     created_at = serializers.DateTimeField(read_only=True)
     is_visible_to_exporter = serializers.BooleanField(default=False)
+    is_urgent = serializers.BooleanField(default=False)
+    mentions = PrimaryKeyRelatedSerializerField(
+        queryset=CaseNoteMentions.objects.all(), serializer=CaseNoteMentionsSerializer, required=False
+    )
 
     class Meta:
         model = CaseNote
         fields = "__all__"
+
+    def create(self, validated_data):
+        casenote = super(CaseNoteSerializer, self).create(validated_data)
+        casenote.save()
+        return casenote
 
 
 class CaseDocumentCreateSerializer(serializers.ModelSerializer):

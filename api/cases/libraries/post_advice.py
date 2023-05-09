@@ -1,5 +1,4 @@
 from django.db.models import Q
-from django.conf import settings
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -169,11 +168,11 @@ def update_advice(request, case, level):
 
 
 def audit_lu_countersigning(audit_type, advice_type, data, case, request):
-    if (
-        settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED
-        and request.user.govuser.team == Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
-        and advice_type in [AdviceType.APPROVE, AdviceType.REFUSE, AdviceType.PROVISO]
-    ):
+    if request.user.govuser.team == Team.objects.get(id=TeamIdEnum.LICENSING_UNIT) and advice_type in [
+        AdviceType.APPROVE,
+        AdviceType.REFUSE,
+        AdviceType.PROVISO,
+    ]:
         audit_payload = {
             "firstname": request.user.first_name,  # /PS-IGNORE
             "lastname": request.user.last_name,  # /PS-IGNORE

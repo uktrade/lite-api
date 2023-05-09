@@ -2,7 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from api.cases.models import CaseNote
+from api.cases.models import CaseNote, CaseNoteMentions
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -25,6 +25,40 @@ class CaseNotesGovCreateTests(DataTestClient):
         self.assertEqual(CaseNote.objects.count(), 1)
         self.assertEqual(CaseNote.objects.get().text, self.data.get("text"))
         self.assertEqual(CaseNote.objects.get().is_visible_to_exporter, False)
+
+    def test_create_case_note_with_mentions_successful(self):
+
+        self.data["is_urgent"] = True
+        self.other_user = self.create_gov_user("test@gmail.com", self.team)  # /PS-IGNORE
+        mentions = [
+            {
+                "user": str(self.other_user.baseuser_ptr.id),
+            }
+        ]
+        self.data["mentions"] = mentions
+        response = self.client.post(self.url, data=self.data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CaseNote.objects.count(), 1)
+        self.assertEqual(CaseNote.objects.get().text, self.data.get("text"))
+        self.assertEqual(CaseNote.objects.get().is_visible_to_exporter, False)
+        self.assertEqual(CaseNote.objects.get().is_urgent, True)
+        self.assertEqual(CaseNoteMentions.objects.count(), 1)
+        assert response.json()["case_note"]["mentions"][0]["user"]["id"] == mentions[0]["user"]
+
+    def test_create_case_note_with_mentions_unsuccessful(self):
+
+        self.data["is_urgent"] = True
+        self.other_user = self.create_gov_user("test@gmail.com", self.team)  # /PS-IGNORE
+        mentions = [
+            {
+                "user": 1234,
+            }
+        ]
+        self.data["mentions"] = mentions
+        response = self.client.post(self.url, data=self.data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @parameterized.expand(
         [

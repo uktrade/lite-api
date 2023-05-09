@@ -81,7 +81,6 @@ class TestSignals(DataTestClient):
         case.save()
         assert mocked_flagging_func.call_count == 2
 
-    @override_settings(FEATURE_COUNTERSIGN_ROUTING_ENABLED=True)
     @mock.patch("api.cases.signals.notify_caseworker_countersign_return")
     @mock.patch("api.cases.signals.apply_flagging_rules_to_case")
     def test_case_post_save_handler_notification(self, mocked_flagging_func, mock_notify_func):
