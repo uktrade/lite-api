@@ -8,6 +8,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
+
 @receiver(pre_save, sender=Case)
 def case_pre_save_handler(sender, instance, raw=False, **kwargs):
     try:
@@ -15,6 +16,7 @@ def case_pre_save_handler(sender, instance, raw=False, **kwargs):
         instance._previous_status = previous_record.status
     except Case.DoesNotExist:
         pass
+
 
 @receiver(post_save, sender=Case)
 def case_post_save_handler(sender, instance, raw=False, **kwargs):
