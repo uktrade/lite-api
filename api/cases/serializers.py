@@ -41,6 +41,7 @@ from api.licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from api.queries.serializers import QueryViewSerializer
 from api.queues.models import Queue
+from api.queues.serializers import QueueListSerializer
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.models import Team
@@ -130,7 +131,7 @@ class CaseListSerializer(serializers.Serializer):
         super().__init__(*args, **kwargs)
 
     def get_queues(self, instance):
-        return self.context.get("queue_list").data
+        return QueueListSerializer(instance.queues.all(), many=True).data
 
     def get_assignments(self, instance):
         return_value = {}

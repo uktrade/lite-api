@@ -53,12 +53,10 @@ class CasesSearchView(generics.ListAPIView):
                 ),
             )
         )
-
         context = {
             "queue_id": queue_id,
             "is_system_queue": is_system_queue,
             "is_work_queue": is_work_queue,
-            "queue_list": QueueListSerializer(Queue.objects.select_related("team", "countersigning_queue").all()),
         }
 
         cases = CaseListSerializer(page, context=context, team=user.team, include_hidden=include_hidden, many=True).data

@@ -269,6 +269,8 @@ class CaseManager(models.Manager):
                 "case_assignments__user__baseuser_ptr",
                 "case_assignments__user__team",
                 "case_assignments__queue",
+                "queues",
+                "queues__team",
             )
         )
 
