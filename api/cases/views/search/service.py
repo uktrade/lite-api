@@ -235,7 +235,7 @@ def populate_denials(case_map):
     )
     for doa in doas:
         case = case_map[str(doa.application_id)]
-        serializer = cases_serializers.DenialSummarySerializer(doa)
+        serializer = cases_serializers.DenialMatchOnApplicationSummarySerializer(doa)
         case["denials"].append(serializer.data)
     return list(case_map.values())
 

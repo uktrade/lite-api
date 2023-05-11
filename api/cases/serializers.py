@@ -189,7 +189,12 @@ class GoodOnApplicationSummarySerializer(serializers.Serializer):
         return [regime_entry.name for regime_entry in instance.regime_entries.all()]
 
 
-class DenialSummarySerializer(serializers.Serializer):
+class DenialMatchOnApplicationSummarySerializer(serializers.Serializer):
+    """
+    Serializer for a DenialMatchOnApplication and fields from the related Denial
+    record.
+    """
+
     name = serializers.CharField(source="denial.name")
     reference = serializers.CharField(source="denial.reference")
     category = serializers.CharField()
