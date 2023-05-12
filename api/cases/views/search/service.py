@@ -8,11 +8,12 @@ from django.db.models.functions import Concat
 from django.utils import timezone
 from api.staticdata.countries.serializers import CountrySerializer
 
-from api.applications.models import HmrcQuery, PartyOnApplication
+from api.applications.models import HmrcQuery, PartyOnApplication, GoodOnApplication, DenialMatchOnApplication
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
-from api.cases.models import Case
+from api.cases import serializers as cases_serializers
+from api.cases.models import Case, EcjuQuery
 from api.common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
 from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
@@ -196,6 +197,68 @@ def populate_destinations(case_map):
         data = serializer.data
         case = case_map[str(poa.application_id)]
         case["destinations"].append({"country": data})
+
+
+def populate_good_details(case_map):
+    for case in case_map.values():
+        case["goods"] = []
+
+    goas = (
+        GoodOnApplication.objects.select_related(
+            "report_summary_subject",
+            "report_summary_prefix",
+            "good",
+        )
+        .prefetch_related(
+            "control_list_entries",
+            "regime_entries",
+        )
+        .filter(application__in=list(case_map.keys()))
+    )
+    for goa in goas:
+        case = case_map[str(goa.application_id)]
+        serializer = cases_serializers.GoodOnApplicationSummarySerializer(goa)
+        case["goods"].append(serializer.data)
+    return list(case_map.values())
+
+
+def populate_denials(case_map):
+    for case in case_map.values():
+        case["denials"] = []
+
+    doas = (
+        DenialMatchOnApplication.objects.select_related(
+            "denial",
+        )
+        .prefetch_related()
+        .filter(application__in=list(case_map.keys()))
+    )
+    for doa in doas:
+        case = case_map[str(doa.application_id)]
+        serializer = cases_serializers.DenialMatchOnApplicationSummarySerializer(doa)
+        case["denials"].append(serializer.data)
+    return list(case_map.values())
+
+
+def populate_ecju_queries(case_map):
+    for case in case_map.values():
+        case["ecju_queries"] = []
+
+    queries = (
+        EcjuQuery.objects.select_related(
+            "raised_by_user",
+            "responded_by_user",
+            "raised_by_user__baseuser_ptr",
+            "responded_by_user__baseuser_ptr",
+        )
+        .prefetch_related()
+        .filter(case_id__in=list(case_map.keys()))
+    )
+    for query in queries:
+        case = case_map[str(query.case_id)]
+        serializer = cases_serializers.ECJUQuerySummarySerializer(query)
+        case["ecju_queries"].append(serializer.data)
+    return list(case_map.values())
 
 
 def populate_activity_updates(case_map):
