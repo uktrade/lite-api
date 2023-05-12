@@ -22,7 +22,6 @@ class CaseNoteList(APIView):
         """Gets all case notes."""
         is_user_exporter = hasattr(request.user, "exporteruser")
         case_notes = get_case_notes_from_case(pk, only_show_notes_visible_to_exporter=is_user_exporter)
-
         if is_user_exporter:
             delete_exporter_notifications(
                 user=request.user.exporteruser,
@@ -46,9 +45,9 @@ class CaseNoteList(APIView):
         mentions_data = data.pop("mentions", None)
         data["case"] = str(case.id)
         data["user"] = str(request.user.pk)
+
         serializer = self.serializer(data=data)
         returned_data = {}
-
         if serializer.is_valid():
             serializer.save()
             returned_data = serializer.data

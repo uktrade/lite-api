@@ -48,6 +48,7 @@ from api.cases.models import (
     GoodCountryDecision,
     CaseAssignment,
     CaseReviewDate,
+    CaseNoteMentions,
 )
 from api.cases.notify import (
     notify_exporter_licence_issued,
@@ -67,6 +68,7 @@ from api.cases.serializers import (
     EcjuQueryExporterRespondSerializer,
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
+    CaseNoteMentionsSerializer,
 )
 from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
@@ -1162,3 +1164,11 @@ class GoodOnPrecedentList(ListAPIView):
                 "control_list_entries",
             )
         )
+
+
+class CaseNoteMentionList(ListAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CaseNoteMentionsSerializer
+
+    def get_queryset(self):
+        return CaseNoteMentions.objects.filter(case_note__case_id=self.kwargs["pk"]).order_by("-created_at")
