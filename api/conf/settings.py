@@ -472,7 +472,7 @@ if GIT_COMMIT_SHA == "UNKNOWN" and ENV == "local":
     except Exception:
         GIT_COMMIT_SHA = "UNKNOWN"
 
-ENABLE_DJANGO_SILK = env.bool("ENABLE_DJANGO_SILK", True)
+ENABLE_DJANGO_SILK = env.bool("ENABLE_DJANGO_SILK", False)
 
 if ENABLE_DJANGO_SILK:
     INSTALLED_APPS.append("silk")
