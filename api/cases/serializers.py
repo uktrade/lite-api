@@ -54,6 +54,7 @@ from api.users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserSimpleSerializer,
 )
+from lite_content.lite_api import strings
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
