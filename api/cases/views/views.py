@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
@@ -1074,11 +1073,6 @@ class CountersignDecisionAdvice(APIView):
     serializer_class = CountersignDecisionAdviceSerializer
 
     def dispatch(self, request, *args, **kwargs):
-        if not settings.FEATURE_COUNTERSIGN_ROUTING_ENABLED:
-            return JsonResponse(
-                data={"errors": ["LU Countersigning routing not enabled"]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         case = get_case(kwargs["pk"])
         if CaseStatusEnum.is_terminal(case.status.status):
             return JsonResponse(
