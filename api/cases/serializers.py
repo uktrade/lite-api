@@ -361,6 +361,11 @@ class CaseNoteMentionsSerializer(serializers.ModelSerializer):
     user = PrimaryKeyRelatedSerializerField(
         queryset=GovUser.objects.all(), serializer=GovUserViewSerializer, required=False
     )
+    case_note_user = PrimaryKeyRelatedSerializerField(
+        queryset=BaseUser.objects.all(), source="case_note.user", serializer=BaseUserViewSerializer, required=False
+    )
+    is_urgent = serializers.BooleanField(source="case_note.is_urgent", required=False)
+    case_note_text = serializers.CharField(source="case_note.text", required=False)
 
     class Meta:
         model = CaseNoteMentions
@@ -369,6 +374,10 @@ class CaseNoteMentionsSerializer(serializers.ModelSerializer):
             "team",
             "is_accessed",
             "user",
+            "created_at",
+            "case_note_user",
+            "is_urgent",
+            "case_note_text",
         )
 
 
