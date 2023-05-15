@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 
 from api.audit_trail import service
 from api.audit_trail.enums import AuditType
@@ -8,10 +9,11 @@ from api.cases.libraries.get_case import get_case
 from api.cases.libraries.get_case_note import get_case_notes_from_case
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.cases.serializers import CaseNoteSerializer, CaseNoteMentionsSerializer
-from api.core.authentication import SharedAuthentication
+from api.core.authentication import SharedAuthentication, GovAuthentication
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.cases.models import CaseNoteMentions
 
 
 class CaseNoteList(APIView):
@@ -45,7 +47,6 @@ class CaseNoteList(APIView):
         mentions_data = data.pop("mentions", None)
         data["case"] = str(case.id)
         data["user"] = str(request.user.pk)
-
         serializer = self.serializer(data=data)
         returned_data = {}
         if serializer.is_valid():
@@ -75,3 +76,17 @@ class CaseNoteList(APIView):
                 return JsonResponse(data={"errors": case_note_mentions.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"case_note": returned_data}, status=status.HTTP_201_CREATED)
+
+
+class CaseNoteMentionList(ListAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CaseNoteMentionsSerializer
+
+    def get_queryset(self):
+        return (
+            CaseNoteMentions.objects.select_related(
+                "case_note", "user", "case_note__user", "case_note__text", "case_note__is_urgent"
+            )
+            .filter(case_note__case_id=self.kwargs["pk"])
+            .order_by("-created_at")
+        )
