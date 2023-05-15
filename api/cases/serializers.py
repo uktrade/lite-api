@@ -317,7 +317,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             for case_queue in qs:
                 if case_queue.queue_id == detail["id"]:
                     detail["days_on_queue_elapsed"] = (timezone.now() - case_queue.created_at).days
-                    break
         return details
 
     def get_assigned_users(self, instance):
