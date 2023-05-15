@@ -85,7 +85,9 @@ class CaseNoteMentionList(ListAPIView):
     def get_queryset(self):
         return (
             CaseNoteMentions.objects.select_related(
-                "case_note", "user", "case_note__user", "case_note__text", "case_note__is_urgent"
+                "case_note",
+                "user",
+                "case_note__user",
             )
             .filter(case_note__case_id=self.kwargs["pk"])
             .order_by("-created_at")

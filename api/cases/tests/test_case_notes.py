@@ -42,14 +42,14 @@ class CaseNotesGovCreateTests(DataTestClient):
         self.data["mentions"] = mentions
         response = self.client.post(self.url, data=self.data, **self.gov_headers)
 
-        assert response.status_code == status.HTTP_201_CREATED
-        assert CaseNote.objects.count() == 1
-        assert CaseNote.objects.get().text == self.data.get("text")
-        assert CaseNote.objects.get().is_visible_to_exporter is False
-        assert CaseNote.objects.get().is_urgent is True
-        assert CaseNoteMentions.objects.count() == 2
-        assert response.json()["case_note"]["mentions"][0]["user"]["id"] == mentions[0]["user"]
-        assert response.json()["case_note"]["mentions"][1]["user"]["id"] == mentions[1]["user"]
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CaseNote.objects.count(), 1)
+        self.assertEqual(CaseNote.objects.get().text, self.data.get("text"))
+        self.assertEqual(CaseNote.objects.get().is_visible_to_exporter, False)
+        self.assertEqual(CaseNote.objects.get().is_urgent, True)
+        self.assertEqual(CaseNoteMentions.objects.count(), 2)
+        self.assertEqual(response.json()["case_note"]["mentions"][0]["user"]["id"], mentions[0]["user"])
+        self.assertEqual(response.json()["case_note"]["mentions"][1]["user"]["id"], mentions[1]["user"])
 
     def test_create_case_note_with_mentions_unsuccessful(self):
 
@@ -188,6 +188,9 @@ class CaseNoteMentionsViewTests(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
         result = response.json()
 
-        assert result["count"] == 1
-        assert result["results"][0]["user"]["id"] == str(self.other_user.baseuser_ptr.id)
-        assert result["results"][0]["case_note_user"]["id"] == str(self.gov_user.baseuser_ptr.id)
+        self.assertEqual(result["count"], 1)
+
+        self.assertEqual(result["results"][0]["user"]["id"], str(self.other_user.baseuser_ptr.id))
+        self.assertEqual(result["results"][0]["case_note_user"]["id"], str(self.gov_user.baseuser_ptr.id))
+        self.assertEqual(result["results"][0]["case_note_text"], case_note.text)
+        self.assertEqual(result["results"][0]["is_urgent"], case_note.is_urgent)
