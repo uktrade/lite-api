@@ -137,7 +137,6 @@ class CaseGetTests(DataTestClient):
             target_object_id=case.id,
             target_content_type=obj_type,
         )
-        print(f"activity 1 : {activity.id}, {activity.verb}")
         self.assertEqual(str(activity.id), response.json()["case"]["latest_activity"]["id"])
 
         activity.delete()
@@ -152,7 +151,6 @@ class CaseGetTests(DataTestClient):
             payload={"case_officer": self.gov_user.email},
             created_at=timezone.now() - timedelta(days=2),
         )
-        print(f"activity 2 : {activity.id}, {activity.verb}")
         response = self.client.get(url, **self.gov_headers)
         self.assertEqual(str(activity.id), response.json()["case"]["latest_activity"]["id"])
 
@@ -164,7 +162,6 @@ class CaseGetTests(DataTestClient):
             payload={"flag_name": FlagsEnum.AG_CHEMICAL, "additional_text": "additional note here"},
             created_at=timezone.now() - timedelta(days=1),
         )
-        print(f"activity 3 : {activity.id}, {activity.verb}")
         response = self.client.get(url, **self.gov_headers)
         self.assertEqual(str(activity.id), response.json()["case"]["latest_activity"]["id"])
 
