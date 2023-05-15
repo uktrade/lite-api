@@ -1,4 +1,11 @@
+from datetime import timedelta
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from django.utils import timezone
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
+from api.cases.models import Case
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 from parameterized import parameterized
 from rest_framework import status
 
@@ -117,7 +124,59 @@ class CaseGetTests(DataTestClient):
         for expected_flag in expected_flags:
             self.assertIn(expected_flag, actual_flags_on_goods_type)
 
-    def test_case_returns_has_advice(self):
+    def test_case_return_has_advice(self):
+        case = self.submit_application(self.standard_application)
+        url = reverse("cases:case", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        obj_type = ContentType.objects.get_for_model(Case)
+        activity = Audit.objects.get(
+            verb=AuditType.UPDATED_STATUS,
+            target_object_id=case.id,
+            target_content_type=obj_type,
+        )
+        self.assertEqual(str(activity.id), response.json()["case"]["latest_activity"]["id"])
+
+        activity.delete()
+        response = self.client.get(url, **self.gov_headers)
+        assert response.json()["case"]["latest_activity"] == None
+
+        activity = Audit.objects.create(
+            actor=self.gov_user,
+            verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
+            target_object_id=case.id,
+            target_content_type=ContentType.objects.get_for_model(Case),
+            payload={"case_officer": self.gov_user.email},
+        )
+        response = self.client.get(url, **self.gov_headers)
+        self.assertEqual(str(activity.id), response.json()["case"]["latest_activity"]["id"])
+
+        activity = Audit.objects.create(
+            actor=self.system_user,
+            verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
+            target_object_id=case.id,
+            target_content_type=ContentType.objects.get_for_model(Case),
+            payload={"flag_name": FlagsEnum.AG_CHEMICAL, "additional_text": "additional note here"},
+        )
+        response = self.client.get(url, **self.gov_headers)
+        self.assertEqual(str(activity.id), response.json()["case"]["latest_activity"]["id"])
+
+    def test_case_detail_custom_fields(self):
+        case = self.submit_application(self.standard_application)
+        case.queues.set([self.queue])
+        case.submitted_at = timezone.now() - timedelta(days=2)
+        case.save()
+        url = reverse("cases:case", kwargs={"pk": case.id})
+        response = self.client.get(url, **self.gov_headers)
+        data = response.json()["case"]
+
+        self.assertEqual(2, data["total_days_elapsed"])
+        self.assertEqual(str(self.queue.id), data["queue_details"][0]["id"])
+        self.assertEqual(0, data["queue_details"][0]["days_on_queue_elapsed"])
+
+    def test_case_returns_has_activity(self):
         case = self.submit_application(self.standard_application)
         url = reverse("cases:case", kwargs={"pk": case.id})
 
