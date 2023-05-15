@@ -63,26 +63,22 @@ def retrieve_latest_activity(case):
     top_2_per_case = Audit.objects.filter(
         Q(action_object_object_id=OuterRef("action_object_object_id"), action_object_content_type=obj_type)
         | Q(target_object_id=OuterRef("target_object_id"), target_content_type=obj_type)
-    ).order_by("-updated_at")[:1]
+    ).order_by("-updated_at")
     activities_qs = Audit.objects.filter(
         Q(id__in=top_2_per_case.values("id")),
         Q(target_object_id=case.id, target_content_type=obj_type)
         | Q(action_object_object_id=case.id, action_object_content_type=obj_type),
     )
-    if not activities_qs.exists():
+    # Django merges and orders both action and target objects so no need for additional filtering
+    latest_activity = activities_qs.first()
+    if not latest_activity:
         return
-    # get users data for activities en bulk to reduce query count
-    user_ids = {activity.actor_object_id for activity in activities_qs}
-    users = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").filter(id__in=user_ids)
-    user_map = {str(user.id): user for user in users}
-    latest_activity = None
-    for activity in activities_qs:
-        if not latest_activity or latest_activity.created_at < activity.created_at:
-            latest_activity = activity
-    actor = user_map[latest_activity.actor_object_id]
+    actor = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").get(
+        id=latest_activity.actor_object_id
+    )
     if actor.type == UserType.INTERNAL:
         actor = actor.govuser
     elif actor.type == UserType.EXPORTER:
         actor = actor.exporteruser
-    activity.actor = actor
-    return AuditSerializer(activity).data
+    latest_activity.actor = actor
+    return AuditSerializer(latest_activity).data

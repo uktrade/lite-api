@@ -137,6 +137,7 @@ class CaseGetTests(DataTestClient):
             target_object_id=case.id,
             target_content_type=obj_type,
         )
+        print(f"activity 1 : {activity.id}, {activity.verb}")
         self.assertEqual(str(activity.id), response.json()["case"]["latest_activity"]["id"])
 
         activity.delete()
@@ -149,23 +150,29 @@ class CaseGetTests(DataTestClient):
             target_object_id=case.id,
             target_content_type=ContentType.objects.get_for_model(Case),
             payload={"case_officer": self.gov_user.email},
+            created_at=timezone.now() - timedelta(days=2),
         )
+        print(f"activity 2 : {activity.id}, {activity.verb}")
         response = self.client.get(url, **self.gov_headers)
         self.assertEqual(str(activity.id), response.json()["case"]["latest_activity"]["id"])
 
         activity = Audit.objects.create(
             actor=self.system_user,
             verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
-            target_object_id=case.id,
-            target_content_type=ContentType.objects.get_for_model(Case),
+            action_object_object_id=case.id,
+            action_object_content_type=ContentType.objects.get_for_model(Case),
             payload={"flag_name": FlagsEnum.AG_CHEMICAL, "additional_text": "additional note here"},
+            created_at=timezone.now() - timedelta(days=1),
         )
+        print(f"activity 3 : {activity.id}, {activity.verb}")
         response = self.client.get(url, **self.gov_headers)
         self.assertEqual(str(activity.id), response.json()["case"]["latest_activity"]["id"])
 
     def test_case_detail_custom_fields(self):
         case = self.submit_application(self.standard_application)
-        case.queues.set([self.queue])
+        second_queue = self.create_queue("Another Queue", self.team)
+        case.queues.set([self.queue, second_queue])
+
         case.submitted_at = timezone.now() - timedelta(days=2)
         case.save()
         url = reverse("cases:case", kwargs={"pk": case.id})
@@ -173,8 +180,10 @@ class CaseGetTests(DataTestClient):
         data = response.json()["case"]
 
         self.assertEqual(2, data["total_days_elapsed"])
-        self.assertEqual(str(self.queue.id), data["queue_details"][0]["id"])
+        self.assertEqual(str(second_queue.id), data["queue_details"][0]["id"])
         self.assertEqual(0, data["queue_details"][0]["days_on_queue_elapsed"])
+        self.assertEqual(str(self.queue.id), data["queue_details"][1]["id"])
+        self.assertEqual(0, data["queue_details"][1]["days_on_queue_elapsed"])
 
     def test_case_returns_has_activity(self):
         case = self.submit_application(self.standard_application)
