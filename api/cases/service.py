@@ -1,10 +1,7 @@
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Min, When, BinaryField, OuterRef, Q, Case as CaseExp
+from django.db.models import Min, When, BinaryField, Case
 
 from api.applications.models import CountryOnApplication
-from api.audit_trail.models import Audit
-from api.audit_trail.serializers import AuditSerializer
-from api.cases.models import Case
+from api.cases.views.search.service import get_activity_update_query_set, serialize_activity
 from api.flags.enums import FlagStatuses
 from api.users.enums import UserType
 from api.users.models import BaseUser
@@ -27,9 +24,7 @@ def get_destinations(application_id, user_type=None):
             .filter(application=application_id)
             .annotate(
                 highest_flag_priority=Min("country__flags__priority"),
-                contains_flags=CaseExp(
-                    When(country__flags__isnull=True, then=0), default=1, output_field=BinaryField()
-                ),
+                contains_flags=Case(When(country__flags__isnull=True, then=0), default=1, output_field=BinaryField()),
             )
             .order_by("-contains_flags", "highest_flag_priority", "country__name")
         )
@@ -59,16 +54,7 @@ def get_destinations(application_id, user_type=None):
 
 
 def retrieve_latest_activity(case):
-    obj_type = ContentType.objects.get_for_model(Case)
-    top_2_per_case = Audit.objects.filter(
-        Q(action_object_object_id=OuterRef("action_object_object_id"), action_object_content_type=obj_type)
-        | Q(target_object_id=OuterRef("target_object_id"), target_content_type=obj_type)
-    ).order_by("-updated_at")
-    activities_qs = Audit.objects.filter(
-        Q(id__in=top_2_per_case.values("id")),
-        Q(target_object_id=case.id, target_content_type=obj_type)
-        | Q(action_object_object_id=case.id, action_object_content_type=obj_type),
-    )
+    activities_qs = get_activity_update_query_set(case.id, 1)
     # Django merges and orders both action and target objects so no need for additional filtering
     latest_activity = activities_qs.first()
     if not latest_activity:
@@ -76,9 +62,4 @@ def retrieve_latest_activity(case):
     actor = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").get(
         id=latest_activity.actor_object_id
     )
-    if actor.type == UserType.INTERNAL:
-        actor = actor.govuser
-    elif actor.type == UserType.EXPORTER:
-        actor = actor.exporteruser
-    latest_activity.actor = actor
-    return AuditSerializer(latest_activity).data
+    return serialize_activity(latest_activity, actor)

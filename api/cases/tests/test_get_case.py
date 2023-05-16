@@ -141,7 +141,7 @@ class CaseGetTests(DataTestClient):
 
         activity.delete()
         response = self.client.get(url, **self.gov_headers)
-        assert response.json()["case"]["latest_activity"] == None
+        assert response.json()["case"]["latest_activity"] is None
 
         activity = Audit.objects.create(
             actor=self.gov_user,
