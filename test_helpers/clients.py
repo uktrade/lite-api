@@ -44,6 +44,7 @@ from api.cases.models import (
     EcjuQuery,
     CaseType,
     Advice,
+    CaseNoteMentions,
 )
 from api.cases.tasks import get_application_target_sla
 from django.conf import settings
@@ -288,6 +289,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case_note = CaseNote(case=case, text=text, user=user, is_visible_to_exporter=is_visible_to_exporter)
         case_note.save()
         return case_note
+
+    @staticmethod
+    def create_case_note_mention(case_note: CaseNote, user: GovUser):
+        case_note_mention = CaseNoteMentions(case_note=case_note, user=user)
+        case_note_mention.save()
+        return case_note_mention
 
     @staticmethod
     def create_queue(name: str, team: Team):
