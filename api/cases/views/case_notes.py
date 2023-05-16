@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 
 from api.audit_trail import service
 from api.audit_trail.enums import AuditType
@@ -8,10 +9,11 @@ from api.cases.libraries.get_case import get_case
 from api.cases.libraries.get_case_note import get_case_notes_from_case
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.cases.serializers import CaseNoteSerializer, CaseNoteMentionsSerializer
-from api.core.authentication import SharedAuthentication
+from api.core.authentication import SharedAuthentication, GovAuthentication
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.cases.models import CaseNoteMentions
 
 
 class CaseNoteList(APIView):
@@ -22,7 +24,6 @@ class CaseNoteList(APIView):
         """Gets all case notes."""
         is_user_exporter = hasattr(request.user, "exporteruser")
         case_notes = get_case_notes_from_case(pk, only_show_notes_visible_to_exporter=is_user_exporter)
-
         if is_user_exporter:
             delete_exporter_notifications(
                 user=request.user.exporteruser,
@@ -48,7 +49,6 @@ class CaseNoteList(APIView):
         data["user"] = str(request.user.pk)
         serializer = self.serializer(data=data)
         returned_data = {}
-
         if serializer.is_valid():
             serializer.save()
             returned_data = serializer.data
@@ -76,3 +76,19 @@ class CaseNoteList(APIView):
                 return JsonResponse(data={"errors": case_note_mentions.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"case_note": returned_data}, status=status.HTTP_201_CREATED)
+
+
+class CaseNoteMentionList(ListAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CaseNoteMentionsSerializer
+
+    def get_queryset(self):
+        return (
+            CaseNoteMentions.objects.select_related(
+                "case_note",
+                "user",
+                "case_note__user",
+            )
+            .filter(case_note__case_id=self.kwargs["pk"])
+            .order_by("-created_at")
+        )
