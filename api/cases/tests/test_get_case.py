@@ -124,7 +124,7 @@ class CaseGetTests(DataTestClient):
         for expected_flag in expected_flags:
             self.assertIn(expected_flag, actual_flags_on_goods_type)
 
-    def test_case_return_has_advice(self):
+    def test_case_returns_has_activity(self):
         case = self.submit_application(self.standard_application)
         url = reverse("cases:case", kwargs={"pk": case.id})
 
@@ -182,7 +182,7 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(str(self.queue.id), data["queue_details"][1]["id"])
         self.assertEqual(0, data["queue_details"][1]["days_on_queue_elapsed"])
 
-    def test_case_returns_has_activity(self):
+    def test_case_return_has_advice(self):
         case = self.submit_application(self.standard_application)
         url = reverse("cases:case", kwargs={"pk": case.id})
 
