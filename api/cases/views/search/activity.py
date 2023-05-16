@@ -26,7 +26,6 @@ class CaseActivityView(APIView):
         # Delete notifications related to audits
         if isinstance(request.user, GovUser):
             delete_gov_user_notifications(request.user, [obj["id"] for obj in data])
-
         return JsonResponse(data={"activity": data}, status=status.HTTP_200_OK)
 
 

@@ -20,7 +20,6 @@ class CaseNotesGovCreateTests(DataTestClient):
 
     def test_create_case_note_successful(self):
         response = self.client.post(self.url, data=self.data, **self.gov_headers)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CaseNote.objects.count(), 1)
         self.assertEqual(CaseNote.objects.get().text, self.data.get("text"))
@@ -30,10 +29,15 @@ class CaseNotesGovCreateTests(DataTestClient):
 
         self.data["is_urgent"] = True
         self.other_user = self.create_gov_user("test@gmail.com", self.team)  # /PS-IGNORE
+        self.other_user_2 = self.create_gov_user("test2@gmail.com", self.team)  # /PS-IGNORE
+
         mentions = [
             {
                 "user": str(self.other_user.baseuser_ptr.id),
-            }
+            },
+            {
+                "user": str(self.other_user_2.baseuser_ptr.id),
+            },
         ]
         self.data["mentions"] = mentions
         response = self.client.post(self.url, data=self.data, **self.gov_headers)
@@ -43,8 +47,9 @@ class CaseNotesGovCreateTests(DataTestClient):
         self.assertEqual(CaseNote.objects.get().text, self.data.get("text"))
         self.assertEqual(CaseNote.objects.get().is_visible_to_exporter, False)
         self.assertEqual(CaseNote.objects.get().is_urgent, True)
-        self.assertEqual(CaseNoteMentions.objects.count(), 1)
-        assert response.json()["case_note"]["mentions"][0]["user"]["id"] == mentions[0]["user"]
+        self.assertEqual(CaseNoteMentions.objects.count(), 2)
+        self.assertEqual(response.json()["case_note"]["mentions"][0]["user"]["id"], mentions[0]["user"])
+        self.assertEqual(response.json()["case_note"]["mentions"][1]["user"]["id"], mentions[1]["user"])
 
     def test_create_case_note_with_mentions_unsuccessful(self):
 
@@ -167,3 +172,25 @@ class CaseNotesViewTests(DataTestClient):
 
         response = self.client.get(reverse("cases:activity", kwargs={"pk": case.id}), **self.gov_headers)
         self.assertIn(text, str(response.json()))
+
+
+class CaseNoteMentionsViewTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.case = self.create_clc_query("Query", self.organisation)
+        self.url = reverse("cases:case_note_mentions", kwargs={"pk": self.case.id})
+
+    def test_view_case_mentions_successful(self):
+
+        case_note = self.create_case_note(self.case, "Hairpin Turns", self.gov_user.baseuser_ptr)
+        self.other_user = self.create_gov_user("test@gmail.com", self.team)  # /PS-IGNORE
+        self.create_case_note_mention(case_note, self.other_user)
+        response = self.client.get(self.url, **self.gov_headers)
+        result = response.json()
+
+        self.assertEqual(result["count"], 1)
+
+        self.assertEqual(result["results"][0]["user"]["id"], str(self.other_user.baseuser_ptr.id))
+        self.assertEqual(result["results"][0]["case_note_user"]["id"], str(self.gov_user.baseuser_ptr.id))
+        self.assertEqual(result["results"][0]["case_note_text"], case_note.text)
+        self.assertEqual(result["results"][0]["is_urgent"], case_note.is_urgent)
