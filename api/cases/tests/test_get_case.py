@@ -9,8 +9,9 @@ from lite_routing.routing_rules_internal.enums import FlagsEnum
 from parameterized import parameterized
 from rest_framework import status
 
-from api.applications.models import CountryOnApplication
+from api.applications.models import CountryOnApplication, PartyOnApplication
 from api.cases.enums import CaseTypeEnum
+from api.cases.models import Case
 from api.cases.tests.factories import CaseAssignmentFactory, FinalAdviceFactory, CountersignAdviceFactory
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
@@ -19,6 +20,8 @@ from api.parties.enums import PartyType
 from api.staticdata.countries.helpers import get_country
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
+
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
 class CaseGetTests(DataTestClient):
@@ -337,3 +340,16 @@ class CaseGetTests(DataTestClient):
             ordered_ultimate_end_users,
             [str(first_ueu.id), str(second_ueu.id), str(fourth_ueu.id), str(third_ueu.id)],
         )
+
+    def test_case_parameter_set_ignores_deleted_parties(self):
+        application = self.submit_application(self.standard_application)
+        case = Case.objects.get(id=application.id)
+
+        end_user = PartyOnApplication.objects.get(application=application, party__type=PartyType.END_USER)
+        end_user.party.flags.add(Flag.objects.get(id=FlagsEnum.AUSTRALIA_GROUP_CW))
+        consignee = PartyOnApplication.objects.get(application=application, party__type=PartyType.END_USER)
+        consignee.party.flags.add(Flag.objects.get(id=FlagsEnum.LU_COUNTER_REQUIRED))
+        self.assertIn(Flag.objects.get(id=FlagsEnum.LU_COUNTER_REQUIRED), case.parameter_set())
+
+        consignee.delete()
+        self.assertNotIn(Flag.objects.get(id=FlagsEnum.LU_COUNTER_REQUIRED), case.parameter_set())
