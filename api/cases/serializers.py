@@ -55,6 +55,7 @@ from api.users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserSimpleSerializer,
 )
+from api.queues.constants import ALL_CASES_QUEUE_ID
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -366,6 +367,17 @@ class CaseNoteMentionsSerializer(serializers.ModelSerializer):
     )
     is_urgent = serializers.BooleanField(source="case_note.is_urgent", required=False)
     case_note_text = serializers.CharField(source="case_note.text", required=False)
+    reference_code = serializers.CharField(source="case_note.case.reference_code", required=False, read_only=True)
+    case_id = serializers.UUIDField(source="case_note.case.id", required=False, read_only=True)
+    case_queue_id = serializers.SerializerMethodField()
+
+    def get_case_queue_id(self, instance):
+        # Check that the case's queue is still within the users team queue else fallback to all cases queue
+        if isinstance(instance, CaseNoteMentions):
+            for case_queue in instance.case_note.case.queues.all():
+                if case_queue in instance.user.team.queue_set.all():
+                    return case_queue.id
+        return ALL_CASES_QUEUE_ID
 
     class Meta:
         model = CaseNoteMentions
@@ -378,6 +390,9 @@ class CaseNoteMentionsSerializer(serializers.ModelSerializer):
             "case_note_user",
             "is_urgent",
             "case_note_text",
+            "reference_code",
+            "case_queue_id",
+            "case_id",
         )
 
 
