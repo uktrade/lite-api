@@ -313,10 +313,10 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         qs = CaseQueue.objects.filter(
             case_id=instance.id, queue_id__in=list(instance.queues.values_list("id", flat=True))
         )
+        queue_map = {case_queue.queue_id: case_queue for case_queue in qs}
         for detail in details:
-            for case_queue in qs:
-                if case_queue.queue_id == detail["id"]:
-                    detail["days_on_queue_elapsed"] = (timezone.now() - case_queue.created_at).days
+            case_queue = queue_map[detail["id"]]
+            detail["days_on_queue_elapsed"] = (timezone.now() - case_queue.created_at).days
         return details
 
     def get_assigned_users(self, instance):

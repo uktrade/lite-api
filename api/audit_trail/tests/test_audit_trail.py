@@ -1,5 +1,8 @@
 from unittest import mock
 
+from django.contrib.contenttypes.models import ContentType
+from api.cases.models import Case
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 from rest_framework.exceptions import PermissionDenied
 
 from api.audit_trail import service
@@ -70,3 +73,50 @@ class CasesAuditTrail(DataTestClient):
     def test_emit_audit_log(self, mock_logger):
         audit = service.create(actor=self.exporter_user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case)
         mock_logger.info.assert_called_with(Any(), extra={"audit": AuditSerializer(audit).data})
+
+    def test_latest_activities(self):
+
+        qs_1 = Audit.objects.get_latest_activities([self.case.id], 1)
+        obj_type = ContentType.objects.get_for_model(Case)
+        activity_1 = Audit.objects.get(
+            verb=AuditType.UPDATED_STATUS,
+            target_object_id=self.case.id,
+            target_content_type=obj_type,
+        )
+        self.assertEqual(activity_1.id, qs_1.first().id)
+
+        activity_1.delete()
+        qs_2 = Audit.objects.get_latest_activities([self.case.id], 1)
+        assert not qs_2.exists()
+
+        activity_2 = Audit.objects.create(
+            actor=self.gov_user,
+            verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
+            target_object_id=self.case.id,
+            target_content_type=ContentType.objects.get_for_model(Case),
+            payload={"case_officer": self.gov_user.email},
+        )
+        qs_3 = Audit.objects.get_latest_activities([self.case.id], 1)
+        self.assertEqual(activity_2.id, qs_3.first().id)
+
+        activity_3 = Audit.objects.create(
+            actor=self.system_user,
+            verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
+            action_object_object_id=self.case.id,
+            action_object_content_type=ContentType.objects.get_for_model(Case),
+            payload={"flag_name": FlagsEnum.AG_CHEMICAL, "additional_text": "additional note here"},
+        )
+        qs_4 = Audit.objects.get_latest_activities([self.case.id], 2)
+        self.assertEqual(activity_3.id, qs_4[0].id)
+        self.assertEqual(activity_2.id, qs_4[1].id)
+
+        activity_4 = Audit.objects.create(
+            actor=self.system_user,
+            verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
+            action_object_object_id=self.case.id,
+            action_object_content_type=ContentType.objects.get_for_model(Case),
+            payload={"flag_name": FlagsEnum.AG_BIOLOGICAL, "additional_text": "additional note here"},
+        )
+        qs_5 = Audit.objects.get_latest_activities([self.case.id], 2)
+        self.assertEqual(activity_4.id, qs_5[0].id)
+        self.assertEqual(activity_3.id, qs_5[1].id)
