@@ -1,10 +1,12 @@
 from datetime import timedelta
+import datetime
+from dateutil.parser import parse
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils import timezone
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.cases.models import Case
+from api.cases.models import Case, CaseQueue
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 from parameterized import parameterized
 from rest_framework import status
@@ -167,7 +169,13 @@ class CaseGetTests(DataTestClient):
 
     def test_case_detail_custom_fields(self):
         case = self.submit_application(self.standard_application)
+        first_case_queue = CaseQueue.objects.create(case=case, queue=self.queue)
+        first_case_queue.created_at = timezone.now() - timedelta(days=2)
+        first_case_queue.save()
         second_queue = self.create_queue("Another Queue", self.team)
+        second_case_queue = CaseQueue.objects.create(case=case, queue=second_queue)
+        second_case_queue.created_at = timezone.now() - timedelta(days=1)
+        second_case_queue.save()
         case.queues.set([self.queue, second_queue])
 
         case.submitted_at = timezone.now() - timedelta(days=2)
@@ -175,12 +183,11 @@ class CaseGetTests(DataTestClient):
         url = reverse("cases:case", kwargs={"pk": case.id})
         response = self.client.get(url, **self.gov_headers)
         data = response.json()["case"]
-
-        self.assertEqual(2, data["total_days_elapsed"])
+        self.assertEqual(case.submitted_at, parse(data["submitted_at"]))
         self.assertEqual(str(second_queue.id), data["queue_details"][0]["id"])
-        self.assertEqual(0, data["queue_details"][0]["days_on_queue_elapsed"])
+        self.assertEqual(second_case_queue.created_at.date(), parse(data["queue_details"][0]["joined_queue_at"]).date())
         self.assertEqual(str(self.queue.id), data["queue_details"][1]["id"])
-        self.assertEqual(0, data["queue_details"][1]["days_on_queue_elapsed"])
+        self.assertEqual(first_case_queue.created_at.date(), parse(data["queue_details"][1]["joined_queue_at"]).date())
 
     def test_case_return_has_advice(self):
         case = self.submit_application(self.standard_application)

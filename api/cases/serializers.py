@@ -247,7 +247,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     countersign_advice = CountersignDecisionAdviceViewSerializer(many=True)
     data = serializers.SerializerMethodField()
     latest_activity = serializers.SerializerMethodField()
-    total_days_elapsed = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     next_review_date = serializers.SerializerMethodField()
 
@@ -256,6 +255,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "case_type",
+            "submitted_at",
             "flags",
             "queues",
             "queue_names",
@@ -274,7 +274,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "data",
             "next_review_date",
             "latest_activity",
-            "total_days_elapsed",
         )
 
     def __init__(self, *args, **kwargs):
@@ -316,7 +315,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         queue_map = {case_queue.queue_id: case_queue for case_queue in qs}
         for detail in details:
             case_queue = queue_map[detail["id"]]
-            detail["days_on_queue_elapsed"] = (timezone.now() - case_queue.created_at).days
+            detail["joined_queue_at"] = case_queue.created_at
         return details
 
     def get_assigned_users(self, instance):
@@ -344,9 +343,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
     def get_latest_activity(self, instance):
         return retrieve_latest_activity(instance)
-
-    def get_total_days_elapsed(self, instance):
-        return (timezone.now() - instance.submitted_at).days
 
     def get_all_flags(self, instance):
         """
