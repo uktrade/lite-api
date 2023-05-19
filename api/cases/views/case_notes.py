@@ -88,7 +88,31 @@ class CaseNoteMentionList(ListAPIView):
                 "case_note",
                 "user",
                 "case_note__user",
+                "case_note__user__govuser__team",
+                "case_note__case",
             )
             .filter(case_note__case_id=self.kwargs["pk"])
             .order_by("-created_at")
         )
+
+
+class UserCaseNoteMention(APIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CaseNoteMentionsSerializer
+
+    def get(self, request):
+        """Gets all mentions for user."""
+        qs = (
+            CaseNoteMentions.objects.select_related(
+                "case_note",
+                "user",
+                "case_note__user",
+                "case_note__user__govuser__team",
+                "case_note__case",
+            )
+            .filter(user_id=request.user.pk)
+            .order_by("-created_at")
+        )
+        serializer = self.serializer_class(qs, many=True)
+
+        return JsonResponse(data={"mentions": serializer.data})
