@@ -205,7 +205,7 @@ class Case(TimestampableModel):
 
         parameter_set = set(self.flags.all()) | {self.case_type} | set(self.organisation.flags.all())
 
-        for poa in PartyOnApplication.objects.filter(application=self.id):
+        for poa in PartyOnApplication.objects.filter(application=self.id, deleted_at__isnull=True):
             parameter_set = (
                 parameter_set | {poa.party.country} | set(poa.party.flags.all()) | set(poa.party.country.flags.all())
             )
