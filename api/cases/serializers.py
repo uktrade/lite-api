@@ -373,10 +373,9 @@ class CaseNoteMentionsSerializer(serializers.ModelSerializer):
 
     def get_case_queue_id(self, instance):
         # Check that the case's queue is still within the users team queue else fallback to all cases queue
-        if isinstance(instance, CaseNoteMentions):
-            for case_queue in instance.case_note.case.queues.all():
-                if case_queue in instance.user.team.queue_set.all():
-                    return case_queue.id
+        for case_queue in instance.case_note.case.queues.all():
+            if case_queue in instance.user.team.queue_set.all():
+                return case_queue.id
         return ALL_CASES_QUEUE_ID
 
     class Meta:
@@ -411,9 +410,6 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     is_visible_to_exporter = serializers.BooleanField(default=False)
     is_urgent = serializers.BooleanField(default=False)
-    mentions = PrimaryKeyRelatedSerializerField(
-        queryset=CaseNoteMentions.objects.all(), serializer=CaseNoteMentionsSerializer, required=False
-    )
 
     class Meta:
         model = CaseNote
