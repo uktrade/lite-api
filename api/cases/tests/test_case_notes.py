@@ -231,7 +231,21 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
         self.assertEqual(first_mention["team"], None)
         self.assertEqual(first_mention["case_queue_id"], "00000000-0000-0000-0000-000000000001")
 
-    def test_view_user_case_mentions_case_queue(self):
+    def test_view_user_case_mentions_case_queue_unmatched(self):
+
+        self.case.queues.add(self.create_queue("Test", self.create_team("test")))
+        self.case.save()
+
+        self.create_case_note_mention(self.case_note, self.gov_user)
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        result = response.json()["mentions"]
+        first_mention = result[0]
+
+        self.assertEqual(first_mention["case_queue_id"], "00000000-0000-0000-0000-000000000001")
+
+    def test_view_user_case_mentions_case_queue_match(self):
 
         self.case.queues.add(self.queue)
         self.case.save()
