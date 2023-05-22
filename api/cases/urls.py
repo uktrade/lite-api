@@ -101,5 +101,7 @@ urlpatterns = [
     ),
     # Good precedents
     path("<uuid:pk>/good-precedents/", views.GoodOnPrecedentList.as_view(), name="good_precedents"),
+    # Mentions
     path("<uuid:pk>/case-note-mentions/", case_notes.CaseNoteMentionList.as_view(), name="case_note_mentions"),
+    path("user-case-note-mentions/", case_notes.UserCaseNoteMention.as_view(), name="user_case_note_mentions"),
 ]
