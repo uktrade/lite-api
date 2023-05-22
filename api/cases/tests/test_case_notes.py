@@ -194,3 +194,70 @@ class CaseNoteMentionsViewTests(DataTestClient):
         self.assertEqual(result["results"][0]["case_note_user"]["id"], str(self.gov_user.baseuser_ptr.id))
         self.assertEqual(result["results"][0]["case_note_text"], case_note.text)
         self.assertEqual(result["results"][0]["is_urgent"], case_note.is_urgent)
+
+
+class UserCaseNoteMentionsViewTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.case = self.create_clc_query("Query", self.organisation)
+        self.case_note = self.create_case_note(self.case, "Hairpin Turns", self.gov_user.baseuser_ptr)
+
+        self.other_user = self.create_gov_user("test@gmail.com", self.team)  # /PS-IGNORE
+        self.case_other = self.create_clc_query("Query", self.organisation)
+        self.case_note_other = self.create_case_note(self.case_other, "Hairpin Turns", self.other_user.baseuser_ptr)
+
+        self.url = reverse("cases:user_case_note_mentions")
+
+    def test_view_user_case_mentions_successful(self):
+
+        self.create_case_note_mention(self.case_note, self.gov_user)
+        self.create_case_note_mention(self.case_note, self.other_user)
+        self.create_case_note_mention(self.case_note_other, self.gov_user)
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        result = response.json()["mentions"]
+        first_mention = result[0]
+
+        self.assertEqual(len(result), 2)
+        self.assertEqual(first_mention["user"]["id"], str(self.gov_user.baseuser_ptr.id))
+        self.assertEqual(first_mention["case_note_user"]["id"], str(self.other_user.baseuser_ptr.id))
+        self.assertEqual(first_mention["case_note_text"], self.case_note_other.text)
+        self.assertEqual(first_mention["case_note"], str(self.case_note_other.id))
+        self.assertEqual(first_mention["reference_code"], self.case_note_other.case.reference_code)
+        self.assertEqual(first_mention["case_id"], str(self.case_note_other.case.id))
+        self.assertEqual(first_mention["is_urgent"], self.case_note_other.is_urgent)
+        self.assertEqual(first_mention["is_accessed"], False)
+        self.assertEqual(first_mention["team"], None)
+        self.assertEqual(first_mention["case_queue_id"], "00000000-0000-0000-0000-000000000001")
+
+    def test_view_user_case_mentions_case_queue_unmatched(self):
+
+        self.case.queues.add(self.create_queue("Test", self.create_team("test")))
+        self.case.save()
+
+        self.create_case_note_mention(self.case_note, self.gov_user)
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        result = response.json()["mentions"]
+        first_mention = result[0]
+
+        self.assertEqual(first_mention["case_queue_id"], "00000000-0000-0000-0000-000000000001")
+
+    def test_view_user_case_mentions_case_queue_match(self):
+
+        self.case.queues.add(self.queue)
+        self.case.save()
+
+        self.gov_user.team.queue_set.add(self.queue)
+        self.gov_user.save()
+
+        self.create_case_note_mention(self.case_note, self.gov_user)
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        result = response.json()["mentions"]
+        first_mention = result[0]
+
+        self.assertEqual(first_mention["case_queue_id"], str(self.queue.id))
