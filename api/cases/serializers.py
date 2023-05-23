@@ -118,7 +118,7 @@ class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    queues = PrimaryKeyRelatedSerializerField(many=True, queryset=Queue.objects.all(), serializer=QueueListSerializer)
+    queues = serializers.SerializerMethodField()
     assignments = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
@@ -133,6 +133,9 @@ class CaseListSerializer(serializers.Serializer):
         self.team = kwargs.pop("team", None)
         self.include_hidden = kwargs.pop("include_hidden", None)
         super().__init__(*args, **kwargs)
+
+    def get_queues(self, instance):
+        return QueueListSerializer(instance.queues.all(), many=True).data
 
     def get_assignments(self, instance):
         return_value = {}
