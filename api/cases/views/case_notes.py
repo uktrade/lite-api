@@ -2,14 +2,13 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
-from rest_framework.exceptions import ValidationError
 
 from api.audit_trail import service
 from api.audit_trail.enums import AuditType
 from api.cases.libraries.get_case import get_case
 from api.cases.libraries.get_case_note import get_case_notes_from_case
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
-from api.cases.serializers import CaseNoteSerializer, CaseNoteMentionsSerializer, CaseNoteMentionsListSerializer
+from api.cases.serializers import CaseNoteSerializer, CaseNoteMentionsSerializer
 from api.core.authentication import SharedAuthentication, GovAuthentication
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
