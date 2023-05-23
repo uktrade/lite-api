@@ -357,6 +357,13 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             pass
 
 
+class CaseNoteMentionsListSerializer(serializers.ListSerializer):
+    def update(self, instances, validated_data):
+        instance_map = {index: instance for index, instance in enumerate(instances)}
+        result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
+        return result
+
+
 class CaseNoteMentionsSerializer(serializers.ModelSerializer):
     """
     Serializes case notes mentions
@@ -383,7 +390,9 @@ class CaseNoteMentionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseNoteMentions
+        list_serializer_class = CaseNoteMentionsListSerializer
         fields = (
+            "id",
             "case_note",
             "team",
             "is_accessed",

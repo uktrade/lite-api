@@ -2,13 +2,14 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
+from rest_framework.exceptions import ValidationError
 
 from api.audit_trail import service
 from api.audit_trail.enums import AuditType
 from api.cases.libraries.get_case import get_case
 from api.cases.libraries.get_case_note import get_case_notes_from_case
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
-from api.cases.serializers import CaseNoteSerializer, CaseNoteMentionsSerializer
+from api.cases.serializers import CaseNoteSerializer, CaseNoteMentionsSerializer, CaseNoteMentionsListSerializer
 from api.core.authentication import SharedAuthentication, GovAuthentication
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -94,6 +95,31 @@ class CaseNoteMentionList(ListAPIView):
             .filter(case_note__case_id=self.kwargs["pk"])
             .order_by("-created_at")
         )
+
+
+class CaseNoteMentionsView(APIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CaseNoteMentionsSerializer
+
+    def put(self, request, *args, **kwargs):
+        update_data = request.data
+
+        case_note_mention_ids = [m["id"] for m in update_data]
+        instances = CaseNoteMentions.objects.filter(id__in=case_note_mention_ids)
+        serializer = self.serializer_class(
+            instances,
+            data=update_data,
+            partial=True,
+            many=True,
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(
+                data={"mentions": serializer.data},
+                status=status.HTTP_201_CREATED,
+            )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserCaseNoteMention(APIView):
