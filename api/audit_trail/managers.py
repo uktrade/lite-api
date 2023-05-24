@@ -1,5 +1,9 @@
+from typing import List
 from actstream.gfk import GFKQuerySet, GFKManager
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q, OuterRef
 
+from api.cases.models import Case
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.users.models import ExporterUser
 from api.users.models import GovUser
@@ -27,8 +31,6 @@ class AuditManager(GFKManager):
         ignore_case_status: draft cases become audited, default is False
         """
         # TODO: decouple notifications and audit (signals?)
-        from api.cases.models import Case
-
         target = kwargs.get("target")
         actor = kwargs.get("actor")
         send_notification = kwargs.pop("send_notification", True)
@@ -49,3 +51,23 @@ class AuditManager(GFKManager):
             return None
 
         return super(AuditManager, self).create(*args, **kwargs)
+
+    def get_latest_activities(self, case_ids: List, number_of_results):
+        obj_type = ContentType.objects.get_for_model(Case)
+        top_x_per_case = (
+            self.get_queryset()
+            .filter(
+                Q(action_object_object_id=OuterRef("action_object_object_id"), action_object_content_type=obj_type)
+                | Q(target_object_id=OuterRef("target_object_id"), target_content_type=obj_type)
+            )
+            .order_by("-updated_at")
+        )
+        if number_of_results > 1:
+            # iterate over audit records once and add max of 'number_of_results' matching
+            # action_object_content_type or target_content_type (up to 2x'number_of_results' total)
+            top_x_per_case[:number_of_results]
+        return self.get_queryset().filter(
+            Q(id__in=top_x_per_case.values("id")),
+            Q(target_object_id__in=case_ids, target_content_type=obj_type)
+            | Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type),
+        )
