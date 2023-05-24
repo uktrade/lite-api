@@ -3,6 +3,7 @@ from typing import Dict, Union, Optional
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from api.audit_trail.serializers import AuditSerializer
 from rest_framework.exceptions import PermissionDenied
 
 from api.audit_trail.enums import AuditType
@@ -180,3 +181,12 @@ def get_filters(data: QueryDict) -> Dict:
         "date_from": make_date_from_params("from", data),
         "date_to": make_date_from_params("to", data),
     }
+
+
+def serialize_case_activity(activity, actor: BaseUser):
+    if actor.type == UserType.INTERNAL:
+        actor = actor.govuser
+    elif actor.type == UserType.EXPORTER:
+        actor = actor.exporteruser
+    activity.actor = actor
+    return AuditSerializer(activity).data
