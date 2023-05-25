@@ -96,6 +96,31 @@ class CaseNoteMentionList(ListAPIView):
         )
 
 
+class CaseNoteMentionsView(APIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CaseNoteMentionsSerializer
+
+    def put(self, request, *args, **kwargs):
+        update_data = request.data
+
+        case_note_mention_ids = [m["id"] for m in update_data]
+        instances = CaseNoteMentions.objects.filter(id__in=case_note_mention_ids)
+        serializer = self.serializer_class(
+            instances,
+            data=update_data,
+            partial=True,
+            many=True,
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(
+                data={"mentions": serializer.data},
+                status=status.HTTP_200_OK,
+            )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class UserCaseNoteMention(APIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = CaseNoteMentionsSerializer
