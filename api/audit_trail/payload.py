@@ -48,6 +48,7 @@ audit_type_format = {
     AuditType.CLC_RESPONSE: strings.Audit.CLC_RESPONSE,
     AuditType.PV_GRADING_RESPONSE: strings.Audit.PV_GRADING_RESPONSE,
     AuditType.CREATED_CASE_NOTE: strings.Audit.CREATED_CASE_NOTE,
+    AuditType.CREATED_CASE_NOTE_WITH_MENTIONS: " sent a case note to {mention_users}",
     AuditType.ECJU_QUERY: " added an ECJU Query: {ecju_query}",
     AuditType.ECJU_QUERY_RESPONSE: " responded to an ECJU Query: {ecju_response}",
     AuditType.UPDATED_STATUS: formatters.get_updated_status,
