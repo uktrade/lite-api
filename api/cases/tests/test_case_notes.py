@@ -266,24 +266,27 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
 
         case_note_mention = self.create_case_note_mention(self.case_note, self.gov_user)
         case_note_mention_2 = self.create_case_note_mention(self.case_note, self.gov_user)
+        case_note_mention_2.is_accessed = True
+        case_note_mention_2.save()
+
         self.assertEqual(case_note_mention.is_accessed, False)
-        self.assertEqual(case_note_mention_2.is_accessed, False)
+        self.assertEqual(case_note_mention_2.is_accessed, True)
 
         url = reverse("cases:case_note_mentions")
         update_data = [
             {"id": case_note_mention.pk, "is_accessed": True},
-            {"id": case_note_mention_2.pk, "is_accessed": True},
+            {"id": case_note_mention_2.pk, "is_accessed": False},
         ]
 
         response = self.client.put(url, data=update_data, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         case_note_mention.refresh_from_db()
         case_note_mention_2.refresh_from_db()
 
         self.assertEqual(case_note_mention.is_accessed, True)
-        self.assertEqual(case_note_mention_2.is_accessed, True)
+        self.assertEqual(case_note_mention_2.is_accessed, False)
 
     def test_view_user_case_mentions_update_bad_data(self):
         url = reverse("cases:case_note_mentions")

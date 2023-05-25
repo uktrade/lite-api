@@ -116,7 +116,7 @@ class CaseNoteMentionsView(APIView):
             serializer.save()
             return JsonResponse(
                 data={"mentions": serializer.data},
-                status=status.HTTP_201_CREATED,
+                status=status.HTTP_200_OK,
             )
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
