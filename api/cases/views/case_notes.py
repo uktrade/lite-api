@@ -64,21 +64,21 @@ class CaseNoteList(APIView):
                 if case_note_mentions_serializer.is_valid():
                     case_note_mentions_serializer.save()
                     returned_data.update({"mentions": case_note_mentions_serializer.data})
-                    mention_users_text = case_note_mentions_serializer.user_mentions_text()
-
                     service.create(
                         verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS,
                         actor=request.user,
                         action_object=serializer.instance,
                         target=case,
-                        payload={"additional_text": serializer.instance.text, "mention_users": mention_users_text},
+                        payload={
+                            "additional_text": serializer.instance.text,
+                            "mention_users": case_note_mentions_serializer.user_mentions_text(),
+                        },
                         ignore_case_status=True,
                     )
                 else:
                     return JsonResponse(
                         data={"errors": case_note_mentions_serializer.errors}, status=status.HTTP_400_BAD_REQUEST
                     )
-
             else:
                 service.create(
                     verb=AuditType.CREATED_CASE_NOTE,

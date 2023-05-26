@@ -389,7 +389,7 @@ class CaseNoteMentionsListSerializer(serializers.ListSerializer):
             names.append(name)
         names_text = ", ".join(names)
         if self.data[0]["is_urgent"]:
-            names_text += " UREGNT"
+            names_text += " URGENT"
         return names_text
 
 

@@ -1,4 +1,5 @@
 from django.urls import reverse
+from api.audit_trail.enums import AuditType
 from parameterized import parameterized
 from rest_framework import status
 
@@ -6,6 +7,7 @@ from api.cases.models import CaseNote, CaseNoteMentions
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from api.audit_trail.models import Audit
 
 
 class CaseNotesGovCreateTests(DataTestClient):
@@ -50,6 +52,30 @@ class CaseNotesGovCreateTests(DataTestClient):
         self.assertEqual(CaseNoteMentions.objects.count(), 2)
         self.assertEqual(response.json()["case_note"]["mentions"][0]["user"]["id"], mentions[0]["user"])
         self.assertEqual(response.json()["case_note"]["mentions"][1]["user"]["id"], mentions[1]["user"])
+
+        # Check the Audit log
+        audit = Audit.objects.get(verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
+        self.assertEqual(audit.verb, AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
+        mention_users_text = f"{self.other_user.baseuser_ptr.first_name} {self.other_user.baseuser_ptr.last_name}, {self.other_user_2.baseuser_ptr.first_name} {self.other_user_2.baseuser_ptr.last_name} URGENT"
+        self.assertEqual(audit.payload["mention_users"], mention_users_text)
+
+    def test_create_case_note_with_mentions_email_audit_check(self):
+
+        self.other_user = self.create_gov_user("test@gmail.com", self.team)  # /PS-IGNORE
+        self.other_user.baseuser_ptr.first_name = ""
+        self.other_user.baseuser_ptr.save()
+        mentions = [
+            {
+                "user": str(self.other_user.baseuser_ptr.id),
+            },
+        ]
+        self.data["mentions"] = mentions
+        self.client.post(self.url, data=self.data, **self.gov_headers)
+
+        # Check the Audit log
+        audit = Audit.objects.get(verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
+        self.assertEqual(audit.verb, AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
+        self.assertEqual(audit.payload["mention_users"], "test@gmail.com")  # /PS-IGNORE
 
     def test_create_case_note_with_mentions_unsuccessful(self):
 
