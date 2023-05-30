@@ -3,14 +3,14 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, F, Q, Value, OuterRef
+from django.db.models import Count, F, Value
 from django.db.models.functions import Concat
 from django.utils import timezone
+from api.audit_trail.service import serialize_case_activity
 from api.staticdata.countries.serializers import CountrySerializer
 
 from api.applications.models import HmrcQuery, PartyOnApplication, GoodOnApplication, DenialMatchOnApplication
 from api.audit_trail.models import Audit
-from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from api.cases import serializers as cases_serializers
 from api.cases.models import Case, EcjuQuery
@@ -18,7 +18,7 @@ from api.common.dates import working_days_in_range, number_of_days_since, workin
 from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.users.enums import UserStatuses, UserType
+from api.users.enums import UserStatuses
 from api.users.models import BaseUser, GovUser
 
 
@@ -265,19 +265,8 @@ def populate_activity_updates(case_map):
     """
     retrieve the last 2 activities per case for the provided list of cases
     """
-    obj_type = ContentType.objects.get_for_model(Case)
     case_ids = list(case_map.keys())
-    # iterate over audit records once and add max of 2 records per matching
-    # action_object_content_type or target_content_type (up to 4 total)
-    top_2_per_case = Audit.objects.filter(
-        Q(action_object_object_id=OuterRef("action_object_object_id"), action_object_content_type=obj_type)
-        | Q(target_object_id=OuterRef("target_object_id"), target_content_type=obj_type)
-    ).order_by("-updated_at")[:2]
-    activities_qs = Audit.objects.filter(
-        Q(id__in=top_2_per_case.values("id")),
-        Q(target_object_id__in=case_ids, target_content_type=obj_type)
-        | Q(action_object_object_id__in=case_ids, action_object_content_type=obj_type),
-    )
+    activities_qs = Audit.objects.get_latest_activities(case_ids, 2)
     # get users data for activities en bulk to reduce query count
     user_ids = {activity.actor_object_id for activity in activities_qs}
     users = BaseUser.objects.select_related("exporteruser", "govuser", "govuser__team").filter(id__in=user_ids)
@@ -292,12 +281,7 @@ def populate_activity_updates(case_map):
             case_id = activity.action_object_object_id
         # prepopulate actor for AuditSerializer
         actor = user_map[activity.actor_object_id]
-        if actor.type == UserType.INTERNAL:
-            actor = actor.govuser
-        elif actor.type == UserType.EXPORTER:
-            actor = actor.exporteruser
-        activity.actor = actor
-        activity_obj = AuditSerializer(activity).data
+        activity_obj = serialize_case_activity(activity, actor)
         case = case_map[case_id]
         if "activity_updates" in case:
             case["activity_updates"].append(activity_obj)

@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from api.cases.service import retrieve_latest_activity
 from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
@@ -249,6 +250,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     advice = AdviceViewSerializer(many=True)
     countersign_advice = CountersignDecisionAdviceViewSerializer(many=True)
     data = serializers.SerializerMethodField()
+    latest_activity = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     next_review_date = serializers.SerializerMethodField()
 
@@ -257,6 +259,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "case_type",
+            "submitted_at",
             "flags",
             "queues",
             "queue_names",
@@ -274,6 +277,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "sla_remaining_days",
             "data",
             "next_review_date",
+            "latest_activity",
         )
 
     def __init__(self, *args, **kwargs):
@@ -308,7 +312,15 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
     def get_queue_details(self, instance):
         # This should supersede queue/queue_names to make payload and DB query more efficient
-        return list(instance.queues.values("id", "name", "alias"))
+        details = list(instance.queues.values("id", "name", "alias"))
+        qs = CaseQueue.objects.filter(
+            case_id=instance.id, queue_id__in=list(instance.queues.values_list("id", flat=True))
+        )
+        queue_map = {case_queue.queue_id: case_queue for case_queue in qs}
+        for detail in details:
+            case_queue = queue_map[detail["id"]]
+            detail["joined_queue_at"] = case_queue.created_at
+        return details
 
     def get_assigned_users(self, instance):
         return instance.get_assigned_users()
@@ -332,6 +344,9 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             has_advice["my_user"] = True
 
         return has_advice
+
+    def get_latest_activity(self, instance):
+        return retrieve_latest_activity(instance)
 
     def get_all_flags(self, instance):
         """
