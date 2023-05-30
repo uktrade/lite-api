@@ -378,7 +378,7 @@ class CaseNoteMentionsListSerializer(serializers.ListSerializer):
         result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
         return result
 
-    def user_mentions_text(self):
+    def get_user_mention_names(self):
         names = []
         for m in self.data:
             name = (
@@ -386,11 +386,9 @@ class CaseNoteMentionsListSerializer(serializers.ListSerializer):
                 if m["user"]["first_name"]
                 else m["user"]["email"]
             )
-            names.append(name)
-        names_text = ", ".join(names)
-        if self.data[0]["is_urgent"]:
-            names_text += " URGENT"
-        return names_text
+            team = m["user"].get("team", {}).get("name", "")
+            names.append(f"{name} ({team})")
+        return names
 
 
 class CaseNoteMentionsSerializer(serializers.ModelSerializer):

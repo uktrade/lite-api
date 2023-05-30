@@ -56,8 +56,12 @@ class CaseNotesGovCreateTests(DataTestClient):
         # Check the Audit log
         audit = Audit.objects.get(verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
         self.assertEqual(audit.verb, AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
-        mention_users_text = f"{self.other_user.baseuser_ptr.first_name} {self.other_user.baseuser_ptr.last_name}, {self.other_user_2.baseuser_ptr.first_name} {self.other_user_2.baseuser_ptr.last_name} URGENT"
+        mention_users_text = [
+            f"{self.other_user.baseuser_ptr.first_name} {self.other_user.baseuser_ptr.last_name} ({self.team.name})",
+            f"{self.other_user_2.baseuser_ptr.first_name} {self.other_user_2.baseuser_ptr.last_name} ({self.team.name})",
+        ]
         self.assertEqual(audit.payload["mention_users"], mention_users_text)
+        self.assertEqual(audit.payload["is_urgent"], True)
 
     def test_create_case_note_with_mentions_email_audit_check(self):
 
@@ -75,7 +79,10 @@ class CaseNotesGovCreateTests(DataTestClient):
         # Check the Audit log
         audit = Audit.objects.get(verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
         self.assertEqual(audit.verb, AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
-        self.assertEqual(audit.payload["mention_users"], "test@gmail.com")  # /PS-IGNORE
+        self.assertEqual(
+            audit.payload,
+            {"is_urgent": False, "mention_users": ["test@gmail.com (Admin)"], "additional_text": "I Am Easy to Find"},
+        )  # /PS-IGNORE
 
     def test_create_case_note_with_mentions_unsuccessful(self):
 

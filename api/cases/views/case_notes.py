@@ -48,14 +48,15 @@ class CaseNoteList(APIView):
         data["case"] = str(case.id)
         data["user"] = str(request.user.pk)
         serializer = self.serializer(data=data)
+
         returned_data = {}
 
         if serializer.is_valid():
             serializer.save()
             returned_data = serializer.data
-
+            verb = AuditType.CREATED_CASE_NOTE
+            payload = {"additional_text": serializer.instance.text}
             # Let create case note mentions if needed
-
             if mentions_data:
                 update = {"case_note": str(serializer.instance.id)}
                 mentions_data = [{**m, **update} for m in mentions_data]
@@ -64,30 +65,25 @@ class CaseNoteList(APIView):
                 if case_note_mentions_serializer.is_valid():
                     case_note_mentions_serializer.save()
                     returned_data.update({"mentions": case_note_mentions_serializer.data})
-                    service.create(
-                        verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS,
-                        actor=request.user,
-                        action_object=serializer.instance,
-                        target=case,
-                        payload={
-                            "additional_text": serializer.instance.text,
-                            "mention_users": case_note_mentions_serializer.user_mentions_text(),
-                        },
-                        ignore_case_status=True,
+                    verb = AuditType.CREATED_CASE_NOTE_WITH_MENTIONS
+                    payload.update(
+                        {
+                            "mention_users": case_note_mentions_serializer.get_user_mention_names(),
+                            "is_urgent": serializer.instance.is_urgent,
+                        }
                     )
                 else:
                     return JsonResponse(
                         data={"errors": case_note_mentions_serializer.errors}, status=status.HTTP_400_BAD_REQUEST
                     )
-            else:
-                service.create(
-                    verb=AuditType.CREATED_CASE_NOTE,
-                    actor=request.user,
-                    action_object=serializer.instance,
-                    target=case,
-                    payload={"additional_text": serializer.instance.text},
-                    ignore_case_status=True,
-                )
+            service.create(
+                verb=verb,
+                actor=request.user,
+                action_object=serializer.instance,
+                target=case,
+                payload=payload,
+                ignore_case_status=True,
+            )
         else:
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
