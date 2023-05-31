@@ -20,8 +20,10 @@ class AuditSerializer(serializers.ModelSerializer):
             "id",
             "created_at",
             "user",
+            "verb",
             "text",
             "additional_text",
+            "payload",
         )
 
     def get_user(self, instance: Audit):

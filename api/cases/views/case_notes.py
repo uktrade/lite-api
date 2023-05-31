@@ -48,32 +48,44 @@ class CaseNoteList(APIView):
         data["case"] = str(case.id)
         data["user"] = str(request.user.pk)
         serializer = self.serializer(data=data)
+
         returned_data = {}
+
         if serializer.is_valid():
             serializer.save()
             returned_data = serializer.data
+            verb = AuditType.CREATED_CASE_NOTE
+            payload = {"additional_text": serializer.instance.text}
+            # Let create case note mentions if needed
+            if mentions_data:
+                update = {"case_note": str(serializer.instance.id)}
+                mentions_data = [{**m, **update} for m in mentions_data]
+                case_note_mentions_serializer = CaseNoteMentionsSerializer(data=mentions_data, many=True)
+
+                if case_note_mentions_serializer.is_valid():
+                    case_note_mentions_serializer.save()
+                    returned_data.update({"mentions": case_note_mentions_serializer.data})
+                    verb = AuditType.CREATED_CASE_NOTE_WITH_MENTIONS
+                    payload.update(
+                        {
+                            "mention_users": case_note_mentions_serializer.get_user_mention_names(),
+                            "is_urgent": serializer.instance.is_urgent,
+                        }
+                    )
+                else:
+                    return JsonResponse(
+                        data={"errors": case_note_mentions_serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                    )
             service.create(
-                verb=AuditType.CREATED_CASE_NOTE,
+                verb=verb,
                 actor=request.user,
                 action_object=serializer.instance,
                 target=case,
-                payload={"additional_text": serializer.instance.text},
+                payload=payload,
                 ignore_case_status=True,
             )
         else:
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Let create case note mentions
-
-        if mentions_data:
-            update = {"case_note": str(serializer.instance.id)}
-            mentions_data = [{**m, **update} for m in mentions_data]
-            case_note_mentions = CaseNoteMentionsSerializer(data=mentions_data, many=True)
-            if case_note_mentions.is_valid():
-                case_note_mentions.save()
-                returned_data.update({"mentions": case_note_mentions.data})
-            else:
-                return JsonResponse(data={"errors": case_note_mentions.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"case_note": returned_data}, status=status.HTTP_201_CREATED)
 

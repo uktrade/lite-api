@@ -378,6 +378,18 @@ class CaseNoteMentionsListSerializer(serializers.ListSerializer):
         result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
         return result
 
+    def get_user_mention_names(self):
+        names = []
+        for m in self.data:
+            name = (
+                m["user"]["first_name"] + " " + m["user"]["last_name"]
+                if m["user"]["first_name"]
+                else m["user"]["email"]
+            )
+            team = m["user"].get("team", {}).get("name", "")
+            names.append(f"{name} ({team})")
+        return names
+
 
 class CaseNoteMentionsSerializer(serializers.ModelSerializer):
     """
