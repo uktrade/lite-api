@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from api.core.custom_views import OptionalPaginationView
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
@@ -133,12 +134,11 @@ class CaseNoteMentionsView(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserCaseNoteMention(APIView):
+class UserCaseNoteMention(OptionalPaginationView):
     authentication_classes = (GovAuthentication,)
     serializer_class = CaseNoteMentionsSerializer
 
-    def get(self, request):
-        """Gets all mentions for user."""
+    def get_queryset(self):
         qs = (
             CaseNoteMentions.objects.select_related(
                 "case_note",
@@ -147,9 +147,7 @@ class UserCaseNoteMention(APIView):
                 "case_note__user__govuser__team",
                 "case_note__case",
             )
-            .filter(user_id=request.user.pk)
+            .filter(user_id=self.request.user.pk)
             .order_by("-created_at")
         )
-        serializer = self.serializer_class(qs, many=True)
-
-        return JsonResponse(data={"mentions": serializer.data})
+        return qs
