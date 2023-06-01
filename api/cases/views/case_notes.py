@@ -153,3 +153,13 @@ class UserCaseNoteMention(APIView):
         serializer = self.serializer_class(qs, many=True)
 
         return JsonResponse(data={"mentions": serializer.data})
+
+
+class UserCaseNoteMentionsNewCount(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        """Gets count of all new mentions for user."""
+        qs = CaseNoteMentions.objects.filter(user_id=request.user.pk, is_accessed=False)
+
+        return JsonResponse(data={"count": qs.count()})
