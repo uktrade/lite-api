@@ -151,3 +151,12 @@ class UserCaseNoteMention(OptionalPaginationView):
             .order_by("-created_at")
         )
         return qs
+
+class UserCaseNoteMentionsNewCount(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        """Gets count of all new mentions for user."""
+        qs = CaseNoteMentions.objects.filter(user_id=request.user.pk, is_accessed=False)
+
+        return JsonResponse(data={"count": qs.count()})

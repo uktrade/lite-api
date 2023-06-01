@@ -330,3 +330,18 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
         response = self.client.put(url, data=update_data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_view_user_case_mentions_new_count(self):
+
+        url = reverse("cases:user_case_note_mentions_new_count")
+        self.create_case_note_mention(self.case_note, self.gov_user)
+        self.create_case_note_mention(self.case_note, self.other_user)
+        self.create_case_note_mention(self.case_note_other, self.gov_user)
+
+        old_mention = self.create_case_note_mention(self.case_note, self.other_user)
+        old_mention.is_accessed = True
+        old_mention.save()
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.json()["count"], 2)
