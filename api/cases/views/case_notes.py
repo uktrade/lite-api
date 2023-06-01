@@ -152,6 +152,7 @@ class UserCaseNoteMention(OptionalPaginationView):
         )
         return qs
 
+
 class UserCaseNoteMentionsNewCount(APIView):
     authentication_classes = (GovAuthentication,)
 
