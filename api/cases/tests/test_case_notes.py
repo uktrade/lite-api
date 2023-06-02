@@ -249,7 +249,7 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        result = response.json()["mentions"]
+        result = response.json()["results"]
         first_mention = result[0]
 
         self.assertEqual(len(result), 2)
@@ -273,7 +273,7 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        result = response.json()["mentions"]
+        result = response.json()["results"]
         first_mention = result[0]
 
         self.assertEqual(first_mention["case_queue_id"], "00000000-0000-0000-0000-000000000001")
@@ -290,7 +290,7 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        result = response.json()["mentions"]
+        result = response.json()["results"]
         first_mention = result[0]
 
         self.assertEqual(first_mention["case_queue_id"], str(self.queue.id))
