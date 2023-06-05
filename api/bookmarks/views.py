@@ -1,5 +1,3 @@
-import uuid
-
 from django.http.response import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -20,8 +18,7 @@ class Bookmarks(APIView):
     def post(self, request):
         data = request.data
         new_bookmark = {**data}
-        new_bookmark.update({"id": uuid.uuid4(), "user": request.user.govuser})
-
+        new_bookmark.update({"user": request.user.govuser})
         serializer = BookmarksSerializer(data=new_bookmark)
 
         if not serializer.is_valid():
@@ -40,7 +37,7 @@ class Bookmarks(APIView):
         if not bookmark.exists():
             return JsonResponse(
                 {"errors": [f"Bookmark with id {bookmark_id} does not exist for this user"]},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_404_NOT_FOUND,
             )
         bookmark[0].delete()
 
@@ -53,7 +50,7 @@ class Bookmarks(APIView):
         if not bookmark.exists():
             return JsonResponse(
                 {"errors": [f"Bookmark with id {bookmark_id} does not exist for this user"]},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         data = request.data

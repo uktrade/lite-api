@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ("name", models.TextField()),
                 ("description", models.TextField(blank=True)),
-                ("filter_json", models.TextField()),
+                ("filter_json", models.JSONField()),
                 ("user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="users.govuser")),
             ],
         ),

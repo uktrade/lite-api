@@ -9,5 +9,5 @@ class Bookmark(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField(blank=True)
-    filter_json = models.TextField()
+    filter_json = models.JSONField()
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)

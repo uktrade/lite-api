@@ -61,9 +61,9 @@ class GetBookmarksTests(DataTestClient):
 
     @parameterized.expand(
         (
-            ["Full filter", "Country is UK", '{"country":"UK"}'],
-            ["Empty filter", "Country is Germany", "{}"],
-            ["No description", "", '{"country":"US"}'],
+            ["Full filter", "Country is UK", {"country": "UK"}],
+            ["Empty filter", "Country is Germany", {}],
+            ["No description", "", {"country": "US"}],
         )
     )
     def test_add_bookmark_CREATED(self, name, description, filter_json):
@@ -83,7 +83,7 @@ class GetBookmarksTests(DataTestClient):
         )
         self.assertEqual(created_bookmark.name, name)
         self.assertEqual(created_bookmark.description, description)
-        self.assertEqual(json.loads(created_bookmark.filter_json), json.loads(filter_json))
+        self.assertEqual(created_bookmark.filter_json, filter_json)
         self.assertEqual(created_bookmark.user, self.gov_user)
 
         self.assertEqual(str(created_bookmark.id), new_bookmark["id"])
@@ -115,16 +115,14 @@ class GetBookmarksTests(DataTestClient):
 
     @parameterized.expand(
         (
-            ["", '{"country":"UK"}'],
-            [None, '{"country":"UK"}'],
-            ["Missing filter", ""],
-            ["Missing filter", None],
+            "",
+            None,
         )
     )
-    def test_add_bookmark_failure(self, name, filter_json):
+    def test_add_bookmark_failure(self, name):
         data = {
             "name": name,
-            "filter_json": filter_json,
+            "filter_json": {"country": "DE"},
         }
         # Remove missing keys
         response = self.client.post(bookmarks_url(), data, "json", **self.gov_headers)
@@ -155,6 +153,12 @@ class GetBookmarksTests(DataTestClient):
         self.assertEqual(updated.filter_json, to_update["filter_json"] if "filter_json" in to_update else "{}")
         self.assertEqual(updated.user, self.gov_user)
 
+    def test_update_non_existant_bookmark_fails(self):
+        data = {"id": uuid.uuid4(), "name": "should fail"}
+        response = self.client.put(bookmarks_url(), data, "json", **self.gov_headers)
+
+        self.assertEqual(response.status_code, 404)
+
     def test_update_bookmark_user_fails(self):
         bookmark_id = uuid.uuid4()
         bookmark = Bookmark(id=bookmark_id, user=self.gov_user, name="Temp Name", description="Desc", filter_json="{}")
@@ -177,7 +181,7 @@ class GetBookmarksTests(DataTestClient):
             bookmarks_url(), {"id": other_user_bookmark.id, "name": new_name}, "json", **self.gov_headers
         )
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
 
         self.assertNotEqual(Bookmark.objects.filter(id=other_user_bookmark.id)[0].name, new_name)
 
@@ -195,6 +199,12 @@ class GetBookmarksTests(DataTestClient):
 
         self.assertFalse(Bookmark.objects.filter(id=user_bookmark.id).exists())
 
+    def test_delete_non_existent_bookmark_fails(self):
+        data = {"id": uuid.uuid4()}
+        response = self.client.delete(bookmarks_url(), data, "json", **self.gov_headers)
+
+        self.assertEqual(response.status_code, 404)
+
     def test_delete_other_users_bookmark_fails(self):
         bookmarks, users = self.create_bookmarks()
         other_user_bookmark = [b for b in bookmarks if b.user is not self.gov_user].pop()
@@ -202,7 +212,7 @@ class GetBookmarksTests(DataTestClient):
 
         response = self.client.delete(bookmarks_url(), {"id": other_user_bookmark.id}, "json", **self.gov_headers)
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
 
         final_count = Bookmark.objects.count()
         self.assertEqual(final_count, initial_count)
