@@ -852,7 +852,6 @@ class FlattenedComplianceSiteWithVisitReportsSerializer(ComplianceSiteWithVisitR
 
 
 class AdviceSerializer(serializers.ModelSerializer):
-
     denial_reasons = DenialReasonSerializer(read_only=True, many=True)
 
     class Meta:
@@ -980,7 +979,6 @@ def format_quantity(quantity, unit):
 
 
 def _get_good_on_application_context_with_advice(good_on_application, advice):
-
     good_context = GoodOnApplicationSerializer(good_on_application).data
 
     if advice:
@@ -1019,7 +1017,7 @@ def _get_goods_context(application, final_advice, licence=None):
             ]
         # Remove APPROVE from advice as it is no longer needed
         # (no need to get approved GoodOnApplications if we have GoodOnLicence)
-        final_advice = final_advice.exclude(type=AdviceType.APPROVE)
+        final_advice = final_advice.exclude(Q(type=AdviceType.APPROVE, proviso__in=[None, ""]))
 
     for advice in final_advice:
         if advice.good_id in goods_on_application_dict:
