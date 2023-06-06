@@ -1,4 +1,5 @@
 from django.urls import reverse
+from api.audit_trail.enums import AuditType
 from parameterized import parameterized
 from rest_framework import status
 
@@ -6,6 +7,7 @@ from api.cases.models import CaseNote, CaseNoteMentions
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from api.audit_trail.models import Audit
 
 
 class CaseNotesGovCreateTests(DataTestClient):
@@ -50,6 +52,37 @@ class CaseNotesGovCreateTests(DataTestClient):
         self.assertEqual(CaseNoteMentions.objects.count(), 2)
         self.assertEqual(response.json()["case_note"]["mentions"][0]["user"]["id"], mentions[0]["user"])
         self.assertEqual(response.json()["case_note"]["mentions"][1]["user"]["id"], mentions[1]["user"])
+
+        # Check the Audit log
+        audit = Audit.objects.get(verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
+        self.assertEqual(audit.verb, AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
+        mention_users_text = [
+            f"{self.other_user.baseuser_ptr.first_name} {self.other_user.baseuser_ptr.last_name} ({self.team.name})",
+            f"{self.other_user_2.baseuser_ptr.first_name} {self.other_user_2.baseuser_ptr.last_name} ({self.team.name})",
+        ]
+        self.assertEqual(audit.payload["mention_users"], mention_users_text)
+        self.assertEqual(audit.payload["is_urgent"], True)
+
+    def test_create_case_note_with_mentions_email_audit_check(self):
+
+        self.other_user = self.create_gov_user("test@gmail.com", self.team)  # /PS-IGNORE
+        self.other_user.baseuser_ptr.first_name = ""
+        self.other_user.baseuser_ptr.save()
+        mentions = [
+            {
+                "user": str(self.other_user.baseuser_ptr.id),
+            },
+        ]
+        self.data["mentions"] = mentions
+        self.client.post(self.url, data=self.data, **self.gov_headers)
+
+        # Check the Audit log
+        audit = Audit.objects.get(verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
+        self.assertEqual(audit.verb, AuditType.CREATED_CASE_NOTE_WITH_MENTIONS.value)
+        self.assertEqual(
+            audit.payload,
+            {"is_urgent": False, "mention_users": ["test@gmail.com (Admin)"], "additional_text": "I Am Easy to Find"},
+        )  # /PS-IGNORE
 
     def test_create_case_note_with_mentions_unsuccessful(self):
 
@@ -178,7 +211,7 @@ class CaseNoteMentionsViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.case = self.create_clc_query("Query", self.organisation)
-        self.url = reverse("cases:case_note_mentions", kwargs={"pk": self.case.id})
+        self.url = reverse("cases:case_note_mentions_list", kwargs={"pk": self.case.id})
 
     def test_view_case_mentions_successful(self):
 
@@ -216,7 +249,7 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        result = response.json()["mentions"]
+        result = response.json()["results"]
         first_mention = result[0]
 
         self.assertEqual(len(result), 2)
@@ -240,7 +273,7 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        result = response.json()["mentions"]
+        result = response.json()["results"]
         first_mention = result[0]
 
         self.assertEqual(first_mention["case_queue_id"], "00000000-0000-0000-0000-000000000001")
@@ -257,7 +290,58 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        result = response.json()["mentions"]
+        result = response.json()["results"]
         first_mention = result[0]
 
         self.assertEqual(first_mention["case_queue_id"], str(self.queue.id))
+
+    def test_view_user_case_mentions_update(self):
+
+        case_note_mention = self.create_case_note_mention(self.case_note, self.gov_user)
+        case_note_mention_2 = self.create_case_note_mention(self.case_note, self.gov_user)
+        case_note_mention_2.is_accessed = True
+        case_note_mention_2.save()
+
+        self.assertEqual(case_note_mention.is_accessed, False)
+        self.assertEqual(case_note_mention_2.is_accessed, True)
+
+        url = reverse("cases:case_note_mentions")
+        update_data = [
+            {"id": case_note_mention.pk, "is_accessed": True},
+            {"id": case_note_mention_2.pk, "is_accessed": False},
+        ]
+
+        response = self.client.put(url, data=update_data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        case_note_mention.refresh_from_db()
+        case_note_mention_2.refresh_from_db()
+
+        self.assertEqual(case_note_mention.is_accessed, True)
+        self.assertEqual(case_note_mention_2.is_accessed, False)
+
+    def test_view_user_case_mentions_update_bad_data(self):
+        url = reverse("cases:case_note_mentions")
+        case_note_mention = self.create_case_note_mention(self.case_note, self.gov_user)
+
+        update_data = [{"id": case_note_mention.pk, "is_accessed": "bad_data"}]
+
+        response = self.client.put(url, data=update_data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_view_user_case_mentions_new_count(self):
+
+        url = reverse("cases:user_case_note_mentions_new_count")
+        self.create_case_note_mention(self.case_note, self.gov_user)
+        self.create_case_note_mention(self.case_note, self.other_user)
+        self.create_case_note_mention(self.case_note_other, self.gov_user)
+
+        old_mention = self.create_case_note_mention(self.case_note, self.other_user)
+        old_mention.is_accessed = True
+        old_mention.save()
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.json()["count"], 2)

@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from api.core.custom_views import OptionalPaginationView
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
@@ -48,32 +49,44 @@ class CaseNoteList(APIView):
         data["case"] = str(case.id)
         data["user"] = str(request.user.pk)
         serializer = self.serializer(data=data)
+
         returned_data = {}
+
         if serializer.is_valid():
             serializer.save()
             returned_data = serializer.data
+            verb = AuditType.CREATED_CASE_NOTE
+            payload = {"additional_text": serializer.instance.text}
+            # Let create case note mentions if needed
+            if mentions_data:
+                update = {"case_note": str(serializer.instance.id)}
+                mentions_data = [{**m, **update} for m in mentions_data]
+                case_note_mentions_serializer = CaseNoteMentionsSerializer(data=mentions_data, many=True)
+
+                if case_note_mentions_serializer.is_valid():
+                    case_note_mentions_serializer.save()
+                    returned_data.update({"mentions": case_note_mentions_serializer.data})
+                    verb = AuditType.CREATED_CASE_NOTE_WITH_MENTIONS
+                    payload.update(
+                        {
+                            "mention_users": case_note_mentions_serializer.get_user_mention_names(),
+                            "is_urgent": serializer.instance.is_urgent,
+                        }
+                    )
+                else:
+                    return JsonResponse(
+                        data={"errors": case_note_mentions_serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                    )
             service.create(
-                verb=AuditType.CREATED_CASE_NOTE,
+                verb=verb,
                 actor=request.user,
                 action_object=serializer.instance,
                 target=case,
-                payload={"additional_text": serializer.instance.text},
+                payload=payload,
                 ignore_case_status=True,
             )
         else:
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Let create case note mentions
-
-        if mentions_data:
-            update = {"case_note": str(serializer.instance.id)}
-            mentions_data = [{**m, **update} for m in mentions_data]
-            case_note_mentions = CaseNoteMentionsSerializer(data=mentions_data, many=True)
-            if case_note_mentions.is_valid():
-                case_note_mentions.save()
-                returned_data.update({"mentions": case_note_mentions.data})
-            else:
-                return JsonResponse(data={"errors": case_note_mentions.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"case_note": returned_data}, status=status.HTTP_201_CREATED)
 
@@ -96,12 +109,36 @@ class CaseNoteMentionList(ListAPIView):
         )
 
 
-class UserCaseNoteMention(APIView):
+class CaseNoteMentionsView(APIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = CaseNoteMentionsSerializer
 
-    def get(self, request):
-        """Gets all mentions for user."""
+    def put(self, request, *args, **kwargs):
+        update_data = request.data
+
+        case_note_mention_ids = [m["id"] for m in update_data]
+        instances = CaseNoteMentions.objects.filter(id__in=case_note_mention_ids)
+        serializer = self.serializer_class(
+            instances,
+            data=update_data,
+            partial=True,
+            many=True,
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(
+                data={"mentions": serializer.data},
+                status=status.HTTP_200_OK,
+            )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserCaseNoteMention(OptionalPaginationView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CaseNoteMentionsSerializer
+
+    def get_queryset(self):
         qs = (
             CaseNoteMentions.objects.select_related(
                 "case_note",
@@ -110,9 +147,17 @@ class UserCaseNoteMention(APIView):
                 "case_note__user__govuser__team",
                 "case_note__case",
             )
-            .filter(user_id=request.user.pk)
+            .filter(user_id=self.request.user.pk)
             .order_by("-created_at")
         )
-        serializer = self.serializer_class(qs, many=True)
+        return qs
 
-        return JsonResponse(data={"mentions": serializer.data})
+
+class UserCaseNoteMentionsNewCount(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        """Gets count of all new mentions for user."""
+        qs = CaseNoteMentions.objects.filter(user_id=request.user.pk, is_accessed=False)
+
+        return JsonResponse(data={"count": qs.count()})
