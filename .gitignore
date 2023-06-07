@@ -177,3 +177,6 @@ bank-holidays.csv
 .pii-secret-hook
 
 *.prof
+
+# Merge tool backup file
+*.orig
