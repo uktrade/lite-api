@@ -1,5 +1,11 @@
-from django.db import IntegrityError
+import sys
+
+from importlib import import_module, reload
+
 from faker import Faker
+
+from django.conf import settings
+from django.urls import clear_url_caches
 
 from api.core.constants import Roles
 from api.flags.enums import SystemFlags
@@ -56,3 +62,12 @@ def node_by_id(items: list, id):
             return item
 
     raise KeyError(f"ID '{id}' not found in list")
+
+
+def reload_urlconf(urlconfs=[settings.ROOT_URLCONF]):
+    clear_url_caches()
+    for urlconf in urlconfs:
+        if urlconf in sys.modules:
+            reload(sys.modules[urlconf])
+        else:
+            import_module(urlconf)
