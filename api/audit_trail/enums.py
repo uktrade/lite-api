@@ -38,6 +38,7 @@ class AuditType(LiteEnum):
     CLC_RESPONSE = autostr()
     PV_GRADING_RESPONSE = autostr()
     CREATED_CASE_NOTE = autostr()
+    CREATED_CASE_NOTE_WITH_MENTIONS = autostr()
     ECJU_QUERY = autostr()
     ECJU_QUERY_RESPONSE = autostr()
     UPDATED_STATUS = autostr()
