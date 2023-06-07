@@ -69,8 +69,6 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterNotification
-from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
-
 
 good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
 
@@ -227,7 +225,6 @@ class GoodsListControlCode(APIView):
             else:
                 good.flags.remove(SystemFlags.WASSENAAR)
 
-        apply_good_flagging_rules_for_case(case)
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
