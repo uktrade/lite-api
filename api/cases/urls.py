@@ -1,9 +1,9 @@
 from django.urls import path, include
 
+from api.cases.enforcement_check import views as enforcement_check
 from api.cases.views import views, case_notes, licences, case_actions, case_assignments
 from api.cases.views.search import views as search_views
 from api.cases.views.search.activity import CaseActivityView, CaseActivityFiltersView
-from api.cases.enforcement_check import views as enforcement_check
 
 app_name = "cases"
 

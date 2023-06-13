@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView
 from rest_framework.views import APIView
+
 from api.applications.models import GoodOnApplication
 from api.applications.serializers.advice import (
     CountersignAdviceSerializer,
@@ -19,7 +20,6 @@ from api.cases.enums import (
     AdviceType,
     AdviceLevel,
 )
-from api.cases.models import CountersignAdvice
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.libraries.advice import group_advice
@@ -49,6 +49,7 @@ from api.cases.models import (
     CaseAssignment,
     CaseReviewDate,
 )
+from api.cases.models import CountersignAdvice
 from api.cases.notify import (
     notify_exporter_licence_issued,
     notify_exporter_licence_refused,
@@ -79,11 +80,10 @@ from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
-from api.goods.serializers import GoodOnApplicationSerializer
 from api.goods.enums import GoodStatus
+from api.goods.serializers import GoodOnApplicationSerializer
 from api.licences.models import Licence
 from api.licences.service import get_case_licences
-from lite_content.lite_api.strings import Documents, Cases
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.parties.models import Party
 from api.parties.serializers import PartySerializer, AdditionalContactSerializer
@@ -94,6 +94,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
+from lite_content.lite_api.strings import Documents, Cases
 
 
 class CaseDetail(APIView):

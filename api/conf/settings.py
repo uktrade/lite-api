@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "api.addresses",
     "api.applications",
     "api.audit_trail",
+    "api.bookmarks",
     "background_task",
     "api.cases",
     "api.cases.generated_documents",
