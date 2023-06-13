@@ -255,6 +255,7 @@ class CaseManager(models.Manager):
         is_trigger_list=None,
         open_queries=None,
         my_cases=None,
+        assigned_queues=None,
         **kwargs,
     ):
         """
@@ -293,6 +294,9 @@ class CaseManager(models.Manager):
 
         if queue_id and user:
             case_qs = case_qs.filter_based_on_queue(queue_id=queue_id, team_id=user.team.id, user=user)
+
+        if assigned_queues:
+            case_qs = case_qs.in_queues(assigned_queues)
 
         if status:
             case_qs = case_qs.has_status(status=status)

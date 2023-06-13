@@ -438,6 +438,29 @@ class FilterAndSortTests(DataTestClient):
         for case in response_data["cases"]:
             self.assertIn(flag_id, [item["id"] for item in case[flags_key]])
 
+    def test_get_cases_filter_by_assigned_queues_match(self):
+        queue = QueueFactory()
+        case = self.application_cases[0]
+        case.queues.add(queue)
+        url = f'{reverse("cases:search")}?assigned_queues={queue.id}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(case.id))
+
+    def test_get_cases_filter_by_assigned_queues_no_results(self):
+        queue = QueueFactory()
+        url = f'{reverse("cases:search")}?assigned_queues={queue.id}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
 
 class UpdatedCasesQueueTests(DataTestClient):
     def setUp(self):
