@@ -82,6 +82,9 @@ class CaseQuerySet(models.QuerySet):
     def with_organisation(self, organisation_name):
         return self.filter(organisation__name__icontains=organisation_name)
 
+    def with_export_type(self, export_type):
+        return self.filter(baseapplication__standardapplication__export_type=export_type)
+
     def with_exporter_site_name(self, exporter_site_name):
         return self.filter(baseapplication__application_sites__site__name=exporter_site_name)
 
@@ -256,6 +259,7 @@ class CaseManager(models.Manager):
         open_queries=None,
         my_cases=None,
         assigned_queues=None,
+        export_type=None,
         **kwargs,
     ):
         """
@@ -304,6 +308,9 @@ class CaseManager(models.Manager):
         if case_type:
             case_type = CaseTypeEnum.reference_to_id(case_type)
             case_qs = case_qs.is_type(case_type=case_type)
+
+        if export_type:
+            case_qs = case_qs.with_export_type(export_type)
 
         if assigned_user:
             if assigned_user == self.NOT_ASSIGNED:
