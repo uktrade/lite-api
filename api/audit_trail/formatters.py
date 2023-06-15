@@ -285,21 +285,21 @@ def generate_decision_letter(**payload):
     return f"invalid decision {decision} for this event."
 
 
-def create_lu_advice(advice_type, **payload):  # /PS-IGNORE
+def create_lu_advice(advice_type, **payload):
     if advice_type == AdviceType.PROVISO:
-        return " added a licence condition."  # /PS-IGNORE
-    return f" added a recommendation to {advice_type}."  # /PS-IGNORE
+        return " added a licence condition."
+    return f" added a recommendation to {advice_type}."
 
 
-def update_lu_advice(advice_type, **payload):  # /PS-IGNORE
+def update_lu_advice(advice_type, **payload):
     if advice_type == AdviceType.PROVISO:
-        return " edited a licence condition."  # /PS-IGNORE
+        return " edited a licence condition."
     advice_type_noun = {AdviceType.APPROVE: "approval", AdviceType.REFUSE: "refusal"}[advice_type]
-    return f" edited their {advice_type_noun} reason."  # /PS-IGNORE
+    return f" edited their {advice_type_noun} reason."
 
 
-def lu_countersign_advice(department, order, countersign_accepted, **payload):  # /PS-IGNORE
+def lu_countersign_advice(department, order, countersign_accepted, **payload):
     senior_text = "senior " if order == CountersignOrder.SECOND_COUNTERSIGN else ""
     if countersign_accepted:
-        return f" {senior_text}countersigned all {department} recommendations."  # /PS-IGNORE
-    return f" declined to {senior_text}countersign {department} recommendations."  # /PS-IGNORE
+        return f" {senior_text}countersigned all {department} recommendations."
+    return f" declined to {senior_text}countersign {department} recommendations."

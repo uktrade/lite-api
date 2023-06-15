@@ -125,7 +125,6 @@ class CaseDetail(APIView):
                 "queues",
                 "copy_of",
                 "copy_of__status",
-                "copy_of__status__status",
             ],
             select_related=[
                 "case_type",
