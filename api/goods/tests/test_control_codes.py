@@ -71,7 +71,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
-            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],
@@ -91,7 +90,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
     def test_payload_without_regime_entries(self):
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
-            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],
@@ -114,7 +112,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         data = {
             "objects": [self.good_1.pk],
-            "current_object": self.good_on_application_1.pk,
             "control_list_entries": ["ML1a"],
             "is_precedent": False,
             "is_good_controlled": True,
@@ -130,6 +127,54 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         self.assertEqual(self.good_on_application_1.report_summary, self.report_summary.text)
 
+    def test_multiple_report_summary_saved(self):
+        """
+        Make sure report_summary is saved to the GoodOnApplication
+        """
+
+        data = {
+            "objects": [self.good_1.pk, self.good_2.pk],
+            "control_list_entries": ["ML1a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": self.report_summary.text,
+            "comment": "Lorem ipsum",
+            "regime_entries": [],
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.good_on_application_1.refresh_from_db()
+        self.good_on_application_2.refresh_from_db()
+
+        self.assertEqual(self.good_on_application_1.report_summary, None)
+        self.assertEqual(self.good_on_application_2.report_summary, None)
+
+    def test_multiple_report_summary_saved_batch(self):
+        """
+        Make sure report_summary is saved to the GoodOnApplication
+        """
+
+        data = {
+            "objects": [self.good_1.pk, self.good_2.pk],
+            "control_list_entries": ["ML1a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": self.report_summary.text,
+            "comment": "Lorem ipsum",
+            "regime_entries": [],
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.good_on_application_1.refresh_from_db()
+        self.good_on_application_2.refresh_from_db()
+
+        self.assertEqual(self.good_on_application_1.report_summary, self.report_summary.text)
+        self.assertEqual(self.good_on_application_2.report_summary, self.report_summary.text)
+
     def test_regime_entries_saved_goodonapplication(self):
         """
         Make sure regime_entries is saved to the GoodOnApplication
@@ -140,7 +185,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         data = {
             "objects": [self.good_1.pk],
-            "current_object": self.good_on_application_1.pk,
             "control_list_entries": ["ML1a"],
             "is_precedent": False,
             "is_good_controlled": True,
@@ -164,7 +208,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
-            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],
@@ -184,7 +227,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         # given one of the good pk is invalid
         data = {
             "objects": [self.team.pk, self.good_1.pk],
-            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "is_good_controlled": False,
@@ -239,7 +281,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
     def test_is_precedent_is_set(self, input, expected_is_precedent):
         defaults = {
             "objects": [self.good_1.pk],
-            "current_object": self.good_on_application_1.pk,
             "report_summary": self.report_summary.text,
         }
         data = {**defaults, **input}
@@ -258,7 +299,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
-            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "is_good_controlled": True,
@@ -302,7 +342,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         data = {
             "objects": self.good_1.pk,
-            "current_object": self.good_on_application_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": "ML1a",
@@ -328,7 +367,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         )
         data = {
             "objects": [self.good_1.pk],
-            "current_object": product_on_application.pk,
             "control_list_entries": [],
             "is_precedent": False,
             "is_good_controlled": True,
@@ -389,7 +427,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         )
         data = {
             "objects": [self.good_1.pk],
-            "current_object": product_on_application.pk,
             "control_list_entries": ["ML1a"],
             "is_precedent": False,
             "is_good_controlled": True,
@@ -453,7 +490,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         )
         data = {
             "objects": [self.good_1.pk],
-            "current_object": product_on_application.pk,
             "control_list_entries": ["ML1a"],
             "is_precedent": False,
             "is_good_controlled": True,
@@ -488,7 +524,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         )
         data = {
             "objects": [self.good_1.pk],
-            "current_object": self.product_on_application1.pk,
             "control_list_entries": ["ML1a"],
             "is_precedent": False,
             "is_good_controlled": True,
@@ -527,7 +562,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         )
         data = {
             "objects": [product.pk],
-            "current_object": self.product_on_application1.pk,
             "control_list_entries": ["ML1b"],
             "is_precedent": False,
             "is_good_controlled": True,
@@ -549,7 +583,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         second_case = self.submit_application(second_application)
         data = {
             "objects": [product.pk],
-            "current_object": product_on_application_reused.pk,
             "control_list_entries": ["FR AI", "ML2a"],
             "is_precedent": False,
             "is_good_controlled": True,
@@ -574,7 +607,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
     def test_0003_controllistentry_new_entries_20221124(self, cle):
         data = {
             "objects": [self.good_1.pk],
-            "current_object": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": [cle],
@@ -620,7 +652,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
     def test_0004_controllistentry_new_entries_20221130(self, cle):
         data = {
             "objects": [self.good_1.pk],
-            "current_object": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": [cle],
@@ -713,7 +744,6 @@ class WASSENAARFlagTest(DataTestClient):
         # Add WASSENAAR flag
         data = {
             "objects": self.good.good.pk,
-            "current_object": self.good.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.text,
             "control_list_entries": ["ML1a"],

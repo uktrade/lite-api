@@ -69,6 +69,7 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterNotification
+from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
 good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
 
@@ -164,6 +165,7 @@ class GoodsListControlCode(APIView):
         case = get_case(case_pk)
         line_items = self.get_application_line_items(case)
 
+        # returns a list of GoodOnApplication or GoodsType based on request['objects']
         for good in self.get_queryset():
             data = request.data.copy()
 
@@ -173,9 +175,6 @@ class GoodsListControlCode(APIView):
             old_regime_entries = list(good.regime_entries.values_list("name", flat=True))
 
             report_summary_updated = new_report_summary != old_report_summary
-
-            if report_summary_updated and str(good.id) != data.get("current_object", str(good.id)):
-                data["report_summary"] = good.report_summary
 
             serializer_class = self.get_serializer_class()
             serializer = serializer_class(good, data=data)
@@ -196,7 +195,6 @@ class GoodsListControlCode(APIView):
                 ):
                     default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
                     default_regimes = ["No regimes"]
-
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.PRODUCT_REVIEWED,
@@ -225,6 +223,7 @@ class GoodsListControlCode(APIView):
             else:
                 good.flags.remove(SystemFlags.WASSENAAR)
 
+        # apply_good_flagging_rules_for_case(case)
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
