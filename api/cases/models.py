@@ -1,6 +1,5 @@
 import logging
 import uuid
-
 from collections import defaultdict
 from typing import Optional
 
@@ -45,7 +44,6 @@ from api.users.models import (
     ExporterNotification,
 )
 from lite_content.lite_api import strings
-
 
 denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
 
