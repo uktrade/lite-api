@@ -472,6 +472,25 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 0)
 
+    def test_get_cases_filter_by_goods_starting_point_not_in_case(self):
+        url = f'{reverse("cases:search")}?goods_starting_point=NI'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 0)
+
+    def test_get_cases_filter_by_goods_starting_point_present_on_application(self):
+        application = self.application_cases[0]
+        application.goods_starting_point = "NI"
+        application.save()
+
+        url = f'{reverse("cases:search")}?goods_starting_point=NI'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(application.id))
+
 
 class UpdatedCasesQueueTests(DataTestClient):
     def setUp(self):
