@@ -127,30 +127,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         self.assertEqual(self.good_on_application_1.report_summary, self.report_summary.text)
 
-    def test_multiple_report_summary_saved(self):
-        """
-        Make sure report_summary is saved to the GoodOnApplication
-        """
-
-        data = {
-            "objects": [self.good_1.pk, self.good_2.pk],
-            "control_list_entries": ["ML1a"],
-            "is_precedent": False,
-            "is_good_controlled": True,
-            "end_use_control": [],
-            "report_summary": self.report_summary.text,
-            "comment": "Lorem ipsum",
-            "regime_entries": [],
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.good_on_application_1.refresh_from_db()
-        self.good_on_application_2.refresh_from_db()
-
-        self.assertEqual(self.good_on_application_1.report_summary, None)
-        self.assertEqual(self.good_on_application_2.report_summary, None)
-
     def test_multiple_report_summary_saved_batch(self):
         """
         Make sure report_summary is saved to the GoodOnApplication
