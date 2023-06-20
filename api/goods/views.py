@@ -223,7 +223,7 @@ class GoodsListControlCode(APIView):
             else:
                 good.flags.remove(SystemFlags.WASSENAAR)
 
-        # apply_good_flagging_rules_for_case(case)
+        apply_good_flagging_rules_for_case(case)
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
