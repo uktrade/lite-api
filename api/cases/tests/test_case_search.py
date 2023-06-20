@@ -478,12 +478,14 @@ class FilterAndSortTests(DataTestClient):
         response_data = response.json()["results"]["cases"]
         self.assertEqual(len(response_data), 0)
 
-    def test_get_cases_filter_by_goods_starting_point_present_on_application(self):
+    @parameterized.expand(["NI", "GB"])
+    def test_get_cases_filter_by_goods_starting_point_present_on_application(self, starting_point):
         application = self.application_cases[0]
-        application.goods_starting_point = "NI"
+        application.goods_starting_point = starting_point
         application.save()
+        case = Case.objects.get(id=application.id)
 
-        url = f'{reverse("cases:search")}?goods_starting_point=NI'
+        url = f'{reverse("cases:search")}?goods_starting_point={starting_point}&case_reference={case.reference_code}'
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
 
