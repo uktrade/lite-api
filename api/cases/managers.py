@@ -91,6 +91,9 @@ class CaseQuerySet(models.QuerySet):
     def with_sla_days_elapsed(self, sla_days_elapsed):
         return self.filter(sla_days=sla_days_elapsed)
 
+    def with_goods_starting_point(self, goods_starting_point):
+        return self.filter(baseapplication__standardapplication__goods_starting_point=goods_starting_point)
+
     def with_exporter_site_address(self, exporter_site_address):
         return self.filter(
             Q(baseapplication__application_sites__site__address__address_line_1__icontains=exporter_site_address)
@@ -260,6 +263,7 @@ class CaseManager(models.Manager):
         my_cases=None,
         assigned_queues=None,
         export_type=None,
+        goods_starting_point=None,
         **kwargs,
     ):
         """
@@ -337,6 +341,9 @@ class CaseManager(models.Manager):
 
         if exporter_site_address:
             case_qs = case_qs.with_exporter_site_address(exporter_site_address)
+
+        if goods_starting_point:
+            case_qs = case_qs.with_goods_starting_point(goods_starting_point)
 
         if control_list_entry:
             case_qs = case_qs.with_control_list_entry(control_list_entry)
