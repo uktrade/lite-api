@@ -493,6 +493,32 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertTrue(response_data[0]["id"], str(application.id))
 
+    def test_get_cases_filter_exclude_denial_matches_no_denial_match_cases(self):
+        application = self.application_cases[0]
+        case = Case.objects.get(id=application.id)
+        url = f'{reverse("cases:search")}?exclude_denial_matches=True&case_reference={case.reference_code}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(application.id))
+
+    def test_get_cases_filter_exclude_denial_matches_denial_match_excluded(self):
+
+        application = self.application_cases[0]
+        denial = DenialMatchFactory()
+        denial_on_application = DenialMatchOnApplicationFactory(
+            application=application, category="exact", denial=denial
+        )
+        case = Case.objects.get(id=application.id)
+        url = f'{reverse("cases:search")}?exclude_denial_matches=True&case_reference={case.reference_code}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
 
 class UpdatedCasesQueueTests(DataTestClient):
     def setUp(self):

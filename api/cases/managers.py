@@ -213,6 +213,9 @@ class CaseQuerySet(models.QuerySet):
 
         return self
 
+    def exclude_denial_matches(self):
+        return self.exclude(baseapplication__denial_matches__denial__is_revoked=False)
+
 
 class CaseManager(models.Manager):
     """
@@ -264,6 +267,7 @@ class CaseManager(models.Manager):
         assigned_queues=None,
         export_type=None,
         goods_starting_point=None,
+        exclude_denial_matches=None,
         **kwargs,
     ):
         """
@@ -414,6 +418,9 @@ class CaseManager(models.Manager):
                 case_qs = case_qs.order_by("sla_days")
             else:
                 case_qs = case_qs.order_by("-sla_days")
+
+        if exclude_denial_matches:
+            case_qs = case_qs.exclude_denial_matches()
 
         return case_qs.distinct()
 
