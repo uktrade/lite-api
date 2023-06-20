@@ -104,10 +104,10 @@ class CaseQuerySet(models.QuerySet):
             | Q(baseapplication__application_sites__site__address__address__icontains=exporter_site_address)
         )
 
-    def with_control_list_entry(self, control_list_entry):
+    def with_control_list_entries(self, control_list_entries):
         return self.filter(
-            Q(baseapplication__goods__good__control_list_entries__rating__in=[control_list_entry])
-            | Q(baseapplication__goods_type__control_list_entries__rating__in=[control_list_entry])
+            Q(baseapplication__goods__good__control_list_entries__rating__in=control_list_entries)
+            | Q(baseapplication__goods_type__control_list_entries__rating__in=control_list_entries)
         )
 
     def with_regime_entries(self, regime_entries):
@@ -354,7 +354,7 @@ class CaseManager(models.Manager):
             case_qs = case_qs.with_goods_starting_point(goods_starting_point)
 
         if control_list_entry:
-            case_qs = case_qs.with_control_list_entry(control_list_entry)
+            case_qs = case_qs.with_control_list_entries(control_list_entry)
 
         if regime_entry:
             case_qs = case_qs.with_regime_entries(regime_entry)
