@@ -2,6 +2,7 @@ from difflib import SequenceMatcher
 
 from django.test import TransactionTestCase
 from django.utils import timezone
+from parameterized import parameterized
 from rest_framework.reverse import reverse
 
 from api.cases.enums import AdviceType
@@ -104,7 +105,16 @@ class FilterAndSortTests(DataTestClient):
 
         self.assertEqual(qs_5.count(), 2)
 
-    def test_filter_by_good_control_list_entry(self):
+    @parameterized.expand(
+        [
+            (["ML1b"], 0),
+            (["ML1a"], 1),
+            (["ML2a"], 2),
+            (["ML2a", "ML3a"], 3),
+            ([], 4),
+        ]
+    )
+    def test_filter_by_good_control_list_entry(self, cles, expected_cases):
         application_1 = StandardApplicationFactory()
         good = GoodFactory(
             organisation=application_1.organisation,
@@ -115,16 +125,14 @@ class FilterAndSortTests(DataTestClient):
 
         application_2 = OpenApplicationFactory()
         GoodsTypeFactory(application=application_2, is_good_controlled=True, control_list_entries=["ML2a"])
+        application_3 = OpenApplicationFactory()
+        GoodsTypeFactory(application=application_3, is_good_controlled=True, control_list_entries=["ML2a"])
+        application_4 = OpenApplicationFactory()
+        GoodsTypeFactory(application=application_4, is_good_controlled=True, control_list_entries=["ML3a"])
 
-        qs_1 = Case.objects.search(control_list_entry="")
-        qs_2 = Case.objects.search(control_list_entry="ML1b")
-        qs_3 = Case.objects.search(control_list_entry="ML1a")
-        qs_4 = Case.objects.search(control_list_entry="ML2a")
+        qs_1 = Case.objects.search(control_list_entry=cles)
 
-        self.assertEqual(qs_1.count(), 2)
-        self.assertEqual(qs_2.count(), 0)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 1)
+        self.assertEqual(qs_1.count(), expected_cases)
 
     def test_filter_by_good_regimes(self):
         application_1 = StandardApplicationFactory()
