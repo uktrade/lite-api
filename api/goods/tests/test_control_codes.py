@@ -133,30 +133,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
 
         data = {
-            "objects": [self.good_1.pk, self.good_2.pk],
-            "control_list_entries": ["ML1a"],
-            "is_precedent": False,
-            "is_good_controlled": True,
-            "end_use_control": [],
-            "report_summary": self.report_summary.text,
-            "comment": "Lorem ipsum",
-            "regime_entries": [],
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.good_on_application_1.refresh_from_db()
-        self.good_on_application_2.refresh_from_db()
-
-        self.assertEqual(self.good_on_application_1.report_summary, self.report_summary.text)
-        self.assertEqual(self.good_on_application_2.report_summary, self.report_summary.text)
-
-    def test_multiple_report_summary_saved_batch(self):
-        """
-        Make sure report_summary is saved to the GoodOnApplication
-        """
-
-        data = {
             "objects": [self.good_on_application_1.pk, self.good_on_application_2.pk],
             "control_list_entries": ["ML1a"],
             "is_precedent": False,
@@ -174,6 +150,33 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         self.assertEqual(self.good_on_application_1.report_summary, self.report_summary.text)
         self.assertEqual(self.good_on_application_2.report_summary, self.report_summary.text)
+
+    def test_single_good_multiple_report_summary(self):
+        """
+        Make sure report_summary is saved to the GoodOnApplication for all items linked to good
+        when a good ID is passed
+        """
+        good_on_application_3 = GoodOnApplication.objects.create(
+            good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500
+        )
+        data = {
+            "objects": [self.good_1.pk],
+            "control_list_entries": ["ML1a"],
+            "is_precedent": False,
+            "is_good_controlled": True,
+            "end_use_control": [],
+            "report_summary": self.report_summary.text,
+            "comment": "Lorem ipsum",
+            "regime_entries": [],
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.good_on_application_1.refresh_from_db()
+        good_on_application_3.refresh_from_db()
+
+        self.assertEqual(self.good_on_application_1.report_summary, self.report_summary.text)
+        self.assertEqual(good_on_application_3.report_summary, self.report_summary.text)
 
     def test_regime_entries_saved_goodonapplication(self):
         """
@@ -504,49 +507,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         response = self.client.post(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["error"][0], expected_errors)
-
-    def test_report_summary_updates_same_product_added_twice(self):
-        self.product_on_application1 = GoodOnApplication.objects.create(
-            good=self.good_1,
-            application=self.application,
-            quantity=10,
-            unit=Units.NAR,
-            value=500,
-            report_summary="Rifles (10)",
-        )
-        self.product_on_application2 = GoodOnApplication.objects.create(
-            good=self.good_1,
-            application=self.application,
-            quantity=5,
-            unit=Units.NAR,
-            value=500,
-            report_summary="Rifles (5)",
-        )
-        data = {
-            "objects": [self.product_on_application1.pk],
-            "control_list_entries": ["ML1a"],
-            "is_precedent": False,
-            "is_good_controlled": True,
-            "end_use_control": [],
-            "report_summary": "Sniper rifles (10)",
-            "comment": "report summary update test",
-            "regime_entries": [],
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.product_on_application1.refresh_from_db()
-
-        self.assertEqual(self.product_on_application1.report_summary, "Sniper rifles (10)")
-        self.assertEqual(self.product_on_application2.report_summary, "Rifles (5)")
-        audit_qs = Audit.objects.filter(verb=AuditType.PRODUCT_REVIEWED)
-        self.assertEqual(audit_qs.count(), 1)
-        # because we added the same product twice check if reviewing the second has not modified
-        # first product report summary value
-        product1_audit = [item for item in audit_qs if item.action_object.id == self.product_on_application1.id]
-        audit_payload = product1_audit[0].payload
-        self.assertEqual(audit_payload["old_report_summary"], "Rifles (10)")
-        self.assertEqual(audit_payload["report_summary"], "Sniper rifles (10)")
 
     def test_preserve_previous_cles_when_product_reused_in_other_application(self):
         """Tests whether CLEs on product are preserved when the same product is
