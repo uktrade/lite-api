@@ -110,8 +110,8 @@ class CaseQuerySet(models.QuerySet):
             | Q(baseapplication__goods_type__control_list_entries__rating__in=[control_list_entry])
         )
 
-    def with_regime_entry(self, regime_entry):
-        return self.filter(baseapplication__goods__regime_entries__id=regime_entry)
+    def with_regime_entries(self, regime_entries):
+        return self.filter(baseapplication__goods__regime_entries__id__in=regime_entries)
 
     def with_flags(self, flags):
         case_flag_ids = self.filter(flags__id__in=flags).values_list("id", flat=True)
@@ -357,7 +357,7 @@ class CaseManager(models.Manager):
             case_qs = case_qs.with_control_list_entry(control_list_entry)
 
         if regime_entry:
-            case_qs = case_qs.with_regime_entry(regime_entry)
+            case_qs = case_qs.with_regime_entries(regime_entry)
 
         if flags:
             case_qs = case_qs.with_flags(flags)
