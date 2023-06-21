@@ -119,7 +119,11 @@ class GoodsListControlCode(APIView):
             pks = [pks]
         if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
             return GoodsType.objects.filter(pk__in=pks)
-        return GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], id__in=pks)
+        results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], id__in=pks)
+        # This can be removed in the future as it's essentially a FF for the batching changes
+        if not results:
+            results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
+        return results
 
     def get_serializer_class(self):
         if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
