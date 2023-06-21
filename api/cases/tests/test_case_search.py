@@ -438,6 +438,61 @@ class FilterAndSortTests(DataTestClient):
         for case in response_data["cases"]:
             self.assertIn(flag_id, [item["id"] for item in case[flags_key]])
 
+    @parameterized.expand(["permanent", "temporary"])
+    def test_get_cases_filter_by_export_type(self, export_type):
+        expected_id = str(self.application_cases[0].id)
+        standard_app = self.application_cases[0].baseapplication.standardapplication
+        standard_app.export_type = export_type
+        standard_app.save()
+        url = f'{reverse("cases:search")}?export_type={export_type}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+        all_response_case_ids = [case["id"] for case in response_data]
+        self.assertTrue(expected_id in all_response_case_ids)
+
+    def test_get_cases_filter_by_assigned_queues_match(self):
+        queue = QueueFactory()
+        case = self.application_cases[0]
+        case.queues.add(queue)
+        url = f'{reverse("cases:search")}?assigned_queues={queue.id}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(case.id))
+
+    def test_get_cases_filter_by_assigned_queues_no_results(self):
+        queue = QueueFactory()
+        url = f'{reverse("cases:search")}?assigned_queues={queue.id}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
+    def test_get_cases_filter_by_goods_starting_point_not_in_case(self):
+        url = f'{reverse("cases:search")}?goods_starting_point=NI'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 0)
+
+    @parameterized.expand(["NI", "GB"])
+    def test_get_cases_filter_by_goods_starting_point_present_on_application(self, starting_point):
+        application = self.application_cases[0]
+        application.goods_starting_point = starting_point
+        application.save()
+        case = Case.objects.get(id=application.id)
+
+        url = f'{reverse("cases:search")}?goods_starting_point={starting_point}&case_reference={case.reference_code}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(application.id))
+
 
 class UpdatedCasesQueueTests(DataTestClient):
     def setUp(self):

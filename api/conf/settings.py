@@ -47,7 +47,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DEBUG")
 
 # Please use this to Enable/Disable the Admin site
-ADMIN_ENABLED = True
+ADMIN_ENABLED = env("ADMIN_ENABLED", default=False)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 

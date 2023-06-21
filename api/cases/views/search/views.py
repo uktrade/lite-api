@@ -143,6 +143,7 @@ class CasesSearchView(generics.ListAPIView):
             filters[selected_tab] = True
 
         filters["flags"] = request.GET.getlist("flags", [])
+        filters["assigned_queues"] = request.GET.getlist("assigned_queues", [])
         filters["submitted_from"] = make_date_from_params("submitted_from", filters)
         filters["submitted_to"] = make_date_from_params("submitted_to", filters)
         filters["finalised_from"] = make_date_from_params("finalised_from", filters)
