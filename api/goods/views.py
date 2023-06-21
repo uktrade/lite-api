@@ -121,7 +121,7 @@ class GoodsListControlCode(APIView):
             return GoodsType.objects.filter(pk__in=pks)
         results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], id__in=pks)
         # This can be removed in the future as it's essentially a FF for the batching changes
-        if not results:
+        if not results.exists():
             results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
         return results
 
