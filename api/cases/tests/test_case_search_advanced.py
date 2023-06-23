@@ -20,10 +20,26 @@ from api.goods.tests.factories import GoodFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.parties.tests.factories import PartyFactory
 from api.staticdata.countries.factories import CountryFactory
-from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.regimes.helpers import get_regime_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+
+
+def regime_id_by_name(name):
+    return str(get_regime_entry(name).id)
+
+
+def setup_applications_with_regimes():
+    application_1 = StandardApplicationFactory(submitted_at=timezone.now())
+    good = GoodFactory(organisation=application_1.organisation, is_good_controlled=True)
+    GoodOnApplicationFactory(application=application_1, good=good, regime_entries=["T1"])
+    application_2 = StandardApplicationFactory(submitted_at=timezone.now())
+    good_2 = GoodFactory(organisation=application_2.organisation, is_good_controlled=True)
+    GoodOnApplicationFactory(application=application_2, good=good_2, regime_entries=["T3"])
+    application_3 = StandardApplicationFactory(submitted_at=timezone.now())
+    good_3 = GoodFactory(organisation=application_3.organisation, is_good_controlled=True)
+    GoodOnApplicationFactory(application=application_3, good=good_3, regime_entries=["T5"])
 
 
 class FilterAndSortTests(DataTestClient):
@@ -129,22 +145,14 @@ class FilterAndSortTests(DataTestClient):
         [
             (["T7"], 0),
             (["T1"], 1),
+            (["T1", "T7"], 1),
             (["T1", "T5"], 2),
             ([], 3),
         ]
     )
     def test_filter_by_good_regimes(self, regimes, expected_results):
-        application_1 = StandardApplicationFactory()
-        good = GoodFactory(organisation=application_1.organisation, is_good_controlled=True)
-        GoodOnApplicationFactory(application=application_1, good=good, regime_entries=["T1"])
-        application_2 = StandardApplicationFactory()
-        good_2 = GoodFactory(organisation=application_2.organisation, is_good_controlled=True)
-        GoodOnApplicationFactory(application=application_2, good=good_2, regime_entries=["T3"])
-        application_3 = StandardApplicationFactory()
-        good_3 = GoodFactory(organisation=application_3.organisation, is_good_controlled=True)
-        GoodOnApplicationFactory(application=application_3, good=good_3, regime_entries=["T5"])
-
-        regime_ids = [str(RegimeEntry.objects.get(name=regime).id) for regime in regimes]
+        setup_applications_with_regimes()
+        regime_ids = [regime_id_by_name(regime) for regime in regimes]
         results = Case.objects.search(regime_entry=regime_ids)
 
         self.assertEqual(results.count(), expected_results)
@@ -493,3 +501,24 @@ class FilterAndSortTests(DataTestClient):
         self.assertQuerysetEqual(
             qs_2, [application_1.get_case(), application_2.get_case(), application_3.get_case()], ordered=False
         )
+
+    @parameterized.expand(
+        [
+            ("regime_entry=", "T7", 0),
+            ("regime_entry=", "T1", 1),
+            ("regime_entry=", "", 3),
+            ("", "", 3),
+        ]
+    )
+    def test_filters_with_regime_query(self, regime_key, regime, expected_count):
+        setup_applications_with_regimes()
+
+        regime_value = regime_id_by_name(regime) if regime else ""
+        url = reverse("cases:search")
+        url_1 = f"{url}?{regime_key}{regime_value}"
+
+        response_1 = self.client.get(url_1, **self.gov_headers)
+
+        data_1 = response_1.json()
+
+        self.assertEqual(data_1["count"], expected_count)
