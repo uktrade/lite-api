@@ -1,16 +1,9 @@
 from difflib import SequenceMatcher
 
-from django.test import TransactionTestCase
 from django.utils import timezone
 from parameterized import parameterized
 from rest_framework.reverse import reverse
 
-from api.cases.enums import AdviceType
-from api.cases.models import Case
-from api.cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
-from api.goodstype.tests.factories import GoodsTypeFactory
-from api.staticdata.countries.factories import CountryFactory
-from api.applications.enums import NSGListType
 from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     CountryOnApplicationFactory,
@@ -19,13 +12,35 @@ from api.applications.tests.factories import (
     StandardApplicationFactory,
     OpenApplicationFactory,
 )
-from api.parties.tests.factories import PartyFactory
+from api.cases.enums import AdviceType
+from api.cases.models import Case
+from api.cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
 from api.flags.tests.factories import FlagFactory
 from api.goods.tests.factories import GoodFactory
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.goodstype.tests.factories import GoodsTypeFactory
+from api.parties.tests.factories import PartyFactory
+from api.staticdata.countries.factories import CountryFactory
 from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+
+
+def setup_applications_with_cles():
+    application_1 = StandardApplicationFactory(submitted_at=timezone.now())
+    good = GoodFactory(
+        organisation=application_1.organisation,
+        is_good_controlled=True,
+        control_list_entries=["ML1a"],
+    )
+    GoodOnApplicationFactory(application=application_1, good=good)
+
+    application_2 = OpenApplicationFactory(submitted_at=timezone.now())
+    GoodsTypeFactory(application=application_2, is_good_controlled=True, control_list_entries=["ML2a"])
+    application_3 = OpenApplicationFactory(submitted_at=timezone.now())
+    GoodsTypeFactory(application=application_3, is_good_controlled=True, control_list_entries=["ML2a"])
+    application_4 = OpenApplicationFactory(submitted_at=timezone.now())
+    GoodsTypeFactory(application=application_4, is_good_controlled=True, control_list_entries=["ML3a"])
 
 
 class FilterAndSortTests(DataTestClient):
@@ -115,20 +130,7 @@ class FilterAndSortTests(DataTestClient):
         ]
     )
     def test_filter_by_good_control_list_entry(self, cles, expected_cases):
-        application_1 = StandardApplicationFactory()
-        good = GoodFactory(
-            organisation=application_1.organisation,
-            is_good_controlled=True,
-            control_list_entries=["ML1a"],
-        )
-        GoodOnApplicationFactory(application=application_1, good=good)
-
-        application_2 = OpenApplicationFactory()
-        GoodsTypeFactory(application=application_2, is_good_controlled=True, control_list_entries=["ML2a"])
-        application_3 = OpenApplicationFactory()
-        GoodsTypeFactory(application=application_3, is_good_controlled=True, control_list_entries=["ML2a"])
-        application_4 = OpenApplicationFactory()
-        GoodsTypeFactory(application=application_4, is_good_controlled=True, control_list_entries=["ML3a"])
+        setup_applications_with_cles()
 
         qs_1 = Case.objects.search(control_list_entry=cles)
 
@@ -494,3 +496,23 @@ class FilterAndSortTests(DataTestClient):
         self.assertQuerysetEqual(
             qs_2, [application_1.get_case(), application_2.get_case(), application_3.get_case()], ordered=False
         )
+
+    @parameterized.expand(
+        [
+            ("control_list_entry=ML1b", 0),
+            ("control_list_entry=ML1a", 1),
+            ("control_list_entry=", 4),
+            ("", 4),
+        ]
+    )
+    def test_filters_with_control_list_query(self, query, expected_count):
+        setup_applications_with_cles()
+
+        url = reverse("cases:search")
+        url_1 = f"{url}?{query}"
+
+        response_1 = self.client.get(url_1, **self.gov_headers)
+
+        data_1 = response_1.json()
+
+        self.assertEqual(data_1["count"], expected_count)
