@@ -5,12 +5,6 @@ from parameterized import parameterized
 from django.test import TransactionTestCase
 from rest_framework.reverse import reverse
 
-from api.cases.enums import AdviceType
-from api.cases.models import Case
-from api.cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
-from api.goodstype.tests.factories import GoodsTypeFactory
-from api.staticdata.countries.factories import CountryFactory
-from api.applications.enums import NSGListType
 from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     CountryOnApplicationFactory,
@@ -29,6 +23,7 @@ from api.parties.tests.factories import PartyFactory
 from api.staticdata.countries.factories import CountryFactory
 from api.staticdata.regimes.helpers import get_regime_entry
 from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -64,6 +59,22 @@ def setup_applications_with_cles():
 class FilterAndSortTests(DataTestClient):
     def setUp(self):
         super().setUp()
+
+    @staticmethod
+    def add_application_with_report_summary(prefix_name, subject_name, legacy_report_summary=None):
+        application = StandardApplicationFactory()
+        report_summary_kwargs = {}
+        if prefix_name:
+            prefix = ReportSummaryPrefix.objects.get(name=prefix_name)
+            report_summary_kwargs["report_summary_prefix"] = prefix
+        if subject_name:
+            subject = ReportSummarySubject.objects.get(name=subject_name)
+            report_summary_kwargs["report_summary_subject"] = subject
+        if legacy_report_summary:
+            report_summary_kwargs["report_summary"] = legacy_report_summary
+
+        good = GoodFactory(organisation=application.organisation, is_good_controlled=True, **report_summary_kwargs)
+        GoodOnApplicationFactory(application=application, good=good, regime_entries=["T1"], **report_summary_kwargs)
 
     def test_filter_by_exporter_site_name(self):
         site_on_application_1 = SiteOnApplicationFactory()
@@ -170,6 +181,27 @@ class FilterAndSortTests(DataTestClient):
         results = Case.objects.search(regime_entry=regime_ids)
 
         self.assertEqual(results.count(), expected_results)
+
+    @parameterized.expand(
+        [
+            ("accessories", 2),
+            ("technology for", 1),
+            ("tank", 1),
+            ("comp", 2),
+            ("banana", 1),
+            ("sieve", 0),
+            ("", 4),
+        ]
+    )
+    def test_filter_by_report_summary(self, search_term, expected_results):
+        self.add_application_with_report_summary("accessories for", "laser optical components")
+        self.add_application_with_report_summary("technology for", "air defence systems")
+        self.add_application_with_report_summary("components for", "tanks")
+        self.add_application_with_report_summary(None, None, "accessories for banana bombs")
+
+        qs_1 = Case.objects.search(report_summary=search_term)
+
+        self.assertEqual(qs_1.count(), expected_results)
 
     def test_filter_by_flags(self):
         flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)

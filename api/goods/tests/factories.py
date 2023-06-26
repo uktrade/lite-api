@@ -22,6 +22,9 @@ class GoodFactory(factory.django.DjangoModelFactory):
     information_security_details = None
     modified_military_use_details = None
     component_details = None
+    report_summary_prefix = None
+    report_summary_subject = None
+    report_summary = None
 
     class Meta:
         model = models.Good
