@@ -3,7 +3,7 @@ from typing import List
 
 from compat import get_model
 from django.db import models, transaction
-from django.db.models import Q, Case, When, BinaryField
+from django.db.models import Q, Case, When, BinaryField, Sum
 from django.utils import timezone
 
 from api.cases.enums import AdviceLevel, CaseTypeEnum
@@ -173,6 +173,9 @@ class CaseQuerySet(models.QuerySet):
     def with_nca_applicable(self):
         return self.filter(baseapplication__goods__is_nca_applicable=True)
 
+    def with_max_total_value(self, max_total_value):
+        return self.annotate(total_value=Sum("baseapplication__goods__value")).filter(total_value__lte=max_total_value)
+
     def with_trigger_list(self):
         return self.filter(baseapplication__goods__is_trigger_list_guidelines_applicable=True)
 
@@ -269,6 +272,7 @@ class CaseManager(models.Manager):
         goods_starting_point=None,
         exclude_denial_matches=None,
         exclude_sanction_matches=None,
+        max_total_value=None,
         **kwargs,
     ):
         """
@@ -425,6 +429,9 @@ class CaseManager(models.Manager):
 
         if exclude_sanction_matches:
             case_qs = case_qs.exclude_sanction_matches()
+
+        if max_total_value:
+            case_qs = case_qs.with_max_total_value(max_total_value)
 
         return case_qs.distinct()
 

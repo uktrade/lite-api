@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 import django
 from django.db.models import F, When, DateField, Exists, OuterRef
 from django.http import HttpResponse
@@ -141,6 +143,12 @@ class CasesSearchView(generics.ListAPIView):
         selected_tab = request.GET.get("selected_tab")
         if selected_tab and selected_tab in search_tabs:
             filters[selected_tab] = True
+
+        if "max_total_value" in filters:
+            try:
+                filters["max_total_value"] = Decimal(filters["max_total_value"])
+            except (InvalidOperation, TypeError):
+                del filters["max_total_value"]
 
         filters["flags"] = request.GET.getlist("flags", [])
         filters["regime_entry"] = [regime for regime in request.GET.getlist("regime_entry", []) if regime]
