@@ -105,10 +105,7 @@ class CaseQuerySet(models.QuerySet):
         )
 
     def with_control_list_entries(self, control_list_entries):
-        return self.filter(
-            Q(baseapplication__goods__good__control_list_entries__rating__in=control_list_entries)
-            | Q(baseapplication__goods_type__control_list_entries__rating__in=control_list_entries)
-        )
+        return self.filter(baseapplication__goods__good__control_list_entries__rating__in=control_list_entries)
 
     def with_regime_entries(self, regime_entries):
         return self.filter(baseapplication__goods__regime_entries__id__in=regime_entries)
