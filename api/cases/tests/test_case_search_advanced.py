@@ -51,20 +51,14 @@ def setup_applications_with_regimes():
 
 
 def setup_applications_with_cles():
-    application_1 = StandardApplicationFactory(submitted_at=timezone.now())
-    good = GoodFactory(
-        organisation=application_1.organisation,
-        is_good_controlled=True,
-        control_list_entries=["ML1a"],
-    )
-    GoodOnApplicationFactory(application=application_1, good=good)
-
-    application_2 = OpenApplicationFactory(submitted_at=timezone.now())
-    GoodsTypeFactory(application=application_2, is_good_controlled=True, control_list_entries=["ML2a"])
-    application_3 = OpenApplicationFactory(submitted_at=timezone.now())
-    GoodsTypeFactory(application=application_3, is_good_controlled=True, control_list_entries=["ML2a"])
-    application_4 = OpenApplicationFactory(submitted_at=timezone.now())
-    GoodsTypeFactory(application=application_4, is_good_controlled=True, control_list_entries=["ML3a"])
+    for entries in [["ML1a"], ["ML2a"], ["ML2a", "ML3a"], ["ML4a"]]:
+        application = StandardApplicationFactory(submitted_at=timezone.now())
+        good = GoodFactory(
+            organisation=application.organisation,
+            is_good_controlled=True,
+            control_list_entries=entries,
+        )
+        GoodOnApplicationFactory(application=application, good=good)
 
 
 class FilterAndSortTests(DataTestClient):
@@ -148,8 +142,9 @@ class FilterAndSortTests(DataTestClient):
         [
             (["ML1b"], 0),
             (["ML1a"], 1),
+            (["ML4a"], 1),
             (["ML2a"], 2),
-            (["ML2a", "ML3a"], 3),
+            (["ML1a", "ML2a"], 3),
             ([], 4),
         ]
     )
@@ -546,6 +541,7 @@ class FilterAndSortTests(DataTestClient):
         [
             ("control_list_entry=ML1b", 0),
             ("control_list_entry=ML1a", 1),
+            ("control_list_entry=ML1a&control_list_entry=ML2a", 3),
             ("control_list_entry=", 4),
             ("", 4),
         ]
