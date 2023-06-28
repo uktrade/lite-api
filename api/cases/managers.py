@@ -104,14 +104,11 @@ class CaseQuerySet(models.QuerySet):
             | Q(baseapplication__application_sites__site__address__address__icontains=exporter_site_address)
         )
 
-    def with_control_list_entry(self, control_list_entry):
-        return self.filter(
-            Q(baseapplication__goods__good__control_list_entries__rating__in=[control_list_entry])
-            | Q(baseapplication__goods_type__control_list_entries__rating__in=[control_list_entry])
-        )
+    def with_control_list_entries(self, control_list_entries):
+        return self.filter(baseapplication__goods__good__control_list_entries__rating__in=control_list_entries)
 
-    def with_regime_entry(self, regime_entry):
-        return self.filter(baseapplication__goods__regime_entries__id=regime_entry)
+    def with_regime_entries(self, regime_entries):
+        return self.filter(baseapplication__goods__regime_entries__id__in=regime_entries)
 
     def with_flags(self, flags):
         case_flag_ids = self.filter(flags__id__in=flags).values_list("id", flat=True)
@@ -354,10 +351,10 @@ class CaseManager(models.Manager):
             case_qs = case_qs.with_goods_starting_point(goods_starting_point)
 
         if control_list_entry:
-            case_qs = case_qs.with_control_list_entry(control_list_entry)
+            case_qs = case_qs.with_control_list_entries(control_list_entry)
 
         if regime_entry:
-            case_qs = case_qs.with_regime_entry(regime_entry)
+            case_qs = case_qs.with_regime_entries(regime_entry)
 
         if flags:
             case_qs = case_qs.with_flags(flags)
