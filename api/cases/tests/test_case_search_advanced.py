@@ -412,37 +412,31 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_3.first().pk, poa_3.application.pk)
         self.assertEqual(qs_4.first().pk, poa_2.application.pk)
 
-    def test_filter_by_goods_related_description(self):
-        application_1 = StandardApplicationFactory()
-        good_1 = GoodFactory(
-            organisation=application_1.organisation,
-            description="Desc 1",
-            comment="Comment 1",
-            report_summary="Report Summary 1",
-        )
-        GoodOnApplicationFactory(application=application_1, good=good_1)
-        application_2 = StandardApplicationFactory()
-        good_2 = GoodFactory(
-            organisation=application_2.organisation, description="afdaf", comment="asdfsadf", report_summary="asdfdsf"
-        )
-        GoodOnApplicationFactory(application=application_2, good=good_2)
+    @parameterized.expand(
+        [
+            ("brian", ()),
+            ("fou", (4,)),
+            ("One", (0, 2)),
+            ("ne", (0, 2)),
+            ("tWo", (1, 2, 3)),
+            ("", (0, 1, 2, 3, 4)),
+        ]
+    )
+    def test_filter_by_product_name(self, search_term, expected):
+        pks = []
+        for names in [["one"], ["two"], ["one", "two"], ["two", "three"], ["four"]]:
+            application = StandardApplicationFactory(submitted_at=timezone.now())
+            pks.append(application.pk)
+            for name in names:
+                good = GoodFactory(organisation=application.organisation, name=name)
+                GoodOnApplicationFactory(application=application, good=good)
 
-        application_3 = StandardApplicationFactory()
-        goods_type = GoodsTypeFactory(application=application_3)
+        results = Case.objects.search(product_name=search_term)
 
-        qs_1 = Case.objects.search(goods_related_description=good_1.description)
-        qs_2 = Case.objects.search(goods_related_description=good_1.comment)
-        qs_3 = Case.objects.search(goods_related_description=good_1.report_summary)
-        qs_4 = Case.objects.search(goods_related_description=goods_type.description)
-
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 1)
-        self.assertEqual(qs_1.first().pk, application_1.pk)
-        self.assertEqual(qs_2.first().pk, application_1.pk)
-        self.assertEqual(qs_3.first().pk, application_1.pk)
-        self.assertEqual(qs_4.first().pk, application_3.pk)
+        self.assertEqual(results.count(), len(expected))
+        expected_pks = [pks[i] for i in expected]
+        result_pks = [result.pk for result in results]
+        self.assertEqual(set(result_pks), set(expected_pks))
 
     def test_view_flag_filter(self):
         flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)
