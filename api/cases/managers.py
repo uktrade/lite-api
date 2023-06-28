@@ -122,16 +122,10 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(id__in=case_ids)
 
     def with_country(self, country_id):
-        return self.filter(
-            Q(baseapplication__parties__party__country_id=country_id)
-            | Q(baseapplication__openapplication__application_countries__country_id=country_id)
-        )
+        return self.filter(Q(baseapplication__parties__party__country_id=country_id))
 
     def with_countries(self, country_ids):
-        return self.filter(
-            Q(baseapplication__parties__party__country_id__in=country_ids)
-            | Q(baseapplication__openapplication__application_countries__country_id__in=country_ids)
-        )
+        return self.filter(Q(baseapplication__parties__party__country_id__in=country_ids))
 
     def with_advice(self, advice_type, level):
         return self.filter(advice__type=advice_type, advice__level=level)
