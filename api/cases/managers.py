@@ -127,6 +127,12 @@ class CaseQuerySet(models.QuerySet):
             | Q(baseapplication__openapplication__application_countries__country_id=country_id)
         )
 
+    def with_countries(self, country_ids):
+        return self.filter(
+            Q(baseapplication__parties__party__country_id__in=country_ids)
+            | Q(baseapplication__openapplication__application_countries__country_id__in=country_ids)
+        )
+
     def with_advice(self, advice_type, level):
         return self.filter(advice__type=advice_type, advice__level=level)
 
@@ -250,6 +256,7 @@ class CaseManager(models.Manager):
         regime_entry=None,
         flags=None,
         country=None,
+        countries=None,
         team_advice_type=None,
         final_advice_type=None,
         min_sla_days_remaining=None,
@@ -365,6 +372,9 @@ class CaseManager(models.Manager):
 
         if country:
             case_qs = case_qs.with_country(country)
+
+        if countries:
+            case_qs = case_qs.with_countries(countries)
 
         if team_advice_type:
             case_qs = case_qs.with_advice(team_advice_type, AdviceLevel.TEAM)
