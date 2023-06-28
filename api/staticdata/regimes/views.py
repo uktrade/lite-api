@@ -28,7 +28,8 @@ class EntriesView(generics.ListAPIView):
         regime_type = self.kwargs["regime_type"]
 
         regime_entries = (
-            RegimeEntry.objects.annotate(regime_slug=Lower("subsection__regime__name"))
+            RegimeEntry.objects.select_related("subsection__regime")
+            .annotate(regime_slug=Lower("subsection__regime__name"))
             .filter(
                 regime_slug=regime_type,
             )

@@ -1,7 +1,8 @@
 from difflib import SequenceMatcher
 
-from django.test import TransactionTestCase
 from django.utils import timezone
+from parameterized import parameterized
+from django.test import TransactionTestCase
 from rest_framework.reverse import reverse
 
 from api.cases.enums import AdviceType
@@ -18,13 +19,46 @@ from api.applications.tests.factories import (
     StandardApplicationFactory,
     OpenApplicationFactory,
 )
-from api.parties.tests.factories import PartyFactory
+from api.cases.enums import AdviceType
+from api.cases.models import Case
+from api.cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
 from api.flags.tests.factories import FlagFactory
 from api.goods.tests.factories import GoodFactory
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.goodstype.tests.factories import GoodsTypeFactory
+from api.parties.tests.factories import PartyFactory
+from api.staticdata.countries.factories import CountryFactory
+from api.staticdata.regimes.helpers import get_regime_entry
 from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+
+
+def regime_id_by_name(name):
+    return str(get_regime_entry(name).id)
+
+
+def setup_applications_with_regimes():
+    application_1 = StandardApplicationFactory(submitted_at=timezone.now())
+    good = GoodFactory(organisation=application_1.organisation, is_good_controlled=True)
+    GoodOnApplicationFactory(application=application_1, good=good, regime_entries=["T1"])
+    application_2 = StandardApplicationFactory(submitted_at=timezone.now())
+    good_2 = GoodFactory(organisation=application_2.organisation, is_good_controlled=True)
+    GoodOnApplicationFactory(application=application_2, good=good_2, regime_entries=["T3"])
+    application_3 = StandardApplicationFactory(submitted_at=timezone.now())
+    good_3 = GoodFactory(organisation=application_3.organisation, is_good_controlled=True)
+    GoodOnApplicationFactory(application=application_3, good=good_3, regime_entries=["T5"])
+
+
+def setup_applications_with_cles():
+    for entries in [["ML1a"], ["ML2a"], ["ML2a", "ML3a"], ["ML4a"]]:
+        application = StandardApplicationFactory(submitted_at=timezone.now())
+        good = GoodFactory(
+            organisation=application.organisation,
+            is_good_controlled=True,
+            control_list_entries=entries,
+        )
+        GoodOnApplicationFactory(application=application, good=good)
 
 
 class FilterAndSortTests(DataTestClient):
@@ -104,43 +138,38 @@ class FilterAndSortTests(DataTestClient):
 
         self.assertEqual(qs_5.count(), 2)
 
-    def test_filter_by_good_control_list_entry(self):
-        application_1 = StandardApplicationFactory()
-        good = GoodFactory(
-            organisation=application_1.organisation,
-            is_good_controlled=True,
-            control_list_entries=["ML1a"],
-        )
-        GoodOnApplicationFactory(application=application_1, good=good)
+    @parameterized.expand(
+        [
+            (["ML1b"], 0),
+            (["ML1a"], 1),
+            (["ML4a"], 1),
+            (["ML2a"], 2),
+            (["ML1a", "ML2a"], 3),
+            ([], 4),
+        ]
+    )
+    def test_filter_by_good_control_list_entry(self, cles, expected_cases):
+        setup_applications_with_cles()
 
-        application_2 = OpenApplicationFactory()
-        GoodsTypeFactory(application=application_2, is_good_controlled=True, control_list_entries=["ML2a"])
+        qs_1 = Case.objects.search(control_list_entry=cles)
 
-        qs_1 = Case.objects.search(control_list_entry="")
-        qs_2 = Case.objects.search(control_list_entry="ML1b")
-        qs_3 = Case.objects.search(control_list_entry="ML1a")
-        qs_4 = Case.objects.search(control_list_entry="ML2a")
+        self.assertEqual(qs_1.count(), expected_cases)
 
-        self.assertEqual(qs_1.count(), 2)
-        self.assertEqual(qs_2.count(), 0)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 1)
+    @parameterized.expand(
+        [
+            (["T7"], 0),
+            (["T1"], 1),
+            (["T1", "T7"], 1),
+            (["T1", "T5"], 2),
+            ([], 3),
+        ]
+    )
+    def test_filter_by_good_regimes(self, regimes, expected_results):
+        setup_applications_with_regimes()
+        regime_ids = [regime_id_by_name(regime) for regime in regimes]
+        results = Case.objects.search(regime_entry=regime_ids)
 
-    def test_filter_by_good_regimes(self):
-        application_1 = StandardApplicationFactory()
-        good = GoodFactory(organisation=application_1.organisation, is_good_controlled=True)
-        GoodOnApplicationFactory(application=application_1, good=good, regime_entries=["T1"])
-
-        T1 = RegimeEntry.objects.get(name="T1")
-        T5 = RegimeEntry.objects.get(name="T5")
-        qs_1 = Case.objects.search(regime_entry="")
-        qs_2 = Case.objects.search(regime_entry=T5.id)
-        qs_3 = Case.objects.search(regime_entry=T1.id)
-
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 0)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_3.first().pk, application_1.pk)
+        self.assertEqual(results.count(), expected_results)
 
     def test_filter_by_flags(self):
         flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)
@@ -486,3 +515,45 @@ class FilterAndSortTests(DataTestClient):
         self.assertQuerysetEqual(
             qs_2, [application_1.get_case(), application_2.get_case(), application_3.get_case()], ordered=False
         )
+
+    @parameterized.expand(
+        [
+            ("regime_entry=", "T7", 0),
+            ("regime_entry=", "T1", 1),
+            ("regime_entry=", "", 3),
+            ("", "", 3),
+        ]
+    )
+    def test_filters_with_regime_query(self, regime_key, regime, expected_count):
+        setup_applications_with_regimes()
+
+        regime_value = regime_id_by_name(regime) if regime else ""
+        url = reverse("cases:search")
+        url_1 = f"{url}?{regime_key}{regime_value}"
+
+        response_1 = self.client.get(url_1, **self.gov_headers)
+
+        data_1 = response_1.json()
+
+        self.assertEqual(data_1["count"], expected_count)
+
+    @parameterized.expand(
+        [
+            ("control_list_entry=ML1b", 0),
+            ("control_list_entry=ML1a", 1),
+            ("control_list_entry=ML1a&control_list_entry=ML2a", 3),
+            ("control_list_entry=", 4),
+            ("", 4),
+        ]
+    )
+    def test_filters_with_control_list_query(self, query, expected_count):
+        setup_applications_with_cles()
+
+        url = reverse("cases:search")
+        url_1 = f"{url}?{query}"
+
+        response_1 = self.client.get(url_1, **self.gov_headers)
+
+        data_1 = response_1.json()
+
+        self.assertEqual(data_1["count"], expected_count)
