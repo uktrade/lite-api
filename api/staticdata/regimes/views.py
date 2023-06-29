@@ -16,7 +16,9 @@ class RegimeEntriesListView(generics.ListAPIView):
     model = RegimeEntry
     pagination_class = None
     serializer_class = RegimeEntrySerializer
-    queryset = RegimeEntry.objects.all()
+
+    def get_queryset(self):
+        return RegimeEntry.objects.select_related("subsection", "subsection__regime").all()
 
 
 class EntriesView(generics.ListAPIView):
@@ -28,7 +30,7 @@ class EntriesView(generics.ListAPIView):
         regime_type = self.kwargs["regime_type"]
 
         regime_entries = (
-            RegimeEntry.objects.select_related("subsection__regime")
+            RegimeEntry.objects.select_related("subsection", "subsection__regime")
             .annotate(regime_slug=Lower("subsection__regime__name"))
             .filter(
                 regime_slug=regime_type,
