@@ -71,7 +71,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterNotification
 from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
-
 good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
 
 GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX = "Select a valid report summary prefix"
@@ -120,7 +119,11 @@ class GoodsListControlCode(APIView):
             pks = [pks]
         if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
             return GoodsType.objects.filter(pk__in=pks)
-        return GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
+        results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], id__in=pks)
+        # This can be removed in the future as it's essentially a FF for the batching changes
+        if not results.exists():
+            results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
+        return results
 
     def get_serializer_class(self):
         if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
@@ -166,6 +169,7 @@ class GoodsListControlCode(APIView):
         case = get_case(case_pk)
         line_items = self.get_application_line_items(case)
 
+        # returns a list of GoodOnApplication or GoodsType based on request['objects']
         for good in self.get_queryset():
             data = request.data.copy()
 
@@ -175,9 +179,6 @@ class GoodsListControlCode(APIView):
             old_regime_entries = list(good.regime_entries.values_list("name", flat=True))
 
             report_summary_updated = new_report_summary != old_report_summary
-
-            if report_summary_updated and str(good.id) != data.get("current_object", str(good.id)):
-                data["report_summary"] = good.report_summary
 
             serializer_class = self.get_serializer_class()
             serializer = serializer_class(good, data=data)
@@ -198,7 +199,6 @@ class GoodsListControlCode(APIView):
                 ):
                     default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
                     default_regimes = ["No regimes"]
-
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.PRODUCT_REVIEWED,
