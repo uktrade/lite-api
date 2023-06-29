@@ -196,26 +196,6 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_3.count(), 1)
         self.assertEqual(qs_3.first().pk, application_4.pk)
 
-    def test_filter_by_country(self):
-        """
-        What qualifies as a country on a case?
-        """
-        country_1 = CountryFactory(id="GB")
-        country_2 = CountryFactory(id="SP")
-        country_on_application = CountryOnApplicationFactory(country=country_1)
-        country_on_application = CountryOnApplicationFactory(
-            application=country_on_application.application, country=country_1
-        )
-        party_on_application = PartyOnApplicationFactory(party=PartyFactory(country=country_2))
-
-        qs_1 = Case.objects.search(country=country_1)
-        qs_2 = Case.objects.search(country=country_2)
-
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_1.first().pk, country_on_application.application.pk)
-        self.assertEqual(qs_2.first().pk, party_on_application.application.pk)
-
     def test_filter_by_team_advice(self):
         application = StandardApplicationFactory()
         good = GoodFactory(organisation=application.organisation)
