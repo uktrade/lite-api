@@ -636,6 +636,46 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 0)
 
+    @parameterized.expand(
+        [
+            (["NI", "GB"], ""),
+            (["NI", "GB"], "GB"),
+            (["NI", "GB"], "NI"),
+        ]
+    )
+    def test_get_cases_filter_by_country_match(self, countries_on_application, filter_country):
+        application = self.application_cases[0]
+        for country in countries_on_application:
+            PartyOnApplicationFactory(application=application, party__country_id=country)
+        case = Case.objects.get(id=application.id)
+
+        url = f'{reverse("cases:search")}?case_reference={case.reference_code}&country={filter_country}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(application.id))
+
+    @parameterized.expand(
+        [
+            (["NI", "GB"], "US"),
+            (["NI", "GB"], "FR"),
+        ]
+    )
+    def test_get_cases_filter_by_country_no_match(self, countries_on_application, filter_country):
+        application = self.application_cases[0]
+        for country in countries_on_application:
+            PartyOnApplicationFactory(application=application, party__country_id=country)
+        case = Case.objects.get(id=application.id)
+
+        url = f'{reverse("cases:search")}?case_reference={case.reference_code}&country={filter_country}"'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
 
 class UpdatedCasesQueueTests(DataTestClient):
     def setUp(self):
