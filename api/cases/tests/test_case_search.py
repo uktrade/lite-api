@@ -473,6 +473,44 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 0)
 
+    def test_get_cases_filter_by_max_total_value_no_results(self):
+        case = self.application_cases[0]
+        good = case.baseapplication.goods.first()
+        good.value = 200
+        good.save()
+        url = f'{reverse("cases:search")}?reference_code={case.reference_code}&max_total_value=199'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
+    def test_get_cases_filter_by_max_total_value_match(self):
+        case = self.application_cases[0]
+        good = case.baseapplication.goods.first()
+        good.value = 200
+        good.save()
+        url = f'{reverse("cases:search")}?case_reference={case.reference_code}&max_total_value=201'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(case.id))
+
+    def test_get_cases_filter_by_max_total_value_bad_decimal(self):
+        case = self.application_cases[0]
+        good = case.baseapplication.goods.first()
+        good.value = 200
+        good.save()
+        url = f'{reverse("cases:search")}?case_reference={case.reference_code}&max_total_value=foo'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(case.id))
+
     def test_get_cases_filter_by_goods_starting_point_not_in_case(self):
         url = f'{reverse("cases:search")}?goods_starting_point=NI'
         response = self.client.get(url, **self.gov_headers)
