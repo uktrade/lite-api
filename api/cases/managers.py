@@ -3,7 +3,7 @@ from typing import List
 
 from compat import get_model
 from django.db import models, transaction
-from django.db.models import Q, Case, When, BinaryField
+from django.db.models import Q, Case, When, BinaryField, Sum
 from django.utils import timezone
 
 from api.cases.enums import AdviceLevel, CaseTypeEnum
@@ -104,14 +104,11 @@ class CaseQuerySet(models.QuerySet):
             | Q(baseapplication__application_sites__site__address__address__icontains=exporter_site_address)
         )
 
-    def with_control_list_entry(self, control_list_entry):
-        return self.filter(
-            Q(baseapplication__goods__good__control_list_entries__rating__in=[control_list_entry])
-            | Q(baseapplication__goods_type__control_list_entries__rating__in=[control_list_entry])
-        )
+    def with_control_list_entries(self, control_list_entries):
+        return self.filter(baseapplication__goods__good__control_list_entries__rating__in=control_list_entries)
 
-    def with_regime_entry(self, regime_entry):
-        return self.filter(baseapplication__goods__regime_entries__id=regime_entry)
+    def with_regime_entries(self, regime_entries):
+        return self.filter(baseapplication__goods__regime_entries__id__in=regime_entries)
 
     def with_flags(self, flags):
         case_flag_ids = self.filter(flags__id__in=flags).values_list("id", flat=True)
@@ -175,6 +172,9 @@ class CaseQuerySet(models.QuerySet):
 
     def with_nca_applicable(self):
         return self.filter(baseapplication__goods__is_nca_applicable=True)
+
+    def with_max_total_value(self, max_total_value):
+        return self.annotate(total_value=Sum("baseapplication__goods__value")).filter(total_value__lte=max_total_value)
 
     def with_trigger_list(self):
         return self.filter(baseapplication__goods__is_trigger_list_guidelines_applicable=True)
@@ -272,6 +272,7 @@ class CaseManager(models.Manager):
         goods_starting_point=None,
         exclude_denial_matches=None,
         exclude_sanction_matches=None,
+        max_total_value=None,
         **kwargs,
     ):
         """
@@ -354,10 +355,10 @@ class CaseManager(models.Manager):
             case_qs = case_qs.with_goods_starting_point(goods_starting_point)
 
         if control_list_entry:
-            case_qs = case_qs.with_control_list_entry(control_list_entry)
+            case_qs = case_qs.with_control_list_entries(control_list_entry)
 
         if regime_entry:
-            case_qs = case_qs.with_regime_entry(regime_entry)
+            case_qs = case_qs.with_regime_entries(regime_entry)
 
         if flags:
             case_qs = case_qs.with_flags(flags)
@@ -428,6 +429,9 @@ class CaseManager(models.Manager):
 
         if exclude_sanction_matches:
             case_qs = case_qs.exclude_sanction_matches()
+
+        if max_total_value:
+            case_qs = case_qs.with_max_total_value(max_total_value)
 
         return case_qs.distinct()
 
