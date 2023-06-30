@@ -170,6 +170,13 @@ class CaseQuerySet(models.QuerySet):
             | Q(baseapplication__goods_type__report_summary__icontains=goods_related_description)
         )
 
+    def with_report_summary_subject_or_prefix(self, search_string):
+        return self.filter(
+            Q(baseapplication__goods__report_summary_subject__name__icontains=search_string)
+            | Q(baseapplication__goods__report_summary_prefix__name__icontains=search_string)
+            | Q(baseapplication__goods__report_summary__icontains=search_string)
+        )
+
     def with_nca_applicable(self):
         return self.filter(baseapplication__goods__is_nca_applicable=True)
 
@@ -274,6 +281,7 @@ class CaseManager(models.Manager):
         exclude_denial_matches=None,
         exclude_sanction_matches=None,
         max_total_value=None,
+        report_summary=None,
         **kwargs,
     ):
         """
@@ -408,6 +416,9 @@ class CaseManager(models.Manager):
 
         if my_cases:
             case_qs = case_qs.only_my_cases(user)
+
+        if report_summary:
+            case_qs = case_qs.with_report_summary_subject_or_prefix(report_summary)
 
         if is_work_queue:
             case_qs = case_qs.annotate(
