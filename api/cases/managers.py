@@ -160,15 +160,8 @@ class CaseQuerySet(models.QuerySet):
     def with_party_address(self, party_address):
         return self.filter(baseapplication__parties__party__address__icontains=party_address)
 
-    def with_goods_related_description(self, goods_related_description):
-        return self.filter(
-            Q(baseapplication__goods__good__description__icontains=goods_related_description)
-            | Q(baseapplication__goods__good__comment__icontains=goods_related_description)
-            | Q(baseapplication__goods__good__report_summary__icontains=goods_related_description)
-            | Q(baseapplication__goods_type__description__icontains=goods_related_description)
-            | Q(baseapplication__goods_type__comment__icontains=goods_related_description)
-            | Q(baseapplication__goods_type__report_summary__icontains=goods_related_description)
-        )
+    def with_product_name(self, product_name):
+        return self.filter(baseapplication__goods__good__name__icontains=product_name)
 
     def with_report_summary_subject_or_prefix(self, search_string):
         return self.filter(
@@ -268,7 +261,7 @@ class CaseManager(models.Manager):
         finalised_to=None,
         party_name=None,
         party_address=None,
-        goods_related_description=None,
+        product_name=None,
         sla_days_elapsed_sort_order=None,
         sla_days_elapsed=None,
         is_nca_applicable=None,
@@ -402,8 +395,8 @@ class CaseManager(models.Manager):
         if party_address:
             case_qs = case_qs.with_party_address(party_address)
 
-        if goods_related_description:
-            case_qs = case_qs.with_goods_related_description(goods_related_description)
+        if product_name:
+            case_qs = case_qs.with_product_name(product_name)
 
         if is_nca_applicable:
             case_qs = case_qs.with_nca_applicable()
