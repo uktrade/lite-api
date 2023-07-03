@@ -2,27 +2,21 @@ from difflib import SequenceMatcher
 
 from django.utils import timezone
 from parameterized import parameterized
-from django.test import TransactionTestCase
 from rest_framework.reverse import reverse
 
 from api.applications.tests.factories import (
     PartyOnApplicationFactory,
-    CountryOnApplicationFactory,
     SiteOnApplicationFactory,
     GoodOnApplicationFactory,
     StandardApplicationFactory,
-    OpenApplicationFactory,
 )
 from api.cases.enums import AdviceType
 from api.cases.models import Case
 from api.cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
 from api.flags.tests.factories import FlagFactory
 from api.goods.tests.factories import GoodFactory
-from api.goodstype.tests.factories import GoodsTypeFactory
 from api.parties.tests.factories import PartyFactory
-from api.staticdata.countries.factories import CountryFactory
 from api.staticdata.regimes.helpers import get_regime_entry
-from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -168,6 +162,23 @@ class FilterAndSortTests(DataTestClient):
 
     @parameterized.expand(
         [
+            (["ML1b"], 4),
+            (["ML1a"], 3),
+            (["ML4a"], 3),
+            (["ML1a", "ML2a"], 1),
+            (["ML1a", "ML2a", "ML4a"], 0),
+            ([], 4),
+        ]
+    )
+    def test_filter_by_exclude_good_control_list_entry(self, cles, expected_cases):
+        setup_applications_with_cles()
+
+        qs_1 = Case.objects.search(control_list_entry=cles, exclude_control_list_entry=True)
+
+        self.assertEqual(qs_1.count(), expected_cases)
+
+    @parameterized.expand(
+        [
             (["T7"], 0),
             (["T1"], 1),
             (["T1", "T7"], 1),
@@ -179,6 +190,22 @@ class FilterAndSortTests(DataTestClient):
         setup_applications_with_regimes()
         regime_ids = [regime_id_by_name(regime) for regime in regimes]
         results = Case.objects.search(regime_entry=regime_ids)
+
+        self.assertEqual(results.count(), expected_results)
+
+    @parameterized.expand(
+        [
+            (["T7"], 3),
+            (["T1"], 2),
+            (["T1", "T3"], 1),
+            (["T1", "T3", "T5"], 0),
+            ([], 3),
+        ]
+    )
+    def test_filter_by_exclude_good_regimes(self, regimes, expected_results):
+        setup_applications_with_regimes()
+        regime_ids = [regime_id_by_name(regime) for regime in regimes]
+        results = Case.objects.search(regime_entry=regime_ids, exclude_regime_entry=True)
 
         self.assertEqual(results.count(), expected_results)
 
@@ -545,6 +572,27 @@ class FilterAndSortTests(DataTestClient):
 
     @parameterized.expand(
         [
+            ("regime_entry=", "T7", 3),
+            ("regime_entry=", "T1", 2),
+            ("regime_entry=", "", 3),
+            ("", "", 3),
+        ]
+    )
+    def test_filters_with_exclude_regime_query(self, regime_key, regime, expected_count):
+        setup_applications_with_regimes()
+
+        regime_value = regime_id_by_name(regime) if regime else ""
+        url = reverse("cases:search")
+        url_1 = f"{url}?{regime_key}{regime_value}&exclude_regime_entry=true"
+
+        response_1 = self.client.get(url_1, **self.gov_headers)
+
+        data_1 = response_1.json()
+
+        self.assertEqual(data_1["count"], expected_count)
+
+    @parameterized.expand(
+        [
             ("control_list_entry=ML1b", 0),
             ("control_list_entry=ML1a", 1),
             ("control_list_entry=ML1a&control_list_entry=ML2a", 3),
@@ -553,6 +601,26 @@ class FilterAndSortTests(DataTestClient):
         ]
     )
     def test_filters_with_control_list_query(self, query, expected_count):
+        setup_applications_with_cles()
+
+        url = reverse("cases:search")
+        url_1 = f"{url}?{query}"
+
+        response_1 = self.client.get(url_1, **self.gov_headers)
+
+        data_1 = response_1.json()
+
+        self.assertEqual(data_1["count"], expected_count)
+
+    @parameterized.expand(
+        [
+            ("control_list_entry=ML1a&exclude_control_list_entry=true", 3),
+            ("control_list_entry=ML1a&control_list_entry=ML2a&exclude_control_list_entry=true", 1),
+            ("control_list_entry=&exclude_control_list_entry=true", 4),
+            ("exclude_control_list_entry=true", 4),
+        ]
+    )
+    def test_filters_with_exclude_control_list_query(self, query, expected_count):
         setup_applications_with_cles()
 
         url = reverse("cases:search")

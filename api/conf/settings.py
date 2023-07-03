@@ -431,7 +431,7 @@ if DEBUG and "django_extensions" in sys.modules:
 
 # SSO config
 FEATURE_STAFF_SSO_ENABLED = env.bool("FEATURE_STAFF_SSO_ENABLED", False)
-if FEATURE_STAFF_SSO_ENABLED:
+if FEATURE_STAFF_SSO_ENABLED and ADMIN_ENABLED:
     INSTALLED_APPS.append("authbroker_client")
     AUTHENTICATION_BACKENDS = [
         "django.contrib.auth.backends.ModelBackend",
