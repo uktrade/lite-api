@@ -13,6 +13,7 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     StandardApplicationFactory,
     SanctionMatchFactory,
+    PartyOnApplicationFactory,
 )
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case, CaseAssignment, EcjuQuery, CaseType
@@ -473,6 +474,44 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 0)
 
+    def test_get_cases_filter_by_max_total_value_no_results(self):
+        case = self.application_cases[0]
+        good = case.baseapplication.goods.first()
+        good.value = 200
+        good.save()
+        url = f'{reverse("cases:search")}?reference_code={case.reference_code}&max_total_value=199'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
+    def test_get_cases_filter_by_max_total_value_match(self):
+        case = self.application_cases[0]
+        good = case.baseapplication.goods.first()
+        good.value = 200
+        good.save()
+        url = f'{reverse("cases:search")}?case_reference={case.reference_code}&max_total_value=201'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(case.id))
+
+    def test_get_cases_filter_by_max_total_value_bad_decimal(self):
+        case = self.application_cases[0]
+        good = case.baseapplication.goods.first()
+        good.value = 200
+        good.save()
+        url = f'{reverse("cases:search")}?case_reference={case.reference_code}&max_total_value=foo'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(case.id))
+
     def test_get_cases_filter_by_goods_starting_point_not_in_case(self):
         url = f'{reverse("cases:search")}?goods_starting_point=NI'
         response = self.client.get(url, **self.gov_headers)
@@ -539,6 +578,98 @@ class FilterAndSortTests(DataTestClient):
         )
         case = Case.objects.get(id=application.id)
         url = f'{reverse("cases:search")}?exclude_sanction_matches=True&case_reference={case.reference_code}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
+    @parameterized.expand(
+        [
+            (["NI", "GB"], []),
+            (["NI", "GB"], ["GB"]),
+            (["NI", "GB"], ["NI"]),
+            (["NI", "GB"], ["NI", "GB"]),
+            (["NI", "GB"], ["NI", "GB", "US"]),
+        ]
+    )
+    def test_get_cases_filter_by_countries_match(self, countries_on_application, filter_countries):
+        application = self.application_cases[0]
+        for country in countries_on_application:
+            PartyOnApplicationFactory(application=application, party__country_id=country)
+        case = Case.objects.get(id=application.id)
+
+        params = [f"case_reference={case.reference_code}"]
+        for country in filter_countries:
+            params.append(f"countries={country}")
+        params_raw = "&".join(params)
+
+        url = f'{reverse("cases:search")}?{params_raw}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(application.id))
+
+    @parameterized.expand(
+        [
+            (["NI", "GB"], ["US"]),
+            (["NI", "GB"], ["US", "FR"]),
+        ]
+    )
+    def test_get_cases_filter_by_countries_no_match(self, countries_on_application, filter_countries):
+        application = self.application_cases[0]
+        for country in countries_on_application:
+            PartyOnApplicationFactory(application=application, party__country_id=country)
+        case = Case.objects.get(id=application.id)
+
+        params = [f"case_reference={case.reference_code}"]
+        for country in filter_countries:
+            params.append(f"countries={country}")
+        params_raw = "&".join(params)
+
+        url = f'{reverse("cases:search")}?{params_raw}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
+    @parameterized.expand(
+        [
+            (["NI", "GB"], ""),
+            (["NI", "GB"], "GB"),
+            (["NI", "GB"], "NI"),
+        ]
+    )
+    def test_get_cases_filter_by_country_match(self, countries_on_application, filter_country):
+        application = self.application_cases[0]
+        for country in countries_on_application:
+            PartyOnApplicationFactory(application=application, party__country_id=country)
+        case = Case.objects.get(id=application.id)
+
+        url = f'{reverse("cases:search")}?case_reference={case.reference_code}&country={filter_country}'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data[0]["id"], str(application.id))
+
+    @parameterized.expand(
+        [
+            (["NI", "GB"], "US"),
+            (["NI", "GB"], "FR"),
+        ]
+    )
+    def test_get_cases_filter_by_country_no_match(self, countries_on_application, filter_country):
+        application = self.application_cases[0]
+        for country in countries_on_application:
+            PartyOnApplicationFactory(application=application, party__country_id=country)
+        case = Case.objects.get(id=application.id)
+
+        url = f'{reverse("cases:search")}?case_reference={case.reference_code}&country={filter_country}"'
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
 
