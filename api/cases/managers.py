@@ -110,6 +110,12 @@ class CaseQuerySet(models.QuerySet):
     def with_regime_entries(self, regime_entries):
         return self.filter(baseapplication__goods__regime_entries__id__in=regime_entries)
 
+    def without_control_list_entries(self, control_list_entries):
+        return self.exclude(baseapplication__goods__good__control_list_entries__rating__in=control_list_entries)
+
+    def without_regime_entries(self, regime_entries):
+        return self.exclude(baseapplication__goods__regime_entries__id__in=regime_entries)
+
     def with_flags(self, flags):
         case_flag_ids = self.filter(flags__id__in=flags).values_list("id", flat=True)
         org_flag_ids = self.filter(organisation__flags__id__in=flags).values_list("id", flat=True)
@@ -122,10 +128,10 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(id__in=case_ids)
 
     def with_country(self, country_id):
-        return self.filter(
-            Q(baseapplication__parties__party__country_id=country_id)
-            | Q(baseapplication__openapplication__application_countries__country_id=country_id)
-        )
+        return self.filter(Q(baseapplication__parties__party__country_id=country_id))
+
+    def with_countries(self, country_ids):
+        return self.filter(Q(baseapplication__parties__party__country_id__in=country_ids))
 
     def with_advice(self, advice_type, level):
         return self.filter(advice__type=advice_type, advice__level=level)
@@ -160,14 +166,14 @@ class CaseQuerySet(models.QuerySet):
     def with_party_address(self, party_address):
         return self.filter(baseapplication__parties__party__address__icontains=party_address)
 
-    def with_goods_related_description(self, goods_related_description):
+    def with_product_name(self, product_name):
+        return self.filter(baseapplication__goods__good__name__icontains=product_name)
+
+    def with_report_summary_subject_or_prefix(self, search_string):
         return self.filter(
-            Q(baseapplication__goods__good__description__icontains=goods_related_description)
-            | Q(baseapplication__goods__good__comment__icontains=goods_related_description)
-            | Q(baseapplication__goods__good__report_summary__icontains=goods_related_description)
-            | Q(baseapplication__goods_type__description__icontains=goods_related_description)
-            | Q(baseapplication__goods_type__comment__icontains=goods_related_description)
-            | Q(baseapplication__goods_type__report_summary__icontains=goods_related_description)
+            Q(baseapplication__goods__report_summary_subject__name__icontains=search_string)
+            | Q(baseapplication__goods__report_summary_prefix__name__icontains=search_string)
+            | Q(baseapplication__goods__report_summary__icontains=search_string)
         )
 
     def with_nca_applicable(self):
@@ -247,9 +253,12 @@ class CaseManager(models.Manager):
         exporter_site_name=None,
         exporter_site_address=None,
         control_list_entry=None,
+        exclude_control_list_entry=None,
+        exclude_regime_entry=None,
         regime_entry=None,
         flags=None,
         country=None,
+        countries=None,
         team_advice_type=None,
         final_advice_type=None,
         min_sla_days_remaining=None,
@@ -260,7 +269,7 @@ class CaseManager(models.Manager):
         finalised_to=None,
         party_name=None,
         party_address=None,
-        goods_related_description=None,
+        product_name=None,
         sla_days_elapsed_sort_order=None,
         sla_days_elapsed=None,
         is_nca_applicable=None,
@@ -273,6 +282,7 @@ class CaseManager(models.Manager):
         exclude_denial_matches=None,
         exclude_sanction_matches=None,
         max_total_value=None,
+        report_summary=None,
         **kwargs,
     ):
         """
@@ -354,10 +364,14 @@ class CaseManager(models.Manager):
         if goods_starting_point:
             case_qs = case_qs.with_goods_starting_point(goods_starting_point)
 
-        if control_list_entry:
+        if exclude_control_list_entry and control_list_entry:
+            case_qs = case_qs.without_control_list_entries(control_list_entry)
+        elif control_list_entry:
             case_qs = case_qs.with_control_list_entries(control_list_entry)
 
-        if regime_entry:
+        if exclude_regime_entry and regime_entry:
+            case_qs = case_qs.without_regime_entries(regime_entry)
+        elif regime_entry:
             case_qs = case_qs.with_regime_entries(regime_entry)
 
         if flags:
@@ -365,6 +379,9 @@ class CaseManager(models.Manager):
 
         if country:
             case_qs = case_qs.with_country(country)
+
+        if countries:
+            case_qs = case_qs.with_countries(countries)
 
         if team_advice_type:
             case_qs = case_qs.with_advice(team_advice_type, AdviceLevel.TEAM)
@@ -390,8 +407,8 @@ class CaseManager(models.Manager):
         if party_address:
             case_qs = case_qs.with_party_address(party_address)
 
-        if goods_related_description:
-            case_qs = case_qs.with_goods_related_description(goods_related_description)
+        if product_name:
+            case_qs = case_qs.with_product_name(product_name)
 
         if is_nca_applicable:
             case_qs = case_qs.with_nca_applicable()
@@ -404,6 +421,9 @@ class CaseManager(models.Manager):
 
         if my_cases:
             case_qs = case_qs.only_my_cases(user)
+
+        if report_summary:
+            case_qs = case_qs.with_report_summary_subject_or_prefix(report_summary)
 
         if is_work_queue:
             case_qs = case_qs.annotate(
