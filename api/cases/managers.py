@@ -53,12 +53,15 @@ class CaseQuerySet(models.QuerySet):
         updated_case_ids = get_updated_case_ids(user)
         return self.filter(id__in=updated_case_ids)
 
-    def assigned_to_user(self, user):
-        assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
+    def assigned_to_user(self, user, queue_id=None):
+        assigned_to_user_case_ids = get_assigned_to_user_case_ids(user, queue_id)
         return self.filter(id__in=assigned_to_user_case_ids)
 
-    def not_assigned_to_any_user(self):
-        return self.filter(case_assignments=None)
+    def not_assigned_to_any_user(self, queue_id=None):
+        if not queue_id:
+            return self.filter(case_assignments=None)
+        else:
+            return self.exclude(case_assignments__queue_id=queue_id)
 
     def assigned_as_case_officer(self, user):
         assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
@@ -336,10 +339,14 @@ class CaseManager(models.Manager):
             case_qs = case_qs.with_export_type(export_type)
 
         if assigned_user:
+            assignment_queue_id = queue_id
+            # Do not do queue-based assignment filtering for the "all cases" queue
+            if queue_id == ALL_CASES_QUEUE_ID:
+                assignment_queue_id = None
             if assigned_user == self.NOT_ASSIGNED:
-                case_qs = case_qs.not_assigned_to_any_user()
+                case_qs = case_qs.not_assigned_to_any_user(queue_id=assignment_queue_id)
             else:
-                case_qs = case_qs.assigned_to_user(user=assigned_user)
+                case_qs = case_qs.assigned_to_user(user=assigned_user, queue_id=assignment_queue_id)
 
         if case_officer:
             if case_officer == self.NOT_ASSIGNED:
