@@ -25,6 +25,7 @@ from api.cases.tests.factories import CaseSIELFactory
 from api.queues.constants import (
     UPDATED_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
+    ALL_CASES_QUEUE_ID,
 )
 from api.queues.tests.factories import QueueFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -226,6 +227,43 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
 
+    def test_get_cases_filter_by_assigned_user_with_queue(self):
+        case_assignment = CaseAssignment.objects.create(
+            queue=self.queue, case=self.application_cases[0], user=self.gov_user
+        )
+        url = f'{reverse("cases:search")}?assigned_user={self.gov_user.pk}&queue_id={self.queue.id}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
+
+    def test_get_cases_filter_by_assigned_user_with_all_cases_queue(self):
+        case_assignment = CaseAssignment.objects.create(
+            queue=self.queue, case=self.application_cases[0], user=self.gov_user
+        )
+        url = f'{reverse("cases:search")}?assigned_user={self.gov_user.pk}&queue_id={ALL_CASES_QUEUE_ID}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
+
+    def test_get_cases_filter_by_assigned_user_with_queue_no_match(self):
+        queue = QueueFactory()
+        case_assignment = CaseAssignment.objects.create(queue=queue, case=self.application_cases[0], user=self.gov_user)
+        url = f'{reverse("cases:search")}?assigned_user={self.gov_user.pk}&queue_id={self.queue.id}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
     def test_get_cases_filter_by_assigned_user_not_assigned(self):
         """
         Given multiple cases exist with users assigned and not assigned
@@ -246,6 +284,36 @@ class FilterAndSortTests(DataTestClient):
         assigned_case = str(self.application_cases[0].id)
         cases_returned = [x["id"] for x in response_data]
         self.assertNotIn(assigned_case, cases_returned)
+
+    def test_get_cases_filter_by_assigned_user_not_assigned_with_queue(self):
+        all_cases = self.application_cases + self.clc_cases
+        case_assignment = CaseAssignment.objects.create(
+            queue=self.queue, case=self.application_cases[0], user=self.gov_user
+        )
+        url = f'{reverse("cases:search")}?assigned_user=not_assigned&queue_id={self.queue.id}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(all_cases) - 1)
+        assigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertNotIn(assigned_case, cases_returned)
+
+    def test_get_cases_filter_by_assigned_user_not_assigned_with_queue_match(self):
+        all_cases = self.application_cases + self.clc_cases
+        queue = QueueFactory()
+        case_assignment = CaseAssignment.objects.create(queue=queue, case=self.application_cases[0], user=self.gov_user)
+        url = f'{reverse("cases:search")}?assigned_user=not_assigned&queue_id={self.queue.id}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        unassigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertIn(unassigned_case, cases_returned)
 
     def test_get_submitted_status_and_clc_type_cases(self):
         """

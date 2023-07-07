@@ -3,10 +3,14 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import GovUser, GovNotification
 
 
-def get_assigned_to_user_case_ids(user: GovUser):
+def get_assigned_to_user_case_ids(user: GovUser, queue_id=None):
     from api.cases.models import CaseAssignment
 
-    return CaseAssignment.objects.filter(user=user).values_list("case__id", flat=True)
+    filters = {"user": user}
+    if queue_id:
+        filters["queue_id"] = queue_id
+
+    return CaseAssignment.objects.filter(**filters).values_list("case__id", flat=True)
 
 
 def get_assigned_as_case_officer_case_ids(user: GovUser):
