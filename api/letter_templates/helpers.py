@@ -10,6 +10,7 @@ from api.conf.settings import CSS_ROOT
 from api.letter_templates.context_generator import get_document_context
 from api.letter_templates.models import LetterTemplate
 from api.letter_templates.constants import TemplateTitles
+import jinja2
 
 ALLOWED_TAGS = ["b", "strong", "em", "u", "h1", "h2", "h3", "h4", "h5", "h6"]
 
@@ -72,12 +73,22 @@ def generate_preview(
     if case:
         context = {**context, **get_document_context(case, additional_contact)}
 
+    context["user_content"] = recursive_render(text, context)
+
     css_string = ""
     if include_css:
         css_string = load_css(layout)
         if layout == "siel":
             css_string = load_css("siel_preview")
-
     context["css"] = css_string
-
     return render_to_string(template_name, context)
+
+
+def recursive_render(tpl, values):
+    prev = tpl
+    while True:
+        curr = jinja2.Template(prev).render(**values)
+        if curr != prev:
+            prev = curr
+        else:
+            return curr
