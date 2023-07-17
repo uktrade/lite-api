@@ -229,8 +229,8 @@ class CaseQuerySet(models.QuerySet):
     def exclude_sanction_matches(self):
         return self.exclude(baseapplication__parties__sanction_matches__is_revoked=False)
 
-    def includes_refusal_recommendation(self):
-        return self.filter(advice__type=AdviceType.REFUSE, status__status=CaseStatusEnum.OGD_ADVICE)
+    def includes_refusal_recommendation_from_ogd(self):
+        return self.filter(advice__type=AdviceType.REFUSE, advice__team__is_ogd=True)
 
 
 class CaseManager(models.Manager):
@@ -290,7 +290,7 @@ class CaseManager(models.Manager):
         exclude_sanction_matches=None,
         max_total_value=None,
         report_summary=None,
-        includes_refusal_recommendation=None,
+        includes_refusal_recommendation_from_ogd=None,
         **kwargs,
     ):
         """
@@ -465,8 +465,8 @@ class CaseManager(models.Manager):
         if max_total_value:
             case_qs = case_qs.with_max_total_value(max_total_value)
 
-        if includes_refusal_recommendation:
-            case_qs = case_qs.includes_refusal_recommendation()
+        if includes_refusal_recommendation_from_ogd:
+            case_qs = case_qs.includes_refusal_recommendation_from_ogd()
 
         return case_qs.distinct()
 

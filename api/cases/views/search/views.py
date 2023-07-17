@@ -160,6 +160,7 @@ class CasesSearchView(generics.ListAPIView):
         filters["finalised_from"] = make_date_from_params("finalised_from", filters)
         filters["finalised_to"] = make_date_from_params("finalised_to", filters)
         filters["countries"] = request.GET.getlist("countries", [])
-        filters["includes_refusal_recommendation"] = request.GET.get("includes_refusal_recommendation", False)
-
+        filters["includes_refusal_recommendation_from_ogd"] = request.GET.get(
+            "includes_refusal_recommendation_from_ogd", False
+        )
         return filters

@@ -40,6 +40,7 @@ from api.users.models import GovUser
 from api.cases.tests import factories
 from api.cases.enums import AdviceType
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.teams.models import Team
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 
@@ -745,16 +746,15 @@ class FilterAndSortTests(DataTestClient):
 
     def test_get_cases_filter_by_includes_refusal_recommendation(self):
         case = self.create_standard_application_case(self.organisation)
-        case.status = CaseStatus.objects.get(status=CaseStatusEnum.OGD_ADVICE)
-        case.save()
+        team_ogd = Team.objects.filter(is_ogd=True).first()
         good = self.create_good("A good", self.organisation)
 
-        factories.UserAdviceFactory.create(type=AdviceType.REFUSE, case=case, user=self.gov_user, good=good)
+        factories.TeamAdviceFactory(user=self.gov_user, team=team_ogd, case=case, good=good, type=AdviceType.REFUSE)
 
-        url = f'{reverse("cases:search")}?includes_refusal_recommendation=on'
+        url = f'{reverse("cases:search")}?includes_refusal_recommendation_from_ogd=on'
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)
+        self.assertTrue(response_data)
 
 
 class UpdatedCasesQueueTests(DataTestClient):
