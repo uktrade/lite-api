@@ -1,9 +1,13 @@
 from unittest.mock import Mock, patch
 
-from django.conf import settings
 from django.test import override_settings, SimpleTestCase
 
-from ..s3_operations import get_client
+from ..s3_operations import (
+    delete_file,
+    get_client,
+    get_object,
+    upload_bytes_file,
+)
 
 
 @patch("api.documents.libraries.s3_operations.boto3")
@@ -16,7 +20,7 @@ from ..s3_operations import get_client
     S3_CONNECT_TIMEOUT=22,
     S3_REQUEST_TIMEOUT=44,
 )
-class S3OperationsTests(SimpleTestCase):
+class S3OperationsGetClientTests(SimpleTestCase):
     @override_settings(
         AWS_ENDPOINT_URL=None,
     )
@@ -66,3 +70,42 @@ class S3OperationsTests(SimpleTestCase):
             config=config,
             endpoint_url="AWS_ENDPOINT_URL",
         )
+
+
+@override_settings(
+    AWS_STORAGE_BUCKET_NAME="test-bucket",
+)
+class S3OperationsGetObjectTests(SimpleTestCase):
+    @patch("api.documents.libraries.s3_operations._client")
+    def test_get_object(self, mock_client):
+        mock_object = Mock()
+        mock_client.get_object.return_value = mock_object
+
+        returned_object = get_object("document-id", "s3-key")
+
+        self.assertEqual(returned_object, mock_object)
+        mock_client.get_object.assert_called_with(Bucket="test-bucket", Key="s3-key")
+
+
+@override_settings(
+    AWS_STORAGE_BUCKET_NAME="test-bucket",
+)
+class S3OperationsDeleteFileTests(SimpleTestCase):
+    @patch("api.documents.libraries.s3_operations._client")
+    def test_delete_file(self, mock_client):
+        delete_file("document-id", "s3-key")
+
+        mock_client.delete_object.assert_called_with(Bucket="test-bucket", Key="s3-key")
+
+
+@override_settings(
+    AWS_STORAGE_BUCKET_NAME="test-bucket",
+)
+class S3OperationsUploadBytesFileTests(SimpleTestCase):
+    @patch("api.documents.libraries.s3_operations._client")
+    def test_upload_bytes_file(self, mock_client):
+        mock_file = Mock()
+
+        upload_bytes_file(mock_file, "s3-key")
+
+        mock_client.put_object.assert_called_with(Bucket="test-bucket", Key="s3-key", Body=mock_file)
