@@ -1,13 +1,11 @@
+import boto3
 import logging
-import mimetypes
 import uuid
 
-import boto3
 from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ReadTimeoutError
 
 from django.conf import settings
-from django.http import StreamingHttpResponse
 
 
 def get_client():
@@ -62,18 +60,3 @@ def delete_file(document_id, s3_key):
         logging.warning(
             f"An unexpected error occurred when deleting file '{s3_key}' on document '{document_id}': {exc}"
         )
-
-
-def _stream_file(result):
-    for chunk in iter(lambda: result["Body"].read(settings.STREAMING_CHUNK_SIZE), b""):
-        yield chunk
-
-
-def document_download_stream(document):
-    s3_response = get_object(document.id, document.s3_key)
-    content_type = mimetypes.MimeTypes().guess_type(document.name)[0]
-
-    response = StreamingHttpResponse(streaming_content=_stream_file(s3_response), content_type=content_type)
-    response["Content-Disposition"] = f'attachment; filename="{document.name}"'
-
-    return response

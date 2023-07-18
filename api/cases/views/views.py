@@ -1,4 +1,3 @@
-from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from rest_framework import status
@@ -74,12 +73,9 @@ from api.compliance.helpers import generate_compliance_site_case
 from api.core import constants
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from api.core.constants import GovPermissions
-from api.core.exceptions import NotFoundError
 from api.core.helpers import convert_date_to_string
 from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
-from api.documents.libraries.s3_operations import document_download_stream
-from api.documents.models import Document
 from api.goods.enums import GoodStatus
 from api.goods.serializers import GoodOnApplicationSerializer
 from api.licences.models import Licence
@@ -94,7 +90,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
-from lite_content.lite_api.strings import Documents, Cases
+from lite_content.lite_api.strings import Cases
 
 
 class CaseDetail(APIView):
@@ -253,20 +249,6 @@ class CaseDocumentDetail(APIView):
         case_document = get_case_document(case, s3_key)
         serializer = CaseDocumentViewSerializer(case_document)
         return JsonResponse(data={"document": serializer.data}, status=status.HTTP_200_OK)
-
-
-class ExporterCaseDocumentDownload(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    def get(self, request, case_pk, document_pk):
-        case = get_case(case_pk)
-        if case.organisation.id != get_request_user_organisation_id(request):
-            raise PermissionDenied()
-        try:
-            document = CaseDocument.objects.get(id=document_pk, case=case, visible_to_exporter=True)
-            return document_download_stream(document)
-        except Document.DoesNotExist:
-            raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
 
 
 class UserAdvice(APIView):

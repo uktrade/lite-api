@@ -33,11 +33,6 @@ urlpatterns = [
         views.CaseDocumentDetail.as_view(),
         name="document",
     ),
-    path(
-        "<uuid:case_pk>/documents/<uuid:document_pk>/download/",
-        views.ExporterCaseDocumentDownload.as_view(),
-        name="document_download",
-    ),
     path("<uuid:pk>/user-advice/", views.UserAdvice.as_view(), name="user_advice"),
     path(
         "<uuid:pk>/team-advice/",
