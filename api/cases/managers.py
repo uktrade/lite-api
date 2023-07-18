@@ -230,7 +230,7 @@ class CaseQuerySet(models.QuerySet):
         return self.exclude(baseapplication__parties__sanction_matches__is_revoked=False)
 
     def includes_refusal_recommendation_from_ogd(self):
-        return self.filter(advice__type=AdviceType.REFUSE, advice__team__is_ogd=True)
+        return self.filter(advice__type=AdviceType.REFUSE, advice__user__team__is_ogd=True)
 
 
 class CaseManager(models.Manager):

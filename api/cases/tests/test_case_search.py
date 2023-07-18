@@ -748,13 +748,29 @@ class FilterAndSortTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         team_ogd = Team.objects.filter(is_ogd=True).first()
         good = self.create_good("A good", self.organisation)
+        self.gov_user.team = team_ogd
+        self.gov_user.save()
 
-        factories.TeamAdviceFactory(user=self.gov_user, team=team_ogd, case=case, good=good, type=AdviceType.REFUSE)
+        factories.UserAdviceFactory(user=self.gov_user, case=case, good=good, type=AdviceType.REFUSE)
 
         url = f'{reverse("cases:search")}?includes_refusal_recommendation_from_ogd=on'
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
         self.assertTrue(response_data)
+        expected_case_id = str(case.id)
+
+        self.assertTrue(any(case["id"] == expected_case_id for case in response_data))
+
+    def test_get_cases_filter_by_includes_refusal_recommendation_not_met(self):
+        case = self.create_standard_application_case(self.organisation)
+        good = self.create_good("A good", self.organisation)
+
+        factories.UserAdviceFactory(user=self.gov_user, case=case, good=good, type=AdviceType.REFUSE)
+
+        url = f'{reverse("cases:search")}?includes_refusal_recommendation_from_ogd=on'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 0)
 
 
 class UpdatedCasesQueueTests(DataTestClient):
