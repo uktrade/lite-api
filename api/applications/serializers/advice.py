@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from api.staticdata.denial_reasons.serializers import DenialReasonSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -47,7 +48,9 @@ class AdviceViewSerializer(serializers.Serializer):
     type = KeyValueChoiceField(choices=AdviceType.choices)
     level = serializers.CharField()
     proviso = serializers.CharField()
-    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True)
+    denial_reasons = PrimaryKeyRelatedSerializerField(
+        queryset=DenialReason.objects.all(), many=True, serializer=DenialReasonSerializer
+    )
     footnote = serializers.CharField()
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     created_at = serializers.DateTimeField()
@@ -63,6 +66,19 @@ class AdviceViewSerializer(serializers.Serializer):
         queryset=GovUser.objects.all(), serializer=GovUserListSerializer
     )
     countersign_comments = serializers.CharField()
+
+
+class AdviceSearchViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    text = serializers.CharField()
+    type = KeyValueChoiceField(choices=AdviceType.choices)
+    level = serializers.CharField()
+    proviso = serializers.CharField()
+    denial_reasons = PrimaryKeyRelatedSerializerField(
+        queryset=DenialReason.objects.all(), many=True, serializer=DenialReasonSerializer
+    )
+    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
+    created_at = serializers.DateTimeField()
 
 
 class AdviceCreateSerializer(serializers.ModelSerializer):

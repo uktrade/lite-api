@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import List, Dict
+from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -13,7 +14,8 @@ from api.applications.models import HmrcQuery, PartyOnApplication, GoodOnApplica
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from api.cases import serializers as cases_serializers
-from api.cases.models import Case, EcjuQuery
+from api.applications.serializers.advice import AdviceSearchViewSerializer
+from api.cases.models import Case, EcjuQuery, Advice
 from api.common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
 from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
@@ -237,6 +239,37 @@ def populate_denials(case_map):
         case = case_map[str(doa.application_id)]
         serializer = cases_serializers.DenialMatchOnApplicationSummarySerializer(doa)
         case["denials"].append(serializer.data)
+    return list(case_map.values())
+
+
+def populate_advice(case_map):
+    for case in case_map.values():
+        case["advice"] = []
+
+    case_advices = (
+        Advice.objects.select_related(
+            "user",
+        )
+        .prefetch_related()
+        .filter(case_id__in=list(case_map.keys()))
+    )
+    for advice in case_advices:
+        # Assign Advice to the relevent case
+        case = case_map[str(advice.case_id)]
+        serializer = AdviceSearchViewSerializer(advice)
+        case["advice"].append(serializer.data)
+
+    for case in case_map.values():
+        case_advice = case["advice"]
+        result = defaultdict(list)
+        for advice in case_advice:
+            # Group cases by team and type
+            advice_key = advice["user"]["team"]["id"] + advice["type"]["key"]
+            # Filter duplicate advice records, which is duplicated per good
+            if not result[advice_key]:
+                result[advice_key].append(advice)
+        case["advice"] = result
+
     return list(case_map.values())
 
 
