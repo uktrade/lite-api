@@ -15,13 +15,13 @@ from api.applications.tests.factories import (
     SanctionMatchFactory,
     PartyOnApplicationFactory,
 )
-from api.cases.enums import CaseTypeEnum
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import Case, CaseAssignment, EcjuQuery, CaseType
 from api.flags.models import Flag
 from api.flags.enums import FlagLevels
 from api.goods.tests.factories import GoodFactory
 from api.picklists.enums import PicklistType
-from api.cases.tests.factories import CaseSIELFactory
+from api.cases.tests.factories import CaseSIELFactory, FinalAdviceFactory
 from api.queues.constants import (
     UPDATED_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
@@ -978,6 +978,10 @@ class SearchAPITest(DataTestClient):
             responded_at=datetime.datetime.now(),
         )
         self.ecju_query.save()
+        self.advice = self.create_advice(
+            self.gov_user, self.case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, good=self.good
+        )
+        self.create_advice(self.gov_user, self.case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, good=self.good)
 
     def test_api_success(self):
         self._create_data()
@@ -1067,6 +1071,8 @@ class SearchAPITest(DataTestClient):
         self.assertEqual(case_api_result["sla_days"], 0)
         self.assertEqual(case_api_result["sla_remaining_days"], None)
         self.assertEqual(case_api_result["status"]["key"], self.case.status.status)
+        self.assertEqual(len(case_api_result["advice"][str(self.advice.user.team.id) + self.advice.type]), 1)
+
         # Reflect rest framework's way of rendering datetime objects... https://github.com/encode/django-rest-framework/blob/c9e7b68a4c1db1ac60e962053380acda549609f3/rest_framework/utils/encoders.py#L29
         expected_submitted_at = self.case.submitted_at.isoformat()
         if expected_submitted_at.endswith("+00:00"):

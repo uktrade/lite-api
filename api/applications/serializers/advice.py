@@ -72,7 +72,7 @@ class AdviceSearchViewSerializer(serializers.Serializer):
     type = KeyValueChoiceField(choices=AdviceType.choices)
     level = serializers.CharField()
     proviso = serializers.CharField()
-    advice = PrimaryKeyRelatedSerializerField(
+    denial_reasons = PrimaryKeyRelatedSerializerField(
         queryset=DenialReason.objects.all(), many=True, serializer=DenialReasonSerializer
     )
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
