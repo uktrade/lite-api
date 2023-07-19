@@ -48,9 +48,7 @@ class AdviceViewSerializer(serializers.Serializer):
     type = KeyValueChoiceField(choices=AdviceType.choices)
     level = serializers.CharField()
     proviso = serializers.CharField()
-    denial_reasons = PrimaryKeyRelatedSerializerField(
-        queryset=DenialReason.objects.all(), many=True, serializer=DenialReasonSerializer
-    )
+    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True)
     footnote = serializers.CharField()
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     created_at = serializers.DateTimeField()
@@ -74,7 +72,7 @@ class AdviceSearchViewSerializer(serializers.Serializer):
     type = KeyValueChoiceField(choices=AdviceType.choices)
     level = serializers.CharField()
     proviso = serializers.CharField()
-    denial_reasons = PrimaryKeyRelatedSerializerField(
+    advice = PrimaryKeyRelatedSerializerField(
         queryset=DenialReason.objects.all(), many=True, serializer=DenialReasonSerializer
     )
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
