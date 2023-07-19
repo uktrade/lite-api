@@ -1,6 +1,8 @@
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+
+from api.applications.mixins.serializers import PartiesSerializerMixin
 from api.cases.service import retrieve_latest_activity
 from rest_framework import serializers
 
@@ -128,6 +130,7 @@ class CaseListSerializer(serializers.Serializer):
     has_open_queries = serializers.BooleanField()
     case_officer = serializers.SerializerMethodField()
     intended_end_use = serializers.SerializerMethodField()
+    endusers = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -176,6 +179,21 @@ class CaseListSerializer(serializers.Serializer):
             return instance.baseapplication.intended_end_use or ""
         except BaseApplication.DoesNotExist:
             return ""
+
+    def get_endusers(self, instance):
+        parties = (
+            instance.baseapplication.parties.filter(
+                party__type__in=["end_user", "ultimate_end_user"], deleted_at__isnull=True
+            )
+            .select_related("party")
+            .prefetch_related(
+                "party__name",
+                "party__type",
+            )
+            .values("party__name", "party__type")
+        )
+
+        return [{"name": party["party__name"], "type": party["party__type"]} for party in parties]
 
 
 class GoodOnApplicationSummarySerializer(serializers.Serializer):
