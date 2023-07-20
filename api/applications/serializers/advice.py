@@ -72,11 +72,7 @@ class AdviceViewSerializer(serializers.Serializer):
 
 class AdviceSearchViewSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    text = serializers.CharField()
-    case_id = serializers.UUIDField()
     type = KeyValueChoiceField(choices=AdviceType.choices)
-    level = serializers.CharField()
-    proviso = serializers.CharField()
     denial_reasons = PrimaryKeyRelatedSerializerField(
         queryset=DenialReason.objects.all(), many=True, serializer=DenialReasonSerializer
     )
@@ -84,7 +80,6 @@ class AdviceSearchViewSerializer(serializers.Serializer):
         queryset=GovUser.objects.all(),
         serializer=GovUserSimpleSerializer,
     )
-    created_at = serializers.DateTimeField()
 
 
 class AdviceCreateSerializer(serializers.ModelSerializer):
