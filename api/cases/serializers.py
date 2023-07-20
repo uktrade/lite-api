@@ -181,15 +181,12 @@ class CaseListSerializer(serializers.Serializer):
             return ""
 
     def get_endusers(self, instance):
-        endusers = []
-        for party_on_application in instance.baseapplication.enduser_parties:
-            endusers.append(
-                {
-                    "name": party_on_application.party.name,
-                    "type": party_on_application.party.type,
-                }
-            )
-        return endusers
+        if hasattr(instance, "baseapplication") and hasattr(instance.baseapplication, "enduser_parties"):
+            return [
+                {"name": party_on_app.party.name, "type": party_on_app.party.type}
+                for party_on_app in instance.baseapplication.enduser_parties
+            ]
+        return []
 
 
 class GoodOnApplicationSummarySerializer(serializers.Serializer):

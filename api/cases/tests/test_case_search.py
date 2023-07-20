@@ -101,6 +101,27 @@ class FilterAndSortTests(DataTestClient):
             response_data["filters"]["gov_users"],
         )
 
+    def test_get_cases_returns_all_cases_with_enduser_and_ultimate_enduser_data(self):
+        """
+        Given multiple Cases exist with different statuses and case-types
+        When a user requests to view all Cases with no filter
+        Then all Cases are returned
+        """
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        cases_with_users = [case for case in response_data["cases"] if case["endusers"]]
+        # All the non clc cases should have users.
+        self.assertEqual(len(cases_with_users), 3)
+        end_user = {"name": "End User", "type": "end_user"}
+        ult_end_user = {"name": "Ult End User", "type": "ultimate_end_user"}
+
+        for case in cases_with_users:
+            self.assertTrue(end_user in case["endusers"])
+            self.assertTrue(ult_end_user in case["endusers"])
+
     def test_get_app_type_cases(self):
         """
         Given multiple Cases exist with different statuses and case-types

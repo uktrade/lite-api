@@ -770,6 +770,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if parties:
             self.create_party("End User", organisation, PartyType.END_USER, application)
+            self.create_party("Ult End User", organisation, PartyType.ULTIMATE_END_USER, application)
             self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
             # Set the application party documents
