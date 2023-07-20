@@ -243,34 +243,25 @@ def populate_denials(case_map):
 
 
 def populate_advice(case_map):
-    for case in case_map.values():
-        case["advice"] = []
 
-    case_advices = (
+    case_advices_query = (
         Advice.objects.select_related(
             "user",
         )
-        .prefetch_related()
+        .prefetch_related("denial_reasons")
         .filter(case_id__in=list(case_map.keys()))
     )
-    for advice in case_advices:
-        # Assign Advice to the relevent case
-        case = case_map[str(advice.case_id)]
-        serializer = AdviceSearchViewSerializer(advice)
-        case["advice"].append(serializer.data)
 
     for case in case_map.values():
-        case_advice = case["advice"]
-        result = defaultdict(list)
+        case_advice = case_advices_query.filter(case_id=case["id"])
+        case_advice_result = defaultdict(list)
         for advice in case_advice:
-            # Group cases by team and type
-            advice_key = advice["user"]["team"]["id"] + advice["type"]["key"]
+            serializer = AdviceSearchViewSerializer(advice)
             # Filter duplicate advice records, which is duplicated per good
-            if not result[advice_key]:
-                result[advice_key].append(advice)
-        case["advice"] = result
-
-    return list(case_map.values())
+            advice_key = str(advice.user.team.id) + advice.type
+            if not case_advice_result[advice_key]:
+                case_advice_result[advice_key].append(serializer.data)
+        case["advice"] = case_advice_result
 
 
 def populate_ecju_queries(case_map):

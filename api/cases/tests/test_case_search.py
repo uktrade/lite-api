@@ -978,13 +978,21 @@ class SearchAPITest(DataTestClient):
             responded_at=datetime.datetime.now(),
         )
         self.ecju_query.save()
-        self.advice = self.create_advice(
-            self.gov_user, self.case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, good=self.good
-        )
-        self.create_advice(self.gov_user, self.case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, good=self.good)
 
     def test_api_success(self):
         self._create_data()
+        self.advice = self.create_advice(
+            self.gov_user, self.case, "good", AdviceType.APPROVE, AdviceLevel.FINAL, good=self.good
+        )
+        self.gov_user2 = self.create_gov_user(
+            team=self.create_team(name="other_team"), email="new_user2@digital.trade.gov.uk"
+        )
+        self.group_advice = self.create_advice(
+            self.gov_user2, self.case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, good=self.good
+        )
+        self.create_advice(
+            self.gov_user2, self.group_advice.case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, good=self.good
+        )
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["results"]
@@ -1071,10 +1079,33 @@ class SearchAPITest(DataTestClient):
         self.assertEqual(case_api_result["sla_days"], 0)
         self.assertEqual(case_api_result["sla_remaining_days"], None)
         self.assertEqual(case_api_result["status"]["key"], self.case.status.status)
-        self.assertEqual(len(case_api_result["advice"][str(self.advice.user.team.id) + self.advice.type]), 1)
+
+        self.assertEqual(
+            case_api_result["advice"][str(self.advice.user.team.id) + self.advice.type][0]["id"], str(self.advice.id)
+        )
+        result_advice = case_api_result["advice"][str(self.advice.user.team.id) + self.advice.type]
+        self.assertEqual(
+            list(result_advice[0].keys()),
+            ["id", "text", "type", "level", "proviso", "denial_reasons", "user", "created_at"],
+        )
+
+        # Check advice type is unique per team
+        self.assertEqual(
+            len(case_api_result["advice"][str(self.group_advice.user.team.id) + self.group_advice.type]), 1
+        )
 
         # Reflect rest framework's way of rendering datetime objects... https://github.com/encode/django-rest-framework/blob/c9e7b68a4c1db1ac60e962053380acda549609f3/rest_framework/utils/encoders.py#L29
         expected_submitted_at = self.case.submitted_at.isoformat()
         if expected_submitted_at.endswith("+00:00"):
             expected_submitted_at = expected_submitted_at[:-6] + "Z"
         self.assertEqual(case_api_result["submitted_at"], expected_submitted_at)
+
+    def test_api_no_advice(self):
+        self._create_data()
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        case_api_result = response_data["cases"][0]
+        self.assertEqual(case_api_result["advice"], {})
