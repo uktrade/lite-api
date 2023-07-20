@@ -307,6 +307,7 @@ class CaseManager(models.Manager):
                 "case_assignments__queue",
                 "queues",
                 "queues__team",
+                "baseapplication__parties__party",
             )
         )
 
