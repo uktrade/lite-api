@@ -236,7 +236,7 @@ def populate_denials(case_map):
 
 def populate_advice(case_map):
     case_advices = (
-        Advice.objects.select_related("user", "user__team", "user__role", "user__baseuser_ptr")
+        Advice.objects.select_related("user", "user__team", "user__baseuser_ptr")
         .prefetch_related("denial_reasons")
         .filter(case_id__in=list(case_map.keys()))
     )

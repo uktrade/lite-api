@@ -12,7 +12,11 @@ from api.flags.enums import FlagStatuses
 from api.goods.models import Good
 from api.applications.models import GoodOnApplication
 from api.goodstype.models import GoodsType
-from api.gov_users.serializers import GovUserListSerializer, GovUserViewSerializer
+from api.gov_users.serializers import (
+    GovUserListSerializer,
+    GovUserSimpleSerializer,
+    GovUserViewSerializer,
+)
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
 from api.parties.models import Party
@@ -76,7 +80,10 @@ class AdviceSearchViewSerializer(serializers.Serializer):
     denial_reasons = PrimaryKeyRelatedSerializerField(
         queryset=DenialReason.objects.all(), many=True, serializer=DenialReasonSerializer
     )
-    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
+    user = PrimaryKeyRelatedSerializerField(
+        queryset=GovUser.objects.all(),
+        serializer=GovUserSimpleSerializer,
+    )
     created_at = serializers.DateTimeField()
 
 
