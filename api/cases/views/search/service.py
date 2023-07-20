@@ -245,15 +245,18 @@ def populate_denials(case_map):
 def populate_advice(case_map):
 
     case_advices_query = (
-        Advice.objects.select_related(
-            "user",
-        )
+        Advice.objects.select_related("user", "user__team", "user__role", "user__baseuser_ptr")
         .prefetch_related("denial_reasons")
         .filter(case_id__in=list(case_map.keys()))
     )
 
+    case_advice_map = defaultdict(list)
+
+    for case_advice_db in case_advices_query:
+        case_advice_map[str(case_advice_db.case_id)].append(case_advice_db)
+
     for case in case_map.values():
-        case_advice = case_advices_query.filter(case_id=case["id"])
+        case_advice = case_advice_map[case["id"]]
         case_advice_result = defaultdict(list)
         for advice in case_advice:
             serializer = AdviceSearchViewSerializer(advice)

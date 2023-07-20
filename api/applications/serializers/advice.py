@@ -69,6 +69,7 @@ class AdviceViewSerializer(serializers.Serializer):
 class AdviceSearchViewSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     text = serializers.CharField()
+    case_id = serializers.UUIDField()
     type = KeyValueChoiceField(choices=AdviceType.choices)
     level = serializers.CharField()
     proviso = serializers.CharField()
