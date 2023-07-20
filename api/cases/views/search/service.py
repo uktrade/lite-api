@@ -202,9 +202,6 @@ def populate_destinations(case_map):
 
 
 def populate_good_details(case_map):
-    for case in case_map.values():
-        case["goods"] = []
-
     goas = (
         GoodOnApplication.objects.select_related(
             "report_summary_subject",
@@ -224,9 +221,6 @@ def populate_good_details(case_map):
 
 
 def populate_denials(case_map):
-    for case in case_map.values():
-        case["denials"] = []
-
     doas = (
         DenialMatchOnApplication.objects.select_related(
             "denial",

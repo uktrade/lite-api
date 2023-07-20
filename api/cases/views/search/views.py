@@ -66,6 +66,8 @@ class CasesSearchView(generics.ListAPIView):
         for case in cases:
             case["destinations"] = []
             case["advice"] = []
+            case["denials"] = []
+            case["goods"] = []
             case_map[case["id"]] = case
         # Populate certain fields outside of the serializer for performance improvements
         service.populate_goods_flags(cases)
