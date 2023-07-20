@@ -181,19 +181,15 @@ class CaseListSerializer(serializers.Serializer):
             return ""
 
     def get_endusers(self, instance):
-        parties = (
-            instance.baseapplication.parties.filter(
-                party__type__in=["end_user", "ultimate_end_user"], deleted_at__isnull=True
+        endusers = []
+        for party_on_application in instance.baseapplication.enduser_parties:
+            endusers.append(
+                {
+                    "name": party_on_application.party.name,
+                    "type": party_on_application.party.type,
+                }
             )
-            .select_related("party")
-            .prefetch_related(
-                "party__name",
-                "party__type",
-            )
-            .values("party__name", "party__type")
-        )
-
-        return [{"name": party["party__name"], "type": party["party__type"]} for party in parties]
+        return endusers
 
 
 class GoodOnApplicationSummarySerializer(serializers.Serializer):
