@@ -253,7 +253,7 @@ def populate_advice(case_map):
         case = case_map[str(case_advice.case_id)]
         case_advice_result = defaultdict(list)
         # Filter duplicate advice records, which is duplicated per good
-        advice_key = str(case_advice.user.team.id) + case_advice.type
+        advice_key = f"{case_advice.user.team.id}-{case_advice.type}"
         if not case_advice_result[advice_key]:
             serializer = AdviceSearchViewSerializer(case_advice)
             case_advice_result[advice_key].append(serializer.data)
