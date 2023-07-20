@@ -1084,7 +1084,7 @@ class SearchAPITest(DataTestClient):
             case_api_result["advice"][str(self.advice.user.team.id) + self.advice.type][0]["id"], str(self.advice.id)
         )
         result_advice = case_api_result["advice"][str(self.advice.user.team.id) + self.advice.type]
-        
+
         self.assertEqual(
             list(result_advice[0].keys()),
             ["id", "text", "case_id", "type", "level", "proviso", "denial_reasons", "user", "created_at"],
