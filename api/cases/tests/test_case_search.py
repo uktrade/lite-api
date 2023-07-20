@@ -1080,10 +1080,12 @@ class SearchAPITest(DataTestClient):
         self.assertEqual(case_api_result["sla_remaining_days"], None)
         self.assertEqual(case_api_result["status"]["key"], self.case.status.status)
 
+        advice_key = f"{self.advice.user.team.id}-{self.advice.type}"
+        result_advice = case_api_result["advice"][advice_key]
         self.assertEqual(
-            case_api_result["advice"][str(self.advice.user.team.id) + self.advice.type][0]["id"], str(self.advice.id)
+            result_advice[0]["id"],
+            str(self.advice.id),
         )
-        result_advice = case_api_result["advice"][str(self.advice.user.team.id) + self.advice.type]
 
         self.assertEqual(
             list(result_advice[0].keys()),
@@ -1092,7 +1094,7 @@ class SearchAPITest(DataTestClient):
 
         # Check advice type is unique per team
         self.assertEqual(
-            len(case_api_result["advice"][str(self.group_advice.user.team.id) + self.group_advice.type]), 1
+            len(case_api_result["advice"][f"{self.group_advice.user.team.id}-{self.group_advice.type}"]), 1
         )
 
         # Reflect rest framework's way of rendering datetime objects... https://github.com/encode/django-rest-framework/blob/c9e7b68a4c1db1ac60e962053380acda549609f3/rest_framework/utils/encoders.py#L29
