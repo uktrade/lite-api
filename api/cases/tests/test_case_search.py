@@ -1079,7 +1079,49 @@ class SearchAPITest(DataTestClient):
         self.assertEqual(case_api_result["sla_days"], 0)
         self.assertEqual(case_api_result["sla_remaining_days"], None)
         self.assertEqual(case_api_result["status"]["key"], self.case.status.status)
-        self.assertEqual(case_api_result["advice"], [])
+        self.assertEqual(
+            case_api_result["advice"],
+            [
+                {
+                    "id": str(self.advice.pk),
+                    "type": {
+                        "key": "approve",
+                        "value": "Approve",
+                    },
+                    "denial_reasons": [],
+                    "user": {
+                        "id": str(self.gov_user.pk),
+                        "first_name": self.gov_user.first_name,
+                        "last_name": self.gov_user.last_name,
+                        "email": self.gov_user.email,
+                        "team": self.gov_user.team.name,
+                    },
+                },
+                {
+                    "id": str(self.group_advice.pk),
+                    "type": {
+                        "key": "refuse",
+                        "value": "Refuse",
+                    },
+                    "denial_reasons": [
+                        {
+                            "id": denial_reason.id,
+                            "deprecated": denial_reason.deprecated,
+                            "description": denial_reason.description,
+                            "display_value": denial_reason.display_value,
+                        }
+                        for denial_reason in self.group_advice.denial_reasons.all()
+                    ],
+                    "user": {
+                        "id": str(self.gov_user2.pk),
+                        "first_name": self.gov_user2.first_name,
+                        "last_name": self.gov_user2.last_name,
+                        "email": self.gov_user2.email,
+                        "team": self.gov_user2.team.name,
+                    },
+                },
+            ],
+        )
 
         # Reflect rest framework's way of rendering datetime objects... https://github.com/encode/django-rest-framework/blob/c9e7b68a4c1db1ac60e962053380acda549609f3/rest_framework/utils/encoders.py#L29
         expected_submitted_at = self.case.submitted_at.isoformat()
