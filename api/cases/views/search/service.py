@@ -240,13 +240,21 @@ def populate_advice(case_map):
         .filter(case_id__in=list(case_map.keys()))
     )
 
+    seen = set()
     for case_advice in case_advices:
         case = case_map[str(case_advice.case_id)]
         # Filter duplicate advice records, which is duplicated per good
-        advice_key = f"{case_advice.user.team.id}-{case_advice.type}"
-        if not case["advice"][advice_key]:
-            serializer = AdviceSearchViewSerializer(case_advice)
-            case["advice"][advice_key].append(serializer.data)
+        advice_key = (
+            str(case_advice.case_id),
+            str(case_advice.user.team.id),
+            case_advice.type,
+        )
+        if advice_key in seen:
+            continue
+        seen.add(advice_key)
+
+        serializer = AdviceSearchViewSerializer(case_advice)
+        case["advice"].append(serializer.data)
 
 
 def populate_ecju_queries(case_map):
