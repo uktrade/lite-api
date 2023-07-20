@@ -1,6 +1,5 @@
 from datetime import timedelta
 from typing import List, Dict
-from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -243,13 +242,11 @@ def populate_advice(case_map):
 
     for case_advice in case_advices:
         case = case_map[str(case_advice.case_id)]
-        case_advice_result = defaultdict(list)
         # Filter duplicate advice records, which is duplicated per good
         advice_key = f"{case_advice.user.team.id}-{case_advice.type}"
-        if not case_advice_result[advice_key]:
+        if not case["advice"][advice_key]:
             serializer = AdviceSearchViewSerializer(case_advice)
-            case_advice_result[advice_key].append(serializer.data)
-        case["advice"] = case_advice_result
+            case["advice"][advice_key].append(serializer.data)
 
 
 def populate_ecju_queries(case_map):

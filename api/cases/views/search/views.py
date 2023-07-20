@@ -1,3 +1,4 @@
+from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 
 import django
@@ -65,7 +66,7 @@ class CasesSearchView(generics.ListAPIView):
         case_map = {}
         for case in cases:
             case["destinations"] = []
-            case["advice"] = {}
+            case["advice"] = defaultdict(list)
             case["denials"] = []
             case["goods"] = []
             case_map[case["id"]] = case
