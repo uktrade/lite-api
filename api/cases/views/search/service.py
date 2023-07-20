@@ -221,7 +221,6 @@ def populate_good_details(case_map):
         case = case_map[str(goa.application_id)]
         serializer = cases_serializers.GoodOnApplicationSummarySerializer(goa)
         case["goods"].append(serializer.data)
-    return list(case_map.values())
 
 
 def populate_denials(case_map):
@@ -239,7 +238,6 @@ def populate_denials(case_map):
         case = case_map[str(doa.application_id)]
         serializer = cases_serializers.DenialMatchOnApplicationSummarySerializer(doa)
         case["denials"].append(serializer.data)
-    return list(case_map.values())
 
 
 def populate_advice(case_map):
@@ -278,7 +276,6 @@ def populate_ecju_queries(case_map):
         case = case_map[str(query.case_id)]
         serializer = cases_serializers.ECJUQuerySummarySerializer(query)
         case["ecju_queries"].append(serializer.data)
-    return list(case_map.values())
 
 
 def populate_activity_updates(case_map):
