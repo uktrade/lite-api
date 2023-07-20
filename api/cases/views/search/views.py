@@ -1,4 +1,3 @@
-from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 
 import django
