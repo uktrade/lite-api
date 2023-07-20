@@ -243,26 +243,20 @@ def populate_denials(case_map):
 
 
 def populate_advice(case_map):
-
-    case_advices_query = (
+    case_advices = (
         Advice.objects.select_related("user", "user__team", "user__role", "user__baseuser_ptr")
         .prefetch_related("denial_reasons")
         .filter(case_id__in=list(case_map.keys()))
     )
 
-    case_advice_map = defaultdict(list)
-
-    for case_advice_db in case_advices_query:
-        case_advice_map[str(case_advice_db.case_id)].append(case_advice_db)
-
-    for case in case_map.values():
-        case_advice = case_advice_map[case["id"]]
+    for case_advice in case_advices:
+        case = case_map[str(case_advice.case_id)]
         case_advice_result = defaultdict(list)
         for advice in case_advice:
-            serializer = AdviceSearchViewSerializer(advice)
             # Filter duplicate advice records, which is duplicated per good
             advice_key = str(advice.user.team.id) + advice.type
             if not case_advice_result[advice_key]:
+                serializer = AdviceSearchViewSerializer(advice)
                 case_advice_result[advice_key].append(serializer.data)
         case["advice"] = case_advice_result
 
