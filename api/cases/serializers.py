@@ -1,14 +1,11 @@
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-
-from api.applications.mixins.serializers import PartiesSerializerMixin
-from api.cases.service import retrieve_latest_activity
 from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
-from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
 from api.applications.models import BaseApplication
+from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
 from api.audit_trail.models import Audit
 from api.cases.enums import (
     CaseTypeTypeEnum,
@@ -34,6 +31,7 @@ from api.cases.models import (
     CaseType,
     CaseReviewDate,
 )
+from api.cases.service import retrieve_latest_activity
 from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase
 from api.compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
 from api.compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
@@ -43,6 +41,7 @@ from api.goodstype.models import GoodsType
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.licences.helpers import get_open_general_export_licence_case
 from api.queries.serializers import QueryViewSerializer
+from api.queues.constants import ALL_CASES_QUEUE_ID
 from api.queues.models import Queue
 from api.queues.serializers import QueueListSerializer
 from api.staticdata.countries.models import Country
@@ -57,7 +56,6 @@ from api.users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserSimpleSerializer,
 )
-from api.queues.constants import ALL_CASES_QUEUE_ID
 from lite_content.lite_api import strings
 
 

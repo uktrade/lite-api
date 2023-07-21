@@ -54,7 +54,9 @@ class FilterAndSortTests(DataTestClient):
 
         self.application_cases = []
         for app_status in statuses:
-            case = self.create_standard_application_case(self.organisation, "Example Application")
+            case = self.create_standard_application_case(
+                self.organisation, "Example Application", ultimate_end_users=True
+            )
             case.status = get_case_status_by_status(app_status)
             case.save()
             self.queue.cases.add(case)
