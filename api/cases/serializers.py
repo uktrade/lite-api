@@ -4,7 +4,6 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
-from api.applications.models import BaseApplication
 from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
 from api.audit_trail.models import Audit
 from api.cases.enums import (
@@ -175,10 +174,7 @@ class CaseListSerializer(serializers.Serializer):
             }
 
     def get_intended_end_use(self, instance):
-        try:
-            return instance.baseapplication.intended_end_use or ""
-        except BaseApplication.DoesNotExist:
-            return ""
+        return instance.baseapplication.intended_end_use or ""
 
     def get_end_users(self, instance):
         if not self.has_end_users(instance):

@@ -83,7 +83,6 @@ from api.parties.models import PartyDocument
 from api.picklists.enums import PickListStatus, PicklistType
 from api.picklists.models import PicklistItem
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
-from api.queries.goods_query.models import GoodsQuery
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.helpers import get_country
@@ -552,58 +551,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             good.control_list_entries.set(control_list_entries)
 
         return good
-
-    def create_goods_query(self, description, organisation, clc_reason, pv_reason) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, organisation=organisation)
-
-        goods_query = GoodsQuery.objects.create(
-            clc_raised_reasons=clc_reason,
-            pv_grading_raised_reasons=pv_reason,
-            good=good,
-            organisation=organisation,
-            case_type_id=CaseTypeEnum.GOODS.id,
-            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            submitted_at=django.utils.timezone.now(),
-            submitted_by=self.exporter_user,
-        )
-        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
-        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
-        goods_query.save()
-        return goods_query
-
-    def create_clc_query(self, description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, organisation=organisation)
-
-        clc_query = GoodsQuery.objects.create(
-            clc_raised_reasons="this is a test text",
-            good=good,
-            organisation=organisation,
-            case_type_id=CaseTypeEnum.GOODS.id,
-            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            submitted_at=django.utils.timezone.now(),
-            submitted_by=self.exporter_user,
-        )
-        clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
-        clc_query.save()
-        return clc_query
-
-    @staticmethod
-    def create_pv_grading_query(description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(
-            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED
-        )
-
-        pv_grading_query = GoodsQuery.objects.create(
-            clc_raised_reasons=None,
-            pv_grading_raised_reasons="this is a test text",
-            good=good,
-            organisation=organisation,
-            case_type_id=CaseTypeEnum.GOODS.id,
-            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-        )
-        pv_grading_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
-        pv_grading_query.save()
-        return pv_grading_query
 
     @staticmethod
     def create_advice(

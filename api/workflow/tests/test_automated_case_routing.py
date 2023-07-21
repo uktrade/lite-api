@@ -108,12 +108,3 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         parameter_set = case.parameter_set()
 
         self.assertIn(case.case_type, parameter_set)
-
-    def test_good_query_returns_parameter_set(self):
-        case = self.create_goods_query(
-            organisation=self.organisation, clc_reason="reason", pv_reason="reason", description="a good"
-        )
-
-        parameter_set = case.parameter_set()
-
-        self.assertIn(case.case_type, parameter_set)

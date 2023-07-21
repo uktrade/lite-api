@@ -43,7 +43,6 @@ from api.compliance.models import ComplianceVisitCase, CompliancePerson, OpenLic
 from api.licences.models import Licence
 from api.organisations.models import Site, ExternalLocation
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
-from api.queries.goods_query.models import GoodsQuery
 
 from api.staticdata.countries.models import Country
 
@@ -561,18 +560,6 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         return [clc.rating for clc in obj.control_list_entries.all()]
 
 
-class GoodsQueryGoodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Good
-        fields = ["description", "name", "control_list_entries", "is_controlled", "part_number"]
-
-    is_controlled = serializers.NullBooleanField(source="is_good_controlled")
-    control_list_entries = serializers.SerializerMethodField()
-
-    def get_control_list_entries(self, obj):
-        return [clc.rating for clc in obj.control_list_entries.all()]
-
-
 class FirearmDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirearmGoodDetails
@@ -676,24 +663,6 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
         if hasattr(obj, "value"):
             return f"£{obj.value}"
         return ""
-
-
-class GoodsQuerySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GoodsQuery
-        fields = [
-            "control_list_entry",
-            "clc_raised_reasons",
-            "pv_grading_raised_reasons",
-            "good",
-            "clc_responded",
-            "pv_grading_responded",
-        ]
-
-    control_list_entry = serializers.CharField(source="clc_control_list_entry")
-    clc_responded = FriendlyBooleanField()
-    pv_grading_responded = FriendlyBooleanField()
-    good = GoodsQueryGoodSerializer()
 
 
 class CompliancePersonSerializer(serializers.ModelSerializer):
@@ -952,7 +921,6 @@ SERIALIZER_MAPPING = {
     CaseTypeSubTypeEnum.F680: FlattenedF680ClearanceApplicationSerializer,
     CaseTypeSubTypeEnum.GIFTING: BaseApplicationSerializer,
     CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQuerySerializer,
-    CaseTypeSubTypeEnum.GOODS: GoodsQuerySerializer,
     CaseTypeSubTypeEnum.COMP_SITE: FlattenedComplianceSiteWithVisitReportsSerializer,
     CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQueryCaseSerializer,
     CaseTypeSubTypeEnum.COMP_VISIT: ComplianceVisitSerializer,

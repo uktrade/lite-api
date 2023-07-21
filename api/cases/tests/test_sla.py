@@ -49,7 +49,6 @@ class SlaCaseTests(DataTestClient):
             ),
             CaseTypeSubTypeEnum.F680: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680),
             CaseTypeSubTypeEnum.GIFTING: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.GIFTING),
-            CaseTypeSubTypeEnum.GOODS: self.create_clc_query("abc", self.organisation),
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
 
@@ -192,7 +191,7 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @parameterized.expand([(CaseTypeSubTypeEnum.GOODS,), (CaseTypeSubTypeEnum.EUA,)])
+    @parameterized.expand([(CaseTypeSubTypeEnum.EUA,)])
     def test_sla_doesnt_update_queries(self, query_type):
         query = self.case_types[query_type]
         case = self.submit_application(query)

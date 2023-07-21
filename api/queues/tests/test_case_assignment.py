@@ -16,9 +16,12 @@ class CaseAssignmentsTests(DataTestClient):
         super().setUp()
 
         # Cases
-        self.case = self.create_clc_query("Query", self.organisation)
-        self.case_2 = self.create_clc_query("Query", self.organisation)
-        self.case_3 = self.create_clc_query("Query", self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
+        self.case = self.submit_application(standard_application)
+        standard_application_2 = self.create_draft_standard_application(self.organisation)
+        self.case_2 = self.submit_application(standard_application_2)
+        standard_application_3 = self.create_draft_standard_application(self.organisation)
+        self.case_3 = self.submit_application(standard_application_3)
 
         # Users
         self.gov_user = self.create_gov_user("gov1@email.com", team=self.team)

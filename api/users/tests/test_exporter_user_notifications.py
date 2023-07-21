@@ -22,17 +22,6 @@ class ExporterUserNotificationTests(DataTestClient):
     def _create_all_case_types_with_notifications(self):
         self._create_end_user_advisory_query_with_notifications()
         self._create_application_with_notifications()
-        self._create_clc_query_with_notifications()
-
-    def _create_clc_query_with_notifications(self):
-        clc_query = self.create_clc_query(description="this is a clc query", organisation=self.organisation)
-        self.create_case_note(clc_query, "This is a test note 1", self.gov_user.baseuser_ptr, True)
-        self.create_case_note(clc_query, "This is a test note 2", self.gov_user.baseuser_ptr, False)
-        self.create_ecju_query(clc_query, "This is an ecju query")
-        self.create_generated_case_document(
-            clc_query, template=self.create_letter_template(case_types=[CaseTypeEnum.GOODS.id])
-        )
-        return clc_query
 
     def _create_application_with_notifications(self):
         application = self.create_standard_application_case(self.organisation)
@@ -57,7 +46,6 @@ class ExporterUserNotificationTests(DataTestClient):
     @parameterized.expand(
         [
             [_create_application_with_notifications],
-            [_create_clc_query_with_notifications],
             [_create_end_user_advisory_query_with_notifications],
         ]
     )
@@ -96,8 +84,6 @@ class ExporterUserNotificationTests(DataTestClient):
     def test_get_notifications_for_user_success(self):
         self._create_all_case_types_with_notifications()
         self._create_application_with_notifications()
-        self._create_clc_query_with_notifications()
-        self._create_clc_query_with_notifications()
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
@@ -105,7 +91,6 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["notifications"]["application"], 6)
         self.assertEqual(response_data["notifications"]["end_user_advisory"], 3)
-        self.assertEqual(response_data["notifications"]["goods"], 9)
 
     def test_get_notifications_for_user_in_multiple_orgs_success(self):
         """
@@ -162,15 +147,6 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("exporter_user_notification_count", response_data)
         self.assertEqual(len(response_data["exporter_user_notification_count"]), 3)
-
-    def test_get_goods_with_notifications_success(self):
-        self._create_clc_query_with_notifications()
-
-        response = self.client.get(reverse_lazy("goods:goods"), **self.exporter_headers)
-        response_data = response.json()["results"][0]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["exporter_user_notification_count"], 3)
 
     def test_get_end_user_advisory_queries_with_notifications_success(self):
         self._create_end_user_advisory_query_with_notifications()

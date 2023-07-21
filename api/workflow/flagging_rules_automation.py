@@ -10,7 +10,6 @@ from api.goods.models import Good
 from api.goodstype.models import GoodsType
 from api.parties.models import Party
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
-from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.control_list_entries.helpers import get_clc_child_nodes, get_clc_parent_nodes
@@ -120,11 +119,7 @@ def apply_good_flagging_rules_for_case(case, flagging_rule: QuerySet = None):
     # If the flagging rules are specified then these is the only one we expect, else get all active
     flagging_rules = get_active_legacy_flagging_rules_for_level(FlagLevels.GOOD) if not flagging_rule else flagging_rule
 
-    if case.case_type.id == CaseTypeEnum.GOODS.id:
-        if not isinstance(case, GoodsQuery):
-            case = GoodsQuery.objects.get(pk=case.id)
-        goods = [case.good]
-    elif case.case_type_id in [CaseTypeEnum.OICL.id, CaseTypeEnum.OGEL.id, CaseTypeEnum.OIEL.id, CaseTypeEnum.HMRC.id]:
+    if case.case_type_id in [CaseTypeEnum.OICL.id, CaseTypeEnum.OGEL.id, CaseTypeEnum.OIEL.id, CaseTypeEnum.HMRC.id]:
         goods = GoodsType.objects.filter(application_id=case.id)
     else:
         goods = (
@@ -196,21 +191,6 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
             for rating in flagging_rule.excluded_values:
                 entries = get_clc_child_nodes(rating)
                 excluded_values.extend(entries)
-
-            # Add flag to all Goods on open Goods Queries
-            goods_in_query = GoodsQuery.objects.filter(good__control_list_entries__rating__in=matching_values).exclude(
-                status__status__in=draft_and_terminal_statuses
-            )
-
-            if excluded_values:
-                # exclusion entries - goods that doesn't contain given control list entries
-                goods_in_query = goods_in_query.exclude(good__control_list_entries__rating__in=excluded_values)
-
-            if flagging_rule.is_for_verified_goods_only:
-                goods_in_query = goods_in_query.filter(good__status=GoodStatus.VERIFIED)
-
-            goods_in_query = goods_in_query.values_list("good_id", flat=True)
-            flagging_rule.flag.goods.add(*goods_in_query)
 
             # Add flag to all Goods Types
             goods_types = GoodsType.objects.filter(

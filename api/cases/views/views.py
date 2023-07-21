@@ -122,7 +122,6 @@ class CaseDetail(APIView):
                 "advice__countersigned_by__role",
                 "advice__denial_reasons",
                 "advice__good",
-                "advice__good__good",
                 "countersign_advice",
                 "flags",
                 "queues",

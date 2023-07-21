@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import Q, Count
+from django.db.models import Q
 from django.http import JsonResponse
 from django.utils.functional import cached_property
 from django.shortcuts import get_object_or_404
@@ -20,7 +20,6 @@ from api.applications.models import (
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.cases.libraries.get_case import get_case
 from api.core import constants
 from api.core.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
@@ -66,9 +65,7 @@ from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSu
 from lite_content.lite_api import strings
 from api.organisations.models import OrganisationDocumentType
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
-from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.users.models import ExporterNotification
 from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
 good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
@@ -270,36 +267,6 @@ class GoodList(ListCreateAPIView):
 
         return queryset.order_by("-updated_at")
 
-    def get_paginated_response(self, data):
-        # Get the goods queries for the goods and format in a dict
-        ids = [item["id"] for item in data]
-        goods_queries = GoodsQuery.objects.filter(good_id__in=ids).values("id", "good_id")
-        goods_queries = {str(query["id"]): {"good_id": str(query["good_id"])} for query in goods_queries}
-
-        goods_query_notifications = (
-            ExporterNotification.objects.filter(
-                user_id=self.request.user.pk,
-                organisation_id=get_request_user_organisation_id(self.request),
-                case_id__in=goods_queries.keys(),
-            )
-            .values("case_id")
-            .annotate(count=Count("case_id"))
-        )
-
-        # Map goods_query_notifications to goods
-        goods_notifications = {}
-        for notification in goods_query_notifications:
-            case_id = str(notification["case_id"])
-            good_id = goods_queries[case_id]["good_id"]
-            goods_query_notification_count = notification["count"]
-            goods_notifications[good_id] = goods_query_notification_count
-
-        # Set notification counts on each good
-        for item in data:
-            item["exporter_user_notification_count"] = goods_notifications.get(item["id"], 0)
-
-        return super().get_paginated_response(data)
-
     def post(self, request, *args, **kwargs):
         """Add a good to to an organisation."""
         data = request.data
@@ -471,15 +438,6 @@ class GoodOverview(APIView):
                 )
             else:
                 serializer = GoodSerializerExporter(good)
-
-            # If there's a query with this good, update the notifications on it
-            query = GoodsQuery.objects.filter(good=good)
-            if query.exists():
-                delete_exporter_notifications(
-                    user=request.user.exporteruser,
-                    organisation_id=get_request_user_organisation_id(request),
-                    objects=query,
-                )
         else:
             serializer = GoodSerializerInternal(good)
 

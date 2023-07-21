@@ -864,16 +864,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_end_user_advisory_details(context["details"], case)
 
-    def test_generate_context_with_goods_query_details(self):
-        case = self.create_goods_query("abc", self.organisation, "clc reason", "pv reason")
-
-        context = get_document_context(case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
-        self._assert_goods_query_details(context["details"], case)
-
     def test_generate_context_with_compliance_visit_details(self):
         compliance_case = ComplianceSiteCaseFactory(
             organisation=self.organisation,

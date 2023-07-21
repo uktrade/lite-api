@@ -593,29 +593,6 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
         self.assertIn(case_flag, application.flags.all())
         self.assertIn(good_flag, good.flags.all())
 
-    def test_goods_query_application(self):
-        query = self.create_clc_query("query", self.organisation)
-
-        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
-        self.create_flagging_rule(
-            FlagLevels.CASE, self.team, flag=case_flag, matching_values=[query.case_type.reference]
-        )
-
-        good = query.good
-        good.control_list_entries.set([get_control_list_entry("ML1a")])
-        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(
-            FlagLevels.GOOD, self.team, flag=good_flag, matching_values=[good.control_list_entries.first().rating]
-        )
-
-        apply_flagging_rules_to_case(query)
-
-        query.refresh_from_db()
-        good.refresh_from_db()
-
-        self.assertIn(case_flag, query.flags.all())
-        self.assertIn(good_flag, good.flags.all())
-
     def test_end_user_advisory_application(self):
         query = self.create_end_user_advisory("a", "v", self.organisation)
 

@@ -63,15 +63,6 @@ class FilterAndSortTests(DataTestClient):
             self.queue.save()
             self.application_cases.append(case)
 
-        self.clc_cases = []
-        for clc_status in statuses:
-            clc_query = self.create_clc_query("Example CLC Query", self.organisation)
-            clc_query.status = get_case_status_by_status(clc_status)
-            clc_query.save()
-            self.queue.cases.add(clc_query)
-            self.queue.save()
-            self.clc_cases.append(clc_query)
-
     def test_get_cases_returns_only_system_and_users_team_queues(self):
         system_and_team_queue_ids = sorted([*SYSTEM_QUEUES.keys(), str(self.queue.id)])
 
@@ -88,7 +79,7 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view all Cases with no filter
         Then all Cases are returned
         """
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["results"]
@@ -140,63 +131,6 @@ class FilterAndSortTests(DataTestClient):
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
             self.assertEqual(case_type_reference, CaseTypeEnum.SIEL.reference)
 
-    def test_get_clc_type_cases(self):
-        """
-        Given multiple Cases exist with different statuses and case-types
-        When a user requests to view all Cases of type 'CLC query'
-        Then only Cases of that type are returned
-        """
-        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
-
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self.clc_cases), len(response_data["cases"]))
-
-        # Assert Case Type
-        for case in response_data["cases"]:
-            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
-            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
-
-    def test_get_submitted_status_cases(self):
-        """
-        Given multiple Cases exist with different statuses and case-types
-        When a user requests to view all Cases of type 'CLC query'
-        Then only Cases of that type are returned
-        """
-        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
-
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self.clc_cases), len(response_data["cases"]))
-        # Assert Case Type
-        for case in response_data["cases"]:
-            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
-            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
-
-    def test_get_all_cases_queue_submitted_status_and_clc_type_cases(self):
-        """
-        Given multiple cases exist with different statuses and case-types
-        When a user requests to view All Cases of type 'CLC query'
-        Then only cases of that type are returned
-        """
-        case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
-        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}'
-
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
-        # Assert Case Type
-        for case in response_data["cases"]:
-            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
-            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
-
     def test_get_cases_filter_by_case_officer(self):
         """
         Given multiple cases exist with case officers attached and not attached
@@ -220,7 +154,7 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases with no assigned case officer
         Then only cases without an assigned case officer are returned
         """
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases
         self.application_cases[0].case_officer = self.gov_user
         self.application_cases[0].save()
         url = f'{reverse("cases:search")}?case_officer=not_assigned'
@@ -295,7 +229,7 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases which have no assigned users
         Then only cases with no assigned users are returned
         """
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases
         case_assignment = CaseAssignment.objects.create(
             queue=self.queue, case=self.application_cases[0], user=self.gov_user
         )
@@ -311,7 +245,7 @@ class FilterAndSortTests(DataTestClient):
         self.assertNotIn(assigned_case, cases_returned)
 
     def test_get_cases_filter_by_assigned_user_not_assigned_with_queue(self):
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases
         case_assignment = CaseAssignment.objects.create(
             queue=self.queue, case=self.application_cases[0], user=self.gov_user
         )
@@ -327,7 +261,7 @@ class FilterAndSortTests(DataTestClient):
         self.assertNotIn(assigned_case, cases_returned)
 
     def test_get_cases_filter_by_assigned_user_not_assigned_with_queue_match(self):
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases
         queue = QueueFactory()
         case_assignment = CaseAssignment.objects.create(queue=queue, case=self.application_cases[0], user=self.gov_user)
         url = f'{reverse("cases:search")}?assigned_user=not_assigned&queue_id={self.queue.id}'
@@ -340,33 +274,13 @@ class FilterAndSortTests(DataTestClient):
         cases_returned = [x["id"] for x in response_data]
         self.assertIn(unassigned_case, cases_returned)
 
-    def test_get_submitted_status_and_clc_type_cases(self):
-        """
-        Given multiple Cases exist with different statuses and case-types
-        When a user requests to view Cases of type 'CLC query'
-        Then only Cases of that type are returned
-        """
-        case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        clc_submitted_cases = list(filter(lambda case: case.status == case_status, self.clc_cases))
-        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}"
-
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
-        # Assert Case Type
-        for case in response_data["cases"]:
-            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
-            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
-
     def test_tab_all_cases_search(self):
         """
         Given there is a case with an ECJU Query that has not been responded to
         When the tab is 'all_cases' and a team queue is not chosen
         Then all cases are returned
         """
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases
 
         ## create an open ecju query that should be returned
         case_with_open_query = self.application_cases[0]
@@ -443,7 +357,7 @@ class FilterAndSortTests(DataTestClient):
         When a HEAD request is sent to view cases with no params
         Then the count for all cases is returned in the header
         """
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases
 
         response = self.client.head(self.url, **self.gov_headers)
 
@@ -879,52 +793,6 @@ class UpdatedCasesQueueTests(DataTestClient):
         response_data = response.json()["results"]["cases"]
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.case.id))
-
-
-class CaseOrderingOnQueueTests(DataTestClient):
-    def test_all_cases_queue_returns_cases_in_expected_order(self):
-        """Test All cases queue returns cases in expected order (newest first)."""
-        url = reverse("cases:search")
-        clc_query = self.create_clc_query("Example CLC Query", self.organisation)
-        standard_app = self.create_standard_application_case(self.organisation, "Example Application")
-        clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
-
-        QueueFactory(team=self.gov_user.team, cases=[clc_query, standard_app, clc_query_2])
-
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
-        expected_case_order_ids = [str(clc_query_2.id), str(standard_app.id), str(clc_query.id)]
-        self.assertEqual(actual_case_order_ids, expected_case_order_ids)
-
-    def test_work_queue_returns_cases_in_expected_order(self):
-        """Test that a work queue returns cases in expected order (hmrc queries with goods not departed first)."""
-        clc_query_1 = self.create_clc_query("Example CLC Query", self.organisation)
-        standard_app = self.create_standard_application_case(self.organisation, "Example Application")
-        hmrc_query_1 = self.submit_application(self.create_hmrc_query(self.organisation))
-        clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
-        hmrc_query_2 = self.submit_application(self.create_hmrc_query(self.organisation, have_goods_departed=True))
-
-        queue = QueueFactory(
-            team=self.gov_user.team, cases=[clc_query_1, standard_app, hmrc_query_1, clc_query_2, hmrc_query_2]
-        )
-
-        url = reverse("cases:search") + "?queue_id=" + str(queue.id)
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
-        expected_case_order_ids = [
-            str(hmrc_query_1.id),
-            str(clc_query_1.id),
-            str(standard_app.id),
-            str(clc_query_2.id),
-            str(hmrc_query_2.id),
-        ]
-        self.assertEqual(actual_case_order_ids, expected_case_order_ids)
 
 
 class OpenEcjuQueriesForTeamOnWorkQueueTests(DataTestClient):

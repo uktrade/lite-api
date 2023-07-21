@@ -22,17 +22,14 @@ from api.goods.helpers import (
     validate_firearms_act_certificate,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails, GoodControlListEntry
-from api.gov_users.serializers import GovUserSimpleSerializer
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.report_summaries.serializers import ReportSummaryPrefixSerializer, ReportSummarySubjectSerializer
 from lite_content.lite_api import strings
 from api.organisations.models import Organisation
-from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.regimes.serializers import RegimeEntrySerializer
 from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
-from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from api.users.models import ExporterUser
 from api.users.serializers import ExporterUserSimpleSerializer
 
@@ -465,10 +462,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                 ):
                     firearm_details.pop("no_identification_markings_details")
 
-        self.goods_query_case = (
-            GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
-        )
-
     def validate(self, data):
         if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
             component_detail_fields = {
@@ -855,48 +848,16 @@ class GoodSerializerExporter(serializers.Serializer):
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
-    case_id = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
     is_document_available = serializers.BooleanField()
     is_document_sensitive = serializers.BooleanField()
     no_document_comments = serializers.CharField()
     product_description = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
-    query = serializers.SerializerMethodField()
-    case_officer = serializers.SerializerMethodField()
-    case_status = serializers.SerializerMethodField()
-
-    def __init__(self, *args, **kwargs):
-        super(GoodSerializerExporterFullDetail, self).__init__(*args, **kwargs)
-        self.goods_query = GoodsQuery.objects.filter(good=self.instance).first()
-
-    def get_case_id(self, instance):
-        return str(self.goods_query.id) if self.goods_query else None
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
         return SimpleGoodDocumentViewSerializer(documents, many=True).data
-
-    def get_query(self, instance):
-        from api.queries.goods_query.serializers import ExporterReadGoodQuerySerializer
-
-        if self.goods_query:
-            serializer = ExporterReadGoodQuerySerializer(
-                instance=self.goods_query,
-                context={"exporter_user": self.context.get("exporter_user"), "total_count": False},
-            )
-            return serializer.data
-
-    def get_case_status(self, instance):
-        if self.goods_query:
-            return {
-                "key": self.goods_query.status.status,
-                "value": get_status_value_from_case_status_enum(self.goods_query.status.status),
-            }
-
-    def get_case_officer(self, instance):
-        if self.goods_query:
-            return GovUserSimpleSerializer(self.goods_query.case_officer).data
 
 
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):

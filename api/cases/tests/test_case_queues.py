@@ -12,7 +12,8 @@ from test_helpers.clients import DataTestClient
 class AssignQueuesToCaseTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_clc_query("Query", self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
+        self.case = self.submit_application(self.standard_application)
         self.url = reverse("cases:queues", kwargs={"pk": self.case.id})
         self.queues = [
             self.create_queue("Queue 1", self.team),

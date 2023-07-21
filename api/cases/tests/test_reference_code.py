@@ -86,11 +86,6 @@ class ReferenceCode(DataTestClient):
         expected_reference = build_expected_reference(CaseTypeEnum.EUA.reference)
         self.assertEqual(end_user_advisory_query.reference_code, expected_reference)
 
-    def test_control_list_classification_reference_code(self):
-        clc_query = self.create_clc_query("", self.organisation)
-        expected_reference = build_expected_reference(CaseTypeEnum.GOODS.reference)
-        self.assertEqual(clc_query.reference_code, expected_reference)
-
     def test_temporary_application_reference_code(self):
         standard_application = self.create_draft_standard_application(self.organisation)
         standard_application.export_type = ApplicationExportType.TEMPORARY
@@ -117,8 +112,10 @@ class ReferenceCode(DataTestClient):
         self.assertIsNone(draft.reference_code)
 
     def test_reference_code_increment(self):
-        case_1 = self.create_clc_query("", self.organisation)
-        case_2 = self.create_clc_query("", self.organisation)
+        standard_application_1 = self.create_draft_standard_application(self.organisation)
+        case_1 = self.submit_application(standard_application_1)
+        standard_application_2 = self.create_draft_standard_application(self.organisation)
+        case_2 = self.submit_application(standard_application_2)
 
         self.assertIn("1", case_1.reference_code)
         self.assertIn("2", case_2.reference_code)

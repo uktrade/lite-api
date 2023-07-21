@@ -161,7 +161,8 @@ class CaseNotesExporterCreateTests(DataTestClient):
 class CaseNotesViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_clc_query("Query", self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
+        self.case = self.submit_application(self.standard_application)
 
         self.url = reverse("cases:case_notes", kwargs={"pk": self.case.id})
 
@@ -210,7 +211,8 @@ class CaseNotesViewTests(DataTestClient):
 class CaseNoteMentionsViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_clc_query("Query", self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
+        self.case = self.submit_application(self.standard_application)
         self.url = reverse("cases:case_note_mentions_list", kwargs={"pk": self.case.id})
 
     def test_view_case_mentions_successful(self):
@@ -232,17 +234,18 @@ class CaseNoteMentionsViewTests(DataTestClient):
 class UserCaseNoteMentionsViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_clc_query("Query", self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
+        self.case = self.submit_application(self.standard_application)
         self.case_note = self.create_case_note(self.case, "Hairpin Turns", self.gov_user.baseuser_ptr)
 
         self.other_user = self.create_gov_user("test@gmail.com", self.team)  # /PS-IGNORE
-        self.case_other = self.create_clc_query("Query", self.organisation)
+        self.other_standard_application = self.create_draft_standard_application(self.organisation)
+        self.case_other = self.submit_application(self.other_standard_application)
         self.case_note_other = self.create_case_note(self.case_other, "Hairpin Turns", self.other_user.baseuser_ptr)
 
         self.url = reverse("cases:user_case_note_mentions")
 
     def test_view_user_case_mentions_successful(self):
-
         self.create_case_note_mention(self.case_note, self.gov_user)
         self.create_case_note_mention(self.case_note, self.other_user)
         self.create_case_note_mention(self.case_note_other, self.gov_user)
@@ -332,7 +335,6 @@ class UserCaseNoteMentionsViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_view_user_case_mentions_new_count(self):
-
         url = reverse("cases:user_case_note_mentions_new_count")
         self.create_case_note_mention(self.case_note, self.gov_user)
         self.create_case_note_mention(self.case_note, self.other_user)

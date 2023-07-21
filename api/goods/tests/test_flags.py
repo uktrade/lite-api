@@ -153,11 +153,11 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user adds a flag to a good, it should add a timeline entry
         to whatever case that good is on (if any)
         """
-        query = self.create_clc_query("Query", self.organisation)
-
-        # Set the query and application's good
-        query.good = self.good
-        query.save()
+        standard_application = self.create_draft_standard_application(
+            self.organisation,
+            good=self.good,
+        )
+        case = self.submit_application(standard_application)
 
         data = {
             "level": "goods",
@@ -167,8 +167,6 @@ class GoodFlagsManagementTests(DataTestClient):
         }
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
-
-        case = Case.objects.get(id=query.id)
 
         audit_qs = Audit.objects.filter(
             target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)

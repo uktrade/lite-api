@@ -41,7 +41,6 @@ from api.organisations.models import Organisation
 from api.parties.models import Party
 
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
-from api.queries.goods_query.models import GoodsQuery
 
 from api.staticdata.countries.models import Country
 
@@ -178,14 +177,7 @@ class AssignFlags(APIView):
             self._set_organisation_activity(added_flags, removed_flag_names, obj, user, note)
 
         if isinstance(obj, Good):
-            cases = []
-
-            cases.extend(Case.objects.filter(id__in=GoodsQuery.objects.filter(good=obj).values_list("id", flat=True)))
-
-            cases.extend(
-                Case.objects.filter(id__in=GoodOnApplication.objects.filter(good=obj).values_list("id", flat=True))
-            )
-
+            cases = Case.objects.filter(id__in=GoodOnApplication.objects.filter(good=obj).values_list("id", flat=True))
             for case in cases:
                 self._set_case_activity_for_goods(added_flags, removed_flag_names, case, user, note, good=obj)
 

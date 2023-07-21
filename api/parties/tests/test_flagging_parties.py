@@ -141,26 +141,3 @@ class PartyFlagsManagementTests(DataTestClient):
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 2)
-
-    # TODO: Complete when new activity stream is in place
-    # def test_flagging_a_good_creates_timeline_entries(self):
-    #     """
-    #     When a user adds a flag to a good, it should add a timeline entry
-    #     to whatever case that good is on (if any)
-    #     """
-    #     query = self.create_clc_query("Query", self.organisation)
-    #
-    #     # Set the query and application's good
-    #     query.good = self.good
-    #     query.save()
-    #
-    #     data = {
-    #         "level": "goods",
-    #         "objects": [self.good.pk],
-    #         "flags": [self.team_good_flag_1.pk],
-    #         "note": "A reason for changing the flags",
-    #     }
-    #
-    #     self.client.put(self.assign_flag_url, data, **self.gov_headers)
-    #
-    #     self.assertEqual(len(get_case_activity(Case.objects.get(id=query.id))), 1)

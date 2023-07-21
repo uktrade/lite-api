@@ -82,7 +82,6 @@ INSTALLED_APPS = [
     "api.parties",
     "api.picklists",
     "api.queries",
-    "api.queries.goods_query",
     "api.queries.end_user_advisories",
     "api.queues",
     "api.open_general_licences",

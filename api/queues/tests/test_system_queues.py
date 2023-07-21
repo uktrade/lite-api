@@ -14,11 +14,15 @@ class AllCasesQueueTests(DataTestClient):
         self.queue1 = self.create_queue("queue1", self.team)
         self.queue2 = self.create_queue("queue2", self.team)
 
-        self.case = self.create_clc_query("Query", self.organisation)
-        self.case_2 = self.create_clc_query("Query", self.organisation)
-        self.case_3 = self.create_clc_query("Query", self.organisation)
-        self.case_3.query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        self.case_3.query.save()
+        # Cases
+        standard_application = self.create_draft_standard_application(self.organisation)
+        self.case = self.submit_application(standard_application)
+        standard_application_2 = self.create_draft_standard_application(self.organisation)
+        self.case_2 = self.submit_application(standard_application_2)
+        standard_application_3 = self.create_draft_standard_application(self.organisation)
+        self.case_3 = self.submit_application(standard_application_3)
+        self.case_3.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        self.case_3.save()
 
     def test_get_user_case_assignments_returns_expected_cases(self):
         """
