@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from api.staticdata.denial_reasons.serializers import DenialReasonSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -11,7 +12,11 @@ from api.flags.enums import FlagStatuses
 from api.goods.models import Good
 from api.applications.models import GoodOnApplication
 from api.goodstype.models import GoodsType
-from api.gov_users.serializers import GovUserListSerializer, GovUserViewSerializer
+from api.gov_users.serializers import (
+    GovUserListSerializer,
+    GovUserSimpleSerializer,
+    GovUserViewSerializer,
+)
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
 from api.parties.models import Party
@@ -63,6 +68,18 @@ class AdviceViewSerializer(serializers.Serializer):
         queryset=GovUser.objects.all(), serializer=GovUserListSerializer
     )
     countersign_comments = serializers.CharField()
+
+
+class AdviceSearchViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    type = KeyValueChoiceField(choices=AdviceType.choices)
+    denial_reasons = PrimaryKeyRelatedSerializerField(
+        queryset=DenialReason.objects.all(), many=True, serializer=DenialReasonSerializer
+    )
+    user = PrimaryKeyRelatedSerializerField(
+        queryset=GovUser.objects.all(),
+        serializer=GovUserSimpleSerializer,
+    )
 
 
 class AdviceCreateSerializer(serializers.ModelSerializer):
