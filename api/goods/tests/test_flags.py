@@ -146,7 +146,31 @@ class GoodFlagsManagementTests(DataTestClient):
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 2)
+        self.assertEqual(
+            response_data,
+            [
+                {
+                    "good": {
+                        "flags": [self.team_good_flag_2.pk, self.team_good_flag_1.pk],
+                        "note": "A reason for changing the flags",
+                    },
+                },
+                {
+                    "good": {
+                        "flags": [self.team_good_flag_2.pk, self.team_good_flag_1.pk],
+                        "note": "A reason for changing the flags",
+                    },
+                },
+            ],
+        )
+        self.assertQuerysetEqual(
+            self.good.flags.all(),
+            [self.team_good_flag_1, self.team_good_flag_2],
+        )
+        self.assertQuerysetEqual(
+            self.good_2.flags.all(),
+            [self.team_good_flag_1, self.team_good_flag_2],
+        )
 
     def test_flagging_a_good_creates_timeline_entries(self):
         """
