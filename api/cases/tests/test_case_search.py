@@ -18,7 +18,6 @@ from api.applications.tests.factories import (
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import Case, CaseAssignment, EcjuQuery, CaseType
 from api.flags.models import Flag
-from api.flags.enums import FlagLevels
 from api.goods.tests.factories import GoodFactory
 from api.picklists.enums import PicklistType
 from api.cases.tests.factories import CaseSIELFactory, FinalAdviceFactory
@@ -33,11 +32,16 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.tests.factories import ReportSummaryPrefixFactory, ReportSummarySubjectFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.models import CaseStatus
 from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import GovUser
+from api.cases.tests import factories
+from api.cases.enums import AdviceType
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.teams.models import Team
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 
@@ -486,7 +490,6 @@ class FilterAndSortTests(DataTestClient):
         ]
     )
     def test_filter_cases_by_flags(self, flag_id, flags_key):
-
         # set required flags
         for application in self.application_cases:
             case = Case.objects.get(id=application.id)
@@ -613,7 +616,6 @@ class FilterAndSortTests(DataTestClient):
         self.assertTrue(response_data[0]["id"], str(application.id))
 
     def test_get_cases_filter_exclude_denial_matches_denial_match_excluded(self):
-
         application = self.application_cases[0]
         denial = DenialMatchFactory()
         denial_on_application = DenialMatchOnApplicationFactory(
@@ -639,7 +641,6 @@ class FilterAndSortTests(DataTestClient):
         self.assertTrue(response_data[0]["id"], str(application.id))
 
     def test_get_cases_filter_exclude_sanction_matches_sanction_match_excluded(self):
-
         application = self.application_cases[0]
         sanction_match = SanctionMatchFactory(
             party_on_application=application.parties.first(), flag_uuid=Flag.objects.first().id, is_revoked=False
@@ -742,6 +743,34 @@ class FilterAndSortTests(DataTestClient):
         response_data = response.json()["results"]["cases"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
+    def test_get_cases_filter_by_includes_refusal_recommendation(self):
+        case = self.create_standard_application_case(self.organisation)
+        team_ogd = Team.objects.filter(is_ogd=True).first()
+        good = self.create_good("A good", self.organisation)
+        self.gov_user.team = team_ogd
+        self.gov_user.save()
+
+        factories.UserAdviceFactory(user=self.gov_user, case=case, good=good, type=AdviceType.REFUSE)
+
+        url = f'{reverse("cases:search")}?includes_refusal_recommendation_from_ogd=on'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+        self.assertTrue(response_data)
+        expected_case_id = str(case.id)
+
+        self.assertTrue(any(case["id"] == expected_case_id for case in response_data))
+
+    def test_get_cases_filter_by_includes_refusal_recommendation_not_met(self):
+        case = self.create_standard_application_case(self.organisation)
+        good = self.create_good("A good", self.organisation)
+
+        factories.UserAdviceFactory(user=self.gov_user, case=case, good=good, type=AdviceType.REFUSE)
+
+        url = f'{reverse("cases:search")}?includes_refusal_recommendation_from_ogd=on'
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
         self.assertEqual(len(response_data), 0)
 
 

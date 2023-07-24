@@ -25,7 +25,6 @@ class CasesSearchView(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, *args, **kwargs):
-
         user = request.user.govuser
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
@@ -165,5 +164,7 @@ class CasesSearchView(generics.ListAPIView):
         filters["finalised_from"] = make_date_from_params("finalised_from", filters)
         filters["finalised_to"] = make_date_from_params("finalised_to", filters)
         filters["countries"] = request.GET.getlist("countries", [])
-
+        filters["includes_refusal_recommendation_from_ogd"] = request.GET.get(
+            "includes_refusal_recommendation_from_ogd", False
+        )
         return filters
