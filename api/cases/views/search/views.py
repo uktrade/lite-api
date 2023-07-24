@@ -25,7 +25,6 @@ class CasesSearchView(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, *args, **kwargs):
-
         user = request.user.govuser
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
@@ -65,6 +64,9 @@ class CasesSearchView(generics.ListAPIView):
         case_map = {}
         for case in cases:
             case["destinations"] = []
+            case["advice"] = []
+            case["denials"] = []
+            case["goods"] = []
             case_map[case["id"]] = case
         # Populate certain fields outside of the serializer for performance improvements
         service.populate_goods_flags(cases)
@@ -78,6 +80,7 @@ class CasesSearchView(generics.ListAPIView):
         service.populate_good_details(case_map)
         service.populate_denials(case_map)
         service.populate_ecju_queries(case_map)
+        service.populate_advice(case_map)
 
         # Get queue from system & my queues.
         # If this fails (i.e. I'm on a non team queue) fetch the queue data
@@ -161,5 +164,7 @@ class CasesSearchView(generics.ListAPIView):
         filters["finalised_from"] = make_date_from_params("finalised_from", filters)
         filters["finalised_to"] = make_date_from_params("finalised_to", filters)
         filters["countries"] = request.GET.getlist("countries", [])
-
+        filters["includes_refusal_recommendation_from_ogd"] = request.GET.get(
+            "includes_refusal_recommendation_from_ogd", False
+        )
         return filters
