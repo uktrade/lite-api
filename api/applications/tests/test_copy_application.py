@@ -30,7 +30,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy a standard application that is a draft
         """
-        self.original_application = self.create_draft_standard_application(self.organisation)
+        self.original_application = self.create_draft_standard_application(self.organisation, ultimate_end_users=True)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -607,32 +607,22 @@ class CopyApplicationSuccessTests(DataTestClient):
     def _validate_ultimate_end_user(self):
         self.assertIsNotNone(self.copied_application.ultimate_end_users)
         ultimate_end_users = self.copied_application.ultimate_end_users.all()
-        original_ultimate_end_users = self.original_application.ultimate_end_users.all()
+        original_ultimate_end_users = [user.party for user in self.original_application.ultimate_end_users.all()]
         self.assertEqual(len(ultimate_end_users), len(original_ultimate_end_users))
-        original_ultimate_end_users_id = list(self.original_application.ultimate_end_users.values("id"))
         for ueu in ultimate_end_users:
-            self.assertNotIn(ueu, original_ultimate_end_users)
-            original_ueu = Party.objects.get(id=ueu.copy_of_id, application_id=self.original_application.id)
-            original_ultimate_end_users_id.remove(ueu.copy_of_id)
-            self._validate_party_details(ueu, original_ueu)
-
-        self.assertEqual(len(original_ultimate_end_users_id), 0)
+            self.assertNotIn(ueu.party, original_ultimate_end_users)
+            original_ueu = [user for user in original_ultimate_end_users if user.name == ueu.party.name][0]
+            self._validate_party_details(ueu.party, original_ueu)
 
     def _validate_third_party(self):
         self.assertIsNotNone(self.copied_application.third_parties)
-        third_parties = self.copied_application.ultimate_end_users.all()
-        original_third_parties = self.original_application.ultimate_end_users.all()
+        third_parties = self.copied_application.third_parties.all()
+        original_third_parties = [user.party for user in self.original_application.third_parties.all()]
         self.assertEqual(len(third_parties), len(original_third_parties))
-        original_third_parties_id = list(self.original_application.ultimate_end_users.values("id"))
         for third_party in third_parties:
-            self.assertNotIn(third_party, original_third_parties)
-            original_third_party = Party.objects.get(
-                id=third_party.copy_of_id, application_id=self.original_application.id
-            )
-            original_third_parties_id.remove(third_party.copy_of_id)
-            self._validate_party_details(third_party, original_third_party)
-
-        self.assertEqual(len(original_third_parties_id), 0)
+            self.assertNotIn(third_party.party, original_third_parties)
+            original_ueu = [user for user in original_third_parties if user.name == third_party.party.name][0]
+            self._validate_party_details(third_party.party, original_ueu)
 
     def _validate_case_data(self):
         self.assertEqual(list(self.copied_application.case_ecju_query.all()), [])
