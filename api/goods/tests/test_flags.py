@@ -2,8 +2,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
+from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.cases.models import Case
 from test_helpers.clients import DataTestClient
 
 
@@ -151,13 +151,13 @@ class GoodFlagsManagementTests(DataTestClient):
             [
                 {
                     "good": {
-                        "flags": [self.team_good_flag_2.pk, self.team_good_flag_1.pk],
+                        "flags": [str(self.team_good_flag_2.pk), str(self.team_good_flag_1.pk)],
                         "note": "A reason for changing the flags",
                     },
                 },
                 {
                     "good": {
-                        "flags": [self.team_good_flag_2.pk, self.team_good_flag_1.pk],
+                        "flags": [str(self.team_good_flag_2.pk), str(self.team_good_flag_1.pk)],
                         "note": "A reason for changing the flags",
                     },
                 },
@@ -192,8 +192,21 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        audit_qs = Audit.objects.filter(
-            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
+        audit_obj = Audit.objects.get(
+            target_object_id=case.id,
+            target_content_type=ContentType.objects.get_for_model(case.get_case()),
+            action_object_object_id=self.good.id,
+            action_object_content_type=ContentType.objects.get_for_model(self.good),
         )
-
-        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(
+            audit_obj.verb,
+            AuditType.GOOD_ADD_FLAGS,
+        )
+        self.assertEqual(
+            audit_obj.payload,
+            {
+                "good_name": self.good.description,
+                "added_flags": [self.team_good_flag_1.name],
+                "additional_text": "A reason for changing the flags",
+            },
+        )
