@@ -177,16 +177,10 @@ class CaseListSerializer(serializers.Serializer):
         return instance.baseapplication.intended_end_use or ""
 
     def get_end_users(self, instance):
-        if not self.has_end_users(instance):
-            return []
-
         return [
             {"name": party_on_app.party.name, "type": party_on_app.party.type}
             for party_on_app in instance.baseapplication.end_user_parties
         ]
-
-    def has_end_users(self, instance):
-        return hasattr(instance, "baseapplication") and hasattr(instance.baseapplication, "end_user_parties")
 
 
 class GoodOnApplicationSummarySerializer(serializers.Serializer):
