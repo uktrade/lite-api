@@ -64,6 +64,9 @@ class CasesSearchView(generics.ListAPIView):
         case_map = {}
         for case in cases:
             case["destinations"] = []
+            case["advice"] = []
+            case["denials"] = []
+            case["goods"] = []
             case_map[case["id"]] = case
         # Populate certain fields outside of the serializer for performance improvements
         service.populate_goods_flags(cases)
@@ -77,6 +80,7 @@ class CasesSearchView(generics.ListAPIView):
         service.populate_good_details(case_map)
         service.populate_denials(case_map)
         service.populate_ecju_queries(case_map)
+        service.populate_advice(case_map)
 
         # Get queue from system & my queues.
         # If this fails (i.e. I'm on a non team queue) fetch the queue data

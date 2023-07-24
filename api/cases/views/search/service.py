@@ -13,7 +13,8 @@ from api.applications.models import HmrcQuery, PartyOnApplication, GoodOnApplica
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from api.cases import serializers as cases_serializers
-from api.cases.models import Case, EcjuQuery
+from api.applications.serializers.advice import AdviceSearchViewSerializer
+from api.cases.models import Case, EcjuQuery, Advice
 from api.common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
 from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
@@ -200,9 +201,6 @@ def populate_destinations(case_map):
 
 
 def populate_good_details(case_map):
-    for case in case_map.values():
-        case["goods"] = []
-
     goas = (
         GoodOnApplication.objects.select_related(
             "report_summary_subject",
@@ -219,13 +217,9 @@ def populate_good_details(case_map):
         case = case_map[str(goa.application_id)]
         serializer = cases_serializers.GoodOnApplicationSummarySerializer(goa)
         case["goods"].append(serializer.data)
-    return list(case_map.values())
 
 
 def populate_denials(case_map):
-    for case in case_map.values():
-        case["denials"] = []
-
     doas = (
         DenialMatchOnApplication.objects.select_related(
             "denial",
@@ -237,7 +231,30 @@ def populate_denials(case_map):
         case = case_map[str(doa.application_id)]
         serializer = cases_serializers.DenialMatchOnApplicationSummarySerializer(doa)
         case["denials"].append(serializer.data)
-    return list(case_map.values())
+
+
+def populate_advice(case_map):
+    case_advices = (
+        Advice.objects.select_related("user", "user__team", "user__baseuser_ptr")
+        .prefetch_related("denial_reasons")
+        .filter(case_id__in=list(case_map.keys()))
+    )
+
+    seen = set()
+    for case_advice in case_advices:
+        case = case_map[str(case_advice.case_id)]
+        # Filter duplicate advice records, which is duplicated per good
+        advice_key = (
+            str(case_advice.case_id),
+            str(case_advice.user.team.id),
+            case_advice.type,
+        )
+        if advice_key in seen:
+            continue
+        seen.add(advice_key)
+
+        serializer = AdviceSearchViewSerializer(case_advice)
+        case["advice"].append(serializer.data)
 
 
 def populate_ecju_queries(case_map):
@@ -258,7 +275,6 @@ def populate_ecju_queries(case_map):
         case = case_map[str(query.case_id)]
         serializer = cases_serializers.ECJUQuerySummarySerializer(query)
         case["ecju_queries"].append(serializer.data)
-    return list(case_map.values())
 
 
 def populate_activity_updates(case_map):
