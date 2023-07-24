@@ -318,7 +318,7 @@ class CaseManager(models.Manager):
                 "queues__team",
                 Prefetch(
                     "baseapplication__parties",
-                    to_attr="enduser_parties",
+                    to_attr="end_user_parties",
                     queryset=PartyOnApplication.objects.select_related("party").filter(
                         deleted_at__isnull=True,
                         party__type__in=["end_user", "ultimate_end_user"],

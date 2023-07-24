@@ -103,7 +103,7 @@ class FilterAndSortTests(DataTestClient):
             response_data["filters"]["gov_users"],
         )
 
-    def test_get_cases_returns_all_cases_with_enduser_and_ultimate_enduser_data(self):
+    def test_get_cases_returns_all_cases_with_end_user_and_ultimate_end_user_data(self):
         """
         Check that the case data includes end user and ultimate end user information.
         """
@@ -112,15 +112,15 @@ class FilterAndSortTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        cases_with_users = [case for case in response_data["cases"] if case["endusers"]]
+        cases_with_users = [case for case in response_data["cases"] if case["end_users"]]
         # All the non clc cases should have users.
         self.assertEqual(len(cases_with_users), 3)
         end_user = {"name": "End User", "type": "end_user"}
         ult_end_user = {"name": "Ult End User", "type": "ultimate_end_user"}
 
         for case in cases_with_users:
-            self.assertIn(end_user, case["endusers"])
-            self.assertIn(ult_end_user, case["endusers"])
+            self.assertIn(end_user, case["end_users"])
+            self.assertIn(ult_end_user, case["end_users"])
 
     def test_get_app_type_cases(self):
         """

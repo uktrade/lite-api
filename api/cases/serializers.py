@@ -128,7 +128,7 @@ class CaseListSerializer(serializers.Serializer):
     has_open_queries = serializers.BooleanField()
     case_officer = serializers.SerializerMethodField()
     intended_end_use = serializers.SerializerMethodField()
-    endusers = serializers.SerializerMethodField()
+    end_users = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -178,11 +178,11 @@ class CaseListSerializer(serializers.Serializer):
         except BaseApplication.DoesNotExist:
             return ""
 
-    def get_endusers(self, instance):
-        if hasattr(instance, "baseapplication") and hasattr(instance.baseapplication, "enduser_parties"):
+    def get_end_users(self, instance):
+        if hasattr(instance, "baseapplication") and hasattr(instance.baseapplication, "end_user_parties"):
             return [
                 {"name": party_on_app.party.name, "type": party_on_app.party.type}
-                for party_on_app in instance.baseapplication.enduser_parties
+                for party_on_app in instance.baseapplication.end_user_parties
             ]
         return []
 
