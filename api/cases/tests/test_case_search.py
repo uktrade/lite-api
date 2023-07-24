@@ -105,9 +105,7 @@ class FilterAndSortTests(DataTestClient):
 
     def test_get_cases_returns_all_cases_with_enduser_and_ultimate_enduser_data(self):
         """
-        Given multiple Cases exist with different statuses and case-types
-        When a user requests to view all Cases with no filter
-        Then all Cases are returned
+        Check that the case data includes end user and ultimate end user information.
         """
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["results"]
