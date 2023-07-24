@@ -121,8 +121,8 @@ class FilterAndSortTests(DataTestClient):
         ult_end_user = {"name": "Ult End User", "type": "ultimate_end_user"}
 
         for case in cases_with_users:
-            self.assertTrue(end_user in case["endusers"])
-            self.assertTrue(ult_end_user in case["endusers"])
+            self.assertIn(end_user, case["endusers"])
+            self.assertIn(ult_end_user, case["endusers"])
 
     def test_get_app_type_cases(self):
         """
