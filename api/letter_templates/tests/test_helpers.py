@@ -2,7 +2,7 @@ from pathlib import Path
 
 from django.test import modify_settings, TestCase
 from test_helpers.clients import DataTestClient
-from api.letter_templates.helpers import generate_preview
+from api.letter_templates.helpers import convert_var_to_text, generate_preview, get_additional_var_data
 
 
 TEST_DATA_PATH = Path(__file__).resolve().parent / "data"

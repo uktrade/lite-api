@@ -53,6 +53,26 @@ def generate_preview(
     include_css=True,
 ):
     template_name = f"letter_templates/{layout}.html"
+<<<<<<< HEAD
+=======
+    title = ""
+    if layout == "nlr":
+        title = TemplateTitles.NLR
+    if layout == "refusal":
+        title = TemplateTitles.REFUSAL_LETTER
+    if layout == "application_form":
+        title = TemplateTitles.APPLICATION_FORM
+    if layout == "siel":
+        title = TemplateTitles.SIEL
+
+    context = {"include_digital_signature": include_digital_signature, "user_content": text, "title": title}
+
+    if case:
+        context = {**context, **get_document_context(case, additional_contact)}
+        context.update(get_additional_var_data(case))
+
+    context["user_content"] = convert_var_to_text(text, context)
+>>>>>>> acf4f0f2 (Adds unit tests)
 
     css_string = ""
     if include_css:
