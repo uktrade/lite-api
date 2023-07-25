@@ -1,4 +1,6 @@
 import os
+import datetime
+from jinja2 import Template
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -7,6 +9,7 @@ from django.utils.html import (
     mark_safe,
 )
 from markdown import markdown
+from api.applications.models import BaseApplication
 
 from api.letter_templates.context_generator import get_document_context
 
@@ -66,3 +69,23 @@ def generate_preview(
         context.update(get_document_context(case, additional_contact))
 
     return render_to_string(template_name, context)
+
+
+def get_additional_var_data(case):
+    application = BaseApplication.objects.get(id=case.id)
+    today = datetime.date.today()
+
+    appeal_deadline = today + datetime.timedelta(days=28)
+    date_application_submitted = application.submitted_at
+
+    data = {
+        "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
+        "date_application_submitted": date_application_submitted.strftime("%d %B %Y"),
+    }
+    return data
+
+
+def convert_var_to_text(text, data):
+    template = Template(text)
+
+    return template.render(data)
