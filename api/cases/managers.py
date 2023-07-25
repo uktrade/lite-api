@@ -3,7 +3,14 @@ from typing import List
 
 from compat import get_model
 from django.db import models, transaction
-from django.db.models import Q, Case, When, BinaryField, Sum
+from django.db.models import (
+    BinaryField,
+    Case,
+    Prefetch,
+    Q,
+    Sum,
+    When,
+)
 from django.utils import timezone
 
 from api.cases.enums import AdviceLevel, CaseTypeEnum
@@ -296,6 +303,8 @@ class CaseManager(models.Manager):
         """
         Search for a user's available cases given a set of search parameters.
         """
+        from api.applications.models import PartyOnApplication
+
         case_qs = (
             self.submitted()
             .select_related("status", "case_type", "case_officer", "case_officer__baseuser_ptr", "baseapplication")
@@ -307,6 +316,14 @@ class CaseManager(models.Manager):
                 "case_assignments__queue",
                 "queues",
                 "queues__team",
+                Prefetch(
+                    "baseapplication__parties",
+                    to_attr="end_user_parties",
+                    queryset=PartyOnApplication.objects.select_related("party").filter(
+                        deleted_at__isnull=True,
+                        party__type__in=["end_user", "ultimate_end_user"],
+                    ),
+                ),
             )
         )
 
