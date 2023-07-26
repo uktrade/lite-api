@@ -127,36 +127,6 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(deleted_consignees.count(), 0)
         delete_s3_function.assert_not_called()
 
-    def test_set_consignee_on_open_draft_application_failure(self):
-        """
-        Given a draft open application
-        When I try to add a consignee to the application
-        Then a 400 BAD REQUEST is returned
-        And no consignees have been added
-        """
-        self.draft.delete_party(PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE))
-        data = {
-            "name": "Government of Paraguay",
-            "address": "Asuncion",
-            "country": "PY",
-            "sub_type": "government",
-            "website": "https://www.gov.py",
-            "type": PartyType.CONSIGNEE,
-        }
-
-        open_draft = self.create_draft_open_application(self.organisation)
-        url = reverse("applications:parties", kwargs={"pk": open_draft.id})
-
-        response = self.client.post(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            PartyOnApplication.objects.filter(
-                application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
-            ).count(),
-            0,
-        )
-
     def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(
         self,
     ):

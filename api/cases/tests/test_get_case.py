@@ -1,5 +1,4 @@
 from datetime import timedelta
-import datetime
 from dateutil.parser import parse
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
@@ -8,19 +7,15 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.models import Case, CaseQueue
 from lite_routing.routing_rules_internal.enums import FlagsEnum
-from parameterized import parameterized
 from rest_framework import status
 
-from api.applications.models import CountryOnApplication, PartyOnApplication
-from api.cases.enums import CaseTypeEnum
+from api.applications.models import PartyOnApplication
 from api.cases.models import Case
 from api.cases.tests.factories import CaseAssignmentFactory, FinalAdviceFactory, CountersignAdviceFactory
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from api.flags.tests.factories import FlagFactory
 from api.parties.enums import PartyType
-from api.staticdata.countries.helpers import get_country
-from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
@@ -129,28 +124,6 @@ class CaseGetTests(DataTestClient):
         }
         assert response_data["case"]["assigned_users"] == expected_assignments
 
-    def test_case_returns_expected_goods_types_flags(self):
-        self.open_application = self.create_draft_open_application(self.organisation)
-        self.open_case = self.submit_application(self.open_application)
-        self.open_case_url = reverse("cases:case", kwargs={"pk": self.open_case.id})
-
-        response = self.client.get(self.open_case_url, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        expected_flags = [
-            Flag.objects.get(id=SystemFlags.GOOD_NOT_YET_VERIFIED_ID).name,
-            "Small Arms",
-            "UK Military/Para: Sch 2",
-        ]
-        actual_flags_on_case = [flag["name"] for flag in response_data["case"]["all_flags"]]
-        actual_flags_on_goods_type = [flag["name"] for flag in response_data["case"]["data"]["goods_types"][0]["flags"]]
-
-        self.assertIn(actual_flags_on_case[0], expected_flags)
-        for expected_flag in expected_flags:
-            self.assertIn(expected_flag, actual_flags_on_goods_type)
-
     def test_case_returns_has_activity(self):
         case = self.submit_application(self.standard_application)
         url = reverse("cases:case", kwargs={"pk": case.id})
@@ -242,77 +215,6 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(response[0]["order"], countersign_advice.order)
         self.assertEqual(response[0]["outcome_accepted"], countersign_advice.outcome_accepted)
         self.assertEqual(response[0]["reasons"], countersign_advice.reasons)
-
-    @parameterized.expand(
-        [
-            (CaseTypeEnum.SICL.id, DataTestClient.create_draft_standard_application),
-            (CaseTypeEnum.OICL.id, DataTestClient.create_draft_open_application),
-        ]
-    )
-    def test_trade_control_case(self, case_type_id, create_function):
-        application = create_function(self, self.organisation, case_type_id=case_type_id)
-        application.trade_control_activity = TradeControlActivity.OTHER
-        application.trade_control_activity_other = "other activity"
-        application.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
-        case = self.submit_application(application)
-
-        url = reverse("cases:case", kwargs={"pk": case.id})
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        case_application = response.json()["case"]["data"]
-
-        trade_control_activity = case_application["trade_control_activity"]["value"]
-        self.assertEqual(trade_control_activity, case.trade_control_activity_other)
-
-        trade_control_product_categories = [
-            category["key"] for category in case_application["trade_control_product_categories"]
-        ]
-        self.assertEqual(trade_control_product_categories, case.trade_control_product_categories)
-
-    def test_countries_ordered_as_expected_on_open_application(self):
-        highest_priority_flag = FlagFactory(
-            name="highest priority flag", level="Destination", team=self.gov_user.team, priority=0
-        )
-        lowest_priority_flag = FlagFactory(
-            name="lowest priority flag", level="Destination", team=self.gov_user.team, priority=10
-        )
-
-        open_application = self.create_draft_open_application(self.organisation)
-
-        # Countries with flags added
-        portugal = get_country("PT")
-        portugal.flags.set([highest_priority_flag])
-        andorra = get_country("AD")
-        andorra.flags.set([lowest_priority_flag])
-        benin = get_country("BJ")
-        benin.flags.set([lowest_priority_flag])
-
-        # Countries without flags added
-
-        # Add additional countries to the application
-        ad = CountryOnApplication(application=open_application, country=get_country("AD"))
-        ad.save()
-        bj = CountryOnApplication(application=open_application, country=get_country("BJ"))
-        bj.save()
-        at = CountryOnApplication(application=open_application, country=get_country("AT"))
-        at.save()
-        pt = CountryOnApplication(application=open_application, country=get_country("PT"))
-        pt.save()
-        # FR already on draft open application
-        fr = CountryOnApplication.objects.get(application=open_application, country_id="FR")
-
-        case = self.submit_application(open_application)
-
-        url = reverse("cases:case", kwargs={"pk": case.id})
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        case_application = response.json()["case"]["data"]
-        ordered_countries = [destination["id"] for destination in case_application["destinations"]["data"]]
-
-        # Countries are ordered by flag priority and for countries without flags, they are alphabetised
-        self.assertEqual(ordered_countries, [str(pt.id), str(ad.id), str(bj.id), str(at.id), str(fr.id)])
 
     def test_countries_ordered_as_expected_on_standard_application(self):
         highest_priority_flag = FlagFactory(

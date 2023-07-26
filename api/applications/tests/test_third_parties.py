@@ -122,37 +122,6 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(party["sub_type"]["key"], str(third_party.sub_type))
         self.assertEqual(party["role"]["key"], str(third_party.role))
 
-    def test_set_third_parties_on_draft_open_application_failure(self):
-        """
-        Given a draft open application
-        When I try to add a third party to the application
-        Then a 400 BAD REQUEST is returned
-        And no third parties have been added
-        """
-        third_party_qs = PartyOnApplication.objects.filter(
-            party__type=PartyType.THIRD_PARTY, application=self.draft, deleted_at__isnull=True
-        )
-        pre_test_third_party_count = third_party_qs.count()
-        data = {
-            "name": "UK Government",
-            "address": "Westminster, London SW1A 0AA",
-            "country": "GB",
-            "sub_type": "agent",
-            "website": "https://www.gov.uk",
-            "type": PartyType.THIRD_PARTY,
-        }
-        open_draft = self.create_draft_open_application(self.organisation)
-        url = reverse("applications:parties", kwargs={"pk": open_draft.id})
-
-        response = self.client.post(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(third_party_qs.count(), pre_test_third_party_count)
-
-        audit_qs = Audit.objects.all()
-
-        self.assertEqual(audit_qs.count(), 0)
-
     def test_delete_third_party_on_standard_application_when_application_has_no_third_parties_failure(
         self,
     ):

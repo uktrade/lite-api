@@ -1,7 +1,6 @@
 import pytest
 
 from datetime import datetime
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from parameterized import parameterized
@@ -13,7 +12,7 @@ from api.applications.libraries.licence import get_default_duration
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
-from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel, CountersignOrder
+from api.cases.enums import AdviceType, AdviceLevel, CountersignOrder
 from api.cases.models import Advice, Case
 from api.cases.tests.factories import CountersignAdviceFactory
 from api.core.constants import GovPermissions
@@ -153,28 +152,6 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response_data["errors"], [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{flag.name}"])
-
-    def test_finalise_clearance_application_success(self):
-        clearance_application = self.create_mod_clearance_application_case(
-            self.organisation, case_type=CaseTypeEnum.EXHIBITION
-        )
-        self._set_user_permission(
-            [GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION]
-        )
-        data = {"action": AdviceType.APPROVE, "duration": 13}
-        data.update(self.post_date)
-
-        url = reverse("applications:finalise", kwargs={"pk": clearance_application.pk})
-        response = self.client.put(url, data=data, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["case"], str(clearance_application.id))
-        self.assertEqual(response_data["reference_code"], f"{clearance_application.reference_code}")
-        self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
-        self.assertEqual(response_data["duration"], data["duration"])
-        self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
-        self.assertTrue(Licence.objects.filter(case=clearance_application, status=LicenceStatus.DRAFT).exists())
 
     def test_set_duration_permission_denied(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])

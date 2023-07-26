@@ -1,8 +1,6 @@
 from django.urls import reverse
-from parameterized import parameterized
 from rest_framework import status
 
-from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -17,23 +15,8 @@ class AddingRouteOfGoodsTests(DataTestClient):
         self.non_waybill_or_lading_route_details_field = "non_waybill_or_lading_route_details"
         self.data = {self.is_shipped_waybill_or_lading_field: "True"}
 
-    @parameterized.expand([[CaseTypeEnum.F680], [CaseTypeEnum.EXHIBITION], [CaseTypeEnum.GIFTING]])
-    def test_non_open_or_standard_applications_failure(self, case_type):
-        case = self.create_mod_clearance_application(self.organisation, case_type=case_type)
-        url = reverse("applications:route_of_goods", kwargs={"pk": case.id})
-        response = self.client.put(url, self.data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"], ["This operation can only be used on applications of type: open, standard"]
-        )
-
-    @parameterized.expand([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
-    def test_edit_standard_and_open_applications_success(self, case_type):
-        if case_type == CaseTypeSubTypeEnum.OPEN:
-            draft = self.create_draft_open_application(self.organisation)
-        else:
-            draft = self.create_draft_standard_application(self.organisation)
+    def test_edit_standard_applications_success(self):
+        draft = self.create_draft_standard_application(self.organisation)
 
         url = reverse("applications:route_of_goods", kwargs={"pk": draft.id})
         response = self.client.put(url, self.data, **self.exporter_headers)

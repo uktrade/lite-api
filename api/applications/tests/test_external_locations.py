@@ -208,7 +208,6 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
         [
             (CaseTypeEnum.SITL.id, DataTestClient.create_draft_standard_application),
             (CaseTypeEnum.SICL.id, DataTestClient.create_draft_standard_application),
-            (CaseTypeEnum.OICL.id, DataTestClient.create_draft_open_application),
         ]
     )
     def test_add_gb_external_locations_failure(self, case_type_id, create_function):
