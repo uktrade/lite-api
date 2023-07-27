@@ -5,19 +5,11 @@ from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 from markdown import markdown
 
-from api.core.exceptions import NotFoundError
 from api.conf.settings import CSS_ROOT
 from api.letter_templates.context_generator import get_document_context
-from api.letter_templates.models import LetterTemplate
+
 
 ALLOWED_TAGS = ["b", "strong", "em", "u", "h1", "h2", "h3", "h4", "h5", "h6"]
-
-
-def get_letter_template(pk):
-    try:
-        return LetterTemplate.objects.get(pk=pk)
-    except LetterTemplate.DoesNotExist:
-        raise NotFoundError({"letter_template": "LetterTemplate not found - " + str(pk)})
 
 
 def markdown_to_html(text: str):
