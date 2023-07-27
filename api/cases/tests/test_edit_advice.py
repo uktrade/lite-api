@@ -1,7 +1,5 @@
 from copy import deepcopy
 
-import pytest
-from django.test import override_settings
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -13,6 +11,7 @@ from api.cases.tests.factories import CountersignAdviceFactory
 from api.core.constants import GovPermissions
 from api.flags.enums import FlagLevels
 from api.flags.models import Flag
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.teams.enums import TeamIdEnum
@@ -48,6 +47,29 @@ class EditCaseAdviceTests(DataTestClient):
 
         # Assert that there's only one piece of advice
         self.assertEqual(Advice.objects.count(), 1)
+
+    def test_edit_standard_case_advice_updates_denial_reasons(self):
+        data = {
+            "type": AdviceType.REFUSE,
+            "text": "I Am Easy to Find",
+            "case": str(self.case.pk),
+            "level": AdviceLevel.USER,
+            "denial_reasons": ["7"],
+        }
+        self.client.post(self.url, **self.gov_headers, data=[data])
+        advice = Advice.objects.get()
+        self.assertQuerysetEqual(
+            advice.denial_reasons.all(),
+            [DenialReason.objects.get(id="7")],
+        )
+
+        data.update({"denial_reasons": ["2a"]})
+        self.client.post(self.url, **self.gov_headers, data=[data])
+        advice = Advice.objects.get()
+        self.assertQuerysetEqual(
+            advice.denial_reasons.all(),
+            [DenialReason.objects.get(id="2a")],
+        )
 
 
 class AdviceFinalLevelUpdateTests(DataTestClient):
