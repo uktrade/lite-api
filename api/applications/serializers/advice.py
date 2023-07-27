@@ -68,6 +68,7 @@ class AdviceViewSerializer(serializers.Serializer):
         queryset=GovUser.objects.all(), serializer=GovUserListSerializer
     )
     countersign_comments = serializers.CharField()
+    is_refusal_note = serializers.BooleanField()
 
 
 class AdviceSearchViewSerializer(serializers.Serializer):
