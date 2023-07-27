@@ -68,16 +68,19 @@ def generate_preview(
     if layout == "siel":
         title = TemplateTitles.SIEL
 
-    context = {"include_digital_signature": include_digital_signature, "user_content": text, "title": title}
-    if case:
-        context = {**context, **get_document_context(case, additional_contact)}
-
     css_string = ""
     if include_css:
         css_string = load_css(layout)
         if layout == "siel":
             css_string = load_css("siel_preview")
 
-    context["css"] = css_string
+    context = {
+        "include_digital_signature": include_digital_signature,
+        "user_content": text,
+        "title": title,
+        "css": css_string,
+    }
+    if case:
+        context.update(get_document_context(case, additional_contact))
 
     return render_to_string(template_name, context)
