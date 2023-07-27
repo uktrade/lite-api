@@ -448,7 +448,9 @@ class CountersignAdviceTests(DataTestClient):
         response = self.client.put(self.url, **self.gov_headers, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        advice.refresh_from_db()
+        # The old advice object would have been deleted so we get the new one that was created and check that the
+        # denial reasons were copied over
+        advice = Advice.objects.get()
         self.assertQuerysetEqual(
             advice.denial_reasons.all(),
             [DenialReason.objects.get(id="7")],
