@@ -5,20 +5,11 @@ from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 from markdown import markdown
 
-from api.core.exceptions import NotFoundError
 from api.conf.settings import CSS_ROOT
 from api.letter_templates.context_generator import get_document_context
-from api.letter_templates.models import LetterTemplate
-from api.letter_templates.constants import TemplateTitles
+
 
 ALLOWED_TAGS = ["b", "strong", "em", "u", "h1", "h2", "h3", "h4", "h5", "h6"]
-
-
-def get_letter_template(pk):
-    try:
-        return LetterTemplate.objects.get(pk=pk)
-    except LetterTemplate.DoesNotExist:
-        raise NotFoundError({"letter_template": "LetterTemplate not found - " + str(pk)})
 
 
 def markdown_to_html(text: str):
@@ -57,20 +48,6 @@ def generate_preview(
     include_css=True,
 ):
     template_name = f"letter_templates/{layout}.html"
-    title = ""
-
-    if layout == "nlr":
-        title = TemplateTitles.NLR
-    if layout == "refusal":
-        title = TemplateTitles.REFUSAL_LETTER
-    if layout == "application_form":
-        title = TemplateTitles.APPLICATION_FORM
-    if layout == "siel":
-        title = TemplateTitles.SIEL
-
-    context = {"include_digital_signature": include_digital_signature, "user_content": text, "title": title}
-    if case:
-        context = {**context, **get_document_context(case, additional_contact)}
 
     css_string = ""
     if include_css:
@@ -78,6 +55,12 @@ def generate_preview(
         if layout == "siel":
             css_string = load_css("siel_preview")
 
-    context["css"] = css_string
+    context = {
+        "include_digital_signature": include_digital_signature,
+        "user_content": text,
+        "css": css_string,
+    }
+    if case:
+        context.update(get_document_context(case, additional_contact))
 
     return render_to_string(template_name, context)
