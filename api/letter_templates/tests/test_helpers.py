@@ -4,7 +4,7 @@ from django.test import modify_settings, TestCase
 import datetime
 from django.test import TestCase
 from test_helpers.clients import DataTestClient
-from api.letter_templates.helpers import convert_var_to_text, generate_preview, get_additional_var_data_for_template
+from api.letter_templates.helpers import additional_context, convert_var_to_text, generate_preview
 
 
 TEST_DATA_PATH = Path(__file__).resolve().parent / "data"
@@ -74,32 +74,6 @@ class DocumentGenerationTestCase(DataTestClient):
         # Additional check to make sure that we actually get some output even if there are no errors
         assert preview_output
 
-    def test_document_variables(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-
-        generate_preview(
-            layout="refusal",
-            case=case,
-            text="Having carefully considered your application, {{ appeal_deadline }} {{ date_application_submitted }}",
-        )
-
-    def test_get_additional_var_data_for_template(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-
-        today = datetime.date.today()
-        case.baseapplication.submitted_at = today
-
-        appeal_deadline = today + datetime.timedelta(days=28)
-        date_application_submitted = case.baseapplication.submitted_at
-        exporter_reference = case.baseapplication.name
-
-        data = get_additional_var_data_for_template(case)
-
-        assert data["appeal_deadline"] == appeal_deadline.strftime("%d %B %Y")
-        assert data["date_application_submitted"] == date_application_submitted.strftime("%d %B %Y")
-        assert data["exporter_reference"] == exporter_reference
-        assert len(data) == 3
-
     def test_convert_var_to_text(self):
         text = "Having carefully considered your application, {{ appeal_deadline }} {{ date_application_submitted }}"
         data = {"appeal_deadline": "22 August 2023", "date_application_submitted": "25 July 2023"}
@@ -108,3 +82,32 @@ class DocumentGenerationTestCase(DataTestClient):
             convert_var_to_text(text, data)
             == "Having carefully considered your application, 22 August 2023 25 July 2023"
         )
+
+    def test_additional_context(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
+        today = datetime.date.today()
+
+        base_application.submitted_at = today
+        base_application.name = "Some name"
+
+        appeal_deadline = today + datetime.timedelta(days=28)
+        date_application_submitted = base_application.submitted_at.strftime("%d %B %Y")
+        exporter_reference = base_application.name
+
+        data = additional_context(case)
+
+        assert data == {
+            "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
+            "date_application_submitted": date_application_submitted,
+            "exporter_reference": exporter_reference,
+        }
+
+    def test_additional_context_without_base_application_name(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        base_application = case.baseapplication
+        base_application.name = None
+        base_application.save()
+
+        data = additional_context(case)
+        assert data["exporter_reference"] == ""

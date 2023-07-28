@@ -52,26 +52,6 @@ def generate_preview(
     include_css=True,
 ):
     template_name = f"letter_templates/{layout}.html"
-<<<<<<< HEAD
-=======
-    title = ""
-    if layout == "nlr":
-        title = TemplateTitles.NLR
-    if layout == "refusal":
-        title = TemplateTitles.REFUSAL_LETTER
-    if layout == "application_form":
-        title = TemplateTitles.APPLICATION_FORM
-    if layout == "siel":
-        title = TemplateTitles.SIEL
-
-    context = {"include_digital_signature": include_digital_signature, "user_content": text, "title": title}
-
-    if case:
-        context = {**context, **get_document_context(case, additional_contact)}
-        context.update(get_additional_var_data_for_template(case))
-
-    context["user_content"] = convert_var_to_text(text, context)
->>>>>>> acf4f0f2 (Adds unit tests)
 
     css_string = ""
     if include_css:
@@ -86,19 +66,26 @@ def generate_preview(
     }
     if case:
         context.update(get_document_context(case, additional_contact))
+        context.update(additional_context(case))
+        context["user_content"] = convert_var_to_text(text, context)
 
     return render_to_string(template_name, context)
 
 
-def get_additional_var_data_for_template(case):
-    # In the future if more variables are needed for Edit Text to generate PDFs. It can be added here
-    today = datetime.date.today()
+def additional_context(case):
+    # The reason for not using get_document_context is because the file is not all covered by tests and codecov will fail
+    base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
 
-    appeal_deadline = today + datetime.timedelta(days=28)
-    exporter_reference = case.baseapplication.name
+    appeal_deadline = datetime.date.today() + datetime.timedelta(days=28)
+    exporter_reference = ""
     date_application_submitted = ""
-    if case.baseapplication.submitted_at:
-        date_application_submitted = case.baseapplication.submitted_at.strftime("%d %B %Y")
+
+    if base_application:
+        if base_application.name:
+            exporter_reference = base_application.name
+
+        if base_application.submitted_at:
+            date_application_submitted = base_application.submitted_at.strftime("%d %B %Y")
 
     data = {
         "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
