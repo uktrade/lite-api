@@ -1,6 +1,6 @@
 import os
 import datetime
-from jinja2 import Template
+from django.template import Context, Template
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -9,7 +9,6 @@ from django.utils.html import (
     mark_safe,
 )
 from markdown import markdown
-from api.applications.models import BaseApplication
 
 from api.letter_templates.context_generator import get_document_context
 
@@ -69,7 +68,7 @@ def generate_preview(
 
     if case:
         context = {**context, **get_document_context(case, additional_contact)}
-        context.update(get_additional_var_data(case))
+        context.update(get_additional_var_data_for_template(case))
 
     context["user_content"] = convert_var_to_text(text, context)
 >>>>>>> acf4f0f2 (Adds unit tests)
@@ -91,21 +90,26 @@ def generate_preview(
     return render_to_string(template_name, context)
 
 
-def get_additional_var_data(case):
-    application = BaseApplication.objects.get(id=case.id)
+def get_additional_var_data_for_template(case):
+    # In the future if more variables are needed for Edit Text to generate PDFs. It can be added here
     today = datetime.date.today()
 
     appeal_deadline = today + datetime.timedelta(days=28)
-    date_application_submitted = application.submitted_at
+    exporter_reference = case.baseapplication.name
+    date_application_submitted = ""
+    if case.baseapplication.submitted_at:
+        date_application_submitted = case.baseapplication.submitted_at.strftime("%d %B %Y")
 
     data = {
         "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
-        "date_application_submitted": date_application_submitted.strftime("%d %B %Y"),
+        "date_application_submitted": date_application_submitted,
+        "exporter_reference": exporter_reference,
     }
     return data
 
 
 def convert_var_to_text(text, data):
     template = Template(text)
+    context = Context(data)
 
-    return template.render(data)
+    return template.render(context)
