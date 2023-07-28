@@ -25,7 +25,6 @@ class DocumentGenerationTestCase(DataTestClient):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         layouts = [
             "application_form",
-            "case_context_test",
             "ecju_queries_and_notes",
             "ecju",
             "nlr",
