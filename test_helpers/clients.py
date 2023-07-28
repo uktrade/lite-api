@@ -710,6 +710,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         reference_name="Standard Draft",
         safe_document=True,
         parties=True,
+        ultimate_end_users=False,
         site=True,
         case_type_id=CaseTypeEnum.SIEL.id,
         add_a_good=True,
@@ -770,6 +771,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if parties:
             self.create_party("End User", organisation, PartyType.END_USER, application)
+            if ultimate_end_users:
+                self.create_party("Ult End User", organisation, PartyType.ULTIMATE_END_USER, application)
             self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
             # Set the application party documents
@@ -884,7 +887,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         good_kwargs=None,
     ):
         application = self.create_draft_standard_application(
-            organisation, reference_name, safe_document, num_products=0
+            organisation, reference_name, safe_document, num_products=0, ultimate_end_users=True
         )
         if not good_kwargs:
             good_kwargs = {}
@@ -903,13 +906,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_good_incorporated=True,
         ).save()
 
-        self.ultimate_end_user = self.create_party(
-            "Ultimate End User",
-            organisation,
-            PartyType.ULTIMATE_END_USER,
-            application,
-            country_code=destination_country_code,
-        )
         self.create_document_for_party(application.ultimate_end_users.first().party, safe=safe_document)
 
         return application
@@ -1001,6 +997,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         organisation: Organisation,
         reference_name="Standard Application Case",
         parties=True,
+        ultimate_end_users=False,
         site=True,
         user=None,
         num_products=1,
@@ -1013,6 +1010,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation,
             reference_name,
             parties=parties,
+            ultimate_end_users=ultimate_end_users,
             site=site,
             user=user,
             num_products=num_products,

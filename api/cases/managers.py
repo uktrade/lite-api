@@ -3,12 +3,20 @@ from typing import List
 
 from compat import get_model
 from django.db import models, transaction
-from django.db.models import Q, Case, When, BinaryField, Sum
+from django.db.models import (
+    BinaryField,
+    Case,
+    Prefetch,
+    Q,
+    Sum,
+    When,
+)
 from django.utils import timezone
 
 from api.cases.enums import AdviceLevel, CaseTypeEnum
 from api.cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from api.common.enums import SortOrder
+from api.cases.enums import AdviceType
 from api.compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
 from api.licences.enums import LicenceStatus
 from api.queues.constants import (
@@ -228,6 +236,9 @@ class CaseQuerySet(models.QuerySet):
     def exclude_sanction_matches(self):
         return self.exclude(baseapplication__parties__sanction_matches__is_revoked=False)
 
+    def includes_refusal_recommendation_from_ogd(self):
+        return self.filter(advice__type=AdviceType.REFUSE, advice__user__team__is_ogd=True)
+
 
 class CaseManager(models.Manager):
     """
@@ -286,11 +297,14 @@ class CaseManager(models.Manager):
         exclude_sanction_matches=None,
         max_total_value=None,
         report_summary=None,
+        includes_refusal_recommendation_from_ogd=None,
         **kwargs,
     ):
         """
         Search for a user's available cases given a set of search parameters.
         """
+        from api.applications.models import PartyOnApplication
+
         case_qs = (
             self.submitted()
             .select_related("status", "case_type", "case_officer", "case_officer__baseuser_ptr", "baseapplication")
@@ -302,6 +316,14 @@ class CaseManager(models.Manager):
                 "case_assignments__queue",
                 "queues",
                 "queues__team",
+                Prefetch(
+                    "baseapplication__parties",
+                    to_attr="end_user_parties",
+                    queryset=PartyOnApplication.objects.select_related("party").filter(
+                        deleted_at__isnull=True,
+                        party__type__in=["end_user", "ultimate_end_user"],
+                    ),
+                ),
             )
         )
 
@@ -459,6 +481,9 @@ class CaseManager(models.Manager):
 
         if max_total_value:
             case_qs = case_qs.with_max_total_value(max_total_value)
+
+        if includes_refusal_recommendation_from_ogd:
+            case_qs = case_qs.includes_refusal_recommendation_from_ogd()
 
         return case_qs.distinct()
 

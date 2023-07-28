@@ -449,6 +449,7 @@ class Advice(TimestampableModel):
         return getattr(self, self.entity_field, None)
 
     def save(self, *args, **kwargs):
+        denial_reasons = None
         try:
             if self.level == AdviceLevel.TEAM:
                 old_advice = Advice.objects.get(
@@ -463,15 +464,7 @@ class Advice(TimestampableModel):
                     consignee=self.consignee,
                     third_party=self.third_party,
                 )
-                if old_advice.denial_reasons.exists():
-                    denial_reasons = old_advice.denial_reasons.values_list("pk", flat=True)
-                    denial_reasons_logger.warning(
-                        "Deleting advice object that had denial reasons: %s (%s) - %s",
-                        old_advice,
-                        old_advice.pk,
-                        denial_reasons,
-                        exc_info=True,
-                    )
+                denial_reasons = [denial_reason for denial_reason in old_advice.denial_reasons.all()]
                 old_advice.delete()
             elif self.level == AdviceLevel.USER:
                 old_advice = Advice.objects.get(
@@ -486,20 +479,23 @@ class Advice(TimestampableModel):
                     consignee=self.consignee,
                     third_party=self.third_party,
                 )
-                if old_advice.denial_reasons.exists():
-                    denial_reasons = old_advice.denial_reasons.values_list("pk", flat=True)
-                    denial_reasons_logger.warning(
-                        "Deleting advice object that had denial reasons: %s (%s) - %s",
-                        old_advice,
-                        old_advice.pk,
-                        denial_reasons,
-                        exc_info=True,
-                    )
+                denial_reasons = [denial_reason for denial_reason in old_advice.denial_reasons.all()]
                 old_advice.delete()
         except Advice.DoesNotExist:
             pass
 
         super(Advice, self).save(*args, **kwargs)
+
+        # We retain the denial reasons from the previous object because we're effectively really doing an edit here by
+        # removing the previous advice and create a new one in its place, however we lose the many-to-many relationship
+        # the old object had so we reinstate it here.
+        # This may look like it would overwrite the denial reasons that were set currently if you were editing this
+        # object but if you were editing the denial reasons you'd first have to save this object and _then_ set the
+        # denial reasons afterwards, so in that case this just gets overwritten anyway.
+        # We do this after the save method as this object needs to have its id in place so we can create these
+        # many-to-many objects.
+        if denial_reasons:
+            self.denial_reasons.set(denial_reasons)
 
     def equals(self, other):
         return all(

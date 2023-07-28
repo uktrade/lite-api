@@ -26,7 +26,7 @@ class FlagsOrderingOnCaseViewTests(DataTestClient):
                     )
                     flags.append(flag)
 
-        case = self.create_standard_application_case(organisation=self.organisation)
+        case = self.create_standard_application_case(organisation=self.organisation, ultimate_end_users=False)
         case.flags.set([flag for flag in flags if flag.level == FlagLevels.CASE])
 
         good = GoodOnApplication.objects.get(application=case).good
