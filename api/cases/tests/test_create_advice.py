@@ -9,10 +9,15 @@ from uuid import uuid4
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
-from api.cases.enums import AdviceType, CountersignOrder
+from api.cases.enums import (
+    AdviceLevel,
+    AdviceType,
+    CountersignOrder,
+)
 from api.cases.models import Advice, CountersignAdvice
 from api.cases.tests.factories import CountersignAdviceFactory
 from api.core.constants import GovPermissions, Roles
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.enums import TeamIdEnum
@@ -421,6 +426,35 @@ class CountersignAdviceTests(DataTestClient):
         audit_qs = Audit.objects.filter(verb=AuditType.COUNTERSIGN_ADVICE)
         self.assertEqual(audit_qs.count(), 1)
         self.assertEqual(audit_qs.first().actor, self.gov_user)
+
+    def test_countersigning_retains_denial_reasons(self):
+        advice = Advice.objects.create(
+            user=self.gov_user,
+            case=self.case,
+            note="Advice",
+            level=AdviceLevel.USER,
+            type=AdviceType.REFUSE,
+        )
+        advice.denial_reasons.set([DenialReason.objects.get(id="7")])
+
+        data = [
+            {
+                "id": advice.id,
+                "countersigned_by": self.gov_user.baseuser_ptr.id,
+                "comments": "Agree with recommendation",
+            }
+        ]
+
+        response = self.client.put(self.url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # The old advice object would have been deleted so we get the new one that was created and check that the
+        # denial reasons were copied over
+        advice = Advice.objects.get()
+        self.assertQuerysetEqual(
+            advice.denial_reasons.all(),
+            [DenialReason.objects.get(id="7")],
+        )
 
 
 class CountersignAdviceWithDecisionTests(DataTestClient):
