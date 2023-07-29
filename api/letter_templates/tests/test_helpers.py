@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from django.test import TestCase
+from django.test import modify_settings, TestCase
+
 from test_helpers.clients import DataTestClient
 from api.letter_templates.helpers import generate_preview
 
@@ -9,6 +10,7 @@ TEST_DATA_PATH = Path(__file__).resolve().parent / "data"
 
 
 class PreviewTestCase(TestCase):
+    @modify_settings(INSTALLED_APPS={"append": "api.letter_templates.tests"})
     def test_generate_preview(self):
         generated_preview = generate_preview(
             layout="case_context_test",
