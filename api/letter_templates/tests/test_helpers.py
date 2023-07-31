@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from django.test import TestCase
+from django.test import modify_settings, TestCase
 from test_helpers.clients import DataTestClient
 from api.letter_templates.helpers import generate_preview
 
@@ -15,6 +15,19 @@ class PreviewTestCase(TestCase):
             text="Hello World!",
         )
         with open(TEST_DATA_PATH / "generated-preview.html") as expected_output_file:
+            expected_output = expected_output_file.read()
+
+        assert generated_preview == expected_output
+
+    @modify_settings(INSTALLED_APPS={"append": "api.letter_templates.tests"})
+    def test_markdown_formatting_generate_preview(self):
+        generated_preview = generate_preview(
+            layout="markdown_formatting",
+            text="""**Strong**
+*Emphasis*
+[Link](http://example.com)""",
+        )
+        with open(TEST_DATA_PATH / "markdown-formatting.html") as expected_output_file:
             expected_output = expected_output_file.read()
 
         assert generated_preview == expected_output

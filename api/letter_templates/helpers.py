@@ -57,7 +57,7 @@ def generate_preview(
 
     context = {
         "include_digital_signature": include_digital_signature,
-        "user_content": text,
+        "user_content": mark_safe(markdown_to_html(text)),
         "css": css_string,
     }
     if case:
