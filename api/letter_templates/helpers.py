@@ -1,5 +1,6 @@
 import os
 
+from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import (
     escape,
@@ -7,7 +8,6 @@ from django.utils.html import (
 )
 from markdown import markdown
 
-from api.conf.settings import CSS_ROOT
 from api.letter_templates.context_generator import get_document_context
 
 
@@ -24,7 +24,7 @@ def get_paragraphs_as_html(paragraphs: list):
 
 
 def get_css_location(filename):
-    return os.path.join(CSS_ROOT, filename + ".css")
+    return os.path.join(settings.CSS_ROOT, filename + ".css")
 
 
 def load_css(filename):
