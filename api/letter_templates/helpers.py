@@ -1,4 +1,3 @@
-import bleach
 import os
 
 from django.template.loader import render_to_string
@@ -12,7 +11,8 @@ from api.conf.settings import CSS_ROOT
 from api.letter_templates.context_generator import get_document_context
 
 
-ALLOWED_TAGS = ["b", "strong", "em", "u", "h1", "h2", "h3", "h4", "h5", "h6"]
+class DocumentPreviewError(Exception):
+    pass
 
 
 def markdown_to_html(text: str):
@@ -33,16 +33,7 @@ def load_css(filename):
     return f"<style>\n{css}</style>\n"
 
 
-def format_user_text(user_text):
-    cleaned_text = bleach.clean(user_text, tags=ALLOWED_TAGS)
-    return markdown_to_html(mark_safe(cleaned_text))
-
-
-class DocumentPreviewError(Exception):
-    pass
-
-
-def convert_user_content(text):
+def format_user_text(text):
     text = escape(text)
     text = markdown_to_html(text)
     text = mark_safe(text)
@@ -68,7 +59,7 @@ def generate_preview(
 
     context = {
         "include_digital_signature": include_digital_signature,
-        "user_content": convert_user_content(text),
+        "user_content": format_user_text(text),
         "css": css_string,
     }
     if case:
