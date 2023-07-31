@@ -2,7 +2,10 @@ import bleach
 import os
 
 from django.template.loader import render_to_string
-from django.utils.html import mark_safe
+from django.utils.html import (
+    escape,
+    mark_safe,
+)
 from markdown import markdown
 
 from api.conf.settings import CSS_ROOT
@@ -39,6 +42,14 @@ class DocumentPreviewError(Exception):
     pass
 
 
+def convert_user_content(text):
+    text = escape(text)
+    text = markdown_to_html(text)
+    text = mark_safe(text)
+
+    return text
+
+
 def generate_preview(
     layout: str,
     text: str,
@@ -57,7 +68,7 @@ def generate_preview(
 
     context = {
         "include_digital_signature": include_digital_signature,
-        "user_content": mark_safe(markdown_to_html(text)),
+        "user_content": convert_user_content(text),
         "css": css_string,
     }
     if case:
