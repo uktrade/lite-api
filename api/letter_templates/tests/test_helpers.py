@@ -33,4 +33,7 @@ class DocumentGenerationTestCase(DataTestClient):
         ]
         for layout in layouts:
             # check it renders with no errors
-            generate_preview(layout=layout, case=case, text="")
+            preview_output = generate_preview(layout=layout, case=case, text="")
+
+        # Additional check to make sure that we actually get some output even if there are no errors
+        assert preview_output
