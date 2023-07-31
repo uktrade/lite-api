@@ -113,6 +113,10 @@
     page-break-inside: avoid;
   }
 
+  #paragraph_content p:first-of-type {
+    margin-top: 0;
+  }
+
   #paragraph_content_div {
     padding: 0px;
     margin: 0px;
