@@ -64,10 +64,11 @@ def generate_preview(
         "user_content": format_user_text(text),
         "css": css_string,
     }
+
     if case:
         context.update(get_document_context(case, additional_contact))
         context.update(additional_context(case))
-        context["user_content"] = convert_var_to_text(text, context)
+        context["user_content"] = format_user_text(convert_var_to_text(text, context))
 
     return render_to_string(template_name, context)
 
