@@ -3,6 +3,7 @@ from pathlib import Path
 from django.test import modify_settings, TestCase
 import datetime
 from django.test import TestCase
+from api.cases.tests.factories import CaseFactory
 from test_helpers.clients import DataTestClient
 from api.letter_templates.helpers import additional_context, convert_var_to_text, generate_preview
 
@@ -111,3 +112,16 @@ class DocumentGenerationTestCase(DataTestClient):
 
         data = additional_context(case)
         assert data["exporter_reference"] == ""
+
+    def test_additional_context_without_base_application(self):
+        case = CaseFactory()
+        today = datetime.date.today()
+
+        appeal_deadline = today + datetime.timedelta(days=28)
+        data = additional_context(case)
+
+        assert data == {
+            "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
+            "date_application_submitted": "",
+            "exporter_reference": "",
+        }
