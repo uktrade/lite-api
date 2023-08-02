@@ -132,9 +132,9 @@ class DocumentGenerationTestCase(DataTestClient):
         generated_preview = generate_preview(
             case=case,
             layout="user_content",
-            text="""**Strong**
-*Emphasis*
-[Link](http://example.com), {{ exporter_reference }}""",
+            text="""**{{ exporter_reference }}**
+*{{ exporter_reference }}*
+[{{ exporter_reference }}](http://example.com), {{ exporter_reference }}""",
         )
         with open(TEST_DATA_PATH / "markdown-variables.html") as expected_output_file:
             expected_output = expected_output_file.read()
