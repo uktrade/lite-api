@@ -125,3 +125,18 @@ class DocumentGenerationTestCase(DataTestClient):
             "date_application_submitted": "",
             "exporter_reference": "",
         }
+
+    @modify_settings(INSTALLED_APPS={"append": "api.letter_templates.tests"})
+    def test_markdown_and_variables(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        generated_preview = generate_preview(
+            case=case,
+            layout="user_content",
+            text="""**Strong**
+*Emphasis*
+[Link](http://example.com), {{ exporter_reference }}""",
+        )
+        with open(TEST_DATA_PATH / "markdown-variables.html") as expected_output_file:
+            expected_output = expected_output_file.read()
+
+        assert generated_preview == expected_output
