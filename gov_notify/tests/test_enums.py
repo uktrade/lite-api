@@ -18,6 +18,7 @@ class TemplateTypeTests(APITestCase):
             (TemplateType.EXPORTER_CASE_OPENED_FOR_EDITING, "73121bc2-2f03-4c66-8e88-61a156c05559"),
             (TemplateType.EXPORTER_NO_LICENCE_REQUIRED, "d84d1843-882c-440e-9cd4-84972ba612e6"),
             (TemplateType.CASEWORKER_COUNTERSIGN_CASE_RETURN, "4d418015-cd7c-498f-a972-72e7ec4468cc"),
+            (TemplateType.EXPORTER_INFORM_LETTER, "7b63296f-af08-46bf-961e-19bdde93761c"),
         ]
     )
     def test_template_id(self, template_type, expected_template_id):
