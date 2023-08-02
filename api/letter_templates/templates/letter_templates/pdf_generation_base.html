@@ -2,7 +2,7 @@
     <head>
         {{ css|safe }}
         <meta charset="utf-8">
-        <title>{{title}} {{ case_reference }}</title>
+        <title>{% block title %}{% endblock %} {{ case_reference }}</title>
     </head>
 
     <body>

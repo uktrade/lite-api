@@ -61,3 +61,7 @@
 	width: 1%;
 	min-width: 15px;
 }
+
+#paragraph_content p:first-of-type {
+  margin-top: 0;
+}

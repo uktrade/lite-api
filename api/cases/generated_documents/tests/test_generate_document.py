@@ -18,7 +18,6 @@ from api.licences.enums import LicenceStatus
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 from api.users.models import ExporterNotification
-from api.letter_templates.constants import TemplateTitles
 
 
 class GenerateDocumentTests(DataTestClient):
@@ -399,10 +398,10 @@ class GetGeneratedDocumentsTests(DataTestClient):
 class TestGeneratedTemplatePDF(DataTestClient):
     @parameterized.expand(
         [
-            ("application_form", TemplateTitles.APPLICATION_FORM),
-            ("nlr", TemplateTitles.NLR),
-            ("refusal", TemplateTitles.REFUSAL_LETTER),
-            ("siel", TemplateTitles.SIEL),
+            ("application_form", "Application form"),
+            ("nlr", "No licence required letter"),
+            ("refusal", "Refusal letter"),
+            ("siel", "Standard individual export licence"),
         ],
     )
     def test_pdf_titles(self, temp, title):
