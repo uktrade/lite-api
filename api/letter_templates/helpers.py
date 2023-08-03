@@ -1,5 +1,4 @@
 import os
-import datetime
 from django.template import Context, Template
 
 from django.conf import settings
@@ -67,33 +66,9 @@ def generate_preview(
 
     if case:
         context.update(get_document_context(case, additional_contact))
-        context.update(additional_context(case))
         context["user_content"] = format_user_text(convert_var_to_text(text, context))
 
     return render_to_string(template_name, context)
-
-
-def additional_context(case):
-    # The reason for not using get_document_context is because the file is not all covered by tests and codecov will fail
-    base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
-
-    appeal_deadline = datetime.date.today() + datetime.timedelta(days=28)
-    exporter_reference = ""
-    date_application_submitted = ""
-
-    if base_application:
-        if base_application.name:
-            exporter_reference = base_application.name
-
-        if base_application.submitted_at:
-            date_application_submitted = base_application.submitted_at.strftime("%d %B %Y")
-
-    data = {
-        "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
-        "date_application_submitted": date_application_submitted,
-        "exporter_reference": exporter_reference,
-    }
-    return data
 
 
 def convert_var_to_text(text, data):

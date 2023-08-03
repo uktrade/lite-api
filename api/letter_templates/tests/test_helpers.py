@@ -1,11 +1,14 @@
 from pathlib import Path
 
 from django.test import modify_settings, TestCase
-import datetime
+
+# import datetime
 from django.test import TestCase
-from api.cases.tests.factories import CaseFactory
+
+# from api.cases.tests.factories import CaseFactory
+from api.letter_templates.context_generator import get_document_context
 from test_helpers.clients import DataTestClient
-from api.letter_templates.helpers import additional_context, convert_var_to_text, generate_preview
+from api.letter_templates.helpers import convert_var_to_text, generate_preview
 
 
 TEST_DATA_PATH = Path(__file__).resolve().parent / "data"
@@ -84,47 +87,14 @@ class DocumentGenerationTestCase(DataTestClient):
             == "Having carefully considered your application, 22 August 2023 25 July 2023"
         )
 
-    def test_additional_context(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
-        today = datetime.date.today()
-
-        base_application.submitted_at = today
-        base_application.name = "Some name"
-
-        appeal_deadline = today + datetime.timedelta(days=28)
-        date_application_submitted = base_application.submitted_at.strftime("%d %B %Y")
-        exporter_reference = base_application.name
-
-        data = additional_context(case)
-
-        assert data == {
-            "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
-            "date_application_submitted": date_application_submitted,
-            "exporter_reference": exporter_reference,
-        }
-
-    def test_additional_context_without_base_application_name(self):
+    def test_get_document_context_without_base_application_name(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         base_application = case.baseapplication
         base_application.name = None
         base_application.save()
 
-        data = additional_context(case)
+        data = get_document_context(case)
         assert data["exporter_reference"] == ""
-
-    def test_additional_context_without_base_application(self):
-        case = CaseFactory()
-        today = datetime.date.today()
-
-        appeal_deadline = today + datetime.timedelta(days=28)
-        data = additional_context(case)
-
-        assert data == {
-            "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
-            "date_application_submitted": "",
-            "exporter_reference": "",
-        }
 
     @modify_settings(INSTALLED_APPS={"append": "api.letter_templates.tests"})
     def test_markdown_and_variables(self):
