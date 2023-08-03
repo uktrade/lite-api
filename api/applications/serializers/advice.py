@@ -68,6 +68,8 @@ class AdviceViewSerializer(serializers.Serializer):
         queryset=GovUser.objects.all(), serializer=GovUserListSerializer
     )
     countersign_comments = serializers.CharField()
+    # This field is used to differentiate Advices. Since we are implementing Licensing Unit notes, which replace refusal_reasons for LU ONLY,
+    # we need to keep track of this new note. If it's set to True, we know that it represents an Advice Refusal Note, rather than refusal_reasons, etc.
     is_refusal_note = serializers.BooleanField()
 
 
