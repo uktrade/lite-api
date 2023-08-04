@@ -106,7 +106,7 @@ class DocumentGenerationTestCase(DataTestClient):
 *{{ exporter_reference }}*
 [{{ exporter_reference }}](http://example.com), {{ exporter_reference }}""",
         )
-        with open(TEST_DATA_PATH / "markdown-variables.html") as expected_output_file:
-            expected_output = expected_output_file.read()
+        with open(TEST_DATA_PATH / "markdown-variables.html"):
+            expected_output = (TEST_DATA_PATH / "markdown-variables.html").read_text()
 
         assert generated_preview == expected_output
