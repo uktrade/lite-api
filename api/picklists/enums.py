@@ -1,7 +1,7 @@
 class PicklistType:
     PROVISO = "proviso"
     ECJU = "ecju_query"
-    LETTER_PARAGRAPH = "letter_paragraph"
+    LETTER_PARAGRAPH = "__"
     REPORT_SUMMARY = "report_summary"
     STANDARD_ADVICE = "standard_advice"
     REFUSAL_REASON = "refusal_reason"

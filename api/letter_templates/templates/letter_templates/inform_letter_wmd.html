@@ -1,0 +1,20 @@
+{% extends "letter_templates/ecju_base.html" %}
+
+{% block table %}
+  <table>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Reason for refusal</th>
+    </tr>
+    {% for refused in goods.refuse %}
+    <tr>
+      <td>{{ refused.good.name }}</td>
+      <td>
+        {% for denial_reason in refused.denial_reasons %}
+        Criterion {{ denial_reason.id }}: {{ denial_reason.description }}<br>
+        {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

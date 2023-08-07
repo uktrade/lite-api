@@ -619,7 +619,7 @@ class ApplicationFinaliseView(APIView):
             )
 
         # Check countersigning requirements and required countersignatures are present
-        ensure_lu_countersign_complete(application)
+        # ensure_lu_countersign_complete(application)
 
         # Check if any blocking flags are on the case
         blocking_flags = (
