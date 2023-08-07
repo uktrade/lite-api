@@ -300,7 +300,6 @@ class AdviceType:
     NO_LICENCE_REQUIRED = "no_licence_required"
     NOT_APPLICABLE = "not_applicable"
     CONFLICTING = "conflicting"
-    INFORM_LETTER = "inform letter"
 
     choices = [
         (APPROVE, "Approve"),
@@ -309,7 +308,6 @@ class AdviceType:
         (NO_LICENCE_REQUIRED, "No Licence Required"),
         (NOT_APPLICABLE, "Not Applicable"),
         (CONFLICTING, "Conflicting"),
-        (INFORM_LETTER, "Inform Letter"),
     ]
 
     ids = {
