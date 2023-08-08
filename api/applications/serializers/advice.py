@@ -68,8 +68,11 @@ class AdviceViewSerializer(serializers.Serializer):
         queryset=GovUser.objects.all(), serializer=GovUserListSerializer
     )
     countersign_comments = serializers.CharField()
-    # This field is used to differentiate Advices. Since we are implementing Licensing Unit notes, which replace refusal_reasons for LU ONLY,
+    # This field is used to differentiate Advices. Since we are implementing Licensing Unit notes, which replace refusal_reasons for LU ONLY
     # we need to keep track of this new note. If it's set to True, we know that it represents an Advice Refusal Note, rather than refusal_reasons, etc.
+    # The other thing I was thinking about was whether a charfield could be a better way to distinguish the text type...
+    # e.g. text_category=Choice("refusal_meeting_note", "refusal_reasons", "note", ...)
+    # Maybe we could consider that down the line if we need to do more categorisation here.
     is_refusal_note = serializers.BooleanField()
 
 
