@@ -105,20 +105,9 @@ def ensure_lu_countersign_complete(application):
     # to product attributes and we want to retain them, they also don't
     # block finalising the case but if they are applied then we need to ensure
     # necessary countersignatures are present before finalising the Case
-    countersign_process_flags = Flag.objects.filter(
-        id__in=[
-            FlagsEnum.LU_COUNTER_REQUIRED,
-            FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED,
-        ],
-        status=FlagStatuses.ACTIVE,
-    )
+    countersign_process_flags = get_countersign_process_flags()
     flags_to_remove = countersign_flags.intersection(countersign_process_flags)
-
-    for party_on_application in application.parties.all():
-        if not flags_to_remove.intersection(party_on_application.party.flags.all()):
-            continue
-
-        party_on_application.party.flags.remove(*flags_to_remove)
+    remove_countersign_process_flags(application)
 
     if flags_to_remove:
         # Even though flags may be removed from multiple parties,
@@ -132,6 +121,28 @@ def ensure_lu_countersign_complete(application):
                 "is_lu_countersign_finalise_case": True,
             },
         )
+
+
+def get_countersign_process_flags():
+    """
+    Get all flags which govern routing in the countersign process.
+    """
+    return Flag.objects.filter(
+        id__in=[
+            FlagsEnum.LU_COUNTER_REQUIRED,
+            FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED,
+        ],
+        status=FlagStatuses.ACTIVE,
+    )
+
+
+def remove_countersign_process_flags(application):
+    """
+    Delete all flags from parties on a case which govern routing in the countersign process.
+    """
+    countersign_process_flags = get_countersign_process_flags()
+    for party_on_application in application.parties.all():
+        party_on_application.party.flags.remove(*countersign_process_flags)
 
 
 def mark_lu_rejected_countersignatures_as_invalid(case, user):
