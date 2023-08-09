@@ -109,7 +109,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             audit_qs = audit_trail_service.get_activity_for_user_and_model(request.user, template_object)
             data["activity"] = AuditSerializer(audit_qs, many=True).data
 
-        data["inform_letter_picklist"] = TinyPicklistSerializer(paragraphs, many=True).data
+        data["paragraph_details"] = TinyPicklistSerializer(paragraphs, many=True).data
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 

@@ -30,10 +30,11 @@ def populate_inform_letter_template(apps, schema_editor):
  
     
     INFORM_LETTERS = [
-        {"name": "Weapons of mass destruction (WMD)", "text":"Hello WMD"},
-        {"name": "Military and military", "text": "Hello MAM"},
-        {"name": "Military and weapons of mass destruction (WMD)", "text" :"Hello MWMD"},
+        ("Weapons of mass destruction (WMD)", "wmd.txt"),
+        ("Military and military", "mam.txt"),
+        ("Military and weapons of mass destruction (WMD)", "mwmd.txt"),
     ]
+    
     PicklistItem = apps.get_model("picklists", "PicklistItem")
      
     picklist_item_ids = []
@@ -43,30 +44,31 @@ def populate_inform_letter_template(apps, schema_editor):
     Team = apps.get_model("teams", "Team")
     lu_team = Team.objects.get(pk=TeamIdEnum.LICENSING_UNIT)
 
-
     for inform_letter in INFORM_LETTERS:
-            pick_list_item = PicklistItem(
-                team=lu_team,
-                name=inform_letter["name"],
-                text=inform_letter["text"],
-                type=PicklistType.LETTER_PARAGRAPH,
-                status=PickListStatus.ACTIVE,
-            )
-            pick_list_item.save()
-            picklist_item_ids.append(pick_list_item.id)
+            name, file_name = inform_letter
+            with  open(f"lite_content/lite_api/letter_paragraphs/inform_letter_{file_name}", "r") as f:
+                text = f.read()
+                pick_list_item = PicklistItem(
+                    team=lu_team,
+                    name=name,
+                    text=text,
+                    type=PicklistType.LETTER_PARAGRAPH,
+                    status=PickListStatus.ACTIVE,
+                )
+                pick_list_item.save()
+                picklist_item_ids.append(pick_list_item.id)
     
 
     inform_letter_template.letter_paragraphs.set(picklist_item_ids)
     inform_letter_template.case_types.set([CaseTypeEnum.SIEL.id])
-    inform_letter_template.case_types.set([AdviceType.ids[AdviceType.REFUSE]])
-   
+    inform_letter_template.decisions.set([AdviceType.ids[AdviceType.REFUSE]])
     inform_letter_template.save()        
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("letter_templates", "0002_auto_20210426_1014"),
+        ("letter_templates", "0003_populate_seed_data"),
     ]
 
     operations = [
