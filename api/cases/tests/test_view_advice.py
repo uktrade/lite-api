@@ -184,5 +184,8 @@ class FinalAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_data = response.json()["advice"]
-        matching_advice = [advice for advice in response_data if advice["id"] == data[0]["id"]][0]
-        assert matching_advice["text"] == "changed_refusal_note_1"
+        matching_advices = [advice for advice in response_data if advice["id"] in refusal_uuids]
+
+        for advice in matching_advices:
+            assert advice["text"] == "changed_refusal_note_1"
+            assert advice["denial_reasons"] == ["1b"]

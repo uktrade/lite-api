@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from django.conf import settings
 from api.staticdata.denial_reasons.serializers import DenialReasonSerializer
@@ -191,13 +192,27 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
 
 
 class AdviceUpdateListSerializer(serializers.ListSerializer):
-    def update(self, instances, validated_data):
-        instance_map = {index: instance for index, instance in enumerate(instances)}
-        result = [self.child.update(instance_map[index], data) for index, data in enumerate(validated_data)]
-        return result
+    def update(self, instance, validated_data):
+        # Maps for id->instance and id->data item.
+        advice_mapping = {advice.id: advice for advice in instance}
+        data_mapping = {uuid.UUID(item["id"]): item for item in validated_data}
+
+        ret = []
+        for advice_id, data in data_mapping.items():
+            advice = advice_mapping.get(advice_id)
+            ret.append(self.child.update(advice, data))
+
+        return ret
 
 
 class AdviceUpdateSerializer(AdviceCreateSerializer):
+    # https://www.django-rest-framework.org/api-guide/serializers/#customizing-multiple-update
+    # You will need to add an explicit id field to the instance serializer.
+    # The default implicitly-generated id field is marked as read_only.
+    # This causes it to be removed on updates. Once you declare it explicitly,
+    # it will be available in the list serializer's update method.
+    id = serializers.CharField()
+
     class Meta:
         model = Advice
         list_serializer_class = AdviceUpdateListSerializer

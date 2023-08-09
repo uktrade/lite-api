@@ -2,7 +2,6 @@ from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
-from django.db.models import Case, When, IntegerField
 
 from api.applications.serializers.advice import AdviceCreateSerializer, AdviceUpdateSerializer
 from api.applications.views.helpers.advice import mark_lu_rejected_countersignatures_as_invalid
@@ -150,9 +149,6 @@ def update_advice(request, case, level):
     data = request.data
     advice_ids = [item["id"] for item in data]
     advice_to_update = Advice.objects.filter(id__in=advice_ids)
-    # Preserving order as in advice_ids since the serializer AdviceUpdateListSerializer is based on the order to get things updated
-    preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(advice_ids)], output_field=IntegerField())
-    advice_to_update = Advice.objects.filter(id__in=advice_ids).annotate(ordering=preserved_order).order_by("ordering")
 
     serializer = AdviceUpdateSerializer(
         advice_to_update,
