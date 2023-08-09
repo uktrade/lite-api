@@ -1,4 +1,6 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
+import datetime
+
 from django.db.models import Q
 
 from rest_framework import serializers
@@ -897,6 +899,17 @@ def get_document_context(case, addressee=None):
     if not addressee and case.submitted_by:
         addressee = case.submitted_by
 
+    appeal_deadline = datetime.date.today() + datetime.timedelta(days=28)
+    exporter_reference = ""
+    date_application_submitted = ""
+
+    if base_application:
+        if base_application.name:
+            exporter_reference = base_application.name
+
+        if base_application.submitted_at:
+            date_application_submitted = base_application.submitted_at.strftime("%d %B %Y")
+
     return {
         "case_reference": case.reference_code,
         "case_submitted_at": case.submitted_at,
@@ -925,6 +938,9 @@ def get_document_context(case, addressee=None):
         "external_locations": ExternalLocationSerializer(external_locations, many=True).data,
         "documents": ApplicationDocumentSerializer(documents, many=True).data,
         "destinations": CountryOnApplicationSerializer(destinations, many=True).data,
+        "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
+        "date_application_submitted": date_application_submitted,
+        "exporter_reference": exporter_reference,
     }
 
 
