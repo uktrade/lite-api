@@ -292,7 +292,6 @@ class CaseReferenceCode(models.Model):
 
 
 class CaseNoteMentions(TimestampableModel):
-
     user = models.ForeignKey(GovUser, on_delete=models.DO_NOTHING, related_name="mentions")
     team = models.ForeignKey(Team, on_delete=models.DO_NOTHING, null=True, blank=True, related_name="mentions")
     case_note = models.ForeignKey("cases.CaseNote", on_delete=models.DO_NOTHING, related_name="mentions", default=None)
@@ -399,6 +398,7 @@ class Advice(TimestampableModel):
     type = models.CharField(choices=AdviceType.choices, max_length=30)
     text = models.TextField(default=None, blank=True, null=True)
     note = models.TextField(default=None, blank=True, null=True)
+    is_refusal_note = models.BooleanField(default=False)
     team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True)
     level = models.CharField(choices=AdviceLevel.choices, max_length=30)
 
