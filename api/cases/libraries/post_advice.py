@@ -155,6 +155,7 @@ def update_advice(request, case, level):
     data = request.data
     advice_ids = [item["id"] for item in data]
     advice_to_update = Advice.objects.filter(id__in=advice_ids)
+
     serializer = AdviceUpdateSerializer(
         advice_to_update,
         data=data,

@@ -1,10 +1,15 @@
 from django.urls import reverse
 from rest_framework import status
+import uuid
 
-from api.cases.enums import AdviceLevel
+from api.cases.enums import AdviceLevel, AdviceType
 from api.cases.tests.factories import UserAdviceFactory, TeamAdviceFactory, FinalAdviceFactory
 from api.core.helpers import date_to_drf_date
+from api.users.libraries.user_to_token import user_to_token
+from api.users.models import Role
 from test_helpers.clients import DataTestClient
+from api.staticdata.denial_reasons.models import DenialReason
+from api.core import constants
 
 
 class ViewCaseAdviceTests(DataTestClient):
@@ -50,3 +55,137 @@ class ViewCaseAdviceTests(DataTestClient):
         # Team advice
         self.assertEqual(response_data[2]["level"], AdviceLevel.FINAL)
         self._assert_advice(response_data[2], final_advice)
+
+
+class FinalAdviceTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_draft_standard_application(self.organisation)
+        self.case = self.submit_application(self.application)
+
+        self.final_case_url = reverse("cases:case_final_advice", kwargs={"pk": self.case.id})
+
+        role = Role(name="team_level")
+        role.permissions.set(
+            [
+                constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
+            ]
+        )
+        role.save()
+
+        self.gov_user.role = role
+        self.gov_user.save()
+
+    def test_put_final_advice_with_refusal_note_and_nlr(self):
+        refusal_uuids = {
+            "7ad07d44-e5bd-45fc-92c6-6420154e0812",
+            "7af31871-ac2f-4028-8b2e-97860b60a8fe",
+            "79bfb05a-dc73-4727-bf54-fc5dc5ccb010",
+            "133cf92e-f981-484b-8e83-fc7d615594c1",
+        }
+
+        nlr_uuids = {
+            "9067a830-b639-4bff-a257-9d2c3d01ae79",
+            "98cb8fed-6f3b-4f37-9ac7-9e7c9d073cd7",
+            "9e3cbbd7-8a68-4512-b71e-25bfe135dcce",
+            "fc50f2cc-af69-4fbe-aa78-f8518c0f9d48",
+        }
+
+        for u in nlr_uuids:
+            advice = FinalAdviceFactory(
+                id=uuid.UUID(u),
+                user=self.gov_user,
+                team=self.team,
+                case=self.case,
+                type=AdviceType.NO_LICENCE_REQUIRED,
+            )
+            advice.denial_reasons.set([DenialReason.objects.get(id="7")])
+
+        for u in refusal_uuids:
+            advice = FinalAdviceFactory(
+                id=uuid.UUID(u),
+                text="refusal_note_1",
+                user=self.gov_user,
+                team=self.team,
+                case=self.case,
+                type=AdviceType.REFUSE,
+                is_refusal_note=True,
+            )
+            advice.denial_reasons.set([DenialReason.objects.get(id="7")])
+
+        data = [
+            {
+                "id": "7ad07d44-e5bd-45fc-92c6-6420154e0812",
+                "text": "changed_refusal_note_1",
+                "denial_reasons": ["1b"],
+                "footnote": None,
+                "footnote_required": None,
+            },
+            {
+                "id": "7af31871-ac2f-4028-8b2e-97860b60a8fe",
+                "text": "changed_refusal_note_1",
+                "denial_reasons": ["1b"],
+                "footnote": None,
+                "footnote_required": None,
+            },
+            {
+                "id": "79bfb05a-dc73-4727-bf54-fc5dc5ccb010",
+                "text": "changed_refusal_note_1",
+                "denial_reasons": ["1b"],
+                "footnote": None,
+                "footnote_required": None,
+            },
+            {
+                "id": "133cf92e-f981-484b-8e83-fc7d615594c1",
+                "text": "changed_refusal_note_1",
+                "denial_reasons": ["1b"],
+                "footnote": None,
+                "footnote_required": None,
+            },
+            {
+                "id": "9067a830-b639-4bff-a257-9d2c3d01ae79",
+                "text": "",
+                "proviso": "",
+                "note": "",
+                "denial_reasons": [],
+                "footnote": None,
+                "footnote_required": None,
+            },
+            {
+                "id": "98cb8fed-6f3b-4f37-9ac7-9e7c9d073cd7",
+                "text": "",
+                "proviso": "",
+                "note": "",
+                "denial_reasons": [],
+                "footnote": None,
+                "footnote_required": None,
+            },
+            {
+                "id": "9e3cbbd7-8a68-4512-b71e-25bfe135dcce",
+                "text": "",
+                "proviso": "",
+                "note": "",
+                "denial_reasons": [],
+                "footnote": None,
+                "footnote_required": None,
+            },
+            {
+                "id": "fc50f2cc-af69-4fbe-aa78-f8518c0f9d48",
+                "text": "",
+                "proviso": "",
+                "note": "",
+                "denial_reasons": [],
+                "footnote": None,
+                "footnote_required": None,
+            },
+        ]
+
+        response = self.client.put(self.final_case_url, **self.gov_headers, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_data = response.json()["advice"]
+        matching_advices = [advice for advice in response_data if advice["id"] in refusal_uuids]
+
+        for advice in matching_advices:
+            assert advice["text"] == "changed_refusal_note_1"
+            assert advice["denial_reasons"] == ["1b"]
