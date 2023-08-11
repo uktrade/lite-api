@@ -1,8 +1,14 @@
 from pathlib import Path
 
 from django.test import modify_settings, TestCase
+
+# import datetime
+from django.test import TestCase
+
+# from api.cases.tests.factories import CaseFactory
+from api.letter_templates.context_generator import get_document_context
 from test_helpers.clients import DataTestClient
-from api.letter_templates.helpers import generate_preview
+from api.letter_templates.helpers import convert_var_to_text, generate_preview
 
 
 TEST_DATA_PATH = Path(__file__).resolve().parent / "data"
@@ -71,3 +77,36 @@ class DocumentGenerationTestCase(DataTestClient):
 
         # Additional check to make sure that we actually get some output even if there are no errors
         assert preview_output
+
+    def test_convert_var_to_text(self):
+        text = "Having carefully considered your application, {{ appeal_deadline }} {{ date_application_submitted }}"
+        data = {"appeal_deadline": "22 August 2023", "date_application_submitted": "25 July 2023"}
+
+        assert (
+            convert_var_to_text(text, data)
+            == "Having carefully considered your application, 22 August 2023 25 July 2023"
+        )
+
+    def test_get_document_context_without_base_application_name(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        base_application = case.baseapplication
+        base_application.name = None
+        base_application.save()
+
+        data = get_document_context(case)
+        assert data["exporter_reference"] == ""
+
+    @modify_settings(INSTALLED_APPS={"append": "api.letter_templates.tests"})
+    def test_markdown_and_variables(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        generated_preview = generate_preview(
+            case=case,
+            layout="user_content",
+            text="""**{{ exporter_reference }}**
+*{{ exporter_reference }}*
+[{{ exporter_reference }}](http://example.com), {{ exporter_reference }}""",
+        )
+        with open(TEST_DATA_PATH / "markdown-variables.html"):
+            expected_output = (TEST_DATA_PATH / "markdown-variables.html").read_text()
+
+        assert generated_preview == expected_output

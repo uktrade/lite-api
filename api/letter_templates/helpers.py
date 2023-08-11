@@ -1,4 +1,5 @@
 import os
+from django.template import Context, Template
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -62,7 +63,16 @@ def generate_preview(
         "user_content": format_user_text(text),
         "css": css_string,
     }
+
     if case:
         context.update(get_document_context(case, additional_contact))
+        context["user_content"] = format_user_text(convert_var_to_text(text, context))
 
     return render_to_string(template_name, context)
+
+
+def convert_var_to_text(text, data):
+    template = Template(text)
+    context = Context(data)
+
+    return template.render(context)

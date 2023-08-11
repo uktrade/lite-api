@@ -50,6 +50,7 @@ class AdviceDataWorkspaceTests(DataTestClient):
             "denial_reasons",
             "countersigned_by",
             "countersign_comments",
+            "is_refusal_note",
         }
         assert set(last_result.keys()) == expected_fields
 
