@@ -14,6 +14,7 @@ class TemplateType(Enum):
     EXPORTER_CASE_OPENED_FOR_EDITING = "exporter_editing"
     EXPORTER_ECJU_QUERY = "exporter_ecju_query"
     EXPORTER_NO_LICENCE_REQUIRED = "exporter_no_licence_required"
+    EXPORTER_INFORM_LETTER = "exporter_inform_letter"
     CASEWORKER_COUNTERSIGN_CASE_RETURN = "caseworker_countersign_case_return"
 
     @property
@@ -34,5 +35,6 @@ class TemplateType(Enum):
             self.CASEWORKER_REGISTERED_NEW_ORG: "d835dba3-ca85-4a27-b257-e31a17f0e61d",
             self.EXPORTER_CASE_OPENED_FOR_EDITING: "73121bc2-2f03-4c66-8e88-61a156c05559",
             self.EXPORTER_NO_LICENCE_REQUIRED: "d84d1843-882c-440e-9cd4-84972ba612e6",
+            self.EXPORTER_INFORM_LETTER: "7b63296f-af08-46bf-961e-19bdde93761c",
             self.CASEWORKER_COUNTERSIGN_CASE_RETURN: "4d418015-cd7c-498f-a972-72e7ec4468cc",
         }[self]

@@ -9,6 +9,7 @@ from gov_notify.payloads import (
     ExporterLicenceRefused,
     ExporterNoLicenceRequired,
     ExporterLicenceRevoked,
+    ExporterInformLetter,
 )
 from gov_notify.service import send_email
 
@@ -123,3 +124,14 @@ def notify_exporter_no_licence_required(case):
             "exporter_frontend_url": get_exporter_frontend_url("/"),
         },
     )
+
+
+def notify_exporter_inform_letter(case):
+    case = case.get_case()
+    exporter = case.submitted_by
+    payload = ExporterInformLetter(
+        user_first_name=exporter.first_name,
+        application_reference=case.reference_code,
+        exporter_frontend_url=get_exporter_frontend_url("/"),
+    )
+    send_email(exporter.email, TemplateType.EXPORTER_INFORM_LETTER, payload)

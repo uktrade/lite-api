@@ -86,6 +86,14 @@ class DataclassTests(APITestCase):
                 },
             ),
             (
+                payloads.ExporterInformLetter,
+                {
+                    "application_reference": "testref",
+                    "user_first_name": "testname",
+                    "exporter_frontend_url": "https://some.domain/foo",
+                },
+            ),
+            (
                 payloads.CaseWorkerNewRegistration,
                 {
                     "organisation_name": "testref",
