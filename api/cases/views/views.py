@@ -412,10 +412,10 @@ class FinalAdviceDocuments(APIView):
             advice_documents[document["advice_type"]["key"]]["document"] = document
 
         if AdviceType.REFUSE in final_advice:
-            pass
+            #pass
             # The line below is being commented as this forces a inform letter to be displayed which isn't ready yet.
             # Uncomment for testing inform letter locally
-            # advice_documents["inform_letter"] = {"value": "Inform letter"}
+            advice_documents["inform_letter"] = {"value": "Inform letter"}
 
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
