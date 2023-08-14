@@ -23,6 +23,7 @@ from api.staticdata.management.commands import (
     seedcontrollistentries,
     seedcountries,
     seeddenialreasons,
+    seedlettertemplates,
     seedrolepermissions,
     seedfinaldecisions,
 )
@@ -97,3 +98,23 @@ class SeedingTests(SeedCommandTest):
             self.assertTrue(
                 Decision.objects.filter(id=AdviceType.ids[key], name=key).exists(), f"Decision {key} does not exist"
             )
+
+    @pytest.mark.seeding
+    def test_seed_letter_templates(self):
+        with NamedTemporaryFile(suffix=".csv", delete=True) as tmp_file:
+            layout = LetterLayout.objects.create(name="layout1", filename="filename1")
+            content = [
+                "name,layout_id,visible_to_exporter,include_digital_signature,casetype_id",
+                f"template1,{layout.id},true,true,00000000-0000-0000-0000-000000000004",
+                f"template2,{layout.id},true,true,00000000-0000-0000-0000-000000000004",
+            ]
+            tmp_file.write(("\n".join(content)).encode("utf-8"))
+            tmp_file.flush()
+            seedlettertemplates.LETTER_TEMPLATES_FILE = tmp_file.name
+            self.seed_command(seedlettertemplates.Command)
+
+            self.assertEqual(LetterTemplate.objects.count(), 2)
+
+            # running again with existing templates does nothing
+            self.seed_command(seedlettertemplates.Command)
+            self.assertEqual(LetterTemplate.objects.count(), 2)

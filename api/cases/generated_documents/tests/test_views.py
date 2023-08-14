@@ -25,6 +25,9 @@ class GeneratedDocumentSendTests(DataTestClient):
         assert response.status_code == 404
 
     def test_post_no_notification(self):
+        import pdb
+
+        pdb.set_trace()
         generated_document = GeneratedCaseDocumentFactory(
             template=LetterTemplate.objects.first(),
             case=self.case,
