@@ -30,7 +30,6 @@ SEED_COMMANDS = {
         "seedlayouts",
         "seedfinaldecisions",
         "seedf680clearancetypes",
-        "seedlettertemplates",
     ],
 }
 
