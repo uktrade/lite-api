@@ -412,9 +412,6 @@ class FinalAdviceDocuments(APIView):
         for document in generated_advice_documents:
             advice_documents[document["advice_type"]["key"]]["document"] = document
 
-        if AdviceType.REFUSE in final_advice:
-            advice_documents["inform_letter"] = {"value": "Inform letter"}
-
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
 
