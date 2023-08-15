@@ -53,7 +53,7 @@ def populate_inform_letter_template(apps, schema_editor):
     inform_letter_template = LetterTemplates.objects.create(
         name="Inform letter",
         layout=inform_letter_layout,
-        visible_to_exporter=True, 
+        visible_to_exporter=False, 
         include_digital_signature=True
     )
  
