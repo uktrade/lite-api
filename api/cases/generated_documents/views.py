@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from rest_framework import status, generics
@@ -18,6 +19,7 @@ from api.cases.generated_documents.serializers import (
 )
 from api.cases.generated_documents.signing import sign_pdf
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
+from api.cases.notify import notify_exporter_inform_letter
 from api.core.authentication import GovAuthentication, SharedAuthentication
 from api.core.decorators import authorised_to_view_application
 from api.core.helpers import str_to_bool
@@ -145,3 +147,25 @@ class GeneratedDocumentPreview(APIView):
         """
         document = get_generated_document_data(request.GET, pk)
         return Response(data={"preview": document.document_html})
+
+
+NOTIFICATION_FUNCTIONS = {
+    "inform_letter": notify_exporter_inform_letter,
+}
+
+
+class GeneratedDocumentSend(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def post(self, request, pk, document_pk):
+        document = get_object_or_404(GeneratedCaseDocument.objects.filter(case_id=pk), pk=document_pk)
+        document.visible_to_exporter = True
+        document.save()
+
+        layout_name = document.template.layout.filename
+
+        if NOTIFICATION_FUNCTIONS.get(layout_name):
+            NOTIFICATION_FUNCTIONS[layout_name](document.case)
+            return Response(data={"notification_sent": True})
+
+        return Response(data={"notification_sent": False})
