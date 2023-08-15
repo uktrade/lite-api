@@ -234,6 +234,7 @@ class AdviceUpdateSerializer(AdviceCreateSerializer):
             "consignee",
             "third_party",
             "country",
+            "is_refusal_note",
         )
 
 
