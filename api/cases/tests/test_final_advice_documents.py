@@ -166,4 +166,4 @@ class OpenApplicationAdviceDocumentsTests(DataTestClient):
 
         # GoodCountryDecision overrides the approve final advice with a rejection
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data, {"refuse": {"value": "Refuse"}})
+        self.assertEqual(response_data, {"refuse": {"value": "Refuse"}, "inform_letter": {"value": "Inform letter"}})
