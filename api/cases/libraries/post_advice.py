@@ -163,12 +163,22 @@ def update_advice(request, case, level):
     serializer.save()
 
     mark_lu_rejected_countersignatures_as_invalid(case, request.user)
-    audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_to_update.first().type, data, case, request)
+
+    if advice_to_update.first().is_refusal_note:
+        audit_lu_countersigning(AuditType.LU_EDIT_NOTE, advice_to_update.first().type, data, case, request)
+    else:
+        audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_to_update.first().type, data, case, request)
 
     return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
 
 
 def audit_lu_countersigning(audit_type, advice_type, data, case, request):
+    ADVICE_AUDIT_LIST = {
+        AuditType.LU_EDIT_ADVICE,
+        AuditType.LU_EDIT_NOTE,
+        AuditType.LU_CREATE_NOTE,
+    }
+
     if request.user.govuser.team == Team.objects.get(id=TeamIdEnum.LICENSING_UNIT) and advice_type in [
         AdviceType.APPROVE,
         AdviceType.REFUSE,
@@ -181,7 +191,7 @@ def audit_lu_countersigning(audit_type, advice_type, data, case, request):
         }
         if advice_type == AdviceType.PROVISO:
             audit_payload["additional_text"] = data[0]["proviso"]
-        elif audit_type == AuditType.LU_EDIT_ADVICE:
+        elif audit_type in ADVICE_AUDIT_LIST:
             audit_payload["additional_text"] = data[0]["text"]
 
         audit_trail_service.create(actor=request.user, verb=audit_type, target=case, payload=audit_payload)
