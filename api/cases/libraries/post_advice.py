@@ -114,7 +114,12 @@ def post_advice(request, case, level, team=False):
             GeneratedCaseDocument.objects.filter(
                 case_id=case.id, advice_type__isnull=False, visible_to_exporter=False
             ).delete()
-            audit_lu_countersigning(AuditType.LU_ADVICE, data[0]["type"], data, case, request)
+
+            if data[0].get("is_refusal_note", False):
+                audit_lu_countersigning(AuditType.LU_CREATE_NOTE, data[0]["type"], data, case, request)
+            else:
+                audit_lu_countersigning(AuditType.LU_ADVICE, data[0]["type"], data, case, request)
+
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
     errors = {}

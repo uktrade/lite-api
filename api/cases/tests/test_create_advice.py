@@ -257,6 +257,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "footnote": None,
             "footnote_required": "False",
             "case": self.case.id,
+            "is_refusal_note": False,
         }
 
         response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
@@ -304,6 +305,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "footnote": None,
             "footnote_required": "False",
             "case": self.case.id,
+            "is_refusal_note": False,
         }
 
         # Add initial advice to DB:
@@ -361,6 +363,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "footnote": None,
             "footnote_required": "False",
             "case": self.case.id,
+            "is_refusal_note": False,
         }
 
         # Add initial advice to DB:
@@ -376,6 +379,78 @@ class CreateCaseAdviceTests(DataTestClient):
         lu_advice_update_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_ADVICE)
         assert not lu_advice_audit.exists()
         assert not lu_advice_update_audit.exists()
+
+    def test_update_lu_refusal_note_has_audit(self):
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.REFUSE,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": ["WMD"],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+            "is_refusal_note": True,
+        }
+
+        # Add initial advice to DB:
+        resp = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+        data["text"] = "Updated Text"
+        data["id"] = resp.json()["advice"][0]["id"]
+
+        # Update advice
+        response = self.client.put(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_200_OK
+
+        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_NOTE)
+        assert lu_advice_audit.exists()
+        audit_obj = lu_advice_audit.first()
+        audit_text = AuditSerializer(audit_obj).data["text"]
+        assert audit_text == " edited their refusal meeting note."
+
+    def test_create_lu_refusal_note_has_audit(self):
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.REFUSE,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": ["WMD"],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+            "is_refusal_note": True,
+        }
+
+        response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_CREATE_NOTE)
+
+        assert lu_advice_audit.exists()
+        audit_obj = lu_advice_audit.first()
+        audit_text = AuditSerializer(audit_obj).data["text"]
+        assert audit_text == " added a refusal meeting note."
 
 
 class CountersignAdviceTests(DataTestClient):
