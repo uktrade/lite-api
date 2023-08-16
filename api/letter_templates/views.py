@@ -2,6 +2,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from api.picklists.serializers import TinyPicklistSerializer
 from rest_framework import generics, status
+from django.conf import settings
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -40,6 +41,10 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         name = self.request.GET.get("name")
         decision = self.request.GET.get("decision")
         queryset = LetterTemplate.objects.all().prefetch_related("layout", "case_types")
+
+        if not settings.FEATURE_INFORM_LETTER_ENABLED:
+            queryset = queryset.exclude(name="Inform letter")
+
         if decision:
             case = get_case(pk=case)
             decision = Decision.objects.get(name=decision)

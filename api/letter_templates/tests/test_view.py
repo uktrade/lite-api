@@ -1,5 +1,9 @@
+from api.letter_templates.models import LetterTemplate
+from api.staticdata import decisions
+from api.staticdata.letter_layouts.models import LetterLayout
 from rest_framework import status
 from rest_framework.reverse import reverse
+from django.test import override_settings
 
 from api.cases.enums import AdviceType, CaseTypeReferenceEnum
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
@@ -28,6 +32,39 @@ class LetterTemplatesListTests(DataTestClient):
         case_types = [item["reference"]["key"] for item in response_data["case_types"]]
         self.assertIn(CaseTypeReferenceEnum.GQY, case_types)
         self.assertIn(CaseTypeReferenceEnum.EUA, case_types)
+
+    @override_settings(FEATURE_INFORM_LETTER_ENABLED=True)
+    def test_get_letter_templates_success_inform_letter_feature_enabled(self):
+        url = reverse("letter_templates:letter_templates")
+
+        letter_template = LetterTemplate.objects.create(
+            name="Inform letter",
+            layout=LetterLayout.objects.first(),
+            visible_to_exporter=False,
+            include_digital_signature=False,
+        )
+        letter_template.decisions.set([AdviceType.ids[AdviceType.REFUSE]])
+        letter_template.case_types.set([CaseTypeEnum.SICL.id])
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(len([r for r in response.json()["results"] if r["name"] == "Inform letter"]), 1)
+
+    def test_get_letter_templates_success_inform_letter_feature_disabled(self):
+        url = reverse("letter_templates:letter_templates")
+
+        letter_template = LetterTemplate.objects.create(
+            name="Inform letter",
+            layout=LetterLayout.objects.first(),
+            visible_to_exporter=False,
+            include_digital_signature=False,
+        )
+        letter_template.decisions.set([AdviceType.ids[AdviceType.REFUSE]])
+        letter_template.case_types.set([CaseTypeEnum.SICL.id])
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(len([r for r in response.json()["results"] if r["name"] == "Inform letter"]), 0)
 
     def test_filter_letter_templates_success(self):
         url = reverse("letter_templates:letter_templates") + "?name=" + self.letter_template.name
