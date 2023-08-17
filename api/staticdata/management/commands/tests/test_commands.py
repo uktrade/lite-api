@@ -101,6 +101,8 @@ class SeedingTests(SeedCommandTest):
 
     @pytest.mark.seeding
     def test_seed_letter_templates(self):
+        # Since we are a migrating a letter template this command now requires an empty lettertemplate table
+        LetterLayout.objects.all().delete()
         with NamedTemporaryFile(suffix=".csv", delete=True) as tmp_file:
             layout = LetterLayout.objects.create(name="layout1", filename="filename1")
             content = [
@@ -113,8 +115,8 @@ class SeedingTests(SeedCommandTest):
             seedlettertemplates.LETTER_TEMPLATES_FILE = tmp_file.name
             self.seed_command(seedlettertemplates.Command)
 
-        self.assertEqual(LetterTemplate.objects.count(), 2)
+            self.assertEqual(LetterTemplate.objects.count(), 2)
 
-        # running again with existing templates does nothing
-        self.seed_command(seedlettertemplates.Command)
-        self.assertEqual(LetterTemplate.objects.count(), 2)
+            # running again with existing templates does nothing
+            self.seed_command(seedlettertemplates.Command)
+            self.assertEqual(LetterTemplate.objects.count(), 2)
