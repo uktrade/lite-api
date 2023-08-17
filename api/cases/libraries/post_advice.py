@@ -123,7 +123,7 @@ def post_advice(request, case, level, team=False):
             # Refused applications do not need to go through LU countersign - so remove the countersign flags now
             if advice_type == AdviceType.REFUSE:
                 application = get_application(case.id)
-                remove_countersign_process_flags(application)
+                remove_countersign_process_flags(application, case)
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -178,7 +178,7 @@ def update_advice(request, case, level):
     # Refused applications do not need to go through LU countersign - so remove the countersign flags now
     if advice_type == AdviceType.REFUSE and level == AdviceLevel.FINAL:
         application = get_application(case.id)
-        remove_countersign_process_flags(application)
+        remove_countersign_process_flags(application, case)
 
     return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
 
