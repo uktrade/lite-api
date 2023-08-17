@@ -21,6 +21,7 @@ from api.applications.enums import (
     NSGListType,
 )
 
+from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager, HmrcQueryManager
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum
@@ -194,6 +195,8 @@ class BaseApplication(ApplicationPartyMixin, Case):
     intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
     agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
     foi_reason = models.TextField(blank=True, default="")
+
+    appeal = models.OneToOneField(Appeal, blank=True, null=True, on_delete=models.SET_NULL)
 
     objects = BaseApplicationManager()
 
