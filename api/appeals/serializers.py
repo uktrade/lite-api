@@ -6,4 +6,7 @@ from .models import Appeal
 class AppealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appeal
-        fields = ("grounds_for_appeal",)
+        fields = (
+            "id",
+            "grounds_for_appeal",
+        )
