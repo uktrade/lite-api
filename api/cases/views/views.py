@@ -4,7 +4,7 @@ from django.http.response import JsonResponse, HttpResponse
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
-from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 
 from api.applications.models import GoodOnApplication
@@ -42,6 +42,7 @@ from api.cases.libraries.post_advice import (
     case_advice_contains_refusal,
 )
 from api.cases.models import (
+    Case,
     CaseDocument,
     EcjuQuery,
     EcjuQueryDocument,
@@ -60,6 +61,7 @@ from api.cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
     EcjuQueryCreateSerializer,
+    CaseDetailBasicSerializer,
     CaseDetailSerializer,
     EcjuQueryGovSerializer,
     AdviceViewSerializer,
@@ -149,6 +151,12 @@ class CaseDetail(APIView):
             request.user, get_case_status_by_status(request.data.get("status")), request.data.get("note")
         )
         return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class CaseDetailBasic(RetrieveAPIView):
+    authentication_classes = (GovAuthentication,)
+    queryset = Case.objects.all()
+    serializer_class = CaseDetailBasicSerializer
 
 
 class SetQueues(APIView):
