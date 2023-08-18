@@ -5,12 +5,12 @@ from django.http import Http404
 from api.core.authentication import ExporterAuthentication
 
 from .models import Appeal
-from .serializers import AppealDocumentSerializer
+from .serializers import AppealDocumentCreateSerializer
 
 
 class AppealDocuments(CreateAPIView):
     authentication_classes = (ExporterAuthentication,)
-    serializer_class = AppealDocumentSerializer
+    serializer_class = AppealDocumentCreateSerializer
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
