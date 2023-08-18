@@ -3,14 +3,21 @@ from uuid import UUID
 
 from django.db import transaction
 from django.db.models import F, Q
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError, ParseError
-from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
+from rest_framework.generics import (
+    CreateAPIView,
+    ListAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
+)
 from rest_framework.views import APIView
 
+from api.appeals.serializers import AppealSerializer
 from api.applications import constants
 from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from api.applications.enums import ContractType
@@ -1033,3 +1040,21 @@ class ApplicationRouteOfGoods(UpdateAPIView):
             target=case,
             payload={"route_of_goods_field": field, "previous_value": previous_value, "new_value": new_value},
         )
+
+
+class ApplicationAppeal(CreateAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = AppealSerializer
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+
+        try:
+            self.application = BaseApplication.objects.get(pk=self.kwargs["pk"])
+        except BaseApplication.DoesNotExist:
+            raise Http404()
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        self.application.appeal = serializer.instance
+        self.application.save()
