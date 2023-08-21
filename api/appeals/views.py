@@ -3,7 +3,6 @@ from rest_framework.generics import (
     RetrieveAPIView,
 )
 
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 
 from api.core.authentication import ExporterAuthentication
@@ -21,11 +20,7 @@ class AppealCreateDocumentAPIView(CreateAPIView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-
-        try:
-            self.appeal = Appeal.objects.get(pk=self.kwargs["pk"])
-        except Appeal.DoesNotExist:
-            raise Http404()
+        self.appeal = get_object_or_404(Appeal, pk=self.kwargs["pk"])
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
