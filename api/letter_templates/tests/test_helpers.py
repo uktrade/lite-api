@@ -112,26 +112,3 @@ class DocumentGenerationTestCase(DataTestClient):
             expected_output = (TEST_DATA_PATH / "markdown-variables.html").read_text()
 
         assert generated_preview == expected_output
-
-    @parameterized.expand(
-        (
-            [AdviceType.APPROVE, "siel"],
-            [AdviceType.REFUSE, "refusal"],
-        )
-    )
-    def test_appeal_deadline_populated(self, advice_type, layout):
-        application = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        case = Case.objects.get(id=application.id)
-        for good_on_application in application.goods.all():
-            FinalAdviceFactory(user=self.gov_user, case=case, good=good_on_application.good, type=advice_type)
-
-        preview_output = generate_preview(layout=layout, case=case, text="")
-
-        application.refresh_from_db()
-        if layout == "refusal":
-            self.assertIsNotNone(application.appeal_deadline)
-        else:
-            self.assertIsNone(application.appeal_deadline)
-
-        # Additional check to make sure that we actually get some output even if there are no errors
-        assert preview_output

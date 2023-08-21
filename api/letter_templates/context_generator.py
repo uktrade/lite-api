@@ -1,8 +1,8 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.db.models import Q
-from django.utils.timezone import make_aware
+from django.utils import timezone
 
 from rest_framework import serializers
 
@@ -901,7 +901,7 @@ def get_document_context(case, addressee=None):
     if not addressee and case.submitted_by:
         addressee = case.submitted_by
 
-    appeal_deadline = make_aware(datetime.now() + timedelta(days=APPEAL_DAYS))
+    appeal_deadline = timezone.localtime() + timedelta(days=APPEAL_DAYS)
     exporter_reference = ""
     date_application_submitted = ""
 
@@ -911,11 +911,6 @@ def get_document_context(case, addressee=None):
 
         if base_application.submitted_at:
             date_application_submitted = base_application.submitted_at.strftime("%d %B %Y")
-
-        # Update appeal_deadline for Refusal Cases
-        if AdviceType.REFUSE in final_advice.values_list("type", flat=True):
-            base_application.appeal_deadline = appeal_deadline
-            base_application.save()
 
     return {
         "case_reference": case.reference_code,
