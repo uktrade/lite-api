@@ -19,8 +19,8 @@ class AppealCreateDocumentAPIView(CreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = AppealDocumentSerializer
 
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
 
         try:
             self.appeal = Appeal.objects.get(pk=self.kwargs["pk"])
