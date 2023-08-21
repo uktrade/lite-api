@@ -510,8 +510,8 @@ class FormattersTest(DataTestClient):
             (AdviceType.REFUSE, " edited their refusal meeting note."),
         ]
     )
-    def test_update_lu_note(self, advice_status, expected_text):
-        result = formatters.update_lu_note(advice_status)
+    def test_update_lu_meeting_note(self, advice_status, expected_text):
+        result = formatters.update_lu_meeting_note(advice_status)
         assert result == expected_text
 
     @parameterized.expand(
@@ -519,6 +519,6 @@ class FormattersTest(DataTestClient):
             (AdviceType.REFUSE, " added a refusal meeting note."),
         ]
     )
-    def test_create_lu_note(self, advice_status, expected_text):
-        result = formatters.create_lu_note(advice_status)
+    def test_create_lu_meeting_note(self, advice_status, expected_text):
+        result = formatters.create_lu_meeting_note(advice_status)
         assert result == expected_text

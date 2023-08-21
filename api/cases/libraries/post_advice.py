@@ -116,9 +116,9 @@ def post_advice(request, case, level, team=False):
             ).delete()
 
             if data[0].get("is_refusal_note", False):
-                audit_lu_countersigning(AuditType.LU_CREATE_NOTE, data[0]["type"], data, case, request)
-            else:
-                audit_lu_countersigning(AuditType.LU_ADVICE, data[0]["type"], data, case, request)
+                audit_lu_countersigning(AuditType.LU_CREATE_MEETING_NOTE, data[0]["type"], data, case, request)
+
+            audit_lu_countersigning(AuditType.LU_ADVICE, data[0]["type"], data, case, request)
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -170,7 +170,7 @@ def update_advice(request, case, level):
     mark_lu_rejected_countersignatures_as_invalid(case, request.user)
 
     if advice_to_update.first().is_refusal_note:
-        audit_lu_countersigning(AuditType.LU_EDIT_NOTE, advice_to_update.first().type, data, case, request)
+        audit_lu_countersigning(AuditType.LU_EDIT_MEETING_NOTE, advice_to_update.first().type, data, case, request)
     else:
         audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_to_update.first().type, data, case, request)
 
@@ -180,8 +180,8 @@ def update_advice(request, case, level):
 def audit_lu_countersigning(audit_type, advice_type, data, case, request):
     ADVICE_AUDIT_LIST = {
         AuditType.LU_EDIT_ADVICE,
-        AuditType.LU_EDIT_NOTE,
-        AuditType.LU_CREATE_NOTE,
+        AuditType.LU_EDIT_MEETING_NOTE,
+        AuditType.LU_CREATE_MEETING_NOTE,
     }
 
     if request.user.govuser.team == Team.objects.get(id=TeamIdEnum.LICENSING_UNIT) and advice_type in [

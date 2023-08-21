@@ -413,7 +413,7 @@ class CreateCaseAdviceTests(DataTestClient):
 
         assert response.status_code == status.HTTP_200_OK
 
-        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_NOTE)
+        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_MEETING_NOTE)
         assert lu_advice_audit.exists()
         audit_obj = lu_advice_audit.first()
         audit_text = AuditSerializer(audit_obj).data["text"]
@@ -445,7 +445,7 @@ class CreateCaseAdviceTests(DataTestClient):
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_CREATE_NOTE)
+        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_CREATE_MEETING_NOTE)
 
         assert lu_advice_audit.exists()
         audit_obj = lu_advice_audit.first()

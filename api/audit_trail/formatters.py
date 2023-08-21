@@ -305,9 +305,9 @@ def lu_countersign_advice(department, order, countersign_accepted, **payload):
     return f" declined to {senior_text}countersign {department} recommendations."
 
 
-def update_lu_note(advice_type, **payload):
+def update_lu_meeting_note(advice_type, **payload):
     return " edited their refusal meeting note."
 
 
-def create_lu_note(advice_type, **payload):
+def create_lu_meeting_note(advice_type, **payload):
     return " added a refusal meeting note."

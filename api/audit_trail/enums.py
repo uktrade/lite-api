@@ -134,8 +134,8 @@ class AuditType(LiteEnum):
     LU_ADVICE = autostr()
     LU_EDIT_ADVICE = autostr()
     LU_COUNTERSIGN = autostr()
-    LU_EDIT_NOTE = autostr()
-    LU_CREATE_NOTE = autostr()
+    LU_EDIT_MEETING_NOTE = autostr()
+    LU_CREATE_MEETING_NOTE = autostr()
 
     def human_readable(self):
         """
