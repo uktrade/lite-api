@@ -3,8 +3,12 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
+from api.applications.libraries.get_applications import get_application
 from api.applications.serializers.advice import AdviceCreateSerializer, AdviceUpdateSerializer
-from api.applications.views.helpers.advice import mark_lu_rejected_countersignatures_as_invalid
+from api.applications.views.helpers.advice import (
+    mark_lu_rejected_countersignatures_as_invalid,
+    remove_countersign_process_flags,
+)
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType
@@ -115,10 +119,19 @@ def post_advice(request, case, level, team=False):
                 case_id=case.id, advice_type__isnull=False, visible_to_exporter=False
             ).delete()
 
+
             if data[0].get("is_refusal_note", False):
                 audit_lu_countersigning(AuditType.LU_CREATE_MEETING_NOTE, data[0]["type"], data, case, request)
 
             audit_lu_countersigning(AuditType.LU_ADVICE, data[0]["type"], data, case, request)
+
+            advice_type = data[0]["type"]
+            audit_lu_countersigning(AuditType.LU_ADVICE, advice_type, data, case, request)
+            # Refused applications do not need to go through LU countersign - so remove the countersign flags now
+            if advice_type == AdviceType.REFUSE:
+                application = get_application(case.id)
+                remove_countersign_process_flags(application, case)
+
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -173,6 +186,14 @@ def update_advice(request, case, level):
         audit_lu_countersigning(AuditType.LU_EDIT_MEETING_NOTE, advice_to_update.first().type, data, case, request)
     else:
         audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_to_update.first().type, data, case, request)
+
+    advice_type = advice_to_update.first().type
+    audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_type, data, case, request)
+    # Refused applications do not need to go through LU countersign - so remove the countersign flags now
+    if advice_type == AdviceType.REFUSE and level == AdviceLevel.FINAL:
+        application = get_application(case.id)
+        remove_countersign_process_flags(application, case)
+
 
     return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
 
