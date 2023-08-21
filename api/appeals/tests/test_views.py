@@ -7,15 +7,17 @@ from rest_framework import status
 
 from test_helpers.clients import DataTestClient
 
-from ..factories import Appeal
+from ..factories import (
+    AppealFactory,
+    AppealDocumentFactory,
+)
 
 
 class TestAppealDocuments(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.appeal = Appeal()
-        self.appeal.save()
+        self.appeal = AppealFactory()
         self.url = reverse("appeals:documents", kwargs={"pk": self.appeal.pk})
 
     @mock.patch("api.documents.models.Document.scan_for_viruses", autospec=True)
@@ -72,6 +74,65 @@ class TestAppealDocuments(DataTestClient):
             },
             **self.exporter_headers,
         )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+    def test_get_document(self):
+        appeal_document = AppealDocumentFactory(appeal=self.appeal)
+
+        url = reverse(
+            "appeals:document",
+            kwargs={
+                "pk": str(self.appeal.pk),
+                "document_pk": str(appeal_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.json(),
+            {
+                "id": str(appeal_document.pk),
+                "name": appeal_document.name,
+                "s3_key": appeal_document.s3_key,
+                "safe": appeal_document.safe,
+                "size": appeal_document.size,
+            },
+        )
+
+    def test_get_document_invalid_appeal_pk(self):
+        appeal_document = AppealDocumentFactory(appeal=self.appeal)
+
+        url = reverse(
+            "appeals:document",
+            kwargs={
+                "pk": "0f415f8a-e3e8-4c49-b053-ef03b1c477d5",
+                "document_pk": str(appeal_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+    def test_get_document_invalid_document_pk(self):
+        url = reverse(
+            "appeals:document",
+            kwargs={
+                "pk": str(self.appeal.pk),
+                "document_pk": "0b551122-1ac2-4ea2-82b3-f1aaf0bf4923",
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
 
         self.assertEqual(
             response.status_code,
