@@ -197,6 +197,9 @@ class BaseApplication(ApplicationPartyMixin, Case):
     foi_reason = models.TextField(blank=True, default="")
 
     appeal = models.OneToOneField(Appeal, blank=True, null=True, on_delete=models.SET_NULL)
+    appeal_deadline = models.DateTimeField(
+        blank=True, null=True, default=None, help_text="Date before which Exporter can initiate an appeal on a refusal"
+    )
 
     objects = BaseApplicationManager()
 
