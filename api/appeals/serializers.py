@@ -25,8 +25,12 @@ class AppealDocumentSerializer(serializers.ModelSerializer):
 
 
 class AppealSerializer(serializers.ModelSerializer):
-    documents = AppealDocumentSerializer(many=True)
+    documents = AppealDocumentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Appeal
-        fields = ("id", "grounds_for_appeal", "documents")
+        fields = (
+            "id",
+            "grounds_for_appeal",
+            "documents",
+        )
