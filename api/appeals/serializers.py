@@ -16,14 +16,8 @@ class AppealDocumentSerializer(serializers.ModelSerializer):
             "safe",
         )
 
-
-class AppealDocumentCreateSerializer(AppealDocumentSerializer):
-    def __init__(self, *args, appeal, **kwargs):
-        self.appeal = appeal
-        super().__init__(*args, **kwargs)
-
     def create(self, validated_data):
-        validated_data["appeal"] = self.appeal
+        validated_data["appeal"] = self.context["appeal"]
         document = super().create(validated_data)
         process_document(document)
         document.refresh_from_db()

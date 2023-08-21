@@ -12,15 +12,12 @@ from .models import (
     Appeal,
     AppealDocument,
 )
-from .serializers import (
-    AppealDocumentSerializer,
-    AppealDocumentCreateSerializer,
-)
+from .serializers import AppealDocumentSerializer
 
 
 class AppealCreateDocumentAPIView(CreateAPIView):
     authentication_classes = (ExporterAuthentication,)
-    serializer_class = AppealDocumentCreateSerializer
+    serializer_class = AppealDocumentSerializer
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
@@ -30,9 +27,10 @@ class AppealCreateDocumentAPIView(CreateAPIView):
         except Appeal.DoesNotExist:
             raise Http404()
 
-    def get_serializer(self, *args, **kwargs):
-        kwargs["appeal"] = self.appeal
-        return super().get_serializer(*args, **kwargs)
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["appeal"] = self.appeal
+        return context
 
 
 class AppealDocumentAPIView(RetrieveAPIView):
