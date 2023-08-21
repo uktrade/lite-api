@@ -1,13 +1,9 @@
 from pathlib import Path
-from parameterized import parameterized
 
 from django.test import modify_settings, TestCase
 
 from django.test import TestCase
 
-from api.cases.enums import AdviceType
-from api.cases.models import Case
-from api.cases.tests.factories import FinalAdviceFactory
 from api.letter_templates.context_generator import get_document_context
 from test_helpers.clients import DataTestClient
 from api.letter_templates.helpers import convert_var_to_text, generate_preview
