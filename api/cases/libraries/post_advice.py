@@ -119,7 +119,6 @@ def post_advice(request, case, level, team=False):
                 case_id=case.id, advice_type__isnull=False, visible_to_exporter=False
             ).delete()
 
-
             if data[0].get("is_refusal_note", False):
                 audit_lu_countersigning(AuditType.LU_CREATE_MEETING_NOTE, data[0]["type"], data, case, request)
 
@@ -131,7 +130,6 @@ def post_advice(request, case, level, team=False):
             if advice_type == AdviceType.REFUSE:
                 application = get_application(case.id)
                 remove_countersign_process_flags(application, case)
-
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -193,7 +191,6 @@ def update_advice(request, case, level):
     if advice_type == AdviceType.REFUSE and level == AdviceLevel.FINAL:
         application = get_application(case.id)
         remove_countersign_process_flags(application, case)
-
 
     return JsonResponse({"advice": serializer.data}, status=status.HTTP_200_OK)
 
