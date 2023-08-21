@@ -40,6 +40,8 @@ from api.documents.libraries.process_document import process_document
 from api.goodstype.models import GoodsType
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.licences.helpers import get_open_general_export_licence_case
+from api.organisations.models import Organisation
+from api.organisations.serializers import TinyOrganisationViewSerializer
 from api.queries.serializers import QueryViewSerializer
 from api.queues.constants import ALL_CASES_QUEUE_ID
 from api.queues.models import Queue
@@ -245,6 +247,16 @@ class CaseCopyOfSerializer(serializers.ModelSerializer):
             "id",
             "reference_code",
         )
+
+
+class CaseDetailBasicSerializer(serializers.ModelSerializer):
+    organisation = PrimaryKeyRelatedSerializerField(
+        queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
+    )
+
+    class Meta:
+        model = Case
+        fields = ("id", "reference_code", "organisation")
 
 
 class CaseDetailSerializer(serializers.ModelSerializer):

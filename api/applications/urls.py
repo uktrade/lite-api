@@ -137,4 +137,9 @@ urlpatterns = [
         denials.ApplicationDenialMatchesOnApplication.as_view(),
         name="application_denial_matches",
     ),
+    path(
+        "<uuid:pk>/appeal/",
+        applications.ApplicationAppeal.as_view(),
+        name="appeal",
+    ),
 ]

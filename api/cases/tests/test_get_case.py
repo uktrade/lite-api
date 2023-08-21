@@ -39,6 +39,16 @@ class CaseGetTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_case_basic_details_endpoint_responds_ok(self):
+        case = self.submit_application(self.standard_application)
+        url = reverse("cases:case_detail_basic", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(case.reference_code, response["reference_code"])
+        self.assertEqual(case.organisation.name, response["organisation"]["name"])
+
     def test_case_copy_of_another_case_endpoint_responds_ok(self):
         self.submit_application(self.standard_application)
 
