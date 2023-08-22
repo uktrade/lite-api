@@ -17,7 +17,8 @@ class GoodOnApplicationUpdateSerialNumbers(DataTestClient):
         CaseStatusEnum.SUBMITTED,
         CaseStatusEnum.FINALISED,
     ]
-    DISALLOWED_STATUSES = list(set(CaseStatusEnum.all()) - set(ALLOWED_STATUSES))
+    # DISALLOWED_STATUSES is used to parameterize tests, make the order stable to enable pytest-xdist
+    DISALLOWED_STATUSES = sorted(set(CaseStatusEnum.all()) - set(ALLOWED_STATUSES))
 
     def setUp(self):
         super().setUp()
