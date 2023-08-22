@@ -19,6 +19,10 @@ def get_required_decision_document_types(case):
         required_decisions.add(AdviceType.APPROVE)
         required_decisions.remove(AdviceType.PROVISO)
 
+    # Ensure that REFUSE advice requires an inform document
+    if AdviceType.REFUSE in required_decisions:
+        required_decisions.add(AdviceType.INFORM)
+
     # Check if no controlled good on application then no approval document required.
     has_controlled_good = GoodOnApplication.objects.filter(application=case.id, is_good_controlled=True).exists()
 
