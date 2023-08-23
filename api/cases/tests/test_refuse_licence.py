@@ -1,9 +1,7 @@
 from unittest import mock
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 
-from api.appeals.constants import APPEAL_DAYS
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.cases.libraries.get_case import get_case
@@ -33,8 +31,6 @@ class RefuseCaseTests(DataTestClient):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_generated_case_document(self.application, self.template, advice_type=AdviceType.REFUSE)
 
-        self.assertIsNone(self.application.appeal_deadline)
-
         response = self.client.put(self.url, data={}, **self.gov_headers)
         self.application.refresh_from_db()
 
@@ -44,9 +40,6 @@ class RefuseCaseTests(DataTestClient):
             self.assertTrue(document.visible_to_exporter)
 
         self.assertEqual(Audit.objects.count(), 3)
-
-        self.assertIsNotNone(self.application.appeal_deadline)
-        self.assertEqual((self.application.appeal_deadline.date() - timezone.localtime().date()).days, APPEAL_DAYS)
         case = get_case(self.application.id)
         mock_notify.assert_called_with(case)
         send_exporter_notifications_func.assert_called()

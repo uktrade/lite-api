@@ -1,4 +1,5 @@
 import os, io
+
 from unittest import mock
 from parameterized import parameterized
 
@@ -101,19 +102,40 @@ class GenerateDocumentTests(DataTestClient):
         )
         self.assertEqual(GeneratedCaseDocument.objects.get().visible_to_exporter, False)
 
+    @parameterized.expand(
+        (
+            (AdviceType.NO_LICENCE_REQUIRED, False),
+            (AdviceType.APPROVE, False),
+            (AdviceType.REFUSE, True),
+        ),
+    )
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_decision_document_success(self, upload_bytes_file_func, html_to_pdf_func):
+    def test_generate_decision_document_success(
+        self, advice_type, appeal_deadline_set, upload_bytes_file_func, html_to_pdf_func
+    ):
+        application = self.case
+        licence = None
+        if advice_type == AdviceType.APPROVE:
+            licence = self.create_licence(self.case, status=LicenceStatus.DRAFT)
+
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
         self.data["visible_to_exporter"] = True
-        self.data["advice_type"] = AdviceType.NO_LICENCE_REQUIRED
+
+        self.data["advice_type"] = advice_type
+
+        self.assertIsNone(application.appeal_deadline)
 
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        application.refresh_from_db()
+        assert not (not application.appeal_deadline) == appeal_deadline_set
+
         upload_bytes_file_func.assert_called_once()
-        self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.NO_LICENCE_REQUIRED).count(), 1)
+        self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=advice_type, licence=licence).count(), 1)
         # Ensure decision documents are hidden until complete
         self.assertEqual(
             ExporterNotification.objects.filter(

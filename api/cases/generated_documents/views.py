@@ -8,6 +8,8 @@ from rest_framework.exceptions import ParseError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from api.applications.models import BaseApplication
+from api.applications.helpers import reset_appeal_deadline
 from api.audit_trail.enums import AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseDocumentState, AdviceType
@@ -126,6 +128,11 @@ class GeneratedDocuments(generics.ListAPIView):
                 {"errors": [strings.Cases.GeneratedDocuments.UPLOAD_ERROR]},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        if advice_type == AdviceType.REFUSE:
+            # Reset appeal deadline once refusal letter is (re)generated
+            application = get_object_or_404(BaseApplication.objects.all(), pk=pk)
+            reset_appeal_deadline(application)
 
         if advice_type in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
             audit_trail_service.create(

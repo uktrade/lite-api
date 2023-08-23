@@ -1,15 +1,13 @@
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
-from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 
-from api.applications.models import BaseApplication, GoodOnApplication
-from api.applications.helpers import reset_appeal_deadline
+from api.applications.models import GoodOnApplication
 from api.applications.serializers.advice import (
     CountersignAdviceSerializer,
     CountryWithFlagsSerializer,
@@ -909,10 +907,6 @@ class FinaliseView(UpdateAPIView):
         decisions = required_decisions.copy()
 
         if AdviceType.REFUSE in decisions:
-            # Set appeal deadline before we inform Exporter
-            application = get_object_or_404(BaseApplication.objects.all(), pk=case.id)
-            reset_appeal_deadline(application)
-
             notify_exporter_licence_refused(case)
 
         if AdviceType.NO_LICENCE_REQUIRED in decisions:
