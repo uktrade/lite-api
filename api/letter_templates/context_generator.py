@@ -1,10 +1,12 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
-import datetime
 
+from datetime import timedelta
 from django.db.models import Q
+from django.utils import timezone
 
 from rest_framework import serializers
 
+from api.appeals.constants import APPEAL_DAYS
 from api.applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
@@ -899,7 +901,7 @@ def get_document_context(case, addressee=None):
     if not addressee and case.submitted_by:
         addressee = case.submitted_by
 
-    appeal_deadline = datetime.date.today() + datetime.timedelta(days=28)
+    appeal_deadline = timezone.localtime() + timedelta(days=APPEAL_DAYS)
     exporter_reference = ""
     date_application_submitted = ""
 
