@@ -7,7 +7,7 @@ from rest_framework import status
 
 from test_helpers.clients import DataTestClient
 
-from ..factories import (
+from .factories import (
     AppealFactory,
     AppealDocumentFactory,
 )
