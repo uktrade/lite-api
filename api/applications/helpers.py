@@ -1,10 +1,13 @@
 import logging
 
+from datetime import timedelta
 from django.conf import settings
+from django.utils import timezone
 
 from elasticsearch_dsl import Search, Q
 from elasticsearch.exceptions import NotFoundError
 
+from api.appeals.constants import APPEAL_DAYS
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.applications.serializers.end_use_details import (
     F680EndUseDetailsUpdateSerializer,
@@ -251,3 +254,11 @@ def normalize_address(value):
 
 def build_query(name):
     return Q("match", name=name)
+
+
+def reset_appeal_deadline(application):
+    """
+    Resets application appeal deadline when a Case is refused
+    """
+    application.appeal_deadline = timezone.localtime() + timedelta(APPEAL_DAYS)
+    application.save()
