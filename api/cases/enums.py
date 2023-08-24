@@ -300,6 +300,7 @@ class AdviceType:
     NO_LICENCE_REQUIRED = "no_licence_required"
     NOT_APPLICABLE = "not_applicable"
     CONFLICTING = "conflicting"
+    INFORM = "inform"
 
     choices = [
         (APPROVE, "Approve"),
@@ -308,6 +309,7 @@ class AdviceType:
         (NO_LICENCE_REQUIRED, "No Licence Required"),
         (NOT_APPLICABLE, "Not Applicable"),
         (CONFLICTING, "Conflicting"),
+        (INFORM, "Inform"),
     ]
 
     ids = {
@@ -317,6 +319,7 @@ class AdviceType:
         NO_LICENCE_REQUIRED: UUID("00000000-0000-0000-0000-000000000004"),
         NOT_APPLICABLE: UUID("00000000-0000-0000-0000-000000000005"),
         CONFLICTING: UUID("00000000-0000-0000-0000-000000000006"),
+        INFORM: UUID("00000000-0000-0000-0000-000000000007"),
     }
 
     @classmethod

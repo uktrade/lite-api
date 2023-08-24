@@ -1,0 +1,1 @@
+APPEAL_DAYS = 28

@@ -1,7 +1,6 @@
 import pytest
 
 from datetime import datetime
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from parameterized import parameterized

@@ -2,10 +2,8 @@ from pathlib import Path
 
 from django.test import modify_settings, TestCase
 
-# import datetime
 from django.test import TestCase
 
-# from api.cases.tests.factories import CaseFactory
 from api.letter_templates.context_generator import get_document_context
 from test_helpers.clients import DataTestClient
 from api.letter_templates.helpers import convert_var_to_text, generate_preview
