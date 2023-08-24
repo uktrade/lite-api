@@ -1,7 +1,6 @@
 import pytest
 
 from datetime import datetime
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from parameterized import parameterized
@@ -221,18 +220,6 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.json(), {"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]})
 
     def test_refuse_application_success(self):
-        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
-
-        data = {"action": AdviceType.REFUSE}
-        response = self.client.put(self.url, data=data, **self.gov_headers)
-        self.standard_application.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["application"], str(self.standard_application.id))
-        self.assertEqual(Audit.objects.count(), 1)
-
-    @override_settings(FEATURE_INFORM_LETTER_ENABLED=True)
-    def test_refuse_application_success_inform_feature_enabled(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
 
         data = {"action": AdviceType.REFUSE}
