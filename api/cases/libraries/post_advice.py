@@ -118,6 +118,12 @@ def post_advice(request, case, level, team=False):
             GeneratedCaseDocument.objects.filter(
                 case_id=case.id, advice_type__isnull=False, visible_to_exporter=False
             ).delete()
+
+            if data[0].get("is_refusal_note", False):
+                audit_lu_countersigning(AuditType.LU_CREATE_MEETING_NOTE, data[0]["type"], data, case, request)
+
+            audit_lu_countersigning(AuditType.LU_ADVICE, data[0]["type"], data, case, request)
+
             advice_type = data[0]["type"]
             audit_lu_countersigning(AuditType.LU_ADVICE, advice_type, data, case, request)
             # Refused applications do not need to go through LU countersign - so remove the countersign flags now
@@ -173,6 +179,12 @@ def update_advice(request, case, level):
     serializer.save()
 
     mark_lu_rejected_countersignatures_as_invalid(case, request.user)
+
+    if advice_to_update.first().is_refusal_note:
+        audit_lu_countersigning(AuditType.LU_EDIT_MEETING_NOTE, advice_to_update.first().type, data, case, request)
+    else:
+        audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_to_update.first().type, data, case, request)
+
     advice_type = advice_to_update.first().type
     audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_type, data, case, request)
     # Refused applications do not need to go through LU countersign - so remove the countersign flags now
@@ -184,6 +196,12 @@ def update_advice(request, case, level):
 
 
 def audit_lu_countersigning(audit_type, advice_type, data, case, request):
+    ADVICE_AUDIT_LIST = {
+        AuditType.LU_EDIT_ADVICE,
+        AuditType.LU_EDIT_MEETING_NOTE,
+        AuditType.LU_CREATE_MEETING_NOTE,
+    }
+
     if request.user.govuser.team == Team.objects.get(id=TeamIdEnum.LICENSING_UNIT) and advice_type in [
         AdviceType.APPROVE,
         AdviceType.REFUSE,
@@ -196,7 +214,7 @@ def audit_lu_countersigning(audit_type, advice_type, data, case, request):
         }
         if advice_type == AdviceType.PROVISO:
             audit_payload["additional_text"] = data[0]["proviso"]
-        elif audit_type == AuditType.LU_EDIT_ADVICE:
+        elif audit_type in ADVICE_AUDIT_LIST:
             audit_payload["additional_text"] = data[0]["text"]
 
         audit_trail_service.create(actor=request.user, verb=audit_type, target=case, payload=audit_payload)
