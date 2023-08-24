@@ -504,3 +504,21 @@ class FormattersTest(DataTestClient):
     def test_lu_countersign_advice(self, dept, order, countersign_accepted, expected_text):
         result = formatters.lu_countersign_advice(dept, order, countersign_accepted, other_param="ignore_other_params")
         assert result == expected_text
+
+    @parameterized.expand(
+        [
+            (AdviceType.REFUSE, " edited their refusal meeting note."),
+        ]
+    )
+    def test_update_lu_meeting_note(self, advice_status, expected_text):
+        result = formatters.update_lu_meeting_note(advice_status)
+        assert result == expected_text
+
+    @parameterized.expand(
+        [
+            (AdviceType.REFUSE, " added a refusal meeting note."),
+        ]
+    )
+    def test_create_lu_meeting_note(self, advice_status, expected_text):
+        result = formatters.create_lu_meeting_note(advice_status)
+        assert result == expected_text
