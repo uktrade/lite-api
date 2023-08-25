@@ -61,7 +61,8 @@ class RefuseCaseTests(DataTestClient):
         self.assertEqual(self.application.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
-
+        # Confirm finalisation can succeed with only a refuse doc
+        self.assertEqual(GeneratedCaseDocument.objects.filter(case=self.application.id)[0].advice_type, "refuse")
         self.assertEqual(Audit.objects.count(), 3)
         case = get_case(self.application.id)
         mock_notify.assert_called_with(case)
