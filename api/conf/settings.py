@@ -118,6 +118,7 @@ INSTALLED_APPS = [
     "health_check.contrib.migrations",
     "django_audit_log_middleware",
     "lite_routing",
+    "api.appeals",
 ]
 
 MIDDLEWARE = [
@@ -452,6 +453,7 @@ PERMISSIONS_FINDER_URL = env.str("PERMISSIONS_FINDER_URL")
 FEATURE_SIEL_COMPLIANCE_ENABLED = env.bool("FEATURE_SIEL_COMPLIANCE_ENABLED", False)
 
 FEATURE_C8_ROUTING_ENABLED = env.bool("FEATURE_C8_ROUTING_ENABLED", False)
+FEATURE_INFORM_LETTER_ENABLED = env.bool("FEATURE_INFORM_LETTER_ENABLED", False)
 
 SANCTION_LIST_SOURCES = env.json(
     "SANCTION_LIST_SOURCES",

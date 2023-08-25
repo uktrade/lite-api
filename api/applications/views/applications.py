@@ -3,14 +3,21 @@ from uuid import UUID
 
 from django.db import transaction
 from django.db.models import F, Q
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError, ParseError
-from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
+from rest_framework.generics import (
+    CreateAPIView,
+    ListAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
+)
 from rest_framework.views import APIView
 
+from api.appeals.serializers import AppealSerializer
 from api.applications import constants
 from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from api.applications.enums import ContractType
@@ -554,6 +561,7 @@ class ApplicationFinaliseView(APIView):
         """
         Get goods to set licenced quantity for, with advice
         """
+
         approved_goods_on_application = (
             GoodOnApplication.objects.filter(
                 application_id=pk,
@@ -598,7 +606,6 @@ class ApplicationFinaliseView(APIView):
         Finalise an application
         """
         application = get_application(pk)
-
         # Check permissions
         is_mod_clearance = application.case_type.sub_type in CaseTypeSubTypeEnum.mod
         if not can_status_be_set_by_gov_user(
@@ -620,7 +627,6 @@ class ApplicationFinaliseView(APIView):
 
         # Check countersigning requirements and required countersignatures are present
         ensure_lu_countersign_complete(application)
-
         # Check if any blocking flags are on the case
         blocking_flags = (
             get_flags(application.get_case())
@@ -1034,3 +1040,21 @@ class ApplicationRouteOfGoods(UpdateAPIView):
             target=case,
             payload={"route_of_goods_field": field, "previous_value": previous_value, "new_value": new_value},
         )
+
+
+class ApplicationAppeal(CreateAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = AppealSerializer
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+
+        try:
+            self.application = BaseApplication.objects.get(pk=self.kwargs["pk"])
+        except BaseApplication.DoesNotExist:
+            raise Http404()
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        self.application.appeal = serializer.instance
+        self.application.save()

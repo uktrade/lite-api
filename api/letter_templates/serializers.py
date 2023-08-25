@@ -27,6 +27,7 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.LetterTemplates.NAME_REQUIRED},
     )
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(), many=True)
+
     case_types = PrimaryKeyRelatedSerializerField(
         queryset=CaseType.objects.all(),
         serializer=CaseTypeSerializer,
