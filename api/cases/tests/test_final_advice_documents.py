@@ -66,13 +66,15 @@ class AdviceDocumentsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data[AdviceType.APPROVE]["value"], AdviceType.get_text(AdviceType.APPROVE))
         self.assertEqual(
-            list(response_data[AdviceType.APPROVE]["document"].keys()), ["id", "advice_type", "user", "created_at"]
+            list(response_data[AdviceType.APPROVE]["document"].keys()),
+            ["id", "advice_type", "user", "created_at", "visible_to_exporter"],
         )
         self.assertEqual(response_data[AdviceType.APPROVE]["document"]["id"], str(document_one.pk))
 
         self.assertEqual(response_data[AdviceType.REFUSE]["value"], AdviceType.get_text(AdviceType.REFUSE))
         self.assertEqual(
-            list(response_data[AdviceType.REFUSE]["document"].keys()), ["id", "advice_type", "user", "created_at"]
+            list(response_data[AdviceType.REFUSE]["document"].keys()),
+            ["id", "advice_type", "user", "created_at", "visible_to_exporter"],
         )
         self.assertEqual(response_data[AdviceType.REFUSE]["document"]["id"], str(document_two.pk))
 
@@ -104,7 +106,7 @@ class AdviceDocumentsTests(DataTestClient):
         )
         self.assertEqual(
             list(response_data[AdviceType.NO_LICENCE_REQUIRED]["document"]),
-            ["id", "advice_type", "user", "created_at"],
+            ["id", "advice_type", "user", "created_at", "visible_to_exporter"],
         )
         self.assertEqual(response_data[AdviceType.NO_LICENCE_REQUIRED]["document"]["id"], str(document_no_license.pk))
 
@@ -133,7 +135,8 @@ class AdviceDocumentsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data[AdviceType.APPROVE]["value"], AdviceType.get_text(AdviceType.APPROVE))
         self.assertEqual(
-            list(response_data[AdviceType.APPROVE]["document"]), ["id", "advice_type", "user", "created_at"]
+            list(response_data[AdviceType.APPROVE]["document"]),
+            ["id", "advice_type", "user", "created_at", "visible_to_exporter"],
         )
         self.assertEqual(response_data[AdviceType.APPROVE]["document"]["id"], str(document_one.pk))
 
@@ -142,7 +145,7 @@ class AdviceDocumentsTests(DataTestClient):
         )
         self.assertEqual(
             list(response_data[AdviceType.NO_LICENCE_REQUIRED]["document"]),
-            ["id", "advice_type", "user", "created_at"],
+            ["id", "advice_type", "user", "created_at", "visible_to_exporter"],
         )
         self.assertEqual(response_data[AdviceType.NO_LICENCE_REQUIRED]["document"]["id"], str(document_two.pk))
 
