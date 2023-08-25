@@ -130,10 +130,7 @@ def post_advice(request, case, level, team=False):
             if advice_type == AdviceType.REFUSE:
                 application = get_application(case.id)
                 remove_countersign_process_flags(application, case)
-
-            # Only when advice level is FINAL so thats why is here
-            if data[0]["type"] == AdviceType.REFUSE:
-                audit_refusal_criteria(AuditType.CREATE_REFUSAL_CRITERIA, data[0]["type"], data[0], case, request)
+                audit_refusal_criteria(AuditType.CREATE_REFUSAL_CRITERIA, advice_type, data[0], case, request)
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -248,7 +245,8 @@ def audit_refusal_criteria(audit_type, advice_type, data, case, request):
         "firstname": request.user.first_name,  # /PS-IGNORE
         "lastname": request.user.last_name,  # /PS-IGNORE
         "advice_type": advice_type,
-        "additional_text": ", ".join(data["denial_reasons"]) + ".",
     }
+    if data.get("denial_reasons"):
+        audit_payload["additional_text"] = ", ".join(data["denial_reasons"]) + "."
 
     audit_trail_service.create(actor=request.user, verb=audit_type, target=case, payload=audit_payload)

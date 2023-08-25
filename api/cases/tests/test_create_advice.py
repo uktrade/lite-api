@@ -653,6 +653,41 @@ class CreateCaseAdviceTests(DataTestClient):
         audit_text = AuditSerializer(audit_obj).data["text"]
         assert audit_text == " added a refusal meeting note."
 
+    def test_final_refusal_has_criteria_audit(self):
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.REFUSE,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": ["WMD", "1"],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+            "is_refusal_note": True,
+        }
+
+        response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        criteria_advice_audit = Audit.objects.filter(verb=AuditType.CREATE_REFUSAL_CRITERIA)
+
+        assert criteria_advice_audit.exists()
+        criteria_audit_obj = criteria_advice_audit.first()
+        criteria_audit_text = AuditSerializer(criteria_audit_obj).data["text"]
+        criteria_additional_text = AuditSerializer(criteria_audit_obj).data["additional_text"]
+        assert criteria_audit_text == " added refusal criteria."
+        assert criteria_additional_text == "WMD, 1."
+
 
 class CountersignAdviceTests(DataTestClient):
     def setUp(self):
