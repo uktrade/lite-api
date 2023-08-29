@@ -90,6 +90,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "f1686_reference_number",
                 "f1686_approval_date",
                 "other_security_approval_details",
+                "appeal_deadline",
             )
         )
 

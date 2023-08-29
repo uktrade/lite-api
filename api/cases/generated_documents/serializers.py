@@ -36,4 +36,5 @@ class AdviceDocumentGovSerializer(serializers.ModelSerializer):
             "advice_type",
             "user",
             "created_at",
+            "visible_to_exporter",
         )

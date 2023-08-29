@@ -144,4 +144,6 @@ audit_type_format = {
     AuditType.LU_ADVICE: formatters.create_lu_advice,
     AuditType.LU_EDIT_ADVICE: formatters.update_lu_advice,
     AuditType.LU_COUNTERSIGN: formatters.lu_countersign_advice,
+    AuditType.LU_EDIT_MEETING_NOTE: formatters.update_lu_meeting_note,
+    AuditType.LU_CREATE_MEETING_NOTE: formatters.create_lu_meeting_note,
 }

@@ -839,6 +839,10 @@ class FinaliseView(UpdateAPIView):
 
         required_decisions = get_required_decision_document_types(case)
 
+        # Inform letter isn't required for finalisation
+        if AdviceType.INFORM in required_decisions:
+            required_decisions.remove(AdviceType.INFORM)
+
         # Check that each decision has a document
         # Excluding approve (done in the licence section below)
         generated_document_decisions = set(
@@ -846,6 +850,7 @@ class FinaliseView(UpdateAPIView):
                 "advice_type", flat=True
             )
         )
+
         if not required_decisions.issubset(generated_document_decisions):
             raise ParseError(
                 {

@@ -17,6 +17,7 @@ from api.cases.enums import (
 from api.cases.models import Advice, CountersignAdvice
 from api.cases.tests.factories import CountersignAdviceFactory
 from api.core.constants import GovPermissions, Roles
+from api.flags.models import Flag
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -24,6 +25,7 @@ from api.teams.enums import TeamIdEnum
 from api.teams.models import Department, Team
 from api.users.models import GovUser, Role
 from test_helpers.clients import DataTestClient
+from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
 class CreateCaseAdviceTests(DataTestClient):
@@ -257,6 +259,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "footnote": None,
             "footnote_required": "False",
             "case": self.case.id,
+            "is_refusal_note": False,
         }
 
         response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
@@ -304,6 +307,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "footnote": None,
             "footnote_required": "False",
             "case": self.case.id,
+            "is_refusal_note": False,
         }
 
         # Add initial advice to DB:
@@ -330,6 +334,205 @@ class CreateCaseAdviceTests(DataTestClient):
             assert audit_obj.payload.get("additional_text") == "Edited Proviso text"
         else:
             assert audit_obj.payload["additional_text"] == "Updated Text"
+
+    @parameterized.expand(
+        [
+            ([FlagsEnum.LU_COUNTER_REQUIRED],),
+            ([FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED],),
+            ([FlagsEnum.LU_COUNTER_REQUIRED, FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED],),
+        ]
+    )
+    def test_create_lu_final_refusal_advice_countersign_flags_removed(self, flag_ids):
+        # Add countersign flags to the case
+        countersign_flags = Flag.objects.filter(id__in=flag_ids)
+        for party in self.application.parties.all():
+            party.party.flags.add(*countersign_flags)
+        self.case.refresh_from_db()
+        assert set(countersign_flags) <= set(self.case.parameter_set())
+
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.REFUSE,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": ["WMD"],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        # Add refusal advice for the case
+        response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Ensure countersign flags are removed
+        self.case.refresh_from_db()
+        case_parameter_set = self.case.parameter_set()
+        for countersign_flag in countersign_flags:
+            assert countersign_flag not in case_parameter_set
+
+    @parameterized.expand(
+        [
+            ([FlagsEnum.LU_COUNTER_REQUIRED],),
+            ([FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED],),
+            ([FlagsEnum.LU_COUNTER_REQUIRED, FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED],),
+        ]
+    )
+    def test_create_lu_final_approval_advice_countersign_flags_remain(self, flag_ids):
+        # Add countersign flags to the case
+        countersign_flags = Flag.objects.filter(id__in=flag_ids)
+        for party in self.application.parties.all():
+            party.party.flags.add(*countersign_flags)
+        self.case.refresh_from_db()
+        assert set(countersign_flags) <= set(self.case.parameter_set())
+
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.APPROVE,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": [],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        # Add refusal advice for the case
+        response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Ensure countersign flags remain
+        self.case.refresh_from_db()
+        case_parameter_set = self.case.parameter_set()
+        for countersign_flag in countersign_flags:
+            assert countersign_flag in case_parameter_set
+
+    @parameterized.expand(
+        [
+            ([FlagsEnum.LU_COUNTER_REQUIRED],),
+            ([FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED],),
+            ([FlagsEnum.LU_COUNTER_REQUIRED, FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED],),
+        ]
+    )
+    def test_update_lu_final_refusal_advice_countersign_flags_removed(self, flag_ids):
+        # Add countersign flags to the case
+        countersign_flags = Flag.objects.filter(id__in=flag_ids)
+        for party in self.application.parties.all():
+            party.party.flags.add(*countersign_flags)
+
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.APPROVE,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": [],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        # Add initial advice to DB:
+        resp = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+        # Ensure countersign flags remain
+        self.case.refresh_from_db()
+        assert set(countersign_flags) <= set(self.case.parameter_set())
+
+        data["type"] = AdviceType.REFUSE
+        data["denial_reasons"] = ["WMD"]
+        data["id"] = resp.json()["advice"][0]["id"]
+        # Update advice
+        response = self.client.put(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_200_OK
+
+        # Ensure countersign flags are removed
+        self.case.refresh_from_db()
+        case_parameter_set = self.case.parameter_set()
+        for countersign_flag in countersign_flags:
+            assert countersign_flag not in case_parameter_set
+
+    @parameterized.expand(
+        [
+            ([FlagsEnum.LU_COUNTER_REQUIRED],),
+            ([FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED],),
+            ([FlagsEnum.LU_COUNTER_REQUIRED, FlagsEnum.LU_SENIOR_MANAGER_CHECK_REQUIRED],),
+        ]
+    )
+    def test_update_lu_final_approval_advice_countersign_flags_remain(self, flag_ids):
+        # Add countersign flags to the case
+        countersign_flags = Flag.objects.filter(id__in=flag_ids)
+        for party in self.application.parties.all():
+            party.party.flags.add(*countersign_flags)
+
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.APPROVE,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": [],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+        }
+
+        # Add initial advice to DB:
+        resp = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+        # Ensure countersign flags remain
+        self.case.refresh_from_db()
+        assert set(countersign_flags) <= set(self.case.parameter_set())
+
+        data["text"] = "foo"
+        data["id"] = resp.json()["advice"][0]["id"]
+        # Update advice
+        response = self.client.put(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_200_OK
+
+        # Ensure countersign flags remain
+        self.case.refresh_from_db()
+        case_parameter_set = self.case.parameter_set()
+        for countersign_flag in countersign_flags:
+            assert countersign_flag in case_parameter_set
 
     @parameterized.expand(
         [
@@ -361,6 +564,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "footnote": None,
             "footnote_required": "False",
             "case": self.case.id,
+            "is_refusal_note": False,
         }
 
         # Add initial advice to DB:
@@ -376,6 +580,78 @@ class CreateCaseAdviceTests(DataTestClient):
         lu_advice_update_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_ADVICE)
         assert not lu_advice_audit.exists()
         assert not lu_advice_update_audit.exists()
+
+    def test_update_lu_refusal_note_has_audit(self):
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.REFUSE,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": ["WMD"],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+            "is_refusal_note": True,
+        }
+
+        # Add initial advice to DB:
+        resp = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+        data["text"] = "Updated Text"
+        data["id"] = resp.json()["advice"][0]["id"]
+
+        # Update advice
+        response = self.client.put(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_200_OK
+
+        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_MEETING_NOTE)
+        assert lu_advice_audit.exists()
+        audit_obj = lu_advice_audit.first()
+        audit_text = AuditSerializer(audit_obj).data["text"]
+        assert audit_text == " edited their refusal meeting note."
+
+    def test_create_lu_refusal_note_has_audit(self):
+        lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_user = GovUser(baseuser_ptr=self.base_user, team=lu_team)
+        super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        lu_user.role = super_user_role
+        lu_user.save()
+        data = {
+            "user": lu_user.baseuser_ptr.id,
+            "good": str(self.application.goods.first().good.id),
+            "text": "Text",
+            "type": AdviceType.REFUSE,
+            "level": "final",
+            "team": self.team.id,
+            "proviso": "",
+            "denial_reasons": ["WMD"],
+            "note": "",
+            "footnote": None,
+            "footnote_required": "False",
+            "case": self.case.id,
+            "is_refusal_note": True,
+        }
+
+        response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_CREATE_MEETING_NOTE)
+
+        assert lu_advice_audit.exists()
+        audit_obj = lu_advice_audit.first()
+        audit_text = AuditSerializer(audit_obj).data["text"]
+        assert audit_text == " added a refusal meeting note."
 
 
 class CountersignAdviceTests(DataTestClient):

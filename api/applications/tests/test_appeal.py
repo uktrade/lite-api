@@ -30,7 +30,10 @@ class AppealApplicationTests(DataTestClient):
         )
         self.assertEqual(
             response.json(),
-            {"grounds_for_appeal": "These are the grounds for appeal"},
+            {
+                "id": str(application.appeal.pk),
+                "grounds_for_appeal": "These are the grounds for appeal",
+            },
         )
 
     def test_appeal_invalid_application_pk(self):
