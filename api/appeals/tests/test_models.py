@@ -1,11 +1,11 @@
 from test_helpers.clients import DataTestClient
 
-from ..factories import Appeal
+from .factories import AppealFactory
 
 
 class AppealTest(DataTestClient):
     def test_deleting_appeal_retains_related_application(self):
-        appeal = Appeal()
+        appeal = AppealFactory()
 
         application = self.create_standard_application_case(self.organisation)
 
