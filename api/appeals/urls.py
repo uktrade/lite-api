@@ -7,7 +7,12 @@ app_name = "appeals"
 urlpatterns = [
     path(
         "<uuid:pk>/documents/",
-        views.AppealDocuments.as_view(),
+        views.AppealCreateDocumentAPIView.as_view(),
         name="documents",
+    ),
+    path(
+        "<uuid:pk>/documents/<uuid:document_pk>/",
+        views.AppealDocumentAPIView.as_view(),
+        name="document",
     ),
 ]
