@@ -138,7 +138,12 @@ urlpatterns = [
         name="application_denial_matches",
     ),
     path(
-        "<uuid:pk>/appeal/",
+        "<uuid:pk>/appeals/",
+        applications.ApplicationAppeals.as_view(),
+        name="appeals",
+    ),
+    path(
+        "<uuid:pk>/appeals/<uuid:appeal_pk>/",
         applications.ApplicationAppeal.as_view(),
         name="appeal",
     ),

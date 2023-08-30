@@ -10,6 +10,8 @@ class AppealFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Appeal
 
+    grounds_for_appeal = factory.Faker("text")
+
 
 class AppealDocumentFactory(factory.django.DjangoModelFactory):
     class Meta:
