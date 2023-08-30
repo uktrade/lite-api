@@ -672,7 +672,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "footnote": None,
             "footnote_required": "False",
             "case": self.case.id,
-            "is_refusal_note": True,
+            "is_refusal_note": False,
         }
 
         response = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
@@ -681,7 +681,7 @@ class CreateCaseAdviceTests(DataTestClient):
 
         criteria_advice_audit = Audit.objects.filter(verb=AuditType.CREATE_REFUSAL_CRITERIA)
 
-        assert criteria_advice_audit.exists()
+        assert criteria_advice_audit.count() == 1
         criteria_audit_obj = criteria_advice_audit.first()
         criteria_audit_text = AuditSerializer(criteria_audit_obj).data["text"]
         criteria_additional_text = AuditSerializer(criteria_audit_obj).data["additional_text"]

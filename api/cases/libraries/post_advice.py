@@ -122,8 +122,6 @@ def post_advice(request, case, level, team=False):
             if data[0].get("is_refusal_note", False):
                 audit_lu_countersigning(AuditType.LU_CREATE_MEETING_NOTE, data[0]["type"], data, case, request)
 
-            audit_lu_countersigning(AuditType.LU_ADVICE, data[0]["type"], data, case, request)
-
             advice_type = data[0]["type"]
             audit_lu_countersigning(AuditType.LU_ADVICE, advice_type, data, case, request)
             # Refused applications do not need to go through LU countersign - so remove the countersign flags now
@@ -187,7 +185,6 @@ def update_advice(request, case, level):
         audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_to_update.first().type, data, case, request)
 
     advice_type = advice_to_update.first().type
-    audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_type, data, case, request)
     # Refused applications do not need to go through LU countersign - so remove the countersign flags now
     if advice_type == AdviceType.REFUSE and level == AdviceLevel.FINAL:
         application = get_application(case.id)
