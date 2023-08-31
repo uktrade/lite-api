@@ -13,7 +13,7 @@ from api.applications.helpers import reset_appeal_deadline
 from api.audit_trail.enums import AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseDocumentState, AdviceType
-from api.cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
+from api.cases.generated_documents.helpers import html_to_pdf, get_generated_document_data, get_advice_type
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import (
     GeneratedCaseDocumentGovSerializer,
@@ -82,7 +82,7 @@ class GeneratedDocuments(generics.ListAPIView):
         if document.template.include_digital_signature:
             pdf = sign_pdf(pdf)
 
-        advice_type = request.data.get("advice_type")
+        advice_type = get_advice_type(request.data, document.template)
         if advice_type in [AdviceType.APPROVE, AdviceType.PROVISO]:
             try:
                 licence = Licence.objects.get_draft_licence(pk)

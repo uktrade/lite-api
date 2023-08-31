@@ -5,7 +5,7 @@ from weasyprint import CSS, HTML
 from weasyprint.fonts import FontConfiguration
 from rest_framework.exceptions import ValidationError
 
-from api.cases.enums import CaseDocumentState
+from api.cases.enums import CaseDocumentState, AdviceType
 from api.cases.libraries.get_case import get_case
 from api.cases.models import CaseDocument
 from api.core.exceptions import NotFoundError
@@ -82,3 +82,21 @@ def get_generated_document_data(request_params, pk, include_css=True):
         raise ValidationError(str(exc))
 
     return GeneratedDocumentPayload(case=case, template=template, document_html=document_html, text=text)
+
+
+def get_advice_type(request_data, template):
+    advice_type = request_data.get("advice_type")
+    if advice_type:
+        return advice_type
+
+    decisions = template.decisions.values_list("name", flat=True)
+    if {AdviceType.APPROVE, AdviceType.PROVISO}.intersection(decisions):
+        return AdviceType.APPROVE
+
+    if {AdviceType.REFUSE}.intersection(decisions):
+        return AdviceType.REFUSE
+
+    if {AdviceType.NO_LICENCE_REQUIRED}.intersection(decisions):
+        return AdviceType.NO_LICENCE_REQUIRED
+
+    return advice_type
