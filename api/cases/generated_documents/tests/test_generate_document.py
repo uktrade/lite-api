@@ -1,6 +1,7 @@
 import os, io
 
 from unittest import mock
+from api.audit_trail.enums import AuditType
 from parameterized import parameterized
 
 from django.conf import settings
@@ -35,7 +36,6 @@ class GenerateDocumentTests(DataTestClient):
     def test_generate_document_success(self, upload_bytes_file_func, html_to_pdf_func):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
-
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -49,6 +49,25 @@ class GenerateDocumentTests(DataTestClient):
                 organisation=self.exporter_user.organisation,
             ).count(),
             1,
+        )
+
+    @parameterized.expand([AdviceType.INFORM, AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED])
+    @mock.patch("api.cases.generated_documents.views.html_to_pdf")
+    @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
+    def test_generate_document_audit(self, advicetype, upload_bytes_file_func, html_to_pdf_func):
+        self.data["advice_type"] = advicetype
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Check add audit
+        self.assertEqual(Audit.objects.all().count(), 2)
+
+        audit = Audit.objects.all().first()
+        self.assertEqual(AuditType(audit.verb), AuditType.GENERATE_DECISION_LETTER)
+        self.assertEqual(
+            audit.payload,
+            {"decision": advicetype, "case_reference": "GBSIEL/2023/0000001/P"},
         )
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")

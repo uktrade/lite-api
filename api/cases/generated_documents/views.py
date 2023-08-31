@@ -134,7 +134,7 @@ class GeneratedDocuments(generics.ListAPIView):
             application = get_object_or_404(BaseApplication.objects.all(), pk=pk)
             reset_appeal_deadline(application)
 
-        if advice_type in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
+        if advice_type in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED, AdviceType.INFORM]:
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.GENERATE_DECISION_LETTER,

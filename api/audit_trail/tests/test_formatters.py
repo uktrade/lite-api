@@ -426,7 +426,14 @@ class FormattersTest(DataTestClient):
                     "case_reference": "GBSIEL/2022/0000001/P",
                     "decision": AdviceType.REFUSE,
                 },
-                "created a 'licence refused' letter.",
+                "created a refusal letter.",
+            ),
+            (
+                {
+                    "case_reference": "GBSIEL/2022/0000001/P",
+                    "decision": AdviceType.INFORM,
+                },
+                "created an inform letter.",
             ),
             (
                 {
