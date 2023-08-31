@@ -169,14 +169,11 @@ class ApplicationManageStatusTests(DataTestClient):
     @parameterized.expand(
         [
             status
-            for status, value in CaseStatusEnum.get_choices()
+            for status, _ in CaseStatusEnum.get_choices()
             if status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.FINALISED, CaseStatusEnum.WITHDRAWN]
         ]
     )
     def test_exporter_set_application_status_failure(self, new_status):
-        """Test failure in setting application status to any status other than 'Applicant Editing' and 'Withdrawn'
-        as an exporter user.
-        """
         self.submit_application(self.standard_application)
 
         data = {"status": new_status}
@@ -186,6 +183,26 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
+
+    def test_exporter_set_application_status_appealed_success(self):
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        self.standard_application.save()
+
+        appealed_status = get_case_status_by_status("under_appeal")
+
+        data = {"status": CaseStatusEnum.UNDER_APPEAL}
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+        response_data = response.json()["data"]
+
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data["status"].pop("id", None)
+        self.assertEqual(
+            response_data["status"],
+            {"key": appealed_status.status, "value": CaseStatusEnum.get_text(appealed_status.status)},
+        )
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.UNDER_APPEAL))
 
     def test_exporter_set_application_status_surrendered_success(self):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
