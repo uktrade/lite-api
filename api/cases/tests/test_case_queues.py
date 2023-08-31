@@ -1,6 +1,7 @@
 import uuid
 
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from api.audit_trail.models import Audit
@@ -20,10 +21,16 @@ class AssignQueuesToCaseTests(DataTestClient):
             self.create_queue("Queue 3", self.team),
         ]
 
-    def test_set_queues_successful(self):
+    @parameterized.expand(
+        [
+            ("gov_headers",),
+            ("exporter_headers",),
+        ]
+    )
+    def test_set_queues_successful(self, headers):
         data = {"queues": [queue.id for queue in self.queues]}
 
-        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response = self.client.put(self.url, data=data, **getattr(self, headers))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(sorted(response.json()["queues"]), sorted([str(id) for id in data["queues"]]))
@@ -31,11 +38,17 @@ class AssignQueuesToCaseTests(DataTestClient):
         self.assertTrue(Audit.objects.filter(verb=AuditType.MOVE_CASE).exists())
         self.assertFalse(Audit.objects.filter(verb=AuditType.REMOVE_CASE).exists())
 
-    def test_set_queues_with_initial_data_successful(self):
+    @parameterized.expand(
+        [
+            ("gov_headers",),
+            ("exporter_headers",),
+        ]
+    )
+    def test_set_queues_with_initial_data_successful(self, headers):
         self.case.queues.set(self.queues[:2])
         data = {"queues": [self.queues[2].id]}
 
-        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response = self.client.put(self.url, data=data, **getattr(self, headers))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(sorted(response.json()["queues"]), sorted([str(id) for id in data["queues"]]))
@@ -43,11 +56,17 @@ class AssignQueuesToCaseTests(DataTestClient):
         self.assertTrue(Audit.objects.filter(verb=AuditType.MOVE_CASE).exists())
         self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE).exists())
 
-    def test_remove_queues_successful(self):
+    @parameterized.expand(
+        [
+            ("gov_headers",),
+            ("exporter_headers",),
+        ]
+    )
+    def test_remove_queues_successful(self, headers):
         self.case.queues.set(self.queues)
         data = {"queues": [queue.id for queue in self.queues[:2]]}
 
-        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response = self.client.put(self.url, data=data, **getattr(self, headers))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(sorted(response.json()["queues"]), sorted([str(id) for id in data["queues"]]))
@@ -55,22 +74,34 @@ class AssignQueuesToCaseTests(DataTestClient):
         self.assertFalse(Audit.objects.filter(verb=AuditType.MOVE_CASE).exists())
         self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE).exists())
 
-    def test_remove_all_queues_successful(self):
+    @parameterized.expand(
+        [
+            ("gov_headers",),
+            ("exporter_headers",),
+        ]
+    )
+    def test_remove_all_queues_successful(self, headers):
         self.case.queues.set(self.queues)
         data = {"queues": []}
 
-        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response = self.client.put(self.url, data=data, **getattr(self, headers))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(self.case.queues.exists())
         self.assertFalse(Audit.objects.filter(verb=AuditType.MOVE_CASE).exists())
         self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE).exists())
 
-    def test_set_case_queue_not_found_failure(self):
+    @parameterized.expand(
+        [
+            ("gov_headers",),
+            ("exporter_headers",),
+        ]
+    )
+    def test_set_case_queue_not_found_failure(self, headers):
         random_id = uuid.uuid4()
         data = {"queues": [random_id]}
 
-        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response = self.client.put(self.url, data=data, **getattr(self, headers))
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["queues"], [f"{Cases.Queue.NOT_FOUND}['{str(random_id)}']"])

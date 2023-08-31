@@ -160,7 +160,7 @@ class CaseDetailBasic(RetrieveAPIView):
 
 
 class SetQueues(APIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     @transaction.atomic
     def put(self, request, pk):
