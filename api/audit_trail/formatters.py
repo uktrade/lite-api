@@ -285,6 +285,15 @@ def generate_decision_letter(**payload):
     return f"invalid decision {decision} for this event."
 
 
+def decision_letter_sent(**payload):
+    decision = payload["decision"]
+
+    if decision == AdviceType.INFORM:
+        return "sent an inform letter."
+
+    return f"invalid decision {decision} for this event."
+
+
 def create_lu_advice(advice_type, **payload):
     if advice_type == AdviceType.PROVISO:
         return " added a licence condition."

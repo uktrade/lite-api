@@ -169,6 +169,13 @@ class GeneratedDocumentSend(APIView):
         document.visible_to_exporter = True
         document.save()
 
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.DECISION_LETTER_SENT,
+            target=document.case,
+            payload={"case_reference": document.case.reference_code, "decision": document.advice_type},
+        )
+
         layout_name = document.template.layout.filename
 
         if NOTIFICATION_FUNCTIONS.get(layout_name):

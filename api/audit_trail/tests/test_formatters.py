@@ -450,6 +450,28 @@ class FormattersTest(DataTestClient):
 
     @parameterized.expand(
         [
+            (
+                {
+                    "case_reference": "GBSIEL/2022/0000001/P",
+                    "decision": AdviceType.INFORM,
+                },
+                "sent an inform letter.",
+            ),
+            (
+                {
+                    "case_reference": "GBSIEL/2022/0000001/P",
+                    "decision": AdviceType.APPROVE,
+                },
+                "invalid decision approve for this event.",
+            ),
+        ]
+    )
+    def test_decision_letter_sent(self, payload, expected_result):
+        result = formatters.decision_letter_sent(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
             # Test cases: (flags, action, destination_name, expected_message)
             (["A"], "removed", None, "removed the flag 'A'."),
             (["A", "B"], "removed", None, "removed the flags 'A' and 'B'."),
