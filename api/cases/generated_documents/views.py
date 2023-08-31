@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from rest_framework import status, generics
-from rest_framework.exceptions import ParseError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -13,7 +12,12 @@ from api.applications.helpers import reset_appeal_deadline
 from api.audit_trail.enums import AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseDocumentState, AdviceType
-from api.cases.generated_documents.helpers import html_to_pdf, get_generated_document_data, get_advice_type
+from api.cases.generated_documents.helpers import (
+    html_to_pdf,
+    get_generated_document_data,
+    get_advice_type,
+    get_draft_licence,
+)
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import (
     GeneratedCaseDocumentGovSerializer,
@@ -26,7 +30,6 @@ from api.core.authentication import GovAuthentication, SharedAuthentication
 from api.core.decorators import authorised_to_view_application
 from api.core.helpers import str_to_bool
 from api.documents.libraries import s3_operations
-from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.users.models import GovUser
@@ -83,11 +86,8 @@ class GeneratedDocuments(generics.ListAPIView):
             pdf = sign_pdf(pdf)
 
         advice_type = get_advice_type(request.data, document.template)
-        if advice_type in [AdviceType.APPROVE, AdviceType.PROVISO]:
-            try:
-                licence = Licence.objects.get_draft_licence(pk)
-            except Licence.DoesNotExist:
-                raise ParseError({"non_field_errors": [strings.Cases.GeneratedDocuments.LICENCE_ERROR]})
+
+        licence = get_draft_licence(document.case, advice_type)
 
         s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key
