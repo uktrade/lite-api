@@ -15,7 +15,7 @@ from api.cases.enums import CaseDocumentState, AdviceType
 from api.cases.generated_documents.helpers import (
     html_to_pdf,
     get_generated_document_data,
-    get_advice_type,
+    get_decision_type,
     get_draft_licence,
 )
 from api.cases.generated_documents.models import GeneratedCaseDocument
@@ -85,7 +85,7 @@ class GeneratedDocuments(generics.ListAPIView):
         if document.template.include_digital_signature:
             pdf = sign_pdf(pdf)
 
-        advice_type = get_advice_type(request.data, document.template)
+        advice_type = get_decision_type(request.data.get("advice_type"), document.template)
 
         licence = get_draft_licence(document.case, advice_type)
 
