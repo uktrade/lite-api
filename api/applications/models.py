@@ -213,13 +213,20 @@ class BaseApplication(ApplicationPartyMixin, Case):
     class Meta:
         ordering = ["created_at"]
 
-    def set_appealed(self, appeal):
+    def set_appealed(self, appeal, exporter_user):
         self.appeal = appeal
 
         appeals_queue = Queue.objects.get(id=QueuesEnum.LU_APPEALS)
         self.queues.add(appeals_queue)
 
         case = self.get_case()
+
+        audit_trail_service.create(
+            actor=exporter_user,
+            verb=AuditType.EXPORTER_APPEALED_REFUSAL,
+            target=case,
+            payload={},
+        )
 
         audit_trail_service.create_system_user_audit(
             verb=AuditType.MOVE_CASE,

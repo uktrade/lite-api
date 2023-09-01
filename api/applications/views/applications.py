@@ -1058,7 +1058,10 @@ class ApplicationAppeals(CreateAPIView):
 
     def perform_create(self, serializer):
         super().perform_create(serializer)
-        self.application.set_appealed(serializer.instance)
+        self.application.set_appealed(
+            serializer.instance,
+            self.request.user.exporteruser,
+        )
 
 
 class ApplicationAppeal(RetrieveAPIView):

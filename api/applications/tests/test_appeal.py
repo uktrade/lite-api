@@ -20,6 +20,7 @@ class AppealApplicationTests(DataTestClient):
         super().setUp()
 
         self.application = self.create_standard_application_case(self.organisation)
+        self.case = self.application.get_case()
 
         # We don't care about audit objects created by the above method call so
         # we reset them to a known state
@@ -57,13 +58,23 @@ class AppealApplicationTests(DataTestClient):
             self.application.queues.all(),
         )
 
-        audit = Audit.objects.get()
+        audit_events = Audit.objects.order_by("created_at")
 
-        self.assertEqual(audit.verb, AuditType.MOVE_CASE)
-        self.assertEqual(audit.actor, self.system_user)
-        self.assertEqual(audit.target, self.application.get_case())
+        appeal_event = audit_events[0]
+        self.assertEqual(appeal_event.verb, AuditType.EXPORTER_APPEALED_REFUSAL)
+        self.assertEqual(appeal_event.actor, self.exporter_user)
+        self.assertEqual(appeal_event.target, self.case)
         self.assertEqual(
-            audit.payload,
+            appeal_event.payload,
+            {},
+        )
+
+        move_case_event = audit_events[1]
+        self.assertEqual(move_case_event.verb, AuditType.MOVE_CASE)
+        self.assertEqual(move_case_event.actor, self.system_user)
+        self.assertEqual(move_case_event.target, self.case)
+        self.assertEqual(
+            move_case_event.payload,
             {
                 "case_status": "submitted",
                 "queue_ids": [QueuesEnum.LU_APPEALS],

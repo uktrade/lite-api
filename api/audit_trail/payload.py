@@ -148,4 +148,5 @@ audit_type_format = {
     AuditType.LU_EDIT_MEETING_NOTE: formatters.update_lu_meeting_note,
     AuditType.LU_CREATE_MEETING_NOTE: formatters.create_lu_meeting_note,
     AuditType.CREATE_REFUSAL_CRITERIA: formatters.create_refusal_criteria,
+    AuditType.EXPORTER_APPEALED_REFUSAL: " appealed refusal.",
 }
