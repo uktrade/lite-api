@@ -6,6 +6,9 @@ from test_helpers.clients import DataTestClient
 
 from api.appeals.models import AppealDocument
 from api.appeals.tests.factories import AppealFactory
+from api.queues.models import Queue
+
+from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 
 class AppealApplicationTests(DataTestClient):
@@ -30,6 +33,7 @@ class AppealApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.application.refresh_from_db()
         self.assertIsNotNone(self.application.appeal)
+
         appeal = self.application.appeal
         self.assertEqual(
             appeal.grounds_for_appeal,
@@ -39,6 +43,12 @@ class AppealApplicationTests(DataTestClient):
             appeal.documents.all(),
             AppealDocument.objects.none(),
         )
+
+        self.assertIn(
+            Queue.objects.get(id=QueuesEnum.LU_APPEALS),
+            self.application.queues.all(),
+        )
+
         self.assertEqual(
             response.json(),
             {

@@ -37,6 +37,7 @@ from api.organisations.enums import OrganisationDocumentType
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.parties.enums import PartyType
 from api.parties.models import Party
+from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
@@ -49,6 +50,8 @@ from api.staticdata.trade_control.enums import TradeControlProductCategory, Trad
 from api.staticdata.units.enums import Units
 from api.users.models import ExporterUser
 from lite_content.lite_api.strings import PartyErrors
+
+from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 
 gona_copy_logger = logging.getLogger(settings.GOOD_ON_APPLICATION_COPY_LOGGER)
@@ -208,6 +211,10 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
     def set_appealed(self, appeal):
         self.appeal = appeal
+
+        appeals_queue = Queue.objects.get(id=QueuesEnum.LU_APPEALS)
+        self.queues.add(appeals_queue)
+
         self.save()
 
 
