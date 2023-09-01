@@ -1,6 +1,7 @@
 from rest_framework import permissions
 
 from api.core.exceptions import PermissionDeniedError
+from api.organisations.libraries.get_organisation import get_request_user_organisation
 from api.organisations.models import Organisation
 from api.users.models import GovUser
 
@@ -27,5 +28,4 @@ def check_user_has_permission(user, permission, organisation: Organisation = Non
 
 class IsExporterInOrganisation(permissions.BasePermission):
     def has_permission(self, request, view):
-        organisation = view.get_organisation()
-        return request.user.exporteruser.is_in_organisation(organisation)
+        return get_request_user_organisation(request) == view.get_organisation()
