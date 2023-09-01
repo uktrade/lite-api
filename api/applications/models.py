@@ -50,6 +50,7 @@ from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
 from api.users.models import ExporterUser
@@ -216,16 +217,30 @@ class BaseApplication(ApplicationPartyMixin, Case):
     def set_appealed(self, appeal, exporter_user):
         self.appeal = appeal
 
+        case = self.get_case()
+
         appeals_queue = Queue.objects.get(id=QueuesEnum.LU_APPEALS)
         self.queues.add(appeals_queue)
 
-        case = self.get_case()
+        old_status = self.status
+        self.status = get_case_status_by_status(CaseStatusEnum.UNDER_APPEAL)
 
         audit_trail_service.create(
             actor=exporter_user,
             verb=AuditType.EXPORTER_APPEALED_REFUSAL,
             target=case,
             payload={},
+        )
+
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.UPDATED_STATUS,
+            target=case,
+            payload={
+                "status": {
+                    "new": self.status.status,
+                    "old": old_status.status,
+                },
+            },
         )
 
         audit_trail_service.create_system_user_audit(

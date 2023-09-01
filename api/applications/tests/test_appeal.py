@@ -11,6 +11,7 @@ from api.audit_trail.models import (
 from api.appeals.models import AppealDocument
 from api.appeals.tests.factories import AppealFactory
 from api.queues.models import Queue
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
 
@@ -28,6 +29,8 @@ class AppealApplicationTests(DataTestClient):
 
     def test_create_appeal_standard_application(self):
         self.assertIsNone(self.application.appeal)
+
+        original_status = self.application.status.status
 
         url = reverse(
             "applications:appeals",
@@ -53,6 +56,11 @@ class AppealApplicationTests(DataTestClient):
             AppealDocument.objects.none(),
         )
 
+        self.assertEqual(
+            self.application.status.status,
+            CaseStatusEnum.UNDER_APPEAL,
+        )
+
         self.assertIn(
             Queue.objects.get(id=QueuesEnum.LU_APPEALS),
             self.application.queues.all(),
@@ -69,7 +77,16 @@ class AppealApplicationTests(DataTestClient):
             {},
         )
 
-        move_case_event = audit_events[1]
+        update_status_event = audit_events[1]
+        self.assertEqual(update_status_event.verb, AuditType.UPDATED_STATUS)
+        self.assertEqual(update_status_event.actor, self.system_user)
+        self.assertEqual(update_status_event.target, self.case)
+        self.assertEqual(
+            update_status_event.payload,
+            {"status": {"new": CaseStatusEnum.UNDER_APPEAL, "old": original_status}},
+        )
+
+        move_case_event = audit_events[2]
         self.assertEqual(move_case_event.verb, AuditType.MOVE_CASE)
         self.assertEqual(move_case_event.actor, self.system_user)
         self.assertEqual(move_case_event.target, self.case)
