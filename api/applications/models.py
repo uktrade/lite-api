@@ -23,7 +23,11 @@ from api.applications.enums import (
 
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager, HmrcQueryManager
-from api.audit_trail.models import Audit
+from api.audit_trail.models import (
+    Audit,
+    AuditType,
+)
+from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.common.models import TimestampableModel
@@ -214,6 +218,18 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
         appeals_queue = Queue.objects.get(id=QueuesEnum.LU_APPEALS)
         self.queues.add(appeals_queue)
+
+        case = self.get_case()
+
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.MOVE_CASE,
+            target=case,
+            payload={
+                "queues": [appeals_queue.name],
+                "queue_ids": [str(appeals_queue.id)],
+                "case_status": case.status.status,
+            },
+        )
 
         self.save()
 

@@ -4,6 +4,10 @@ from django.urls import reverse
 
 from test_helpers.clients import DataTestClient
 
+from api.audit_trail.models import (
+    Audit,
+    AuditType,
+)
 from api.appeals.models import AppealDocument
 from api.appeals.tests.factories import AppealFactory
 from api.queues.models import Queue
@@ -16,6 +20,10 @@ class AppealApplicationTests(DataTestClient):
         super().setUp()
 
         self.application = self.create_standard_application_case(self.organisation)
+
+        # We don't care about audit objects created by the above method call so
+        # we reset them to a known state
+        Audit.objects.all().delete()
 
     def test_create_appeal_standard_application(self):
         self.assertIsNone(self.application.appeal)
@@ -47,6 +55,20 @@ class AppealApplicationTests(DataTestClient):
         self.assertIn(
             Queue.objects.get(id=QueuesEnum.LU_APPEALS),
             self.application.queues.all(),
+        )
+
+        audit = Audit.objects.get()
+
+        self.assertEqual(audit.verb, AuditType.MOVE_CASE)
+        self.assertEqual(audit.actor, self.system_user)
+        self.assertEqual(audit.target, self.application.get_case())
+        self.assertEqual(
+            audit.payload,
+            {
+                "case_status": "submitted",
+                "queue_ids": [QueuesEnum.LU_APPEALS],
+                "queues": ["Licensing Unit Appeals"],
+            },
         )
 
         self.assertEqual(
