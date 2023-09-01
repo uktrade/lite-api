@@ -56,7 +56,6 @@ from api.applications.models import (
     F680ClearanceApplication,
 )
 from api.applications.notify import notify_exporter_case_opened_for_editing
-from api.applications.permissions import IsExporterInOrganisation
 from api.applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from api.applications.serializers.generic_application import (
     GenericApplicationListSerializer,
@@ -80,7 +79,10 @@ from api.core.decorators import (
     allowed_application_types,
 )
 from api.core.helpers import convert_date_to_string, str_to_bool
-from api.core.permissions import assert_user_has_permission
+from api.core.permissions import (
+    assert_user_has_permission,
+    IsExporterInOrganisation,
+)
 from api.applications.views.helpers.advice import ensure_lu_countersign_complete
 from api.flags.enums import FlagStatuses, SystemFlags
 from api.flags.models import Flag
