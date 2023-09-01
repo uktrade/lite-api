@@ -120,6 +120,21 @@ class AppealApplicationTests(DataTestClient):
         )
         self.assertEqual(response.status_code, 404)
 
+    def test_create_appeal_different_organisation(self):
+        self.application.organisation = self.create_organisation_with_exporter_user()[0]
+        self.application.save()
+
+        url = reverse(
+            "applications:appeals",
+            kwargs={"pk": str(self.application.pk)},
+        )
+        response = self.client.post(
+            url,
+            {"grounds_for_appeal": "These are the grounds for appeal"},
+            **self.exporter_headers,
+        )
+        self.assertEqual(response.status_code, 403)
+
     def test_get_appeal(self):
         appeal = AppealFactory()
         url = reverse(
@@ -158,7 +173,6 @@ class AppealApplicationTests(DataTestClient):
         )
 
     def test_get_appeal_invalid_appeal_pk(self):
-        appeal = AppealFactory()
         url = reverse(
             "applications:appeal",
             kwargs={
@@ -172,3 +186,15 @@ class AppealApplicationTests(DataTestClient):
             response.status_code,
             status.HTTP_404_NOT_FOUND,
         )
+
+    def test_get_appeal_different_organisation(self):
+        self.application.organisation = self.create_organisation_with_exporter_user()[0]
+        self.application.save()
+
+        appeal = AppealFactory()
+        url = reverse(
+            "applications:appeal",
+            kwargs={"pk": self.application.pk, "appeal_pk": appeal.pk},
+        )
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, 403)

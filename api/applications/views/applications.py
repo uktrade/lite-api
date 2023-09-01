@@ -56,6 +56,7 @@ from api.applications.models import (
     F680ClearanceApplication,
 )
 from api.applications.notify import notify_exporter_case_opened_for_editing
+from api.applications.permissions import IsExporterInOrganisation
 from api.applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from api.applications.serializers.generic_application import (
     GenericApplicationListSerializer,
@@ -1046,15 +1047,21 @@ class ApplicationRouteOfGoods(UpdateAPIView):
 
 class ApplicationAppeals(CreateAPIView):
     authentication_classes = (ExporterAuthentication,)
+    permission_classes = [
+        IsExporterInOrganisation,
+    ]
     serializer_class = AppealSerializer
 
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
 
         try:
             self.application = BaseApplication.objects.get(pk=self.kwargs["pk"])
         except BaseApplication.DoesNotExist:
             raise Http404()
+
+    def get_organisation(self):
+        return self.application.organisation
 
     def perform_create(self, serializer):
         super().perform_create(serializer)
@@ -1067,13 +1074,19 @@ class ApplicationAppeals(CreateAPIView):
 class ApplicationAppeal(RetrieveAPIView):
     authentication_classes = (ExporterAuthentication,)
     lookup_url_kwarg = "appeal_pk"
+    permission_classes = [
+        IsExporterInOrganisation,
+    ]
     queryset = Appeal.objects.all()
     serializer_class = AppealSerializer
 
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
 
         try:
             self.application = BaseApplication.objects.get(pk=self.kwargs["pk"])
         except BaseApplication.DoesNotExist:
             raise Http404()
+
+    def get_organisation(self):
+        return self.application.organisation
