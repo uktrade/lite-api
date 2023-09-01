@@ -1045,7 +1045,7 @@ class ApplicationRouteOfGoods(UpdateAPIView):
         )
 
 
-class ApplicationAppeals(CreateAPIView):
+class BaseApplicationAppeal:
     authentication_classes = (ExporterAuthentication,)
     permission_classes = [
         IsExporterInOrganisation,
@@ -1063,6 +1063,8 @@ class ApplicationAppeals(CreateAPIView):
     def get_organisation(self):
         return self.application.organisation
 
+
+class ApplicationAppeals(BaseApplicationAppeal, CreateAPIView):
     def perform_create(self, serializer):
         super().perform_create(serializer)
         self.application.set_appealed(
@@ -1071,22 +1073,6 @@ class ApplicationAppeals(CreateAPIView):
         )
 
 
-class ApplicationAppeal(RetrieveAPIView):
-    authentication_classes = (ExporterAuthentication,)
+class ApplicationAppeal(BaseApplicationAppeal, RetrieveAPIView):
     lookup_url_kwarg = "appeal_pk"
-    permission_classes = [
-        IsExporterInOrganisation,
-    ]
     queryset = Appeal.objects.all()
-    serializer_class = AppealSerializer
-
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-
-        try:
-            self.application = BaseApplication.objects.get(pk=self.kwargs["pk"])
-        except BaseApplication.DoesNotExist:
-            raise Http404()
-
-    def get_organisation(self):
-        return self.application.organisation
