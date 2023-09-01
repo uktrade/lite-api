@@ -34,7 +34,10 @@ from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
-from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.statuses.models import (
+    CaseStatus,
+    CaseSubStatus,
+)
 from api.teams.models import Team, Department
 from api.users.models import (
     BaseUser,
@@ -87,6 +90,13 @@ class Case(TimestampableModel):
     status = models.ForeignKey(
         CaseStatus,
         related_name="query_status",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    sub_status = models.ForeignKey(
+        CaseSubStatus,
+        related_name="sub_status",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
