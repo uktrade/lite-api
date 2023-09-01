@@ -206,6 +206,10 @@ class BaseApplication(ApplicationPartyMixin, Case):
     class Meta:
         ordering = ["created_at"]
 
+    def set_appealed(self, appeal):
+        self.appeal = appeal
+        self.save()
+
 
 # Licence Applications
 class StandardApplication(BaseApplication):
