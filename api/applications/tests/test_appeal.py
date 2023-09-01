@@ -93,7 +93,7 @@ class AppealApplicationTests(DataTestClient):
         self.assertEqual(
             move_case_event.payload,
             {
-                "case_status": "submitted",
+                "case_status": "under_appeal",
                 "queue_ids": [QueuesEnum.LU_APPEALS],
                 "queues": ["Licensing Unit Appeals"],
             },

@@ -214,23 +214,26 @@ class BaseApplication(ApplicationPartyMixin, Case):
     class Meta:
         ordering = ["created_at"]
 
-    def set_appealed(self, appeal, exporter_user):
-        self.appeal = appeal
-
+    def add_to_queue(self, queue):
         case = self.get_case()
 
-        appeals_queue = Queue.objects.get(id=QueuesEnum.LU_APPEALS)
-        self.queues.add(appeals_queue)
+        self.queues.add(queue)
+
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.MOVE_CASE,
+            target=case,
+            payload={
+                "queues": [queue.name],
+                "queue_ids": [str(queue.id)],
+                "case_status": case.status.status,
+            },
+        )
+
+    def update_status(self, status):
+        case = self.get_case()
 
         old_status = self.status
-        self.status = get_case_status_by_status(CaseStatusEnum.UNDER_APPEAL)
-
-        audit_trail_service.create(
-            actor=exporter_user,
-            verb=AuditType.EXPORTER_APPEALED_REFUSAL,
-            target=case,
-            payload={},
-        )
+        self.status = get_case_status_by_status(status)
 
         audit_trail_service.create_system_user_audit(
             verb=AuditType.UPDATED_STATUS,
@@ -243,17 +246,21 @@ class BaseApplication(ApplicationPartyMixin, Case):
             },
         )
 
-        audit_trail_service.create_system_user_audit(
-            verb=AuditType.MOVE_CASE,
-            target=case,
-            payload={
-                "queues": [appeals_queue.name],
-                "queue_ids": [str(appeals_queue.id)],
-                "case_status": case.status.status,
-            },
+        self.save()
+
+    def set_appealed(self, appeal, exporter_user):
+        self.appeal = appeal
+        self.save()
+
+        audit_trail_service.create(
+            actor=exporter_user,
+            verb=AuditType.EXPORTER_APPEALED_REFUSAL,
+            target=self.get_case(),
+            payload={},
         )
 
-        self.save()
+        self.update_status(CaseStatusEnum.UNDER_APPEAL)
+        self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
 
 # Licence Applications
