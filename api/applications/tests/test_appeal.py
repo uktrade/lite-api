@@ -4,6 +4,8 @@ from django.urls import reverse
 
 from test_helpers.clients import DataTestClient
 
+from api.appeals.models import AppealDocument
+
 
 class AppealApplicationTests(DataTestClient):
     def test_appeal_standard_application(self):
@@ -24,13 +26,22 @@ class AppealApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         application.refresh_from_db()
         self.assertIsNotNone(application.appeal)
+        appeal = application.appeal
         self.assertEqual(
-            application.appeal.grounds_for_appeal,
+            appeal.grounds_for_appeal,
             "These are the grounds for appeal",
+        )
+        self.assertQuerysetEqual(
+            appeal.documents.all(),
+            AppealDocument.objects.none(),
         )
         self.assertEqual(
             response.json(),
-            {"grounds_for_appeal": "These are the grounds for appeal"},
+            {
+                "id": str(appeal.pk),
+                "documents": [],
+                "grounds_for_appeal": appeal.grounds_for_appeal,
+            },
         )
 
     def test_appeal_invalid_application_pk(self):

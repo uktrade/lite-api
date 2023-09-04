@@ -37,6 +37,7 @@ class FinaliseCaseTests(DataTestClient):
         self.create_generated_case_document(
             self.standard_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
         )
+        self.assertIsNone(self.standard_case.appeal_deadline)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
         self.standard_case.refresh_from_db()
@@ -55,6 +56,8 @@ class FinaliseCaseTests(DataTestClient):
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
         self.assertEqual(Audit.objects.count(), 5)
+
+        self.assertIsNone(self.standard_case.appeal_deadline)
         send_exporter_notifications_func.assert_called()
         mock_notify.assert_called_with(self.standard_case.get_case())
 

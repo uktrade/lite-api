@@ -2,6 +2,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
+from api.appeals.serializers import AppealSerializer
 from api.applications.enums import (
     YesNoChoiceType,
     ApplicationExportLicenceOfficialType,
@@ -45,6 +46,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     is_amended = serializers.SerializerMethodField()
     goods_starting_point = serializers.CharField()
     goods_recipients = serializers.CharField()
+    appeal = AppealSerializer()
 
     class Meta:
         model = StandardApplication
@@ -90,6 +92,8 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "f1686_reference_number",
                 "f1686_approval_date",
                 "other_security_approval_details",
+                "appeal_deadline",
+                "appeal",
             )
         )
 
