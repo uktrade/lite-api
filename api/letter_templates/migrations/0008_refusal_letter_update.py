@@ -9,7 +9,7 @@ def update_refusal_letter_template_paragraphs(apps, schema_editor):
     pick_list_item = PicklistItem.objects.filter(name="Refusal letter content").first()
     admin = Team.objects.get(name="Admin")
 
-    with open("lite_content/lite_api/letter_paragraphs/refusal_letter.txt", "r") as f:
+    with open("lite_content/lite_api/letter_paragraphs/refusal_letter.txt", "r", encoding="utf_8") as f:
         text = f.read()
 
         pick_list_item, created = PicklistItem.objects.get_or_create(
