@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from tempfile import NamedTemporaryFile
 from PyPDF2 import PdfFileReader
+from api.audit_trail.serializers import AuditSerializer
 
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, AdviceType
@@ -51,10 +52,16 @@ class GenerateDocumentTests(DataTestClient):
             1,
         )
 
-    @parameterized.expand([AdviceType.INFORM, AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED])
+    @parameterized.expand(
+        [
+            (AdviceType.INFORM, "created an inform letter."),
+            (AdviceType.REFUSE, "created a refusal letter."),
+            (AdviceType.NO_LICENCE_REQUIRED, "created a 'no licence required' letter."),
+        ],
+    )
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_document_audit(self, advicetype, upload_bytes_file_func, html_to_pdf_func):
+    def test_generate_document_audit(self, advicetype, expected_text, upload_bytes_file_func, html_to_pdf_func):
         self.data["advice_type"] = advicetype
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
@@ -69,6 +76,9 @@ class GenerateDocumentTests(DataTestClient):
             audit.payload,
             {"decision": advicetype, "case_reference": "GBSIEL/2023/0000001/P"},
         )
+
+        audit_text = AuditSerializer(audit).data["text"]
+        self.assertEqual(audit_text, expected_text)
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")

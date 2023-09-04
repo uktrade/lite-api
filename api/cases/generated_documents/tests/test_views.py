@@ -3,6 +3,7 @@ import uuid
 from unittest import mock
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
+from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import AdviceType
 
 from rest_framework.reverse import reverse
@@ -54,6 +55,8 @@ class GeneratedDocumentSendTests(DataTestClient):
             audit.payload,
             {"decision": "inform", "case_reference": "GBSIEL/2023/0000001/P"},
         )
+        audit_text = AuditSerializer(audit).data["text"]
+        self.assertEqual(audit_text, "sent an inform letter.")
 
     def test_post_with_notification(self):
         mocked_notify_function = mock.Mock()
@@ -87,3 +90,5 @@ class GeneratedDocumentSendTests(DataTestClient):
             audit.payload,
             {"decision": "inform", "case_reference": "GBSIEL/2023/0000001/P"},
         )
+        audit_text = AuditSerializer(audit).data["text"]
+        self.assertEqual(audit_text, "sent an inform letter.")
