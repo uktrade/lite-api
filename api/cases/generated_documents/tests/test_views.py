@@ -43,7 +43,14 @@ class GeneratedDocumentSendTests(DataTestClient):
         )
         response = self.client.post(url, **self.gov_headers)
         assert response.status_code == 200
-        assert response.json() == {"notification_sent": False}
+        assert response.json() == {
+            "notification_sent": False,
+            "document": {
+                "advice_type": generated_document.advice_type,
+                "template": str(generated_document.template.id),
+                "text": generated_document.text,
+            },
+        }
         generated_document.refresh_from_db()
         assert generated_document.visible_to_exporter == True
         # Check add audit
@@ -77,7 +84,14 @@ class GeneratedDocumentSendTests(DataTestClient):
         )
         response = self.client.post(url, **self.gov_headers)
         assert response.status_code == 200
-        assert response.json() == {"notification_sent": True}
+        assert response.json() == {
+            "notification_sent": True,
+            "document": {
+                "advice_type": generated_document.advice_type,
+                "template": str(generated_document.template.id),
+                "text": generated_document.text,
+            },
+        }
         generated_document.refresh_from_db()
         assert generated_document.visible_to_exporter == True
         mocked_notify_function.assert_called_with(self.case.get_case())
