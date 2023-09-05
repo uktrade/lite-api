@@ -426,7 +426,14 @@ class FormattersTest(DataTestClient):
                     "case_reference": "GBSIEL/2022/0000001/P",
                     "decision": AdviceType.REFUSE,
                 },
-                "created a 'licence refused' letter.",
+                "created a refusal letter.",
+            ),
+            (
+                {
+                    "case_reference": "GBSIEL/2022/0000001/P",
+                    "decision": AdviceType.INFORM,
+                },
+                "created an inform letter.",
             ),
             (
                 {
@@ -446,6 +453,28 @@ class FormattersTest(DataTestClient):
     )
     def test_generate_decision_letter(self, payload, expected_result):
         result = formatters.generate_decision_letter(**payload)
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (
+                {
+                    "case_reference": "GBSIEL/2022/0000001/P",
+                    "decision": AdviceType.INFORM,
+                },
+                "sent an inform letter.",
+            ),
+            (
+                {
+                    "case_reference": "GBSIEL/2022/0000001/P",
+                    "decision": AdviceType.APPROVE,
+                },
+                "invalid decision approve for this event.",
+            ),
+        ]
+    )
+    def test_decision_letter_sent(self, payload, expected_result):
+        result = formatters.decision_letter_sent(**payload)
         self.assertEqual(result, expected_result)
 
     @parameterized.expand(

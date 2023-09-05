@@ -131,6 +131,7 @@ class AuditType(LiteEnum):
     LICENCE_UPDATED_PRODUCT_USAGE = autostr()
     CREATED_FINAL_RECOMMENDATION = autostr()
     GENERATE_DECISION_LETTER = autostr()
+    DECISION_LETTER_SENT = autostr()
     LU_ADVICE = autostr()
     LU_EDIT_ADVICE = autostr()
     LU_COUNTERSIGN = autostr()
