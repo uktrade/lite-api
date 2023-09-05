@@ -492,7 +492,6 @@ class FormattersTest(DataTestClient):
         result = formatters.decision_letter_sent(**payload)
         self.assertEqual(result, expected_result)
 
-
     def test_decision_letter_sent_raise_not_implemented(self):
         payload = {
             "case_reference": "GBSIEL/2022/0000001/P",
@@ -501,7 +500,6 @@ class FormattersTest(DataTestClient):
         with pytest.raises(NotImplementedError):
             formatters.decision_letter_sent(**payload)
 
-            
     @parameterized.expand(
         [
             # Test cases: (flags, action, destination_name, expected_message)

@@ -58,7 +58,6 @@ class GeneratedDocumentSendTests(DataTestClient):
         audit_text = AuditSerializer(audit).data["text"]
         self.assertEqual(audit_text, "sent an inform letter.")
 
-
     def test_post_with_notification(self):
         mocked_notify_function = mock.Mock()
         MonkeyPatch().setitem(views.NOTIFICATION_FUNCTIONS, "inform_letter", mocked_notify_function)
