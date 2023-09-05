@@ -1,6 +1,7 @@
 import os, io
 
 from unittest import mock
+from api.audit_trail.enums import AuditType
 from parameterized import parameterized
 
 from django.conf import settings
@@ -9,6 +10,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from tempfile import NamedTemporaryFile
 from PyPDF2 import PdfFileReader
+from api.audit_trail.serializers import AuditSerializer
 
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, AdviceType
@@ -16,6 +18,9 @@ from api.cases.generated_documents.helpers import html_to_pdf
 from api.letter_templates.helpers import generate_preview
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.licences.enums import LicenceStatus
+from api.staticdata.decisions.models import Decision
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 from api.users.models import ExporterNotification
@@ -35,7 +40,6 @@ class GenerateDocumentTests(DataTestClient):
     def test_generate_document_success(self, upload_bytes_file_func, html_to_pdf_func):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
-
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -50,6 +54,34 @@ class GenerateDocumentTests(DataTestClient):
             ).count(),
             1,
         )
+
+    @parameterized.expand(
+        [
+            (AdviceType.INFORM, "created an inform letter."),
+            (AdviceType.REFUSE, "created a refusal letter."),
+            (AdviceType.NO_LICENCE_REQUIRED, "created a 'no licence required' letter."),
+        ],
+    )
+    @mock.patch("api.cases.generated_documents.views.html_to_pdf")
+    @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
+    def test_generate_document_audit(self, advicetype, expected_text, upload_bytes_file_func, html_to_pdf_func):
+        self.data["advice_type"] = advicetype
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Check add audit
+        self.assertEqual(Audit.objects.all().count(), 2)
+
+        audit = Audit.objects.all().first()
+        self.assertEqual(AuditType(audit.verb), AuditType.GENERATE_DECISION_LETTER)
+        self.assertEqual(
+            audit.payload,
+            {"decision": advicetype, "case_reference": "GBSIEL/2023/0000001/P"},
+        )
+
+        audit_text = AuditSerializer(audit).data["text"]
+        self.assertEqual(audit_text, expected_text)
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -132,7 +164,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         application.refresh_from_db()
-        assert not (not application.appeal_deadline) == appeal_deadline_set
+        assert bool(application.appeal_deadline) == appeal_deadline_set
 
         upload_bytes_file_func.assert_called_once()
         self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=advice_type, licence=licence).count(), 1)
@@ -145,6 +177,43 @@ class GenerateDocumentTests(DataTestClient):
             ).count(),
             0,
         )
+
+    @parameterized.expand(
+        (
+            ("SIEL NLR", [AdviceType.NO_LICENCE_REQUIRED], False),
+            ("SIEL Approval", [AdviceType.APPROVE, AdviceType.PROVISO], False),
+            ("SIEL Refusal", [AdviceType.REFUSE], True),
+        ),
+    )
+    @mock.patch("api.cases.generated_documents.views.html_to_pdf")
+    @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
+    def test_regenerate_decision_document_success(
+        self, template_name, decisions, appeal_deadline_set, upload_bytes_file_func, html_to_pdf_func
+    ):
+        html_to_pdf_func.return_value = None
+        upload_bytes_file_func.return_value = None
+
+        self.case.status = CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
+        self.case.save()
+
+        application = self.case
+        decisions = Decision.objects.filter(name__in=decisions)
+        template = self.create_letter_template(
+            name=template_name, case_types=[CaseTypeEnum.SIEL.id], decisions=decisions
+        )
+
+        self.assertIsNone(application.appeal_deadline)
+
+        self.data = {"template": str(template.id), "text": "sample", "visible_to_exporter": True}
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        application.refresh_from_db()
+        assert bool(application.appeal_deadline) == appeal_deadline_set
+
+        upload_bytes_file_func.assert_called_once()
+        self.assertEqual(GeneratedCaseDocument.objects.filter(template=template).count(), 1)
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")

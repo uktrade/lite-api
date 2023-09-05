@@ -278,7 +278,9 @@ def generate_decision_letter(**payload):
     decision = payload["decision"]
 
     if decision == AdviceType.REFUSE:
-        return "created a 'licence refused' letter."
+        return "created a refusal letter."
+    elif decision == AdviceType.INFORM:
+        return "created an inform letter."
     elif decision == AdviceType.NO_LICENCE_REQUIRED:
         return "created a 'no licence required' letter."
 
