@@ -290,8 +290,14 @@ def decision_letter_sent(**payload):
 
     if decision == AdviceType.INFORM:
         return "sent an inform letter."
-
-    return f"invalid decision {decision} for this event."
+    elif decision == AdviceType.NO_LICENCE_REQUIRED:
+        return "sent a 'no licence required' letter."
+    elif decision == AdviceType.APPROVE:
+        return "sent an 'approval' letter."
+    elif decision == AdviceType.REFUSE:
+        return "sent a 'refusal' letter."
+    else:
+        raise NotImplementedError
 
 
 def create_lu_advice(advice_type, **payload):
