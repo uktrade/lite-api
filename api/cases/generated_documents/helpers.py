@@ -3,13 +3,15 @@ from collections import namedtuple
 from django.utils import timezone
 from weasyprint import CSS, HTML
 from weasyprint.fonts import FontConfiguration
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ParseError, ValidationError
 
-from api.cases.enums import CaseDocumentState
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.cases.enums import CaseDocumentState, AdviceType
 from api.cases.libraries.get_case import get_case
 from api.cases.models import CaseDocument
 from api.core.exceptions import NotFoundError
 from api.documents.libraries import s3_operations
+from api.licences.models import Licence
 from api.letter_templates.helpers import get_css_location, generate_preview, DocumentPreviewError
 from api.letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
@@ -82,3 +84,39 @@ def get_generated_document_data(request_params, pk, include_css=True):
         raise ValidationError(str(exc))
 
     return GeneratedDocumentPayload(case=case, template=template, document_html=document_html, text=text)
+
+
+def get_decision_type(advice_type, template):
+
+    # When generating documents during finalise this is provided
+    if advice_type:
+        return advice_type
+
+    decisions = template.decisions.values_list("name", flat=True)
+    if {AdviceType.APPROVE, AdviceType.PROVISO}.intersection(decisions):
+        return AdviceType.APPROVE
+
+    if AdviceType.REFUSE in decisions:
+        return AdviceType.REFUSE
+
+    if AdviceType.NO_LICENCE_REQUIRED in decisions:
+        return AdviceType.NO_LICENCE_REQUIRED
+
+    return advice_type
+
+
+def get_draft_licence(case, advice_type):
+    licence = None
+
+    # this is the case of regenerating document which can happen after
+    # finalising the Case so there won't be any draft licences in this case
+    if case.status.status == CaseStatusEnum.FINALISED:
+        return licence
+
+    if advice_type in [AdviceType.APPROVE, AdviceType.PROVISO]:
+        try:
+            licence = Licence.objects.get_draft_licence(case)
+        except Licence.DoesNotExist:
+            raise ParseError({"non_field_errors": [strings.Cases.GeneratedDocuments.LICENCE_ERROR]})
+
+    return licence

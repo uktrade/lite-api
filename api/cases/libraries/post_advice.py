@@ -122,14 +122,13 @@ def post_advice(request, case, level, team=False):
             if data[0].get("is_refusal_note", False):
                 audit_lu_countersigning(AuditType.LU_CREATE_MEETING_NOTE, data[0]["type"], data, case, request)
 
-            audit_lu_countersigning(AuditType.LU_ADVICE, data[0]["type"], data, case, request)
-
             advice_type = data[0]["type"]
             audit_lu_countersigning(AuditType.LU_ADVICE, advice_type, data, case, request)
             # Refused applications do not need to go through LU countersign - so remove the countersign flags now
             if advice_type == AdviceType.REFUSE:
                 application = get_application(case.id)
                 remove_countersign_process_flags(application, case)
+                audit_refusal_criteria(AuditType.CREATE_REFUSAL_CRITERIA, advice_type, data[0], case, request)
 
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -186,7 +185,6 @@ def update_advice(request, case, level):
         audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_to_update.first().type, data, case, request)
 
     advice_type = advice_to_update.first().type
-    audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_type, data, case, request)
     # Refused applications do not need to go through LU countersign - so remove the countersign flags now
     if advice_type == AdviceType.REFUSE and level == AdviceLevel.FINAL:
         application = get_application(case.id)
@@ -237,3 +235,15 @@ def case_advice_contains_refusal(case_id):
     if not refuse_advice_found:
         if flag in case.flags.all():
             case.flags.remove(flag)
+
+
+def audit_refusal_criteria(audit_type, advice_type, data, case, request):
+    audit_payload = {
+        "firstname": request.user.first_name,  # /PS-IGNORE
+        "lastname": request.user.last_name,  # /PS-IGNORE
+        "advice_type": advice_type,
+    }
+    if data.get("denial_reasons"):
+        audit_payload["additional_text"] = ", ".join(data["denial_reasons"]) + "."
+
+    audit_trail_service.create(actor=request.user, verb=audit_type, target=case, payload=audit_payload)

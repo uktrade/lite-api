@@ -311,3 +311,7 @@ def update_lu_meeting_note(advice_type, **payload):
 
 def create_lu_meeting_note(advice_type, **payload):
     return " added a refusal meeting note."
+
+
+def create_refusal_criteria(**payload):
+    return " added refusal criteria."
