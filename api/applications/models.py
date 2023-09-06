@@ -23,7 +23,11 @@ from api.applications.enums import (
 
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager, HmrcQueryManager
-from api.audit_trail.models import Audit
+from api.audit_trail.models import (
+    Audit,
+    AuditType,
+)
+from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.common.models import TimestampableModel
@@ -37,6 +41,7 @@ from api.organisations.enums import OrganisationDocumentType
 from api.organisations.models import Organisation, Site, ExternalLocation
 from api.parties.enums import PartyType
 from api.parties.models import Party
+from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
@@ -45,10 +50,13 @@ from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
 from api.users.models import ExporterUser
 from lite_content.lite_api.strings import PartyErrors
+
+from lite_routing.routing_rules_internal.enums import QueuesEnum
 
 
 gona_copy_logger = logging.getLogger(settings.GOOD_ON_APPLICATION_COPY_LOGGER)
@@ -205,6 +213,54 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
     class Meta:
         ordering = ["created_at"]
+
+    def add_to_queue(self, queue):
+        case = self.get_case()
+
+        self.queues.add(queue)
+
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.MOVE_CASE,
+            target=case,
+            payload={
+                "queues": [queue.name],
+                "queue_ids": [str(queue.id)],
+                "case_status": case.status.status,
+            },
+        )
+
+    def update_status(self, status):
+        case = self.get_case()
+
+        old_status = self.status
+        self.status = get_case_status_by_status(status)
+
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.UPDATED_STATUS,
+            target=case,
+            payload={
+                "status": {
+                    "new": self.status.status,
+                    "old": old_status.status,
+                },
+            },
+        )
+
+        self.save()
+
+    def set_appealed(self, appeal, exporter_user):
+        self.appeal = appeal
+        self.save()
+
+        audit_trail_service.create(
+            actor=exporter_user,
+            verb=AuditType.EXPORTER_APPEALED_REFUSAL,
+            target=self.get_case(),
+            payload={},
+        )
+
+        self.update_status(CaseStatusEnum.UNDER_APPEAL)
+        self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
 
 # Licence Applications
