@@ -18,6 +18,11 @@ class TestAppealDocuments(DataTestClient):
         super().setUp()
 
         self.appeal = AppealFactory()
+        application = self.create_standard_application_case(
+            organisation=self.exporter_user.organisation,
+        )
+        application.appeal = self.appeal
+        application.save()
         self.url = reverse("appeals:documents", kwargs={"pk": self.appeal.pk})
 
     @mock.patch("api.documents.models.Document.scan_for_viruses", autospec=True)
@@ -80,6 +85,25 @@ class TestAppealDocuments(DataTestClient):
             status.HTTP_404_NOT_FOUND,
         )
 
+    def test_creating_document_with_different_organisation(self):
+        self.appeal.baseapplication.organisation = self.create_organisation_with_exporter_user()[0]
+        self.appeal.baseapplication.save()
+
+        response = self.client.post(
+            self.url,
+            {
+                "name": "file 1",
+                "s3_key": "file 1",
+                "size": "256",
+            },
+            **self.exporter_headers,
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
     def test_get_document(self):
         appeal_document = AppealDocumentFactory(appeal=self.appeal)
 
@@ -137,4 +161,23 @@ class TestAppealDocuments(DataTestClient):
         self.assertEqual(
             response.status_code,
             status.HTTP_404_NOT_FOUND,
+        )
+
+    def test_get_document_different_organisation(self):
+        self.appeal.baseapplication.organisation = self.create_organisation_with_exporter_user()[0]
+        self.appeal.baseapplication.save()
+        appeal_document = AppealDocumentFactory(appeal=self.appeal)
+
+        url = reverse(
+            "appeals:document",
+            kwargs={
+                "pk": str(self.appeal.pk),
+                "document_pk": str(appeal_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
         )
