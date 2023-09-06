@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.template import Template, Context
+from django.template.loader import render_to_string
 
 
 class TemplatesTestCase(TestCase):
@@ -23,13 +23,10 @@ class TemplatesTestCase(TestCase):
             ]
         }
 
-        with open(
-            "api/letter_templates/templates/letter_templates/refusal.html", "r", encoding="utf_8"
-        ) as template_file:
-            template = Template(template_file.read())
-
-        context = Context({"goods": goods_data})
-        rendered_template = template.render(context)
+        rendered_template = render_to_string(
+            "letter_templates/refusal.html",
+            {"goods": goods_data},
+        )
 
         self.assertIn("Test Good 1", rendered_template)
         self.assertIn("Criterion 1", rendered_template)
