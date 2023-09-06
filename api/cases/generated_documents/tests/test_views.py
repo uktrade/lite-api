@@ -90,5 +90,6 @@ class GeneratedDocumentSendTests(DataTestClient):
             audit.payload,
             {"decision": "inform", "case_reference": "GBSIEL/2023/0000001/P"},
         )
+
         audit_text = AuditSerializer(audit).data["text"]
         self.assertEqual(audit_text, "sent an inform letter.")
