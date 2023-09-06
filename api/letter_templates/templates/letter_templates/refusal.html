@@ -1,22 +1,26 @@
-{% extends "letter_templates/ecju_base.html" %}
+{% extends "letter_templates/dbt_letter_base.html" %}
+{% load static custom_tags %}
 
 {% block title %}Refusal letter{% endblock %}
+{% block css %}
+  <link href="{% static 'css/inform_letter.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
 
-{% block table %}
-  <table>
-    <tr>
-      <th scope="col">Name</th>
-      <th scope="col">Reason for refusal</th>
-    </tr>
-    {% for refused in goods.refuse %}
-    <tr>
-      <td>{{ refused.good.name }}</td>
-      <td>
-        {% for denial_reason in refused.denial_reasons %}
-        Criterion {{ denial_reason.id }}: {{ denial_reason.description }}<br>
-        {% endfor %}
-      </td>
-    </tr>
+{% block body %}
+
+  <h2 class="govuk-heading-l">Products</h3>
+  <div class="govuk-body">We have refused a licence for this application under the <a href="https://questions-statements.parliament.uk/written-statements/detail/2021-12-08/hcws449" class="govuk-link" rel="noreferrer noopener" target="_blank">Strategic Export Licensing Criteria</a>. Refer to the end of this document for the criteria text.</div>
+  <ul class="govuk-list govuk-list--bullet">
+    {% for good in goods.refuse %}
+      <li>
+        {{good.good.name}}
+      </li>
     {% endfor %}
-  </table>
+  </ul>
+  <h2 class="govuk-heading-l">Strategic Export Licensing Criteria</h3>
+  {% for dr in goods.refuse.0.denial_reasons %}
+    <h3 class="govuk-heading-m">Criterion {{dr.display_value}}</h3>
+    <div class="govuk-body">{{ dr.description | linebreaks }}</div>
+  {% endfor %}
+
 {% endblock %}

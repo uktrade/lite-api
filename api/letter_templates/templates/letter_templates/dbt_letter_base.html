@@ -3,10 +3,14 @@
 
 {% block content %}
 <div class="document">
+  <div id="references" class="govuk-caption-m">
+    Our Ref: {{ case_reference }}<br>
+    Your Ref: {{ details.user_reference }}<br>
+  </div>
   <div class="header">
     <div class="header-1">
         <div>
-            <img src="{% static 'images/dbt.png' %}">
+            <img src="{% static 'images/dit.png' %}">
         </div>
 
 
@@ -51,8 +55,9 @@
   <div class="border-black padding page-break-after" id="paragraph_content">
     {{ user_content}}
   </div>
-  {% block table %}
 
+  {% block body %}
   {% endblock %}
+
 </div>
 {% endblock %}
