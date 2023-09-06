@@ -26,6 +26,12 @@ class CaseStatus(models.Model):
         return self.status
 
 
+class CaseSubStatus(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)
+    parent_status = models.ForeignKey(CaseStatus, on_delete=models.CASCADE, related_name="sub_statuses")
+
+
 class CaseStatusCaseType(models.Model):
     class Meta:
         unique_together = ("case_type", "status")
