@@ -21,6 +21,7 @@ class GeneratedCaseDocumentGovSerializer(serializers.ModelSerializer):
         model = GeneratedCaseDocument
         fields = (
             "template",
+            "advice_type",
             "text",
         )
 

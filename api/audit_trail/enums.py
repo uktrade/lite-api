@@ -131,11 +131,14 @@ class AuditType(LiteEnum):
     LICENCE_UPDATED_PRODUCT_USAGE = autostr()
     CREATED_FINAL_RECOMMENDATION = autostr()
     GENERATE_DECISION_LETTER = autostr()
+    DECISION_LETTER_SENT = autostr()
     LU_ADVICE = autostr()
     LU_EDIT_ADVICE = autostr()
     LU_COUNTERSIGN = autostr()
     LU_EDIT_MEETING_NOTE = autostr()
     LU_CREATE_MEETING_NOTE = autostr()
+    CREATE_REFUSAL_CRITERIA = autostr()
+    EXPORTER_APPEALED_REFUSAL = autostr()
 
     def human_readable(self):
         """
