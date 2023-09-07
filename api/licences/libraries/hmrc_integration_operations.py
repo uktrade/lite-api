@@ -3,7 +3,6 @@ import urllib
 from uuid import UUID
 
 from django.db import transaction
-from django.db.models import F
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import APIException
@@ -208,15 +207,6 @@ def _update_licence(validated_data: dict) -> str:
         change_status = licence.surrender
     elif action == HMRCIntegrationActionEnum.EXPIRE:
         change_status = licence.expire
-
-    if (
-        action != HMRCIntegrationActionEnum.EXHAUST
-        and licence.case.case_type_id in CaseTypeEnum.STANDARD_LICENCE_IDS + CaseTypeEnum.MOD_LICENCE_IDS
-    ):
-        # If all Goods have been Exhausted; Exhaust the Licence
-        if not licence.goods.filter(usage__lt=F("quantity")).exists():
-            send_status_change_to_hmrc = action == HMRCIntegrationActionEnum.OPEN
-            change_status = licence.exhaust
 
     if change_status:
         # Changing the licence status will trigger an auditlog entry

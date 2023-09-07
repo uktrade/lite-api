@@ -315,13 +315,6 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        self.assertEqual(licence.status, LicenceStatus.EXHAUSTED)
-        self.assertTrue(
-            Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_STATUS,
-                payload={"licence": licence.reference_code, "status": LicenceStatus.EXHAUSTED},
-            ).exists()
-        )
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -431,16 +424,6 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        self.assertEqual(licence.status, LicenceStatus.EXHAUSTED)
-        self.assertTrue(
-            Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_STATUS,
-                payload={"licence": licence.reference_code, "status": LicenceStatus.EXHAUSTED},
-            ).exists()
-        )
-        # Assert that the licence being set to Exhausted via all good lines being exhausted does trigger the
-        # task to inform HMRC that the status has changed
-        schedule_licence_for_hmrc_integration.assert_called_once()
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
