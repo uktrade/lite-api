@@ -615,10 +615,15 @@ class CreateCaseAdviceTests(DataTestClient):
         assert response.status_code == status.HTTP_200_OK
 
         lu_advice_audit = Audit.objects.filter(verb=AuditType.LU_EDIT_MEETING_NOTE)
+
         assert lu_advice_audit.exists()
         audit_obj = lu_advice_audit.first()
         audit_text = AuditSerializer(audit_obj).data["text"]
         assert audit_text == " edited their refusal meeting note."
+
+        criteria_audit_obj = Audit.objects.filter(verb=AuditType.CREATE_REFUSAL_CRITERIA).first()
+        criteria_additional_text = AuditSerializer(criteria_audit_obj).data["additional_text"]
+        assert criteria_additional_text == "WMD."
 
     def test_create_lu_refusal_note_has_audit(self):
         lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
