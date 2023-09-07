@@ -313,8 +313,8 @@
                         {{ clc }}{% if not forloop.last %},{% endif %}
                     {% endfor %}
                 </td>
-                <td class="border-black" colspan="2">{{ good_item.applied_for_value }}</td>
-                <td class="border-black" colspan="2">{{ good_item.applied_for_quantity }}</td>
+                <td class="border-black" colspan="2">{{ good_item.value }}</td>
+                <td class="border-black" colspan="2">{{ good_item.quantity }}</td>
             </tr>
           {% endwith %}
         {% endfor %}
