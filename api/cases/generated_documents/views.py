@@ -175,11 +175,12 @@ class GeneratedDocumentSend(APIView):
             target=document.case,
             payload={"case_reference": document.case.reference_code, "decision": document.advice_type},
         )
+        serialized_document = GeneratedCaseDocumentGovSerializer(document).data
 
         layout_name = document.template.layout.filename
 
         if NOTIFICATION_FUNCTIONS.get(layout_name):
             NOTIFICATION_FUNCTIONS[layout_name](document.case)
-            return Response(data={"notification_sent": True})
+            return Response(data={"notification_sent": True, "document": serialized_document})
 
-        return Response(data={"notification_sent": False})
+        return Response(data={"notification_sent": False, "document": serialized_document})
