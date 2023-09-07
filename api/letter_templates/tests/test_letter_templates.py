@@ -31,3 +31,26 @@ class TemplatesTestCase(TestCase):
         self.assertIn("Test Good 1", rendered_template)
         self.assertIn("Criterion 1", rendered_template)
         self.assertIn("Test Description 1", rendered_template)
+
+    def test_siel_template_uses_correct_quantity_and_value(self):
+        goods_data = {
+            "approve": [
+                {
+                    "good": {"name": "Test Good 1", "control_list_entries": ["R1a", "M7"]},
+                    "applied_for_value": "999111",
+                    "applied_for_quantity": "999222",
+                    "value": "555111",
+                    "quantity": "555222",
+                },
+            ]
+        }
+
+        rendered_template = render_to_string(
+            "letter_templates/siel.html",
+            {"goods": goods_data},
+        )
+
+        self.assertNotIn("999111", rendered_template)
+        self.assertNotIn("999222", rendered_template)
+        self.assertIn("555111", rendered_template)
+        self.assertIn("555222", rendered_template)
