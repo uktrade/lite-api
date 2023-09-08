@@ -100,3 +100,43 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNone(self.standard_application.sub_status)
+
+
+class ApplicationSubStatusesTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.standard_application = self.create_draft_standard_application(self.organisation)
+        self.submit_application(self.standard_application)
+        self.url = reverse("applications:application_sub_statuses", kwargs={"pk": self.standard_application.id})
+
+    def test_get_sub_statuses(self):
+        test_sub_status = CaseSubStatus.objects.create(
+            name="test_sub_status",
+            parent_status=self.standard_application.status,
+        )
+        another_test_sub_status = CaseSubStatus.objects.create(
+            name="another_test_sub_status",
+            parent_status=self.standard_application.status,
+        )
+        CaseSubStatus.objects.create(
+            name="other_test_sub_status",
+            parent_status=get_case_status_by_status(CaseStatusEnum.OPEN),
+        )
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            [
+                {"id": str(test_sub_status.pk), "name": "test_sub_status"},
+                {"id": str(another_test_sub_status.pk), "name": "another_test_sub_status"},
+            ],
+        )
+
+    def test_get_sub_statuses_invalid_application_pk(self):
+        url = reverse("applications:application_sub_statuses", kwargs={"pk": uuid.uuid4()})
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

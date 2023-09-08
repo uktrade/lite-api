@@ -4,6 +4,7 @@ from uuid import UUID
 from django.db import transaction
 from django.db.models import F, Q
 from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
@@ -102,6 +103,7 @@ from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 from api.users.libraries.notifications import get_case_notifications
 from api.users.models import ExporterUser
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -564,6 +566,19 @@ class ApplicationManageSubStatus(UpdateAPIView):
     authentication_classes = (GovAuthentication,)
     queryset = StandardApplication.objects.all()
     serializer_class = ApplicationManageSubStatusSerializer
+
+
+class ApplicationSubStatuses(ListAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CaseSubStatusSerializer
+    pagination_class = None
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.application = get_object_or_404(StandardApplication, pk=self.kwargs["pk"])
+
+    def get_queryset(self):
+        return self.application.status.sub_statuses.all()
 
 
 class ApplicationFinaliseView(APIView):
