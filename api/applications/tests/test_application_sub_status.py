@@ -7,6 +7,7 @@ from rest_framework import status
 from test_helpers.clients import DataTestClient
 
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.factories import CaseStatusFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import CaseSubStatus
 
@@ -16,6 +17,9 @@ class ApplicationManageStatusTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_draft_standard_application(self.organisation)
         self.submit_application(self.standard_application)
+        self.status = CaseStatusFactory(status="test_status")
+        self.standard_application.status = self.status
+        self.standard_application.save()
         self.url = reverse("applications:manage_sub_status", kwargs={"pk": self.standard_application.id})
 
     def test_gov_set_application_sub_status(self):
@@ -23,7 +27,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         sub_status = CaseSubStatus.objects.create(
             name="test_sub_status",
-            parent_status=self.standard_application.status,
+            parent_status=self.status,
         )
 
         data = {"sub_status": str(sub_status.pk)}
@@ -42,7 +46,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         sub_status = CaseSubStatus.objects.create(
             name="test_sub_status",
-            parent_status=self.standard_application.status,
+            parent_status=self.status,
         )
 
         data = {"sub_status": str(sub_status.pk)}
@@ -69,7 +73,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         CaseSubStatus.objects.create(
             name="test_sub_status",
-            parent_status=self.standard_application.status,
+            parent_status=self.status,
         )
         other_sub_status = CaseSubStatus.objects.create(
             name="other_test_sub_status", parent_status=get_case_status_by_status(CaseStatusEnum.OPEN)
@@ -88,7 +92,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         sub_status = CaseSubStatus.objects.create(
             name="test_sub_status",
-            parent_status=self.standard_application.status,
+            parent_status=self.status,
         )
         self.standard_application.sub_status = sub_status
         self.standard_application.save()
@@ -107,20 +111,23 @@ class ApplicationSubStatusesTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_draft_standard_application(self.organisation)
         self.submit_application(self.standard_application)
+        self.status = CaseStatusFactory(status="test_status")
+        self.standard_application.status = self.status
+        self.standard_application.save()
         self.url = reverse("applications:application_sub_statuses", kwargs={"pk": self.standard_application.id})
 
     def test_get_sub_statuses(self):
         test_sub_status = CaseSubStatus.objects.create(
             name="test_sub_status",
-            parent_status=self.standard_application.status,
+            parent_status=self.status,
         )
         another_test_sub_status = CaseSubStatus.objects.create(
             name="another_test_sub_status",
-            parent_status=self.standard_application.status,
+            parent_status=self.status,
         )
         CaseSubStatus.objects.create(
             name="other_test_sub_status",
-            parent_status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            parent_status=CaseStatusFactory(status="other_test_status"),
         )
 
         response = self.client.get(self.url, **self.gov_headers)
