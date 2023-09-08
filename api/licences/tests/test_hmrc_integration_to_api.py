@@ -160,134 +160,6 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [
-            [create_siel_licence],
-            [create_f680_licence],
-            [create_gifting_licence],
-            [create_exhibition_licence],
-            [create_ogl_licence],
-        ]
-    )
-    def test_update_usages_exhaust_licence_action(self, create_licence):
-        licence = create_licence(self)
-        usage_data_id = str(uuid.uuid4())
-        licence_update = {"id": str(licence.id), "action": HMRCIntegrationActionEnum.EXHAUST, "goods": []}
-
-        response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
-        licence.refresh_from_db()
-
-        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
-        self.assertEqual(
-            response.json()["licences"]["accepted"],
-            [licence_update],
-        )
-        self.assertEqual(response.json()["licences"]["rejected"], [])
-        self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        self.assertEqual(licence.status, LicenceStatus.EXHAUSTED)
-        self.assertTrue(
-            Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_STATUS,
-                payload={"licence": licence.reference_code, "status": LicenceStatus.EXHAUSTED},
-            ).exists()
-        )
-
-    @parameterized.expand(
-        [
-            [create_siel_licence],
-            [create_f680_licence],
-            [create_gifting_licence],
-            [create_exhibition_licence],
-            [create_ogl_licence],
-        ]
-    )
-    def test_update_usages_cancel_licence_action(self, create_licence):
-        licence = create_licence(self)
-        usage_data_id = str(uuid.uuid4())
-        licence_update = {"id": str(licence.id), "action": HMRCIntegrationActionEnum.CANCEL, "goods": []}
-
-        response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
-        licence.refresh_from_db()
-
-        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
-        self.assertEqual(
-            response.json()["licences"]["accepted"],
-            [licence_update],
-        )
-        self.assertEqual(response.json()["licences"]["rejected"], [])
-        self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        self.assertEqual(licence.status, LicenceStatus.CANCELLED)
-        self.assertTrue(
-            Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_STATUS,
-                payload={"licence": licence.reference_code, "status": LicenceStatus.CANCELLED},
-            ).exists()
-        )
-
-    @parameterized.expand(
-        [
-            [create_siel_licence],
-            [create_f680_licence],
-            [create_gifting_licence],
-            [create_exhibition_licence],
-            [create_ogl_licence],
-        ]
-    )
-    def test_update_usages_surrender_licence_action(self, create_licence):
-        licence = create_licence(self)
-        usage_data_id = str(uuid.uuid4())
-        licence_update = {"id": str(licence.id), "action": HMRCIntegrationActionEnum.SURRENDER, "goods": []}
-
-        response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
-        licence.refresh_from_db()
-
-        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
-        self.assertEqual(
-            response.json()["licences"]["accepted"],
-            [licence_update],
-        )
-        self.assertEqual(response.json()["licences"]["rejected"], [])
-        self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        self.assertEqual(licence.status, LicenceStatus.SURRENDERED)
-        self.assertTrue(
-            Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_STATUS,
-                payload={"licence": licence.reference_code, "status": LicenceStatus.SURRENDERED},
-            ).exists()
-        )
-
-    @parameterized.expand(
-        [
-            [create_siel_licence],
-            [create_f680_licence],
-            [create_gifting_licence],
-            [create_exhibition_licence],
-            [create_ogl_licence],
-        ]
-    )
-    def test_update_usages_expire_licence_action(self, create_licence):
-        licence = create_licence(self)
-        usage_data_id = str(uuid.uuid4())
-        licence_update = {"id": str(licence.id), "action": HMRCIntegrationActionEnum.EXPIRE, "goods": []}
-
-        response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
-        licence.refresh_from_db()
-
-        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
-        self.assertEqual(
-            response.json()["licences"]["accepted"],
-            [licence_update],
-        )
-        self.assertEqual(response.json()["licences"]["rejected"], [])
-        self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        self.assertEqual(licence.status, LicenceStatus.EXPIRED)
-        self.assertTrue(
-            Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_STATUS,
-                payload={"licence": licence.reference_code, "status": LicenceStatus.EXPIRED},
-            ).exists()
-        )
-
-    @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
     def test_update_usages_all_goods_exhausted_on_licence(self, create_licence):
@@ -315,84 +187,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
-    def test_update_usages_when_action_is_exhaust_then_goods_still_get_updated_on_licence(self, create_licence):
-        licence = create_licence(self)
-        gol = licence.goods.first()
-        original_usage = gol.usage
-        usage_data_id = str(uuid.uuid4())
-        usage_data = 10
-        gol.quantity = original_usage + usage_data
-        gol.save()
-        licence_update = {
-            "id": str(licence.id),
-            "action": HMRCIntegrationActionEnum.EXHAUST,
-            "goods": [{"id": str(gol.good.id), "usage": usage_data}],
-        }
-
-        response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
-        licence.refresh_from_db()
-
-        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
-        self.assertEqual(
-            response.json()["licences"]["accepted"],
-            [licence_update],
-        )
-        self.assertEqual(response.json()["licences"]["rejected"], [])
-        self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
-        self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        self.assertEqual(licence.status, LicenceStatus.EXHAUSTED)
-        self.assertTrue(
-            Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_STATUS,
-                payload={"licence": licence.reference_code, "status": LicenceStatus.EXHAUSTED},
-            ).exists()
-        )
-
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_update_usages_all_goods_exhausted_when_action_is_exhaust_doesnt_create_task_to_inform_hmrc_of_licence(
-        self, schedule_licence_for_hmrc_integration
-    ):
-        schedule_licence_for_hmrc_integration.return_value = None
-        licence = self.create_siel_licence()
-        gol = licence.goods.first()
-        original_usage = gol.usage
-        usage_data_id = str(uuid.uuid4())
-        usage_data = 10
-        gol.quantity = original_usage + usage_data
-        gol.save()
-        licence_update = {
-            "id": str(licence.id),
-            "action": HMRCIntegrationActionEnum.EXHAUST,
-            "goods": [{"id": str(gol.good.id), "usage": usage_data}],
-        }
-
-        response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
-        licence.refresh_from_db()
-
-        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
-        self.assertEqual(
-            response.json()["licences"]["accepted"],
-            [licence_update],
-        )
-        self.assertEqual(response.json()["licences"]["rejected"], [])
-        self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
-        self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        self.assertEqual(licence.status, LicenceStatus.EXHAUSTED)
-        self.assertTrue(
-            Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_STATUS,
-                payload={"licence": licence.reference_code, "status": LicenceStatus.EXHAUSTED},
-            ).exists()
-        )
-        # If HMRC has sent an action to update the Licence status;
-        # Assert that the licence being set to Exhausted via all good lines being exhausted does not trigger the
-        # task to inform HMRC that the status has changed
-        schedule_licence_for_hmrc_integration.assert_not_called()
+        self.assertEqual(licence.status, LicenceStatus.ISSUED)
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
@@ -424,6 +219,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.goods.first().usage, original_usage + usage_data)
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
+        self.assertEqual(licence.status, LicenceStatus.ISSUED)
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
