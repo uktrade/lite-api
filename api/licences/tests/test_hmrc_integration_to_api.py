@@ -916,3 +916,40 @@ class HMRCIntegrationUsageTests(DataTestClient):
                     },
                 ).exists()
             )
+
+    @parameterized.expand(
+        [
+            (5,),
+            (8,),
+        ]
+    )
+    def test_update_usages_standard_applications_partial_export(self, usage_data):
+        licence = self.create_siel_licence()
+        good_on_licence = licence.goods.first()
+        initial_usage = good_on_licence.usage
+        usage_data_id = str(uuid.uuid4())
+        licence_update = {
+            "id": str(licence.id),
+            "action": HMRCIntegrationActionEnum.OPEN,
+            "goods": [{"id": str(good_on_licence.good.id), "usage": usage_data}],
+        }
+
+        # update usage data for partial export
+        response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
+        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
+        good_on_licence.refresh_from_db()
+        self.assertEqual(response.json()["licences"]["accepted"], [licence_update])
+        self.assertEqual(response.json()["licences"]["rejected"], [])
+        self.assertEqual(good_on_licence.usage, usage_data)
+        self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
+        self.assertTrue(
+            Audit.objects.filter(
+                verb=AuditType.LICENCE_UPDATED_PRODUCT_USAGE,
+                payload={
+                    "product_name": good_on_licence.good.good.name or good_on_licence.good.good.description,
+                    "licence_reference": licence.reference_code,
+                    "usage": initial_usage + usage_data,
+                    "quantity": good_on_licence.quantity,
+                },
+            ).exists()
+        )
