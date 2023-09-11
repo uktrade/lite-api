@@ -32,4 +32,4 @@ class GeneratedCaseDocument(CaseDocument):
             self.send_exporter_notifications()
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["created_at"]
