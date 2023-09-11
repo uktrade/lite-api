@@ -1,47 +1,18 @@
 import logging
-from datetime import datetime, time, timedelta
+from datetime import timedelta
 
 from background_task import background
 from background_task.models import Task
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from pytz import timezone as tz
 
 from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum
 from api.licences.libraries import hmrc_integration_operations
 from api.licences.models import Licence
 
-EXPIRE_LICENCES_SCHEDULE_TIME = time(22, 30, 0)
 HMRC_INTEGRATION_QUEUE = "hmrc_integration_queue"
 TASK_BACK_OFF = 3600  # Time, in seconds, to wait before scheduling a new task (used after MAX_ATTEMPTS is reached)
-
-
-@background(
-    schedule=datetime.combine(timezone.localtime(), EXPIRE_LICENCES_SCHEDULE_TIME, tzinfo=tz(settings.TIME_ZONE))
-)
-def expire_licences():
-    """Expire any Licences that have `start_date + duration > date_now`"""
-
-    try:
-        with transaction.atomic():
-            logging.info(f"Expiring Licences")
-
-            expired_licence_ids = Licence.objects.filter(
-                status__in=LicenceStatus.open_statuses, end_date__lt=timezone.now()
-            ).values_list("id", flat=True)
-
-            # transaction.atomic + select_for_update + nowait=True will throw an error if row has already been locked
-            Licence.objects.filter(id__in=expired_licence_ids).select_for_update(nowait=True).update(
-                status=LicenceStatus.EXPIRED
-            )
-
-            for licence_id in expired_licence_ids:
-                schedule_licence_for_hmrc_integration(licence_id, LicenceStatus.EXPIRED)
-
-            logging.info(f"Licences expired: {expired_licence_ids}")
-    except Exception as exc:  # noqa
-        logging.error(f"An unexpected error occurred when expiring Licences -> {type(exc).__name__}: {exc}")
 
 
 @background(queue=HMRC_INTEGRATION_QUEUE, schedule=0)
