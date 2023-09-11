@@ -21,6 +21,7 @@ from api.core.serializers import KeyValueChoiceField
 from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 from .denial import DenialMatchOnApplicationViewSerializer
@@ -47,6 +48,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     goods_starting_point = serializers.CharField()
     goods_recipients = serializers.CharField()
     appeal = AppealSerializer()
+    sub_status = CaseSubStatusSerializer()
 
     class Meta:
         model = StandardApplication
@@ -94,6 +96,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "other_security_approval_details",
                 "appeal_deadline",
                 "appeal",
+                "sub_status",
             )
         )
 
