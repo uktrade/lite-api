@@ -67,14 +67,6 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.REVOKED
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
-    def exhaust(self, send_status_change_to_hmrc=True):
-        self.status = LicenceStatus.EXHAUSTED
-        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
-
-    def expire(self, send_status_change_to_hmrc=True):
-        self.status = LicenceStatus.EXPIRED
-        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
-
     def cancel(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.CANCELLED
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
