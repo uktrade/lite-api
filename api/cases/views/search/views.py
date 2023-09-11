@@ -93,6 +93,7 @@ class CasesSearchView(generics.ListAPIView):
         )
 
         statuses = service.get_case_status_list()
+        sub_statuses = service.get_case_sub_status_list()
         case_types = service.get_case_type_type_list()
         gov_users = service.get_gov_users_list()
         advice_types = service.get_advice_types_list()
@@ -103,6 +104,7 @@ class CasesSearchView(generics.ListAPIView):
                 "cases": cases,
                 "filters": {
                     "statuses": statuses,
+                    "sub_statuses": sub_statuses,
                     "case_types": case_types,
                     "gov_users": gov_users,
                     "advice_types": advice_types,

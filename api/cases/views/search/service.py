@@ -27,6 +27,11 @@ def get_case_status_list() -> List[Dict]:
     return CaseStatusEnum.as_list()
 
 
+def get_case_sub_status_list() -> List[Dict]:
+    # Once data is populated this should return sub_statues
+    return []
+
+
 def get_case_type_type_list() -> List[Dict]:
     return CaseTypeEnum.case_types_to_representation()
 

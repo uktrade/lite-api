@@ -42,10 +42,17 @@ from api.cases.tests import factories
 from api.cases.enums import AdviceType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.models import Team
+from api.cases.views.search.service import (
+    get_case_status_list,
+    get_advice_types_list,
+    get_case_type_type_list,
+    get_case_sub_status_list,
+)
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 
 
+@pytest.mark.django_db
 class FilterAndSortTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -81,6 +88,25 @@ class FilterAndSortTests(DataTestClient):
         queue_ids = sorted([queue["id"] for queue in response.json()["results"]["queues"]])
 
         self.assertEqual(queue_ids, system_and_team_queue_ids)
+
+    @parameterized.expand(
+        [
+            ["statuses", get_case_status_list],
+            ["sub_statuses", get_case_sub_status_list],
+            ["case_types", get_case_type_type_list],
+            ["advice_types", get_advice_types_list],
+        ]
+    )
+    def test_get_cases_filters(self, filter_key, expected_values_function):
+        """
+        Check the filters for FE Display
+        """
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["filters"][filter_key], expected_values_function())
 
     def test_get_cases_no_filter_returns_all_cases(self):
         """
