@@ -12,7 +12,7 @@ def update_refusal_letter_template_paragraphs(apps, schema_editor):
         text = f.read()
 
         PicklistItem.objects.update_or_create(
-            team=admin, name="Refusal letter content", type=PicklistType.LETTER_PARAGRAPH, defaults={"text": text}
+            team=admin, name="Refusal letter content", text=text, type=PicklistType.LETTER_PARAGRAPH
         )
 
 
