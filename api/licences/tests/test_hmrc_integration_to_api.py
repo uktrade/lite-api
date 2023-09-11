@@ -926,7 +926,6 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def test_update_usages_standard_applications_partial_export(self, usage_data):
         licence = self.create_siel_licence()
         good_on_licence = licence.goods.first()
-        initial_usage = good_on_licence.usage
         usage_data_id = str(uuid.uuid4())
         licence_update = {
             "id": str(licence.id),
@@ -948,7 +947,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
                 payload={
                     "product_name": good_on_licence.good.good.name or good_on_licence.good.good.description,
                     "licence_reference": licence.reference_code,
-                    "usage": initial_usage + usage_data,
+                    "usage": usage_data,
                     "quantity": good_on_licence.quantity,
                 },
             ).exists()
