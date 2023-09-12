@@ -421,7 +421,9 @@ class FinalAdviceDocuments(APIView):
 
     def get_latest_generated_case_documents(self, final_advice, pk):
         # Get other decision documents
-        generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
+        generated_advice_documents = GeneratedCaseDocument.objects.filter(
+            advice_type__in=final_advice, case__id=pk
+        ).order_by("created_at")
         generated_advice_documents = AdviceDocumentGovSerializer(
             generated_advice_documents,
             many=True,
