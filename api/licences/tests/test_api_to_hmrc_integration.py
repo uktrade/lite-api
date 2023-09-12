@@ -368,17 +368,6 @@ class HMRCIntegrationLicenceTests(DataTestClient):
             str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_licence_exhaust_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
-        schedule_licence_for_hmrc_integration.return_value = None
-
-        self.standard_licence.exhaust()
-
-        schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
-        )
-
 
 class HMRCIntegrationTasksTests(DataTestClient):
     def setUp(self):

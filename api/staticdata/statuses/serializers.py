@@ -1,7 +1,10 @@
 from rest_framework import serializers
 
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.statuses.models import (
+    CaseStatus,
+    CaseSubStatus,
+)
 
 
 class CaseStatusSerializer(serializers.ModelSerializer):
@@ -22,4 +25,13 @@ class CaseStatusSerializer(serializers.ModelSerializer):
             "value",
             "status",
             "priority",
+        )
+
+
+class CaseSubStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseSubStatus
+        fields = (
+            "id",
+            "name",
         )

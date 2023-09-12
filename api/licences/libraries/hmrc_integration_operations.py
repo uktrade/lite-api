@@ -3,7 +3,6 @@ import urllib
 from uuid import UUID
 
 from django.db import transaction
-from django.db.models import F
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import APIException
@@ -195,32 +194,9 @@ def _update_licence(validated_data: dict) -> str:
     """Updates the Usage for Goods on a Licence"""
 
     licence = Licence.objects.get(id=validated_data["id"])
-    [_update_good_on_licence_usage(licence, good["id"], float(good["usage"])) for good in validated_data["goods"]]
-    action = validated_data["action"]
-    change_status = None
-    send_status_change_to_hmrc = False
 
-    if action == HMRCIntegrationActionEnum.EXHAUST:
-        change_status = licence.exhaust
-    elif action == HMRCIntegrationActionEnum.CANCEL:
-        change_status = licence.cancel
-    elif action == HMRCIntegrationActionEnum.SURRENDER:
-        change_status = licence.surrender
-    elif action == HMRCIntegrationActionEnum.EXPIRE:
-        change_status = licence.expire
-
-    if (
-        action != HMRCIntegrationActionEnum.EXHAUST
-        and licence.case.case_type_id in CaseTypeEnum.STANDARD_LICENCE_IDS + CaseTypeEnum.MOD_LICENCE_IDS
-    ):
-        # If all Goods have been Exhausted; Exhaust the Licence
-        if not licence.goods.filter(usage__lt=F("quantity")).exists():
-            send_status_change_to_hmrc = action == HMRCIntegrationActionEnum.OPEN
-            change_status = licence.exhaust
-
-    if change_status:
-        # Changing the licence status will trigger an auditlog entry
-        change_status(send_status_change_to_hmrc=send_status_change_to_hmrc)
+    for good in validated_data["goods"]:
+        _update_good_on_licence_usage(licence, good["id"], float(good["usage"]))
 
     return licence.id
 
