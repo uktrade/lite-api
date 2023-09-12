@@ -214,7 +214,7 @@ def _update_good_on_licence_usage(licence: Licence, validated_good_id: UUID, val
         good_description = good_on_licence.good.good.name or good_on_licence.good.good.description
         quantity = good_on_licence.quantity
 
-    good_on_licence.usage += validated_usage
+    good_on_licence.usage = validated_usage
     good_on_licence.save()
 
     audit_trail_service.create_system_user_audit(
