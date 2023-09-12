@@ -608,6 +608,7 @@ class CreateCaseAdviceTests(DataTestClient):
         resp = self.client.post(self.final_case_url, **self.gov_headers, data=[data])
         data["text"] = "Updated Text"
         data["id"] = resp.json()["advice"][0]["id"]
+        data["denial_reasons"] = ["WMD", "1a"]
 
         # Update advice
         response = self.client.put(self.final_case_url, **self.gov_headers, data=[data])
@@ -621,9 +622,13 @@ class CreateCaseAdviceTests(DataTestClient):
         audit_text = AuditSerializer(audit_obj).data["text"]
         assert audit_text == " edited their refusal meeting note."
 
-        criteria_audit_obj = Audit.objects.filter(verb=AuditType.CREATE_REFUSAL_CRITERIA).first()
-        criteria_additional_text = AuditSerializer(criteria_audit_obj).data["additional_text"]
-        assert criteria_additional_text == "WMD."
+        criteria_audit_objs = Audit.objects.filter(verb=AuditType.CREATE_REFUSAL_CRITERIA).order_by("created_at")
+        # Since I am reusing CREATE_REFUSAL_CRITERIA for create and update so we are expecting two advices
+        assert criteria_audit_objs.count() == 2
+
+        criteria_audit_edited = criteria_audit_objs[1]
+        criteria_additional_text = AuditSerializer(criteria_audit_edited).data["additional_text"]
+        assert criteria_additional_text == "WMD, 1a."
 
     def test_create_lu_refusal_note_has_audit(self):
         lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
