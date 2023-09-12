@@ -37,6 +37,8 @@ urlpatterns = [
     path("<uuid:pk>/final-decision/", applications.ApplicationFinaliseView.as_view(), name="finalise"),
     path("<uuid:pk>/duration/", applications.ApplicationDurationView.as_view(), name="duration"),
     path("<uuid:pk>/status/", applications.ApplicationManageStatus.as_view(), name="manage_status"),
+    path("<uuid:pk>/sub-status/", applications.ApplicationManageSubStatus.as_view(), name="manage_sub_status"),
+    path("<uuid:pk>/sub-statuses/", applications.ApplicationSubStatuses.as_view(), name="application_sub_statuses"),
     path(
         "<uuid:pk>/copy/",
         applications.ApplicationCopy.as_view(),
