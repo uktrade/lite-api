@@ -419,7 +419,7 @@ class FinalAdviceDocuments(APIView):
 
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
-    def get_case_documents(self, advice_type, pk):
+    def get_case_document(self, advice_type, pk):
         return (
             GeneratedCaseDocument.objects.filter(advice_type=advice_type, case__id=pk).order_by("-created_at").first()
         )
@@ -429,7 +429,7 @@ class FinalAdviceDocuments(APIView):
         latest_documents = {}
         for advice_type in final_advice:
             # Remove duplicates for each advice type and filters it to only the most recent advice
-            document = self.get_case_documents(advice_type, pk)
+            document = self.get_case_document(advice_type, pk)
             document = AdviceDocumentGovSerializer(
                 document,
             ).data
