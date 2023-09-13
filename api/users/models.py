@@ -185,6 +185,9 @@ class ExporterUser(models.Model, BaseUserCompatMixin):
         user_permissions = self.get_role(organisation).permissions.values_list("id", flat=True)
         return permission.name in user_permissions
 
+    def is_in_organisation(self, organisation):
+        return self.relationship.filter(organisation=organisation).exists()
+
 
 class GovUser(models.Model, BaseUserCompatMixin):
 

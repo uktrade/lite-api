@@ -278,11 +278,28 @@ def generate_decision_letter(**payload):
     decision = payload["decision"]
 
     if decision == AdviceType.REFUSE:
-        return "created a 'licence refused' letter."
+        return "created a refusal letter."
+    elif decision == AdviceType.INFORM:
+        return "created an inform letter."
     elif decision == AdviceType.NO_LICENCE_REQUIRED:
         return "created a 'no licence required' letter."
 
     return f"invalid decision {decision} for this event."
+
+
+def decision_letter_sent(**payload):
+    decision = payload["decision"]
+
+    if decision == AdviceType.INFORM:
+        return "sent an inform letter."
+    elif decision == AdviceType.NO_LICENCE_REQUIRED:
+        return "sent a 'no licence required' letter."
+    elif decision == AdviceType.APPROVE:
+        return "sent an 'approval' letter."
+    elif decision == AdviceType.REFUSE:
+        return "sent a 'refusal' letter."
+    else:
+        raise NotImplementedError
 
 
 def create_lu_advice(advice_type, **payload):
@@ -311,3 +328,7 @@ def update_lu_meeting_note(advice_type, **payload):
 
 def create_lu_meeting_note(advice_type, **payload):
     return " added a refusal meeting note."
+
+
+def create_refusal_criteria(**payload):
+    return " added refusal criteria."

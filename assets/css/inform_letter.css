@@ -20,6 +20,7 @@
   }
   .document #references {
     display: inline-block;
+    margin-bottom: 20px;
   }
   .document table {
     border-collapse: collapse;
@@ -43,8 +44,30 @@
   .document h1 {
     font-size: 5mm;
   }
-  .document img {
-    display: inline-block;
-    float: right;
-    width: 25%;
+  .document .header {
+    display: flex;
+    flex-direction: row;
+  }
+  .document .header .header-1 img {
+    width: 200px;
+    aspect-ratio: auto;
+    display: block;
+  }
+  .document .header .header-1 {
+    flex-basis: 250px;
+  }
+  .document .header .header-2 {
+    flex-basis: 200px;
+  }
+  .document .header .header-1 div.addressee {
+    margin-top: 50px;
+  }
+  .document .header .header-subtext * {
+    font-size: 3mm;
+  }
+  .document .header .header-subtext p {
+    margin-top: 70px;
+  }
+  .document div#paragraph_content {
+    margin-top: 50px;
   }

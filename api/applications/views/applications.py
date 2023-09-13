@@ -12,11 +12,13 @@ from rest_framework.generics import (
     CreateAPIView,
     ListAPIView,
     ListCreateAPIView,
+    RetrieveAPIView,
     RetrieveUpdateDestroyAPIView,
     UpdateAPIView,
 )
 from rest_framework.views import APIView
 
+from api.appeals.models import Appeal
 from api.appeals.serializers import AppealSerializer
 from api.applications import constants
 from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
@@ -77,7 +79,10 @@ from api.core.decorators import (
     allowed_application_types,
 )
 from api.core.helpers import convert_date_to_string, str_to_bool
-from api.core.permissions import assert_user_has_permission
+from api.core.permissions import (
+    assert_user_has_permission,
+    IsExporterInOrganisation,
+)
 from api.applications.views.helpers.advice import ensure_lu_countersign_complete
 from api.flags.enums import FlagStatuses, SystemFlags
 from api.flags.models import Flag
@@ -1042,19 +1047,34 @@ class ApplicationRouteOfGoods(UpdateAPIView):
         )
 
 
-class ApplicationAppeal(CreateAPIView):
+class BaseApplicationAppeal:
     authentication_classes = (ExporterAuthentication,)
+    permission_classes = [
+        IsExporterInOrganisation,
+    ]
     serializer_class = AppealSerializer
 
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
 
         try:
             self.application = BaseApplication.objects.get(pk=self.kwargs["pk"])
         except BaseApplication.DoesNotExist:
             raise Http404()
 
+    def get_organisation(self):
+        return self.application.organisation
+
+
+class ApplicationAppeals(BaseApplicationAppeal, CreateAPIView):
     def perform_create(self, serializer):
         super().perform_create(serializer)
-        self.application.appeal = serializer.instance
-        self.application.save()
+        self.application.set_appealed(
+            serializer.instance,
+            self.request.user.exporteruser,
+        )
+
+
+class ApplicationAppeal(BaseApplicationAppeal, RetrieveAPIView):
+    lookup_url_kwarg = "appeal_pk"
+    queryset = Appeal.objects.all()
