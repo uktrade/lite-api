@@ -34,7 +34,6 @@ class CasesSearchView(generics.ListAPIView):
         # and if the flag to include hidden is added
         include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
         filters = self.get_filters(request)
-
         page = self.paginate_queryset(
             self.get_case_queryset(user, queue_id, is_work_queue, include_hidden, filters).annotate(
                 next_review_date=django.db.models.Case(
