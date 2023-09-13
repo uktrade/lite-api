@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
-from api.applications.models import BaseApplication
+from api.applications.models import BaseApplication, StandardApplication
 from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
 from api.audit_trail.models import Audit
 from api.cases.enums import (
@@ -770,4 +770,16 @@ class ReviewDateUpdateSerializer(serializers.ModelSerializer):
             today = timezone.now().date()
             if value < today:
                 raise ValidationError(strings.Cases.NextReviewDate.Errors.DATE_IN_PAST)
+        return value
+
+
+class ApplicationManageSubStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StandardApplication
+        fields = ("sub_status",)
+
+    def validate_sub_status(self, value):
+        if value and value not in self.instance.status.sub_statuses.all():
+            raise serializers.ValidationError("Invalid sub-status for current status.")
+
         return value

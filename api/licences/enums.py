@@ -42,8 +42,6 @@ class LicenceStatus:
 
 
 hmrc_integration_action_to_licence_status = {
-    HMRCIntegrationActionEnum.EXHAUST: LicenceStatus.EXHAUSTED,
-    HMRCIntegrationActionEnum.EXPIRE: LicenceStatus.EXPIRED,
     HMRCIntegrationActionEnum.SURRENDER: LicenceStatus.SURRENDERED,
     HMRCIntegrationActionEnum.CANCEL: LicenceStatus.CANCELLED,
 }
@@ -54,7 +52,5 @@ licence_status_to_hmrc_integration_action = {
     LicenceStatus.REVOKED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.SURRENDERED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.SUSPENDED: HMRCIntegrationActionEnum.CANCEL,
-    LicenceStatus.EXHAUSTED: HMRCIntegrationActionEnum.CANCEL,
-    LicenceStatus.EXPIRED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.CANCELLED: HMRCIntegrationActionEnum.CANCEL,
 }
