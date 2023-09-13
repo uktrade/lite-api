@@ -430,11 +430,12 @@ class FinalAdviceDocuments(APIView):
         for advice_type in final_advice:
             # Remove duplicates for each advice type and filters it to only the most recent advice
             document = self.get_case_document(advice_type, pk)
-            document = AdviceDocumentGovSerializer(
-                document,
-            ).data
             if document:
-                latest_documents[advice_type] = document
+                serialised_document = AdviceDocumentGovSerializer(
+                    document,
+                ).data
+                if serialised_document:
+                    latest_documents[advice_type] = serialised_document
         return latest_documents
 
 
