@@ -411,7 +411,7 @@ class FinalAdviceDocuments(APIView):
             # Remove Approve for looking up other decision documents below
             final_advice.remove(AdviceType.APPROVE)
 
-        latest_documents = self.get_latest_generated_case_documents(final_advice, pk)
+        latest_documents = self.get_unique_documents(final_advice, pk)
 
         # add latest_documents to their respective advice_type
         for key, document in latest_documents.items():
@@ -419,20 +419,22 @@ class FinalAdviceDocuments(APIView):
 
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
-    def get_latest_generated_case_documents(self, final_advice, pk):
-        # Get other decision documents
-        generated_advice_documents = GeneratedCaseDocument.objects.filter(
-            advice_type__in=final_advice, case__id=pk
-        ).order_by("created_at")
-        generated_advice_documents = AdviceDocumentGovSerializer(
-            generated_advice_documents,
-            many=True,
-        ).data
+    def get_case_documents(self, advice_type, pk):
+        return (
+            GeneratedCaseDocument.objects.filter(advice_type=advice_type, case__id=pk).order_by("-created_at").first()
+        )
 
-        # Remove duplicates for each advice type and filters it to only the most recent advice
+    def get_unique_documents(self, final_advice, pk):
+        # Get other decision documents
         latest_documents = {}
-        for document in generated_advice_documents:
-            latest_documents[document["advice_type"]["key"]] = document
+        for advice_type in final_advice:
+            # Remove duplicates for each advice type and filters it to only the most recent advice
+            document = self.get_case_documents(advice_type, pk)
+            document = AdviceDocumentGovSerializer(
+                document,
+            ).data
+            if document:
+                latest_documents[advice_type] = document
         return latest_documents
 
 
