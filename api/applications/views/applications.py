@@ -493,9 +493,6 @@ class ApplicationManageStatus(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not can_set_status(application, data["status"]):
-            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
-
         if hasattr(request.user, "exporteruser"):
             if get_request_user_organisation_id(request) != application.organisation.id:
                 raise PermissionDenied()

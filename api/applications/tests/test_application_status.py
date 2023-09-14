@@ -360,21 +360,3 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.hmrc_query.status, get_case_status_by_status(CaseStatusEnum.CLOSED))
-
-    def test_gov_user_set_hmrc_invalid_status_failure(self):
-        self.hmrc_query = self.create_hmrc_query(self.organisation)
-        self.submit_application(self.hmrc_query)
-
-        # HMRC case status can only be CLOSED, SUBMITTED or RESUBMITTED
-        data = {"status": CaseStatusEnum.WITHDRAWN}
-        url = reverse("applications:manage_status", kwargs={"pk": self.hmrc_query.id})
-        response = self.client.put(url, data=data, **self.gov_headers)
-
-        self.hmrc_query.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json().get("errors")["status"][0], strings.Statuses.BAD_STATUS)
-        self.assertEqual(
-            self.standard_application.status,
-            get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-        )
