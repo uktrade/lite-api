@@ -74,6 +74,10 @@ class CaseType(models.Model):
         return (self.reference,)
 
 
+class BadSubStatus(ValueError):
+    pass
+
+
 class Case(TimestampableModel):
     """
     Base model for applications and queries
@@ -260,6 +264,17 @@ class Case(TimestampableModel):
         """
         if self.case_officer:
             return self.case_officer.baseuser_ptr.get_full_name()
+
+    def set_sub_status(self, sub_status_id):
+        """
+        Set the sub_status on this case.  Raises Exception if this sub_status
+        is not a vaild child sub_status of the current case status.
+        """
+        sub_status = CaseSubStatus.objects.get(id=sub_status_id)
+        if sub_status.parent_status != self.status:
+            raise BadSubStatus(f"{sub_status.name} is not a child of {self.status.status}")
+        self.sub_status = sub_status
+        self.save()
 
 
 class CaseQueue(TimestampableModel):

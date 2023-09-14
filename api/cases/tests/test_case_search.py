@@ -2,6 +2,7 @@ import datetime
 
 from django.urls import reverse
 from django import utils as django_utils
+from api.staticdata.statuses.factories import CaseStatusFactory
 from parameterized import parameterized
 from rest_framework import status
 
@@ -32,7 +33,7 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.tests.factories import ReportSummaryPrefixFactory, ReportSummarySubjectFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
-from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
@@ -42,6 +43,12 @@ from api.cases.tests import factories
 from api.cases.enums import AdviceType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.teams.models import Team
+from api.cases.views.search.service import (
+    get_case_status_list,
+    get_advice_types_list,
+    get_case_type_type_list,
+    get_case_sub_status_list,
+)
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 
@@ -81,6 +88,25 @@ class FilterAndSortTests(DataTestClient):
         queue_ids = sorted([queue["id"] for queue in response.json()["results"]["queues"]])
 
         self.assertEqual(queue_ids, system_and_team_queue_ids)
+
+    @parameterized.expand(
+        [
+            ["statuses", get_case_status_list],
+            ["sub_statuses", get_case_sub_status_list],
+            ["case_types", get_case_type_type_list],
+            ["advice_types", get_advice_types_list],
+        ]
+    )
+    def test_get_cases_filters(self, filter_key, expected_values_function):
+        """
+        Check the filters for FE Display
+        """
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["filters"][filter_key], expected_values_function())
 
     def test_get_cases_no_filter_returns_all_cases(self):
         """
@@ -1188,3 +1214,27 @@ class SearchAPITest(DataTestClient):
 
         case_api_result = response_data["cases"][0]
         self.assertEqual(case_api_result["advice"], [])
+
+    def test_get_cases_filter_by_sub_status(self):
+        """
+        Given multiple cases exist filter by sub status
+        """
+        self._create_data()
+
+        self.application = StandardApplicationFactory(case_type=CaseType.objects.get(reference="siel"))
+        self.case_2 = Case.objects.get(id=self.application.id)
+        self.case_2.submitted_at = django_utils.timezone.now()
+        self.case_2.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        self.case_2.save()
+
+        case_status = CaseSubStatus.objects.first()
+        self.case.sub_status = case_status
+        self.case.save()
+        url = f'{reverse("cases:search")}?sub_status={case_status.name}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.case.id))

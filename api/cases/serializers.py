@@ -6,6 +6,8 @@ from rest_framework import serializers
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import BaseApplication, StandardApplication
 from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
+from api.staticdata.statuses.serializers import CaseSubStatusSerializer
+
 from api.audit_trail.models import Audit
 from api.cases.enums import (
     CaseTypeTypeEnum,
@@ -131,6 +133,7 @@ class CaseListSerializer(serializers.Serializer):
     case_officer = serializers.SerializerMethodField()
     intended_end_use = serializers.SerializerMethodField()
     end_users = serializers.SerializerMethodField()
+    sub_status = CaseSubStatusSerializer()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
