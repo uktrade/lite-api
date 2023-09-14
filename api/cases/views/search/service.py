@@ -21,10 +21,15 @@ from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
 from api.users.models import BaseUser, GovUser
+from api.staticdata.statuses.models import CaseSubStatus
 
 
 def get_case_status_list() -> List[Dict]:
     return CaseStatusEnum.as_list()
+
+
+def get_case_sub_status_list() -> List[Dict]:
+    return [{"value": key, "key": key} for key in CaseSubStatus.objects.all().values_list("name", flat=True)]
 
 
 def get_case_type_type_list() -> List[Dict]:

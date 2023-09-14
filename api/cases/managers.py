@@ -81,6 +81,9 @@ class CaseQuerySet(models.QuerySet):
     def has_status(self, status):
         return self.filter(status__status=status)
 
+    def has_sub_status(self, sub_status):
+        return self.filter(sub_status__name=sub_status)
+
     def is_type(self, case_type):
         return self.filter(case_type=case_type)
 
@@ -257,6 +260,7 @@ class CaseManager(models.Manager):
         is_work_queue=None,
         user=None,
         status=None,
+        sub_status=None,
         case_type=None,
         assigned_user=None,
         case_officer=None,
@@ -307,7 +311,9 @@ class CaseManager(models.Manager):
 
         case_qs = (
             self.submitted()
-            .select_related("status", "case_type", "case_officer", "case_officer__baseuser_ptr", "baseapplication")
+            .select_related(
+                "sub_status", "status", "case_type", "case_officer", "case_officer__baseuser_ptr", "baseapplication"
+            )
             .prefetch_related(
                 "case_assignments",
                 "case_assignments__user",
@@ -352,6 +358,9 @@ class CaseManager(models.Manager):
 
         if status:
             case_qs = case_qs.has_status(status=status)
+
+        if sub_status:
+            case_qs = case_qs.has_sub_status(sub_status=sub_status)
 
         if case_type:
             case_type = CaseTypeEnum.reference_to_id(case_type)
