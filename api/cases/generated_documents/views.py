@@ -18,6 +18,7 @@ from api.cases.generated_documents.helpers import (
     get_decision_type,
     get_draft_licence,
 )
+from api.cases.models import BadSubStatus
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import (
     GeneratedCaseDocumentGovSerializer,
@@ -32,6 +33,7 @@ from api.core.helpers import str_to_bool
 from api.documents.libraries import s3_operations
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
+from api.staticdata.statuses.enums import CaseSubStatusIdEnum
 from api.users.models import GovUser
 
 
@@ -178,6 +180,12 @@ class GeneratedDocumentSend(APIView):
         serialized_document = GeneratedCaseDocumentGovSerializer(document).data
 
         layout_name = document.template.layout.filename
+
+        if layout_name == "inform_letter":
+            try:
+                document.case.set_sub_status(CaseSubStatusIdEnum.UNDER_FINAL_REVIEW__INFORM_LETTER_SENT)
+            except BadSubStatus:
+                pass  # Sub-status cannot be set.. This is only a side effect so do not raise the error
 
         if NOTIFICATION_FUNCTIONS.get(layout_name):
             NOTIFICATION_FUNCTIONS[layout_name](document.case)

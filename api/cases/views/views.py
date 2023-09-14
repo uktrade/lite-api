@@ -93,7 +93,7 @@ from api.parties.serializers import PartySerializer, AdditionalContactSerializer
 from api.queues.models import Queue
 from api.staticdata.countries.models import Country
 from api.staticdata.decisions.models import Decision
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
@@ -928,12 +928,14 @@ class FinaliseView(UpdateAPIView):
         decisions = required_decisions.copy()
 
         if AdviceType.REFUSE in decisions:
+            case.set_sub_status(CaseSubStatusIdEnum.FINALISED__REFUSED)
             notify_exporter_licence_refused(case)
 
         if AdviceType.NO_LICENCE_REQUIRED in decisions:
             notify_exporter_no_licence_required(case)
 
         if AdviceType.APPROVE in decisions:
+            case.set_sub_status(CaseSubStatusIdEnum.FINALISED__APPROVED)
             notify_exporter_licence_issued(case)
 
         if AdviceType.APPROVE in decisions:

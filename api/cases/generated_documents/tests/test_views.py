@@ -1,4 +1,6 @@
+from uuid import UUID
 from _pytest.monkeypatch import MonkeyPatch
+from parameterized import parameterized
 import uuid
 from unittest import mock
 from api.audit_trail.enums import AuditType
@@ -12,6 +14,8 @@ from test_helpers.clients import DataTestClient
 from api.cases.generated_documents.tests.factories import GeneratedCaseDocumentFactory
 from api.cases.generated_documents import views
 from api.letter_templates.models import LetterTemplate
+from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.staticdata.statuses.enums import CaseSubStatusIdEnum
 
 
 class GeneratedDocumentSendTests(DataTestClient):
@@ -64,8 +68,17 @@ class GeneratedDocumentSendTests(DataTestClient):
         )
         audit_text = AuditSerializer(audit).data["text"]
         self.assertEqual(audit_text, "sent an inform letter.")
+        assert self.case.sub_status == None
 
-    def test_post_with_notification(self):
+    @parameterized.expand(
+        [
+            ("under_final_review", UUID(CaseSubStatusIdEnum.UNDER_FINAL_REVIEW__INFORM_LETTER_SENT)),
+            ("ogd_advice", None),
+        ]
+    )
+    def test_post_with_notification(self, case_status, expected_sub_status_id):
+        self.case.status = CaseStatus.objects.get(status=case_status)
+        self.case.save()
         mocked_notify_function = mock.Mock()
         MonkeyPatch().setitem(views.NOTIFICATION_FUNCTIONS, "inform_letter", mocked_notify_function)
 
@@ -107,3 +120,5 @@ class GeneratedDocumentSendTests(DataTestClient):
 
         audit_text = AuditSerializer(audit).data["text"]
         self.assertEqual(audit_text, "sent an inform letter.")
+        self.case.refresh_from_db()
+        assert self.case.sub_status_id == expected_sub_status_id
