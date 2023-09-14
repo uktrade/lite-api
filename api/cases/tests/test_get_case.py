@@ -22,6 +22,8 @@ from api.parties.enums import PartyType
 from api.staticdata.countries.helpers import get_country
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
+from api.staticdata.statuses.models import CaseSubStatus
+from api.staticdata.statuses.factories import CaseStatusFactory
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 
@@ -392,3 +394,29 @@ class CaseGetTests(DataTestClient):
 
         consignee.delete()
         self.assertNotIn(Flag.objects.get(id=FlagsEnum.LU_COUNTER_REQUIRED), case.parameter_set())
+
+    def test_cases_endpoint_with_sub_status(self):
+        case_status = CaseStatusFactory(status="test_status")
+        case = self.submit_application(self.standard_application)
+        case.status = case_status
+        case.save()
+
+        sub_status_url = reverse("applications:manage_sub_status", kwargs={"pk": case.id})
+
+        sub_status = CaseSubStatus.objects.create(
+            name="test_sub_status",
+            parent_status=case_status,
+        )
+        data = {"sub_status": str(sub_status.pk)}
+
+        self.client.put(sub_status_url, data=data, **self.gov_headers)
+
+        case.refresh_from_db()
+
+        url = reverse("cases:search")
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertEqual(data["results"]["cases"][0]["sub_status"]["name"], sub_status.name)
