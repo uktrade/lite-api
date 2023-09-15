@@ -109,19 +109,21 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except:
+                except Exception as e:
                     failed += 1
                     logger.exception(
-                        "Error loading un sanction record -> %s",
+                        "%s: Error loading un sanction record -> %s",
+                        e,
                         item["dataid"],
                         exc_info=True,
                     )
             logger.info(
                 f"un sanctions (successful:{successful} failed:{failed})",
             )
-        except:
+        except Exception as e:
             logger.exception(
-                "Error loading un sanctions",
+                "%s: Error loading un sanctions",
+                e,
                 exc_info=True,
             )
 
@@ -164,19 +166,21 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except:
+                except Exception as e:
                     failed += 1
                     logger.exception(
-                        "Error loading office financial sanction record -> %s",
+                        "%s: Error loading office financial sanction record -> %s",
+                        e,
                         f"ofs:{unique_id}",
                         exc_info=True,
                     )
             logger.info(
                 f"office financial sanctions (successful:{successful} failed:{failed})",
             )
-        except:
+        except Exception as e:
             logger.exception(
-                "Error office financial sanctions",
+                "%s: Error office financial sanctions",
+                e,
                 exc_info=True,
             )
 
@@ -223,19 +227,21 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except:
+                except Exception as e:
                     failed += 1
                     logger.exception(
-                        "Error loading uk sanction record -> %s",
+                        "%s: Error loading uk sanction record -> %s",
+                        e,
                         f"uk:{unique_id}",
                         exc_info=True,
                     )
             logger.info(
                 f"uk sanctions (successful:{successful} failed:{failed})",
             )
-        except:
+        except Exception as e:
             logger.exception(
-                "Error loading uk sanctions",
+                "%s: Error loading uk sanctions",
+                e,
                 exc_info=True,
             )
 
