@@ -411,16 +411,31 @@ class FinalAdviceDocuments(APIView):
             # Remove Approve for looking up other decision documents below
             final_advice.remove(AdviceType.APPROVE)
 
-        # Get other decision documents
-        generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
-        generated_advice_documents = AdviceDocumentGovSerializer(
-            generated_advice_documents,
-            many=True,
-        ).data
-        for document in generated_advice_documents:
-            advice_documents[document["advice_type"]["key"]]["document"] = document
+        latest_documents = self.get_unique_documents(final_advice, pk)
+
+        # add latest_documents to their respective advice_type
+        for key, document in latest_documents.items():
+            advice_documents[key]["document"] = document
 
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
+
+    def get_case_document(self, advice_type, pk):
+        return (
+            GeneratedCaseDocument.objects.filter(advice_type=advice_type, case__id=pk).order_by("-created_at").first()
+        )
+
+    def get_unique_documents(self, final_advice, pk):
+        # Get other decision documents
+        latest_documents = {}
+        for advice_type in final_advice:
+            # Remove duplicates for each advice type and filters it to only the most recent advice
+            document = self.get_case_document(advice_type, pk)
+            if document:
+                serialised_document = AdviceDocumentGovSerializer(
+                    document,
+                ).data
+                latest_documents[advice_type] = serialised_document
+        return latest_documents
 
 
 class FinalAdvice(APIView):
