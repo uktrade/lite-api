@@ -434,8 +434,7 @@ class FinalAdviceDocuments(APIView):
                 serialised_document = AdviceDocumentGovSerializer(
                     document,
                 ).data
-                if serialised_document:
-                    latest_documents[advice_type] = serialised_document
+                latest_documents[advice_type] = serialised_document
         return latest_documents
 
 
