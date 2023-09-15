@@ -179,8 +179,11 @@ def update_advice(request, case, level):
 
     mark_lu_rejected_countersignatures_as_invalid(case, request.user)
 
+    advice_type = advice_to_update.first().type
+
     if advice_to_update.first().is_refusal_note:
-        audit_lu_countersigning(AuditType.LU_EDIT_MEETING_NOTE, advice_to_update.first().type, data, case, request)
+        audit_lu_countersigning(AuditType.LU_EDIT_MEETING_NOTE, advice_type, data, case, request)
+        audit_refusal_criteria(AuditType.CREATE_REFUSAL_CRITERIA, advice_type, data[0], case, request)
     else:
         audit_lu_countersigning(AuditType.LU_EDIT_ADVICE, advice_to_update.first().type, data, case, request)
 
