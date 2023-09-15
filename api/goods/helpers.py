@@ -21,7 +21,7 @@ def validate_firearms_act_certificate(validated_data):
     if covered_by_firearms_act in ["No", "Unsure", ""]:
         return
 
-    certificate_missing = validated_data.get("section_certificate_missing", False) == True
+    certificate_missing = validated_data.get("section_certificate_missing", False) is True
     if certificate_missing:
         if validated_data.get("section_certificate_missing_reason", "") == "":
             errors["section_certificate_missing_reason"] = "Enter a reason why you do not have a section 1 certificate"
