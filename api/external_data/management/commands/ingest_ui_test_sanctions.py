@@ -82,19 +82,18 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except Exception as e:
+                except:
+
                     failed += 1
                     log.exception(
-                        "%s: Error loading uk sanction record",
-                        e,
+                        "Error loading uk sanction record -> %s",
                         exc_info=True,
                     )
             log.info(
                 "uk sanctions (successful:{} failed:{})".format(successful, failed),
             )
-        except Exception as e:
+        except:
             log.exception(
-                "%s: Error loading uk sanctions",
-                e,
+                "Error loading uk sanctions -> %s",
                 exc_info=True,
             )
