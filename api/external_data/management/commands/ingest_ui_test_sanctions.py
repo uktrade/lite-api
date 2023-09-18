@@ -82,8 +82,7 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except:
-
+                except:  # noqa
                     failed += 1
                     log.exception(
                         "Error loading uk sanction record -> %s",
@@ -92,7 +91,7 @@ class Command(BaseCommand):
             log.info(
                 "uk sanctions (successful:{} failed:{})".format(successful, failed),
             )
-        except:
+        except:  # noqa
             log.exception(
                 "Error loading uk sanctions -> %s",
                 exc_info=True,
