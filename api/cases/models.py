@@ -136,7 +136,7 @@ class Case(TimestampableModel):
 
         Child cases [StandardApplication, OpenApplication, ...] share `id` with Case.
         """
-        if isinstance(self, Case):
+        if type(self) == Case:
             return self
 
         return Case.objects.get(id=self.id)
@@ -541,9 +541,7 @@ class CountersignAdvice(TimestampableModel):
         default=True,
         blank=True,
         null=True,
-        help_text="""Indicates whether it is valid or not. Existing countersignatures become invalid if original outcome is edited following countersigning
-        comments. In this case we want to keep the CountersignAdvice object for audit but we do not want to consider this as valid advice anymore, hence we
-        set `valid=False`.""",
+        help_text="Indicates whether it is valid or not. Existing countersignatures become invalid if original outcome is edited following countersigning comments. In this case we want to keep the CountersignAdvice object for audit but we do not want to consider this as valid advice anymore, hence we set `valid=False`.",
     )
     order = models.PositiveIntegerField(help_text="Indicates countersigning order")
     outcome_accepted = models.BooleanField()

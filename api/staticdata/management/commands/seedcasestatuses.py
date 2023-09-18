@@ -16,8 +16,7 @@ class Command(SeedCommand):
     help = "Creates case statuses and case statuses on case types"
     info = "Seeding case statuses"
     seed_command = "seedcasestatuses"
-    force_help_message = """Running this command will likely overwrite changes made to CaseStatus records.  ONLY DO THIS IF YOU REALLY MEAN TO.
-    Use the --force flag to acknowledge the risks and run."""
+    force_help_message = "Running this command will likely overwrite changes made to CaseStatus records.  ONLY DO THIS IF YOU REALLY MEAN TO.  Use the --force flag to acknowledge the risks and run."
 
     STATUSES_ON_CASE_TYPES = {
         "00000000-0000-0000-0000-000000000001": ["application", "hmrc", "goods", "eua"],
@@ -53,7 +52,9 @@ class Command(SeedCommand):
 
         # Use enum from populated case_types to assign new case_to_status
         for case_type in case_type_list:
+
             for key, value in self.STATUSES_ON_CASE_TYPES.items():
+
                 # IF: sub-type is present in a STATUSES_ON_CASE_TYPE
                 # OR IF: type is present but sub-type is not in a STATUSES_ON_CASE_TYPE (handles HMRC-applications)
                 if case_type.sub_type in value or (case_type.type in value and case_type.sub_type not in value):
