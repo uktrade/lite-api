@@ -1,11 +1,11 @@
 from unittest import mock
 
-from django.conf import settings
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
 from api.audit_trail.models import AuditType, Audit
+from api.core.authentication import SharedAuthentication
 from api.core.constants import GovPermissions
 from api.cases.models import CaseAssignment
 from api.licences.enums import LicenceStatus
@@ -14,6 +14,8 @@ from api.users.models import UserOrganisationRelationship, Permission
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from api.users.enums import UserType
+from api.users.models import BaseUser
 from api.users.libraries.user_to_token import user_to_token
 
 from lite_content.lite_api import strings
@@ -415,3 +417,20 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(self.standard_application.status, get_case_status_by_status(expected_status))
+
+    @mock.patch.object(SharedAuthentication, "authenticate")
+    def test_hmrc_user_set_status_to_finalised_fail(self, mock_authenticate):
+        mock_authenticate.return_value = ["token", ""]
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW)
+        self.standard_application.save()
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW))
+
+        base_user = BaseUser(email="test@mail.com", first_name="John", last_name="Smith", type=UserType.SYSTEM)
+        base_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        base_user.save()
+
+        headers = {"HTTP_GOV_USER_TOKEN": user_to_token(base_user)}
+        data = {"status": CaseStatusEnum.FINALISED}
+        response = self.client.put(self.url, data=data, **headers)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
