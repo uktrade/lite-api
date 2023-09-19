@@ -6,11 +6,13 @@ repos:
       rev: 22.3.0
       hooks:
           - id: black
+            language: python
           # Config for black lives in pyproject.toml
     - repo: https://github.com/asottile/blacken-docs
       rev: v1.12.1
       hooks:
           - id: blacken-docs
+            language: python
             additional_dependencies: [black==22.3.0]
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v4.1.0
