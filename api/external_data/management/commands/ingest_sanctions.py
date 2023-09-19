@@ -109,7 +109,7 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except:  # noqa
+                except:  # pragma: no cover # noqa
                     failed += 1
                     logger.exception(
                         "Error loading un sanction record -> %s",
@@ -119,7 +119,7 @@ class Command(BaseCommand):
             logger.info(
                 f"un sanctions (successful:{successful} failed:{failed})",
             )
-        except:  # noqa
+        except:  # pragma: no cover # noqa
             logger.exception(
                 "Error loading un sanctions",
                 exc_info=True,
@@ -164,7 +164,7 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except:  # noqa
+                except:  # pragma: no cover # noqa
                     failed += 1
                     logger.exception(
                         "Error loading office financial sanction record -> %s",
@@ -174,7 +174,7 @@ class Command(BaseCommand):
             logger.info(
                 f"office financial sanctions (successful:{successful} failed:{failed})",
             )
-        except:  # noqa
+        except:  # pragma: no cover # noqa
             logger.exception(
                 "Error office financial sanctions",
                 exc_info=True,
@@ -223,7 +223,7 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except:  # noqa
+                except:  # pragma: no cover # noqa
                     failed += 1
                     logger.exception(
                         "Error loading uk sanction record -> %s",
@@ -233,7 +233,7 @@ class Command(BaseCommand):
             logger.info(
                 f"uk sanctions (successful:{successful} failed:{failed})",
             )
-        except:  # noqa
+        except:  # pragma: no cover # noqa
             logger.exception(
                 "Error loading uk sanctions",
                 exc_info=True,
