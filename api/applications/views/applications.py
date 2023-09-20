@@ -33,9 +33,9 @@ from api.applications.helpers import (
 )
 from api.applications.libraries.application_helpers import (
     optional_str_to_bool,
-    can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
     create_submitted_audit,
+    check_user_can_set_status,
 )
 from api.applications.libraries.case_status_helpers import submit_application
 from api.applications.libraries.edit_applications import (
@@ -68,7 +68,6 @@ from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
-from api.cases.helpers import can_set_status
 from api.cases.libraries.get_flags import get_flags
 from api.cases.service import get_destinations
 from api.cases.serializers import ApplicationManageSubStatusSerializer
@@ -483,36 +482,11 @@ class ApplicationManageStatus(APIView):
     @transaction.atomic
     def put(self, request, pk):
         application = get_application(pk)
-        is_licence_application = application.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION
-
         data = deepcopy(request.data)
 
-        if data["status"] == CaseStatusEnum.FINALISED:
-            return JsonResponse(
-                data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if not can_set_status(application, data["status"]):
-            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
-
-        if hasattr(request.user, "exporteruser"):
-            if get_request_user_organisation_id(request) != application.organisation.id:
-                raise PermissionDenied()
-
-            if not can_status_be_set_by_exporter_user(application.status.status, data["status"]):
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.Finalise.Error.EXPORTER_SET_STATUS]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        else:
-            if not can_status_be_set_by_gov_user(
-                request.user.govuser, application.status.status, data["status"], is_licence_application
-            ):
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        error_response = check_user_can_set_status(request, application, data)
+        if error_response:
+            return error_response
 
         update_licence_status(application, data["status"])
 
