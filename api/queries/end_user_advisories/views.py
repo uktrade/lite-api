@@ -67,7 +67,7 @@ class EndUserAdvisoriesList(ListAPIView):
 
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except serializers.ValidationError as e:
-            return JsonResponse(data={"errors": e}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={"errors": "Data validation error"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EndUserAdvisoryDetail(APIView):

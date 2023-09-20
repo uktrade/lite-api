@@ -121,7 +121,7 @@ class ApplicationList(ListCreateAPIView):
         try:
             submitted = optional_str_to_bool(self.request.GET.get("submitted"))
         except ValueError as e:
-            return JsonResponse(data={"errors": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={"errors": "Input value error"}, status=status.HTTP_400_BAD_REQUEST)
 
         organisation = get_request_user_organisation(self.request)
 
