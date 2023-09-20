@@ -1,5 +1,5 @@
 default_language_version:
-    python: python3.8
+    python: python3.7
 
 repos:
     - repo: https://github.com/psf/black
@@ -27,7 +27,7 @@ repos:
           - id: detect-aws-credentials
             args: ["--allow-missing-credentials"]
     - repo: https://github.com/uktrade/pii-secret-check-hooks
-      rev: 0.0.0.35
+      rev: 0.0.0.28
       hooks:
           - id: pii_secret_filename
             files: ''
