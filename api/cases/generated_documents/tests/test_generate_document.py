@@ -15,7 +15,7 @@ from api.audit_trail.serializers import AuditSerializer
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, AdviceType
 from api.cases.generated_documents.helpers import html_to_pdf
-from api.letter_templates.helpers import generate_preview
+from api.letter_templates.helpers import generate_preview, DocumentPreviewError
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.licences.enums import LicenceStatus
 from api.staticdata.decisions.models import Decision
@@ -416,6 +416,37 @@ class GenerateDocumentTests(DataTestClient):
         resp = html_to_pdf("<div>Hello World !!</div>", "siel_preview", None)
         with NamedTemporaryFile(suffix=".pdf", delete=True) as tmp_file:
             tmp_file.write(resp)
+
+    @mock.patch("api.cases.generated_documents.helpers.generate_preview")
+    def test_get_document_preview_raises_error(self, mock_generate_preview):
+        mock_generate_preview.side_effect = DocumentPreviewError("error")
+        text = "Sample"
+        url = (
+            reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
+            + "?template="
+            + str(self.letter_template.id)
+            + "&text="
+            + text
+        )
+        with self.assertRaises(AttributeError) as e:
+            response = self.client.get(url, **self.gov_headers)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(e.exception, "Failed to get preview")
+
+    @mock.patch("api.cases.generated_documents.views.get_generated_document_data")
+    @mock.patch("api.cases.generated_documents.views.html_to_pdf")
+    @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
+    def test_generate_document_post_raises_attributeerror(
+        self, upload_bytes_file_func, html_to_pdf_func, mock_gen_doc_data
+    ):
+        html_to_pdf_func.return_value = None
+        upload_bytes_file_func.return_value = None
+        mock_gen_doc_data.side_effect = AttributeError("error")
+
+        with self.assertRaises(AttributeError) as e:
+            response = self.client.post(self.url, **self.gov_headers, data=self.data)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(e.exception, "Failed to get preview")
 
 
 class GetGeneratedDocumentsTests(DataTestClient):
