@@ -105,6 +105,13 @@ class ExporterInformLetter(EmailData):
 
 
 @dataclass(frozen=True)
+class ExporterAppealAcknowledgement(EmailData):
+    user_first_name: str
+    application_reference: str
+    exporter_frontend_url: str
+
+
+@dataclass(frozen=True)
 class CaseWorkerCountersignCaseReturn(EmailData):
     case_reference: str
     countersigned_user_name: str
