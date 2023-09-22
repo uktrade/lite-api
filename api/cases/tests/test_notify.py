@@ -7,6 +7,7 @@ from api.cases.notify import (
     notify_exporter_no_licence_required,
     notify_exporter_licence_revoked,
     notify_exporter_inform_letter,
+    notify_exporter_appeal_acknowledgement,
 )
 from api.licences.tests.factories import LicenceFactory
 from api.users.tests.factories import ExporterUserFactory
@@ -18,6 +19,7 @@ from gov_notify.payloads import (
     ExporterLicenceRevoked,
     ExporterNoLicenceRequired,
     ExporterInformLetter,
+    ExporterAppealAcknowledgement,
 )
 from test_helpers.clients import DataTestClient
 
@@ -124,6 +126,22 @@ class NotifyTests(DataTestClient):
         mock_send_email.assert_called_with(
             self.case.submitted_by.email,
             TemplateType.EXPORTER_INFORM_LETTER,
+            expected_payload,
+        )
+        assert mock_send_email.called == 1
+
+    @mock.patch("api.cases.notify.send_email")
+    def test_notify_exporter_appeal_acknowledgement(self, mock_send_email):
+        notify_exporter_appeal_acknowledgement(self.case)
+
+        expected_payload = ExporterAppealAcknowledgement(
+            user_first_name=self.case.submitted_by.first_name,
+            application_reference=self.case.reference_code,
+            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
+        )
+        mock_send_email.assert_called_with(
+            self.case.submitted_by.email,
+            TemplateType.EXPORTER_APPEAL_ACKNOWLEDGEMENT,
             expected_payload,
         )
         assert mock_send_email.called == 1
