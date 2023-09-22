@@ -1,9 +1,12 @@
 from uuid import UUID
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
+from api.audit_trail.serializers import AuditSerializer
 from parameterized import parameterized
 
 from api.cases.models import Case, BadSubStatus
 from api.cases.tests.factories import CaseFactory
-from api.staticdata.statuses.enums import CaseSubStatusIdEnum
+from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 from test_helpers.clients import DataTestClient
 
@@ -32,6 +35,17 @@ class CaseTests(DataTestClient):
         self.case.refresh_from_db()
         assert str(self.case.sub_status.id) == sub_status
 
+        # Check sub status audit
+        audit = Audit.objects.filter(verb=AuditType.UPDATED_SUB_STATUS).order_by("-created_at")[0]
+        sub_status_name = self.case.sub_status.name
+        case_status_name = CaseStatusEnum.get_text(status)
+        self.assertEqual(
+            audit.payload,
+            {"status": case_status_name, "sub_status": sub_status_name},
+        )
+        audit_text = AuditSerializer(audit).data["text"]
+        self.assertEqual(audit_text, f"updated the status to {case_status_name} - {sub_status_name}")
+
     @parameterized.expand(
         [
             (
@@ -55,3 +69,24 @@ class CaseTests(DataTestClient):
         case.save()
         case.refresh_from_db()
         self.assertEqual(case.sub_status_id, expected_sub_status)
+
+    def test_case_save_reset_sub_status_system_audit(self):
+        sub_status = CaseSubStatus.objects.get(id=UUID(CaseSubStatusIdEnum.UNDER_FINAL_REVIEW__INFORM_LETTER_SENT))
+        case = CaseFactory(
+            status=CaseStatus.objects.get(status="under_final_review"),
+            sub_status=sub_status,
+        )
+        case.refresh_from_db()
+        assert case.sub_status == sub_status
+        case.status = CaseStatus.objects.get(status="finalised")
+        case.save()
+        case.refresh_from_db()
+        self.assertEqual(case.sub_status_id, None)
+        # Check add audit
+        audit = Audit.objects.get(verb=AuditType.UPDATED_SUB_STATUS)
+        self.assertEqual(
+            audit.payload,
+            {"status": "Finalised", "sub_status": None},
+        )
+        audit_text = AuditSerializer(audit).data["text"]
+        self.assertEqual(audit_text, "updated the status to Finalised - None")

@@ -52,7 +52,6 @@ class LetterTemplatesListTests(DataTestClient):
 
     def test_get_letter_templates_success_inform_letter_feature_disabled(self):
         url = reverse("letter_templates:letter_templates")
-
         letter_template = LetterTemplate.objects.create(
             name="Inform letter",
             layout=LetterLayout.objects.first(),

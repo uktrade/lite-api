@@ -133,6 +133,8 @@ class Case(TimestampableModel):
         super(Case, self).save(*args, **kwargs)
 
     def _reset_sub_status_on_status_change(self):
+        from api.audit_trail import service as audit_trail_service
+
         status_changed = False
         try:
             case = Case.objects.get(id=self.pk)
@@ -140,9 +142,13 @@ class Case(TimestampableModel):
             return  # If our case record does not yet exist in the DB, return early
         old_status = case.status
         status_changed = old_status != self.status
-
-        if status_changed:
-            self.sub_status = None  # Reset sub-status on any status change
+        if status_changed and self.sub_status:
+            self.sub_status = None
+            audit_trail_service.create_system_user_audit(
+                verb=AuditType.UPDATED_SUB_STATUS,
+                target=case,
+                payload={"sub_status": None, "status": CaseStatusEnum.get_text(self.status.status)},
+            )
 
     def get_case(self):
         """
@@ -284,11 +290,21 @@ class Case(TimestampableModel):
         Set the sub_status on this case.  Raises Exception if this sub_status
         is not a vaild child sub_status of the current case status.
         """
+        from api.audit_trail import service as audit_trail_service
+
         sub_status = CaseSubStatus.objects.get(id=sub_status_id)
         if sub_status.parent_status != self.status:
             raise BadSubStatus(f"{sub_status.name} is not a child of {self.status.status}")
         self.sub_status = sub_status
         self.save()
+
+        # Create an audit event for the sub status
+        case = self.get_case()
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.UPDATED_SUB_STATUS,
+            target=case,
+            payload={"sub_status": self.sub_status.name, "status": CaseStatusEnum.get_text(self.status.status)},
+        )
 
 
 class CaseQueue(TimestampableModel):

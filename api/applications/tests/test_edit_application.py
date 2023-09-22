@@ -92,14 +92,11 @@ class EditStandardApplicationTests(DataTestClient):
         updated_at = application.updated_at
         response = self.client.put(url, self.data, **self.exporter_headers)
         application.refresh_from_db()
-        audit_qs = Audit.objects.all()
-        audit_object = audit_qs.first()
+        audit_object = Audit.objects.get(verb=AuditType.UPDATED_APPLICATION_NAME)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.name, self.data["name"])
         self.assertNotEqual(application.updated_at, updated_at)
-        self.assertEqual(audit_qs.count(), 2)
-        self.assertEqual(audit_object.verb, AuditType.UPDATED_APPLICATION_NAME)
         self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
 
     @parameterized.expand(get_case_statuses(read_only=True))
@@ -123,7 +120,6 @@ class EditStandardApplicationTests(DataTestClient):
         application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})
         updated_at = application.updated_at
-        audit_qs = Audit.objects.all()
         new_ref = "35236246"
         update_ref = "13124124"
 
@@ -141,9 +137,8 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertNotEqual(application.updated_at, updated_at)
 
         # Check add audit
-        self.assertEqual(audit_qs.count(), 2)
-        self.assertEqual(AuditType(audit_qs.first().verb), AuditType.UPDATE_APPLICATION_LETTER_REFERENCE)
-        self.assertEqual(audit_qs.first().payload, {"old_ref_number": "no reference", "new_ref_number": new_ref})
+        audit = Audit.objects.get(verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE)
+        self.assertEqual(audit.payload, {"old_ref_number": "no reference", "new_ref_number": new_ref})
 
         # Update ref
         data = {"reference_number_on_information_form": update_ref, "have_you_been_informed": "yes"}
@@ -151,9 +146,8 @@ class EditStandardApplicationTests(DataTestClient):
 
         # Check update audit
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(audit_qs.count(), 3)
-        self.assertEqual(AuditType(audit_qs.first().verb), AuditType.UPDATE_APPLICATION_LETTER_REFERENCE)
-        self.assertEqual(audit_qs.first().payload, {"old_ref_number": new_ref, "new_ref_number": update_ref})
+        audit = Audit.objects.filter(verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE).first()
+        self.assertEqual(audit.payload, {"old_ref_number": new_ref, "new_ref_number": update_ref})
 
         # Update ref with no reference
         data = {"reference_number_on_information_form": "", "have_you_been_informed": "yes"}
@@ -161,9 +155,8 @@ class EditStandardApplicationTests(DataTestClient):
 
         # Check update
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(audit_qs.count(), 4)
-        self.assertEqual(AuditType(audit_qs.first().verb), AuditType.UPDATE_APPLICATION_LETTER_REFERENCE)
-        self.assertEqual(audit_qs.first().payload, {"old_ref_number": update_ref, "new_ref_number": "no reference"})
+        audit = Audit.objects.filter(verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE).first()
+        self.assertEqual(audit.payload, {"old_ref_number": update_ref, "new_ref_number": "no reference"})
 
         # Remove ref
         data = {"reference_number_on_information_form": "", "have_you_been_informed": "no"}
@@ -171,9 +164,8 @@ class EditStandardApplicationTests(DataTestClient):
 
         # Check update
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(audit_qs.count(), 5)
-        self.assertEqual(AuditType(audit_qs.first().verb), AuditType.REMOVED_APPLICATION_LETTER_REFERENCE)
-        self.assertEqual(audit_qs.first().payload, {"old_ref_number": "no reference"})
+        audit = Audit.objects.get(verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE)
+        self.assertEqual(audit.payload, {"old_ref_number": "no reference"})
 
 
 @parameterized_class(
@@ -213,13 +205,11 @@ class EditMODClearanceApplicationsTests(DataTestClient):
 
         response = self.client.put(self.url, self.data, **self.exporter_headers)
         self.application.refresh_from_db()
-        audit_qs = Audit.objects.all()
-        audit_object = audit_qs.first()
+        audit_object = Audit.objects.get(verb=AuditType.UPDATED_APPLICATION_NAME)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.application.name, self.data["name"])
         self.assertNotEqual(self.application.updated_at, updated_at)
-        self.assertEqual(audit_qs.count(), 2)
         self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
 
     @parameterized.expand(get_case_statuses(read_only=True))
@@ -321,9 +311,7 @@ class EditF680ApplicationsTests(DataTestClient):
         )
 
         # Check add audit
-        self.assertEqual(Audit.objects.all().count(), 2)
-        audit = Audit.objects.all().first()
-        self.assertEqual(AuditType(audit.verb), AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES)
+        audit = Audit.objects.get(verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES)
         self.assertEqual(
             audit.payload,
             {
