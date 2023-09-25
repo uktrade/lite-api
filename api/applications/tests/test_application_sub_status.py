@@ -123,7 +123,7 @@ class ApplicationSubStatusesTests(DataTestClient):
         )
         another_test_sub_status = CaseSubStatus.objects.create(
             name="another_test_sub_status",
-            parent_status=self.status,
+            parent_status=self.status,  # Order defaults to 100, so expect this last
         )
         CaseSubStatus.objects.create(
             name="other_test_sub_status",
