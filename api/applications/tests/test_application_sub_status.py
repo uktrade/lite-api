@@ -120,6 +120,7 @@ class ApplicationSubStatusesTests(DataTestClient):
         test_sub_status = CaseSubStatus.objects.create(
             name="test_sub_status",
             parent_status=self.status,
+            order=1,
         )
         another_test_sub_status = CaseSubStatus.objects.create(
             name="another_test_sub_status",
@@ -129,6 +130,11 @@ class ApplicationSubStatusesTests(DataTestClient):
             name="other_test_sub_status",
             parent_status=CaseStatusFactory(status="other_test_status"),
         )
+        lowest_order_sub_status = CaseSubStatus.objects.create(
+            name="lowest_order_sub_status",
+            parent_status=self.status,
+            order=0,
+        )
 
         response = self.client.get(self.url, **self.gov_headers)
 
@@ -136,6 +142,7 @@ class ApplicationSubStatusesTests(DataTestClient):
         self.assertEqual(
             response.json(),
             [
+                {"id": str(lowest_order_sub_status.pk), "name": "lowest_order_sub_status"},
                 {"id": str(test_sub_status.pk), "name": "test_sub_status"},
                 {"id": str(another_test_sub_status.pk), "name": "another_test_sub_status"},
             ],
