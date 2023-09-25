@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
@@ -197,3 +197,32 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("exporter_user_notification_count", response_data["end_user_advisory"])
         self.assertEqual(len(response_data["end_user_advisory"]["exporter_user_notification_count"]), 3)
+
+    def test_end_user_advisory_create_validation_error(self):
+        response = self.client.post(
+            reverse("queries:end_user_advisories:end_user_advisories"),
+            data={},
+            **self.exporter_headers,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("end_user", response.json()["errors"])
+
+    def test_end_user_advisory_create_success(self):
+        data = {
+            "validate_only": True,
+            "end_user": {
+                "name": "End-user",
+                "address": "123",
+                "sub_type": "government",
+                "signatory_name_euu": "test signatory",
+                "country": "US",
+                "contact_email": "test@example.com",
+            },
+            "contact_email": "test@example.com",
+        }
+        response = self.client.post(
+            reverse("queries:end_user_advisories:end_user_advisories"),
+            data=data,
+            **self.exporter_headers,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
