@@ -232,7 +232,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
             },
         )
 
-    def update_status(self, status):
+    def set_status(self, status):
         case = self.get_case()
 
         old_status = self.status
@@ -262,7 +262,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
             payload={},
         )
 
-        self.update_status(CaseStatusEnum.UNDER_APPEAL)
+        self.set_status(CaseStatusEnum.UNDER_APPEAL)
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__REQUEST_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
