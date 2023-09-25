@@ -1,11 +1,11 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dcc011efca9de78e74427c01a2c478fb7637281b72f10bd25d09498d47745ecf"
+            "sha256": "6109661503e3a7173cfbe126c6a465ab3921122f9484726ecfb9e244b3b5d7a3"
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_full_version": "3.8.17",
+            "python_full_version": "3.8.18",
             "python_version": "3.8"
         },
         "sources": [
@@ -529,12 +529,12 @@
         },
         "django-silk": {
             "hashes": [
-                "sha256:2f1fcaaf21192011147537fe1ca72dc9f552f32d7043ebd82aeeda370f194469",
-                "sha256:50552f06d9306d06517fbeab9a2c74856355e06304f03ed16b6dd353f7c77e7a"
+                "sha256:8cbfbc647d182527726d8d52d3fcfa193f4d250f21406c3fb1062efa6fb95c63",
+                "sha256:b345d3973d1d382e09735eb525eaf3eebd3edee9a69d1003eb9b01badb2438db"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.7'",
-            "version": "==5.0.3"
+            "markers": "python_version >= '3.8'",
+            "version": "==5.0.4"
         },
         "django-sortedm2m": {
             "hashes": [
@@ -1335,7 +1335,7 @@
                 "sha256:8d36afa7616d8ab714608411b4a3b13e58f463aee519024578e062e141dce20f",
                 "sha256:8f135f6502756bde6b2a9b28989df5fbe87c9970cecaa69041edcce7f0589b14"
             ],
-            "markers": "python_version >= '3.6'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'",
             "version": "==1.26.16"
         },
         "vine": {
@@ -2294,7 +2294,7 @@
                 "sha256:8d36afa7616d8ab714608411b4a3b13e58f463aee519024578e062e141dce20f",
                 "sha256:8f135f6502756bde6b2a9b28989df5fbe87c9970cecaa69041edcce7f0589b14"
             ],
-            "markers": "python_version >= '3.6'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'",
             "version": "==1.26.16"
         },
         "watchdog": {
