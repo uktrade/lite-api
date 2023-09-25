@@ -81,13 +81,12 @@ def get_generated_document_data(request_params, pk, include_css=True):
         )
 
     except DocumentPreviewError as exc:
-        raise ValidationError(str(exc))
+        raise ValidationError(f"Error generating {template.layout.filename} document preview")
 
     return GeneratedDocumentPayload(case=case, template=template, document_html=document_html, text=text)
 
 
 def get_decision_type(advice_type, template):
-
     # When generating documents during finalise this is provided
     if advice_type:
         return advice_type
