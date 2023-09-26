@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from rest_framework import status, serializers
+from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -50,24 +50,21 @@ class EndUserAdvisoriesList(ListAPIView):
 
         serializer = EndUserAdvisoryViewSerializer(data=data)
 
-        try:
-            if serializer.is_valid():
-                if "validate_only" not in data or data["validate_only"] == "False":
-                    eua = serializer.save()
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.CREATED,
-                        action_object=eua.get_case(),
-                        payload={"status": {"new": eua.status.status}},
-                    )
-                    apply_flagging_rules_to_case(eua)
-                    return JsonResponse(data={"end_user_advisory": serializer.data}, status=status.HTTP_201_CREATED)
-                else:
-                    return JsonResponse(data={}, status=status.HTTP_200_OK)
-
+        if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except serializers.ValidationError as e:
-            return JsonResponse(data={"errors": e}, status=status.HTTP_400_BAD_REQUEST)
+
+        if "validate_only" not in data or data["validate_only"] == "False":
+            eua = serializer.save()
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.CREATED,
+                action_object=eua.get_case(),
+                payload={"status": {"new": eua.status.status}},
+            )
+            apply_flagging_rules_to_case(eua)
+            return JsonResponse(data={"end_user_advisory": serializer.data}, status=status.HTTP_201_CREATED)
+        else:
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class EndUserAdvisoryDetail(APIView):

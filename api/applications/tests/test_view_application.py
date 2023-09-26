@@ -365,3 +365,9 @@ class DraftTests(DataTestClient):
             category["key"] for category in response["trade_control_product_categories"]
         ]
         self.assertEqual(trade_control_product_categories, application.trade_control_product_categories)
+
+    def test_view_applications_invalid_submitted_value(self):
+        url = reverse("applications:applications") + "?submitted=invalid"
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 0)
