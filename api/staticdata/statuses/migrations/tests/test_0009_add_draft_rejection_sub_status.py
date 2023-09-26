@@ -15,4 +15,4 @@ class TestAddCaseSubStatusDraftRejectionLetter(MigratorTestCase):
         draft_rejection_sub_status = CaseSubStatus.objects.get(id="00000000-0000-0000-0000-000000000012")
 
 
-        assert draft_rejection_sub_status.name is "Draft rejection letter"
+        assert draft_rejection_sub_status.name == "Draft rejection letter"
