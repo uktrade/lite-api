@@ -128,7 +128,21 @@ class Case(TimestampableModel):
         if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
             self.reference_code = generate_reference_code(self)
 
+        self._reset_sub_status_on_status_change()
+
         super(Case, self).save(*args, **kwargs)
+
+    def _reset_sub_status_on_status_change(self):
+        status_changed = False
+        try:
+            case = Case.objects.get(id=self.pk)
+        except Case.DoesNotExist:
+            return  # If our case record does not yet exist in the DB, return early
+        old_status = case.status
+        status_changed = old_status != self.status
+
+        if status_changed:
+            self.sub_status = None  # Reset sub-status on any status change
 
     def get_case(self):
         """
@@ -136,7 +150,7 @@ class Case(TimestampableModel):
 
         Child cases [StandardApplication, OpenApplication, ...] share `id` with Case.
         """
-        if type(self) == Case:
+        if type(self) == Case:  # noqa
             return self
 
         return Case.objects.get(id=self.id)
@@ -541,7 +555,7 @@ class CountersignAdvice(TimestampableModel):
         default=True,
         blank=True,
         null=True,
-        help_text="Indicates whether it is valid or not. Existing countersignatures become invalid if original outcome is edited following countersigning comments. In this case we want to keep the CountersignAdvice object for audit but we do not want to consider this as valid advice anymore, hence we set `valid=False`.",
+        help_text="Indicates whether it is valid or not. Existing countersignatures become invalid if original outcome is edited following countersigning comments. In this case we want to keep the CountersignAdvice object for audit but we do not want to consider this as valid advice anymore, hence we set `valid=False`.",  # noqa
     )
     order = models.PositiveIntegerField(help_text="Indicates countersigning order")
     outcome_accepted = models.BooleanField()

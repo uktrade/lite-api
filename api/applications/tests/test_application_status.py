@@ -1,20 +1,25 @@
 from unittest import mock
 
-from django.conf import settings
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
 from api.audit_trail.models import AuditType, Audit
+from api.core.authentication import SharedAuthentication
+from api.core.constants import GovPermissions
 from api.cases.models import CaseAssignment
-from gov_notify.enums import TemplateType
 from api.licences.enums import LicenceStatus
-from lite_content.lite_api import strings
-from api.users.models import UserOrganisationRelationship
+from api.teams.models import Team
+from api.users.models import UserOrganisationRelationship, Permission
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from api.users.enums import UserType
+from api.users.models import BaseUser
 from api.users.libraries.user_to_token import user_to_token
+
+from lite_content.lite_api import strings
+from lite_routing.routing_rules_internal.enums import TeamIdEnum
 
 
 class ApplicationManageStatusTests(DataTestClient):
@@ -361,20 +366,71 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.hmrc_query.status, get_case_status_by_status(CaseStatusEnum.CLOSED))
 
-    def test_gov_user_set_hmrc_invalid_status_failure(self):
-        self.hmrc_query = self.create_hmrc_query(self.organisation)
-        self.submit_application(self.hmrc_query)
+    @parameterized.expand(
+        [
+            (
+                TeamIdEnum.TECHNICAL_ASSESSMENT_UNIT,
+                [],
+                CaseStatusEnum.INITIAL_CHECKS,
+                CaseStatusEnum.INITIAL_CHECKS,
+                status.HTTP_400_BAD_REQUEST,
+            ),
+            (
+                TeamIdEnum.TECHNICAL_ASSESSMENT_UNIT,
+                [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name],
+                CaseStatusEnum.INITIAL_CHECKS,
+                CaseStatusEnum.INITIAL_CHECKS,
+                status.HTTP_400_BAD_REQUEST,
+            ),
+            (
+                TeamIdEnum.LICENSING_UNIT,
+                [],
+                CaseStatusEnum.UNDER_FINAL_REVIEW,
+                CaseStatusEnum.UNDER_FINAL_REVIEW,
+                status.HTTP_403_FORBIDDEN,
+            ),
+            (
+                TeamIdEnum.LICENSING_UNIT,
+                [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name],
+                CaseStatusEnum.UNDER_FINAL_REVIEW,
+                CaseStatusEnum.FINALISED,
+                status.HTTP_200_OK,
+            ),
+        ]
+    )
+    def test_gov_user_set_status_to_finalised(
+        self, team_id, permissions, initial_status, expected_status, expected_status_code
+    ):
+        self.standard_application.status = get_case_status_by_status(initial_status)
+        self.standard_application.save()
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(initial_status))
 
-        # HMRC case status can only be CLOSED, SUBMITTED or RESUBMITTED
-        data = {"status": CaseStatusEnum.WITHDRAWN}
-        url = reverse("applications:manage_status", kwargs={"pk": self.hmrc_query.id})
-        response = self.client.put(url, data=data, **self.gov_headers)
+        self.gov_user.team = Team.objects.get(id=team_id)
+        self.gov_user.save()
 
-        self.hmrc_query.refresh_from_db()
+        self.gov_user.role.permissions.add(*Permission.objects.filter(id__in=permissions))
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json().get("errors")["status"][0], strings.Statuses.BAD_STATUS)
-        self.assertEqual(
-            self.standard_application.status,
-            get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-        )
+        data = {"status": CaseStatusEnum.FINALISED}
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        self.assertEqual(response.status_code, expected_status_code)
+
+        self.standard_application.refresh_from_db()
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(expected_status))
+
+    @mock.patch.object(SharedAuthentication, "authenticate")
+    def test_hmrc_user_set_status_to_finalised_fail(self, mock_authenticate):
+        mock_authenticate.return_value = ["token", ""]
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW)
+        self.standard_application.save()
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW))
+
+        base_user = BaseUser(email="test@mail.com", first_name="John", last_name="Smith", type=UserType.SYSTEM)
+        base_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        base_user.save()
+
+        headers = {"HTTP_GOV_USER_TOKEN": user_to_token(base_user)}
+        data = {"status": CaseStatusEnum.FINALISED}
+        response = self.client.put(self.url, data=data, **headers)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
