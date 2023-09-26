@@ -2,7 +2,6 @@ from django.db.models import Q
 from django.http import JsonResponse
 from api.picklists.serializers import TinyPicklistSerializer
 from rest_framework import generics, status
-from django.conf import settings
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
