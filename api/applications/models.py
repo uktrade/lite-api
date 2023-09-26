@@ -48,7 +48,10 @@ from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.f680_clearance_types.models import F680ClearanceType
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import (
+    CaseStatusEnum,
+    CaseSubStatusIdEnum,
+)
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
@@ -229,7 +232,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
             },
         )
 
-    def update_status(self, status):
+    def set_status(self, status):
         case = self.get_case()
 
         old_status = self.status
@@ -259,7 +262,8 @@ class BaseApplication(ApplicationPartyMixin, Case):
             payload={},
         )
 
-        self.update_status(CaseStatusEnum.UNDER_APPEAL)
+        self.set_status(CaseStatusEnum.UNDER_APPEAL)
+        self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__REQUEST_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
 
