@@ -33,7 +33,6 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertIn(CaseTypeReferenceEnum.GQY, case_types)
         self.assertIn(CaseTypeReferenceEnum.EUA, case_types)
 
-    @override_settings(FEATURE_INFORM_LETTER_ENABLED=True)
     def test_get_letter_templates_success_inform_letter_feature_enabled(self):
         url = reverse("letter_templates:letter_templates")
 

@@ -42,9 +42,6 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         decision = self.request.GET.get("decision")
         queryset = LetterTemplate.objects.all().prefetch_related("layout", "case_types")
 
-        if not settings.FEATURE_INFORM_LETTER_ENABLED:
-            queryset = queryset.exclude(name="Inform letter")
-
         if decision:
             case = get_case(pk=case)
             decision = Decision.objects.get(name=decision)
