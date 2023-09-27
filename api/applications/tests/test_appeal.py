@@ -64,7 +64,7 @@ class AppealApplicationTests(DataTestClient):
         )
         self.assertEqual(
             str(self.application.sub_status.pk),
-            CaseSubStatusIdEnum.UNDER_APPEAL__REQUEST_RECEIVED,
+            CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED,
         )
         self.assertIn(
             Queue.objects.get(id=QueuesEnum.LU_APPEALS),
