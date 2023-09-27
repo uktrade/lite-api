@@ -263,7 +263,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
         )
 
         self.set_status(CaseStatusEnum.UNDER_APPEAL)
-        self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__REQUEST_RECEIVED)
+        self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
 
