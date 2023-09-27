@@ -18,7 +18,6 @@ def add_case_sub_status_draft_rejection(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("statuses", "0009_update_request_received_name"),
-        ("lite_routing", "0001_initial"),
     ]
 
     operations = [
