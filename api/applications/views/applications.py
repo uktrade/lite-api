@@ -553,7 +553,7 @@ class ApplicationSubStatuses(ListAPIView):
         self.application = get_object_or_404(StandardApplication, pk=self.kwargs["pk"])
 
     def get_queryset(self):
-        return self.application.status.sub_statuses.all()
+        return self.application.status.sub_statuses.all().order_by("order")
 
 
 class ApplicationFinaliseView(APIView):
