@@ -30,6 +30,7 @@ class CaseSubStatus(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50, unique=True)
     parent_status = models.ForeignKey(CaseStatus, on_delete=models.CASCADE, related_name="sub_statuses")
+    order = models.PositiveSmallIntegerField(default=100)
 
 
 class CaseStatusCaseType(models.Model):
