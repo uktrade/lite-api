@@ -19,6 +19,7 @@ class AdviceDocumentsTests(DataTestClient):
         self.template = self.create_letter_template(name="Template", case_types=[CaseTypeEnum.SIEL.id])
         self.url = reverse("cases:final_advice_documents", kwargs={"pk": self.case.id})
 
+    @override_settings(FEATURE_INFORM_LETTER_ENABLED=False)
     def test_get_final_advice_no_documents(self):
         self.create_advice(self.gov_user, self.case, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         self.create_advice(self.gov_user, self.case, "end_user", AdviceType.REFUSE, AdviceLevel.FINAL)
