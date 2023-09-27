@@ -11,7 +11,10 @@ from api.audit_trail.models import (
 from api.appeals.models import AppealDocument
 from api.appeals.tests.factories import AppealFactory
 from api.queues.models import Queue
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import (
+    CaseStatusEnum,
+    CaseSubStatusIdEnum,
+)
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
 
@@ -55,12 +58,14 @@ class AppealApplicationTests(DataTestClient):
             appeal.documents.all(),
             AppealDocument.objects.none(),
         )
-
         self.assertEqual(
             self.application.status.status,
             CaseStatusEnum.UNDER_APPEAL,
         )
-
+        self.assertEqual(
+            str(self.application.sub_status.pk),
+            CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED,
+        )
         self.assertIn(
             Queue.objects.get(id=QueuesEnum.LU_APPEALS),
             self.application.queues.all(),
