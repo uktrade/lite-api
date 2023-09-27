@@ -1,5 +1,3 @@
-from django.conf import settings
-
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from api.cases.models import Advice, GoodCountryDecision
 from api.applications.models import GoodOnApplication
