@@ -74,7 +74,7 @@ class GeneratedDocuments(generics.ListAPIView):
         licence = None
         try:
             document = get_generated_document_data(request.data, pk, include_css=False)
-        except AttributeError as e:
+        except AttributeError:
             return JsonResponse(
                 data={"errors": ["Missing template or party doesn't exist"]}, status=status.HTTP_400_BAD_REQUEST
             )
