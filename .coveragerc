@@ -11,7 +11,7 @@ omit =
     ./static/management/*
     *test*
     .venv/*
-    vendor/*
+    separatedvaluesfield/*
     ./pii-secret-exclude.txt
     ./api/staticdata/management/*
     ./runtime.txt

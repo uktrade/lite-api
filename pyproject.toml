@@ -19,7 +19,7 @@ exclude = '''
   | buck-out
   | build
   | dist
-  | vendor
+  | separatedvaluesfield
   | migrations
 )/
 '''

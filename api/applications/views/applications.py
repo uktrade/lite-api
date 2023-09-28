@@ -69,6 +69,7 @@ from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, CaseTy
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
 from api.cases.libraries.get_flags import get_flags
+from api.cases.notify import notify_exporter_appeal_acknowledgement
 from api.cases.service import get_destinations
 from api.cases.serializers import ApplicationManageSubStatusSerializer
 from api.cases.tasks import get_application_target_sla
@@ -120,8 +121,8 @@ class ApplicationList(ListCreateAPIView):
         """
         try:
             submitted = optional_str_to_bool(self.request.GET.get("submitted"))
-        except ValueError as e:
-            return JsonResponse(data={"errors": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return BaseApplication.objects.none()
 
         organisation = get_request_user_organisation(self.request)
 
@@ -552,7 +553,7 @@ class ApplicationSubStatuses(ListAPIView):
         self.application = get_object_or_404(StandardApplication, pk=self.kwargs["pk"])
 
     def get_queryset(self):
-        return self.application.status.sub_statuses.all()
+        return self.application.status.sub_statuses.all().order_by("order")
 
 
 class ApplicationFinaliseView(APIView):
@@ -1061,6 +1062,9 @@ class BaseApplicationAppeal:
     def get_organisation(self):
         return self.application.organisation
 
+    def notify_exporter_appeal_received(self):
+        notify_exporter_appeal_acknowledgement(self.application)
+
 
 class ApplicationAppeals(BaseApplicationAppeal, CreateAPIView):
     def perform_create(self, serializer):
@@ -1069,6 +1073,7 @@ class ApplicationAppeals(BaseApplicationAppeal, CreateAPIView):
             serializer.instance,
             self.request.user.exporteruser,
         )
+        self.notify_exporter_appeal_received()
 
 
 class ApplicationAppeal(BaseApplicationAppeal, RetrieveAPIView):
