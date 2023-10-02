@@ -5,10 +5,10 @@ common_env_vars: &common_env_vars
   ENABLE_SPIRE_SEARCH: True
 
 image_python: &image_python
-  image: cimg/python:3.7.15
+  image: cimg/python:3.8.18
 
 image_python_node: &image_python_node
-  image: cimg/python:3.7.15-node
+  image: cimg/python:3.8.18-node
 
 image_postgres: &image_postgres
   image: circleci/postgres:11
@@ -287,7 +287,7 @@ jobs:
 
   e2e_tests:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.8.18
     steps:
       - run:
           name: Kick off lite-frontend e2e pipeline

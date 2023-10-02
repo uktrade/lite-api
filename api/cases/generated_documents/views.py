@@ -74,8 +74,10 @@ class GeneratedDocuments(generics.ListAPIView):
         licence = None
         try:
             document = get_generated_document_data(request.data, pk, include_css=False)
-        except AttributeError as e:
-            return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
+        except AttributeError:
+            return JsonResponse(
+                data={"errors": ["Missing template or party doesn't exist"]}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             pdf = html_to_pdf(document.document_html, document.template.layout.filename, request.build_absolute_uri())
