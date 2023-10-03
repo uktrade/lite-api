@@ -13,9 +13,6 @@ from django.urls import reverse_lazy
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Add vendor dir to PATH
-sys.path.append(os.path.join(os.path.dirname(BASE_DIR), "vendor"))
-
 ENV_FILE = os.path.join(BASE_DIR, ".env")
 if os.path.exists(ENV_FILE):
     Env.read_env(ENV_FILE)
