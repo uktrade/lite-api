@@ -71,6 +71,7 @@ redis = "~=4.4.4"
 psycopg2-binary = "~=2.9.3"
 django-test-migrations = "~=1.2.0"
 django-silk = "~=5.0.3"
+pytest-circleci-parallelized = "~=0.1.0"
 
 [requires]
 python_version = "3.8"

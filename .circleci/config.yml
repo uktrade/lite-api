@@ -106,6 +106,7 @@ jobs:
     environment:
       <<: *common_env_vars
       LITE_API_ENABLE_ES: True
+    parallelism: 5
     steps:
       - setup
       - run:
@@ -115,7 +116,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance" --junitxml=test_results/output.xml
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance and not migration" --junitxml=test_results/output.xml
       - upload_code_coverage
       - store_test_results:
           path: test_results
