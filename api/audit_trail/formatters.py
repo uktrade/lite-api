@@ -191,9 +191,9 @@ def get_updated_status(**payload):
 
 
 def get_updated_sub_status(**payload):
-    sub_status = payload.get("sub_status")
-    sub_status_text = "" if sub_status == "" else f" - {sub_status}"
-    status = payload.get("status")
+    sub_status = payload["sub_status"]
+    sub_status_text = "" if not sub_status else f" - {sub_status}"
+    status = payload["status"]
     return f"updated the status to {status}{sub_status_text}"
 
 

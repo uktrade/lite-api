@@ -89,4 +89,4 @@ class CaseTests(DataTestClient):
             {"status": "Finalised", "sub_status": None},
         )
         audit_text = AuditSerializer(audit).data["text"]
-        self.assertEqual(audit_text, "updated the status to Finalised - None")
+        self.assertEqual(audit_text, "updated the status to Finalised")
