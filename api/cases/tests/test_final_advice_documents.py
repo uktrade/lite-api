@@ -25,21 +25,6 @@ class AdviceDocumentsTests(DataTestClient):
         expected_format = {
             AdviceType.APPROVE: {"value": AdviceType.get_text(AdviceType.APPROVE)},
             AdviceType.REFUSE: {"value": AdviceType.get_text(AdviceType.REFUSE)},
-        }
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["documents"], expected_format)
-
-    @override_settings(FEATURE_INFORM_LETTER_ENABLED=True)
-    def test_get_final_advice_no_documents_inform_feature_on(self):
-        self.create_advice(self.gov_user, self.case, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.create_advice(self.gov_user, self.case, "end_user", AdviceType.REFUSE, AdviceLevel.FINAL)
-
-        expected_format = {
-            AdviceType.APPROVE: {"value": AdviceType.get_text(AdviceType.APPROVE)},
-            AdviceType.REFUSE: {"value": AdviceType.get_text(AdviceType.REFUSE)},
             AdviceType.INFORM: {"value": AdviceType.get_text(AdviceType.INFORM)},
         }
 

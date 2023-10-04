@@ -65,6 +65,7 @@ class LetterTemplatesListTests(DataTestClient):
 
         self.assertEqual(len([r for r in response.json()["results"] if r["name"] == "Inform letter"]), 0)
 
+
     def test_filter_letter_templates_success(self):
         url = reverse("letter_templates:letter_templates") + "?name=" + self.letter_template.name
 
