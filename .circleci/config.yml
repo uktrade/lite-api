@@ -189,7 +189,7 @@ jobs:
       - run:
           name: Run lite_routing tests
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing --junitxml=test_results/output.xml
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k "not migration" --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing --junitxml=test_results/output.xml
       - upload_code_coverage
       - store_test_results:
           path: test_results
@@ -370,6 +370,7 @@ workflows:
       - lite_routing_tests
       - lite_routing_bdd_tests
       - elastic_search_tests
+      - migration_tests
       - check_migrations
       - linting
       - check-lite-routing-sha
