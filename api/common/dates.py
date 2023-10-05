@@ -1,4 +1,3 @@
-from pprint import pprint
 import logging
 from datetime import timedelta
 
@@ -90,7 +89,6 @@ def get_bank_holidays(call_api=True, data=[]):  # noqa
         return get_backup_bank_holidays()
 
     r = requests.get(BANK_HOLIDAY_API)
-    print(r.status_code)
     if r.status_code != status.HTTP_200_OK:
         logging.warning(
             f"{LOG_PREFIX} Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup"
@@ -98,7 +96,6 @@ def get_bank_holidays(call_api=True, data=[]):  # noqa
         return get_backup_bank_holidays()
     else:
         try:
-            pprint(r.json())
             dates = r.json()["england-and-wales"]["events"]
             for event in dates:
                 data.append(event["date"])

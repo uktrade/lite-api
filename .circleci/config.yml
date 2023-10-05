@@ -154,7 +154,6 @@ jobs:
     environment:
       <<: *common_env_vars
       LITE_API_ENABLE_ES: True
-    parallelism: 10
     steps:
       - setup
       - run:
