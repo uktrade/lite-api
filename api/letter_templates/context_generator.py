@@ -1044,17 +1044,26 @@ def _get_goods_context(application, final_advice, licence=None):
             good_on_application = goods_on_application_dict[advice.good_id]
             goods_context[advice.type].append(_get_good_on_application_context_with_advice(good_on_application, advice))
 
-    # Because we append goods that are approved with proviso to the approved goods below,
-    # only add proviso goods if they are not already in approved goods. If the lists are
-    # equal then keep the data in approved goods as this has gone through the
-    # `_get_good_on_licence_context()` function above which adds quantity and value data
-    # from the good_on_licence and formats it to show in the generated document.
+    # Because we append goods that are approved with proviso to the approved goods below
+    # we need to make sure only to keep approved goods that are not in proviso goods
+    # otherwise goods are duplicated in the licence document. Also we need to copy quantity
+    # and value data from the approve good object to the proviso good object.
     if AdviceType.PROVISO in goods_context:
+        approve_goods = goods_context[AdviceType.APPROVE]
         proviso_goods = goods_context[AdviceType.PROVISO]
-        current_approved_goods = goods_context[AdviceType.APPROVE]
-        goods_context[AdviceType.PROVISO] = [
-            item for item in proviso_goods if item["id"] not in [item["id"] for item in current_approved_goods]
-        ]
+        # Copy quantity and value data from approve good to proviso good
+        for proviso_good in proviso_goods:
+            corresponding_approve_good = next(
+                (x for x in approve_goods if x["id"] == proviso_good["id"]), None
+            )  # get the corresponding approve good or None
+            if corresponding_approve_good is not None:
+                proviso_good.update(quantity=corresponding_approve_good["quantity"])
+                proviso_good.update(value=corresponding_approve_good["value"])
+        # Prevent against duplicate goods when proviso goods are moved into approved goods later
+        approve_goods = [item for item in approve_goods if item["id"] not in [item["id"] for item in proviso_goods]]
+        # Save into goods_context
+        goods_context[AdviceType.APPROVE] = approve_goods
+        goods_context[AdviceType.PROVISO] = proviso_goods
 
     # Move proviso elements into approved because they are treated the same
     goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))
