@@ -1044,14 +1044,16 @@ def _get_goods_context(application, final_advice, licence=None):
             good_on_application = goods_on_application_dict[advice.good_id]
             goods_context[advice.type].append(_get_good_on_application_context_with_advice(good_on_application, advice))
 
-    # Because we append goods that are approved with proviso to the approved goods below
-    # we need to remove them from the approved goods list otherwise they are duplicated
-    # in the licence document.
-    proviso_good_ids = [item["id"] for item in goods_context[AdviceType.PROVISO]]
-    if proviso_good_ids:
-        current_approved_goods = goods_context.pop(AdviceType.APPROVE)
-        goods_context[AdviceType.APPROVE] = [
-            item for item in current_approved_goods if item["id"] not in proviso_good_ids
+    # Because we append goods that are approved with proviso to the approved goods below,
+    # only add proviso goods if they are not already in approved goods. If the lists are
+    # equal then keep the data in approved goods as this has gone through the
+    # `_get_good_on_licence_context()` function above which adds quantity and value data
+    # from the good_on_licence and formats it to show in the generated document.
+    if AdviceType.PROVISO in goods_context:
+        proviso_goods = goods_context[AdviceType.PROVISO]
+        current_approved_goods = goods_context[AdviceType.APPROVE]
+        goods_context[AdviceType.PROVISO] = [
+            item for item in proviso_goods if item["id"] not in [item["id"] for item in current_approved_goods]
         ]
 
     # Move proviso elements into approved because they are treated the same
