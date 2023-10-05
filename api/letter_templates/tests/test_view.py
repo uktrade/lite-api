@@ -50,22 +50,6 @@ class LetterTemplatesListTests(DataTestClient):
 
         self.assertEqual(len([r for r in response.json()["results"] if r["name"] == "Inform letter"]), 1)
 
-    def test_get_letter_templates_success_inform_letter_feature_disabled(self):
-        url = reverse("letter_templates:letter_templates")
-
-        letter_template = LetterTemplate.objects.create(
-            name="Inform letter",
-            layout=LetterLayout.objects.first(),
-            visible_to_exporter=False,
-            include_digital_signature=False,
-        )
-        letter_template.decisions.set([AdviceType.ids[AdviceType.REFUSE]])
-        letter_template.case_types.set([CaseTypeEnum.SICL.id])
-
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(len([r for r in response.json()["results"] if r["name"] == "Inform letter"]), 0)
-
     def test_filter_letter_templates_success(self):
         url = reverse("letter_templates:letter_templates") + "?name=" + self.letter_template.name
 
