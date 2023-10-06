@@ -1048,7 +1048,7 @@ def _get_goods_context(application, final_advice, licence=None):
     # we need to make sure only to keep approved goods that are not in proviso goods
     # otherwise goods are duplicated in the licence document. Also we need to copy quantity
     # and value data from the approve good object to the proviso good object.
-    if AdviceType.PROVISO in goods_context:
+    if goods_context[AdviceType.PROVISO] is not []:
         approve_goods = goods_context[AdviceType.APPROVE]
         proviso_goods = goods_context[AdviceType.PROVISO]
         # Copy quantity and value data from approve good to proviso good

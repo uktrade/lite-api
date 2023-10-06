@@ -575,6 +575,61 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["proviso_reason"], final_advice.proviso)
 
+    def test_goods_context_approve_has_quantity_and_value(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        good_on_application = case.goods.first()
+        good = good_on_application.good
+        approve_advice = self.create_advice(
+            self.gov_user,
+            case,
+            "good",
+            AdviceType.APPROVE,
+            AdviceLevel.FINAL,
+            advice_text="some advice text",
+            good=good,
+        )
+
+        licence = self.create_licence(case, status=LicenceStatus.ISSUED, start_date=date(2023, 10, 5))
+        good_on_licence = GoodOnLicenceFactory(good=good_on_application, quantity=3, value=420, licence=licence)
+
+        context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
+
+        self.assertEqual(context["goods"][AdviceType.APPROVE][0]["quantity"], "3.0 Items")
+        self.assertEqual(context["goods"][AdviceType.APPROVE][0]["value"], "£420.00")
+
+    def test_goods_context_proviso_has_quantity_and_value(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        good_on_application = case.goods.first()
+        good = good_on_application.good
+        approve_advice = self.create_advice(
+            self.gov_user,
+            case,
+            "good",
+            AdviceType.APPROVE,
+            AdviceLevel.FINAL,
+            advice_text="some advice text",
+            good=good,
+        )
+        proviso_advice = self.create_advice(
+            self.gov_user,
+            case,
+            "good",
+            AdviceType.PROVISO,
+            AdviceLevel.FINAL,
+            advice_text="some advice text",
+            good=good,
+        )
+
+        licence = self.create_licence(case, status=LicenceStatus.ISSUED, start_date=date(2023, 10, 5))
+        good_on_licence = GoodOnLicenceFactory(good=good_on_application, quantity=3, value=420, licence=licence)
+
+        context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
+
+        self.assertEqual(context["goods"][AdviceType.APPROVE][0]["quantity"], "3.0 Items")
+        self.assertEqual(context["goods"][AdviceType.APPROVE][0]["value"], "£420.00")
+
     @pytest.mark.skip("skip as we don't support this application type")
     def test_generate_context_with_goods_types(self):
         case = self.create_open_application_case(self.organisation)
