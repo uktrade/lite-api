@@ -593,8 +593,8 @@ class DocumentContextGenerationTests(DataTestClient):
         good_on_licence = GoodOnLicenceFactory(good=good_on_application, quantity=3, value=420, licence=licence)
 
         context = get_document_context(case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
+        self.assertNotIn(AdviceType.PROVISO, context["goods"])
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["quantity"], "3.0 Items")
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["value"], "£420.00")
 
@@ -625,7 +625,6 @@ class DocumentContextGenerationTests(DataTestClient):
         good_on_licence = GoodOnLicenceFactory(good=good_on_application, quantity=3, value=420, licence=licence)
 
         context = get_document_context(case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
 
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["quantity"], "3.0 Items")
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["value"], "£420.00")
