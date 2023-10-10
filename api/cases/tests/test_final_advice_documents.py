@@ -22,7 +22,6 @@ class AdviceDocumentsTests(DataTestClient):
     def test_get_final_advice_no_documents(self):
         self.create_advice(self.gov_user, self.case, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         self.create_advice(self.gov_user, self.case, "end_user", AdviceType.REFUSE, AdviceLevel.FINAL)
-
         expected_format = {
             AdviceType.APPROVE: {"value": AdviceType.get_text(AdviceType.APPROVE)},
             AdviceType.REFUSE: {"value": AdviceType.get_text(AdviceType.REFUSE)},

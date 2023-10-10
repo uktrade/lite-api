@@ -104,6 +104,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
+from api.staticdata.statuses.models import CaseSubStatus
 from api.users.libraries.notifications import get_case_notifications
 from api.users.models import ExporterUser
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -541,6 +542,24 @@ class ApplicationManageSubStatus(UpdateAPIView):
     authentication_classes = (GovAuthentication,)
     queryset = StandardApplication.objects.all()
     serializer_class = ApplicationManageSubStatusSerializer
+
+    def put(self, request, pk):
+        case = get_application(pk).get_case()
+        sub_status = request.data.get("sub_status")
+        response_data = super().put(request, pk)
+
+        if not sub_status:
+            sub_status = "none"
+        else:
+            sub_status = CaseSubStatus.objects.get(id=sub_status).name
+        # Update the model
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_SUB_STATUS,
+            target=case,
+            payload={"sub_status": sub_status, "status": CaseStatusEnum.get_text(case.status.status)},
+        )
+        return response_data
 
 
 class ApplicationSubStatuses(ListAPIView):

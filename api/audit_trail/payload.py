@@ -52,6 +52,7 @@ audit_type_format = {
     AuditType.ECJU_QUERY: " added an ECJU Query: {ecju_query}",
     AuditType.ECJU_QUERY_RESPONSE: " responded to an ECJU Query: {ecju_response}",
     AuditType.UPDATED_STATUS: formatters.get_updated_status,
+    AuditType.UPDATED_SUB_STATUS: formatters.get_updated_sub_status,
     AuditType.UPDATED_APPLICATION_NAME: strings.Audit.UPDATED_APPLICATION_NAME,
     AuditType.UPDATE_APPLICATION_LETTER_REFERENCE: strings.Audit.UPDATE_APPLICATION_LETTER_REFERENCE,
     AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES: strings.Audit.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
