@@ -1,4 +1,4 @@
-FROM python:3.8.18-slim-bullseye
+FROM python:3.9.18-slim-bullseye
 
 ARG DOCKERIZE_VERSION=v0.6.1
 
