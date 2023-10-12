@@ -42,6 +42,7 @@ class AuditType(LiteEnum):
     ECJU_QUERY = autostr()
     ECJU_QUERY_RESPONSE = autostr()
     UPDATED_STATUS = autostr()
+    UPDATED_SUB_STATUS = autostr()
     UPDATED_APPLICATION_NAME = autostr()
     UPDATE_APPLICATION_LETTER_REFERENCE = autostr()
     UPDATE_APPLICATION_F680_CLEARANCE_TYPES = autostr()

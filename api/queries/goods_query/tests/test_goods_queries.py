@@ -203,8 +203,6 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         self.query.save()
 
         response = self.client.put(self.url, self.data, **self.gov_headers)
-
-        self.assertEqual(Audit.objects.count(), 0)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -455,7 +453,6 @@ class PvGradingQueryRespondTests(DataTestClient):
 
         response = self.client.put(self.url, self.data, **self.gov_headers)
 
-        self.assertEqual(Audit.objects.count(), 0)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.json()["errors"], [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]

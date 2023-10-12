@@ -55,7 +55,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(self.standard_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
-        self.assertEqual(Audit.objects.count(), 5)
+        self.assertEqual(Audit.objects.count(), 6)
 
         self.assertIsNone(self.standard_case.appeal_deadline)
         send_exporter_notifications_func.assert_called()
@@ -110,7 +110,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(clearance_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
-        self.assertEqual(Audit.objects.count(), 6)
+        self.assertEqual(Audit.objects.count(), 7)
         send_exporter_notifications_func.assert_called()
         mock_notify.assert_called_with(clearance_case.get_case())
 
