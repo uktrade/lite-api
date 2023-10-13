@@ -11,11 +11,11 @@ from pytz import timezone as tz
 from api.cases.models import EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
 from api.audit_trail.models import Audit, AuditType
-
+from api.cases.models import Case
 
 # DST safe version of midnight
-SLA_UPDATE_TASK_TIME = time(22, 30, 0)
-SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
+SLA_CUTOFF_TIME = time(17, 0, 0)
+SLA_CUTOFF_TIME = time(17, 0, 0)
 LOG_PREFIX = "update_cases_sla background task:"
 import csv
 
@@ -31,6 +31,15 @@ def get_all_case_sla():
             writer.writerow(case_sla_record.values())
 
 
+def today(time=None):
+    """
+    returns today's date with the provided time
+    """
+    if not time:
+        time = timezone.localtime().time()
+
+    return datetime.combine(timezone.localtime(), time, tzinfo=tz(settings.TIME_ZONE))
+
 def get_case_sla(case_id):
 
     date = timezone.localtime()
@@ -44,16 +53,19 @@ def get_case_sla(case_id):
     start_date = get_start_date(case)
     end_date = get_end_date(case)
 
-    for date in daterange(start_date, end_date):
-        elapsed_days += 1
-        if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
-            working_days += 1
-            if not is_active_ecju_queries(date, case_id):
-                sla_days += 1
-            else:
-                rfi_working_days += 1
-        elif is_active_ecju_queries(date, case_id):
-            rfi_non_working_days += 1
+    if start_date:
+        for date in daterange(start_date, end_date):
+            elapsed_days += 1
+            if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
+                # `Check cut off time for on `start_date
+                working_days += 1
+                if not is_active_ecju_queries(date, case_id):
+                    sla_days += 1
+                else:
+                    rfi_working_days += 1
+            elif is_active_ecju_queries(date, case_id):
+                rfi_non_working_days += 1
+        
     return {
             "id": case.id,
             "reference_code": case.reference_code,
@@ -68,16 +80,15 @@ def get_case_sla(case_id):
 def get_start_date(case):
     update_audit_logs = Audit.objects.filter(target_object_id=case.id, verb=AuditType.UPDATED_STATUS).order_by("created_at")
     for update_audit_log in update_audit_logs:
-        if update_audit_log.payload.get("status", {}).get("new") == "submitted":
+        if update_audit_log.payload.get("status", {}).get("new", "").lower() == "submitted":
             return update_audit_log.created_at
-    return case.created_at
 
 def get_end_date(case):
     update_audit_logs = Audit.objects.filter(target_object_id=case.id, verb=AuditType.UPDATED_STATUS).order_by("-created_at")
     for update_audit_log in update_audit_logs:
-        if update_audit_log.payload.get("status", {}).get("new") == "finalised":
+        if update_audit_log.payload.get("status", {}).get("new", "").lower() == "finalised":
             return update_audit_log.created_at
-    return case.updated_at
+    return today(time=SLA_CUTOFF_TIME)
 
 
 def daterange(start_date, end_date):
@@ -86,12 +97,14 @@ def daterange(start_date, end_date):
 
 
 def is_active_ecju_queries(date, case_id):
-    compare_date_min = datetime.combine(date, time.min)
-    compare_date_max = datetime.combine(date, time.max)
+    # Check cut off time 
+    # What about queries open for less then cut-off period i.e less then 7.5 hours 
+    date_start_time = datetime.combine(date, time.min)
+    date_end_time = datetime.combine(date, time.max)
 
     return EcjuQuery.objects.filter(
-        Q(responded_at__isnull=True, created_at__lte=compare_date_min)
-        | Q(created_at__lte=compare_date_min) & Q(responded_at__gte=compare_date_max)
-        | Q(created_at__range=(compare_date_min, compare_date_max)),
+        Q(responded_at__isnull=True, created_at__lte=date_end_time)
+        | Q(created_at__lte=date_end_time) & Q(responded_at__gte=date_end_time),
+        #| Q(created_at__range=(compare_date_min, compare_date_max)),
         Q(case_id=case_id),
     ).exists()
