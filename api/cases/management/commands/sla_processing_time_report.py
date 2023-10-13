@@ -3,20 +3,15 @@ from datetime import datetime, time, timedelta
 
 from background_task import background
 from django.conf import settings
-from django.db import transaction
 from django.db.models import F
 from django.db.models import Q
 from django.utils import timezone
 from pytz import timezone as tz
 
-from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import Case, CaseAssignmentSLA, CaseQueue, DepartmentSLA
 from api.cases.models import EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
-from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.models import CaseStatus
+from api.audit_trail.models import Audit, AuditType
 
-from api.documents.libraries import s3_operations
 
 # DST safe version of midnight
 SLA_UPDATE_TASK_TIME = time(22, 30, 0)
@@ -46,7 +41,10 @@ def get_case_sla(case_id):
     rfi_working_days = 0
     rfi_non_working_days = 0
 
-    for date in daterange(case.created_at, case.updated_at):
+    start_date = get_start_date(case)
+    end_date = get_end_date(case)
+
+    for date in daterange(start_date, end_date):
         elapsed_days += 1
         if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
             working_days += 1
@@ -66,7 +64,21 @@ def get_case_sla(case_id):
             "rfi_working_days": rfi_working_days,
             "sla_days": sla_days,
         }
-    
+
+def get_start_date(case):
+    update_audit_logs = Audit.objects.filter(target_object_id=case.id, verb=AuditType.UPDATED_STATUS).order_by("created_at")
+    for update_audit_log in update_audit_logs:
+        if update_audit_log.payload.get("status", {}).get("new") == "submitted":
+            return update_audit_log.created_at
+    return case.created_at
+
+def get_end_date(case):
+    update_audit_logs = Audit.objects.filter(target_object_id=case.id, verb=AuditType.UPDATED_STATUS).order_by("-created_at")
+    for update_audit_log in update_audit_logs:
+        if update_audit_log.payload.get("status", {}).get("new") == "finalised":
+            return update_audit_log.created_at
+    return case.updated_at
+
 
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days + 2)):
