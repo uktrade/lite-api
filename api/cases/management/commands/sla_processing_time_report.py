@@ -26,7 +26,7 @@ def get_all_case_sla():
 
     with open("case_sla.csv", "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["id", "case_ref", "elapsed_days", "working_days", "rfi_queries", "elapsed__rfi_days", "rfi_working_days", "sla_days"])
+        writer.writerow(["id", "case_ref", "start_date", "end_date",  "elapsed_days", "working_days", "rfi_queries", "elapsed__rfi_days", "rfi_working_days", "sla_days"])
         for case_sla_record in case_sla_records:
             writer.writerow(case_sla_record.values())
 
@@ -56,7 +56,7 @@ def get_case_sla(case_id):
     if start_date:
         for date in daterange(start_date, end_date):
             elapsed_days += 1
-            if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
+            if not is_bank_holiday(date, call_api=False) and not is_weekend(date):
                 # `Check cut off time for on `start_date
                 working_days += 1
                 if not is_active_ecju_queries(date, case_id):
@@ -69,6 +69,8 @@ def get_case_sla(case_id):
     return {
             "id": case.id,
             "reference_code": case.reference_code,
+            "start date": start_date,
+            "end date": end_date,
             "elapsed_days": elapsed_days,
             "working_days": working_days,
             "rfi_queries": EcjuQuery.objects.filter(case_id=case_id).count(),
@@ -86,7 +88,7 @@ def get_start_date(case):
 def get_end_date(case):
     update_audit_logs = Audit.objects.filter(target_object_id=case.id, verb=AuditType.UPDATED_STATUS).order_by("-created_at")
     for update_audit_log in update_audit_logs:
-        if update_audit_log.payload.get("status", {}).get("new", "").lower() == "finalised":
+        if update_audit_log.payload.get("status", {}).get("new", "").lower() in ("finalised", "withdrawn"):
             return update_audit_log.created_at
     return today(time=SLA_CUTOFF_TIME)
 
@@ -101,10 +103,9 @@ def is_active_ecju_queries(date, case_id):
     # What about queries open for less then cut-off period i.e less then 7.5 hours 
     date_start_time = datetime.combine(date, time.min)
     date_end_time = datetime.combine(date, time.max)
-
     return EcjuQuery.objects.filter(
         Q(responded_at__isnull=True, created_at__lte=date_end_time)
-        | Q(created_at__lte=date_end_time) & Q(responded_at__gte=date_end_time),
-        #| Q(created_at__range=(compare_date_min, compare_date_max)),
+        | Q(created_at__lte=date_end_time) & Q(responded_at__gte=date_end_time)
+        | Q(created_at__range=(date_start_time, date_end_time)),
         Q(case_id=case_id),
     ).exists()
