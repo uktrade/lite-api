@@ -33,7 +33,8 @@ from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.regimes.serializers import RegimeEntrySerializer
 from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
 from api.staticdata.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
-from api.users.models import ExporterUser
+from api.users.enums import UserStatuses
+from api.users.models import ExporterUser, GovUser
 from api.users.serializers import ExporterUserSimpleSerializer
 
 
@@ -768,7 +769,6 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
 
 
 class GoodOnApplicationPrecedentSerializer(GoodOnApplicationSerializer):
-
     report_summary_prefix = ReportSummaryPrefixSerializer()
     report_summary_subject = ReportSummarySubjectSerializer()
 
@@ -916,7 +916,6 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
 
 
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
-
     is_precedent = serializers.BooleanField(required=False, default=False)
     is_wassenaar = serializers.BooleanField(required=False, default=False)
     regime_entries = PrimaryKeyRelatedField(
@@ -930,6 +929,9 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
     report_summary_subject = PrimaryKeyRelatedField(
         required=False, allow_null=True, queryset=ReportSummarySubject.objects.all()
     )
+    assessed_by = PrimaryKeyRelatedField(
+        required=False, allow_null=True, queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE)
+    )
 
     class Meta(GoodControlReviewSerializer.Meta):
         model = GoodOnApplication
@@ -941,6 +943,7 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
             "report_summary_prefix",
             "report_summary_subject",
             "is_ncsc_military_information_security",
+            "assessed_by",
         )
 
     def update(self, instance, validated_data):
