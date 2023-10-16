@@ -1,5 +1,6 @@
 import uuid
 
+from datetime import datetime
 from django.urls import reverse_lazy, reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -624,6 +625,54 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         verified_good_1 = Good.objects.get(pk=self.good_1.pk)
 
         self.assertEqual(verified_good_1.control_list_entries.get().rating, cle)
+
+    @parameterized.expand(
+        [
+            (
+                # legacy where frontend doesn't send assessed_by
+                {
+                    "comment": "Check Product assessment backward compatibility",
+                    "is_good_controlled": False,
+                    "control_list_entries": [],
+                    "regime_entries": [],
+                },
+                False,
+            ),
+            (
+                {
+                    "comment": "Assessment note",
+                    "is_good_controlled": False,
+                    "control_list_entries": [],
+                    "regime_entries": [],
+                },
+                True,
+            ),
+        ]
+    )
+    def test_assessor_details_set(self, data, include_assessed_by):
+        rs_prefix = ReportSummaryPrefix.objects.create(id=uuid.uuid4(), name="Components for")
+        rs_subject = ReportSummarySubject.objects.create(id=uuid.uuid4(), name="Civilian aircrafts", code_level=1)
+        defaults = {
+            "objects": [self.good_on_application_1.pk],
+            "report_summary": self.report_summary.text,
+            "report_summary_prefix": rs_prefix.id,
+            "report_summary_subject": rs_subject.id,
+        }
+        if include_assessed_by:
+            defaults["assessed_by"] = str(self.gov_user.baseuser_ptr.id)
+
+        good_on_application = GoodOnApplication.objects.get(pk=self.good_on_application_1.pk)
+        self.assertIsNone(good_on_application.assessment_date)
+        self.assertIsNone(good_on_application.assessed_by)
+
+        data = {**defaults, **data}
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        expected_assessed_by = self.gov_user if include_assessed_by else None
+        good_on_application.refresh_from_db()
+        self.assertEqual(good_on_application.assessment_date.date(), datetime.today().date())
+        self.assertEqual(good_on_application.assessed_by, expected_assessed_by)
 
 
 class GoodsVerifiedTestsOpenApplication(DataTestClient):
