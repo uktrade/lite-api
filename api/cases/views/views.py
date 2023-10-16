@@ -1184,6 +1184,10 @@ class GoodOnPrecedentList(ListAPIView):
         return (
             GoodOnApplication.objects.filter(good__in=goods, good__status=GoodStatus.VERIFIED)
             .exclude(application=case)
+            .select_related(
+                "report_summary_prefix",
+                "report_summary_subject",
+            )
             .prefetch_related(
                 "good",
                 "good__flags",
