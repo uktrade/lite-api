@@ -84,7 +84,7 @@ from api.documents.libraries.delete_documents_on_bad_request import delete_docum
 from api.documents.libraries.s3_operations import document_download_stream
 from api.documents.models import Document
 from api.goods.enums import GoodStatus
-from api.goods.serializers import GoodOnApplicationSerializer
+from api.goods.serializers import GoodOnApplicationPrecedentSerializer
 from api.licences.models import Licence
 from api.licences.service import get_case_licences
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -1175,7 +1175,7 @@ class CountersignDecisionAdvice(APIView):
 
 class GoodOnPrecedentList(ListAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = GoodOnApplicationSerializer
+    serializer_class = GoodOnApplicationPrecedentSerializer
 
     def get_queryset(self):
         case = get_case(self.kwargs["pk"])
@@ -1184,6 +1184,10 @@ class GoodOnPrecedentList(ListAPIView):
         return (
             GoodOnApplication.objects.filter(good__in=goods, good__status=GoodStatus.VERIFIED)
             .exclude(application=case)
+            .select_related(
+                "report_summary_prefix",
+                "report_summary_subject",
+            )
             .prefetch_related(
                 "good",
                 "good__flags",
