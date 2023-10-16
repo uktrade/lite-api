@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -172,6 +173,9 @@ class GoodsListControlCode(APIView):
         # returns a list of GoodOnApplication or GoodsType based on request['objects']
         for good in self.get_queryset():
             data = request.data.copy()
+
+            # record assessment date
+            good.assessment_date = timezone.now()
 
             old_report_summary = good.report_summary
             old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
