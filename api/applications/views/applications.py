@@ -548,9 +548,7 @@ class ApplicationManageSubStatus(UpdateAPIView):
         sub_status = request.data.get("sub_status")
         response_data = super().put(request, pk)
 
-        if not sub_status:
-            sub_status = "none"
-        else:
+        if sub_status:
             sub_status = CaseSubStatus.objects.get(id=sub_status).name
         # Update the model
         audit_trail_service.create(

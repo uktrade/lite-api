@@ -62,10 +62,10 @@ class ApplicationManageStatusTests(DataTestClient):
         audit = Audit.objects.filter(verb=AuditType.UPDATED_SUB_STATUS).order_by("-created_at")[0]
         self.assertEqual(
             audit.payload,
-            {"status": "Under final review", "sub_status": "none"},
+            {"status": "Under final review", "sub_status": ""},
         )
         audit_text = AuditSerializer(audit).data["text"]
-        self.assertEqual(audit_text, "updated the status to Under final review - none")
+        self.assertEqual(audit_text, "updated the status to Under final review")
 
     def test_exporter_set_application_sub_status(self):
         self.assertIsNone(self.standard_application.sub_status)
