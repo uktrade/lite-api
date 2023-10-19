@@ -101,7 +101,7 @@ class ProductDocumentType(Document):
     context = fields.Keyword()
 
     # used for grouping
-    canonical_name = fields.KeywordField(attr="good.description")  # is overwritten in prepare
+    canonical_name = fields.KeywordField(attr="good.name")  # is overwritten in prepare
 
     # base details. iteration 1
     id = fields.KeywordField()
@@ -123,8 +123,7 @@ class ProductDocumentType(Document):
         },
     )
 
-    # does not exist yet). needs to be here for data shape parity with SPIRE
-    name = fields.TextField(attr="good.description")
+    name = fields.TextField(attr="good.name", copy_to="wildcard", analyzer=descriptive_text_analyzer)
     # not mapped yet
     destination = fields.KeywordField(
         attr="application.end_user.party.country.name",
