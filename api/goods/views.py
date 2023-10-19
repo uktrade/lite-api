@@ -20,7 +20,6 @@ from api.applications.models import (
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.cases.libraries.get_case import get_case
 from api.core import constants
@@ -61,8 +60,6 @@ from api.applications.serializers.good import (
     GoodOnApplicationInternalDocumentViewSerializer,
 )
 
-from api.goodstype.models import GoodsType
-from api.goodstype.serializers import ClcControlGoodTypeSerializer
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from lite_content.lite_api import strings
 from api.organisations.models import OrganisationDocumentType
@@ -165,7 +162,8 @@ class GoodsListControlCode(APIView):
         for good in self.get_queryset():
             data = request.data.copy()
 
-            # record assessment date
+            # record assessment date and user details
+            good.assessed_by = request.user.govuser
             good.assessment_date = timezone.now()
 
             old_report_summary = good.report_summary

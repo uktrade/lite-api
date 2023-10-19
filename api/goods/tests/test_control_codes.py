@@ -629,37 +629,34 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
     @parameterized.expand(
         [
             (
-                # legacy where frontend doesn't send assessed_by
                 {
-                    "comment": "Check Product assessment backward compatibility",
-                    "is_good_controlled": False,
-                    "control_list_entries": [],
-                    "regime_entries": [],
+                    "comment": "Check Product that require licence",
+                    "is_good_controlled": True,
+                    "control_list_entries": ["ML22a"],
                 },
-                False,
             ),
             (
                 {
-                    "comment": "Assessment note",
+                    "comment": "Assessment note for NLR",
                     "is_good_controlled": False,
                     "control_list_entries": [],
-                    "regime_entries": [],
                 },
-                True,
             ),
         ]
     )
-    def test_assessor_details_set(self, data, include_assessed_by):
+    def test_assessor_details_set(self, data):
         rs_prefix = ReportSummaryPrefix.objects.create(id=uuid.uuid4(), name="Components for")
         rs_subject = ReportSummarySubject.objects.create(id=uuid.uuid4(), name="Civilian aircrafts", code_level=1)
+        regime = RegimeFactory.create()
+        regime_subsection = RegimeSubsectionFactory.create(regime=regime)
+        regime_entry = RegimeEntryFactory.create(subsection=regime_subsection)
         defaults = {
             "objects": [self.good_on_application_1.pk],
             "report_summary": self.report_summary.text,
             "report_summary_prefix": rs_prefix.id,
             "report_summary_subject": rs_subject.id,
+            "regime_entries": [str(regime_entry.pk)],
         }
-        if include_assessed_by:
-            defaults["assessed_by"] = str(self.gov_user.baseuser_ptr.id)
 
         good_on_application = GoodOnApplication.objects.get(pk=self.good_on_application_1.pk)
         self.assertIsNone(good_on_application.assessment_date)
@@ -669,10 +666,9 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
-        expected_assessed_by = self.gov_user if include_assessed_by else None
         good_on_application.refresh_from_db()
         self.assertEqual(good_on_application.assessment_date.date(), datetime.today().date())
-        self.assertEqual(good_on_application.assessed_by, expected_assessed_by)
+        self.assertEqual(good_on_application.assessed_by, self.gov_user)
 
 
 class GoodsVerifiedTestsOpenApplication(DataTestClient):
