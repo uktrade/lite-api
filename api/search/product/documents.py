@@ -113,16 +113,6 @@ class ProductDocumentType(Document):
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=Rating)
     queues = fields.NestedField(doc_class=Queue, attr="application.queues")
 
-    organisation = fields.TextField(
-        copy_to="wildcard",
-        attr="good.organisation.name",
-        analyzer=descriptive_text_analyzer,
-        fields={
-            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
-            "suggest": fields.CompletionField(),
-        },
-    )
-
     name = fields.TextField(attr="good.name", copy_to="wildcard", analyzer=descriptive_text_analyzer)
     # not mapped yet
     destination = fields.KeywordField(
@@ -140,7 +130,6 @@ class ProductDocumentType(Document):
     )
 
     organisation = fields.TextField(
-        copy_to="wildcard",
         attr="good.organisation.name",
         analyzer=descriptive_text_analyzer,
         fields={
