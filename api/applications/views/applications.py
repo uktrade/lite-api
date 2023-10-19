@@ -549,7 +549,7 @@ class ApplicationManageSubStatus(UpdateAPIView):
         response_data = super().put(request, pk)
 
         if not sub_status:
-            sub_status = "none"
+            sub_status = None
         else:
             sub_status = CaseSubStatus.objects.get(id=sub_status).name
         # Update the model
