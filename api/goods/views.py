@@ -109,6 +109,7 @@ def get_new_report_summary_data(request):
 
 class GoodsListControlCode(APIView):
     authentication_classes = (GovAuthentication,)
+    serializer_class = ControlGoodOnApplicationSerializer
 
     @cached_property
     def application(self):
@@ -118,22 +119,12 @@ class GoodsListControlCode(APIView):
         pks = self.request.data["objects"]
         if not isinstance(pks, list):
             pks = [pks]
-        if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
-            return GoodsType.objects.filter(pk__in=pks)
+
         results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], id__in=pks)
         # This can be removed in the future as it's essentially a FF for the batching changes
         if not results.exists():
             results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
         return results
-
-    def get_serializer_class(self):
-        if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
-            return ClcControlGoodTypeSerializer
-        return ControlGoodOnApplicationSerializer
-
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        return serializer_class(*args, **kwargs, data=self.request.data)
 
     def check_permissions(self, request):
         assert_user_has_permission(request.user.govuser, constants.GovPermissions.REVIEW_GOODS)
@@ -184,8 +175,7 @@ class GoodsListControlCode(APIView):
 
             report_summary_updated = new_report_summary != old_report_summary
 
-            serializer_class = self.get_serializer_class()
-            serializer = serializer_class(good, data=data)
+            serializer = self.serializer_class(good, data=data)
             serializer.is_valid(raise_exception=True)
             obj = serializer.save()
 
