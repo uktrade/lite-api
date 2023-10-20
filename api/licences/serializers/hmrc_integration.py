@@ -12,7 +12,11 @@ class HMRCIntegrationCountrySerializer(serializers.Serializer):
     def get_id(self, instance):
         if instance.trading_country_code:
             return instance.trading_country_code
-        return instance.id
+        return self.strip_territory_code(instance.id)
+
+    def strip_territory_code(self, country_code):
+        """Does nothing for "GB" but transforms "AE-DU" to "AE"."""
+        return country_code.split("-")[0]
 
 
 class HMRCIntegrationAddressSerializer(serializers.Serializer):
