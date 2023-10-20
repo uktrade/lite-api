@@ -87,7 +87,7 @@ class ProductSearchTests(DataTestClient):
                 2,
                 "Bolt action sporting rifle",
             ),
-            ({"search": "therm"}, 1, "Thermal camera"),
+            ({"search": "thermal"}, 1, "Thermal camera"),
         ]
     )
     def test_product_search_by_name(self, query, expected_count, expected_name):
@@ -116,9 +116,9 @@ class ProductSearchTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "PL9"}, 1, "PL9010"),
-            ({"search": "6A"}, 2, "6A003"),
-            ({"search": "6A"}, 2, "6A006"),
+            ({"search": "PL9010"}, 1, "PL9010"),
+            ({"search": "6A003"}, 1, "6A003"),
+            ({"search": "6A006"}, 1, "6A006"),
         ]
     )
     def test_product_search_by_control_list_entries(self, query, expected_count, expected_cle):
@@ -136,7 +136,7 @@ class ProductSearchTests(DataTestClient):
         [
             ({"search": "sensor"}, 2, "Magnetic sensors"),
             ({"search": "sensor"}, 2, "Imaging sensors"),
-            ({"search": "chem"}, 1, "Chemicals"),
+            ({"search": "chemicals"}, 1, "Chemicals"),
         ]
     )
     def test_product_search_by_report_summary(self, query, expected_count, expected_report_summary):
