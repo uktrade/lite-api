@@ -91,7 +91,7 @@ class AppealApplicationTests(DataTestClient):
             {"status": {"new": CaseStatusEnum.UNDER_APPEAL, "old": original_status}},
         )
 
-        move_case_event = audit_events[2]
+        move_case_event = Audit.objects.get(verb=AuditType.MOVE_CASE)
         self.assertEqual(move_case_event.verb, AuditType.MOVE_CASE)
         self.assertEqual(move_case_event.actor, self.system_user)
         self.assertEqual(move_case_event.target, self.case)

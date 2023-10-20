@@ -77,6 +77,7 @@ class GeneratedDocumentSendTests(DataTestClient):
         ]
     )
     def test_post_with_notification(self, case_status, expected_sub_status_id):
+
         self.case.status = CaseStatus.objects.get(status=case_status)
         self.case.save()
         mocked_notify_function = mock.Mock()
@@ -110,9 +111,7 @@ class GeneratedDocumentSendTests(DataTestClient):
         mocked_notify_function.assert_called_with(self.case.get_case())
 
         # Check add audit
-        self.assertEqual(Audit.objects.all().count(), 2)
-        audit = Audit.objects.all().first()
-        self.assertEqual(AuditType(audit.verb), AuditType.DECISION_LETTER_SENT)
+        audit = Audit.objects.get(verb=AuditType.DECISION_LETTER_SENT)
         self.assertEqual(
             audit.payload,
             {"decision": "inform", "case_reference": "GBSIEL/2023/0000001/P"},

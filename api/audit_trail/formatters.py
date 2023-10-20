@@ -190,6 +190,13 @@ def get_updated_status(**payload):
     return format_text(strings.Audit.UPDATED_STATUS, **payload)
 
 
+def get_updated_sub_status(**payload):
+    sub_status = payload["sub_status"]
+    sub_status_text = "" if not sub_status else f" - {sub_status}"
+    status = payload["status"]
+    return f"updated the status to {status}{sub_status_text}"
+
+
 def product_reviewed(**payload):
     text = f"reviewed the line {payload['line_no']} assessment for {payload['good_name']}\n"
 
