@@ -2,7 +2,6 @@ version: 2.1
 
 common_env_vars: &common_env_vars
   ELASTICSEARCH_HOST: http://localhost:9200
-  ENABLE_SPIRE_SEARCH: True
 
 image_python: &image_python
   image: cimg/python:3.8.18
