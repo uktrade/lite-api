@@ -72,7 +72,7 @@ from api.cases.serializers import (
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
 )
-from api.cases.service import get_destinations, get_first_submitted_at
+from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
 from api.core import constants
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
@@ -136,10 +136,8 @@ class CaseDetail(APIView):
             ],
         )
         data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data
-
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             data["data"]["destinations"] = get_destinations(case.id)  # noqa
-        data["data"]["first_submitted_at"] = get_first_submitted_at(case.id)
         data["licences"] = get_case_licences(case)
         return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
 

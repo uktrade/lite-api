@@ -8,7 +8,10 @@ from api.applications.models import BaseApplication, StandardApplication
 from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 
-from api.audit_trail.models import Audit
+from api.audit_trail.models import (
+    Audit,
+    AuditType,
+)
 from api.cases.enums import (
     CaseTypeTypeEnum,
     AdviceType,
@@ -281,6 +284,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     latest_activity = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     next_review_date = serializers.SerializerMethodField()
+    first_submitted_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -306,6 +310,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "data",
             "next_review_date",
             "latest_activity",
+            "first_submitted_at",
         )
 
     def __init__(self, *args, **kwargs):
@@ -388,6 +393,11 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
         if queryset.exists():
             return {"audit_id": queryset.first().object_id}
+
+    def get_first_submitted_at(self, instance):
+        queryset = Audit.objects.filter(target_object_id=instance.id, verb=AuditType.UPDATED_STATUS).first()
+        if queryset:
+            return queryset.created_at
 
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
