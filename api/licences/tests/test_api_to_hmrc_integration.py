@@ -36,6 +36,7 @@ from api.licences.tasks import (
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.open_general_licences.helpers import issue_open_general_licence
 from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
+from api.staticdata.countries.factories import CountryFactory
 from api.staticdata.countries.models import Country
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -99,6 +100,49 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         data = HMRCIntegrationLicenceSerializer(standard_licence).data
 
         self._assert_dto(data, standard_licence, old_licence=old_licence)
+
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED],
+            [LicenceStatus.REINSTATED],
+            [LicenceStatus.SUSPENDED],
+            [LicenceStatus.SURRENDERED],
+            [LicenceStatus.REVOKED],
+            [LicenceStatus.CANCELLED],
+        ]
+    )
+    def test_standard_application_translates_to_trading_country_code(self, status):
+        action = licence_status_to_hmrc_integration_action.get(status)
+        standard_application = self.create_standard_application_case(self.organisation)
+        trade_country = CountryFactory(
+            id="KC",
+            name="Trade Country",
+            trading_country_code="XX",
+        )
+        end_user = standard_application.parties.get(party__type="end_user").party
+        end_user.country = trade_country
+        end_user.save()
+        self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        standard_licence = self.create_licence(standard_application, status=status)
+        good_on_application = standard_application.goods.first()
+        GoodOnLicenceFactory(
+            good=good_on_application,
+            licence=standard_licence,
+            quantity=good_on_application.quantity,
+            usage=20.0,
+            value=good_on_application.value,
+        )
+        old_licence = None
+        if action == HMRCIntegrationActionEnum.UPDATE:
+            old_licence = self.create_licence(standard_application, status=LicenceStatus.CANCELLED)
+            standard_application.licences.add(old_licence)
+
+        data = HMRCIntegrationLicenceSerializer(standard_licence).data
+
+        self.assertEqual(
+            data["end_user"]["address"]["country"],
+            {"id": "XX", "name": "Trade Country"},
+        )
 
     @parameterized.expand(
         [
