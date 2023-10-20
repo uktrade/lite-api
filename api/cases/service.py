@@ -64,3 +64,8 @@ def retrieve_latest_activity(case):
         id=latest_activity.actor_object_id
     )
     return serialize_case_activity(latest_activity, actor)
+
+
+def get_first_submitted_at(case_id):
+    audit_history = Audit.objects.filter(target_object_id=case_id, verb="updated_status").order_by("created_at").first()
+    return audit_history.created_at
