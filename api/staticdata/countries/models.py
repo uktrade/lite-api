@@ -15,6 +15,7 @@ class ExcludeSpecialCountryManager(CountryManager):
 
 class Country(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=10)  # Country Code
+    trading_country_code = models.CharField(null=True, max_length=2)
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     flags = models.ManyToManyField(Flag, related_name="countries")
