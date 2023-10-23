@@ -4,7 +4,7 @@ from django_test_migrations.contrib.unittest_case import MigratorTestCase
 
 
 @pytest.mark.django_db()
-class TestRemoveLUCountersignFlags(MigratorTestCase):
+class TestCountryTradingCode(MigratorTestCase):
 
     migrate_from = ("countries", "0005_country_trading_country_code")
     migrate_to = ("countries", "0006_update_trading_country_code")
