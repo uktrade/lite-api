@@ -15,6 +15,7 @@ from api.cases.models import EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
+from api.cases.management.commands.sla_processing_time_report import get_case_sla
 
 # DST safe version of midnight
 SLA_UPDATE_TASK_TIME = time(22, 30, 0)
@@ -147,3 +148,12 @@ def update_cases_sla():
 
     logging.info(f"{LOG_PREFIX} SLA Update Not Performed. Non-working day")
     return False
+
+
+@background(schedule=datetime.combine(timezone.localtime(), SLA_UPDATE_TASK_TIME, tzinfo=tz(settings.TIME_ZONE)))
+def update_case_processing_time():
+    terminal_case_status = CaseStatus.objects.filter(status__in=CaseStatusEnum.terminal_statuses())
+    for case in Case.objects.all().exclude(status__in=terminal_case_status):
+        processing_time = get_case_sla(case.id)
+        case.processing_time = processing_time["sla_days"]
+        case.save()
