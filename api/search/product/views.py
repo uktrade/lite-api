@@ -32,7 +32,10 @@ class ProductDocumentView(DocumentViewSet):
     ]
 
     search_fields = [
-        "wildcard",
+        "name",
+        "part_number",
+        "control_list_entries",
+        "report_summary",
     ]
 
     search_nested_fields = {
