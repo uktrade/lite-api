@@ -6,17 +6,17 @@ from api.licences.models import Licence
 
 
 class HMRCIntegrationCountrySerializer(serializers.Serializer):
-    id = serializers.CharField()
+    id = serializers.SerializerMethodField()
     name = serializers.CharField()
+
+    def get_id(self, instance):
+        if instance.trading_country_code:
+            return instance.trading_country_code
+        return self.strip_territory_code(instance.id)
 
     def strip_territory_code(self, country_code):
         """Does nothing for "GB" but transforms "AE-DU" to "AE"."""
         return country_code.split("-")[0]
-
-    def to_representation(self, data):
-        data = super().to_representation(data)
-        data["id"] = self.strip_territory_code(data["id"])
-        return data
 
 
 class HMRCIntegrationAddressSerializer(serializers.Serializer):

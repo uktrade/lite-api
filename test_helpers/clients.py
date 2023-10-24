@@ -1092,8 +1092,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return letter_template
 
-    def create_ecju_query(self, case, question="ECJU question", gov_user=None):
+    def create_ecju_query(self, case, question="ECJU question", gov_user=None, created_at=None, responded_at=None):
         ecju_query = EcjuQuery(case=case, question=question, raised_by_user=gov_user if gov_user else self.gov_user)
+        if created_at:
+            ecju_query.created_at = created_at
+        if responded_at:
+            ecju_query.responded_at = responded_at
         ecju_query.save()
         return ecju_query
 
