@@ -82,6 +82,13 @@ class ProductDocumentView(DocumentViewSet):
                         "collapse": {
                             "field": "context",
                         },
+                        "sort": [
+                            {
+                                "assessment_date": {
+                                    "order": "desc",
+                                },
+                            }
+                        ],
                         "highlight": {
                             "fields": {
                                 "rating_comment": self.highlight_fields["*"]["options"],
