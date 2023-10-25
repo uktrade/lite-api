@@ -90,6 +90,12 @@ class Queue(InnerDoc):
     )
 
 
+class GovUser(InnerDoc):
+    first_name = fields.TextField(attr="first_name", analyzer=descriptive_text_analyzer)
+    last_name = fields.TextField(attr="last_name", analyzer=descriptive_text_analyzer)
+    email = fields.TextField(attr="email", analyzer=email_analyzer)
+
+
 class ProductDocumentType(Document):
     # purposefully not DED field - this is just for collecting other field values for wilcard search
     wildcard = Text(
@@ -164,6 +170,13 @@ class ProductDocumentType(Document):
     )
 
     regime = fields.Keyword()
+    assessed_by = fields.NestedField(doc_class=GovUser, attr="assessed_by")
+    assessment_date = fields.DateField(
+        attr="assessment_date",
+        fields={
+            "raw": fields.KeywordField(),
+        },
+    )
 
     class Index:
         name = settings.ELASTICSEARCH_PRODUCT_INDEX_ALIAS
@@ -194,6 +207,7 @@ class ProductDocumentType(Document):
             .select_related("good")
             .select_related("application")
             .select_related("good__organisation")
+            .select_related("assessed_by")
             .prefetch_related("application__parties__party__flags")
         )
 
