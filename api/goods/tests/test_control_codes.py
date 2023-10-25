@@ -1,5 +1,6 @@
 import uuid
 
+from datetime import datetime
 from django.urls import reverse_lazy, reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -624,6 +625,50 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         verified_good_1 = Good.objects.get(pk=self.good_1.pk)
 
         self.assertEqual(verified_good_1.control_list_entries.get().rating, cle)
+
+    @parameterized.expand(
+        [
+            (
+                {
+                    "comment": "Check Product that require licence",
+                    "is_good_controlled": True,
+                    "control_list_entries": ["ML22a"],
+                },
+            ),
+            (
+                {
+                    "comment": "Assessment note for NLR",
+                    "is_good_controlled": False,
+                    "control_list_entries": [],
+                },
+            ),
+        ]
+    )
+    def test_assessor_details_set(self, data):
+        rs_prefix = ReportSummaryPrefix.objects.create(id=uuid.uuid4(), name="Components for")
+        rs_subject = ReportSummarySubject.objects.create(id=uuid.uuid4(), name="Civilian aircrafts", code_level=1)
+        regime = RegimeFactory.create()
+        regime_subsection = RegimeSubsectionFactory.create(regime=regime)
+        regime_entry = RegimeEntryFactory.create(subsection=regime_subsection)
+        defaults = {
+            "objects": [self.good_on_application_1.pk],
+            "report_summary": self.report_summary.text,
+            "report_summary_prefix": rs_prefix.id,
+            "report_summary_subject": rs_subject.id,
+            "regime_entries": [str(regime_entry.pk)],
+        }
+
+        good_on_application = GoodOnApplication.objects.get(pk=self.good_on_application_1.pk)
+        self.assertIsNone(good_on_application.assessment_date)
+        self.assertIsNone(good_on_application.assessed_by)
+
+        data = {**defaults, **data}
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        good_on_application.refresh_from_db()
+        self.assertEqual(good_on_application.assessment_date.date(), datetime.today().date())
+        self.assertEqual(good_on_application.assessed_by, self.gov_user)
 
 
 class GoodsVerifiedTestsOpenApplication(DataTestClient):
