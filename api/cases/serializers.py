@@ -395,7 +395,11 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             return {"audit_id": queryset.first().object_id}
 
     def get_original_submitted_at(self, instance):
-        queryset = Audit.objects.filter(target_object_id=instance.id, verb=AuditType.UPDATED_STATUS).first()
+        queryset = (
+            Audit.objects.filter(target_object_id=instance.id, verb=AuditType.UPDATED_STATUS)
+            .order_by("created_at")
+            .first()
+        )
         if queryset:
             return queryset.created_at
 
