@@ -24,6 +24,8 @@ class ProductDocumentView(DocumentViewSet):
     authentication_classes = (GovAuthentication,)
     lookup_field = "id"
     filter_backends = [
+        filter_backends.OrderingFilterBackend,
+        filter_backends.DefaultOrderingFilterBackend,
         filter_backends.SearchFilterBackend,
         filter_backends.FilteringFilterBackend,
         filter_backends.NestedFilteringFilterBackend,
@@ -54,6 +56,12 @@ class ProductDocumentView(DocumentViewSet):
         "clc_rating": {"field": "control_list_entries.rating.raw", "path": "control_list_entries"},
         "clc_category": {"field": "control_list_entries.category.raw", "path": "control_list_entries"},
     }
+
+    # define ordering fields
+    ordering_fields = {"assessment_date": "assessment_date"}
+
+    # specify default ordering
+    ordering = ("-assessment_date",)
 
     highlight_fields = {"*": {"enabled": True, "options": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}}}
 
