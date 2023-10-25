@@ -29,6 +29,10 @@ def today(time=None):
     return datetime.combine(timezone.localtime(), time, tzinfo=tz(settings.TIME_ZONE))
 
 
+def working_day(date):
+    return not is_bank_holiday(date, call_api=True) and not is_weekend(date)
+
+
 def get_case_sla(case):
 
     elapsed_days = 0
@@ -43,25 +47,27 @@ def get_case_sla(case):
     if start_date:
         for date in daterange(start_date, end_date):
             elapsed_days += 1
-            if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
-                # `Check cut off time for on `start_date
+            active_query = is_active_ecju_queries(date, case.id)
+            if working_day(date):
                 working_days += 1
-                if not is_active_ecju_queries(date, case.id):
+                if active_query:
                     rfi_working_days += 1
-            elif is_active_ecju_queries(date, case.id):
+                else:
+                    sla_days += 1
+            elif active_query:
                 rfi_non_working_days += 1
 
     return {
         "id": case.id,
         "reference_code": case.reference_code,
+        "start_date": start_date,
+        "end_date": end_date,
         "elapsed_days": elapsed_days,
         "working_days": working_days,
         "rfi_queries": EcjuQuery.objects.filter(case_id=case.id).count(),
-        "elapsed__rfi_days": rfi_working_days + rfi_non_working_days,
+        "elapsed_rfi_days": rfi_working_days + rfi_non_working_days,
         "rfi_working_days": rfi_working_days,
         "sla_days": sla_days,
-        "start_date": start_date,
-        "end_date": end_date,
     }
 
 

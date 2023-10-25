@@ -11,7 +11,7 @@ from django.utils import timezone
 from api.audit_trail.enums import AuditType
 from test_helpers.clients import DataTestClient
 
-from api.cases.management.commands.sla_processing_time_report import (
+from api.cases.sla_processing_time import (
     today,
     get_end_date,
     get_start_date,
@@ -117,13 +117,65 @@ class SlaProcessingTimeReport(DataTestClient):
         has_queries = is_active_ecju_queries(query_date, self.case.id)
         self.assertEqual(has_queries, expected)
 
-    @freeze_time("2022-01-05 12:25:01")
-    @mock.patch("api.cases.management.commands.sla_processing_time_report.is_bank_holiday")
-    @mock.patch("api.cases.management.commands.sla_processing_time_report.is_weekend")
-    def test_get_case_sla_records(self, mock_is_bank_holiday, mock_is_weekend):
+    @parameterized.expand(
+        [
+            (
+                False,
+                {
+                    "elapsed_days": 33,
+                    "working_days": 23,
+                    "rfi_queries": 0,
+                    "elapsed_rfi_days": 0,
+                    "rfi_working_days": 0,
+                    "sla_days": 23,
+                },
+            ),
+            (
+                True,
+                {
+                    "elapsed_days": 33,
+                    "working_days": 0,
+                    "rfi_queries": 0,
+                    "elapsed_rfi_days": 0,
+                    "rfi_working_days": 0,
+                    "sla_days": 0,
+                },
+            ),
+        ]
+    )
+    @mock.patch("api.cases.sla_processing_time.is_bank_holiday")
+    def test_get_case_sla_records_bank_holiday_check_with_no_rfi(
+        self, is_bank_holiday, expected_data, mock_is_bank_holiday
+    ):
+
+        mock_is_bank_holiday.return_value = is_bank_holiday
+
+        # This create a case that will be 33 calender days
+        audit_submitted = self.create_case_submitted_audit_event(self.case)
+        audit_submitted.created_at = datetime(2022, 1, 1, 12, 0, 1, tzinfo=self.TZINFO)
+        audit_submitted.save()
+        audit_finalised = self.create_case_finalised_audit_event(self.case)
+        audit_finalised.created_at = datetime(2022, 2, 2, 12, 0, 1, tzinfo=self.TZINFO)
+        audit_finalised.save()
+
+        # Add more dynamic data to test
+        expected_data["end_date"] = audit_finalised.created_at
+        expected_data["start_date"] = audit_submitted.created_at
+        expected_data["id"] = self.case.id
+        expected_data["reference_code"] = self.case.reference_code
+
+        sla_report = get_all_case_sla()[0]
+
+        for expected_data_key in expected_data.keys():
+            self.assertEqual(sla_report[expected_data_key], expected_data[expected_data_key])
+
+    @mock.patch("api.cases.sla_processing_time.is_bank_holiday")
+    def test_get_case_sla_records_bank_holiday_check_with_rfi(self, mock_is_bank_holiday):
+
+        # No bank holidays for this test we just checking ECJU time
         mock_is_bank_holiday.return_value = False
-        mock_is_weekend.return_value = False
 
+        # This create a case that will be 33 calender days
         audit_submitted = self.create_case_submitted_audit_event(self.case)
         audit_submitted.created_at = datetime(2022, 1, 1, 12, 0, 1, tzinfo=self.TZINFO)
         audit_submitted.save()
@@ -131,83 +183,24 @@ class SlaProcessingTimeReport(DataTestClient):
         audit_finalised.created_at = datetime(2022, 2, 2, 12, 0, 1, tzinfo=self.TZINFO)
         audit_finalised.save()
 
-        self.case_1 = self.submit_application(self.create_draft_standard_application(self.organisation))
-
-        audit_submitted_1 = self.create_case_submitted_audit_event(self.case_1)
-        audit_submitted_1.created_at = datetime(2019, 4, 1, 12, 0, 1, tzinfo=self.TZINFO)
-        audit_submitted_1.save()
-        audit_finalised_2 = self.create_case_finalised_audit_event(self.case_1)
-        audit_finalised_2.created_at = datetime(2019, 4, 18, 12, 0, 1, tzinfo=self.TZINFO)
-        audit_finalised_2.save()
-
+        # Create an ECJU Query that spans 7 days
         self.create_ecju_query(
-            case=self.case_1, created_at=datetime(2019, 4, 10, 9, 0, 1), responded_at=datetime(2019, 4, 14, 9, 0, 1)
+            case=self.case, created_at=datetime(2022, 1, 3, 9, 0, 1), responded_at=datetime(2022, 1, 9, 9, 0, 1)
         )
 
-        sla_report = get_all_case_sla()
-        case_1 = sla_report[0]
-        case_2 = sla_report[1]
+        expected_data = {
+            "id": self.case.id,
+            "reference_code": self.case.reference_code,
+            "end_date": audit_finalised.created_at,
+            "start_date": audit_submitted.created_at,
+            "elapsed_days": 33,
+            "working_days": 23,
+            "rfi_queries": 1,
+            "elapsed_rfi_days": 7,
+            "rfi_working_days": 5,
+            "sla_days": 18,
+        }
 
-        self.assertEqual(case_1["elapsed_days"], 33)
-        self.assertEqual(case_1["working_days"], 33)
-        self.assertEqual(case_1["sla_days"], 0)
-        self.assertEqual(case_1["rfi_queries"], 0)
-        self.assertEqual(case_1["start_date"], audit_submitted.created_at)
-        self.assertEqual(case_1["end_date"], audit_finalised.created_at)
+        sla_report = get_all_case_sla()[0]
 
-        self.assertEqual(case_2["elapsed_days"], 18)
-        self.assertEqual(case_2["working_days"], 18)
-        self.assertEqual(case_2["sla_days"], 0)
-        self.assertEqual(case_2["rfi_queries"], 1)
-        self.assertEqual(case_2["elapsed__rfi_days"], 13)
-        self.assertEqual(case_2["rfi_working_days"], 13)
-
-    @freeze_time("2022-01-05 12:25:01")
-    @mock.patch("api.cases.management.commands.sla_processing_time_report.is_bank_holiday")
-    @mock.patch("api.cases.management.commands.sla_processing_time_report.is_weekend")
-    def test_get_case_sla_records_bank_holiday_weekend(self, mock_is_bank_holiday, mock_is_weekend):
-        mock_is_bank_holiday.return_value = True
-        mock_is_weekend.return_value = True
-
-        audit_submitted = self.create_case_submitted_audit_event(self.case)
-        audit_submitted.created_at = datetime(2022, 1, 1, 12, 0, 1, tzinfo=self.TZINFO)
-        audit_submitted.save()
-        audit_finalised = self.create_case_finalised_audit_event(self.case)
-        audit_finalised.created_at = datetime(2022, 2, 2, 12, 0, 1, tzinfo=self.TZINFO)
-        audit_finalised.save()
-
-        self.case_1 = self.submit_application(self.create_draft_standard_application(self.organisation))
-
-        audit_submitted_1 = self.create_case_submitted_audit_event(self.case_1)
-        audit_submitted_1.created_at = datetime(2019, 4, 1, 12, 0, 1, tzinfo=self.TZINFO)
-        audit_submitted_1.save()
-        audit_finalised_2 = self.create_case_finalised_audit_event(self.case_1)
-        audit_finalised_2.created_at = datetime(2019, 4, 18, 12, 0, 1, tzinfo=self.TZINFO)
-        audit_finalised_2.save()
-
-        self.create_ecju_query(
-            case=self.case_1, created_at=datetime(2019, 4, 10, 9, 0, 1), responded_at=datetime(2019, 4, 14, 9, 0, 1)
-        )
-
-        sla_report = get_all_case_sla()
-        case_1 = sla_report[0]
-        case_2 = sla_report[1]
-
-        self.assertEqual(case_1["elapsed_days"], 33)
-        self.assertEqual(case_1["working_days"], 0)
-        self.assertEqual(case_1["sla_days"], 0)
-        self.assertEqual(case_1["rfi_queries"], 0)
-
-        self.assertEqual(case_2["elapsed_days"], 18)
-        self.assertEqual(case_2["working_days"], 0)
-        self.assertEqual(case_2["sla_days"], 0)
-        self.assertEqual(case_2["rfi_queries"], 1)
-        self.assertEqual(case_2["elapsed__rfi_days"], 5)
-        self.assertEqual(case_2["rfi_working_days"], 0)
-
-    def test_get_case_sla_no_start_date(self):
-        self.case_1 = self.submit_application(self.create_draft_standard_application(self.organisation))
-        Audit.objects.filter(target_object_id=self.case_1.id).delete()
-
-        case_2 = get_all_case_sla()[1]
-        self.assertEqual(case_2["start_date"], None)
+        self.assertEqual(sla_report, expected_data)
