@@ -11,7 +11,7 @@ from django.utils import timezone
 from api.audit_trail.enums import AuditType
 from test_helpers.clients import DataTestClient
 
-from api.cases.management.commands.sla_processing_time_report import (
+from api.cases.sla_processing_time_report import (
     today,
     get_end_date,
     get_start_date,
@@ -118,8 +118,8 @@ class SlaProcessingTimeReport(DataTestClient):
         self.assertEqual(has_queries, expected)
 
     @freeze_time("2022-01-05 12:25:01")
-    @mock.patch("api.cases.management.commands.sla_processing_time_report.is_bank_holiday")
-    @mock.patch("api.cases.management.commands.sla_processing_time_report.is_weekend")
+    @mock.patch("api.cases.sla_processing_time_report.is_bank_holiday")
+    @mock.patch("api.cases.sla_processing_time_report.is_weekend")
     def test_get_case_sla_records(self, mock_is_bank_holiday, mock_is_weekend):
         mock_is_bank_holiday.return_value = False
         mock_is_weekend.return_value = False
@@ -150,21 +150,21 @@ class SlaProcessingTimeReport(DataTestClient):
 
         self.assertEqual(case_1["elapsed_days"], 33)
         self.assertEqual(case_1["working_days"], 33)
-        self.assertEqual(case_1["sla_days"], 0)
+        self.assertEqual(case_1["sla_days"], 33)
         self.assertEqual(case_1["rfi_queries"], 0)
         self.assertEqual(case_1["start_date"], audit_submitted.created_at)
         self.assertEqual(case_1["end_date"], audit_finalised.created_at)
 
         self.assertEqual(case_2["elapsed_days"], 18)
         self.assertEqual(case_2["working_days"], 18)
-        self.assertEqual(case_2["sla_days"], 0)
+        self.assertEqual(case_2["sla_days"], 13)
         self.assertEqual(case_2["rfi_queries"], 1)
-        self.assertEqual(case_2["elapsed__rfi_days"], 13)
-        self.assertEqual(case_2["rfi_working_days"], 13)
+        self.assertEqual(case_2["elapsed_rfi_days"], 5)
+        self.assertEqual(case_2["rfi_working_days"], 5)
 
     @freeze_time("2022-01-05 12:25:01")
-    @mock.patch("api.cases.management.commands.sla_processing_time_report.is_bank_holiday")
-    @mock.patch("api.cases.management.commands.sla_processing_time_report.is_weekend")
+    @mock.patch("api.cases.sla_processing_time_report.is_bank_holiday")
+    @mock.patch("api.cases.sla_processing_time_report.is_weekend")
     def test_get_case_sla_records_bank_holiday_weekend(self, mock_is_bank_holiday, mock_is_weekend):
         mock_is_bank_holiday.return_value = True
         mock_is_weekend.return_value = True
@@ -193,7 +193,7 @@ class SlaProcessingTimeReport(DataTestClient):
         case_1 = sla_report[0]
         case_2 = sla_report[1]
 
-        self.assertEqual(case_1["elapsed_days"], 33)
+        self.assertEqual(case_1["elapsed_days"], 18)
         self.assertEqual(case_1["working_days"], 0)
         self.assertEqual(case_1["sla_days"], 0)
         self.assertEqual(case_1["rfi_queries"], 0)
@@ -202,7 +202,7 @@ class SlaProcessingTimeReport(DataTestClient):
         self.assertEqual(case_2["working_days"], 0)
         self.assertEqual(case_2["sla_days"], 0)
         self.assertEqual(case_2["rfi_queries"], 1)
-        self.assertEqual(case_2["elapsed__rfi_days"], 5)
+        self.assertEqual(case_2["elapsed_rfi_days"], 5)
         self.assertEqual(case_2["rfi_working_days"], 0)
 
     def test_get_case_sla_no_start_date(self):
