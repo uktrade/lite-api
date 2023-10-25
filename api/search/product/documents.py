@@ -198,7 +198,7 @@ class ProductDocumentType(Document):
     def prepare(self, instance):
         data = super().prepare(instance)
         data["context"] = f"{data['destination']}🔥{data['end_use']}🔥{data['end_user_type']}"
-        data["canonical_name"] = data["description"]
+        data["canonical_name"] = data["name"]
         return data
 
     def get_indexing_queryset(self):
