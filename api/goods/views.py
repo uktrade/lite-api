@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -19,7 +20,6 @@ from api.applications.models import (
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.cases.libraries.get_case import get_case
 from api.core import constants
@@ -60,8 +60,6 @@ from api.applications.serializers.good import (
     GoodOnApplicationInternalDocumentViewSerializer,
 )
 
-from api.goodstype.models import GoodsType
-from api.goodstype.serializers import ClcControlGoodTypeSerializer
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from lite_content.lite_api import strings
 from api.organisations.models import OrganisationDocumentType
@@ -108,6 +106,7 @@ def get_new_report_summary_data(request):
 
 class GoodsListControlCode(APIView):
     authentication_classes = (GovAuthentication,)
+    serializer_class = ControlGoodOnApplicationSerializer
 
     @cached_property
     def application(self):
@@ -117,22 +116,12 @@ class GoodsListControlCode(APIView):
         pks = self.request.data["objects"]
         if not isinstance(pks, list):
             pks = [pks]
-        if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
-            return GoodsType.objects.filter(pk__in=pks)
+
         results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], id__in=pks)
         # This can be removed in the future as it's essentially a FF for the batching changes
         if not results.exists():
             results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
         return results
-
-    def get_serializer_class(self):
-        if self.application.case_type.sub_type in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
-            return ClcControlGoodTypeSerializer
-        return ControlGoodOnApplicationSerializer
-
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        return serializer_class(*args, **kwargs, data=self.request.data)
 
     def check_permissions(self, request):
         assert_user_has_permission(request.user.govuser, constants.GovPermissions.REVIEW_GOODS)
@@ -173,6 +162,10 @@ class GoodsListControlCode(APIView):
         for good in self.get_queryset():
             data = request.data.copy()
 
+            # record assessment date and user details
+            good.assessed_by = request.user.govuser
+            good.assessment_date = timezone.now()
+
             old_report_summary = good.report_summary
             old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
             old_is_controlled = good.is_good_controlled
@@ -180,8 +173,7 @@ class GoodsListControlCode(APIView):
 
             report_summary_updated = new_report_summary != old_report_summary
 
-            serializer_class = self.get_serializer_class()
-            serializer = serializer_class(good, data=data)
+            serializer = self.serializer_class(good, data=data)
             serializer.is_valid(raise_exception=True)
             obj = serializer.save()
 

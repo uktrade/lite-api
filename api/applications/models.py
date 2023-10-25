@@ -56,7 +56,7 @@ from api.staticdata.statuses.libraries.case_status_validate import is_case_statu
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
-from api.users.models import ExporterUser
+from api.users.models import ExporterUser, GovUser
 from lite_content.lite_api.strings import PartyErrors
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
@@ -73,7 +73,6 @@ class ApplicationException(APIException):
 
 class ApplicationPartyMixin:
     def add_party(self, party):
-
         if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
             raise ApplicationException({"bad_request": PartyErrors.BAD_CASE_TYPE})
 
@@ -484,7 +483,6 @@ class GoodOnApplicationRegimeEntry(models.Model):
 
 
 class GoodOnApplication(AbstractGoodOnApplication):
-
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods", null=False)
 
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
@@ -538,6 +536,11 @@ class GoodOnApplication(AbstractGoodOnApplication):
     nsg_assessment_note = models.TextField(help_text="Trigger list assessment note", default="", blank=True)
     is_ncsc_military_information_security = models.BooleanField(
         default=None, blank=True, null=True, help_text="trigger to NCSC for a recommendation"
+    )
+
+    assessment_date = models.DateTimeField(blank=True, null=True)
+    assessed_by = models.ForeignKey(
+        GovUser, on_delete=models.DO_NOTHING, blank=True, null=True, related_name="assessed_by"
     )
 
     class Meta:
@@ -600,7 +603,6 @@ class GoodOnApplicationDocument(Document):
 
 
 class GoodOnApplicationInternalDocument(Document):
-
     document_title = models.TextField(
         default="",
         blank=True,
