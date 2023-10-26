@@ -26,7 +26,7 @@ class ProductDocumentView(DocumentViewSet):
     filter_backends = [
         filter_backends.OrderingFilterBackend,
         filter_backends.DefaultOrderingFilterBackend,
-        filter_backends.SearchFilterBackend,
+        filter_backends.SimpleQueryStringSearchFilterBackend,
         filter_backends.FilteringFilterBackend,
         filter_backends.NestedFilteringFilterBackend,
         filter_backends.SourceBackend,
@@ -39,6 +39,17 @@ class ProductDocumentView(DocumentViewSet):
         "control_list_entries",
         "report_summary",
     ]
+
+    simple_query_string_search_fields = {
+        "name": None,
+        "part_number": None,
+        "control_list_entries": None,
+        "report_summary": None,
+    }
+
+    simple_query_string_options = {
+        "default_operator": "or"
+    }
 
     search_nested_fields = {
         # explicitly defined to make highlighting work
@@ -71,6 +82,7 @@ class ProductDocumentView(DocumentViewSet):
         return list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
 
     def get_queryset(self):
+        self.filter_backends[0].search_param = "search"
         self.search._index = self.get_search_indexes()
         self.search.update_from_dict(
             {
