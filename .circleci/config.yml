@@ -106,6 +106,7 @@ jobs:
     environment:
       <<: *common_env_vars
       LITE_API_ENABLE_ES: True
+    parallelism: 10
     steps:
       - setup
       - run:
@@ -115,7 +116,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance" --junitxml=test_results/output.xml
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance and not migration" --junitxml=test_results/output.xml
       - upload_code_coverage
       - store_test_results:
           path: test_results
@@ -143,7 +144,7 @@ jobs:
       - store_test_results:
           path: test_results
 
-  lite_routing_tests:
+  migration_tests:
     docker:
       - <<: *image_python
       - <<: *image_postgres
@@ -160,9 +161,34 @@ jobs:
           command: |
             mkdir test_results
       - run:
+          name: Run migration tests
+          command: |
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k migration --junitxml=test_results/output.xml
+      - upload_code_coverage
+      - store_test_results:
+          path: test_results
+
+  lite_routing_tests:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
+      - <<: *image_redis
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    parallelism: 5
+    steps:
+      - setup
+      - run:
+          name: Create report directories
+          command: |
+            mkdir test_results
+      - run:
           name: Run lite_routing tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing --junitxml=test_results/output.xml
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k "not migration" --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing --junitxml=test_results/output.xml
       - upload_code_coverage
       - store_test_results:
           path: test_results
@@ -177,6 +203,7 @@ jobs:
     environment:
       <<: *common_env_vars
       LITE_API_ENABLE_ES: True
+    parallelism: 5
     steps:
       - setup
       - run:
@@ -190,7 +217,7 @@ jobs:
             mkdir cucumber_html
       - run:
           name: Run lite_routing tests
-          command: pipenv run pytest --gherkin-terminal-reporter -vv lite_routing/routing_rules_internal/tests/bdd --junitxml=test_results/output.xml --cucumberjson=cucumber_results/cuc.json
+          command: pipenv run pytest --circleci-parallelize --gherkin-terminal-reporter -vv lite_routing/routing_rules_internal/tests/bdd --junitxml=test_results/output.xml --cucumberjson=cucumber_results/cuc.json
       - run:
           name: Generate html cucumber report
           command: node generate_cucumber_report.js
@@ -342,6 +369,7 @@ workflows:
       - lite_routing_tests
       - lite_routing_bdd_tests
       - elastic_search_tests
+      - migration_tests
       - check_migrations
       - linting
       - check-lite-routing-sha
