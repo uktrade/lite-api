@@ -41,11 +41,10 @@ class GoodOnApplicationSerializerTests(DataTestClient):
             [],
         )
 
+        country = CountryFactory.create(id="NZ", name="New Zealand", type="2")
         party_on_application = PartyOnApplicationFactory.create(
             application=self.application,
-            party__country__id="IT",
-            party__country__name="Italy",
-            party__country__type="2",
+            party__country=country,
         )
         self.assertEqual(
             GoodOnApplicationSerializer().get_destinations(self.a_good_on_application),
@@ -56,11 +55,10 @@ class GoodOnApplicationSerializerTests(DataTestClient):
             [party_on_application.party.country.name],
         )
 
+        another_country = CountryFactory.create(id="JP", name="Japan", type="2")
         another_party_on_application = PartyOnApplicationFactory.create(
             application=self.application,
-            party__country__id="UK",
-            party__country__name="United Kingdom",
-            party__country__type="1",
+            party__country=another_country,
         )
         self.assertNotEqual(
             party_on_application.party.country.name,
