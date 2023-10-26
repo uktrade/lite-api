@@ -47,9 +47,7 @@ class ProductDocumentView(DocumentViewSet):
         "report_summary": None,
     }
 
-    simple_query_string_options = {
-        "default_operator": "or"
-    }
+    simple_query_string_options = {"default_operator": "or"}
 
     search_nested_fields = {
         # explicitly defined to make highlighting work
@@ -82,7 +80,13 @@ class ProductDocumentView(DocumentViewSet):
         return list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
 
     def get_queryset(self):
-        self.filter_backends[0].search_param = "search"
+        query_params = self.request.GET.copy()
+        query = query_params.getlist("search", [""])
+        query_type = query_params.get("query_type", "simple_query_string")
+
+        if query_type == "simple_query_string":
+            self.filter_backends[2].search_param = "search"
+
         self.search._index = self.get_search_indexes()
         self.search.update_from_dict(
             {
@@ -110,6 +114,19 @@ class ProductDocumentView(DocumentViewSet):
                 }
             }
         )
+
+        if query_type == "query_string":
+            self.search.update_from_dict(
+                {
+                    "query": {
+                        "query_string": {
+                            "query": query[0],
+                            "fields": ["name", "report_summary", "part_number", "control_list_entries", "wildcard"],
+                        }
+                    }
+                }
+            )
+
         return super().get_queryset()
 
 
