@@ -50,7 +50,6 @@ class RefuseAdviceTests(DataTestClient):
         send_exporter_notifications_func.assert_called()
         assert case.sub_status.name == "Refused"
 
-    @override_settings(FEATURE_INFORM_LETTER_ENABLED=True)
     @mock.patch("api.cases.views.views.notify_exporter_licence_refused")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_refuse_standard_application_success_inform_letter_feature_letter_on(

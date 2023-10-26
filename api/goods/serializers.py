@@ -767,6 +767,22 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
         return [dest["party__country__name"] for dest in destinations]
 
 
+class GoodOnApplicationPrecedentSerializer(GoodOnApplicationSerializer):
+
+    report_summary_prefix = ReportSummaryPrefixSerializer()
+    report_summary_subject = ReportSummarySubjectSerializer()
+
+    class Meta:
+        model = GoodOnApplication
+        fields = list(GoodOnApplicationSerializer.Meta.fields) + [
+            "is_good_controlled",
+            "is_ncsc_military_information_security",
+            "comment",
+            "report_summary_prefix",
+            "report_summary_subject",
+        ]
+
+
 class GoodSerializerInternal(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()

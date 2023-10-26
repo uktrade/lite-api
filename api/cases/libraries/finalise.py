@@ -1,5 +1,3 @@
-from django.conf import settings
-
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from api.cases.models import Advice, GoodCountryDecision
 from api.applications.models import GoodOnApplication
@@ -22,7 +20,7 @@ def get_required_decision_document_types(case):
         required_decisions.remove(AdviceType.PROVISO)
 
     # Ensure that REFUSE advice requires an inform document
-    if AdviceType.REFUSE in required_decisions and settings.FEATURE_INFORM_LETTER_ENABLED:
+    if AdviceType.REFUSE in required_decisions:
         required_decisions.add(AdviceType.INFORM)
 
     # Check if no controlled good on application then no approval document required.
