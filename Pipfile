@@ -19,6 +19,7 @@ pytest-bdd = "*"
 ipdb = "*"
 watchdog = {extras = ["watchmedo"], version = "*"}
 diff-pdf-visually = "~=1.7.0"
+pytest-circleci-parallelized = "~=0.1.0"
 
 [packages]
 factory-boy = "~=2.12.0"
