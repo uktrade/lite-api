@@ -90,6 +90,12 @@ class Queue(InnerDoc):
     )
 
 
+class GovUser(InnerDoc):
+    first_name = fields.TextField(attr="first_name", analyzer=descriptive_text_analyzer)
+    last_name = fields.TextField(attr="last_name", analyzer=descriptive_text_analyzer)
+    email = fields.TextField(attr="email", analyzer=email_analyzer)
+
+
 class ProductDocumentType(Document):
     # purposefully not DED field - this is just for collecting other field values for wilcard search
     wildcard = Text(
@@ -101,7 +107,7 @@ class ProductDocumentType(Document):
     context = fields.Keyword()
 
     # used for grouping
-    canonical_name = fields.KeywordField(attr="good.description")  # is overwritten in prepare
+    canonical_name = fields.KeywordField(attr="good.name")  # is overwritten in prepare
 
     # base details. iteration 1
     id = fields.KeywordField()
@@ -113,18 +119,7 @@ class ProductDocumentType(Document):
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=Rating)
     queues = fields.NestedField(doc_class=Queue, attr="application.queues")
 
-    organisation = fields.TextField(
-        copy_to="wildcard",
-        attr="good.organisation.name",
-        analyzer=descriptive_text_analyzer,
-        fields={
-            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
-            "suggest": fields.CompletionField(),
-        },
-    )
-
-    # does not exist yet). needs to be here for data shape parity with SPIRE
-    name = fields.TextField(attr="good.description")
+    name = fields.TextField(attr="good.name", copy_to="wildcard", analyzer=descriptive_text_analyzer)
     # not mapped yet
     destination = fields.KeywordField(
         attr="application.end_user.party.country.name",
@@ -141,7 +136,6 @@ class ProductDocumentType(Document):
     )
 
     organisation = fields.TextField(
-        copy_to="wildcard",
         attr="good.organisation.name",
         analyzer=descriptive_text_analyzer,
         fields={
@@ -153,10 +147,10 @@ class ProductDocumentType(Document):
 
     application = fields.NestedField(doc_class=ApplicationOnProduct)
 
-    rating_comment = fields.TextField(attr="good.comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
+    rating_comment = fields.TextField(attr="comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
 
     report_summary = fields.TextField(
-        attr="good.report_summary",
+        attr="report_summary",
         fields={
             "raw": fields.KeywordField(normalizer=lowercase_normalizer),
             "suggest": fields.CompletionField(),
@@ -176,6 +170,13 @@ class ProductDocumentType(Document):
     )
 
     regime = fields.Keyword()
+    assessed_by = fields.NestedField(doc_class=GovUser, attr="assessed_by")
+    assessment_date = fields.DateField(
+        attr="assessment_date",
+        fields={
+            "raw": fields.KeywordField(),
+        },
+    )
 
     class Index:
         name = settings.ELASTICSEARCH_PRODUCT_INDEX_ALIAS
@@ -197,7 +198,7 @@ class ProductDocumentType(Document):
     def prepare(self, instance):
         data = super().prepare(instance)
         data["context"] = f"{data['destination']}🔥{data['end_use']}🔥{data['end_user_type']}"
-        data["canonical_name"] = data["description"]
+        data["canonical_name"] = data["name"]
         return data
 
     def get_indexing_queryset(self):
@@ -206,6 +207,7 @@ class ProductDocumentType(Document):
             .select_related("good")
             .select_related("application")
             .select_related("good__organisation")
+            .select_related("assessed_by")
             .prefetch_related("application__parties__party__flags")
         )
 
