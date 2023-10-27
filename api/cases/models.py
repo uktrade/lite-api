@@ -108,7 +108,8 @@ class Case(TimestampableModel):
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
     copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
     last_closed_at = models.DateTimeField(null=True)
-
+    # Total sla since the case was first submitted.
+    processing_time = models.PositiveSmallIntegerField(blank=False, default=0)
     sla_days = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
