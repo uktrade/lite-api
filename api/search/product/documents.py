@@ -147,7 +147,7 @@ class ProductDocumentType(Document):
 
     application = fields.NestedField(doc_class=ApplicationOnProduct)
 
-    rating_comment = fields.TextField(attr="comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
+    assessment_note = fields.TextField(attr="comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
 
     report_summary = fields.TextField(
         attr="report_summary",

@@ -41,6 +41,7 @@ class ProductSearchTests(DataTestClient):
             report_summary="sniper rifles",
             assessed_by=self.tau_user1,
             assessment_date=parse("2021-06-08T15:51:28.529110+00:00"),
+            comment="no concerns",
         )
 
         good = GoodFactory(
@@ -57,6 +58,7 @@ class ProductSearchTests(DataTestClient):
             report_summary="Imaging sensors",
             assessed_by=self.tau_user1,
             assessment_date=parse("2021-07-08T15:51:28.529110+00:00"),
+            comment="for industrial use only",
         )
 
         good = GoodFactory(
@@ -73,6 +75,7 @@ class ProductSearchTests(DataTestClient):
             report_summary="Magnetic sensors",
             assessed_by=self.tau_user1,
             assessment_date=parse("2022-08-20T15:51:28.529110+00:00"),
+            comment="for industrial use only",
         )
 
         good = GoodFactory(
@@ -89,6 +92,7 @@ class ProductSearchTests(DataTestClient):
             report_summary="mechanical keyboards",
             assessed_by=self.tau_user2,
             assessment_date=parse("2022-10-08T15:51:28.529110+00:00"),
+            comment="dual use",
         )
 
         good = GoodFactory(
@@ -105,6 +109,7 @@ class ProductSearchTests(DataTestClient):
             report_summary="Chemicals",
             assessed_by=self.tau_user2,
             assessment_date=parse("2023-10-21T15:51:28.529110+00:00"),
+            comment="industrial use",
         )
 
         call_command("search_index", models=["applications.GoodOnApplication"], action="rebuild", force=True)
@@ -207,6 +212,20 @@ class ProductSearchTests(DataTestClient):
 
         response = response.json()
         self.assertEqual(response["count"], 6)
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "industrial"}, 3),
+            ({"search": "dual"}, 1),
+        ]
+    )
+    def test_product_search_by_assessment_note(self, query, expected_count):
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        self.assertEqual(response["count"], expected_count)
 
 
 class MoreLikeThisViewTests(DataTestClient):

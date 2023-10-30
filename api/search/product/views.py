@@ -39,6 +39,7 @@ class ProductDocumentView(DocumentViewSet):
         "control_list_entries",
         "report_summary",
         "organisation",
+        "assessment_note",
     ]
 
     search_nested_fields = {
@@ -92,7 +93,7 @@ class ProductDocumentView(DocumentViewSet):
                         ],
                         "highlight": {
                             "fields": {
-                                "rating_comment": self.highlight_fields["*"]["options"],
+                                "assessment_note": self.highlight_fields["*"]["options"],
                             }
                         },
                     },
