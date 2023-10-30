@@ -38,6 +38,7 @@ class ProductDocumentView(DocumentViewSet):
         "part_number",
         "control_list_entries",
         "report_summary",
+        "organisation",
     ]
 
     search_nested_fields = {

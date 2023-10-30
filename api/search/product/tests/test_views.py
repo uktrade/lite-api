@@ -199,6 +199,15 @@ class ProductSearchTests(DataTestClient):
         response = response.json()
         self.assertEqual(response["count"], expected_count)
 
+    @pytest.mark.elasticsearch
+    def test_product_search_by_applicant(self):
+        query_params = {"search": f"{self.organisation.name}"}
+        response = self.client.get(self.product_search_url, query_params, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        self.assertEqual(response["count"], 6)
+
 
 class MoreLikeThisViewTests(DataTestClient):
     @pytest.mark.elasticsearch
