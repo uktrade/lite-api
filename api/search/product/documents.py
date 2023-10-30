@@ -56,6 +56,22 @@ email_analyzer = analysis.analyzer(
 )
 
 
+class Regime(InnerDoc):
+    # e.g. "W"
+    shortened_name = fields.KeywordField(
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+            "suggest": fields.CompletionField(),
+        },
+        copy_to="wildcard",
+    )
+    # e.g. "Wassenaar Arrangement"
+    name = fields.TextField(
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer,
+    )
+
+
 class Rating(InnerDoc):
     rating = fields.KeywordField(
         fields={
@@ -169,7 +185,8 @@ class ProductDocumentType(Document):
         copy_to="wildcard",
     )
 
-    regime = fields.Keyword()
+    regime_entries = fields.NestedField(attr="regime_entries", doc_class=Regime)
+
     assessed_by = fields.NestedField(doc_class=GovUser, attr="assessed_by")
     assessment_date = fields.DateField(
         attr="assessment_date",
