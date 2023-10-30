@@ -128,6 +128,7 @@ class CaseListSerializer(serializers.Serializer):
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
+    processing_time = serializers.IntegerField()
     next_review_date = serializers.DateField()
     has_open_queries = serializers.BooleanField()
     case_officer = serializers.SerializerMethodField()
@@ -275,6 +276,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     audit_notification = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
+    processing_time = serializers.IntegerField()
     advice = AdviceViewSerializer(many=True)
     countersign_advice = CountersignDecisionAdviceViewSerializer(many=True)
     data = serializers.SerializerMethodField()
@@ -303,6 +305,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "copy_of",
             "sla_days",
             "sla_remaining_days",
+            "processing_time",
             "data",
             "next_review_date",
             "latest_activity",

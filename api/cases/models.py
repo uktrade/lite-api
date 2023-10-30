@@ -110,7 +110,12 @@ class Case(TimestampableModel):
     last_closed_at = models.DateTimeField(null=True)
 
     sla_days = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
-    processing_time = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
+    processing_time = models.PositiveSmallIntegerField(
+        null=False,
+        blank=False,
+        default=0,
+        help_text="indicates the processing time, start to finish for a case without resetting on major edits",
+    )
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
     additional_contacts = models.ManyToManyField("parties.Party", related_name="case")

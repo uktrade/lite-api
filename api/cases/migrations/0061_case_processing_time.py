@@ -13,6 +13,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="case",
             name="processing_time",
-            field=models.PositiveSmallIntegerField(default=0),
+            field=models.PositiveSmallIntegerField(
+                default=0,
+                help_text="indicates the processing time, start to finish for a case without resetting on major edits",
+            ),
         ),
     ]
