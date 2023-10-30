@@ -1184,6 +1184,10 @@ class GoodOnPrecedentList(ListAPIView):
         return (
             GoodOnApplication.objects.filter(good__in=goods, good__status=GoodStatus.VERIFIED)
             .exclude(application=case)
+            # Ensure any precedents we return have a non-None value for is_good_controlled.
+            # GoodOnApplication records with is_good_controlled=None are either not yet assessed
+            # or are legacy records
+            .exclude(is_good_controlled=None)
             .select_related(
                 "report_summary_prefix",
                 "report_summary_subject",
