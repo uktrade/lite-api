@@ -6,4 +6,4 @@ applications:
     memory: 1G
     health-check-type: http
     health-check-http-endpoint: /healthcheck/
-    stack: cflinuxfs3
+    stack: cflinuxfs4

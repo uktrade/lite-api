@@ -30,6 +30,7 @@ from api.goods.serializers import (
     FirearmDetailsSerializer,
     GoodSerializerInternalIncludingPrecedents,
 )
+from api.gov_users.serializers import GovUserSimpleSerializer
 from api.licences.models import GoodOnLicence
 from api.organisations.models import DocumentOnOrganisation
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
@@ -103,6 +104,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     nsg_list_type = KeyValueChoiceField(choices=NSGListType.choices)
     report_summary_prefix = ReportSummaryPrefixSerializer()
     report_summary_subject = ReportSummarySubjectSerializer()
+    assessed_by = GovUserSimpleSerializer()
 
     class Meta:
         model = GoodOnApplication
@@ -140,6 +142,8 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "is_nca_applicable",
             "nsg_assessment_note",
             "is_ncsc_military_information_security",
+            "assessment_date",
+            "assessed_by",
         )
 
     def get_flags(self, instance):
@@ -161,7 +165,6 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
 
 
 class GoodOnApplicationDataWorkspaceSerializer(GoodOnApplicationViewSerializer):
-
     good = GoodSerializerInternalIncludingPrecedents(read_only=True)
     good_application_documents = serializers.SerializerMethodField()
     good_application_internal_documents = serializers.SerializerMethodField()

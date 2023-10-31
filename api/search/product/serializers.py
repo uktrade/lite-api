@@ -34,6 +34,8 @@ class ProductDocumentSerializer(DocumentSerializer):
             "part_number",
             "regime",
             "queues",
+            "assessed_by",
+            "assessment_date",
         )
         extra_kwargs = {
             "name": {"required": False, "allow_null": True},
