@@ -42,6 +42,17 @@ class GoodPrecedentsListViewTests(DataTestClient):
         self.gona_2.report_summary_prefix = ReportSummaryPrefix.objects.get(name="components for")
         self.gona_2.report_summary_subject = ReportSummarySubject.objects.get(name="neural computers")
         self.gona_2.save()
+
+        # Expect this to be missing from API responses as is_good_controlled=None
+        self.gona_3 = GoodOnApplicationFactory(
+            good=self.good,
+            application=self.draft_2,
+            quantity=10,
+            report_summary="test2",
+            is_good_controlled=None,
+            is_ncsc_military_information_security=False,
+            comment="Classic product",
+        )
         self.submit_application(self.draft_2)
         self.url = reverse("cases:good_precedents", kwargs={"pk": self.case.id})
 
