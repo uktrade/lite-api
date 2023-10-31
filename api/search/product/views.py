@@ -33,7 +33,14 @@ class ProductDocumentView(DocumentViewSet):
         filter_backends.HighlightBackend,
     ]
 
-    search_fields = ["name", "part_number", "control_list_entries", "report_summary", "regime_entries"]
+    search_fields = [
+        "name",
+        "part_number",
+        "control_list_entries",
+        "report_summary",
+        "organisation",
+        "assessment_note",
+    ]
 
     search_nested_fields = {
         # explicitly defined to make highlighting work

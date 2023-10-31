@@ -147,7 +147,7 @@ class ProductSearchTests(DataTestClient):
         )
 
         good = GoodFactory(
-            name="mom's homemade lemonade",
+            name="controlled chemical substance",
             part_number="xyz123",
             organisation=self.organisation,
             is_good_controlled=True,
@@ -287,7 +287,7 @@ class ProductSearchTests(DataTestClient):
         self.assertEqual(response.status_code, 200)
 
         response = response.json()
-        self.assertEqual(response["count"], 6)
+        self.assertEqual(response["count"], 9)
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
