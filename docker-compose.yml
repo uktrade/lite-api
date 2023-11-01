@@ -27,7 +27,7 @@ services:
       - db
     expose:
       - 8100
-    command: python manage.py runserver 0.0.0.0:${PORT:-8100}
+    command: pipenv run python manage.py runserver 0.0.0.0:${PORT:-8100}
     networks:
       - lite
     stdin_open: true
@@ -43,7 +43,7 @@ services:
       - redis
     depends_on:
       - api
-    command: watchmedo auto-restart -d . -R -p '*.py' -- celery -A api.conf worker -l info
+    command: pipenv run watchmedo auto-restart -d . -R -p '*.py' -- celery -A api.conf worker -l info
     networks:
       - lite
 
