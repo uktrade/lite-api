@@ -25,6 +25,9 @@ class ProductSearchTests(DataTestClient):
         self.tau_user2 = GovUserFactory(
             baseuser_ptr=BaseUserFactory(first_name="TAU", last_name="Advisor2"), team=self.team
         )
+        self.tau_user3 = GovUserFactory(
+            baseuser_ptr=BaseUserFactory(first_name="TAU", last_name="Advisor3"), team=self.team
+        )
 
         # Create few products and add them to an application
         good = GoodFactory(
@@ -112,6 +115,57 @@ class ProductSearchTests(DataTestClient):
             comment="industrial use",
         )
 
+        good = GoodFactory(
+            name="M2 Pro Max",
+            part_number="867-5309",
+            organisation=self.organisation,
+            is_good_controlled=True,
+            control_list_entries=["6A001a1d"],
+        )
+        GoodOnApplicationFactory(
+            application=self.case,
+            good=good,
+            is_good_controlled=True,
+            report_summary="marine position fixing equipment",
+            regime_entries=["Wassenaar Arrangement"],
+            assessed_by=self.tau_user3,
+            assessment_date=parse("2023-10-22T15:51:28.529110+00:00"),
+        )
+
+        good = GoodFactory(
+            name="Instax HD camera",
+            part_number="abc123xyz",
+            organisation=self.organisation,
+            is_good_controlled=True,
+            control_list_entries=["6A003b4a"],
+        )
+        GoodOnApplicationFactory(
+            application=self.case,
+            good=good,
+            is_good_controlled=True,
+            report_summary="imaging cameras",
+            regime_entries=["Wassenaar Arrangement Sensitive"],
+            assessed_by=self.tau_user3,
+            assessment_date=parse("2023-10-23T15:51:28.529110+00:00"),
+        )
+
+        good = GoodFactory(
+            name="controlled chemical substance",
+            part_number="xyz123",
+            organisation=self.organisation,
+            is_good_controlled=True,
+            control_list_entries=["1C35016"],
+        )
+        GoodOnApplicationFactory(
+            application=self.case,
+            good=good,
+            is_good_controlled=True,
+            report_summary="chemicals used for general laboratory work/scientific research",
+            regime_entries=["CWC Schedule 3"],
+            assessed_by=self.tau_user3,
+            assessment_date=parse("2023-10-24T15:51:28.529110+00:00"),
+        )
+
         call_command("search_index", models=["applications.GoodOnApplication"], action="rebuild", force=True)
 
     @pytest.mark.elasticsearch
@@ -177,9 +231,34 @@ class ProductSearchTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
+            ({"search": "Wassenaar Arrangement"}, 2, "W", "Wassenaar Arrangement"),
+            ({"search": "WS"}, 1, "WS", "Wassenaar Arrangement Sensitive"),
+            ({"search": "CWC 3"}, 1, "CWC 3", "CWC Schedule 3"),
+        ]
+    )
+    def test_product_search_by_regime(
+        self, query, expected_count, expected_regime_shortened_name, expected_regime_name
+    ):
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        self.assertEqual(response["count"], expected_count)
+        self.assertIn(
+            expected_regime_shortened_name,
+            [entry["shortened_name"] for item in response["results"] for entry in item["regime_entries"]],
+        )
+        self.assertIn(
+            expected_regime_name,
+            [entry["name"] for item in response["results"] for entry in item["regime_entries"]],
+        )
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
             ({"search": "sensor"}, 2, "Magnetic sensors"),
             ({"search": "sensor"}, 2, "Imaging sensors"),
-            ({"search": "chemicals"}, 1, "Chemicals"),
+            ({"search": "chemicals"}, 2, "Chemicals"),
         ]
     )
     def test_product_search_by_report_summary(self, query, expected_count, expected_report_summary):
@@ -211,7 +290,7 @@ class ProductSearchTests(DataTestClient):
         self.assertEqual(response.status_code, 200)
 
         response = response.json()
-        self.assertEqual(response["count"], 6)
+        self.assertEqual(response["count"], 9)
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
