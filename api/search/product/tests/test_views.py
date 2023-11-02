@@ -25,6 +25,9 @@ class ProductSearchTests(DataTestClient):
         self.tau_user2 = GovUserFactory(
             baseuser_ptr=BaseUserFactory(first_name="TAU", last_name="Advisor2"), team=self.team
         )
+        self.tau_user3 = GovUserFactory(
+            baseuser_ptr=BaseUserFactory(first_name="TAU", last_name="Advisor3"), team=self.team
+        )
 
         # Create few products and add them to an application
         good = GoodFactory(
@@ -125,7 +128,7 @@ class ProductSearchTests(DataTestClient):
             is_good_controlled=True,
             report_summary="marine position fixing equipment",
             regime_entries=["Wassenaar Arrangement"],
-            assessed_by=self.tau_user2,
+            assessed_by=self.tau_user3,
             assessment_date=parse("2023-10-22T15:51:28.529110+00:00"),
         )
 
@@ -142,7 +145,7 @@ class ProductSearchTests(DataTestClient):
             is_good_controlled=True,
             report_summary="imaging cameras",
             regime_entries=["Wassenaar Arrangement Sensitive"],
-            assessed_by=self.tau_user2,
+            assessed_by=self.tau_user3,
             assessment_date=parse("2023-10-23T15:51:28.529110+00:00"),
         )
 
@@ -159,7 +162,7 @@ class ProductSearchTests(DataTestClient):
             is_good_controlled=True,
             report_summary="chemicals used for general laboratory work/scientific research",
             regime_entries=["CWC Schedule 3"],
-            assessed_by=self.tau_user2,
+            assessed_by=self.tau_user3,
             assessment_date=parse("2023-10-24T15:51:28.529110+00:00"),
         )
 
@@ -270,7 +273,7 @@ class ProductSearchTests(DataTestClient):
     @parameterized.expand(
         [
             ({"search": "Advisor1"}, 3),
-            ({"search": "Advisor2"}, 5),
+            ({"search": "Advisor2"}, 2),
         ]
     )
     def test_product_search_by_assessing_officer(self, query, expected_count):
