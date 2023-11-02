@@ -56,16 +56,30 @@ class Migration(migrations.Migration):
                 good_on_application = GoodOnApplication.objects.get(id=good_on_application_pk)
             except GoodOnApplication.DoesNotExist:
                 logger.warning("GoodOnApplication with id %s does not exist", good_on_application_pk)
-            else:
-                good_on_application.report_summary_prefix_id = report_prefix_id
-                good_on_application.report_summary_subject_id = report_subject_id
-                good_on_application.save()
-                logger.info(
-                    "GoodOnApplication with id %s updated prefix=%s, subject=%s",
+                continue
+
+            if good_on_application.report_summary_prefix_id is not None:
+                logger.warning(
+                    "GoodOnApplication with id %s already has a report summary prefix, skipping...",
                     good_on_application_pk,
-                    report_prefix_id,
-                    report_subject_id,
                 )
+                continue
+            elif good_on_application.report_summary_subject_id is not None:
+                logger.warning(
+                    "GoodOnApplication with id %s already has a report summary subject, skipping...",
+                    good_on_application_pk,
+                )
+                continue
+
+            good_on_application.report_summary_prefix_id = report_prefix_id
+            good_on_application.report_summary_subject_id = report_subject_id
+            good_on_application.save()
+            logger.info(
+                "GoodOnApplication with id %s updated prefix=%s, subject=%s",
+                good_on_application_pk,
+                report_prefix_id,
+                report_subject_id,
+            )
 
     dependencies = [
         ("applications", "0074_back_populate_product_assessor_details"),
