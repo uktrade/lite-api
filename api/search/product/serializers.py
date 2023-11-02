@@ -32,7 +32,7 @@ class ProductDocumentSerializer(DocumentSerializer):
             "rating_comment",
             "report_summary",
             "part_number",
-            "regime",
+            "regime_entries",
             "queues",
             "assessed_by",
             "assessment_date",
@@ -41,7 +41,7 @@ class ProductDocumentSerializer(DocumentSerializer):
             "name": {"required": False, "allow_null": True},
             "canonical_name": {"required": False},
             "id": {"required": False},
-            "regime": {"required": False},
+            "regime_entries": {"required": False},
             "queues": {"required": False},
         }
 
