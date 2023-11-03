@@ -1,15 +1,16 @@
 #!/bin/bash -xe
-python /app/manage.py migrate --noinput
+cd /app/
+pipenv run ./manage.py migrate --noinput
 
 # Create initial users
-INTERNAL_USERS='[{"email"=>"foo@bar.gov.uk"}]' /app/manage.py seedinternalusers
-EXPORTER_USERS='[{"email"=>"foo@bar.com"}]' /app/manage.py seedexporterusers
+INTERNAL_USERS='[{"email"=>"foo@bar.gov.uk"}]' pipenv run ./manage.py seedinternalusers
+EXPORTER_USERS='[{"email"=>"foo@bar.com"}]' pipenv run ./manage.py seedexporterusers
 
 # Fill sanctions in ES
-LITE_API_ENABLE_ES=true /app/manage.py ingest_ui_test_sanctions
+LITE_API_ENABLE_ES=true pipenv run ./manage.py ingest_ui_test_sanctions
 
 # Rebuild ES index
-LITE_API_ENABLE_ES=true /app/manage.py search_index --rebuild -f
+LITE_API_ENABLE_ES=true pipenv run ./manage.py search_index --rebuild -f
 
 # Run app
-python /app/manage.py runserver 0.0.0.0:8100
+pipenv run ./manage.py runserver 0.0.0.0:8100
