@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
+from api.goods.enums import GoodStatus
 from api.goods.tests.factories import GoodFactory
 from api.applications.models import GoodOnApplication
 from api.staticdata.regimes.models import RegimeEntry
@@ -58,3 +59,10 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application.report_summary == "some legacy summary"
         assert good_on_application.is_ncsc_military_information_security == True
         assert good_on_application.report_summary == "some legacy summary"
+
+        good = good_on_application.good
+        assert good.status == GoodStatus.VERIFIED
+        assert [cle.rating for cle in good.control_list_entries.all()] == ["ML1"]
+        assert good.report_summary == "some legacy summary"
+        assert good.report_summary_prefix_id == report_summary_prefix
+        assert good.report_summary_subject_id == report_summary_subject

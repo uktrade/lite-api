@@ -3,6 +3,8 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.applications.models import GoodOnApplication
 from api.core.serializers import GoodControlReviewSerializer
+from api.flags.enums import SystemFlags
+from api.goods.enums import GoodStatus
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.regimes.models import RegimeEntry
 from api.users.enums import UserStatuses
@@ -50,3 +52,29 @@ class AssessmentSerializer(GoodControlReviewSerializer):
             "assessed_by",
         )
         list_serializer_class = UpdateListSerializer
+
+    def update_good(self, instance, validated_data):
+        good = instance.good
+        # Add control entries to a verified good
+        if good.status == GoodStatus.VERIFIED:
+            good.control_list_entries.add(*validated_data["control_list_entries"])
+        # Overwrite control entries for a previously unverified good
+        else:
+            good.status = GoodStatus.VERIFIED
+            good.control_list_entries.set(validated_data["control_list_entries"])
+            good.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
+
+        # Set report summary fields on the good
+        good.report_summary = validated_data.get("report_summary", instance.report_summary)
+        if validated_data.get("report_summary_prefix", None):
+            good.report_summary_prefix = validated_data["report_summary_prefix"]
+        if validated_data.get("report_summary_subject", None):
+            good.report_summary_subject = validated_data["report_summary_subject"]
+
+        good.save()
+
+    def update(self, instance, validated_data):
+        super().update(instance, validated_data)
+        self.update_good(instance, validated_data)
+
+        return instance
