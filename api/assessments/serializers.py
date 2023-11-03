@@ -17,11 +17,11 @@ from lite_content.lite_api import strings
 
 class AssessmentUpdateListSerializer(serializers.ListSerializer):
     def update(self, instances, validated_data):
-
-        instance_hash = {index: instance for index, instance in enumerate(instances)}
-
-        result = [self.child.update(instance_hash[index], attrs) for index, attrs in enumerate(validated_data)]
-
+        instance_data_pairs = zip(instances, validated_data)
+        result = [
+            self.child.update(instance, validated_update_data)
+            for instance, validated_update_data in instance_data_pairs
+        ]
         return result
 
     def validate(self, data):
