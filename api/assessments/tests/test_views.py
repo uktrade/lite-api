@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from django.urls import reverse
+from freezegun import freeze_time
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
@@ -27,22 +30,23 @@ class MakeAssessmentsViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_records(self):
         url = reverse("assessments:make_assessments", kwargs={"case_pk": self.case.id})
         good_on_application = self.good_on_application
         regime_entry = RegimeEntry.objects.first().id
-        report_summary_prefix = ReportSummaryPrefix.objects.first().id
-        report_summary_subject = ReportSummarySubject.objects.first().id
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        report_summary_subject = ReportSummarySubject.objects.first()
         data = [
             {
                 "id": self.good_on_application.id,
                 "control_list_entries": ["ML1"],
                 "regime_entries": [regime_entry],
-                "report_summary_prefix": report_summary_prefix,
-                "report_summary_subject": report_summary_subject,
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": report_summary_subject.id,
                 "is_good_controlled": True,
                 "comment": "some comment",
-                "report_summary": "some legacy summary",
+                "report_summary": "some string we expect to be overwritten",
                 "is_ncsc_military_information_security": True,
             }
         ]
@@ -53,20 +57,21 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert all_cles == ["ML1"]
         all_regime_entries = [regime_entry.id for regime_entry in good_on_application.regime_entries.all()]
         assert all_regime_entries == [regime_entry]
-        assert good_on_application.report_summary_prefix_id == report_summary_prefix
-        assert good_on_application.report_summary_subject_id == report_summary_subject
+        assert good_on_application.report_summary_prefix_id == report_summary_prefix.id
+        assert good_on_application.report_summary_subject_id == report_summary_subject.id
         assert good_on_application.is_good_controlled == True
         assert good_on_application.comment == "some comment"
-        assert good_on_application.report_summary == "some legacy summary"
         assert good_on_application.is_ncsc_military_information_security == True
-        assert good_on_application.report_summary == "some legacy summary"
+        assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
+        assert good_on_application.assessed_by == self.gov_user
+        assert good_on_application.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
 
         good = good_on_application.good
         assert good.status == GoodStatus.VERIFIED
         assert [cle.rating for cle in good.control_list_entries.all()] == ["ML1"]
-        assert good.report_summary == "some legacy summary"
-        assert good.report_summary_prefix_id == report_summary_prefix
-        assert good.report_summary_subject_id == report_summary_subject
+        assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
+        assert good.report_summary_prefix_id == report_summary_prefix.id
+        assert good.report_summary_subject_id == report_summary_subject.id
 
     def test_terminal_case_400(self):
         self.application.status = CaseStatus.objects.get(status="finalised")

@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -46,9 +47,6 @@ class AssessmentSerializer(GoodControlReviewSerializer):
     report_summary_subject = PrimaryKeyRelatedField(
         required=False, allow_null=True, queryset=ReportSummarySubject.objects.all()
     )
-    assessed_by = PrimaryKeyRelatedField(
-        required=False, allow_null=True, queryset=GovUser.objects.filter(status=UserStatuses.ACTIVE)
-    )
 
     class Meta:
         model = GoodOnApplication
@@ -61,9 +59,18 @@ class AssessmentSerializer(GoodControlReviewSerializer):
             "report_summary_prefix",
             "report_summary_subject",
             "is_ncsc_military_information_security",
-            "assessed_by",
         )
         list_serializer_class = AssessmentUpdateListSerializer
+
+    def validate(self, data):
+        # If we have a report summary subject, overwrite whatever report_summary value
+        # we have with the string from the subject/prefix
+        if data.get("report_summary_subject"):
+            if data.get("report_summary_prefix"):
+                data["report_summary"] = f"{data['report_summary_prefix'].name} {data['report_summary_subject'].name}"
+            else:
+                data["report_summary"] = data["report_summary_subject"].name
+        return data
 
     def update_good(self, instance, validated_data):
         good = instance.good
@@ -87,6 +94,10 @@ class AssessmentSerializer(GoodControlReviewSerializer):
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
+        instance.assessed_by = validated_data["user"]
+        instance.assessment_date = timezone.now()
+        instance.save()
+
         self.update_good(instance, validated_data)
 
         return instance
