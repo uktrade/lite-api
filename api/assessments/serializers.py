@@ -7,11 +7,14 @@ from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserStatuses
 from api.users.models import GovUser
 
+from lite_content.lite_api import strings
 
-class UpdateListSerializer(serializers.ListSerializer):
+
+class AssessmentUpdateListSerializer(serializers.ListSerializer):
     def update(self, instances, validated_data):
 
         instance_hash = {index: instance for index, instance in enumerate(instances)}
@@ -19,6 +22,15 @@ class UpdateListSerializer(serializers.ListSerializer):
         result = [self.child.update(instance_hash[index], attrs) for index, attrs in enumerate(validated_data)]
 
         return result
+
+    def validate(self, data):
+        if self.instance:
+            application = self.instance[0].application
+            if CaseStatusEnum.is_terminal(application.status.status):
+                raise serializers.ValidationError(
+                    strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR
+                )
+        return data
 
 
 class AssessmentSerializer(GoodControlReviewSerializer):
@@ -51,7 +63,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
             "is_ncsc_military_information_security",
             "assessed_by",
         )
-        list_serializer_class = UpdateListSerializer
+        list_serializer_class = AssessmentUpdateListSerializer
 
     def update_good(self, instance, validated_data):
         good = instance.good

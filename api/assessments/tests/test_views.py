@@ -7,6 +7,7 @@ from api.goods.tests.factories import GoodFactory
 from api.applications.models import GoodOnApplication
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.statuses.models import CaseStatus
 
 
 class MakeAssessmentsViewTests(DataTestClient):
@@ -66,3 +67,21 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good.report_summary == "some legacy summary"
         assert good.report_summary_prefix_id == report_summary_prefix
         assert good.report_summary_subject_id == report_summary_subject
+
+    def test_terminal_case_400(self):
+        self.application.status = CaseStatus.objects.get(status="finalised")
+        self.application.save()
+        url = reverse("assessments:make_assessments", kwargs={"case_pk": self.case.id})
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": ["ML1"],
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some legacy summary",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
