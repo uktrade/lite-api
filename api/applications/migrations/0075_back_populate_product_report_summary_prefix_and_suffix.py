@@ -7,8 +7,6 @@ from django.db import migrations
 
 logger = logging.getLogger(__name__)
 
-CONTENT_ROOT = Path(settings.BASE_DIR).parent / "lite_content"
-
 
 def read_updates_csv(filename):
     with open(filename, newline="") as csvfile:
@@ -26,15 +24,17 @@ def read_updates_csv(filename):
 
 
 class Migration(migrations.Migration):
-
-    data_path = (
-        CONTENT_ROOT
-        / "lite_api/migrations/applications/0075_back_populate_product_report_summary_prefix_and_suffix.csv"
-    )
+    @classmethod
+    def get_csv_filename(cls):
+        return (
+            Path(settings.CONTENT_DATA_MIGRATION_DIR)
+            / "applications"
+            / "0075_back_populate_product_report_summary_prefix_and_suffix.csv"
+        ).as_posix()
 
     def unpopulate_report_prefix_and_subject(apps, schema_editor):
         GoodOnApplication = apps.get_model("applications", "GoodOnApplication")
-        for row in read_updates_csv(Migration.data_path):
+        for row in read_updates_csv(Migration.get_csv_filename()):
             good_on_application_pk = row["id"]
             try:
                 good_on_application = GoodOnApplication.objects.get(id=good_on_application_pk)
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
 
     def populate_report_prefix_and_subject(apps, schema_editor):
         GoodOnApplication = apps.get_model("applications", "GoodOnApplication")
-        for row in read_updates_csv(Migration.data_path):
+        for row in read_updates_csv(Migration.get_csv_filename()):
             good_on_application_pk = row["id"]
             report_prefix_id = row["suggested_prefix_id"]
             report_subject_id = row["suggested_subject_id"]
