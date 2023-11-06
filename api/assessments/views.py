@@ -49,6 +49,6 @@ def validate_ids(data, unique=True):
     ids = [record["id"] for record in data]
 
     if unique and len(ids) != len(set(ids)):
-        raise serialzers.ValidationError("Multiple updates to a single GoodOnApplication id found")
+        raise serializers.ValidationError("Multiple updates to a single GoodOnApplication id found")
 
     return ids
