@@ -60,7 +60,7 @@ class QueryStringQueryBackend(CustomBaseSearchQueryBackend):
             query_fields = []
 
             # If we're dealing with case like
-            # /search/books/?search=name,report_summary:sniper rifles
+            # /search/products/?search=name,report_summary:sniper rifles
             if __len_values > 1:
                 _field, value = __values
                 __search_term = value
@@ -75,7 +75,7 @@ class QueryStringQueryBackend(CustomBaseSearchQueryBackend):
                             query_fields.append(field)
 
             # If it's just a simple search like
-            # /search/books/?search=sniper AND rifles
+            # /search/products/?search=sniper AND rifles
             # Fields shall be defined in a very simple way.
             else:
                 # If it is defined as dict
