@@ -25,6 +25,9 @@ class MakeAssessmentsViewTests(DataTestClient):
         self.good_on_application = GoodOnApplication.objects.create(
             good=self.good, application=self.application, quantity=10, value=500
         )
+        self.good_on_application_2 = GoodOnApplication.objects.create(
+            good=self.good, application=self.application, quantity=10, value=500
+        )
         self.assessment_url = reverse("assessments:make_assessments", kwargs={"case_pk": self.case.id})
 
     def test_empty_data_success(self):
@@ -33,9 +36,8 @@ class MakeAssessmentsViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # TODO: parameterize this testcase with lots of variations including multiple GOAs
     @freeze_time("2023-11-03 12:00:00")
-    def test_valid_data_updates_records(self):
+    def test_valid_data_updates_single_record(self):
         good_on_application = self.good_on_application
         regime_entry = RegimeEntry.objects.first()
         report_summary_prefix = ReportSummaryPrefix.objects.first()
@@ -91,6 +93,62 @@ class MakeAssessmentsViewTests(DataTestClient):
             "report_summary": good_on_application.report_summary,
         }
 
+    @freeze_time("2023-11-03 12:00:00")
+    def test_valid_data_updates_multiple_records(self):
+        good_on_application = self.good_on_application
+        good_on_application_2 = self.good_on_application_2
+        regime_entry = RegimeEntry.objects.first()
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        report_summary_subject = ReportSummarySubject.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": ["ML1"],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": report_summary_subject.id,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some string we expect to be overwritten",
+                "is_ncsc_military_information_security": True,
+            },
+            {
+                "id": self.good_on_application_2.id,
+                "control_list_entries": ["ML2"],
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some report summary string",
+                "is_ncsc_military_information_security": True,
+            },
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application.refresh_from_db()
+        all_cles = [cle.rating for cle in good_on_application.control_list_entries.all()]
+        assert all_cles == ["ML1"]
+        all_regime_entries = [regime_entry.id for regime_entry in good_on_application.regime_entries.all()]
+        assert all_regime_entries == [regime_entry.id]
+        assert good_on_application.report_summary_prefix_id == report_summary_prefix.id
+        assert good_on_application.report_summary_subject_id == report_summary_subject.id
+        assert good_on_application.is_good_controlled == True
+        assert good_on_application.comment == "some comment"
+        assert good_on_application.is_ncsc_military_information_security == True
+        assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
+        assert good_on_application.assessed_by == self.gov_user
+        assert good_on_application.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
+
+        good_on_application_2.refresh_from_db()
+        all_cles = [cle.rating for cle in good_on_application_2.control_list_entries.all()]
+        assert all_cles == ["ML2"]
+        assert good_on_application_2.report_summary_prefix_id == None
+        assert good_on_application_2.report_summary_subject_id == None
+        assert good_on_application_2.is_good_controlled == True
+        assert good_on_application_2.comment == "some comment"
+        assert good_on_application_2.is_ncsc_military_information_security == True
+        assert good_on_application_2.report_summary == f"some report summary string"
+        assert good_on_application_2.assessed_by == self.gov_user
+        assert good_on_application_2.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
+
     def test_gov_authentication_enforced(self):
         response = self.client.put(self.assessment_url, [], **self.exporter_headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -111,3 +169,27 @@ class MakeAssessmentsViewTests(DataTestClient):
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_repeated_ids_400(self):
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": ["ML1"],
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some legacy summary",
+                "is_ncsc_military_information_security": True,
+            },
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": ["ML1"],
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some legacy summary",
+                "is_ncsc_military_information_security": True,
+            },
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.json() == {"errors": ["Multiple updates to a single GoodOnApplication id found"]}
