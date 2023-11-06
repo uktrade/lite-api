@@ -82,6 +82,8 @@ def test_report_summary_prefix_suffix_population_from_csv(migrator, tmp_applicat
         good_on_application_factory(old_state, report_summary=report_summary) for report_summary in report_summary_data
     ]
 
+    old_good_on_application__pks = {old_good_on_application.pk for old_good_on_application in old_good_on_applications}
+
     # Output the CSV
     with open(
         str(tmp_application_migrations_csv_dir / "0075_back_populate_product_report_summary_prefix_and_suffix.csv"),
@@ -123,9 +125,9 @@ def test_report_summary_prefix_suffix_population_from_csv(migrator, tmp_applicat
     ReportSummaryPrefix = new_state.apps.get_model("report_summaries", "ReportSummaryPrefix")  # noqa N806
     ReportSummarySubject = new_state.apps.get_model("report_summaries", "ReportSummarySubject")  # noqa N806
 
-    new_good_on_applications = GoodOnApplication.objects.filter(report_summary__in=report_summary_data)
+    new_good_on_applications = GoodOnApplication.objects.filter(pk__in=old_good_on_application__pks)
+    assert set(new_good_on_applications.values_list("pk", flat=True)) == old_good_on_application__pks
 
-    assert new_good_on_applications.count() == len(report_summary_data)
     for new_good_on_application in new_good_on_applications:
         assert (
             new_good_on_application.report_summary_subject.id
