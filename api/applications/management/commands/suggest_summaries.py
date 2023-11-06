@@ -10,8 +10,8 @@ from django.core.management.base import BaseCommand
 import csv
 
 
-def annotate_normalised_summary(q: QuerySet):
-    return q.annotate(
+def annotate_normalised_summary(good_on_applications: QuerySet):
+    return good_on_applications.annotate(
         # Remove any numeric suffix from the report summary, also the literal string r"(x)"
         normalised_report_summary=Lower(
             ExpressionWrapper(
@@ -58,7 +58,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("filename", type=str, help="Path to the output CSV file")
 
-    def _get_suggested_subject(self, normalised_report_summary: str, suggested_prefix: ReportSummaryPrefix):
+    @staticmethod
+    def _get_suggested_subject(normalised_report_summary: str, suggested_prefix: ReportSummaryPrefix):
         if suggested_prefix:
             return normalised_report_summary.rsplit(f"{suggested_prefix.name} ", maxsplit=1)[1]
         return normalised_report_summary
