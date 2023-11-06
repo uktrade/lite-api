@@ -25,7 +25,9 @@ def read_updates_csv(filename):
 
 class Migration(migrations.Migration):
     @classmethod
-    def get_csv_filename(cls):
+    def get_csv_path(cls):
+        # Allow overriding the path to the CSV file for testing purposes
+        # (migrations are challenging to patch with mocks)
         return (
             Path(settings.CONTENT_DATA_MIGRATION_DIR)
             / "applications"
@@ -34,7 +36,7 @@ class Migration(migrations.Migration):
 
     def unpopulate_report_prefix_and_subject(apps, schema_editor):
         GoodOnApplication = apps.get_model("applications", "GoodOnApplication")
-        for row in read_updates_csv(Migration.get_csv_filename()):
+        for row in read_updates_csv(Migration.get_csv_path()):
             good_on_application_pk = row["id"]
             try:
                 good_on_application = GoodOnApplication.objects.get(id=good_on_application_pk)
@@ -48,7 +50,7 @@ class Migration(migrations.Migration):
 
     def populate_report_prefix_and_subject(apps, schema_editor):
         GoodOnApplication = apps.get_model("applications", "GoodOnApplication")
-        for row in read_updates_csv(Migration.get_csv_filename()):
+        for row in read_updates_csv(Migration.get_csv_path()):
             good_on_application_pk = row["id"]
             report_prefix_id = row["suggested_prefix_id"]
             report_subject_id = row["suggested_subject_id"]
