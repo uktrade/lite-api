@@ -73,11 +73,12 @@ class Regime(InnerDoc):
 
 
 class Rating(InnerDoc):
-    rating = fields.KeywordField(
+    rating = fields.TextField(
         fields={
             "raw": fields.KeywordField(normalizer=lowercase_normalizer),
             "suggest": fields.CompletionField(),
         },
+        analyzer=descriptive_text_analyzer,
         copy_to="wildcard",
     )
     text = fields.TextField(
