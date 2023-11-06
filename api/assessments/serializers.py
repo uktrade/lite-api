@@ -12,8 +12,6 @@ from api.goods.enums import GoodStatus
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.users.enums import UserStatuses
-from api.users.models import GovUser
 
 from lite_content.lite_api import strings
 

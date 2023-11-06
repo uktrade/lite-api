@@ -1,5 +1,6 @@
+from django.db import transaction
 from django.http import JsonResponse
-from rest_framework import generics
+from rest_framework import generics, serializers
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication, StandardApplication
@@ -31,6 +32,7 @@ class MakeAssessmentsView(generics.UpdateAPIView):
     def perform_update(self, serializer, user, line_numbers):
         serializer.save(user=user, line_numbers=line_numbers)
 
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         ids = validate_ids(request.data)
         instances = self.get_queryset(ids)
@@ -47,6 +49,6 @@ def validate_ids(data, unique=True):
     ids = [record["id"] for record in data]
 
     if unique and len(ids) != len(set(ids)):
-        raise ValidationError("Multiple updates to a single GoodOnApplication id found")
+        raise serialzers.ValidationError("Multiple updates to a single GoodOnApplication id found")
 
     return ids
