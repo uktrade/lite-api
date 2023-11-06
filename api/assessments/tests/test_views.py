@@ -2,9 +2,12 @@ from datetime import datetime
 
 from django.urls import reverse
 from freezegun import freeze_time
+import pytest
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.goods.enums import GoodStatus
 from api.goods.tests.factories import GoodFactory
 from api.applications.models import GoodOnApplication
@@ -22,26 +25,26 @@ class MakeAssessmentsViewTests(DataTestClient):
         self.good_on_application = GoodOnApplication.objects.create(
             good=self.good, application=self.application, quantity=10, value=500
         )
+        self.assessment_url = reverse("assessments:make_assessments", kwargs={"case_pk": self.case.id})
 
     def test_empty_data_success(self):
-        url = reverse("assessments:make_assessments", kwargs={"case_pk": self.case.id})
         data = []
-        response = self.client.put(url, data, **self.gov_headers)
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    # TODO: parameterize this testcase with lots of variations including multiple GOAs
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_records(self):
-        url = reverse("assessments:make_assessments", kwargs={"case_pk": self.case.id})
         good_on_application = self.good_on_application
-        regime_entry = RegimeEntry.objects.first().id
+        regime_entry = RegimeEntry.objects.first()
         report_summary_prefix = ReportSummaryPrefix.objects.first()
         report_summary_subject = ReportSummarySubject.objects.first()
         data = [
             {
                 "id": self.good_on_application.id,
                 "control_list_entries": ["ML1"],
-                "regime_entries": [regime_entry],
+                "regime_entries": [regime_entry.id],
                 "report_summary_prefix": report_summary_prefix.id,
                 "report_summary_subject": report_summary_subject.id,
                 "is_good_controlled": True,
@@ -50,13 +53,13 @@ class MakeAssessmentsViewTests(DataTestClient):
                 "is_ncsc_military_information_security": True,
             }
         ]
-        response = self.client.put(url, data, **self.gov_headers)
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         good_on_application.refresh_from_db()
         all_cles = [cle.rating for cle in good_on_application.control_list_entries.all()]
         assert all_cles == ["ML1"]
         all_regime_entries = [regime_entry.id for regime_entry in good_on_application.regime_entries.all()]
-        assert all_regime_entries == [regime_entry]
+        assert all_regime_entries == [regime_entry.id]
         assert good_on_application.report_summary_prefix_id == report_summary_prefix.id
         assert good_on_application.report_summary_subject_id == report_summary_subject.id
         assert good_on_application.is_good_controlled == True
@@ -73,10 +76,28 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good.report_summary_prefix_id == report_summary_prefix.id
         assert good.report_summary_subject_id == report_summary_subject.id
 
+        audit_entry = Audit.objects.order_by("-created_at").filter(verb=AuditType.PRODUCT_REVIEWED).first()
+        assert audit_entry.payload == {
+            "additional_text": "some comment",
+            "good_name": good.name,
+            "line_no": 2,
+            "new_control_list_entry": ["ML1"],
+            "new_is_good_controlled": "Yes",
+            "new_regime_entries": [regime_entry.name],
+            "old_control_list_entry": ["No control code"],
+            "old_is_good_controlled": "No",
+            "old_regime_entries": ["No regimes"],
+            "old_report_summary": None,
+            "report_summary": good_on_application.report_summary,
+        }
+
+    def test_gov_authentication_enforced(self):
+        response = self.client.put(self.assessment_url, [], **self.exporter_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
     def test_terminal_case_400(self):
         self.application.status = CaseStatus.objects.get(status="finalised")
         self.application.save()
-        url = reverse("assessments:make_assessments", kwargs={"case_pk": self.case.id})
         data = [
             {
                 "id": self.good_on_application.id,
@@ -87,6 +108,6 @@ class MakeAssessmentsViewTests(DataTestClient):
                 "is_ncsc_military_information_security": True,
             }
         ]
-        response = self.client.put(url, data, **self.gov_headers)
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

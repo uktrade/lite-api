@@ -3,6 +3,9 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.applications.models import GoodOnApplication
+from api.audit_trail import service as audit_trail_service
+from api.audit_trail.enums import AuditType
+from api.cases.libraries.get_case import get_case
 from api.core.serializers import GoodControlReviewSerializer
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
@@ -92,12 +95,48 @@ class AssessmentSerializer(GoodControlReviewSerializer):
 
         good.save()
 
+    def emit_audit_entry(self, instance, validated_data, old_values):
+        case = get_case(instance.application_id)
+        default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
+        default_regimes = ["No regimes"]
+        new_control_list_entries = [item.rating for item in validated_data["control_list_entries"]]
+        new_regime_entries = [regime_entry.name for regime_entry in validated_data.get("regime_entries", [])]
+        audit_trail_service.create(
+            actor=validated_data["user"],
+            verb=AuditType.PRODUCT_REVIEWED,
+            action_object=instance,
+            target=case,
+            payload={
+                "line_no": validated_data["line_numbers"][instance.id],
+                "good_name": instance.name,
+                "new_control_list_entry": new_control_list_entries or default_control,
+                "old_control_list_entry": old_values["control_list_entry"] or default_control,
+                "old_is_good_controlled": "Yes" if old_values["is_good_controlled"] else "No",
+                "new_is_good_controlled": "Yes" if validated_data["is_good_controlled"] else "No",
+                "old_report_summary": old_values["report_summary"],
+                "report_summary": instance.report_summary,
+                "additional_text": validated_data["comment"],
+                "old_regime_entries": old_values["regime_entries"] or default_regimes,
+                "new_regime_entries": new_regime_entries or default_regimes,
+            },
+        )
+
+    def get_old_values_for_audit(self, instance):
+        return {
+            "control_list_entry": list(instance.control_list_entries.values_list("rating", flat=True)),
+            "is_good_controlled": instance.is_good_controlled,
+            "report_summary": instance.report_summary,
+            "regime_entries": list(instance.regime_entries.values_list("name", flat=True)),
+        }
+
     def update(self, instance, validated_data):
+        old_values = self.get_old_values_for_audit(instance)
         super().update(instance, validated_data)
         instance.assessed_by = validated_data["user"]
         instance.assessment_date = timezone.now()
         instance.save()
 
         self.update_good(instance, validated_data)
+        self.emit_audit_entry(instance, validated_data, old_values)
 
         return instance
