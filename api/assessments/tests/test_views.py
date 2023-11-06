@@ -28,6 +28,9 @@ class MakeAssessmentsViewTests(DataTestClient):
         self.good_on_application_2 = GoodOnApplication.objects.create(
             good=self.good, application=self.application, quantity=10, value=500
         )
+        self.good_on_application_3 = GoodOnApplication.objects.create(
+            good=self.good, application=self.application, quantity=10, value=500
+        )
         self.assessment_url = reverse("assessments:make_assessments", kwargs={"case_pk": self.case.id})
 
     def test_empty_data_success(self):
@@ -97,6 +100,7 @@ class MakeAssessmentsViewTests(DataTestClient):
     def test_valid_data_updates_multiple_records(self):
         good_on_application = self.good_on_application
         good_on_application_2 = self.good_on_application_2
+        good_on_application_3 = self.good_on_application_3
         regime_entry = RegimeEntry.objects.first()
         report_summary_prefix = ReportSummaryPrefix.objects.first()
         report_summary_subject = ReportSummarySubject.objects.first()
@@ -118,6 +122,15 @@ class MakeAssessmentsViewTests(DataTestClient):
                 "is_good_controlled": True,
                 "comment": "some comment",
                 "report_summary": "some report summary string",
+                "is_ncsc_military_information_security": True,
+            },
+            {
+                "id": self.good_on_application_3.id,
+                "control_list_entries": [],
+                "is_good_controlled": False,
+                "comment": "some comment",
+                "report_summary_subject": report_summary_subject.id,
+                "report_summary": "some string we expect to be overwritten",
                 "is_ncsc_military_information_security": True,
             },
         ]
@@ -148,6 +161,18 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application_2.report_summary == f"some report summary string"
         assert good_on_application_2.assessed_by == self.gov_user
         assert good_on_application_2.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
+
+        good_on_application_3.refresh_from_db()
+        all_cles = [cle.rating for cle in good_on_application_3.control_list_entries.all()]
+        assert all_cles == []
+        assert good_on_application_3.report_summary_prefix_id == None
+        assert good_on_application_3.report_summary_subject_id == report_summary_subject.id
+        assert good_on_application_3.is_good_controlled == False
+        assert good_on_application_3.comment == "some comment"
+        assert good_on_application_3.is_ncsc_military_information_security == True
+        assert good_on_application_3.report_summary == report_summary_subject.name
+        assert good_on_application_3.assessed_by == self.gov_user
+        assert good_on_application_3.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
 
     def test_gov_authentication_enforced(self):
         response = self.client.put(self.assessment_url, [], **self.exporter_headers)
