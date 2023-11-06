@@ -28,7 +28,6 @@ class ProductDocumentView(DocumentViewSet):
         filter_backends.OrderingFilterBackend,
         filter_backends.DefaultOrderingFilterBackend,
         custom_filter_backends.QueryStringSearchFilterBackend,
-        filter_backends.SearchFilterBackend,
         filter_backends.FilteringFilterBackend,
         filter_backends.NestedFilteringFilterBackend,
         filter_backends.SourceBackend,
