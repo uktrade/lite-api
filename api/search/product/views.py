@@ -46,10 +46,11 @@ class ProductDocumentView(DocumentViewSet):
     query_string_search_fields = {
         "name": None,
         "part_number": None,
-        "control_list_entries": None,
         "report_summary": None,
         "organisation": None,
         "assessment_note": None,
+        "ratings": None,
+        "regimes": None,
     }
 
     search_nested_fields = {

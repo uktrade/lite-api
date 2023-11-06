@@ -134,6 +134,8 @@ class ProductDocumentType(Document):
         analyzer=descriptive_text_analyzer,
     )
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=Rating)
+    ratings = fields.TextField(attr="good.name", multi=True)  # is overwritten in prepare
+
     queues = fields.NestedField(doc_class=Queue, attr="application.queues")
 
     name = fields.TextField(attr="good.name", copy_to="wildcard", analyzer=descriptive_text_analyzer)
@@ -187,6 +189,7 @@ class ProductDocumentType(Document):
     )
 
     regime_entries = fields.NestedField(attr="regime_entries", doc_class=Regime)
+    regimes = fields.TextField(attr="good.name", multi=True)  # is overwritten in prepare
 
     assessed_by = fields.NestedField(doc_class=GovUser, attr="assessed_by")
     assessment_date = fields.DateField(
@@ -217,6 +220,8 @@ class ProductDocumentType(Document):
         data = super().prepare(instance)
         data["context"] = f"{data['destination']}🔥{data['end_use']}🔥{data['end_user_type']}"
         data["canonical_name"] = data["name"]
+        data["ratings"] = [cle.rating for cle in instance.good.control_list_entries.all()]
+        data["regimes"] = [regime.name for regime in instance.regime_entries.all()]
         return data
 
     def get_indexing_queryset(self):
