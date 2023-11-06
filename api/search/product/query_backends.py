@@ -1,6 +1,4 @@
 import copy
-import operator
-import six
 
 from elasticsearch_dsl.query import Q
 from django_elasticsearch_dsl_drf.filter_backends.search.query_backends import BaseSearchQueryBackend
@@ -30,78 +28,7 @@ class QueryStringQueryBackend(CustomBaseSearchQueryBackend):
         return query_options
 
     @classmethod
-    def _construct_nested_search(cls, request, view, search_backend):
-        if not hasattr(view, "search_nested_fields"):
-            return []
-
-        query_params = search_backend.get_search_query_params(request)
-        __queries = []
-
-        for search_term in query_params:
-            __values = search_backend.split_lookup_name(search_term, 1)
-            __len_values = len(__values)
-            if __len_values > 1:
-                label, value = __values
-                if label in view.search_nested_fields:
-                    options = view.search_nested_fields.get(label)
-                    path = options.get("path")
-
-                    queries = []
-                    for _field in options.get("fields", []):
-                        # In case if we deal with structure 2
-                        if isinstance(_field, dict):
-                            # take options (ex: boost) into consideration
-                            field_options = {key: value for key, value in _field.items() if key != "name"}
-                            field_options.update(
-                                {
-                                    "query": search_term,
-                                }
-                            )
-                            field = "{}.{}".format(path, _field["name"])
-                            field_kwargs = {
-                                field: field_options,
-                            }
-                        # In case if we deal with structure 1
-                        else:
-                            field = "{}.{}".format(path, _field)
-                            field_kwargs = {field: value}
-
-                        queries = [Q("match", **field_kwargs)]
-
-                    __queries.append(Q("nested", path=path, query=six.moves.reduce(operator.or_, queries)))
-            else:
-                for label, options in view.search_nested_fields.items():
-                    queries = []
-                    path = options.get("path")
-
-                    for _field in options.get("fields", []):
-                        # In case if we deal with structure 2
-                        if isinstance(_field, dict):
-                            # take options (ex: boost) into consideration
-                            field_options = {key: value for key, value in _field.items() if key != "name"}
-                            field_options.update(
-                                {
-                                    "query": search_term,
-                                }
-                            )
-                            field = "{}.{}".format(path, _field["name"])
-                            field_kwargs = {
-                                field: field_options,
-                            }
-                        # In case if we deal with structure 1
-                        else:
-                            field = "{}.{}".format(path, _field)
-                            field_kwargs = {field: search_term}
-                            field_kwargs = {"query": search_term, "fields": [field]}
-
-                        queries.append(Q("query_string", **field_kwargs))
-
-                    __queries.append(Q("nested", path=path, query=six.moves.reduce(operator.or_, queries)))
-
-        return __queries
-
-    @classmethod
-    def _construct_search(cls, request, view, search_backend):
+    def construct_search(cls, request, view, search_backend):
         """Construct search.
 
         Note, that multiple searches are not supported (would not raise
@@ -170,10 +97,3 @@ class QueryStringQueryBackend(CustomBaseSearchQueryBackend):
             )
 
         return __queries
-
-    @classmethod
-    def construct_search(cls, request, view, search_backend):
-        search_queries = cls._construct_search(request, view, search_backend)
-        nested_search_queries = cls._construct_nested_search(request, view, search_backend)
-
-        return search_queries + nested_search_queries
