@@ -51,6 +51,7 @@ class ProductDocumentView(DocumentViewSet):
         "assessment_note": None,
         "ratings": None,
         "regimes": None,
+        "assessed_by": None,
     }
 
     search_nested_fields = {

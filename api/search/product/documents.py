@@ -191,7 +191,7 @@ class ProductDocumentType(Document):
     regime_entries = fields.NestedField(attr="regime_entries", doc_class=Regime)
     regimes = fields.TextField(attr="good.name", multi=True)  # is overwritten in prepare
 
-    assessed_by = fields.NestedField(doc_class=GovUser, attr="assessed_by")
+    assessed_by = fields.TextField(attr="good.name", multi=True)  # is overwritten in prepare
     assessment_date = fields.DateField(
         attr="assessment_date",
         fields={
@@ -222,6 +222,15 @@ class ProductDocumentType(Document):
         data["canonical_name"] = data["name"]
         data["ratings"] = [cle.rating for cle in instance.good.control_list_entries.all()]
         data["regimes"] = [regime.name for regime in instance.regime_entries.all()]
+        data["assessed_by"] = (
+            [
+                instance.assessed_by.first_name,
+                instance.assessed_by.last_name,
+                instance.assessed_by.email,
+            ]
+            if instance.assessed_by
+            else []
+        )
         return data
 
     def get_indexing_queryset(self):
