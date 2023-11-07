@@ -18,7 +18,11 @@ from lite_content.lite_api import strings
 
 class AssessmentUpdateListSerializer(serializers.ListSerializer):
     def update(self, instances, validated_data):
-        instance_data_pairs = zip(instances, validated_data)
+        instances_by_id = {str(instance.id): instance for instance in instances}
+        validated_data_by_id = {str(data["id"]): data for data in validated_data if data.get("id")}
+        instance_data_pairs = []
+        for instance_id, instance in instances_by_id.items():
+            instance_data_pairs.append((instance, validated_data_by_id[instance_id]))
         result = [
             self.child.update(instance, validated_update_data)
             for instance, validated_update_data in instance_data_pairs
@@ -37,6 +41,7 @@ class AssessmentUpdateListSerializer(serializers.ListSerializer):
 
 class AssessmentSerializer(GoodControlReviewSerializer):
 
+    id = serializers.UUIDField()
     regime_entries = PrimaryKeyRelatedField(
         many=True,
         queryset=RegimeEntry.objects.all(),
@@ -52,6 +57,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
     class Meta:
         model = GoodOnApplication
         fields = (
+            "id",
             "control_list_entries",
             "is_good_controlled",
             "comment",
