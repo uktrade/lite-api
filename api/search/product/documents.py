@@ -221,7 +221,9 @@ class ProductDocumentType(Document):
         data["context"] = f"{data['destination']}🔥{data['end_use']}🔥{data['end_user_type']}"
         data["canonical_name"] = data["name"]
         data["ratings"] = [cle.rating for cle in instance.good.control_list_entries.all()]
-        data["regimes"] = [regime.name for regime in instance.regime_entries.all()]
+        data["regimes"] = [regime.name for regime in instance.regime_entries.all()] + [
+            regime.shortened_name for regime in instance.regime_entries.all()
+        ]
         data["assessed_by"] = (
             [
                 instance.assessed_by.first_name,
