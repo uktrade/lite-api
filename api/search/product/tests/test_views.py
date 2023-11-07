@@ -7,6 +7,7 @@ from django.core.management import call_command
 from django.urls import reverse
 
 from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory
+from api.goods.models import Good
 from api.teams.tests.factories import TeamFactory
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
 from test_helpers.clients import DataTestClient
@@ -94,7 +95,7 @@ def get_products_data(organisation, application, gov_users):
                 "application": application,
                 "is_good_controlled": True,
                 "report_summary": "components for spectrometers",
-                "comment": "Research and development. Potentially under WVS regime"
+                "comment": "Research and development. Potentially under WVS regime",
             },
         },
         {
@@ -248,7 +249,7 @@ class ProductSearchTests(DataTestClient):
     @parameterized.expand(
         [
             ({"search": "ABC"}, 1, "ABC-123"),
-            ({"search": "HFL"}, 1, "HFL"),
+            ({"search": "H2SO4"}, 1, "H2SO4"),
         ]
     )
     def test_product_search_by_part_number(self, query, expected_count, expected_part_number):
@@ -335,11 +336,12 @@ class ProductSearchTests(DataTestClient):
     @pytest.mark.elasticsearch
     def test_product_search_by_applicant(self):
         query_params = {"search": f"{self.organisation.name}"}
+        expected_count = Good.objects.filter(organisation=self.organisation).count()
         response = self.client.get(self.product_search_url, query_params, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
         response = response.json()
-        self.assertEqual(response["count"], 9)
+        self.assertEqual(response["count"], expected_count)
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
@@ -349,6 +351,27 @@ class ProductSearchTests(DataTestClient):
         ]
     )
     def test_product_search_by_assessment_note(self, query, expected_count):
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        self.assertEqual(response["count"], expected_count)
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "rifle"}, 1),
+            ({"search": "shifter AND 6A004"}, 1),
+            ({"search": "sensor AND 6A006"}, 1),
+            ({"search": "sensor AND 6A*"}, 2),
+            ({"search": "sensor AND (thermal OR magnetic)"}, 2),
+            ({"search": "Wassenaar AND 6A001a1d"}, 1),
+            ({"search": "Chemicals AND (WS OR CWC)"}, 1),
+            ({"search": '"Thermal camera"'}, 1),
+            ({"search": "components NOT camera"}, 1),
+        ]
+    )
+    def test_product_search_query_string_queries(self, query, expected_count):
         response = self.client.get(self.product_search_url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
