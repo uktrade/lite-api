@@ -14,9 +14,17 @@ class MakeAssessmentsView(generics.UpdateAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get_queryset(self, ids):
-        return GoodOnApplication.objects.filter(
-            application_id=self.kwargs["case_pk"],
-            id__in=ids,
+        return (
+            GoodOnApplication.objects.filter(
+                application_id=self.kwargs["case_pk"],
+                id__in=ids,
+            )
+            .select_related("application", "good")
+            .prefetch_related(
+                "good__control_list_entries",
+                "control_list_entries",
+                "regime_entries",
+            )
         )
 
     def get_application_line_numbers(self, instances):

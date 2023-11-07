@@ -94,7 +94,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
         good.save()
 
     def emit_audit_entry(self, instance, validated_data, old_values):
-        case = get_case(instance.application_id)
+        case = get_case(instance.application_id, select_related=["status"])
         default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
         default_regimes = ["No regimes"]
         new_control_list_entries = [item.rating for item in validated_data["control_list_entries"]]
@@ -121,10 +121,10 @@ class AssessmentSerializer(GoodControlReviewSerializer):
 
     def get_old_values_for_audit(self, instance):
         return {
-            "control_list_entry": list(instance.control_list_entries.values_list("rating", flat=True)),
+            "control_list_entry": [cle.rating for cle in instance.control_list_entries.all()],
             "is_good_controlled": instance.is_good_controlled,
             "report_summary": instance.report_summary,
-            "regime_entries": list(instance.regime_entries.values_list("name", flat=True)),
+            "regime_entries": [regime_entry.name for regime_entry in instance.regime_entries.all()],
         }
 
     def update(self, instance, validated_data):
