@@ -4,7 +4,16 @@ from elasticsearch_dsl.query import Q
 from django_elasticsearch_dsl_drf.filter_backends.search.query_backends import BaseSearchQueryBackend
 
 
-class CustomBaseSearchQueryBackend(BaseSearchQueryBackend):
+class QueryStringQueryBackend(BaseSearchQueryBackend):
+    """Query string query backend."""
+
+    query_type = "query_string"
+
+    @classmethod
+    def get_query_options(cls, request, view, search_backend):
+        query_options = getattr(view, "query_string_options", {})
+        return query_options
+
     @classmethod
     def get_field(cls, field, options):
         if not options:
@@ -15,17 +24,6 @@ class CustomBaseSearchQueryBackend(BaseSearchQueryBackend):
         if "boost" in options:
             return "{}^{}".format(field_name, options["boost"])
         return field_name
-
-
-class QueryStringQueryBackend(CustomBaseSearchQueryBackend):
-    """Query string query backend."""
-
-    query_type = "query_string"
-
-    @classmethod
-    def get_query_options(cls, request, view, search_backend):
-        query_options = getattr(view, "query_string_options", {})
-        return query_options
 
     @classmethod
     def construct_search(cls, request, view, search_backend):
