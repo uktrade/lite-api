@@ -20,6 +20,7 @@ def synchronise_onward_exported_fields(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ("applications", "0056_auto_20220808_1433"),
         ("goods", "0022_alter_firearmgooddetails_number_of_items"),
     ]
 
