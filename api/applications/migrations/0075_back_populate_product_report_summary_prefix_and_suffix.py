@@ -84,6 +84,7 @@ class Migration(migrations.Migration):
             )
 
     dependencies = [
+        ("lite_routing", "0037_update_report_summary_prefix_subject_ids"),
         ("applications", "0074_back_populate_product_assessor_details"),
     ]
 
