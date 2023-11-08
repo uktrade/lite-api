@@ -1,13 +1,13 @@
 import pytest
-
 from dateutil.parser import parse
 from parameterized import parameterized
 
 from django.core.management import call_command
 from django.urls import reverse
 
-from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory
+from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory, StandardApplicationFactory
 from api.goods.models import Good
+from api.organisations.tests.factories import OrganisationFactory
 from api.teams.tests.factories import TeamFactory
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
 from test_helpers.clients import DataTestClient
@@ -202,18 +202,19 @@ def get_products_data(organisation, application, gov_users):
 
 
 class ProductSearchTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-        self.application = self.create_standard_application_case(self.organisation)
-        self.product_search_url = reverse("product_search-list")
+    product_search_url = reverse("product_search-list")
 
-        self.team = TeamFactory()
-        self.tau_users = [
-            GovUserFactory(baseuser_ptr=BaseUserFactory(**user), team=self.team) for user in get_users_data()
-        ]
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        organisation = OrganisationFactory(name="Product search")
+        application = StandardApplicationFactory()
+
+        team = TeamFactory()
+        tau_users = [GovUserFactory(baseuser_ptr=BaseUserFactory(**user), team=team) for user in get_users_data()]
 
         # Create few products and add them to an application
-        for product in get_products_data(self.organisation, self.application, self.tau_users):
+        for product in get_products_data(organisation, application, tau_users):
             GoodOnApplicationFactory(good=GoodFactory(**product["good"]), **product["good_on_application"])
 
         # Rebuild indexes with the products created
