@@ -51,39 +51,17 @@ class QueryStringQueryBackend(BaseSearchQueryBackend):
 
         __queries = []
         for search_term in query_params[:1]:
-            __values = search_backend.split_lookup_name(search_term, 1)
-            __len_values = len(__values)
             __search_term = search_term
-
             query_fields = []
 
-            # If we're dealing with case like
-            # /search/products/?search=name,report_summary:sniper rifles
-            if __len_values > 1:
-                _field, value = __values
-                __search_term = value
-                fields = search_backend.split_lookup_complex_multiple_value(_field)
-                for field in fields:
-                    if field in view_search_fields:
-                        if __is_complex:
-                            query_fields.append(
-                                cls.get_field(field, view_search_fields[field]),
-                            )
-                        else:
-                            query_fields.append(field)
+            # If search fields are defined as dict
+            if __is_complex:
+                for field, options in view_search_fields.items():
+                    query_fields.append(cls.get_field(field, options))
 
-            # If it's just a simple search like
-            # /search/products/?search=sniper AND rifles
-            # Fields shall be defined in a very simple way.
+            # just as a list
             else:
-                # If it is defined as dict
-                if __is_complex:
-                    for field, options in view_search_fields.items():
-                        query_fields.append(cls.get_field(field, options))
-
-                # just as a list
-                else:
-                    query_fields = copy.copy(view_search_fields)
+                query_fields = copy.copy(view_search_fields)
 
             __queries.append(
                 Q(
