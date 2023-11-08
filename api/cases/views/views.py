@@ -569,7 +569,7 @@ class EcjuQueryDetail(APIView):
         ecju_query = get_ecju_query(ecju_pk)
         if ecju_query.response:
             return JsonResponse(
-                data={"error": f"Responding to closed {ecju_query.get_query_type_display()} is not allowed"},
+                data={"errors": f"Responding to closed {ecju_query.get_query_type_display()} is not allowed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -613,7 +613,7 @@ class EcjuQueryAddDocument(APIView):
         ecju_query = get_ecju_query(kwargs["query_pk"])
         if ecju_query.response:
             return JsonResponse(
-                {"error": "Adding document for a closed query is not allowed"}, status=status.HTTP_400_BAD_REQUEST
+                {"errors": "Adding document for a closed query is not allowed"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         data = request.data
@@ -649,7 +649,7 @@ class EcjuQueryDocumentDetail(APIView):
         document = EcjuQueryDocument.objects.get(id=kwargs["doc_pk"])
         if document.query.response:
             return JsonResponse(
-                {"error": "Deleting document for a closed query is not allowed"}, status=status.HTTP_400_BAD_REQUEST
+                {"errors": "Deleting document for a closed query is not allowed"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         document.delete_s3()
