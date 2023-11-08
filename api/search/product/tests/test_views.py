@@ -366,6 +366,7 @@ class ProductSearchTests(DataTestClient):
             ({"search": "sensor AND 6A*"}, 2),
             ({"search": "sensor AND (thermal OR magnetic)"}, 2),
             ({"search": "Wassenaar AND 6A001a1d"}, 1),
+            ({"search": "Wassenaar AND 6a001a1d"}, 1),
             ({"search": "Chemicals AND (WS OR CWC)"}, 1),
             ({"search": '"Thermal camera"'}, 1),
             ({"search": "components NOT camera"}, 1),
