@@ -4,7 +4,12 @@ from api.search.product.query_backends import QueryStringQueryBackend
 
 
 class QueryStringSearchFilterBackend(BaseSearchFilterBackend):
-    """Query string search filter backend."""
+    """
+    Query string search filter backend.
+
+    This adds support for the 'query_type' queries to the search plugin.
+    The backend implements the methods to generate the query.
+    """
 
     search_param = "search"
 
