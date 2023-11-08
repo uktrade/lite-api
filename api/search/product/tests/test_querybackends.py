@@ -1,14 +1,22 @@
+import pytest
+
+from django.core.management import call_command
 from django.urls import reverse
 from unittest.mock import patch
 
 from test_helpers.clients import DataTestClient
 
 
-class ProductSearchTests(DataTestClient):
+class ProductSearchQueryStringQueryBackendTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.product_search_url = reverse("product_search-list")
 
+        # When these test are executed it is possible that index is not aware of Product documents
+        # so rebuild indexes to ensure successful query execution
+        call_command("search_index", models=["applications.GoodOnApplication"], action="rebuild", force=True)
+
+    @pytest.mark.elasticsearch
     @patch("api.search.product.views.ProductDocumentView", spec=True)
     def test_query_string_query_backend_search_fields_as_list(self, mock_view):
         """
@@ -23,6 +31,7 @@ class ProductSearchTests(DataTestClient):
         response = self.client.get(self.product_search_url, {"search": "shifter AND 6A004"}, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
+    @pytest.mark.elasticsearch
     @patch("api.search.product.views.ProductDocumentView", spec=True)
     def test_query_string_query_backend_search_fields_with_boost(self, mock_view):
         query_fields_with_boost = {
