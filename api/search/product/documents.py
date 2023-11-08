@@ -189,9 +189,9 @@ class ProductDocumentType(Document):
     )
 
     regime_entries = fields.NestedField(attr="regime_entries", doc_class=Regime)
-    regimes = fields.TextField(attr="good.name", multi=True)  # is overwritten in prepare
+    regimes = fields.TextField(multi=True)
 
-    assessed_by = fields.TextField(attr="good.name", multi=True)  # is overwritten in prepare
+    assessed_by = fields.TextField(multi=True)
     assessment_date = fields.DateField(
         attr="assessment_date",
         fields={
@@ -220,11 +220,19 @@ class ProductDocumentType(Document):
         data = super().prepare(instance)
         data["context"] = f"{data['destination']}🔥{data['end_use']}🔥{data['end_user_type']}"
         data["canonical_name"] = data["name"]
-        data["ratings"] = [cle.rating for cle in instance.good.control_list_entries.all()]
-        data["regimes"] = [regime.name for regime in instance.regime_entries.all()] + [
-            regime.shortened_name for regime in instance.regime_entries.all()
-        ]
-        data["assessed_by"] = (
+        return data
+
+    def prepare_ratings(self, instance):
+        return [cle.rating for cle in instance.good.control_list_entries.all()]
+
+    def prepare_regimes(self, instance):
+        regimes = []
+        regimes.extend([regime.name for regime in instance.regime_entries.all()])
+        regimes.extend([regime.shortened_name for regime in instance.regime_entries.all()])
+        return regimes
+
+    def prepare_assessed_by(self, instance):
+        return (
             [
                 instance.assessed_by.first_name,
                 instance.assessed_by.last_name,
@@ -233,7 +241,6 @@ class ProductDocumentType(Document):
             if instance.assessed_by
             else []
         )
-        return data
 
     def get_indexing_queryset(self):
         return (
