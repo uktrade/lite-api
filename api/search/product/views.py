@@ -8,10 +8,11 @@ from rest_framework.generics import CreateAPIView
 
 from django.conf import settings
 
+from api.core.authentication import GovAuthentication
+from api.search import models
 from api.search.product.documents import ProductDocumentType
 from api.search.product import serializers
-from api.search import models
-from api.core.authentication import GovAuthentication
+from api.search.product import filter_backends as custom_filter_backends
 
 
 class MatchBoolPrefix(Query):
@@ -26,7 +27,7 @@ class ProductDocumentView(DocumentViewSet):
     filter_backends = [
         filter_backends.OrderingFilterBackend,
         filter_backends.DefaultOrderingFilterBackend,
-        filter_backends.SearchFilterBackend,
+        custom_filter_backends.QueryStringSearchFilterBackend,
         filter_backends.FilteringFilterBackend,
         filter_backends.NestedFilteringFilterBackend,
         filter_backends.SourceBackend,
@@ -41,6 +42,17 @@ class ProductDocumentView(DocumentViewSet):
         "organisation",
         "assessment_note",
     ]
+
+    query_string_search_fields = {
+        "name": None,
+        "part_number": None,
+        "report_summary": None,
+        "organisation": None,
+        "assessment_note": None,
+        "ratings": None,
+        "regimes": None,
+        "assessed_by": None,
+    }
 
     search_nested_fields = {
         # explicitly defined to make highlighting work
