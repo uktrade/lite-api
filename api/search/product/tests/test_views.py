@@ -9,6 +9,7 @@ from api.applications.tests.factories import GoodFactory, GoodOnApplicationFacto
 from api.goods.models import Good
 from api.organisations.tests.factories import OrganisationFactory
 from api.teams.tests.factories import TeamFactory
+from api.users.models import GovUser
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
 from test_helpers.clients import DataTestClient
 
@@ -207,18 +208,27 @@ class ProductSearchTests(DataTestClient):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        organisation = OrganisationFactory(name="Product search")
-        application = StandardApplicationFactory()
+        cls.organisation = OrganisationFactory(name="Product search")
+        cls.application = StandardApplicationFactory()
 
-        team = TeamFactory()
-        tau_users = [GovUserFactory(baseuser_ptr=BaseUserFactory(**user), team=team) for user in get_users_data()]
+        cls.team = TeamFactory()
+        cls.tau_users = [
+            GovUserFactory(baseuser_ptr=BaseUserFactory(**user), team=cls.team) for user in get_users_data()
+        ]
 
         # Create few products and add them to an application
-        for product in get_products_data(organisation, application, tau_users):
+        for product in get_products_data(cls.organisation, cls.application, cls.tau_users):
             GoodOnApplicationFactory(good=GoodFactory(**product["good"]), **product["good_on_application"])
 
         # Rebuild indexes with the products created
         call_command("search_index", models=["applications.GoodOnApplication"], action="rebuild", force=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        Good.objects.filter(organisation=cls.organisation).delete()
+        GovUser.objects.filter(team=cls.team).delete()
+        cls.application.delete()
+        cls.team.delete()
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
