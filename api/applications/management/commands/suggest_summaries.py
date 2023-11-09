@@ -36,10 +36,6 @@ def filter_unpopulated_controlled_good_on_applications(good_on_applications: Que
     )
 
 
-def filter_populated_controlled_good_on_applications(good_on_applications: QuerySet[GoodOnApplication]):
-    return filter_controlled_good_on_applications(good_on_applications).filter(report_summary_subject__isnull=False)
-
-
 def annotate_matching_prefix(good_on_applications: QuerySet[GoodOnApplication]):
     # Match the longest prefix first to avoid erroneously matching a shorter query that is a subset of a longer one.
     prefixes = ReportSummaryPrefix.objects.annotate(name_length=Length("name"))
