@@ -1,172 +1,234 @@
 import pytest
-
 from dateutil.parser import parse
 from parameterized import parameterized
 
 from django.core.management import call_command
 from django.urls import reverse
 
-from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory
+from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory, StandardApplicationFactory
+from api.goods.models import Good
+from api.organisations.tests.factories import OrganisationFactory
 from api.teams.tests.factories import TeamFactory
+from api.users.models import GovUser
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
 from test_helpers.clients import DataTestClient
 
 
-class ProductSearchTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-        self.case = self.create_standard_application_case(self.organisation)
-        self.product_search_url = reverse("product_search-list")
+def get_users_data():
+    return [
+        {
+            "first_name": "TAU",
+            "last_name": "Advisor1",
+        },
+        {
+            "first_name": "TAU",
+            "last_name": "Advisor2",
+        },
+        {
+            "first_name": "TAU",
+            "last_name": "Advisor3",
+        },
+    ]
 
-        self.team = TeamFactory()
-        self.tau_user1 = GovUserFactory(
-            baseuser_ptr=BaseUserFactory(first_name="TAU", last_name="Advisor1"), team=self.team
-        )
-        self.tau_user2 = GovUserFactory(
-            baseuser_ptr=BaseUserFactory(first_name="TAU", last_name="Advisor2"), team=self.team
-        )
-        self.tau_user3 = GovUserFactory(
-            baseuser_ptr=BaseUserFactory(first_name="TAU", last_name="Advisor3"), team=self.team
-        )
+
+def get_products_data(organisation, application, gov_users):
+    return [
+        {
+            "good": {
+                "name": "Bolt action sporting rifle",
+                "part_number": "ABC-123",
+                "organisation": organisation,
+                "is_good_controlled": True,
+                "control_list_entries": ["FR AI"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": True,
+                "report_summary": "sniper rifles",
+                "assessed_by": gov_users[0],
+                "assessment_date": parse("2021-06-08T15:51:28.529110+00:00"),
+                "comment": "no concerns",
+            },
+        },
+        {
+            "good": {
+                "name": "Thermal camera",
+                "part_number": "IMG-1300",
+                "organisation": organisation,
+                "is_good_controlled": True,
+                "control_list_entries": ["6A003"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": True,
+                "report_summary": "Imaging sensors",
+                "assessed_by": gov_users[0],
+                "assessment_date": parse("2021-07-08T15:51:28.529110+00:00"),
+                "comment": "for industrial use only",
+            },
+        },
+        {
+            "good": {
+                "name": "Magnetic field sensor",
+                "part_number": "TS1.5/M2",
+                "organisation": organisation,
+                "is_good_controlled": True,
+                "control_list_entries": ["6A006"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": True,
+                "report_summary": "Magnetic sensors",
+                "assessed_by": gov_users[0],
+                "assessment_date": parse("2022-08-20T15:51:28.529110+00:00"),
+                "comment": "for industrial use only",
+            },
+        },
+        {
+            "good": {
+                "name": "Frequency shifter",
+                "part_number": "MS2X",
+                "organisation": organisation,
+                "is_good_controlled": True,
+                "control_list_entries": ["6A004"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": True,
+                "report_summary": "components for spectrometers",
+                "comment": "Research and development. Potentially under WVS regime",
+            },
+        },
+        {
+            "good": {
+                "name": "Cherry MX Red",
+                "part_number": "MXR125H",
+                "organisation": organisation,
+                "is_good_controlled": True,
+                "control_list_entries": ["PL9010"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": True,
+                "report_summary": "mechanical keyboards",
+                "assessed_by": gov_users[1],
+                "assessment_date": parse("2022-10-08T15:51:28.529110+00:00"),
+                "comment": "dual use",
+            },
+        },
+        {
+            "good": {
+                "name": "Sulphuric Acid",
+                "part_number": "H2SO4",
+                "organisation": organisation,
+                "is_good_controlled": True,
+                "control_list_entries": ["1D003"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": True,
+                "report_summary": "Chemicals",
+                "assessed_by": gov_users[1],
+                "assessment_date": parse("2023-10-21T15:51:28.529110+00:00"),
+                "comment": "industrial use",
+            },
+        },
+        {
+            "good": {
+                "name": "M3 Pro Max",
+                "part_number": "867-5309",
+                "organisation": organisation,
+                "is_good_controlled": True,
+                "control_list_entries": ["6A001a1d"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": True,
+                "report_summary": "marine position fixing equipment",
+                "regime_entries": ["Wassenaar Arrangement"],
+                "assessed_by": gov_users[2],
+                "assessment_date": parse("2023-10-22T15:51:28.529110+00:00"),
+            },
+        },
+        {
+            "good": {
+                "name": "Instax HD camera",
+                "part_number": "abc123xyz",
+                "organisation": organisation,
+                "is_good_controlled": True,
+                "control_list_entries": ["6A003b4a"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": True,
+                "report_summary": "components for imaging cameras",
+                "regime_entries": ["Wassenaar Arrangement Sensitive"],
+                "assessed_by": gov_users[2],
+                "assessment_date": parse("2023-10-23T15:51:28.529110+00:00"),
+            },
+        },
+        {
+            "good": {
+                "name": "controlled chemical substance",
+                "part_number": "H2O2",
+                "organisation": organisation,
+                "is_good_controlled": True,
+                "control_list_entries": ["1C35016"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": True,
+                "report_summary": "chemicals used for general laboratory work/scientific research",
+                "regime_entries": ["CWC Schedule 3"],
+                "assessed_by": gov_users[2],
+                "assessment_date": parse("2023-10-24T15:51:28.529110+00:00"),
+            },
+        },
+        {
+            "good": {
+                "name": "Maintenance manual",
+                "part_number": "15606",
+                "organisation": organisation,
+                "is_good_controlled": False,
+                "control_list_entries": ["ML22a"],
+            },
+            "good_on_application": {
+                "application": application,
+                "is_good_controlled": False,
+                "report_summary": "technology for shotguns",
+                "assessment_date": parse("2023-08-24T15:51:28.529110+00:00"),
+            },
+        },
+    ]
+
+
+class ProductSearchTests(DataTestClient):
+    product_search_url = reverse("product_search-list")
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.organisation = OrganisationFactory(name="Product search")
+        cls.application = StandardApplicationFactory()
+
+        cls.team = TeamFactory()
+        cls.tau_users = [
+            GovUserFactory(baseuser_ptr=BaseUserFactory(**user), team=cls.team) for user in get_users_data()
+        ]
 
         # Create few products and add them to an application
-        good = GoodFactory(
-            name="Bolt action sporting rifle",
-            part_number="ABC-123",
-            organisation=self.organisation,
-            is_good_controlled=True,
-            control_list_entries=["FR AI"],
-        )
-        GoodOnApplicationFactory(
-            application=self.case,
-            good=good,
-            is_good_controlled=True,
-            report_summary="sniper rifles",
-            assessed_by=self.tau_user1,
-            assessment_date=parse("2021-06-08T15:51:28.529110+00:00"),
-            comment="no concerns",
-        )
+        for product in get_products_data(cls.organisation, cls.application, cls.tau_users):
+            GoodOnApplicationFactory(good=GoodFactory(**product["good"]), **product["good_on_application"])
 
-        good = GoodFactory(
-            name="Thermal camera",
-            part_number="IMG-1300",
-            organisation=self.organisation,
-            is_good_controlled=True,
-            control_list_entries=["6A003"],
-        )
-        GoodOnApplicationFactory(
-            application=self.case,
-            good=good,
-            is_good_controlled=True,
-            report_summary="Imaging sensors",
-            assessed_by=self.tau_user1,
-            assessment_date=parse("2021-07-08T15:51:28.529110+00:00"),
-            comment="for industrial use only",
-        )
-
-        good = GoodFactory(
-            name="Magnetic field sensor",
-            part_number="TS1.5/M2",
-            organisation=self.organisation,
-            is_good_controlled=True,
-            control_list_entries=["6A006"],
-        )
-        GoodOnApplicationFactory(
-            application=self.case,
-            good=good,
-            is_good_controlled=True,
-            report_summary="Magnetic sensors",
-            assessed_by=self.tau_user1,
-            assessment_date=parse("2022-08-20T15:51:28.529110+00:00"),
-            comment="for industrial use only",
-        )
-
-        good = GoodFactory(
-            name="Cherry MX Red",
-            part_number="MXR125H",
-            organisation=self.organisation,
-            is_good_controlled=True,
-            control_list_entries=["PL9010"],
-        )
-        GoodOnApplicationFactory(
-            application=self.case,
-            good=good,
-            is_good_controlled=True,
-            report_summary="mechanical keyboards",
-            assessed_by=self.tau_user2,
-            assessment_date=parse("2022-10-08T15:51:28.529110+00:00"),
-            comment="dual use",
-        )
-
-        good = GoodFactory(
-            name="Hydrofluoric Acid",
-            part_number="HFL",
-            organisation=self.organisation,
-            is_good_controlled=True,
-            control_list_entries=["1D003"],
-        )
-        GoodOnApplicationFactory(
-            application=self.case,
-            good=good,
-            is_good_controlled=True,
-            report_summary="Chemicals",
-            assessed_by=self.tau_user2,
-            assessment_date=parse("2023-10-21T15:51:28.529110+00:00"),
-            comment="industrial use",
-        )
-
-        good = GoodFactory(
-            name="M2 Pro Max",
-            part_number="867-5309",
-            organisation=self.organisation,
-            is_good_controlled=True,
-            control_list_entries=["6A001a1d"],
-        )
-        GoodOnApplicationFactory(
-            application=self.case,
-            good=good,
-            is_good_controlled=True,
-            report_summary="marine position fixing equipment",
-            regime_entries=["Wassenaar Arrangement"],
-            assessed_by=self.tau_user3,
-            assessment_date=parse("2023-10-22T15:51:28.529110+00:00"),
-        )
-
-        good = GoodFactory(
-            name="Instax HD camera",
-            part_number="abc123xyz",
-            organisation=self.organisation,
-            is_good_controlled=True,
-            control_list_entries=["6A003b4a"],
-        )
-        GoodOnApplicationFactory(
-            application=self.case,
-            good=good,
-            is_good_controlled=True,
-            report_summary="imaging cameras",
-            regime_entries=["Wassenaar Arrangement Sensitive"],
-            assessed_by=self.tau_user3,
-            assessment_date=parse("2023-10-23T15:51:28.529110+00:00"),
-        )
-
-        good = GoodFactory(
-            name="controlled chemical substance",
-            part_number="xyz123",
-            organisation=self.organisation,
-            is_good_controlled=True,
-            control_list_entries=["1C35016"],
-        )
-        GoodOnApplicationFactory(
-            application=self.case,
-            good=good,
-            is_good_controlled=True,
-            report_summary="chemicals used for general laboratory work/scientific research",
-            regime_entries=["CWC Schedule 3"],
-            assessed_by=self.tau_user3,
-            assessment_date=parse("2023-10-24T15:51:28.529110+00:00"),
-        )
-
+        # Rebuild indexes with the products created
         call_command("search_index", models=["applications.GoodOnApplication"], action="rebuild", force=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        Good.objects.filter(organisation=cls.organisation).delete()
+        GovUser.objects.filter(team=cls.team).delete()
+        cls.application.delete()
+        cls.team.delete()
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
@@ -179,9 +241,8 @@ class ProductSearchTests(DataTestClient):
                 "Bolt action sporting rifle",
             ),
             (
-                # one product is created during test setup stage which matches with this query
                 {"search": "rifle"},
-                2,
+                1,
                 "Bolt action sporting rifle",
             ),
             ({"search": "thermal"}, 1, "Thermal camera"),
@@ -199,7 +260,7 @@ class ProductSearchTests(DataTestClient):
     @parameterized.expand(
         [
             ({"search": "ABC"}, 1, "ABC-123"),
-            ({"search": "HFL"}, 1, "HFL"),
+            ({"search": "H2SO4"}, 1, "H2SO4"),
         ]
     )
     def test_product_search_by_part_number(self, query, expected_count, expected_part_number):
@@ -286,11 +347,12 @@ class ProductSearchTests(DataTestClient):
     @pytest.mark.elasticsearch
     def test_product_search_by_applicant(self):
         query_params = {"search": f"{self.organisation.name}"}
+        expected_count = Good.objects.filter(organisation=self.organisation).count()
         response = self.client.get(self.product_search_url, query_params, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
         response = response.json()
-        self.assertEqual(response["count"], 9)
+        self.assertEqual(response["count"], expected_count)
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
@@ -300,6 +362,28 @@ class ProductSearchTests(DataTestClient):
         ]
     )
     def test_product_search_by_assessment_note(self, query, expected_count):
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        self.assertEqual(response["count"], expected_count)
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "rifle"}, 1),
+            ({"search": "shifter AND 6A004"}, 1),
+            ({"search": "sensor AND 6A006"}, 1),
+            ({"search": "sensor AND 6A*"}, 2),
+            ({"search": "sensor AND (thermal OR magnetic)"}, 2),
+            ({"search": "Wassenaar AND 6A001a1d"}, 1),
+            ({"search": "Wassenaar AND 6a001a1d"}, 1),
+            ({"search": "Chemicals AND (WS OR CWC)"}, 1),
+            ({"search": '"Thermal camera"'}, 1),
+            ({"search": "components NOT camera"}, 1),
+        ]
+    )
+    def test_product_search_query_string_queries(self, query, expected_count):
         response = self.client.get(self.product_search_url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
