@@ -32,6 +32,8 @@ class Denial(TimestampableModel):
     data = models.JSONField(default=dict)
     is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
     is_revoked_comment = models.TextField(default="")
+    reason_for_refusal = models.TextField("The reason for denial'", blank=True, default="", null=True)
+    spire_entity_id = models.IntegerField(help_text="Entity_id from spire for matching data", null=True)
 
 
 class SanctionMatch(TimestampableModel):
