@@ -59,25 +59,34 @@ class SuggestedSummariesManagementCommand(DataTestClient):
         )
 
         # Input data, not including the ids for items that are created later:
+        # If there is no suggested subject, then the no corresponding row should appear in the CSV.
         report_data = [
             # report_summary, suggested_prefix, suggested_subject
             ("arts and crafts", None, "arts and crafts"),
             ("training for arts and crafts", "training for", "arts and crafts"),
             ("equipment for arts and crafts", "equipment for", "arts and crafts"),
+            ("tf arts and crafts", None, None),
         ]
 
+        # Mapping of the report_summaries that should be mapped and the ReportSummaryPrefix objects that should
+        # be mapped to them.
         expected_report_prefixes = {
             report_summary: ReportSummaryPrefix.objects.get_or_create(name=suggested_prefix)[0]
             if suggested_prefix
             else None
-            for report_summary, suggested_prefix, _ in report_data
+            for report_summary, suggested_prefix, suggested_subject in report_data
+            if suggested_subject
         }
+        # Mapping of the report_summaries that should be mapped and the ReportSummarySubject objects that should
+        # be mapped to them.
         expected_report_subjects = {
             report_summary: ReportSummarySubject.objects.get_or_create(name=suggested_subject, code_level=1)[0]
             for report_summary, _, suggested_subject in report_data
+            if suggested_subject
         }
 
-        good_on_application_suggestions = [
+        # The data we expect to find in the CSV file and corresponding GoodOnApplications
+        expected_good_on_application_suggestions = [
             (
                 GoodOnApplicationFactory.create(
                     application=application, good=good, report_summary=report_summary, is_good_controlled=True
@@ -85,8 +94,14 @@ class SuggestedSummariesManagementCommand(DataTestClient):
                 expected_report_prefixes[report_summary],
                 expected_report_subjects[report_summary],
             )
-            for report_summary, _suggested_prefix, _suggested_subject in report_data
+            for report_summary, _suggested_prefix, suggested_subject in report_data
+            if suggested_subject
         ]
+
+        # GoodOnApplication that should not match and prefixes or suffixes or appear in the final CSV:
+        GoodOnApplicationFactory.create(
+            application=application, good=good, report_summary="xyz _unmappable", is_good_controlled=True
+        )
 
         expected_csv_row_template = (
             '"{good_on_application_id}",'
@@ -108,7 +123,11 @@ class SuggestedSummariesManagementCommand(DataTestClient):
                     suggested_subject=suggested_subject.name,
                     suggested_subject_id=str(suggested_subject.id),
                 )
-                for (good_on_application, suggested_prefix, suggested_subject) in good_on_application_suggestions
+                for (
+                    good_on_application,
+                    suggested_prefix,
+                    suggested_subject,
+                ) in expected_good_on_application_suggestions
             ],
         ]
 
