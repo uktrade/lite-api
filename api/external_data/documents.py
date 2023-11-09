@@ -12,40 +12,6 @@ class DataField(fields.ObjectField):
         return instance.data
 
 
-class DenialDocumentType(Document):
-    id = fields.KeywordField()
-    name = fields.TextField()
-    address = fields.TextField()
-    reference = fields.KeywordField()
-    regime_reg_ref = fields.KeywordField()
-    notifying_government = fields.TextField()
-    country = fields.TextField(
-        fields={
-            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
-        },
-    )
-    item_list_codes = fields.TextField()
-    item_description = fields.TextField()
-    consignee_name = fields.TextField()
-    end_use = fields.TextField()
-    data = DataField()
-    is_revoked = fields.BooleanField()
-
-    class Index:
-        name = settings.ELASTICSEARCH_DENIALS_INDEX_ALIAS
-        settings = {
-            "number_of_shards": 1,
-            "number_of_replicas": 0,
-            "max_ngram_diff": 18,
-        }
-
-    class Meta:
-        model = models.Denial
-
-    class Django:
-        model = models.Denial
-
-
 custom_ascii_folding_filter = analysis.token_filter(
     "custom_ascii_folding_filter", type="asciifolding", preserve_original=True
 )
@@ -83,6 +49,7 @@ address_stop_words_filter = analysis.token_filter(
         "route",
         "street",
         "way",
+        "suite",
     ],
     ignore_case=True,
 )
@@ -99,6 +66,40 @@ postcode_normalizer = analysis.normalizer(
     char_filter=[postcode_filter],
     filter=["lowercase", "asciifolding"],
 )
+
+
+class DenialDocumentType(Document):
+    id = fields.KeywordField()
+    name = fields.TextField()
+    address = fields.Text(analyzer=address_analyzer)
+    reference = fields.KeywordField()
+    regime_reg_ref = fields.KeywordField()
+    notifying_government = fields.TextField()
+    country = fields.TextField(
+        fields={
+            "raw": fields.KeywordField(normalizer=lowercase_normalizer),
+        },
+    )
+    item_list_codes = fields.TextField()
+    item_description = fields.TextField()
+    consignee_name = fields.TextField()
+    end_use = fields.TextField()
+    data = DataField()
+    is_revoked = fields.BooleanField()
+
+    class Index:
+        name = settings.ELASTICSEARCH_DENIALS_INDEX_ALIAS
+        settings = {
+            "number_of_shards": 1,
+            "number_of_replicas": 0,
+            "max_ngram_diff": 18,
+        }
+
+    class Meta:
+        model = models.Denial
+
+    class Django:
+        model = models.Denial
 
 
 class SanctionDocumentType(Document):
