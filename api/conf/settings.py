@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from pathlib import Path
 from urllib.parse import urlencode
 
 from environ import Env
@@ -478,3 +479,6 @@ if ENABLE_DJANGO_SILK:
     INSTALLED_APPS.append("silk")
     middleware_index = MIDDLEWARE.index("django.contrib.messages.middleware.MessageMiddleware") + 1
     MIDDLEWARE.insert(middleware_index, "silk.middleware.SilkyMiddleware")
+
+
+CONTENT_DATA_MIGRATION_DIR = Path(BASE_DIR).parent / "lite_content/lite_api/migrations"
