@@ -11,6 +11,7 @@ from api.audit_trail.models import Audit
 from api.goods.enums import GoodStatus
 from api.goods.tests.factories import GoodFactory
 from api.applications.models import GoodOnApplication
+from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.statuses.models import CaseStatus
@@ -81,7 +82,7 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good.report_summary_prefix_id == report_summary_prefix.id
         assert good.report_summary_subject_id == report_summary_subject.id
 
-        audit_entry = Audit.objects.order_by("-created_at").filter(verb=AuditType.PRODUCT_REVIEWED).first()
+        audit_entry = Audit.objects.order_by("-created_at").get(verb=AuditType.PRODUCT_REVIEWED)
         assert audit_entry.payload == {
             "additional_text": "some comment",
             "good_name": good.name,
@@ -95,6 +96,52 @@ class MakeAssessmentsViewTests(DataTestClient):
             "old_report_summary": None,
             "report_summary": good_on_application.report_summary,
         }
+
+    @freeze_time("2023-11-03 12:00:00")
+    def test_valid_data_updates_single_record_on_already_verified_good(self):
+        good_on_application = self.good_on_application
+        self.good.status = GoodStatus.VERIFIED
+        self.good.control_list_entries.set([ControlListEntry.objects.get(rating="ML3")])
+        self.good.save()
+
+        regime_entry = RegimeEntry.objects.first()
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        report_summary_subject = ReportSummarySubject.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": ["ML1"],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": report_summary_subject.id,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some string we expect to be overwritten",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application.refresh_from_db()
+        all_cles = [cle.rating for cle in good_on_application.control_list_entries.all()]
+        assert all_cles == ["ML1"]
+        all_regime_entries = [regime_entry.id for regime_entry in good_on_application.regime_entries.all()]
+        assert all_regime_entries == [regime_entry.id]
+        assert good_on_application.report_summary_prefix_id == report_summary_prefix.id
+        assert good_on_application.report_summary_subject_id == report_summary_subject.id
+        assert good_on_application.is_good_controlled == True
+        assert good_on_application.comment == "some comment"
+        assert good_on_application.is_ncsc_military_information_security == True
+        assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
+        assert good_on_application.assessed_by == self.gov_user
+        assert good_on_application.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
+
+        good = good_on_application.good
+        assert good.status == GoodStatus.VERIFIED
+        assert [cle.rating for cle in good.control_list_entries.all()] == ["ML3", "ML1"]
+        assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
+        assert good.report_summary_prefix_id == report_summary_prefix.id
+        assert good.report_summary_subject_id == report_summary_subject.id
 
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_multiple_records(self):
