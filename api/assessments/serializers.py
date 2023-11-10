@@ -45,7 +45,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
     regime_entries = PrimaryKeyRelatedField(
         many=True,
         queryset=RegimeEntry.objects.all(),
-        required=False,  # Not required until we completely do away with the string report_summary field..
+        required=False,
     )
     report_summary_prefix = PrimaryKeyRelatedField(
         required=False, allow_null=True, queryset=ReportSummaryPrefix.objects.all()
