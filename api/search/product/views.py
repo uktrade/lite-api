@@ -59,7 +59,6 @@ class ProductDocumentView(DocumentViewSet):
     search_nested_fields = {
         # explicitly defined to make highlighting work
         "clc": {"path": "control_list_entries", "fields": ["rating", "text", "parent"]},
-        "assessed_by": {"path": "assessed_by", "fields": ["first_name", "last_name", "email"]},
         "regime_entries": {"path": "regime_entries", "fields": ["shortened_name", "name"]},
     }
 
