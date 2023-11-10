@@ -1,10 +1,13 @@
 import pytest
 from dateutil.parser import parse
 from parameterized import parameterized
+from unittest.mock import patch
 
 from django.core.management import call_command
 from django.urls import reverse
 from rest_framework import status
+
+from django_elasticsearch_dsl_drf.filter_backends import SearchFilterBackend
 
 from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory, StandardApplicationFactory
 from api.goods.models import Good
@@ -407,6 +410,31 @@ class ProductSearchTests(DataTestClient):
         response = response.json()
         self.assertEqual(response["error"], "Invalid search string")
         self.assertEqual(response["count"], expected_count)
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "sensor AND"},),
+            ({"search": "sensor OR"},),
+            ({"search": "sensor AND (image NOT)"},),
+            ({"search": "AND sensor"},),
+        ]
+    )
+    @patch("api.search.product.views.ProductDocumentView", spec=True)
+    def test_product_search_no_syntax_error_without_query_string_backend(self, query, mock_view):
+        """
+        We only need to check for syntax errors if we are using QueryString backend.
+        If we are not using then these queries should not fail
+        """
+        current_filter_backends = getattr(mock_view.__class__, "filter_backends")
+        setattr(mock_view.__class__, "filter_backends", [SearchFilterBackend])
+
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        # Attributes are bound to class, as we have updated above we need
+        # to restore after the test.
+        setattr(mock_view.__class__, "filter_backends", current_filter_backends)
 
 
 class MoreLikeThisViewTests(DataTestClient):
