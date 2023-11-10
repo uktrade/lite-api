@@ -1,3 +1,4 @@
+from django_elasticsearch_dsl.search import Search
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from elasticsearch_dsl.query import Query
@@ -81,6 +82,11 @@ class ProductDocumentView(DocumentViewSet):
 
     highlight_fields = {"*": {"enabled": True, "options": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}}}
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.search = Search(using=self.client, index=self.index, doc_type=self.document._doc_type.name)
+
     def get_search_indexes(self):
         if self.request.GET.get("database") in settings.ELASTICSEARCH_PRODUCT_INDEXES:
             return settings.ELASTICSEARCH_PRODUCT_INDEXES[self.request.GET["database"]]
@@ -148,7 +154,8 @@ class ProductDocumentView(DocumentViewSet):
                 }
             }
         )
-        return super().get_queryset()
+        queryset = super().get_queryset()
+        return queryset
 
 
 class ProductSuggestDocumentView(APIView):
