@@ -92,7 +92,7 @@ class ProductDocumentView(DocumentViewSet):
 
         # Validation is only required if we are using QueryStringSearchFilterBackend
         if custom_filter_backends.QueryStringSearchFilterBackend not in self.filter_backends:
-            return {"valid": True}
+            return True
 
         # create a query with the given query params
         query = {
@@ -103,12 +103,12 @@ class ProductDocumentView(DocumentViewSet):
                 }
             }
         }
-        return self.document._index.validate_query(body=query)
+        response = self.document._index.validate_query(body=query)
+        return response["valid"]
 
     def dispatch(self, request, *args, **kwargs):
         self.search._index = self.get_search_indexes()
-        response = self.validate_search_terms()
-        if not response["valid"]:
+        if not self.validate_search_terms():
             return JsonResponse(
                 data={
                     "error": "Invalid search string",
