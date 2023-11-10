@@ -1,3 +1,5 @@
+from collections import Counter
+
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import generics, serializers
@@ -52,11 +54,14 @@ class MakeAssessmentsView(generics.UpdateAPIView):
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
-def validate_ids(data, unique=True):
+def validate_ids(data):
 
     ids = [record["id"] for record in data]
+    duplicate_ids = [goa_id for goa_id, count in Counter(ids).items() if count > 1]
 
-    if unique and len(ids) != len(set(ids)):
-        raise serializers.ValidationError("Multiple updates to a single GoodOnApplication id found")
+    if duplicate_ids:
+        raise serializers.ValidationError(
+            f"Multiple updates to a single GoodOnApplication id found. Duplicated ids; {','.join(duplicate_ids)}"
+        )
 
     return ids

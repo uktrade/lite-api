@@ -217,4 +217,8 @@ class MakeAssessmentsViewTests(DataTestClient):
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        assert response.json() == {"errors": ["Multiple updates to a single GoodOnApplication id found"]}
+        assert response.json() == {
+            "errors": [
+                f"Multiple updates to a single GoodOnApplication id found. Duplicated ids; {self.good_on_application.id}"
+            ]
+        }
