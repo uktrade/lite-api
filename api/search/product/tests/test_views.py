@@ -4,6 +4,7 @@ from parameterized import parameterized
 from unittest.mock import patch
 
 from django.core.management import call_command
+from django.test import RequestFactory
 from django.urls import reverse
 from rest_framework import status
 
@@ -12,6 +13,9 @@ from django_elasticsearch_dsl_drf.filter_backends import SearchFilterBackend
 from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory, StandardApplicationFactory
 from api.goods.models import Good
 from api.organisations.tests.factories import OrganisationFactory
+from api.search.product.documents import ProductDocumentType
+from api.search.product.views import ProductDocumentView
+
 from api.teams.tests.factories import TeamFactory
 from api.users.models import GovUser
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
@@ -233,6 +237,24 @@ class ProductSearchTests(DataTestClient):
         GovUser.objects.filter(team=cls.team).delete()
         cls.application.delete()
         cls.team.delete()
+
+    def test_search_results_serializer(self):
+        document = ProductDocumentType()
+        expected_fields = list(document._fields.keys())
+        # remove fields not exposed to UI
+        for key in ("wildcard", "context", "end_user_type"):
+            if key in expected_fields:
+                expected_fields.remove(key)
+
+        request = RequestFactory().get(self.product_search_url)
+        view = ProductDocumentView()
+        view.request = request
+        view.format_kwarg = None
+        queryset = view.get_queryset()
+        serializer = view.get_serializer(queryset, many=True)
+        actual_fields = serializer.data[0].keys()
+
+        self.assertTrue(set(expected_fields).issubset(set(actual_fields)))
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
