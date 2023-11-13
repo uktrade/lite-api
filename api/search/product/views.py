@@ -43,6 +43,9 @@ class ProductDocumentView(DocumentViewSet):
         "report_summary",
         "organisation",
         "assessment_note",
+        "consignee_country",
+        "end_user_country",
+        "ultimate_end_user_country",
     ]
 
     query_string_search_fields = {
@@ -54,6 +57,9 @@ class ProductDocumentView(DocumentViewSet):
         "ratings": None,
         "regimes": None,
         "assessed_by": None,
+        "consignee_country": None,
+        "end_user_country": None,
+        "ultimate_end_user_country": None,
     }
 
     search_nested_fields = {
