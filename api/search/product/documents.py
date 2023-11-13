@@ -199,6 +199,10 @@ class ProductDocumentType(Document):
         },
     )
 
+    consignee_country = fields.TextField(attr="application.consignee.party.country.name")
+    end_user_country = fields.TextField(attr="application.end_user.party.country.name")
+    ultimate_end_user_country = fields.TextField(multi=True)
+
     class Index:
         name = settings.ELASTICSEARCH_PRODUCT_INDEX_ALIAS
         settings = {
@@ -241,6 +245,9 @@ class ProductDocumentType(Document):
             if instance.assessed_by
             else []
         )
+
+    def prepare_ultimate_end_user_country(self, instance):
+        return [ueu.party.name for ueu in instance.application.ultimate_end_users]
 
     def get_indexing_queryset(self):
         return (
