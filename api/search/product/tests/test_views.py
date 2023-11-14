@@ -230,8 +230,6 @@ class ProductSearchTests(DataTestClient):
         # Rebuild indexes with the products created
         call_command("search_index", models=["applications.GoodOnApplication"], action="rebuild", force=True)
 
-        
-
     def test_search_results_serializer(self):
         document = ProductDocumentType()
         expected_fields = list(document._fields.keys())
