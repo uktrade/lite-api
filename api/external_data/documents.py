@@ -60,6 +60,12 @@ address_analyzer = analysis.analyzer(
     filter=["lowercase", "asciifolding", "trim", address_stop_words_filter, ngram_filter],
 )
 
+custom_address_analyzer = analysis.analyzer(
+    "address_analyzer",
+    tokenizer="whitespace",
+    filter=["lowercase", "asciifolding", "trim", address_stop_words_filter],
+)
+
 postcode_normalizer = analysis.normalizer(
     "postcode_normalizer",
     type="custom",
@@ -71,8 +77,9 @@ postcode_normalizer = analysis.normalizer(
 class DenialDocumentType(Document):
     id = fields.KeywordField()
     name = fields.TextField()
+    # address = fields.TextField()
     address = fields.TextField(
-        analyzer=address_analyzer,
+        analyzer=custom_address_analyzer,
     )
     reference = fields.KeywordField()
     regime_reg_ref = fields.KeywordField()
