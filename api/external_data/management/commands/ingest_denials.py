@@ -4,6 +4,7 @@ import json
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from api.applications.models import DenialMatchOnApplication
 from rest_framework import serializers
 
 from elasticsearch_dsl import connections
@@ -37,6 +38,8 @@ class Command(BaseCommand):
         "item_description",
         "consignee_name",
         "end_use",
+        "reason_for_refusal",
+        "spire_entity_id",
     ]
 
     def add_arguments(self, parser):
@@ -61,13 +64,12 @@ class Command(BaseCommand):
     @transaction.atomic
     def load_denials(self, filename):
 
-        if Denial.objects.all().exists():
-            # We already have denials we do not support updating or re-importing
-            # Let's delete the file
-            s3_operations.delete_file(document_id=filename, s3_key=filename)
-            raise Exception("re-importing denials data is not supported")
-
         data = get_json_content_and_delete(filename)
+        if data:
+            # Lets delete all denial records except ones that have been matched
+            matched_denial_ids = DenialMatchOnApplication.objects.all().values_list("denial_id", flat=True).distinct()
+            Denial.objects.all().exclude(id__in=matched_denial_ids).delete()
+
         errors = []
         for i, row in enumerate(data, start=1):
             serializer = DenialSerializer(

@@ -1,3 +1,8 @@
+from api.applications.tests.factories import (
+    DenialMatchFactory,
+    DenialMatchOnApplicationFactory,
+    StandardApplicationFactory,
+)
 import pytest
 from unittest import mock
 
@@ -10,12 +15,9 @@ import json
 import io
 
 
-@pytest.mark.elasticsearch
-@pytest.mark.django_db
-@mock.patch.object(ingest_denials.s3_operations, "delete_file")
-@mock.patch.object(ingest_denials.s3_operations, "get_object")
-def test_populate_denials(mock_json_content, mock_delete_file):
-    mock_json_content.return_value = {
+@pytest.fixture
+def json_file_data():
+    return {
         "Body": io.StringIO(
             json.dumps(
                 [
@@ -31,6 +33,8 @@ def test_populate_denials(mock_json_content, mock_delete_file):
                         "end_use": "locating phone",
                         "end_user_flag": "true",
                         "consignee_flag": "true",
+                        "reason_for_refusal": "reason a",
+                        "spire_entity_id": 1234,
                     },
                     {
                         "reference": "DN001\/0002",
@@ -44,6 +48,8 @@ def test_populate_denials(mock_json_content, mock_delete_file):
                         "end_use": "For teaching purposes",
                         "end_user_flag": "true",
                         "consignee_flag": "true",
+                        "reason_for_refusal": "reason b",
+                        "spire_entity_id": 1235,
                     },
                     {
                         "reference": "DN001\/0001",
@@ -56,11 +62,21 @@ def test_populate_denials(mock_json_content, mock_delete_file):
                         "end_use": "testing",
                         "end_user_flag": "true",
                         "consignee_flag": "false",
+                        "reason_for_refusal": "reason c",
+                        "spire_entity_id": 1236,
                     },
                 ]
             )
         )
     }
+
+
+@pytest.mark.elasticsearch
+@pytest.mark.django_db
+@mock.patch.object(ingest_denials.s3_operations, "delete_file")
+@mock.patch.object(ingest_denials.s3_operations, "get_object")
+def test_populate_denials(mock_json_content, mock_delete_file, json_file_data):
+    mock_json_content.return_value = json_file_data
 
     call_command("ingest_denials", "json_file", rebuild=True)
     assert Denial.objects.all().count() == 3
@@ -74,6 +90,8 @@ def test_populate_denials(mock_json_content, mock_delete_file):
     assert denial_record.item_description == "phone"
     assert denial_record.end_use == "locating phone"
     assert denial_record.regime_reg_ref == "12"
+    assert denial_record.reason_for_refusal == "reason a"
+    assert denial_record.spire_entity_id == 1234
 
     mock_delete_file.assert_called_with(document_id="json_file", s3_key="json_file")
 
@@ -105,10 +123,25 @@ def test_populate_denials_validation_call(mock_json_content, mock_delete_file):
 
 @pytest.mark.django_db
 @mock.patch.object(ingest_denials.s3_operations, "delete_file")
-def test_populate_denials_raise_exception_with_existing_records(mock_delete_file):
-    Denial(reference="dummy").save()
-    with pytest.raises(Exception):
-        call_command("ingest_denials", "json_file")
+@mock.patch.object(ingest_denials.s3_operations, "get_object")
+def test_populate_denials_with_existing_matching_records(mock_get_file, mock_delete_file, json_file_data):
+    mock_get_file.return_value = json_file_data
+    case = StandardApplicationFactory()
+    denial = DenialMatchFactory()
+    DenialMatchOnApplicationFactory(application=case, category="exact", denial=denial)
+
+    call_command("ingest_denials", "json_file")
+
+    assert Denial.objects.all().count() == 4
+
+
+@pytest.mark.django_db
+@mock.patch.object(ingest_denials.s3_operations, "delete_file")
+@mock.patch.object(ingest_denials.s3_operations, "get_object")
+def test_populate_denials_with_no_data_in_file(mock_get_file, mock_delete_file):
+    mock_get_file.return_value = {"Body": io.StringIO(json.dumps([]))}
+    DenialMatchFactory()
+
+    call_command("ingest_denials", "json_file")
 
     assert Denial.objects.all().count() == 1
-    mock_delete_file.assert_called_with(document_id="json_file", s3_key="json_file")
