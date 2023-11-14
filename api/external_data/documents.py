@@ -71,7 +71,9 @@ postcode_normalizer = analysis.normalizer(
 class DenialDocumentType(Document):
     id = fields.KeywordField()
     name = fields.TextField()
-    address = fields.Text(analyzer=address_analyzer)
+    address = fields.TextField(
+        analyzer=address_analyzer,
+    )
     reference = fields.KeywordField()
     regime_reg_ref = fields.KeywordField()
     notifying_government = fields.TextField()
