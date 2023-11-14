@@ -53,10 +53,11 @@ class DenialSearchView(DocumentViewSet):
             "field": "country.raw",
         }
     }
+    ordering = "_score"
 
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False)
-        return super().filter_queryset(queryset).sort({"_score": {"order": "desc"}})
+        return super().filter_queryset(queryset)
 
 
 class SanctionSearchView(APIView):
