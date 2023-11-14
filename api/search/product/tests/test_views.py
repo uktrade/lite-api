@@ -213,30 +213,24 @@ def get_products_data(organisation, application, gov_users):
 class ProductSearchTests(DataTestClient):
     product_search_url = reverse("product_search-list")
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.organisation = OrganisationFactory(name="Product search")
-        cls.application = StandardApplicationFactory()
+    def setUp(self):
+        super().setUp()
+        self.organisation = OrganisationFactory(name="Product search")
+        self.application = StandardApplicationFactory()
 
-        cls.team = TeamFactory()
-        cls.tau_users = [
-            GovUserFactory(baseuser_ptr=BaseUserFactory(**user), team=cls.team) for user in get_users_data()
+        self.team = TeamFactory()
+        self.tau_users = [
+            GovUserFactory(baseuser_ptr=BaseUserFactory(**user), team=self.team) for user in get_users_data()
         ]
 
         # Create few products and add them to an application
-        for product in get_products_data(cls.organisation, cls.application, cls.tau_users):
+        for product in get_products_data(self.organisation, self.application, self.tau_users):
             GoodOnApplicationFactory(good=GoodFactory(**product["good"]), **product["good_on_application"])
 
         # Rebuild indexes with the products created
         call_command("search_index", models=["applications.GoodOnApplication"], action="rebuild", force=True)
 
-    @classmethod
-    def tearDownClass(cls):
-        Good.objects.filter(organisation=cls.organisation).delete()
-        GovUser.objects.filter(team=cls.team).delete()
-        cls.application.delete()
-        cls.team.delete()
+        
 
     def test_search_results_serializer(self):
         document = ProductDocumentType()
