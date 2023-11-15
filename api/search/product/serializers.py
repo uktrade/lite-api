@@ -30,7 +30,7 @@ class ProductDocumentSerializer(DocumentSerializer):
             "canonical_name",
             "application",
             "date",
-            "rating_comment",
+            "assessment_note",
             "report_summary",
             "part_number",
             "regime_entries",
