@@ -71,7 +71,7 @@ class CaseStatusEnum:
 
     compliance_visit_statuses = [OPEN, UNDER_INTERNAL_REVIEW, RETURN_TO_INSPECTOR, AWAITING_EXPORTER_RESPONSE, CLOSED]
 
-    post_tau_statuses = [
+    precedent_statuses = [
         UNDER_REVIEW,
         OGD_ADVICE,
         OGD_CONSOLIDATION,

@@ -1188,7 +1188,7 @@ class GoodOnPrecedentList(ListAPIView):
 
         return (
             GoodOnApplication.objects.filter(
-                application__status__status__in=CaseStatusEnum.post_tau_statuses,
+                application__status__status__in=CaseStatusEnum.precedent_statuses,
                 good__in=goods,
                 good__status=GoodStatus.VERIFIED,
             )

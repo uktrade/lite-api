@@ -1,11 +1,16 @@
+from typing import Tuple, List
+
 from pytz import timezone
 
+from api.applications.models import StandardApplication, GoodOnApplication
 from api.flags.enums import SystemFlags
 from parameterized import parameterized
 from api.goods.enums import GoodStatus
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from api.applications.tests.factories import GoodOnApplicationFactory
 from django.urls import reverse
@@ -19,41 +24,52 @@ class GoodPrecedentsListViewTests(DataTestClient):
         self.good = self.create_good("A good", self.organisation)
         self.good.flags.add(SystemFlags.WASSENAAR)
         # Create an application
-        self.draft_1 = self.create_draft_standard_application(self.organisation)
-        self.gona_1 = GoodOnApplicationFactory(
-            good=self.good, application=self.draft_1, quantity=5, report_summary="test1"
+        self.application = self.create_draft_standard_application(self.organisation)
+        GoodOnApplicationFactory.create(
+            good=self.good, application=self.application, quantity=5, report_summary="test1"
         )
-        self.case = self.submit_application(self.draft_1)
+        self.case = self.submit_application(self.application)
         self.case.queues.set([self.queue])
 
-        # Create another application
-        self.draft_2 = self.create_draft_standard_application(self.organisation)
-        self.gona_2 = GoodOnApplicationFactory(
-            good=self.good,
-            application=self.draft_2,
-            quantity=10,
-            report_summary="test2",
-            is_good_controlled=True,
-            is_ncsc_military_information_security=False,
-            comment="Classic product",
-        )
-        self.gona_2.control_list_entries.add(ControlListEntry.objects.get(rating="ML1a"))
-        self.gona_2.regime_entries.add(RegimeEntry.objects.get(name="Wassenaar Arrangement"))
-        self.gona_2.report_summary_prefix = ReportSummaryPrefix.objects.get(name="components for")
-        self.gona_2.report_summary_subject = ReportSummarySubject.objects.get(name="neural computers")
-        self.gona_2.save()
+        # Create precedents that should be returned
+        self.precedents: List[Tuple[StandardApplication, GoodOnApplication]] = []
+        for status in CaseStatusEnum.precedent_statuses:
+            precedent_application = self.create_draft_standard_application(self.organisation)
+            goa = GoodOnApplicationFactory(
+                good=self.good,
+                application=precedent_application,
+                quantity=10,
+                report_summary="test2",
+                is_good_controlled=True,
+                is_ncsc_military_information_security=False,
+                comment="Classic product",
+            )
+            goa.control_list_entries.add(ControlListEntry.objects.get(rating="ML1a"))
+            goa.regime_entries.add(RegimeEntry.objects.get(name="Wassenaar Arrangement"))
+            goa.report_summary_prefix = ReportSummaryPrefix.objects.get(name="components for")
+            goa.report_summary_subject = ReportSummarySubject.objects.get(name="neural computers")
+            goa.save()
+
+            self.submit_application(precedent_application)
+
+            precedent_application.status = get_case_status_by_status(status)
+            precedent_application.save()
+
+            self.precedents.append(tuple((precedent_application, goa)))
 
         # Expect this to be missing from API responses as is_good_controlled=None
-        self.gona_3 = GoodOnApplicationFactory(
+        GoodOnApplicationFactory.create(
             good=self.good,
-            application=self.draft_2,
+            application=self.precedents[0][0],
             quantity=10,
             report_summary="test2",
             is_good_controlled=None,
             is_ncsc_military_information_security=False,
             comment="Classic product",
         )
-        self.submit_application(self.draft_2)
+
+        # TODO: Add applications with statuses that should not be returned -
+
         self.url = reverse("cases:good_precedents", kwargs={"pk": self.case.id})
 
     @parameterized.expand([GoodStatus.DRAFT, GoodStatus.SUBMITTED, GoodStatus.QUERY])
@@ -66,21 +82,26 @@ class GoodPrecedentsListViewTests(DataTestClient):
         assert json["count"] == 0
 
     def test_get_with_matching_precedents(self):
+        assert len(CaseStatusEnum.precedent_statuses) > 0  # Sanity check
+
         self.good.status = GoodStatus.VERIFIED
         self.good.save()
+
         response = self.client.get(self.url, **self.gov_headers)
         assert response.status_code == 200
+
         json = response.json()
+
         wassenaar_regime = RegimeEntry.objects.get(name="Wassenaar Arrangement")
-        assert json == {
-            "count": 1,
+        expected_data = {
+            "count": len(CaseStatusEnum.precedent_statuses),
             "total_pages": 1,
             "results": [
                 {
-                    "id": str(self.gona_2.id),
+                    "id": str(good_on_application.id),
                     "queue": None,
-                    "application": str(self.draft_2.id),
-                    "reference": self.draft_2.reference_code,
+                    "application": str(application.id),
+                    "reference": application.reference_code,
                     "good": str(self.good.id),
                     "report_summary": "test2",
                     "quantity": 10.0,
@@ -89,7 +110,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
                     "control_list_entries": ["ML1a"],
                     "destinations": ["Great Britain"],
                     "wassenaar": True,
-                    "submitted_at": self.draft_2.submitted_at.astimezone(timezone("UTC")).strftime(
+                    "submitted_at": application.submitted_at.astimezone(timezone("UTC")).strftime(
                         "%Y-%m-%dT%H:%M:%S.%fZ"
                     ),
                     "goods_starting_point": "",
@@ -117,5 +138,8 @@ class GoodPrecedentsListViewTests(DataTestClient):
                         "name": "neural computers",
                     },
                 }
+                for application, good_on_application in self.precedents
             ],
         }
+
+        assert json == expected_data
