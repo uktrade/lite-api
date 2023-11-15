@@ -234,6 +234,9 @@ class ProductSearchTests(DataTestClient):
 
     @classmethod
     def tearDownClass(cls):
+        # Clean up all the objects created for these tests
+        # Some other tests expecting certain reference codes and count of goods
+        # so they will fail if these are not cleanedup properly.
         Good.objects.filter(organisation=cls.organisation).delete()
         GovUser.objects.filter(team=cls.team).delete()
         cls.application.delete()
