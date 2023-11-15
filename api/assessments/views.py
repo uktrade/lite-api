@@ -12,7 +12,8 @@ from api.core.authentication import GovAuthentication
 
 class MakeAssessmentsView(generics.UpdateAPIView):
     """
-    This view supersedes the old one for assessing GoodOnApplication objects; https://github.com/uktrade/lite-api/blob/98cfcc025f488bca0de9008378ca3423c64aa3c9/api/goods/views.py#L107
+    This view supersedes the old one for assessing GoodOnApplication objects;
+    https://github.com/uktrade/lite-api/blob/98cfcc025f488bca0de9008378ca3423c64aa3c9/api/goods/views.py#L107
     In the future, this old endpoint will be removed leaving just this new endpoint.
     """
 
