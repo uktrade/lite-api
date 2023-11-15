@@ -86,7 +86,7 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert audit_entry.payload == {
             "additional_text": "some comment",
             "good_name": good.name,
-            "line_no": 2,
+            "line_no": 2,  # We have another GoodOnApplication which we are not using for the test, so this will be 2
             "new_control_list_entry": ["ML1"],
             "new_is_good_controlled": "Yes",
             "new_regime_entries": [regime_entry.name],
