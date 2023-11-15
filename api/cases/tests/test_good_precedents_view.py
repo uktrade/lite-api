@@ -68,7 +68,23 @@ class GoodPrecedentsListViewTests(DataTestClient):
             comment="Classic product",
         )
 
-        # TODO: Add applications with statuses that should not be returned -
+        unwanted_draft_application = self.create_draft_standard_application(self.organisation)
+        goa = GoodOnApplicationFactory(
+            good=self.good,
+            application=unwanted_draft_application,
+            quantity=10,
+            report_summary="test2",
+            is_good_controlled=True,
+            is_ncsc_military_information_security=False,
+            comment="Classic product",
+        )
+        goa.control_list_entries.add(ControlListEntry.objects.get(rating="ML1a"))
+        goa.regime_entries.add(RegimeEntry.objects.get(name="Wassenaar Arrangement"))
+        goa.report_summary_prefix = ReportSummaryPrefix.objects.get(name="components for")
+        goa.report_summary_subject = ReportSummarySubject.objects.get(name="neural computers")
+        goa.save()
+
+        self.submit_application(unwanted_draft_application)
 
         self.url = reverse("cases:good_precedents", kwargs={"pk": self.case.id})
 
