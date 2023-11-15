@@ -278,7 +278,6 @@ def delete_test_data():
 
     for team in Team.objects.all():
         GovUser.objects.filter(team=team).delete()
-        team.delete()
 
     StandardApplication.objects.all().delete()
     CaseReferenceCode.objects.all().delete()
