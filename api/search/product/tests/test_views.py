@@ -11,6 +11,7 @@ from rest_framework import status
 from django_elasticsearch_dsl_drf.filter_backends import SearchFilterBackend
 
 from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory, StandardApplicationFactory
+from api.cases.models import CaseReferenceCode
 from api.goods.models import Good
 from api.organisations.tests.factories import OrganisationFactory
 from api.search.product.documents import ProductDocumentType
@@ -233,9 +234,13 @@ class ProductSearchTests(DataTestClient):
 
     @classmethod
     def tearDownClass(cls):
+        # Clean up all the objects created for these tests
+        # Some other tests expecting certain reference codes and count of goods
+        # so they will fail if these are not cleanedup properly.
         Good.objects.filter(organisation=cls.organisation).delete()
         GovUser.objects.filter(team=cls.team).delete()
         cls.application.delete()
+        CaseReferenceCode.objects.all().delete()
         cls.team.delete()
 
     def test_search_results_serializer(self):
