@@ -53,6 +53,7 @@ class DenialSearchView(DocumentViewSet):
             "field": "country.raw",
         }
     }
+    ordering = "_score"
 
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False)

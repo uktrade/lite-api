@@ -60,11 +60,10 @@ class GeneratedDocumentSendTests(DataTestClient):
         # Check add audit
         self.assertEqual(Audit.objects.all().count(), 2)
 
-        audit = Audit.objects.all().first()
-        self.assertEqual(AuditType(audit.verb), AuditType.DECISION_LETTER_SENT)
+        audit = Audit.objects.get(verb=AuditType.DECISION_LETTER_SENT)
         self.assertEqual(
             audit.payload,
-            {"decision": "inform", "case_reference": "GBSIEL/2023/0000001/P"},
+            {"decision": "inform", "case_reference": self.case.reference_code},
         )
         audit_text = AuditSerializer(audit).data["text"]
         self.assertEqual(audit_text, "sent an inform letter.")
@@ -111,10 +110,11 @@ class GeneratedDocumentSendTests(DataTestClient):
         mocked_notify_function.assert_called_with(self.case.get_case())
 
         # Check add audit
+
         audit = Audit.objects.get(verb=AuditType.DECISION_LETTER_SENT)
         self.assertEqual(
             audit.payload,
-            {"decision": "inform", "case_reference": "GBSIEL/2023/0000001/P"},
+            {"decision": "inform", "case_reference": self.case.reference_code},
         )
 
         audit_text = AuditSerializer(audit).data["text"]

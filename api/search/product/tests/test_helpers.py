@@ -8,6 +8,7 @@ from api.applications.tests.factories import (
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
+from api.cases.models import CaseReferenceCode
 from api.goods.models import Good
 from api.organisations.models import Organisation
 from api.organisations.tests.factories import OrganisationFactory
@@ -279,8 +280,6 @@ def delete_test_data():
         GovUser.objects.filter(team=team).delete()
         team.delete()
 
-    for application in StandardApplication.objects.all():
-        application.delete()
-
-    for party in Party.objects.all():
-        party.delete()
+    StandardApplication.objects.all().delete()
+    CaseReferenceCode.objects.all().delete()
+    Party.objects.all().delete()
