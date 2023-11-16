@@ -41,6 +41,38 @@ class SuggestedReportSummariesAnnotationTest(DataTestClient):
 
         assert normalised_report_summary == expected_normalised_report_summary
 
+    @parameterized.expand(
+        [
+            ("arts and crafts", {}, "arts and crafts"),
+            ("art and crafts", {}, "art and crafts"),
+            ("arts and craft", {"arts and craft": "arts and crafts"}, "arts and crafts"),
+        ],
+    )
+    def test_annotation_can_find_remapped_summaries(
+        self, report_summary, report_summary_mappings, expected_report_summary
+    ):
+        application = StandardApplicationFactory.create(organisation=self.organisation)
+        good = GoodFactory.create(
+            organisation=self.organisation,
+        )
+        expected_report_summary_prefix = ReportSummaryPrefix.objects.get_or_create(name="arts and crafts")
+
+        good_on_application_pk = GoodOnApplicationFactory.create(
+            application=application, good=good, report_summary=report_summary, is_good_controlled=True
+        ).pk
+
+        normalised_report_summary = (
+            (
+                annotate_normalised_summary(
+                    GoodOnApplication.objects.filter(id=good_on_application_pk), report_summary_mappings
+                )
+            )
+            .get()
+            .normalised_report_summary
+        )
+
+        assert expected_report_summary == normalised_report_summary
+
 
 class SuggestedSummariesManagementCommand(DataTestClient):
     def test_management_command(self):
