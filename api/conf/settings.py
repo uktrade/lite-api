@@ -117,6 +117,7 @@ INSTALLED_APPS = [
     "django_audit_log_middleware",
     "lite_routing",
     "api.appeals",
+    "api.assessments",
 ]
 
 MIDDLEWARE = [
