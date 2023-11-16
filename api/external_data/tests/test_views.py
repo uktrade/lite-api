@@ -115,14 +115,18 @@ class DenialViewSetTests(DataTestClient):
 
 class DenialSearchView(DataTestClient):
     @pytest.mark.elasticsearch
+    @classmethod
+    def setUpClass(cls):
+        call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
+
+    @pytest.mark.elasticsearch
     @parameterized.expand(
         [
             ({},),
             ({"page": 1},),
         ]
     )
-    def test_search_denials(self, page_query):
-        call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
+    def test_populate_denials(self, page_query):
         # given some denials exist
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
@@ -131,10 +135,9 @@ class DenialSearchView(DataTestClient):
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.Denial.objects.count(), 3)
+        self.assertEqual(models.Denial.objects.count(), 4)
 
         # and one of them is revoked
-
         denial = models.Denial.objects.first()
         denial.is_revoked = True
         denial.save()
@@ -148,6 +151,24 @@ class DenialSearchView(DataTestClient):
         self.assertEqual(len(response_json["results"]), 2)
         self.assertEqual(response_json["total_pages"], 1)
         assert "entity_type" in response_json["results"][0]
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "name:Bob"}, 2),
+            ({"search": "name:Jak"}, 1),
+            ({"search": "name:Jones"}, 1),
+            ({"search": "address:fake"}, 3),
+            ({"search": "address:bub"}, 1),
+        ]
+    )
+    def test_denial_search(self, query, quantity):
+        url = reverse("external_data:denial_search-list")
+
+        response = self.client.get(url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+        response_json = response.json()
+        self.assertEqual(len(response_json["results"]), quantity)
 
 
 class DenialSearchViewTests(DataTestClient):

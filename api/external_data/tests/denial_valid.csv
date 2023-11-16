@@ -2,3 +2,4 @@ reference,name,address,notifying_government,country,item_list_codes,item_descrip
 FOO123,Jim Example,123 fake street,France,Germany,ABC123,Foo,Fred Food,used in car,true,true,false
 BAR123,Jak Example,123 fake street,France,Germany,ABC123,Foo,Fred Food,used in car,false,true,false
 BAZ123,Bob Example,123 fake street,France,Germany,ABC123,Foo,Fred Food,used in car,false,false,true
+BAZ134,Bob Jones,Not so fast bub,France,Germany,ABC123,Foo,Fred Food,used in car,false,false,true
