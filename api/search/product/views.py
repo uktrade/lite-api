@@ -1,4 +1,3 @@
-from django_elasticsearch_dsl.search import Search
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from elasticsearch_dsl.query import Query

@@ -256,6 +256,7 @@ class ProductSearchTests(DataTestClient):
         view.request = request
         view.format_kwarg = None
         queryset = view.get_queryset()
+        view.augment_hits_with_instances(queryset)
         serializer = view.get_serializer(queryset, many=True)
         actual_fields = serializer.data[0].keys()
 
