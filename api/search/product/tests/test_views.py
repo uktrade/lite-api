@@ -61,17 +61,21 @@ class ProductSearchTests(DataTestClient):
         ]
     )
     @patch("api.search.product.views.ProductDocumentView", spec=True)
-    def test_product_search_pagination(self, paginator, response_type, view):
+    def test_product_search_pagination(self, pagination, response_type, view):
         """
         We override `list()` method in the view to augment search hits with model instances.
         Depending on pagination is set or not the response varies. If there is pagination
         we get count, previous and next fields in the response otherwise it is just a list.
         To avoid conditions in the test we just test for the type of response.
         """
-        setattr(view.__class__, "pagination_class", paginator)
+        current_pagination = getattr(view.__class__, "pagination_class")
+        setattr(view.__class__, "pagination_class", pagination)
         response = self.client.get(self.product_search_url, {"search": "shifter"}, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
         assert type(response.json()) == response_type
+
+        # revert as we are updating class attribute
+        setattr(view.__class__, "pagination_class", current_pagination)
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
