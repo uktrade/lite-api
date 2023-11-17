@@ -6,7 +6,7 @@ RUN apt-get update --fix-missing
 RUN apt-get install -y libpq-dev gcc curl \
   build-essential python3-dev python3-pip python3-setuptools python3-wheel \
   python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 \
-  libffi-dev shared-mime-info swig git imagemagick poppler-utils openssl
+  libffi-dev shared-mime-info swig git imagemagick poppler-utils openssl libsqlite3-dev
 RUN curl https://pyenv.run | bash
 ENV HOME /root
 ENV PYENV_ROOT $HOME/.pyenv
