@@ -38,6 +38,9 @@ class ProductDocumentSerializer(DocumentSerializer):
             "queues",
             "assessed_by",
             "assessment_date",
+            "consignee_country",
+            "end_user_country",
+            "ultimate_end_user_country",
         )
         extra_kwargs = {
             "name": {"required": False, "allow_null": True},
