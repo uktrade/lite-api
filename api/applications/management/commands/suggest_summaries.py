@@ -96,11 +96,11 @@ class Command(BaseCommand):
         report_summary_mappings: Dict[str, str] = {}
         if mappings_file:
             with open(mappings_file, "r") as f:
-                csv_headers = ["original_report_summary", "report_summary"]
+                csv_headers = ["original_report_summary", "corrected_report_summary"]
                 reader = csv.DictReader(f, fieldnames=csv_headers, skipinitialspace=True)
                 next(reader)
                 for row in reader:
-                    report_summary_mappings[row["original_report_summary"]] = row["report_summary"]
+                    report_summary_mappings[row["original_report_summary"]] = row["corrected_report_summary"]
 
         good_on_applications = filter_unpopulated_controlled_good_on_applications(
             GoodOnApplication.objects.order_by("report_summary")
