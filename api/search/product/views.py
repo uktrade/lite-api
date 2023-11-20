@@ -187,7 +187,7 @@ class ProductDocumentView(DocumentViewSet):
         return Response(serializer.data)
 
 
-class ProductSuggestDocumentView(APIView):
+class ProductSuggestPoCDocumentView(APIView):
     allowed_http_methods = ["get"]
     authentication_classes = (GovAuthentication,)
 
