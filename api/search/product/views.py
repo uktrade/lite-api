@@ -5,7 +5,7 @@ from elasticsearch_dsl.query import Query
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -155,6 +155,84 @@ class ProductDocumentView(DocumentViewSet):
             }
         )
         return super().get_queryset()
+
+
+class ProductSuggestDocumentView(RetrieveAPIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        query = self.request.GET.get("q", "")
+        query = {
+            "size": 5,
+            "query": {"match_bool_prefix": {"message": {"query": query}}},
+            "_source": False,
+            "suggest": {
+                "name": {
+                    "prefix": query,
+                    "completion": {"field": "name.suggest", "skip_duplicates": True},
+                },
+                "part_number": {
+                    "prefix": query,
+                    "completion": {"field": "part_number.suggest", "skip_duplicates": True},
+                },
+                "consignee_country": {
+                    "prefix": query,
+                    "completion": {"field": "consignee_country.suggest", "skip_duplicates": True},
+                },
+                "end_user_country": {
+                    "prefix": query,
+                    "completion": {"field": "end_user_country.suggest", "skip_duplicates": True},
+                },
+                "ultimate_end_user_country": {
+                    "prefix": query,
+                    "completion": {"field": "ultimate_end_user_country.suggest", "skip_duplicates": True},
+                },
+                "ratings": {
+                    "prefix": query,
+                    "completion": {"field": "ratings.suggest", "skip_duplicates": True},
+                },
+                "regimes": {
+                    "prefix": query,
+                    "completion": {"field": "regimes.suggest", "skip_duplicates": True},
+                },
+                "report_summary": {
+                    "prefix": query,
+                    "completion": {"field": "report_summary.suggest", "skip_duplicates": True},
+                },
+                "organisation": {
+                    "prefix": query,
+                    "completion": {"field": "organisation.suggest", "skip_duplicates": True},
+                },
+                "assessed_by": {
+                    "prefix": query,
+                    "completion": {"field": "assessed_by.suggest", "skip_duplicates": True},
+                },
+                "assessment_note": {
+                    "prefix": query,
+                    "completion": {"field": "assessment_note.suggest", "skip_duplicates": True},
+                },
+            },
+        }
+
+        search = ProductDocumentType.search().from_dict(query)
+        search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
+        suggests = []
+        executed = search.execute()
+
+        flat_suggestions = set()
+        for key in query["suggest"].keys():
+            for suggest in getattr(executed.suggest, key):
+                for option in suggest.options:
+                    suggests.append(
+                        {
+                            "field": key,
+                            "value": option.text,
+                            "index": "spire" if "spire" in option._index else "lite",
+                        }
+                    )
+                    flat_suggestions.add(option.text)
+
+        return Response(suggests)
 
 
 class ProductSuggestPoCDocumentView(APIView):
