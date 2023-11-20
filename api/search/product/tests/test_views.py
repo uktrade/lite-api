@@ -8,6 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from django_elasticsearch_dsl_drf.filter_backends import SearchFilterBackend
+from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 
 from api.goods.models import Good
 from api.search.product.documents import ProductDocumentType
@@ -46,10 +47,35 @@ class ProductSearchTests(DataTestClient):
         view.request = request
         view.format_kwarg = None
         queryset = view.get_queryset()
+        view.augment_hits_with_instances(queryset)
         serializer = view.get_serializer(queryset, many=True)
         actual_fields = serializer.data[0].keys()
 
         self.assertTrue(set(expected_fields).issubset(set(actual_fields)))
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            (PageNumberPagination, dict),
+            (None, list),
+        ]
+    )
+    @patch("api.search.product.views.ProductDocumentView", spec=True)
+    def test_product_search_pagination(self, pagination, response_type, view):
+        """
+        We override `list()` method in the view to augment search hits with model instances.
+        Depending on pagination is set or not the response varies. If there is pagination
+        we get count, previous and next fields in the response otherwise it is just a list.
+        To avoid conditions in the test we just test for the type of response.
+        """
+        current_pagination = getattr(view.__class__, "pagination_class")
+        setattr(view.__class__, "pagination_class", pagination)
+        response = self.client.get(self.product_search_url, {"search": "shifter"}, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+        assert type(response.json()) == response_type
+
+        # revert as we are updating class attribute
+        setattr(view.__class__, "pagination_class", current_pagination)
 
     @pytest.mark.elasticsearch
     @parameterized.expand(

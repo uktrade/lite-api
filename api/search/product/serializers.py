@@ -9,6 +9,7 @@ from api.search import models
 
 
 class ProductDocumentSerializer(DocumentSerializer):
+    name = serializers.SerializerMethodField()
     highlight = serializers.SerializerMethodField()
     score = serializers.SerializerMethodField()
     index = serializers.SerializerMethodField()
@@ -19,7 +20,6 @@ class ProductDocumentSerializer(DocumentSerializer):
         document = documents.ProductDocumentType
         fields = (
             "id",
-            "name",
             "description",
             "control_list_entries",
             "ratings",
@@ -55,6 +55,9 @@ class ProductDocumentSerializer(DocumentSerializer):
         if field_name in self.Meta.extra_kwargs:
             kwargs.update(self.Meta.extra_kwargs[field_name])
         return kwargs
+
+    def get_name(self, obj):
+        return obj.instance.name
 
     def get_highlight(self, obj):
         if hasattr(obj.meta, "highlight"):
