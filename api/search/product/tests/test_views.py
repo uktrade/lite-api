@@ -1,13 +1,22 @@
 import pytest
 from dateutil.parser import parse
 from parameterized import parameterized
+from unittest.mock import patch
 
 from django.core.management import call_command
+from django.test import RequestFactory
 from django.urls import reverse
+from rest_framework import status
+
+from django_elasticsearch_dsl_drf.filter_backends import SearchFilterBackend
 
 from api.applications.tests.factories import GoodFactory, GoodOnApplicationFactory, StandardApplicationFactory
+from api.cases.models import CaseReferenceCode
 from api.goods.models import Good
 from api.organisations.tests.factories import OrganisationFactory
+from api.search.product.documents import ProductDocumentType
+from api.search.product.views import ProductDocumentView
+
 from api.teams.tests.factories import TeamFactory
 from api.users.models import GovUser
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
@@ -225,10 +234,32 @@ class ProductSearchTests(DataTestClient):
 
     @classmethod
     def tearDownClass(cls):
+        # Clean up all the objects created for these tests
+        # Some other tests expecting certain reference codes and count of goods
+        # so they will fail if these are not cleanedup properly.
         Good.objects.filter(organisation=cls.organisation).delete()
         GovUser.objects.filter(team=cls.team).delete()
         cls.application.delete()
+        CaseReferenceCode.objects.all().delete()
         cls.team.delete()
+
+    def test_search_results_serializer(self):
+        document = ProductDocumentType()
+        expected_fields = list(document._fields.keys())
+        # remove fields not exposed to UI
+        for key in ("wildcard", "context", "end_user_type"):
+            if key in expected_fields:
+                expected_fields.remove(key)
+
+        request = RequestFactory().get(self.product_search_url)
+        view = ProductDocumentView()
+        view.request = request
+        view.format_kwarg = None
+        queryset = view.get_queryset()
+        serializer = view.get_serializer(queryset, many=True)
+        actual_fields = serializer.data[0].keys()
+
+        self.assertTrue(set(expected_fields).issubset(set(actual_fields)))
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
@@ -389,6 +420,48 @@ class ProductSearchTests(DataTestClient):
 
         response = response.json()
         self.assertEqual(response["count"], expected_count)
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "sensor AND"}, 0),
+            ({"search": "sensor OR"}, 0),
+            ({"search": "sensor AND (image NOT)"}, 0),
+            ({"search": "AND sensor"}, 0),
+        ]
+    )
+    def test_product_search_syntax_error(self, query, expected_count):
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = response.json()
+        self.assertEqual(response["error"], "Invalid search string")
+        self.assertEqual(response["count"], expected_count)
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "sensor AND"},),
+            ({"search": "sensor OR"},),
+            ({"search": "sensor AND (image NOT)"},),
+            ({"search": "AND sensor"},),
+        ]
+    )
+    @patch("api.search.product.views.ProductDocumentView", spec=True)
+    def test_product_search_no_syntax_error_without_query_string_backend(self, query, mock_view):
+        """
+        We only need to check for syntax errors if we are using QueryString backend.
+        If we are not using then these queries should not fail
+        """
+        current_filter_backends = getattr(mock_view.__class__, "filter_backends")
+        setattr(mock_view.__class__, "filter_backends", [SearchFilterBackend])
+
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        # Attributes are bound to class, as we have updated above we need
+        # to restore after the test.
+        setattr(mock_view.__class__, "filter_backends", current_filter_backends)
 
 
 class MoreLikeThisViewTests(DataTestClient):

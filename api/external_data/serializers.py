@@ -33,10 +33,13 @@ class DenialSerializer(serializers.ModelSerializer):
             "is_revoked",
             "is_revoked_comment",
             "entity_type",
+            "reason_for_refusal",
+            "spire_entity_id",
         )
         extra_kwargs = {
             "is_revoked": {"required": False},
             "is_revoked_comment": {"required": False},
+            "reason_for_refusal": {"required": False},
         }
 
     def validate(self, data):
