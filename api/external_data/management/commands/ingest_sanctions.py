@@ -204,9 +204,9 @@ class Command(BaseCommand):
                 exc_info=True,
             )
 
-    def _get_primary_name(self, item):
+    def _get_primary_name(self, names):
         backup_name = None
-        for name in item["names"]["names"]:
+        for name in names:
             nametype = name.get("nametype")
             if not nametype:
                 continue
@@ -233,7 +233,13 @@ class Command(BaseCommand):
                     for address_item in item.get("addresses", {}).get("address", []):
                         address_list.append(" ".join(address_item.values()))
 
-                    primary_name = self._get_primary_name(item)
+                    if "names" not in item:
+                        logger.warning(
+                            "No name found for record %s",
+                            item,
+                        )
+                        continue
+                    primary_name = self._get_primary_name(item["names"]["name"])
 
                     name = join_fields(primary_name, fields=["name1", "name2", "name3", "name4", "name5", "name6"])
                     address = ",".join(address_list)
@@ -266,7 +272,9 @@ class Command(BaseCommand):
                         exc_info=True,
                     )
             logger.info(
-                f"uk sanctions (successful:{successful} failed:{failed})",
+                "uk sanctions (successful:%s failed:%s)",
+                successful,
+                failed,
             )
         except:  # pragma: no cover # noqa
             logger.exception(
