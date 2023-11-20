@@ -264,7 +264,7 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except:  # pragma: no cover # noqa
+                except:  # noqa
                     failed += 1
                     logger.exception(
                         "Error loading uk sanction record -> %s",
