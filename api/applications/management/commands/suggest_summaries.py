@@ -126,8 +126,11 @@ class Command(BaseCommand):
         }
 
         with open(filename, "w") as csvfile:
+            has_written_unmappables = False
             writer = csv.DictWriter(csvfile, fieldnames=csv_headers, quoting=csv.QUOTE_ALL)
             writer.writeheader()
+
+            stderr_writer = csv.DictWriter(self.stderr, fieldnames=csv_headers, quoting=csv.QUOTE_ALL)
             for good_on_application in good_on_applications:
                 suggested_prefix = prefixes_by_id.get(good_on_application.suggested_prefix_id)
 
@@ -135,12 +138,6 @@ class Command(BaseCommand):
                     good_on_application.normalised_report_summary, suggested_prefix
                 )
                 suggested_subject = subjects_by_name.get(suggested_subject_name)
-                if suggested_subject is None:
-                    self.stderr.write(
-                        f"{good_on_application.id}, {good_on_application.normalised_report_summary}  "
-                        "[SKIPPED: No suggested subject]"
-                    )
-                    continue
 
                 data = {
                     "id": good_on_application.id,
@@ -149,9 +146,16 @@ class Command(BaseCommand):
                     "suggested_prefix_id": good_on_application.suggested_prefix_id
                     if good_on_application.suggested_prefix_id
                     else "",
-                    "suggested_subject": suggested_subject.name,
-                    "suggested_subject_id": suggested_subject.id,
+                    "suggested_subject": suggested_subject.name if suggested_subject else "",
+                    "suggested_subject_id": suggested_subject.id if suggested_subject else "",
                 }
-                writer.writerow(data)
 
-        self.stderr.write(f"Saved: {filename}")
+                if suggested_subject is not None:
+                    writer.writerow(data)
+                    continue
+
+                if not has_written_unmappables:
+                    has_written_unmappables = True
+                    stderr_writer.writeheader()
+
+                stderr_writer.writerow(data)
