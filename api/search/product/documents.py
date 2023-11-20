@@ -134,11 +134,20 @@ class ProductDocumentType(Document):
         analyzer=descriptive_text_analyzer,
     )
     control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=Rating)
-    ratings = fields.TextField(attr="good.name", multi=True)  # is overwritten in prepare
+    ratings = fields.TextField(
+        attr="good.name",
+        multi=True,
+        fields={"suggest": fields.CompletionField()},
+    )
 
     queues = fields.NestedField(doc_class=Queue, attr="application.queues")
 
-    name = fields.TextField(attr="good.name", copy_to="wildcard", analyzer=descriptive_text_analyzer)
+    name = fields.TextField(
+        attr="good.name",
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer,
+        fields={"suggest": fields.CompletionField()},
+    )
     # not mapped yet
     destination = fields.KeywordField(
         attr="application.end_user.party.country.name",
@@ -166,7 +175,12 @@ class ProductDocumentType(Document):
 
     application = fields.NestedField(doc_class=ApplicationOnProduct)
 
-    assessment_note = fields.TextField(attr="comment", copy_to="wildcard", analyzer=descriptive_text_analyzer)
+    assessment_note = fields.TextField(
+        attr="comment",
+        copy_to="wildcard",
+        analyzer=descriptive_text_analyzer,
+        fields={"suggest": fields.CompletionField()},
+    )
 
     report_summary = fields.TextField(
         attr="report_summary",
@@ -189,9 +203,15 @@ class ProductDocumentType(Document):
     )
 
     regime_entries = fields.NestedField(attr="regime_entries", doc_class=Regime)
-    regimes = fields.TextField(multi=True)
+    regimes = fields.TextField(
+        multi=True,
+        fields={"suggest": fields.CompletionField()},
+    )
 
-    assessed_by = fields.TextField(multi=True)
+    assessed_by = fields.TextField(
+        multi=True,
+        fields={"suggest": fields.CompletionField()},
+    )
     assessment_date = fields.DateField(
         attr="assessment_date",
         fields={
@@ -199,9 +219,18 @@ class ProductDocumentType(Document):
         },
     )
 
-    consignee_country = fields.TextField(attr="application.consignee.party.country.name")
-    end_user_country = fields.TextField(attr="application.end_user.party.country.name")
-    ultimate_end_user_country = fields.TextField(multi=True)
+    consignee_country = fields.TextField(
+        attr="application.consignee.party.country.name",
+        fields={"suggest": fields.CompletionField()},
+    )
+    end_user_country = fields.TextField(
+        attr="application.end_user.party.country.name",
+        fields={"suggest": fields.CompletionField()},
+    )
+    ultimate_end_user_country = fields.TextField(
+        multi=True,
+        fields={"suggest": fields.CompletionField()},
+    )
 
     class Index:
         name = settings.ELASTICSEARCH_PRODUCT_INDEX_ALIAS
