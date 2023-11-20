@@ -5,7 +5,7 @@ from elasticsearch_dsl.query import Query
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 
 from django.conf import settings
 from django.db.models import Case, When
@@ -185,6 +185,66 @@ class ProductDocumentView(DocumentViewSet):
         self.augment_hits_with_instances(queryset)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class ProductSuggestDocumentView(RetrieveAPIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        query_str = self.request.GET.get("q", "")
+
+        query = {
+            "size": 5,
+            "query": {
+                "multi_match": {
+                    "query": query_str,
+                    "type": "bool_prefix",
+                    "fields": [
+                        "name",
+                        "part_number",
+                        "ratings",
+                        "regimes",
+                        "report_summary",
+                        "organisation",
+                        "assessed_by",
+                        "consignee_country",
+                        "end_user_country",
+                        "ultimate_end_user_country",
+                        "assessment_note",
+                    ],
+                }
+            },
+            "highlight": {
+                "fields": {
+                    "*": {
+                        "post_tags": [""],
+                        "pre_tags": [""],
+                    },
+                },
+            },
+            "_source": False,
+        }
+
+        search = ProductDocumentType.search().from_dict(query)
+        search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
+        suggests = []
+        executed = search.execute()
+
+        flat_suggestions = set()
+        for hit in executed.hits:
+            for field, value in hit.meta.highlight.to_dict().items():
+                value = value[0]
+                if value not in flat_suggestions:
+                    suggests.append(
+                        {
+                            "field": field,
+                            "value": value,
+                            "index": "spire" if "spire" in hit.meta.index else "lite",
+                        }
+                    )
+                    flat_suggestions.add(value)
+
+        return Response(suggests)
 
 
 class ProductSuggestPoCDocumentView(APIView):
