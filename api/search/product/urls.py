@@ -12,7 +12,7 @@ router.register(r"search", views.ProductDocumentView, basename="product_search")
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("suggest/", views.ProductSuggestDocumentView.as_view(), name="product_suggest"),
+    path("suggest-poc/", views.ProductSuggestPoCDocumentView.as_view(), name="product_suggest_poc"),
     path("spire/<str:pk>/comment/", views.CommentView.as_view(), name="retrieve_spire_product_comment"),
     path("lite/<uuid:pk>/comment/", views.CommentView.as_view(), name="retrieve_lite_product_comment"),
     path("lite/<uuid:pk>/", views.RetrieveLiteProductView.as_view(), name="retrieve_lite_product"),

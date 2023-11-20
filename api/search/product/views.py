@@ -157,7 +157,7 @@ class ProductDocumentView(DocumentViewSet):
         return super().get_queryset()
 
 
-class ProductSuggestDocumentView(APIView):
+class ProductSuggestPoCDocumentView(APIView):
     allowed_http_methods = ["get"]
     authentication_classes = (GovAuthentication,)
 
