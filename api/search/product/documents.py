@@ -133,8 +133,8 @@ class ProductDocumentType(Document):
         copy_to="wildcard",
         analyzer=descriptive_text_analyzer,
     )
-    control_list_entries = fields.NestedField(attr="good.control_list_entries", doc_class=Rating)
-    ratings = fields.TextField(attr="good.name", multi=True)  # is overwritten in prepare
+    control_list_entries = fields.NestedField(attr="control_list_entries", doc_class=Rating)
+    ratings = fields.TextField(attr="good.name", multi=True)
 
     queues = fields.NestedField(doc_class=Queue, attr="application.queues")
 
@@ -227,7 +227,7 @@ class ProductDocumentType(Document):
         return data
 
     def prepare_ratings(self, instance):
-        return [cle.rating for cle in instance.good.control_list_entries.all()]
+        return [cle.rating for cle in instance.control_list_entries.all()]
 
     def prepare_regimes(self, instance):
         regimes = []
