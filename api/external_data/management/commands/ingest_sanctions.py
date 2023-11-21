@@ -204,24 +204,42 @@ class Command(BaseCommand):
                 exc_info=True,
             )
 
+    def _get_primary_names_dict(self, names):
+        backup_name = None
+        for name in names:
+            nametype = name.get("nametype")
+            if not nametype:
+                continue
+            if nametype.lower() == "primary name":
+                return name
+            if nametype.lower() == "primary name variation":
+                backup_name = name
+        if backup_name:
+            return backup_name
+
+        raise Exception("Primary name not found")
+
     def populate_uk_sanctions_list(self):
         successful = 0
         failed = 0
         try:
             uk_sanctions_list = get_uk_sanctions_list()
             for item in uk_sanctions_list:
+                unique_id = item.get("ofsigroupid", "UNKNOWN")
+
                 try:
                     address_list = []
 
                     for address_item in item.get("addresses", {}).get("address", []):
                         address_list.append(" ".join(address_item.values()))
 
-                    primary_name = next(
-                        filter(
-                            lambda n: n.get("nametype", "").lower() == "primary name",
-                            item["names"]["name"],
+                    if "names" not in item:
+                        logger.warning(
+                            "No name found for record %s",
+                            item,
                         )
-                    )
+                        continue
+                    primary_name = self._get_primary_names_dict(item["names"]["name"])
 
                     name = join_fields(primary_name, fields=["name1", "name2", "name3", "name4", "name5", "name6"])
                     address = ",".join(address_list)
@@ -236,7 +254,6 @@ class Command(BaseCommand):
                     except KeyError:
                         pass
 
-                    unique_id = item.get("ofsigroupid", "UNKNOWN")
                     document = documents.SanctionDocumentType(
                         meta={"id": f"uk:{unique_id}"},
                         name=name,
@@ -247,7 +264,7 @@ class Command(BaseCommand):
                     )
                     document.save()
                     successful += 1
-                except:  # pragma: no cover # noqa
+                except:  # noqa
                     failed += 1
                     logger.exception(
                         "Error loading uk sanction record -> %s",
@@ -255,7 +272,9 @@ class Command(BaseCommand):
                         exc_info=True,
                     )
             logger.info(
-                f"uk sanctions (successful:{successful} failed:{failed})",
+                "uk sanctions (successful:%s failed:%s)",
+                successful,
+                failed,
             )
         except:  # pragma: no cover # noqa
             logger.exception(
