@@ -21,7 +21,7 @@ class DenialViewSetTests(DataTestClient):
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.Denial.objects.count(), 3)
+        self.assertEqual(models.Denial.objects.count(), 4)
         self.assertEqual(
             list(models.Denial.objects.values(*serializers.DenialFromCSVFileSerializer.required_headers, "data")),
             [
@@ -59,7 +59,19 @@ class DenialViewSetTests(DataTestClient):
                     "name": "Bob Example",
                     "notifying_government": "France",
                     "end_use": "used in car",
-                    "reference": "BAZ123",
+                    "reference": "BAG124",
+                },
+                {
+                    "address": "Bob Avenue",
+                    "consignee_name": "Fred Food",
+                    "data": {"end_user_flag": "false", "consignee_flag": "false", "other_role": "true"},
+                    "country": "Germany",
+                    "item_description": "Foo",
+                    "item_list_codes": "ABC123",
+                    "name": "James Jones",
+                    "notifying_government": "France",
+                    "end_use": "used in car",
+                    "reference": "BAT123",
                 },
             ],
         )
@@ -121,9 +133,56 @@ class DenialSearchView(DataTestClient):
             ({"page": 1},),
         ]
     )
-    def test_search_denials(self, page_query):
+    def test_populate_denials(self, page_query):
         call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
-        # given some denials exist
+        url = reverse("external_data:denial-list")
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            content = f.read()
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(models.Denial.objects.count(), 4)
+
+        # and one of them is revoked
+        denial = models.Denial.objects.get(name="Jak Example")
+        denial.is_revoked = True
+        denial.save()
+
+        # then only 2 denials will be returned when searching
+        url = reverse("external_data:denial_search-list")
+
+        response = self.client.get(url, {**page_query, "search": "name:Example"}, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+        response_json = response.json()
+        expected_result = {
+            "address": "123 fake street",
+            "country": "Germany",
+            "item_description": "Foo",
+            "item_list_codes": "ABC123",
+            "name": "Jim Example",
+            "notifying_government": "France",
+            "end_use": "used in car",
+            "reference": "FOO123",
+        }
+
+        for key, value in expected_result.items():
+            self.assertEqual(response_json["results"][0][key], value)
+        self.assertEqual(len(response_json["results"]), 2)
+        self.assertEqual(response_json["total_pages"], 1)
+        assert "entity_type" in response_json["results"][0]
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "name:Bob"}, 1),
+            ({"search": "name:Example"}, 3),
+            ({"search": "name:Jones"}, 1),
+            ({"search": "address:123 fake street"}, 3),
+            ({"search": "address:Bob Avenue"}, 1),
+        ]
+    )
+    def test_denial_search(self, query, quantity):
+        call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
         with open(file_path, "rb") as f:
@@ -131,23 +190,13 @@ class DenialSearchView(DataTestClient):
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.Denial.objects.count(), 3)
 
-        # and one of them is revoked
-
-        denial = models.Denial.objects.first()
-        denial.is_revoked = True
-        denial.save()
-
-        # then only 2 denials will be returned when searching
         url = reverse("external_data:denial_search-list")
 
-        response = self.client.get(url, {**page_query, "search": "Example"}, **self.gov_headers)
+        response = self.client.get(url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
-        self.assertEqual(len(response_json["results"]), 2)
-        self.assertEqual(response_json["total_pages"], 1)
-        assert "entity_type" in response_json["results"][0]
+        self.assertEqual(len(response_json["results"]), quantity)
 
 
 class DenialSearchViewTests(DataTestClient):

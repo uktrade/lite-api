@@ -71,6 +71,16 @@ class CaseStatusEnum:
 
     compliance_visit_statuses = [OPEN, UNDER_INTERNAL_REVIEW, RETURN_TO_INSPECTOR, AWAITING_EXPORTER_RESPONSE, CLOSED]
 
+    precedent_statuses = [
+        UNDER_REVIEW,
+        OGD_ADVICE,
+        OGD_CONSOLIDATION,
+        UNDER_FINAL_REVIEW,
+        FINAL_REVIEW_COUNTERSIGN,
+        FINAL_REVIEW_SECOND_COUNTERSIGN,
+        FINALISED,
+    ]
+
     choices = [
         (APPEAL_FINAL_REVIEW, "Appeal final review"),
         (APPEAL_REVIEW, "Appeal review"),

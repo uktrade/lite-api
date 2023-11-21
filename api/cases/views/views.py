@@ -1179,10 +1179,19 @@ class GoodOnPrecedentList(ListAPIView):
 
     def get_queryset(self):
         case = get_case(self.kwargs["pk"])
-        gonas = GoodOnApplication.objects.filter(application=case).all()
-        goods = {gona.good_id for gona in gonas}
+        goods = (
+            GoodOnApplication.objects.filter(application=case)
+            .order_by("good_id")
+            .distinct("good_id")
+            .values_list("good_id", flat=True)
+        )
+
         return (
-            GoodOnApplication.objects.filter(good__in=goods, good__status=GoodStatus.VERIFIED)
+            GoodOnApplication.objects.filter(
+                application__status__status__in=CaseStatusEnum.precedent_statuses,
+                good__in=goods,
+                good__status=GoodStatus.VERIFIED,
+            )
             .exclude(application=case)
             # Ensure any precedents we return have a non-None value for is_good_controlled.
             # GoodOnApplication records with is_good_controlled=None are either not yet assessed
