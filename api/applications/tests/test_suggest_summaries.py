@@ -77,7 +77,36 @@ class SuggestedReportSummariesAnnotationTest(DataTestClient):
 
 
 class SuggestedSummariesManagementCommand(DataTestClient):
-    def test_management_command(self):
+    @parameterized.expand(
+        [
+            (
+                # Data provided without remappings for mis-spellings
+                [
+                    # report_summary, suggested_prefix, suggested_subject
+                    ("arts and crafts", None, "arts and crafts"),
+                    ("training for arts and crafts", "training for", "arts and crafts"),
+                    ("equipment for arts and crafts", "equipment for", "arts and crafts"),
+                    ("tf arts and crafts", None, None),
+                ],
+                None,
+            ),
+            (
+                # Data provided with remappings for mis-spellings
+                [
+                    # report_summary, suggested_prefix, suggested_subject
+                    ("arts and crafts", None, "arts and crafts"),
+                    ("training for arts and crafts", "training for", "arts and crafts"),
+                    ("equipment for arts and crafts", "equipment for", "arts and crafts"),
+                    ("tf arts and crafts", "training for", "arts and crafts"),
+                    ("trf arts and crafts", None, None),
+                ],
+                [
+                    ("tf arts and crafts", "training for arts and crafts"),
+                ],
+            ),
+        ]
+    )
+    def test_management_command(self, report_data, mappings):
         """
         Test that the management command produces a CSV file with the expected rows.
 
@@ -92,18 +121,9 @@ class SuggestedSummariesManagementCommand(DataTestClient):
             organisation=self.organisation,
         )
 
-        # Input data, not including the ids for items that are created later:
-        # If there is no suggested subject, then the no corresponding row should appear in the CSV.
-        report_data = [
-            # report_summary, suggested_prefix, suggested_subject
-            ("arts and crafts", None, "arts and crafts"),
-            ("training for arts and crafts", "training for", "arts and crafts"),
-            ("equipment for arts and crafts", "equipment for", "arts and crafts"),
-            ("tf arts and crafts", None, None),
-        ]
-
-        # Mapping of the report_summaries that should be mapped and the ReportSummaryPrefix objects that should
-        # be mapped to them.
+        # Build a dict of report_summaries and the ReportSummaryPrefix instances that should be matched with them.
+        # Where there is no suggested prefix the value is None (having an empty prefix is valid but a populated
+        # subject is valid).
         expected_report_prefixes = {
             report_summary: ReportSummaryPrefix.objects.get_or_create(name=suggested_prefix)[0]
             if suggested_prefix
@@ -111,8 +131,8 @@ class SuggestedSummariesManagementCommand(DataTestClient):
             for report_summary, suggested_prefix, suggested_subject in report_data
             if suggested_subject
         }
-        # Mapping of the report_summaries that should be mapped and the ReportSummarySubject objects that should
-        # be mapped to them.
+
+        # Build a dict of report_summaries and the ReportSummarySubject instances that should be matched with them.
         expected_report_subjects = {
             report_summary: ReportSummarySubject.objects.get_or_create(name=suggested_subject, code_level=1)[0]
             for report_summary, _, suggested_subject in report_data
@@ -166,10 +186,18 @@ class SuggestedSummariesManagementCommand(DataTestClient):
         ]
 
         with tempfile.TemporaryDirectory(suffix="-test_suggest_summaries") as tmpdirname:
-            csv_path = Path(tmpdirname) / "suggested_summaries.csv"
-            call_command("suggest_summaries", csv_path.as_posix())
+            options = {}
+            if mappings:
+                mappings_filename = tmpdirname + "/mappings.csv"
+                options = {"mappings": mappings_filename}
+                with open(mappings_filename, "w") as mappings_file:
+                    csv_mappings_writer = csv.writer(mappings_file, quoting=csv.QUOTE_ALL)
+                    csv_mappings_writer.writerow(["original_report_summary", "corrected_report_summary"])
+                    csv_mappings_writer.writerows(mappings)
 
-            # Verify that the CSV file was written to the location that this test overrides
+            csv_path = Path(tmpdirname) / "suggested_summaries.csv"
+            call_command("suggest_summaries", csv_path.as_posix(), **options)
+
             assert csv_path.exists()
 
             csv_rows = csv_path.read_text().splitlines()
