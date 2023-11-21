@@ -204,7 +204,7 @@ class Command(BaseCommand):
                 exc_info=True,
             )
 
-    def _get_primary_name(self, names):
+    def _get_primary_names_dict(self, names):
         backup_name = None
         for name in names:
             nametype = name.get("nametype")
@@ -239,7 +239,7 @@ class Command(BaseCommand):
                             item,
                         )
                         continue
-                    primary_name = self._get_primary_name(item["names"]["name"])
+                    primary_name = self._get_primary_names_dict(item["names"]["name"])
 
                     name = join_fields(primary_name, fields=["name1", "name2", "name3", "name4", "name5", "name6"])
                     address = ",".join(address_list)
