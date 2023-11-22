@@ -1,5 +1,6 @@
 from unittest import mock
 
+from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import Index, Search
 import requests_mock
 
@@ -600,3 +601,367 @@ class PopulateSanctionsTests(DataTestClient):
                 content=b"<designations><designation>Designation</designation></designations>",
             )
             ingest_sanctions.get_uk_sanctions_list()
+
+    @pytest.mark.elasticsearch
+    @mock.patch.object(ingest_sanctions, "get_un_sanctions")
+    @mock.patch.object(ingest_sanctions, "get_office_financial_sanctions_implementation")
+    @mock.patch.object(ingest_sanctions, "get_uk_sanctions_list")
+    def test_populate_sanctions_primary_name_variation(
+        self, mock_get_uk_sanctions_list, mock_get_office_financial_sanctions_implementation, mock_get_un_sanctions
+    ):
+        mock_get_uk_sanctions_list.return_value = [
+            {
+                "lastupdated": "2020/12/31",
+                "datedesignated": "2020/12/10",
+                "uniqueid": "unique-id",
+                "ofsigroupid": "1234",
+                "unreferencenumber": None,
+                "names": {
+                    "name": [
+                        {
+                            "name6": "Primary name variation test",
+                            "nametype": "Primary Name Variation",
+                        },
+                        {
+                            "name1": "Primary name variation test alias",
+                            "nametype": "alias",
+                        },
+                    ]
+                },
+                "addresses": {
+                    "address": [
+                        {
+                            "addressLine1": "address line 1",
+                            "addressLine2": "address line 2",
+                        },
+                        {
+                            "addressLine1": "another address line 1",
+                            "addressLine2": "another address line 2",
+                        },
+                    ]
+                },
+            },
+        ]
+
+        mock_get_office_financial_sanctions_implementation.return_value = {
+            "arrayoffinancialsanctionstarget": {
+                "financialsanctionstarget": [],
+            }
+        }
+
+        mock_get_un_sanctions.return_value = {
+            "consolidated_list": {
+                "individuals": {
+                    "individual": [],
+                },
+                "entities": {
+                    "entity": [],
+                },
+            },
+        }
+
+        call_command("ingest_sanctions", rebuild=True)
+
+        doc = documents.SanctionDocumentType.get("uk:1234")
+        self.assertEqual(doc.name, "Primary name variation test")
+
+    @pytest.mark.elasticsearch
+    @mock.patch.object(ingest_sanctions, "get_un_sanctions")
+    @mock.patch.object(ingest_sanctions, "get_office_financial_sanctions_implementation")
+    @mock.patch.object(ingest_sanctions, "get_uk_sanctions_list")
+    def test_populate_sanctions_primary_name_takes_precedence_over_variation(
+        self, mock_get_uk_sanctions_list, mock_get_office_financial_sanctions_implementation, mock_get_un_sanctions
+    ):
+        mock_get_uk_sanctions_list.return_value = [
+            {
+                "lastupdated": "2020/12/31",
+                "datedesignated": "2020/12/10",
+                "uniqueid": "unique-id",
+                "ofsigroupid": "1234",
+                "unreferencenumber": None,
+                "names": {
+                    "name": [
+                        {
+                            "name6": "Primary name variation test",
+                            "nametype": "Primary Name Variation",
+                        },
+                        {
+                            "name1": "Primary name",
+                            "nametype": "Primary Name",
+                        },
+                    ]
+                },
+                "addresses": {
+                    "address": [
+                        {
+                            "addressLine1": "address line 1",
+                            "addressLine2": "address line 2",
+                        },
+                        {
+                            "addressLine1": "another address line 1",
+                            "addressLine2": "another address line 2",
+                        },
+                    ]
+                },
+            },
+        ]
+
+        mock_get_office_financial_sanctions_implementation.return_value = {
+            "arrayoffinancialsanctionstarget": {
+                "financialsanctionstarget": [],
+            }
+        }
+
+        mock_get_un_sanctions.return_value = {
+            "consolidated_list": {
+                "individuals": {
+                    "individual": [],
+                },
+                "entities": {
+                    "entity": [],
+                },
+            },
+        }
+
+        call_command("ingest_sanctions", rebuild=True)
+
+        doc = documents.SanctionDocumentType.get("uk:1234")
+        self.assertEqual(doc.name, "Primary name")
+
+    @pytest.mark.elasticsearch
+    @mock.patch.object(ingest_sanctions, "get_un_sanctions")
+    @mock.patch.object(ingest_sanctions, "get_office_financial_sanctions_implementation")
+    @mock.patch.object(ingest_sanctions, "get_uk_sanctions_list")
+    def test_populate_sanctions_primary_name_no_name_type_ignored(
+        self, mock_get_uk_sanctions_list, mock_get_office_financial_sanctions_implementation, mock_get_un_sanctions
+    ):
+        mock_get_uk_sanctions_list.return_value = [
+            {
+                "lastupdated": "2020/12/31",
+                "datedesignated": "2020/12/10",
+                "uniqueid": "unique-id",
+                "ofsigroupid": "1234",
+                "unreferencenumber": None,
+                "names": {
+                    "name": [
+                        {
+                            "name6": "No name type",
+                        },
+                        {
+                            "name1": "Primary name",
+                            "nametype": "Primary Name",
+                        },
+                    ]
+                },
+                "addresses": {
+                    "address": [
+                        {
+                            "addressLine1": "address line 1",
+                            "addressLine2": "address line 2",
+                        },
+                        {
+                            "addressLine1": "another address line 1",
+                            "addressLine2": "another address line 2",
+                        },
+                    ]
+                },
+            },
+        ]
+
+        mock_get_office_financial_sanctions_implementation.return_value = {
+            "arrayoffinancialsanctionstarget": {
+                "financialsanctionstarget": [],
+            }
+        }
+
+        mock_get_un_sanctions.return_value = {
+            "consolidated_list": {
+                "individuals": {
+                    "individual": [],
+                },
+                "entities": {
+                    "entity": [],
+                },
+            },
+        }
+
+        call_command("ingest_sanctions", rebuild=True)
+
+        doc = documents.SanctionDocumentType.get("uk:1234")
+        self.assertEqual(doc.name, "Primary name")
+
+    @pytest.mark.elasticsearch
+    @mock.patch.object(ingest_sanctions, "get_un_sanctions")
+    @mock.patch.object(ingest_sanctions, "get_office_financial_sanctions_implementation")
+    @mock.patch.object(ingest_sanctions, "get_uk_sanctions_list")
+    def test_populate_sanctions_primary_name_no_name_record_ignored(
+        self, mock_get_uk_sanctions_list, mock_get_office_financial_sanctions_implementation, mock_get_un_sanctions
+    ):
+        mock_get_uk_sanctions_list.return_value = [
+            {
+                "lastupdated": "2020/12/31",
+                "datedesignated": "2020/12/10",
+                "uniqueid": "unique-id",
+                "ofsigroupid": "1234",
+                "unreferencenumber": None,
+                "names": {
+                    "name": [
+                        {
+                            "name6": "No name type",
+                        },
+                        {
+                            "name1": "Primary name",
+                            "nametype": "No primary name type",
+                        },
+                    ]
+                },
+                "addresses": {
+                    "address": [
+                        {
+                            "addressLine1": "address line 1",
+                            "addressLine2": "address line 2",
+                        },
+                        {
+                            "addressLine1": "another address line 1",
+                            "addressLine2": "another address line 2",
+                        },
+                    ]
+                },
+            },
+            {
+                "lastupdated": "2020/12/31",
+                "datedesignated": "2020/12/10",
+                "uniqueid": "unique-id",
+                "ofsigroupid": "5678",
+                "unreferencenumber": None,
+                "names": {
+                    "name": [
+                        {
+                            "name6": "No name type",
+                        },
+                        {
+                            "name1": "Primary name",
+                            "nametype": "Primary Name",
+                        },
+                    ]
+                },
+                "addresses": {
+                    "address": [
+                        {
+                            "addressLine1": "address line 1",
+                            "addressLine2": "address line 2",
+                        },
+                        {
+                            "addressLine1": "another address line 1",
+                            "addressLine2": "another address line 2",
+                        },
+                    ]
+                },
+            },
+        ]
+
+        mock_get_office_financial_sanctions_implementation.return_value = {
+            "arrayoffinancialsanctionstarget": {
+                "financialsanctionstarget": [],
+            }
+        }
+
+        mock_get_un_sanctions.return_value = {
+            "consolidated_list": {
+                "individuals": {
+                    "individual": [],
+                },
+                "entities": {
+                    "entity": [],
+                },
+            },
+        }
+
+        call_command("ingest_sanctions", rebuild=True)
+
+        with self.assertRaises(NotFoundError):
+            documents.SanctionDocumentType.get("uk:1234")
+
+        doc = documents.SanctionDocumentType.get("uk:5678")
+        self.assertEqual(doc.name, "Primary name")
+
+    @pytest.mark.elasticsearch
+    @mock.patch.object(ingest_sanctions, "get_un_sanctions")
+    @mock.patch.object(ingest_sanctions, "get_office_financial_sanctions_implementation")
+    @mock.patch.object(ingest_sanctions, "get_uk_sanctions_list")
+    def test_populate_sanctions_primary_name_no_names_record_ignored(
+        self, mock_get_uk_sanctions_list, mock_get_office_financial_sanctions_implementation, mock_get_un_sanctions
+    ):
+        mock_get_uk_sanctions_list.return_value = [
+            {
+                "lastupdated": "2020/12/31",
+                "datedesignated": "2020/12/10",
+                "uniqueid": "unique-id",
+                "ofsigroupid": "1234",
+                "unreferencenumber": None,
+                "addresses": {
+                    "address": [
+                        {
+                            "addressLine1": "address line 1",
+                            "addressLine2": "address line 2",
+                        },
+                        {
+                            "addressLine1": "another address line 1",
+                            "addressLine2": "another address line 2",
+                        },
+                    ]
+                },
+            },
+            {
+                "lastupdated": "2020/12/31",
+                "datedesignated": "2020/12/10",
+                "uniqueid": "unique-id",
+                "ofsigroupid": "5678",
+                "unreferencenumber": None,
+                "names": {
+                    "name": [
+                        {
+                            "name1": "Primary name",
+                            "nametype": "Primary Name",
+                        },
+                    ]
+                },
+                "addresses": {
+                    "address": [
+                        {
+                            "addressLine1": "address line 1",
+                            "addressLine2": "address line 2",
+                        },
+                        {
+                            "addressLine1": "another address line 1",
+                            "addressLine2": "another address line 2",
+                        },
+                    ]
+                },
+            },
+        ]
+
+        mock_get_office_financial_sanctions_implementation.return_value = {
+            "arrayoffinancialsanctionstarget": {
+                "financialsanctionstarget": [],
+            }
+        }
+
+        mock_get_un_sanctions.return_value = {
+            "consolidated_list": {
+                "individuals": {
+                    "individual": [],
+                },
+                "entities": {
+                    "entity": [],
+                },
+            },
+        }
+
+        call_command("ingest_sanctions", rebuild=True)
+
+        with self.assertRaises(NotFoundError):
+            documents.SanctionDocumentType.get("uk:1234")
+
+        doc = documents.SanctionDocumentType.get("uk:5678")
+        self.assertEqual(doc.name, "Primary name")
