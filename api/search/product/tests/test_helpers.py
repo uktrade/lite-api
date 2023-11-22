@@ -41,6 +41,7 @@ test_applications_data = [
                     "report_summary": "sniper rifles",
                     "assessment_date": parse("2021-06-08T15:51:28.529110+00:00"),
                     "comment": "no concerns",
+                    "control_list_entries": ["FR AI"],
                 },
             },
             {
@@ -48,13 +49,14 @@ test_applications_data = [
                     "name": "Thermal camera",
                     "part_number": "IMG-1300",
                     "is_good_controlled": True,
-                    "control_list_entries": ["6A003"],
+                    "control_list_entries": ["6A005"],
                 },
                 "good_on_application": {
                     "is_good_controlled": True,
                     "report_summary": "Imaging sensors",
                     "assessment_date": parse("2021-07-08T15:51:28.529110+00:00"),
                     "comment": "for industrial use only",
+                    "control_list_entries": ["6A003"],
                 },
             },
             {
@@ -69,6 +71,7 @@ test_applications_data = [
                     "report_summary": "Magnetic sensors",
                     "assessment_date": parse("2022-08-20T15:51:28.529110+00:00"),
                     "comment": "for industrial use only",
+                    "control_list_entries": ["6A006"],
                 },
             },
         ],
@@ -107,6 +110,7 @@ test_applications_data = [
                     "is_good_controlled": True,
                     "report_summary": "components for spectrometers",
                     "comment": "Research and development. Potentially under WVS regime",
+                    "control_list_entries": ["6A004"],
                 },
             },
             {
@@ -121,6 +125,7 @@ test_applications_data = [
                     "report_summary": "mechanical keyboards",
                     "assessment_date": parse("2022-10-08T15:51:28.529110+00:00"),
                     "comment": "dual use",
+                    "control_list_entries": ["PL9010"],
                 },
             },
             {
@@ -135,6 +140,7 @@ test_applications_data = [
                     "report_summary": "Chemicals",
                     "assessment_date": parse("2023-10-21T15:51:28.529110+00:00"),
                     "comment": "industrial use",
+                    "control_list_entries": ["1D003"],
                 },
             },
         ],
@@ -167,13 +173,14 @@ test_applications_data = [
                     "name": "M3 Pro Max",
                     "part_number": "867-5309",
                     "is_good_controlled": True,
-                    "control_list_entries": ["6A001a1d"],
+                    "control_list_entries": ["MEND2"],
                 },
                 "good_on_application": {
                     "is_good_controlled": True,
                     "report_summary": "marine position fixing equipment",
                     "regime_entries": ["Wassenaar Arrangement"],
                     "assessment_date": parse("2023-10-22T15:51:28.529110+00:00"),
+                    "control_list_entries": ["6A001a1d"],
                 },
             },
             {
@@ -188,6 +195,7 @@ test_applications_data = [
                     "report_summary": "components for imaging cameras",
                     "regime_entries": ["Wassenaar Arrangement Sensitive"],
                     "assessment_date": parse("2023-10-23T15:51:28.529110+00:00"),
+                    "control_list_entries": ["6A003b4a"],
                 },
             },
             {
@@ -202,6 +210,7 @@ test_applications_data = [
                     "report_summary": "chemicals used for general laboratory work/scientific research",
                     "regime_entries": ["CWC Schedule 3"],
                     "assessment_date": parse("2023-10-24T15:51:28.529110+00:00"),
+                    "control_list_entries": ["1C35016"],
                 },
             },
             {
@@ -215,6 +224,7 @@ test_applications_data = [
                     "is_good_controlled": False,
                     "report_summary": "technology for shotguns",
                     "assessment_date": parse("2023-08-24T15:51:28.529110+00:00"),
+                    "control_list_entries": ["ML22a"],
                 },
             },
         ],
