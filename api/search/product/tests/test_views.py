@@ -121,19 +121,21 @@ class ProductSearchTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "PL9010"}, 1, "PL9010"),
-            ({"search": "6A003"}, 1, "6A003"),
-            ({"search": "6A006"}, 1, "6A006"),
+            ({"search": "PL9010"}, 1, ["PL9010"]),
+            ({"search": "6A003"}, 1, ["6A003"]),
+            ({"search": "6A006"}, 1, ["6A006"]),
+            ({"search": "6A005"}, 0, []),
+            ({"search": "MEND2"}, 0, []),
         ]
     )
-    def test_product_search_by_control_list_entries(self, query, expected_count, expected_cle):
+    def test_product_search_by_control_list_entries(self, query, expected_count, expected_cles):
         response = self.client.get(self.product_search_url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
         response = response.json()
         self.assertEqual(response["count"], expected_count)
-        self.assertIn(
-            expected_cle, [entry["rating"] for item in response["results"] for entry in item["control_list_entries"]]
+        self.assertEqual(
+            expected_cles, [entry["rating"] for item in response["results"] for entry in item["control_list_entries"]]
         )
 
     @pytest.mark.elasticsearch
