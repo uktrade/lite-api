@@ -1,5 +1,7 @@
+import contextlib
 import csv
 import tempfile
+from io import StringIO
 from pathlib import Path
 
 from django.core.management import call_command
@@ -136,7 +138,7 @@ class SuggestedSummariesManagementCommand(DataTestClient):
         )
 
         # Create a GoodOnApplication that should NOT match and prefixes or suffixes or appear in the final CSV:
-        GoodOnApplicationFactory.create(
+        unmappable_good_on_application = GoodOnApplicationFactory.create(
             application=application, good=good, report_summary="xyz _unmappable", is_good_controlled=True
         )
 
@@ -173,6 +175,44 @@ class SuggestedSummariesManagementCommand(DataTestClient):
             if suggested_subject
         ]
 
+        expected_csv_file_lines = self._get_suggestions_as_csv_lines(good_on_application_suggestions)
+        expected_unmappable_lines = self._get_suggestions_as_csv_lines([(unmappable_good_on_application, None, None)])
+
+        # Inside a temporary directory, run the management command there and then verify that the file
+        # contents match the data in expected_csv_file_lines:
+        with tempfile.TemporaryDirectory(suffix="-test_suggest_summaries") as tmpdirname:
+            options = {}
+            if report_summary_mappings:
+                mappings_filename = tmpdirname + "/mappings.csv"
+                options = {"mappings": mappings_filename}
+                self._save_report_summaries_corrections_csv(report_summary_mappings, mappings_filename)
+
+            csv_file_path = Path(tmpdirname) / "suggested_summaries.csv"
+            with contextlib.redirect_stderr(StringIO()) as stderr:
+                call_command("suggest_summaries", csv_file_path.as_posix(), **options)
+
+            # Expect a CSV header and the single unmappable good on application with no suggestions:
+            unmappable_file_lines = stderr.getvalue().splitlines()
+            assert unmappable_file_lines == expected_unmappable_lines
+
+            # Expect a CSV header and the suggestions for the good on applications with report summaries
+            assert csv_file_path.exists()
+
+            actual_file_lines = csv_file_path.read_text().splitlines()
+
+            self.assertCountEqual(expected_csv_file_lines, actual_file_lines)
+
+    def _get_suggestions_as_csv_lines(
+        self,
+        good_on_application_suggestions: List[
+            Tuple[GoodOnApplication, Optional[ReportSummaryPrefix], Optional[ReportSummarySubject]]
+        ],
+    ) -> List[str]:
+        """
+        Build a list of strings representing the expected content of the CSV file the management command.
+
+        This is intended to be compared with the actual file content read with .splitlines()
+        """
         # Each field in the output CSV is quoted: illustrative example:
         # "id","report_summary","suggested_prefix","suggested_prefix_id","suggested_subject","suggested_subject_id"
         # "01234567-89ab-cdef-0123-456789abcdef","drawing supplies pens (1)","drawing supplies","01234567-89ab-cdef-0123-456789abcdef","pens","01234567-89ab-cdef-0123-456789abcdef"
@@ -187,11 +227,11 @@ class SuggestedSummariesManagementCommand(DataTestClient):
             + '"{suggested_subject_id}"'
         )
 
-        # All the data expected in the CSV file the management command will outputs, as a list of strings
+        # All the data expected in the CSV file the management command will output as a list of strings
         # including the header.
         # Rows are output by iterating the data in expected_good_on_application_suggestions and passing it to
         # expected_csv_row_template.format() to generate the string for each row.
-        expected_csv_file_lines = [
+        csv_file_lines = [
             # Header, as a string:
             '"id","report_summary","suggested_prefix","suggested_prefix_id","suggested_subject","suggested_subject_id"',
             # Data rows as strings, for the following lines:
@@ -201,8 +241,8 @@ class SuggestedSummariesManagementCommand(DataTestClient):
                     report_summary=good_on_application.report_summary,
                     suggested_prefix=suggested_prefix.name if suggested_prefix else "",
                     suggested_prefix_id=str(suggested_prefix.id) if suggested_prefix else "",
-                    suggested_subject=suggested_subject.name,
-                    suggested_subject_id=str(suggested_subject.id),
+                    suggested_subject=suggested_subject.name if suggested_subject else "",
+                    suggested_subject_id=str(suggested_subject.id) if suggested_subject else "",
                 )
                 for (
                     good_on_application,
@@ -211,24 +251,7 @@ class SuggestedSummariesManagementCommand(DataTestClient):
                 ) in good_on_application_suggestions
             ],
         ]
-
-        # Inside a temporary directory, run the management command there and then verify that the file
-        # contents match the data in expected_csv_file_lines:
-        with tempfile.TemporaryDirectory(suffix="-test_suggest_summaries") as tmpdirname:
-            options = {}
-            if report_summary_mappings:
-                mappings_filename = tmpdirname + "/mappings.csv"
-                options = {"mappings": mappings_filename}
-                self._save_report_summaries_corrections_csv(report_summary_mappings, mappings_filename)
-
-            csv_file_path = Path(tmpdirname) / "suggested_summaries.csv"
-            call_command("suggest_summaries", csv_file_path.as_posix(), **options)
-
-            assert csv_file_path.exists()
-
-            actual_file_lines = csv_file_path.read_text().splitlines()
-
-            self.assertCountEqual(expected_csv_file_lines, actual_file_lines)
+        return csv_file_lines
 
     def _save_report_summaries_corrections_csv(self, report_summary_mappings: Dict[str, str], filename: str):
         """Write CSV file for consumption by suggest_summaries --mappings.
