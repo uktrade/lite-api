@@ -126,7 +126,7 @@ class Command(BaseCommand):
         }
 
         with open(filename, "w") as csvfile:
-            has_written_unmappables = False
+            has_written_unmappables_csv_header = False
             writer = csv.DictWriter(csvfile, fieldnames=csv_headers, quoting=csv.QUOTE_ALL)
             writer.writeheader()
 
@@ -154,8 +154,8 @@ class Command(BaseCommand):
                     writer.writerow(data)
                     continue
 
-                if not has_written_unmappables:
-                    has_written_unmappables = True
+                if not has_written_unmappables_csv_header:
+                    has_written_unmappables_csv_header = True
                     stderr_writer.writeheader()
 
                 stderr_writer.writerow(data)

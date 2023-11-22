@@ -202,6 +202,50 @@ class SuggestedSummariesManagementCommand(DataTestClient):
 
             self.assertCountEqual(expected_csv_file_lines, actual_file_lines)
 
+    @parameterized.expand([(True,), (False,)])
+    def test_unmappable_items_are_written_to_stderr(self, create_umappable_good_on_application):
+        """
+        Any unmappable GoodOnApplications should be written to stderr in the same CSV format as the output file.
+        If there are no files, there is no output.
+        """
+        application = StandardApplicationFactory.create(organisation=self.organisation)
+        good = GoodFactory.create(
+            organisation=self.organisation,
+        )
+
+        if create_umappable_good_on_application:
+            unmappable_good_on_application = GoodOnApplicationFactory.create(
+                application=application, good=good, report_summary="ijk _unmappable", is_good_controlled=True
+            )
+            expected_unmappable_lines = self._get_suggestions_as_csv_lines(
+                [(unmappable_good_on_application, None, None)]
+            )
+        else:
+            # No unmappable good on applications are created, so no lines are expected in the stderr output
+            expected_unmappable_lines = []
+
+        # No report summary mappings are provided, so all GoodOnApplications should be unmappable, resulting in
+        # a CSV containing just a header.
+        expected_csv_file_lines = [
+            '"id","report_summary","suggested_prefix","suggested_prefix_id","suggested_subject","suggested_subject_id"'
+        ]
+
+        with tempfile.TemporaryDirectory(suffix="-test_suggest_summaries") as tmpdirname:
+            csv_file_path = Path(tmpdirname) / "suggested_summaries.csv"
+            with contextlib.redirect_stderr(StringIO()) as stderr:
+                call_command("suggest_summaries", csv_file_path.as_posix())
+
+            # Expect a CSV header and the single unmappable good on application with no suggestions:
+            unmappable_file_lines = stderr.getvalue().splitlines()
+            assert unmappable_file_lines == expected_unmappable_lines
+
+            # Expect a CSV header and the suggestions for the good on applications with report summaries
+            assert csv_file_path.exists()
+
+            actual_file_lines = csv_file_path.read_text().splitlines()
+
+            self.assertCountEqual(expected_csv_file_lines, actual_file_lines)
+
     def _get_suggestions_as_csv_lines(
         self,
         good_on_application_suggestions: List[
