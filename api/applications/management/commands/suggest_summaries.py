@@ -150,12 +150,12 @@ class Command(BaseCommand):
                     "suggested_subject_id": suggested_subject.id if suggested_subject else "",
                 }
 
-                if suggested_subject is not None:
+                if suggested_subject:
                     writer.writerow(data)
-                    continue
+                else:
+                    # If this is the GOA with no suggested subject, write the header
+                    if not has_written_unmappables_csv_header:
+                        has_written_unmappables_csv_header = True
+                        stderr_writer.writeheader()
 
-                if not has_written_unmappables_csv_header:
-                    has_written_unmappables_csv_header = True
-                    stderr_writer.writeheader()
-
-                stderr_writer.writerow(data)
+                    stderr_writer.writerow(data)
