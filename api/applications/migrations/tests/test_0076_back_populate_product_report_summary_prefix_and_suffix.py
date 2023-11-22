@@ -122,13 +122,13 @@ def test_report_summary_prefix_suffix_population_from_csv(
             )
 
     with patch(
-        "api.applications.migrations.0075_back_populate_product_report_summary_prefix_and_suffix.Migration.get_csv_path",
+        "api.applications.migrations.0076_back_populate_product_report_summary_prefix_and_suffix.Migration.get_csv_path",
         side_effect=[
             tmp_application_migrations_csv_dir / "0076_back_populate_product_report_summary_prefix_and_suffix.csv"
         ],
     ) as mock_get_csv_path:
         new_state = migrator.apply_tested_migration(
-            ("applications", "0075_back_populate_product_report_summary_prefix_and_suffix")
+            ("applications", "0076_back_populate_product_report_summary_prefix_and_suffix")
         )
 
         mock_get_csv_path.assert_called_once()
