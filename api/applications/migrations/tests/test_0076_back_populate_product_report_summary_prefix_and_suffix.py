@@ -66,7 +66,9 @@ def test_report_summary_prefix_suffix_population_from_csv(
     ]
     report_summary_data, prefix_data, subject_data = zip(*data)
 
-    old_state = migrator.apply_initial_migration(("applications", "0074_back_populate_product_assessor_details"))
+    old_state = migrator.apply_initial_migration(
+        ("applications", "0075_back_populate_product_report_summary_prefix_and_suffix")
+    )
 
     OldReportSummaryPrefix = old_state.apps.get_model("report_summaries", "ReportSummaryPrefix")  # noqa N806
     OldReportSummarySubject = old_state.apps.get_model("report_summaries", "ReportSummarySubject")  # noqa N806
@@ -88,7 +90,7 @@ def test_report_summary_prefix_suffix_population_from_csv(
     old_good_on_application__pks = {old_good_on_application.pk for old_good_on_application in old_good_on_applications}
 
     with open(
-        str(tmp_application_migrations_csv_dir / "0075_back_populate_product_report_summary_prefix_and_suffix.csv"),
+        str(tmp_application_migrations_csv_dir / "0076_back_populate_product_report_summary_prefix_and_suffix.csv"),
         "w",
         newline="",
     ) as csvfile:
@@ -122,7 +124,7 @@ def test_report_summary_prefix_suffix_population_from_csv(
     with patch(
         "api.applications.migrations.0075_back_populate_product_report_summary_prefix_and_suffix.Migration.get_csv_path",
         side_effect=[
-            tmp_application_migrations_csv_dir / "0075_back_populate_product_report_summary_prefix_and_suffix.csv"
+            tmp_application_migrations_csv_dir / "0076_back_populate_product_report_summary_prefix_and_suffix.csv"
         ],
     ) as mock_get_csv_path:
         new_state = migrator.apply_tested_migration(
