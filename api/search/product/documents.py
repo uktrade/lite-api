@@ -247,7 +247,7 @@ class ProductDocumentType(Document):
         )
 
     def prepare_ultimate_end_user_country(self, instance):
-        return [ueu.party.name for ueu in instance.application.ultimate_end_users]
+        return [ueu.party.country.name for ueu in instance.application.ultimate_end_users]
 
     def get_indexing_queryset(self):
         return (
