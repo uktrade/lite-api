@@ -134,7 +134,7 @@ class ProductDocumentType(Document):
         analyzer=descriptive_text_analyzer,
     )
     control_list_entries = fields.NestedField(attr="control_list_entries", doc_class=Rating)
-    ratings = fields.TextField(attr="good.name", multi=True)
+    ratings = fields.TextField(multi=True)
 
     queues = fields.NestedField(doc_class=Queue, attr="application.queues")
 
