@@ -228,6 +228,9 @@ class ProductSearchTests(DataTestClient):
             ({"search": "Chemicals AND (WS OR CWC)"}, 1),
             ({"search": '"Thermal camera"'}, 1),
             ({"search": "components NOT camera"}, 1),
+            ({"search": "consignee_country: Germany"}, 3),
+            ({"search": "end_user_country: France"}, 3),
+            ({"search": "ultimate_end_user_country: Finland"}, 4),
         ]
     )
     def test_product_search_query_string_queries(self, query, expected_count):
@@ -284,6 +287,7 @@ class ProductSearchTests(DataTestClient):
         [
             ({"search": "France"}, 3),
             ({"search": "Canada"}, 4),
+            ({"search": "Poland"}, 4),
             ({"search": "H2O2 AND Canada"}, 1),
             ({"search": "Germany AND Austria"}, 3),
         ]
