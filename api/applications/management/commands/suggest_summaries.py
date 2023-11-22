@@ -79,6 +79,17 @@ def annotate_matching_prefix(good_on_applications: QuerySet[GoodOnApplication]):
 
 
 class Command(BaseCommand):
+    """
+    Find GoodOnApplications that have a report_summary but no report_summary_prefix or report_summary_subject.
+
+    A valid report_summary be made up of:
+    - a report_summary_subject, or
+    - a report_summary_prefix and a report_summary_subject seperated by a space.
+
+    GOA with valid report_summaries will be output to the CSV passed to filename,
+    GOA with invalid report_summaries will be output to stderr.
+    """
+
     def add_arguments(self, parser):
         parser.add_argument("filename", type=str, help="Path to the output CSV file")
         parser.add_argument("--mappings", type=str, default=None, help="Path to the CSV file containing the mappings")
@@ -151,8 +162,10 @@ class Command(BaseCommand):
                 }
 
                 if suggested_subject:
+                    # Valid GOA have a suggested subject and are written to the CSV file.
                     writer.writerow(data)
                 else:
+                    # Invalid GOA do not have a suggested subject and are written to stderr.
                     # If this is the GOA with no suggested subject, write the header
                     if not has_written_unmappables_csv_header:
                         has_written_unmappables_csv_header = True
