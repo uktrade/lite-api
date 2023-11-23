@@ -3,6 +3,7 @@ from dateutil import parser
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
+from api.applications.models import GoodOnApplication
 from api.gov_users.serializers import GovUserSimpleSerializer
 from api.search.product import documents
 from api.search import models
@@ -10,6 +11,8 @@ from api.search import models
 
 class ProductDocumentSerializer(DocumentSerializer):
     name = serializers.SerializerMethodField()
+    quantity = serializers.SerializerMethodField()
+    value = serializers.SerializerMethodField()
     highlight = serializers.SerializerMethodField()
     score = serializers.SerializerMethodField()
     index = serializers.SerializerMethodField()
@@ -59,6 +62,12 @@ class ProductDocumentSerializer(DocumentSerializer):
     def get_name(self, obj):
         return obj.instance.name
 
+    def get_quantity(self, obj):
+        return obj.instance.quantity
+
+    def get_value(self, obj):
+        return obj.instance.value.to_eng_string()
+
     def get_highlight(self, obj):
         if hasattr(obj.meta, "highlight"):
             return obj.meta.highlight.to_dict()
@@ -75,14 +84,28 @@ class ProductDocumentSerializer(DocumentSerializer):
         if hasattr(obj, "date"):
             return self.format_date(obj.date)
 
+    def get_additional_fields_data(self, inner_hits):
+        additional_fields_data = {}
+        instance_ids = [item["_id"] for item in inner_hits["hits"]["hits"]]
+        for instance in GoodOnApplication.objects.filter(id__in=instance_ids):
+            key = str(instance.id)
+            additional_fields_data[key] = {
+                "quantity": instance.quantity,
+                "value": instance.value.to_eng_string(),
+            }
+
+        return additional_fields_data
+
     def get_inner_hits(self, obj):
         if hasattr(obj.meta, "inner_hits"):
             inner_hits = obj.meta.inner_hits.related.to_dict()
+            additional_fields_data = self.get_additional_fields_data(inner_hits)
             return {
                 "total": inner_hits["hits"]["total"]["value"],
                 "hits": [
                     {
                         **item["_source"],
+                        **additional_fields_data[item["_id"]],
                         "date": self.format_date(item["_source"]["date"]),
                         "highlight": item.get("highlight", {}),
                         "index": self.get_index_name(item["_index"]),
