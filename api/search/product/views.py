@@ -169,47 +169,47 @@ class ProductSuggestDocumentView(RetrieveAPIView):
             "suggest": {
                 "name": {
                     "prefix": query,
-                    "completion": {"field": "name.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "name.suggest", "skip_duplicates": True},
                 },
                 "part_number": {
                     "prefix": query,
-                    "completion": {"field": "part_number.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "part_number.suggest", "skip_duplicates": True},
                 },
                 "consignee_country": {
                     "prefix": query,
-                    "completion": {"field": "consignee_country.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "consignee_country.suggest", "skip_duplicates": True},
                 },
                 "end_user_country": {
                     "prefix": query,
-                    "completion": {"field": "end_user_country.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "end_user_country.suggest", "skip_duplicates": True},
                 },
                 "ultimate_end_user_country": {
                     "prefix": query,
-                    "completion": {"field": "ultimate_end_user_country.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "ultimate_end_user_country.suggest", "skip_duplicates": True},
                 },
                 "ratings": {
                     "prefix": query,
-                    "completion": {"field": "ratings.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "ratings.suggest", "skip_duplicates": True},
                 },
                 "regimes": {
                     "prefix": query,
-                    "completion": {"field": "regimes.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "regimes.suggest", "skip_duplicates": True},
                 },
                 "report_summary": {
                     "prefix": query,
-                    "completion": {"field": "report_summary.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "report_summary.suggest", "skip_duplicates": True},
                 },
                 "organisation": {
                     "prefix": query,
-                    "completion": {"field": "organisation.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "organisation.suggest", "skip_duplicates": True},
                 },
                 "assessed_by": {
                     "prefix": query,
-                    "completion": {"field": "assessed_by.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "assessed_by.suggest", "skip_duplicates": True},
                 },
                 "assessment_note": {
                     "prefix": query,
-                    "completion": {"field": "assessment_note.suggest", "skip_duplicates": True},
+                    "completion": {"size": 10, "field": "assessment_note.suggest", "skip_duplicates": True},
                 },
             },
         }
