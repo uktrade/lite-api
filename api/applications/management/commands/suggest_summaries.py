@@ -166,7 +166,7 @@ class Command(BaseCommand):
                     writer.writerow(data)
                 else:
                     # Invalid GOA do not have a suggested subject and are written to stderr.
-                    # If this is the GOA with no suggested subject, write the header
+                    # If this is first the GOA with no suggested subject, write the header
                     if not has_written_unmappables_csv_header:
                         has_written_unmappables_csv_header = True
                         stderr_writer.writeheader()
