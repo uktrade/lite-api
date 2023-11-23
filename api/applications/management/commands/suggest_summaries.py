@@ -100,6 +100,46 @@ class Command(BaseCommand):
             return normalised_report_summary.rsplit(f"{suggested_prefix.name} ", maxsplit=1)[1]
         return normalised_report_summary
 
+    def _write_good_on_applications_csv(
+        self,
+        csvfile,
+        good_on_applications: QuerySet[GoodOnApplication],
+        prefixes_by_id: Dict[str, ReportSummaryPrefix],
+        subjects_by_name: Dict[str, ReportSummarySubject],
+    ):
+        csv_headers = [
+            "id",
+            "report_summary",
+            "suggested_prefix",
+            "suggested_prefix_id",
+            "suggested_subject",
+            "suggested_subject_id",
+        ]
+
+        writer = csv.DictWriter(csvfile, fieldnames=csv_headers, quoting=csv.QUOTE_ALL)
+        writer.writeheader()
+
+        for good_on_application in good_on_applications:
+            suggested_prefix = prefixes_by_id.get(good_on_application.suggested_prefix_id)
+
+            suggested_subject_name = self._get_suggested_subject(
+                good_on_application.normalised_report_summary, suggested_prefix
+            )
+            suggested_subject = subjects_by_name.get(suggested_subject_name)
+
+            data = {
+                "id": good_on_application.id,
+                "report_summary": good_on_application.report_summary,
+                "suggested_prefix": suggested_prefix.name if suggested_prefix else "",
+                "suggested_prefix_id": good_on_application.suggested_prefix_id
+                if good_on_application.suggested_prefix_id
+                else "",
+                "suggested_subject": suggested_subject.name if suggested_subject else "",
+                "suggested_subject_id": suggested_subject.id if suggested_subject else "",
+            }
+
+            writer.writerow(data)
+
     def handle(self, *args, **options):
         mappings_file = options["mappings"]
         filename = options["filename"]
@@ -119,14 +159,6 @@ class Command(BaseCommand):
         good_on_applications = annotate_normalised_summary(good_on_applications, report_summary_mappings)
         good_on_applications = annotate_matching_prefix(good_on_applications)
 
-        csv_headers = (
-            "id",
-            "report_summary",
-            "suggested_prefix",
-            "suggested_prefix_id",
-            "suggested_subject",
-            "suggested_subject_id",
-        )
         prefixes_by_id = {
             report_summary_prefix.id: report_summary_prefix
             for report_summary_prefix in ReportSummaryPrefix.objects.all()
@@ -136,39 +168,15 @@ class Command(BaseCommand):
             for report_summary_subject in ReportSummarySubject.objects.all()
         }
 
+        valid_good_on_applications = good_on_applications.exclude(report_summary_subject__isnull=True)
+        invalid_good_on_applications = good_on_applications.filter(report_summary_subject__isnull=True)
+
         with open(filename, "w") as csvfile:
-            has_written_unmappables_csv_header = False
-            writer = csv.DictWriter(csvfile, fieldnames=csv_headers, quoting=csv.QUOTE_ALL)
-            writer.writeheader()
+            # Valid GOA have a suggested subject and are written to the CSV file.
+            self._write_good_on_applications_csv(csvfile, valid_good_on_applications, prefixes_by_id, subjects_by_name)
 
-            stderr_writer = csv.DictWriter(self.stderr, fieldnames=csv_headers, quoting=csv.QUOTE_ALL)
-            for good_on_application in good_on_applications:
-                suggested_prefix = prefixes_by_id.get(good_on_application.suggested_prefix_id)
-
-                suggested_subject_name = self._get_suggested_subject(
-                    good_on_application.normalised_report_summary, suggested_prefix
-                )
-                suggested_subject = subjects_by_name.get(suggested_subject_name)
-
-                data = {
-                    "id": good_on_application.id,
-                    "report_summary": good_on_application.report_summary,
-                    "suggested_prefix": suggested_prefix.name if suggested_prefix else "",
-                    "suggested_prefix_id": good_on_application.suggested_prefix_id
-                    if good_on_application.suggested_prefix_id
-                    else "",
-                    "suggested_subject": suggested_subject.name if suggested_subject else "",
-                    "suggested_subject_id": suggested_subject.id if suggested_subject else "",
-                }
-
-                if suggested_subject:
-                    # Valid GOA have a suggested subject and are written to the CSV file.
-                    writer.writerow(data)
-                else:
-                    # Invalid GOA do not have a suggested subject and are written to stderr.
-                    # If this is first the GOA with no suggested subject, write the header
-                    if not has_written_unmappables_csv_header:
-                        has_written_unmappables_csv_header = True
-                        stderr_writer.writeheader()
-
-                    stderr_writer.writerow(data)
+        if invalid_good_on_applications:
+            # Invalid GOA do not have a suggested subject and are written to stderr.
+            self._write_good_on_applications_csv(
+                self.stderr, invalid_good_on_applications, prefixes_by_id, subjects_by_name
+            )
