@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView
 
 from django.conf import settings
+from django.db.models import Case, When
+from django.db.models.fields import IntegerField
 from django.http import JsonResponse
 
 from api.core.authentication import GovAuthentication
@@ -43,6 +45,9 @@ class ProductDocumentView(DocumentViewSet):
         "report_summary",
         "organisation",
         "assessment_note",
+        "consignee_country",
+        "end_user_country",
+        "ultimate_end_user_country",
     ]
 
     query_string_search_fields = {
@@ -54,6 +59,9 @@ class ProductDocumentView(DocumentViewSet):
         "ratings": None,
         "regimes": None,
         "assessed_by": None,
+        "consignee_country": None,
+        "end_user_country": None,
+        "ultimate_end_user_country": None,
     }
 
     search_nested_fields = {
@@ -148,7 +156,35 @@ class ProductDocumentView(DocumentViewSet):
                 }
             }
         )
-        return super().get_queryset()
+        queryset = super().get_queryset()
+        return queryset
+
+    def get_model_queryset(self, document_queryset):
+        pks = [result.meta.id for result in document_queryset]
+        qs = self.document.Django.model.objects.filter(pk__in=pks)
+        preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(pks)], output_field=IntegerField())
+        qs = qs.order_by(preserved_order)
+        return qs
+
+    def augment_hits_with_instances(self, hits):
+        qs = self.get_model_queryset(hits)
+
+        for hit, instance in zip(hits, qs):
+            hit.instance = instance
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            self.augment_hits_with_instances(page)
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        self.augment_hits_with_instances(queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class ProductSuggestDocumentView(APIView):

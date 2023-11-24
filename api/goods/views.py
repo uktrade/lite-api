@@ -105,6 +105,11 @@ def get_new_report_summary_data(request):
 
 
 class GoodsListControlCode(APIView):
+    """
+    IMPORTANT: This endpoint is superseded by api/assessments/views.py:MakeAssessmentsView.
+    No further changes should be made here and instead should be made there, with callers moved over to using that new endpoint.
+    """
+
     authentication_classes = (GovAuthentication,)
     serializer_class = ControlGoodOnApplicationSerializer
 
