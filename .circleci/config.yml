@@ -233,6 +233,7 @@ jobs:
       - <<: *image_python
       - <<: *image_postgres
       - <<: *image_elasticsearch
+      - <<: *image_redis
     working_directory: ~/lite-api
     environment:
       <<: *common_env_vars
