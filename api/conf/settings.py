@@ -341,6 +341,8 @@ if LITE_API_ENABLE_ES:
         "django_elasticsearch_dsl_drf",
     ]
 
+    ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = "django_elasticsearch_dsl.signals.CelerySignalProcessor"
+
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
 GOOD_ON_APPLICATION_COPY_LOGGER = "good_on_application_copy_logger"
