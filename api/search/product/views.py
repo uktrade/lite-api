@@ -193,6 +193,9 @@ class ProductSuggestDocumentView(RetrieveAPIView):
     def get(self, request):
         query_str = self.request.GET.get("q", "")
 
+        # Use only most recent word to look for suggestions
+        query_str = query_str.split()[-1]
+
         query = {
             "size": 5,
             "query": {
