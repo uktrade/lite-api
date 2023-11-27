@@ -17,7 +17,7 @@ from api.parties.models import Party
 from api.staticdata.countries.factories import CountryFactory
 from api.teams.models import Team
 from api.teams.tests.factories import TeamFactory
-from api.users.models import GovUser
+from api.users.models import BaseUser, GovUser
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
 
 # Test data for applications
@@ -96,6 +96,7 @@ test_applications_data = [
         "case_advisor": {
             "first_name": "TAU",
             "last_name": "Advisor1",
+            "email": "advisor1@example.com",
         },
     },
     # Application 2
@@ -171,6 +172,7 @@ test_applications_data = [
         "case_advisor": {
             "first_name": "TAU",
             "last_name": "Advisor2",
+            "email": "advisor2@example.com",
         },
     },
     # Application 3
@@ -273,6 +275,7 @@ test_applications_data = [
         "case_advisor": {
             "first_name": "TAU",
             "last_name": "Advisor3",
+            "email": "advisor3@example.com",
         },
     },
 ]
@@ -283,6 +286,11 @@ def create_test_data():
     for item in test_applications_data:
         application = StandardApplicationFactory(**item["application"])
         organisation = OrganisationFactory(**item["organisation"])
+        if BaseUser.objects.filter(**item["case_advisor"]).exists():
+            base_user = BaseUser.objects.get(**item["case_advisor"])
+            gov_user = GovUserFactory(baseuser_ptr=base_user, team=team)
+        else:
+            gov_user = GovUserFactory(baseuser_ptr=BaseUserFactory(**item["case_advisor"]), team=team)
         for product_data in item["products"]:
             GoodOnApplicationFactory(
                 application=application,
@@ -291,14 +299,13 @@ def create_test_data():
                     organisation=organisation,
                 ),
                 **product_data["good_on_application"],
-                assessed_by=GovUserFactory(baseuser_ptr=BaseUserFactory(**item["case_advisor"]), team=team),
+                assessed_by=gov_user,
             )
 
-        for party_data in item["parties"]:
-            country = CountryFactory(**party_data.pop("country"))
+        for p in item["parties"]:
             PartyOnApplicationFactory(
                 application=application,
-                party=PartyFactory(**party_data, country=country),
+                party=PartyFactory(name=p["name"], type=p["type"], country=CountryFactory(**p["country"])),
             )
 
 
