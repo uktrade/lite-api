@@ -107,11 +107,23 @@ from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 from api.workflow.routing_rules.models import RoutingRule
 
+from celery import current_app as current_celery_app
+
 
 class Static:
     seeded = False
 
 
+def celery_config():
+    return {
+        "broker_url": "memory://",
+        "result_backend": "cache",
+        "cache_backend": "memory",
+        "task_always_eager": True,
+    }
+
+
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class DataTestClient(APITestCase, URLPatternsTestCase):
     """
     Test client which creates seeds the database with system data and sets up an initial organisation and user
@@ -123,6 +135,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
+        celery_test_config = celery_config()
+        current_celery_app.conf.update(celery_test_config)
+
         """Run seed operations ONCE for the entire test suite."""
         if not Static.seeded:
             # HACK: Don't seed if we already seeeded and use --reuse-db or similar
