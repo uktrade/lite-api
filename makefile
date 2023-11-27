@@ -10,21 +10,21 @@ clean:
 	-find . -type d -name "__pycache__" -delete
 
 doc-manage:
-	docker exec -it api ./manage.py $(ARGUMENTS)
+	docker exec -it api pipenv run ./manage.py $(ARGUMENTS)
 
 doc-migrate:
-	docker exec -it api ./manage.py migrate
+	docker exec -it api pipenv run ./manage.py migrate
 
 doc-runserver:
-	docker exec -it api ./manage.py runserver localhost:8100
+	docker exec -it api pipenv run ./manage.py runserver localhost:8100
 
 doc-seed:
-	docker exec -it api ./manage.py seedrolepermissions
-	docker exec -it api ./manage.py seedinternalusers
-	docker exec -it api ./manage.py seedexporterusers
+	docker exec -it api pipenv run ./manage.py seedrolepermissions
+	docker exec -it api pipenv run ./manage.py seedinternalusers
+	docker exec -it api pipenv run ./manage.py seedexporterusers
 
 doc-test:
-	docker exec -it api ./manage.py test
+	docker exec -it api pipenv run ./manage.py test
 
 manage:
 	./manage.py $(ARGUMENTS)
