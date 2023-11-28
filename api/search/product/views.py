@@ -197,7 +197,7 @@ class ProductSuggestDocumentView(RetrieveAPIView):
         query_str = query_str.split()[-1]
 
         query = {
-            "size": 5,
+            "size": 15,
             "query": {
                 "multi_match": {
                     "query": query_str,
