@@ -301,6 +301,31 @@ class ProductSearchTests(DataTestClient):
         response = response.json()
         self.assertEqual(response["count"], expected_count)
 
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            (
+                {"search": "ABC-123"},
+                1,
+                {
+                    "quantity": 5,
+                    "value": 1200.00,
+                    "assessed_by_full_name": "TAU Advisor1",
+                },
+            ),
+        ]
+    )
+    def test_product_search_additional_fields(self, query, expected_count, expected_data):
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        hits = response["results"]
+        self.assertEqual(len(hits), expected_count)
+
+        for key, value in expected_data.items():
+            self.assertEqual(hits[0][key], value)
+
 
 class MoreLikeThisViewTests(DataTestClient):
     @pytest.mark.elasticsearch
