@@ -121,19 +121,21 @@ class ProductSearchTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "PL9010"}, 1, "PL9010"),
-            ({"search": "6A003"}, 1, "6A003"),
-            ({"search": "6A006"}, 1, "6A006"),
+            ({"search": "PL9010"}, 1, ["PL9010"]),
+            ({"search": "6A003"}, 1, ["6A003"]),
+            ({"search": "6A006"}, 1, ["6A006"]),
+            ({"search": "6A005"}, 0, []),
+            ({"search": "MEND2"}, 0, []),
         ]
     )
-    def test_product_search_by_control_list_entries(self, query, expected_count, expected_cle):
+    def test_product_search_by_control_list_entries(self, query, expected_count, expected_cles):
         response = self.client.get(self.product_search_url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
         response = response.json()
         self.assertEqual(response["count"], expected_count)
-        self.assertIn(
-            expected_cle, [entry["rating"] for item in response["results"] for entry in item["control_list_entries"]]
+        self.assertEqual(
+            expected_cles, [entry["rating"] for item in response["results"] for entry in item["control_list_entries"]]
         )
 
     @pytest.mark.elasticsearch
@@ -228,6 +230,9 @@ class ProductSearchTests(DataTestClient):
             ({"search": "Chemicals AND (WS OR CWC)"}, 1),
             ({"search": '"Thermal camera"'}, 1),
             ({"search": "components NOT camera"}, 1),
+            ({"search": "consignee_country: Germany"}, 3),
+            ({"search": "end_user_country: France"}, 3),
+            ({"search": "ultimate_end_user_country: Finland"}, 4),
         ]
     )
     def test_product_search_query_string_queries(self, query, expected_count):
@@ -284,6 +289,7 @@ class ProductSearchTests(DataTestClient):
         [
             ({"search": "France"}, 3),
             ({"search": "Canada"}, 4),
+            ({"search": "Poland"}, 4),
             ({"search": "H2O2 AND Canada"}, 1),
             ({"search": "Germany AND Austria"}, 3),
         ]
@@ -294,6 +300,31 @@ class ProductSearchTests(DataTestClient):
 
         response = response.json()
         self.assertEqual(response["count"], expected_count)
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            (
+                {"search": "ABC-123"},
+                1,
+                {
+                    "quantity": 5,
+                    "value": 1200.00,
+                    "assessed_by_full_name": "TAU Advisor1",
+                },
+            ),
+        ]
+    )
+    def test_product_search_additional_fields(self, query, expected_count, expected_data):
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        hits = response["results"]
+        self.assertEqual(len(hits), expected_count)
+
+        for key, value in expected_data.items():
+            self.assertEqual(hits[0][key], value)
 
 
 class MoreLikeThisViewTests(DataTestClient):
