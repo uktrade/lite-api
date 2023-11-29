@@ -13,6 +13,7 @@ class ProductDocumentSerializer(DocumentSerializer):
     name = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
     value = serializers.SerializerMethodField()
+    assessed_by_full_name = serializers.SerializerMethodField()
     highlight = serializers.SerializerMethodField()
     score = serializers.SerializerMethodField()
     index = serializers.SerializerMethodField()
@@ -66,7 +67,10 @@ class ProductDocumentSerializer(DocumentSerializer):
         return obj.instance.quantity
 
     def get_value(self, obj):
-        return obj.instance.value.to_eng_string()
+        return obj.instance.value
+
+    def get_assessed_by_full_name(self, obj):
+        return obj.instance.assessed_by.full_name if obj.instance.assessed_by else ""
 
     def get_highlight(self, obj):
         if hasattr(obj.meta, "highlight"):
@@ -91,7 +95,8 @@ class ProductDocumentSerializer(DocumentSerializer):
             key = str(instance.id)
             additional_fields_data[key] = {
                 "quantity": instance.quantity,
-                "value": instance.value.to_eng_string(),
+                "value": instance.value,
+                "assessed_by_full_name": instance.assessed_by.full_name if instance.assessed_by else "",
             }
 
         return additional_fields_data

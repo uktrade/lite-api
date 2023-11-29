@@ -120,7 +120,6 @@ class GovNotification(BaseNotification):
 
 
 class BaseUserCompatMixin:
-
     baseuser_ptr: BaseUser
 
     @property
@@ -134,6 +133,10 @@ class BaseUserCompatMixin:
     @property
     def last_name(self):
         return self.baseuser_ptr.last_name
+
+    @property
+    def full_name(self):
+        return f"{self.baseuser_ptr.first_name} {self.baseuser_ptr.last_name}"
 
     @property
     def email(self):
@@ -159,7 +162,6 @@ class BaseUserCompatMixin:
 
 
 class ExporterUser(models.Model, BaseUserCompatMixin):
-
     baseuser_ptr = models.OneToOneField(
         BaseUser,
         on_delete=models.CASCADE,
@@ -190,7 +192,6 @@ class ExporterUser(models.Model, BaseUserCompatMixin):
 
 
 class GovUser(models.Model, BaseUserCompatMixin):
-
     baseuser_ptr = models.OneToOneField(
         BaseUser,
         on_delete=models.CASCADE,
