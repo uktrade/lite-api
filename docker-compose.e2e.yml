@@ -8,6 +8,7 @@ services:
       - db
       - elasticsearch
       - redis
+      - celery
     build:
       context: .
       dockerfile: Dockerfile.e2e
