@@ -194,6 +194,13 @@ class ProductSuggestDocumentView(RetrieveAPIView):
         query_str = self.request.GET.get("q", "")
 
         # Use only most recent word to look for suggestions
+        #
+        # Suggestions are shown to the user as they start typing search terms
+        # however they can choose to ignore and enter their own query.
+        # In such cases when they start typing second word then we are expected to show
+        # suggestions for this word rather than the whole phrase.
+        # Considering whole phrase won't help as they are unlikely to be any suggestions.
+        # eg if they enter "ML1a AND ri", then we show suggestions for 'ri'
         query_str = query_str.split()[-1]
 
         query = {
@@ -231,10 +238,10 @@ class ProductSuggestDocumentView(RetrieveAPIView):
         search = ProductDocumentType.search().from_dict(query)
         search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
         suggests = []
-        executed = search.execute()
+        response = search.execute()
 
         flat_suggestions = set()
-        for hit in executed.hits:
+        for hit in response.hits:
             for field, value in hit.meta.highlight.to_dict().items():
                 value = value[0]
                 if value not in flat_suggestions:
