@@ -193,16 +193,6 @@ class ProductSuggestDocumentView(RetrieveAPIView):
     def get(self, request):
         query_str = self.request.GET.get("q", "")
 
-        # Use only most recent word to look for suggestions
-        #
-        # Suggestions are shown to the user as they start typing search terms
-        # however they can choose to ignore and enter their own query.
-        # In such cases when they start typing second word then we are expected to show
-        # suggestions for this word rather than the whole phrase.
-        # Considering whole phrase won't help as they are unlikely to be any suggestions.
-        # eg if they enter "ML1a AND ri", then we show suggestions for 'ri'
-        query_str = query_str.split()[-1]
-
         query = {
             "size": 15,
             "query": {
