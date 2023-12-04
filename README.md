@@ -16,7 +16,6 @@ Service for handling backend calls in LITE.
 - Running the service with Docker is highly recommended.
 - If running on native hardware locally (using your local `pipenv`), make sure to change the `DATABASE_URL` to use the port exposed by docker-compose
       which is `5462` (double check by viewing the `docker-compose` file) and also change `ELASTICSEARCH_HOST`
-- At the moment running locally in a virtual environment created with `pipenv shell` is not fully supported on some architecture types (e.g. macOS arm64). This is likely to change as more libraries update with support for arm64.
 - More information is available in the docs at [without_docker.md](docs/without_docker.md).
 
 ## Running the service with Docker
@@ -34,7 +33,7 @@ Service for handling backend calls in LITE.
     - `git submodule init`
     - `git submodule update`
 
-  - Ensure Docker is running
+  - Ensure Docker Desktop (Docker daemon) is running
 
   - Build and start Docker images:
 
@@ -42,22 +41,25 @@ Service for handling backend calls in LITE.
     - `docker-compose build` - build the container image
     - `docker-compose up -d db` - to bring up the database to allow the migration to succeed
 
-  - Once you have an empty database, you can choose to either run the migrations, or pull in anonymised UAT data, but you don't need to do both.
-  - Run the migrations (option 1)
-    - `./bin/migrate.sh` - Perform the Django migrations
-    - (Known issue: by default Elasticsearch is enabled in the `.env` file and this can show a connection error at the end of the migration script. This can be safely ignored as the migration succeeding is not dependent on Elasticsearch running. Or you can disable Elasticsearch temporarily in the `.env` file if you prefer.)
+  - Once you have an empty database, you will need to run migrations.
 
-  - OR pull in the anonymised UAT data (option 2)
-    - install [cloudfoundry cli](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html)
-    - install [cloudfoundry conduit plugin](https://github.com/alphagov/paas-cf-conduit)
-    - login to Cloud Foundry `cf login --sso`
-    - `cf conduit <UAT_PG_INSTANCE_NAME> -- docker run --rm -e PGUSER -e PGPASSWORD -e PGDATABASE -e PGPORT -e PGHOST=host.docker.internal postgres:12 pg_dump --no-acl --no-owner | docker-compose exec -T db psql -U postgres -d lite-api`
+  - Option 1:
+    - `docker exec -it api /bin/bash` - open a shell session in api
+    - `pipenv shell` - activate your pipenv environment
+    - `./manage.py migrate` - perform the Django migrations (see `makefile` for convenience versions of this command)
+    - (Known issue: by default Elasticsearch is enabled in the `.env` file and this can show a connection error at the end of the migration script. This can be safely ignored as the migration succeeding is not dependent on Elasticsearch running. Or you can disable Elasticsearch temporarily in the `.env` file if you prefer.)
+  - Option 2:
+    - Run the `make doc-migrate` command which does all of the above in one
+
+- Starting the service for the first time
+  - `docker-compose up` - to start the API's Django server
+- Go to the caseworker home page (e.g. `http://localhost:8200`)
+- If your database is empty (i.e. you just ran the migrations) then at this point you might want to seed your database with the static data
+  - `docker exec -it api pipenv run ./manage.py seedall` - running with Docker
+  - `pipenv run ./manage.py seedall` - without Docker
 
 - Starting the service
-  - `docker-compose up` - to start the API's Django server
-- Go to the index page (e.g. `http://localhost:8100`)
-- If your database is empty (i.e. you just ran the migrations) then at this point you might want to seed your database with some static
-  - `docker-compose run api ./manage.py seedall`
+  - In general you can use `docker-compose up --build` if you want to make sure new changes are included in the build
 
 ### Known issues when running with Docker
 
@@ -76,7 +78,7 @@ See [troubleshooting.md](docs/troubleshooting.md) in the docs for a list of curr
 ## Add a single user:
 
 
-Run the following command to initially add users (after setting `INTERNAL_USERS` and `EXPORTER_USERS` in `.env`):
+Run the following command from your api pipenv shell to initially add users (adds users defined in `INTERNAL_USERS` and `EXPORTER_USERS` in `.env`):
 
 ```
 ./manage.py seedrolepermissions
