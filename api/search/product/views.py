@@ -18,6 +18,8 @@ from api.search.product.documents import ProductDocumentType
 from api.search.product import serializers
 from api.search.product import filter_backends as custom_filter_backends
 
+from collections import OrderedDict
+
 
 class MatchBoolPrefix(Query):
     name = "match_bool_prefix"
@@ -227,24 +229,20 @@ class ProductSuggestDocumentView(RetrieveAPIView):
 
         search = ProductDocumentType.search().from_dict(query)
         search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
-        suggests = []
         response = search.execute()
 
-        flat_suggestions = set()
+        suggestions = OrderedDict()
         for hit in response.hits:
             for field, value in hit.meta.highlight.to_dict().items():
                 value = value[0]
-                if value not in flat_suggestions:
-                    suggests.append(
-                        {
-                            "field": field,
-                            "value": value,
-                            "index": "spire" if "spire" in hit.meta.index else "lite",
-                        }
-                    )
-                    flat_suggestions.add(value)
+                suggestion = {
+                    "field": field,
+                    "value": value,
+                    "index": "spire" if "spire" in hit.meta.index else "lite",
+                }
+                suggestions[tuple(suggestion.items())] = suggestion
 
-        return Response(suggests)
+        return Response(list(suggestions.values()))
 
 
 class ProductSuggestPoCDocumentView(APIView):
