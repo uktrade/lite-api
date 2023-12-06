@@ -1,6 +1,7 @@
-from django.contrib.humanize.templatetags.humanize import intcomma
-
+from collections import defaultdict
 from datetime import timedelta
+
+from django.contrib.humanize.templatetags.humanize import intcomma
 from django.db.models import Q
 from django.utils import timezone
 
@@ -1024,9 +1025,12 @@ def _get_goods_context(application, final_advice, licence=None):
     final_advice = final_advice.filter(good_id__isnull=False)
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
 
-    goods_on_application_dict = {
-        good_on_application.good_id: good_on_application for good_on_application in goods_on_application
-    }
+    # Create a mapping to get from Good.id to corresponding GoodOnApplication records
+    #  Note: we map to a list of GoodOnApplication records as there may be more than one
+    #  GoodOnApplication per Good for this application
+    good_ids_to_goods_on_application = defaultdict(lambda: [])
+    for good_on_application in goods_on_application:
+        good_ids_to_goods_on_application[good_on_application.good_id].append(good_on_application)
     goods_context["all"] = GoodOnApplicationSerializer(goods_on_application, many=True).data
 
     if licence:
@@ -1039,9 +1043,13 @@ def _get_goods_context(application, final_advice, licence=None):
         # (no need to get approved GoodOnApplications if we have GoodOnLicence)
         final_advice = final_advice.exclude(type=AdviceType.APPROVE)
 
+    # Ensure that for each proviso final advice record, we add a record to the goods
+    #  context
     for advice in final_advice:
-        if advice.good_id in goods_on_application_dict:
-            good_on_application = goods_on_application_dict[advice.good_id]
+        if advice.good_id in good_ids_to_goods_on_application:
+            # Grab the next GoodOnApplication for this Good.id - this ensures that
+            #  each GoodOnApplication is present once on the end licence
+            good_on_application = good_ids_to_goods_on_application[advice.good_id].pop(0)
             goods_context[advice.type].append(_get_good_on_application_context_with_advice(good_on_application, advice))
 
     # Because we append goods that are approved with proviso to the approved goods below
