@@ -1021,6 +1021,19 @@ def _get_good_on_licence_context(good_on_licence):
 
 
 def _get_goods_context(application, final_advice, licence=None):
+    """
+    TODO: We should re-write this function to more clearly avoid all the pitfalls
+    we have bolted on to it.
+
+    What would probably be better would be to start from a context datastructure from all the GoodOnApplication
+    objects that **we know** need to be present on the licence; e.g. application.goods.filter(is_good_controlled=True)
+
+    From there, it would probably be clearer to go through each of the Advice records, GoodOnLicence records etc
+    and hydrate those original GoodOnApplication objects.
+
+    Right now, we do things a little backwards and add records to the context datastructure/grab/rewrite/overwrite them.
+    That makes this quite hard to understand what is going on and very easy for bugs to manifest.
+    """
     goods_on_application = application.goods.all().order_by("created_at")
     final_advice = final_advice.filter(good_id__isnull=False)
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
