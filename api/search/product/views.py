@@ -245,62 +245,6 @@ class ProductSuggestDocumentView(RetrieveAPIView):
         return Response(list(suggestions.values()))
 
 
-class ProductSuggestPoCDocumentView(APIView):
-    allowed_http_methods = ["get"]
-    authentication_classes = (GovAuthentication,)
-
-    def get(self, request):
-        q = self.request.GET.get("q", "")
-        query = {
-            "size": 5,
-            "query": {"match_bool_prefix": {"wildcard": {"query": q}}},
-            "suggest": {
-                "clc_rating": {
-                    "prefix": q,
-                    "completion": {"field": "control_list_entries.rating.suggest", "skip_duplicates": True},
-                },
-                "organisation": {
-                    "prefix": q,
-                    "completion": {"field": "organisation.suggest", "skip_duplicates": True},
-                },
-                "destination": {
-                    "prefix": q,
-                    "completion": {"field": "destination.suggest", "skip_duplicates": True},
-                },
-            },
-            "_source": False,
-            "highlight": {"fields": {"wildcard": {"pre_tags": [""], "post_tags": [""]}}},
-        }
-
-        search = ProductDocumentType.search().from_dict(query)
-        search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
-        suggests = []
-        executed = search.execute()
-        flat_suggestions = set()
-
-        for key in query["suggest"].keys():
-            for suggest in getattr(executed.suggest, key):
-                for option in suggest.options:
-                    suggests.append(
-                        {"field": key, "value": option.text, "index": "spire" if "spire" in option._index else "lite"}
-                    )
-                    flat_suggestions.add(option.text)
-
-        for hit in executed:
-            for option in hit.meta.highlight.wildcard:
-                if option not in flat_suggestions:
-                    suggests.append(
-                        {
-                            "field": "wildcard",
-                            "value": option,
-                            "index": "spire" if "spire" in hit.meta.index else "lite",
-                        }
-                    )
-                    flat_suggestions.add(option)
-
-        return Response(suggests)
-
-
 class MoreLikeThisView(APIView):
     allowed_http_methods = ["get"]
     authentication_classes = (GovAuthentication,)
