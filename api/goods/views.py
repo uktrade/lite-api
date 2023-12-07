@@ -13,7 +13,6 @@ from rest_framework.views import APIView
 from api.applications.models import (
     GoodOnApplication,
     GoodOnApplicationInternalDocument,
-    StandardApplication,
 )
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.core.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
