@@ -5,7 +5,7 @@ from elasticsearch_dsl.query import Query
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 
 from django.conf import settings
 from django.db.models import Case, When
@@ -17,6 +17,8 @@ from api.search import models
 from api.search.product.documents import ProductDocumentType
 from api.search.product import serializers
 from api.search.product import filter_backends as custom_filter_backends
+
+from collections import OrderedDict
 
 
 class MatchBoolPrefix(Query):
@@ -187,7 +189,63 @@ class ProductDocumentView(DocumentViewSet):
         return Response(serializer.data)
 
 
-class ProductSuggestDocumentView(APIView):
+class ProductSuggestDocumentView(RetrieveAPIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        query_str = self.request.GET.get("q", "")
+
+        query = {
+            "size": 15,
+            "query": {
+                "multi_match": {
+                    "query": query_str,
+                    "type": "bool_prefix",
+                    "fields": [
+                        "name",
+                        "part_number",
+                        "ratings",
+                        "regimes",
+                        "report_summary",
+                        "organisation",
+                        "assessed_by",
+                        "consignee_country",
+                        "end_user_country",
+                        "ultimate_end_user_country",
+                        "assessment_note",
+                    ],
+                }
+            },
+            "highlight": {
+                "fields": {
+                    "*": {
+                        "post_tags": [""],
+                        "pre_tags": [""],
+                    },
+                },
+            },
+            "_source": False,
+        }
+
+        search = ProductDocumentType.search().from_dict(query)
+        search._index = list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
+        response = search.execute()
+
+        suggestions = OrderedDict()
+        for hit in response.hits:
+            for field, value in hit.meta.highlight.to_dict().items():
+                value = value[0]
+                suggestion = {
+                    "field": field,
+                    "value": value,
+                    "index": "spire" if "spire" in hit.meta.index else "lite",
+                }
+                suggestions[tuple(suggestion.items())] = suggestion
+
+        return Response(list(suggestions.values()))
+
+
+class ProductSuggestPoCDocumentView(APIView):
     allowed_http_methods = ["get"]
     authentication_classes = (GovAuthentication,)
 

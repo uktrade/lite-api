@@ -93,6 +93,12 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("filename", type=str, help="Path to the output CSV file")
         parser.add_argument("--mappings", type=str, default=None, help="Path to the CSV file containing the mappings")
+        parser.add_argument(
+            "--review", action="store_true", help="Output columns to aid human review (good_name, uat_link)"
+        )
+        parser.add_argument(
+            "--review-env", type=str, default="uat", help="Review environment to use (uat, staging, production)"
+        )
 
     @staticmethod
     def _get_suggested_subject(normalised_report_summary: str, suggested_prefix: ReportSummaryPrefix):
@@ -103,7 +109,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         mappings_file = options["mappings"]
         filename = options["filename"]
+        is_for_review = options["review"]
 
+        url_format = (
+            "https://internal.lite.service."
+            + options["review_env"]
+            + ".uktrade.digital/queues/00000000-0000-0000-0000-000000000001/cases/{case_id}"
+            + "/tau/edit/{good_on_application_id}"
+        )
         report_summary_mappings: Dict[str, str] = {}
         if mappings_file:
             with open(mappings_file, "r") as f:
@@ -126,6 +139,7 @@ class Command(BaseCommand):
             "suggested_prefix_id",
             "suggested_subject",
             "suggested_subject_id",
+            *(["good_name", "url"] if is_for_review else []),
         )
         prefixes_by_id = {
             report_summary_prefix.id: report_summary_prefix
@@ -159,6 +173,17 @@ class Command(BaseCommand):
                     else "",
                     "suggested_subject": suggested_subject.name if suggested_subject else "",
                     "suggested_subject_id": suggested_subject.id if suggested_subject else "",
+                    **(
+                        {
+                            "good_name": good_on_application.good.name,
+                            "url": url_format.format(
+                                case_id=good_on_application.application.id,
+                                good_on_application_id=good_on_application.id,
+                            ),
+                        }
+                        if is_for_review
+                        else {}
+                    ),
                 }
 
                 if suggested_subject:
