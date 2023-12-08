@@ -327,6 +327,56 @@ class ProductSearchTests(DataTestClient):
             self.assertEqual(hits[0][key], value)
 
 
+class ProductSearchSuggestionsTests(ProductSearchTests):
+    product_suggest_url = reverse("product_suggest")
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            (
+                {"q": "camera"},
+                [
+                    {"field": "name", "value": "Instax HD camera", "index": "lite"},
+                    {"field": "report_summary", "value": "components for imaging cameras", "index": "lite"},
+                    {"field": "name", "value": "Thermal camera", "index": "lite"},
+                ],
+            ),
+            (
+                {"q": "te"},
+                [
+                    {"field": "report_summary", "value": "technology for shotguns", "index": "lite"},
+                ],
+            ),
+            (
+                {"q": "1"},
+                [
+                    {"field": "ratings", "value": "1D003", "index": "lite"},
+                    {"field": "ratings", "value": "1C35016", "index": "lite"},
+                    {"field": "part_number", "value": "15606", "index": "lite"},
+                ],
+            ),
+            (
+                {"q": "ai"},
+                [
+                    {"field": "ratings", "value": "FR AI", "index": "lite"},
+                ],
+            ),
+            (
+                {"q": "sh"},
+                [
+                    {"field": "name", "value": "Frequency shifter", "index": "lite"},
+                    {"field": "report_summary", "value": "technology for shotguns", "index": "lite"},
+                ],
+            ),
+        ]
+    )
+    def test_product_search_suggestions(self, query, expected_suggestions):
+        response = self.client.get(self.product_suggest_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.json(), expected_suggestions)
+
+
 class MoreLikeThisViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     def test_more_like_this_404(self):

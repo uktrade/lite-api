@@ -115,7 +115,9 @@ class SuggestedSummariesManagementCommand(DataTestClient):
             ),
         ]
     )
-    def test_management_command(self, report_data, report_summary_mappings: Optional[Dict[str, str]]):
+    def test_management_command_matches_prefixes_and_subjects(
+        self, report_data, report_summary_mappings: Optional[Dict[str, str]]
+    ):
         """
         Test that the management command produces a CSV file with the expected rows.
 
@@ -307,3 +309,65 @@ class SuggestedSummariesManagementCommand(DataTestClient):
             csv_mappings_writer = csv.writer(mappings_file, quoting=csv.QUOTE_ALL)
             csv_mappings_writer.writerow(["original_report_summary", "corrected_report_summary"])
             csv_mappings_writer.writerows(report_summary_mappings.items())
+
+    def test_review_option_outputs_extra_columns(self):
+        expected_report_summary_prefix = "test prefix"
+        expected_report_summary_subject = "test subject"
+        expected_report_summary = f"{expected_report_summary_prefix} {expected_report_summary_subject}"
+
+        expected_columns = [
+            "id",
+            "report_summary",
+            "suggested_prefix",
+            "suggested_prefix_id",
+            "suggested_subject",
+            "suggested_subject_id",
+            "good_name",
+            "url",
+        ]
+
+        application = StandardApplicationFactory.create(organisation=self.organisation)
+        good = GoodFactory.create(
+            organisation=self.organisation,
+        )
+
+        good_on_application = GoodOnApplicationFactory.create(
+            application=application, good=good, report_summary=expected_report_summary, is_good_controlled=True
+        )
+
+        prefix_instance = ReportSummaryPrefix.objects.get_or_create(name=expected_report_summary_prefix)[0]
+        subject_instance = ReportSummarySubject.objects.get_or_create(
+            name=expected_report_summary_subject, code_level=1
+        )[0]
+
+        expected_url = (
+            "https://internal.lite.service.customenv.uktrade.digital/queues/00000000-0000-0000-0000-000000000001/cases/"
+            + str(application.id)
+            + "/tau/edit/"
+            + str(good_on_application.id)
+        )
+
+        expected_rows = [
+            {
+                "id": str(good_on_application.id),
+                "report_summary": expected_report_summary,
+                "suggested_prefix": expected_report_summary_prefix,
+                "suggested_prefix_id": str(prefix_instance.id),
+                "suggested_subject": expected_report_summary_subject,
+                "suggested_subject_id": str(subject_instance.id),
+                "good_name": good.name,
+                "url": expected_url,
+            }
+        ]
+
+        with tempfile.TemporaryDirectory(suffix="-test_suggest_summaries") as tmpdirname:
+            csv_path = Path(tmpdirname) / "suggested_summaries-review.csv"
+            call_command("suggest_summaries", csv_path.as_posix(), review=True, review_env="customenv")
+
+            reader = csv.DictReader(csv_path.open())
+
+            assert reader.fieldnames == expected_columns
+
+            rows = list(reader)
+
+            self.assertCountEqual(expected_rows, rows)
