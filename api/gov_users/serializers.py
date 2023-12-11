@@ -98,7 +98,6 @@ class GovUserViewSerializer(serializers.ModelSerializer):
 
     def get_default_queue(self, instance):
         queue_id = str(instance.default_queue)
-
         if queue_id in SYSTEM_QUEUES.keys():
             return {"id": queue_id, "name": SYSTEM_QUEUES[queue_id]}
         else:
