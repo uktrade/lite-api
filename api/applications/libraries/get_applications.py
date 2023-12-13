@@ -68,6 +68,10 @@ def get_application(pk, organisation_id=None):
                 "application_sites__site__address__country",
                 "external_application_sites",
                 "applicationdocument_set",
+                "goods__report_summary_prefix",
+                "goods__report_summary_subject",
+                "goods__firearm_details",
+                "goods__assessed_by",
             )
             obj = qs.get(pk=pk, **kwargs)
             return obj
