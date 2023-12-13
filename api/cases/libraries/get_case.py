@@ -1,7 +1,6 @@
 from api.cases.models import Case, CaseDocument
 from api.core.exceptions import NotFoundError
 from lite_content.lite_api import strings
-from silk.profiling.profiler import silk_profile
 
 
 def get_case(pk, include_draft=False, prefetch_related=None, select_related=None):

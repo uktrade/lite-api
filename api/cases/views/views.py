@@ -99,7 +99,6 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
-from silk.profiling.profiler import silk_profile
 
 
 class CaseDetail(APIView):
@@ -1258,7 +1257,6 @@ class CountersignDecisionAdvice(APIView):
             payload=payload,
         )
 
-    @silk_profile(name="post")
     def post(self, request, **kwargs):
         case = get_case(kwargs["pk"])
         data = request.data
