@@ -133,26 +133,3 @@ class ProductDocumentSerializer(DocumentSerializer):
         else:
             value = parser.parse(date)
         return value.astimezone().strftime("%d %B %Y")
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    user = GovUserSimpleSerializer(read_only=True)
-
-    class Meta:
-        model = models.Comment
-        fields = (
-            "user",
-            "text",
-            "object_pk",
-            "source",
-            "updated_at",
-        )
-        extra_kwargs = {
-            "object_pk": {"required": False},
-            "updated_at": {"read_only": True, "format": "%d %B %Y"},
-        }
-
-    def create(self, validated_data):
-        validated_data["user"] = self.context["request"].user.govuser
-        validated_data["object_pk"] = self.context["view"].kwargs["pk"]
-        return super().create(validated_data)
