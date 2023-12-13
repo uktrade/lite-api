@@ -83,6 +83,21 @@ class GovUserViewSerializer(serializers.ModelSerializer):
     role = RoleListStatusesSerializer()
     default_queue = serializers.SerializerMethodField()
 
+    @classmethod
+    def _set_queue_cache(cls):
+        queue_cache = {}
+        for queue in Queue.objects.all():
+            queue_cache[str(queue.pk)] = queue
+        cls._queue_cache = queue_cache
+
+    @classmethod
+    def get_queue(cls, uuid):
+        if not hasattr(cls, "_queue_cache"):
+            cls._set_queue_cache()
+        if uuid not in cls._queue_cache:
+            cls._set_queue_cache()
+        return cls._queue_cache[uuid]
+
     class Meta:
         model = GovUser
         fields = (
@@ -100,8 +115,7 @@ class GovUserViewSerializer(serializers.ModelSerializer):
         queue_id = str(instance.default_queue)
         if queue_id in SYSTEM_QUEUES.keys():
             return {"id": queue_id, "name": SYSTEM_QUEUES[queue_id]}
-        else:
-            return TinyQueueSerializer(Queue.objects.get(pk=queue_id)).data
+        return TinyQueueSerializer(self.get_queue(queue_id)).data
 
 
 class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
