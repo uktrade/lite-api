@@ -14,6 +14,7 @@ urlpatterns = [
     ),
     path("destinations/<str:pk>/", views.Destination.as_view(), name="destination"),
     path("<uuid:pk>/", views.CaseDetail.as_view(), name="case"),
+    path("<uuid:pk>/simple/", views.CaseDetailSimple.as_view(), name="detail"),
     path("<uuid:pk>/basic/", views.CaseDetailBasic.as_view(), name="case_detail_basic"),
     path("<uuid:pk>/queues/", views.SetQueues.as_view(), name="queues"),
     path("<uuid:pk>/case-notes/", case_notes.CaseNoteList.as_view(), name="case_notes"),

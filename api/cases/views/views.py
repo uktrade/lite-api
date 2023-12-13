@@ -72,6 +72,7 @@ from api.cases.serializers import (
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
 )
+from api.cases.detailserializer.case_serializer import CaseDetailSimpleSerializer
 from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
 from api.core import constants
@@ -98,9 +99,102 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
+from silk.profiling.profiler import silk_profile
 
 
 class CaseDetail(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Retrieve a case instance
+        """
+        gov_user = request.user.govuser
+        case = get_case(
+            pk,
+            prefetch_related=[
+                "advice",
+                "advice__user",
+                "advice__user__baseuser_ptr",
+                "advice__user__team",
+                "advice__user__role",
+                "advice__countersigned_by",
+                "advice__countersigned_by__baseuser_ptr",
+                "advice__countersigned_by__team",
+                "advice__countersigned_by__role",
+                "advice__countersigned_by__role__permissions",
+                "advice__countersigned_by__role__statuses",
+                "advice__denial_reasons",
+                "advice__good",
+                "advice__good__good",
+                "advice__good__good__countersigned_by",
+                "advice__good__good__countersigned_by__baseuser_ptr",
+                "advice__good__good__countersigned_by__team",
+                "advice__good__good__countersigned_by__role",
+                "advice__good__good__countersigned_by__role__permissions",
+                "advice__good__good__countersigned_by__role__statuses",
+                "countersign_advice",
+                "countersign_advice__countersigned_user",
+                "countersign_advice__countersigned_user__baseuser_ptr",
+                "countersign_advice__countersigned_user__team",
+                "countersign_advice__countersigned_user__role",
+                "countersign_advice__countersigned_user__role__statuses",
+                "countersign_advice__countersigned_user__role__permissions",
+                "countersign_advice__advice",
+                "countersign_advice__advice__user",
+                "countersign_advice__advice__user__baseuser_ptr",
+                "countersign_advice__advice__user__role",
+                "countersign_advice__advice__user__role__permissions",
+                "countersign_advice__advice__user__role__statuses",
+                "countersign_advice__advice__countersigned_by",
+                "countersign_advice__advice__denial_reasons",
+                "countersign_advice__advice__good",
+                "countersign_advice__advice__good__good",
+                "countersign_advice__advice__good__good__countersigned_by",
+                "countersign_advice__advice__good__report_summary_prefix",
+                "countersign_advice__advice__good__report_summary_subject",
+                "countersign_advice__advice__good__firearm_details",
+                "flags",
+                "queues",
+                "copy_of",
+                "copy_of__status",
+                "goods",
+                "good",
+            ],
+            select_related=[
+                "case_type",
+                "case_officer",
+                "case_officer__team",
+                "organisation",
+                "submitted_by",
+                "status",
+                "sub_status",
+                "copy_of",
+                "baseapplication",
+                "compliancesitecase",
+                "query",
+                "opengenerallicencecase",
+            ],
+        )
+
+        data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data
+        if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            data["data"]["destinations"] = get_destinations(case.id)  # noqa
+        data["licences"] = get_case_licences(case)
+        return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        """
+        Change case status
+        """
+        case = get_case(pk)
+        case.change_status(
+            request.user, get_case_status_by_status(request.data.get("status")), request.data.get("note")
+        )
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class CaseDetailSimple(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
@@ -173,7 +267,7 @@ class CaseDetail(APIView):
             ],
         )
 
-        data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data
+        data = CaseDetailSimpleSerializer(case, user=gov_user, team=gov_user.team).data
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             data["data"]["destinations"] = get_destinations(case.id)  # noqa
         data["licences"] = get_case_licences(case)
@@ -1164,6 +1258,7 @@ class CountersignDecisionAdvice(APIView):
             payload=payload,
         )
 
+    @silk_profile(name="post")
     def post(self, request, **kwargs):
         case = get_case(kwargs["pk"])
         data = request.data
@@ -1172,7 +1267,7 @@ class CountersignDecisionAdvice(APIView):
         if not serializer.is_valid():
             return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
+        # serializer.save()
 
         gov_user = request.user.govuser
         data = request.data
