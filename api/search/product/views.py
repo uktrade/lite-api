@@ -212,7 +212,6 @@ class ProductSuggestDocumentView(RetrieveAPIView):
                         "consignee_country",
                         "end_user_country",
                         "ultimate_end_user_country",
-                        "assessment_note",
                     ],
                 }
             },
