@@ -1265,7 +1265,7 @@ class CountersignDecisionAdvice(APIView):
         if not serializer.is_valid():
             return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        # serializer.save()
+        serializer.save()
 
         gov_user = request.user.govuser
         data = request.data

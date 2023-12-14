@@ -59,14 +59,28 @@ class PvGradingSerializer(serializers.Serializer):
     grading = KeyValueChoiceField(choices=PvGrading.choices + PvGrading.choices_new)
 
 
+class FlagSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    alias = serializers.CharField()
+    level = serializers.CharField()
+    status = serializers.CharField()
+    colour = serializers.CharField()
+    priority = serializers.IntegerField()
+    blocks_finalising = serializers.BooleanField()
+    removable_by = serializers.CharField()
+
+
 class GoodsSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     is_good_controlled = serializers.BooleanField()
     pv_grading_details = serializers.SerializerMethodField()
     report_summary = serializers.CharField()
+    name = serializers.CharField()
+    flags = FlagSerializer(many=True)
 
-    def get_pv_drading_details(self, instance):
-        return PvGradingSerializer(instance.pv_grading_details)
+    def get_pv_grading_details(self, instance):
+        return PvGradingSerializer(instance.pv_grading_details).data
 
 
 class AdviceSerializer(serializers.Serializer):
@@ -148,7 +162,7 @@ class CaseDetailSimpleSerializer(serializers.Serializer):
     organisation = OrganisationSerializer()
     case_officer = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
-    # goods = serializers.SerializerMethodField()
+    goods = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -196,5 +210,6 @@ class CaseDetailSimpleSerializer(serializers.Serializer):
     def get_assigned_users(self, instance):
         return instance.get_assigned_users()
 
-    # def get_goods(self, instance):
-    #     return GoodsSerializer(instance.good, many=True)
+    def get_goods(self, instance):
+        goods = [goodonapplication.good for goodonapplication in instance.baseapplication.goods.all()]
+        return GoodsSerializer(goods, many=True).data
