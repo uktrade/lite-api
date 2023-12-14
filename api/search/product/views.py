@@ -200,7 +200,7 @@ class ProductSuggestDocumentView(RetrieveAPIView):
             "query": {
                 "multi_match": {
                     "query": query_str,
-                    "type": "bool_prefix",
+                    "type": "phrase_prefix",
                     "fields": [
                         "name",
                         "part_number",

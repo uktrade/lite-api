@@ -350,9 +350,9 @@ class ProductSearchSuggestionsTests(ProductSearchTests):
             (
                 {"q": "1"},
                 [
+                    {"field": "part_number", "value": "15606", "index": "lite"},
                     {"field": "ratings", "value": "1D003", "index": "lite"},
                     {"field": "ratings", "value": "1C35016", "index": "lite"},
-                    {"field": "part_number", "value": "15606", "index": "lite"},
                 ],
             ),
             (
@@ -365,6 +365,19 @@ class ProductSearchSuggestionsTests(ProductSearchTests):
                 {"q": "sh"},
                 [
                     {"field": "name", "value": "Frequency shifter", "index": "lite"},
+                    {"field": "report_summary", "value": "technology for shotguns", "index": "lite"},
+                ],
+            ),
+            (
+                {"q": "sporting rif"},
+                [
+                    {"field": "name", "value": "Bolt action sporting rifle", "index": "lite"},
+                ],
+            ),
+            (
+                {"q": "for s"},
+                [
+                    {"field": "report_summary", "value": "components for spectrometers", "index": "lite"},
                     {"field": "report_summary", "value": "technology for shotguns", "index": "lite"},
                 ],
             ),
