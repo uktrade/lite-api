@@ -3,7 +3,7 @@ applications:
       - https://github.com/cloudfoundry/apt-buildpack.git
       - https://github.com/cloudfoundry/python-buildpack.git#v1.8.14
     timeout: 360
-    memory: 1G
+    memory: 2G
     health-check-type: http
     health-check-http-endpoint: /healthcheck/
     stack: cflinuxfs4
