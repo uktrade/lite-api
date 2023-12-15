@@ -1,4 +1,3 @@
-import logging
 import uuid
 
 from django.conf import settings
@@ -60,9 +59,6 @@ from api.users.models import ExporterUser, GovUser
 from lite_content.lite_api.strings import PartyErrors
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
-
-
-gona_copy_logger = logging.getLogger(settings.GOOD_ON_APPLICATION_COPY_LOGGER)
 
 
 class ApplicationException(APIException):
