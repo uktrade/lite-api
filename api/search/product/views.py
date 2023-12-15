@@ -196,7 +196,7 @@ class ProductSuggestDocumentView(RetrieveAPIView):
         query_str = self.request.GET.get("q", "")
 
         query = {
-            "size": 30,
+            "size": 150,
             "query": {
                 "multi_match": {
                     "query": query_str,
