@@ -118,7 +118,7 @@ class ProductDocumentView(DocumentViewSet):
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
         if not self.validate_search_terms():
-            raise ValidationError({"error": "Invalid search string"})
+            raise ValidationError({"search": "Invalid search string"})
 
     def get_queryset(self):
         self.search._index = self.get_search_indexes()

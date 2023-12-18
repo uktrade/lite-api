@@ -256,7 +256,7 @@ class ProductSearchTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = response.json()
-        self.assertEqual(response["errors"]["error"], "Invalid search string")
+        self.assertEqual(response["errors"]["search"], "Invalid search string")
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
