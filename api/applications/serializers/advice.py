@@ -16,7 +16,6 @@ from api.goodstype.models import GoodsType
 from api.gov_users.serializers import (
     GovUserListSerializer,
     GovUserSimpleSerializer,
-    GovUserViewSerializer,
 )
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
@@ -24,7 +23,7 @@ from api.parties.models import Party
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
 from api.teams.models import Team
-from api.teams.serializers import TeamReadOnlySerializer
+from api.teams.serializers import TeamSerializer, TeamReadOnlySerializer
 from api.users.models import GovUser
 from api.users.enums import UserStatuses
 
@@ -270,13 +269,29 @@ class CountersignDecisionAdviceSerializer(serializers.ModelSerializer):
         list_serializer_class = CountersignAdviceWithDecisionListSerializer
 
 
+class CountersignedUserSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="baseuser_ptr_id")
+    team = TeamSerializer()
+
+    class Meta:
+        model = GovUser
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "team",
+        )
+        read_only_fields = fields
+
+
 class CountersignDecisionAdviceViewSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     valid = serializers.BooleanField()
     order = serializers.IntegerField()
     outcome_accepted = serializers.BooleanField()
     reasons = serializers.CharField()
-    countersigned_user = GovUserViewSerializer()
+    countersigned_user = CountersignedUserSerializer()
     advice = AdviceViewSerializer()
 
 

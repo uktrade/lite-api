@@ -196,11 +196,11 @@ class ProductSuggestDocumentView(RetrieveAPIView):
         query_str = self.request.GET.get("q", "")
 
         query = {
-            "size": 15,
+            "size": 30,
             "query": {
                 "multi_match": {
                     "query": query_str,
-                    "type": "bool_prefix",
+                    "type": "phrase_prefix",
                     "fields": [
                         "name",
                         "part_number",
@@ -212,7 +212,6 @@ class ProductSuggestDocumentView(RetrieveAPIView):
                         "consignee_country",
                         "end_user_country",
                         "ultimate_end_user_country",
-                        "assessment_note",
                     ],
                 }
             },
