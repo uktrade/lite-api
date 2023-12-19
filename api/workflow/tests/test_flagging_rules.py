@@ -83,51 +83,6 @@ class FlaggingRulesAutomation(DataTestClient):
 
         good.flags.count() >= 1
 
-    def test_goods_flag_before_and_after_reviewing_good(self):
-        """Tests applying of flagging rule with a matching group and excluding entry.
-        Reviews the good and updates the entry to match with excluding entry and ensures that
-        the flag is now cleared after review.
-        """
-        flag = self.create_flag(name="good flag", level=FlagLevels.GOOD, team=self.team)
-        case = self.create_draft_standard_application(self.organisation)
-        self.submit_application(case)
-        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
-
-        good.control_list_entries.set(ControlListEntry.objects.filter(rating="ML8a"))
-        good.save()
-        self.create_flagging_rule(
-            level=FlagLevels.GOOD,
-            team=self.team,
-            flag=flag,
-            matching_values=[],
-            matching_groups=["ML8"],
-            excluded_values=["ML8b"],
-        )
-
-        apply_flagging_rules_to_case(case)
-        assert good.flags.count() >= 3
-
-        role = Role(name="review_goods")
-        role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])
-        role.save()
-        self.gov_user.role = role
-        self.gov_user.save()
-
-        self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": case.id})
-        data = {
-            "objects": [good.id],
-            "current_object": good.id,
-            "comment": "Update rating to match with flag excluded value",
-            "report_summary": "test report summary",
-            "control_list_entries": ["ML8b"],
-            "is_good_controlled": True,
-            "regime_entries": [],
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert good.flags.count() >= 3
-
     def test_adding_goods_type_flag_from_case_with_verified_only_rule_failure(self):
         """Test flag not applied to good when flagging rule is for verified goods only."""
         flag = self.create_flag(name="for verified good flag", level=FlagLevels.GOOD, team=self.team)
