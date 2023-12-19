@@ -2,15 +2,14 @@ from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from elasticsearch_dsl.query import Query
 
-from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.exceptions import ValidationError
 
 from django.conf import settings
 from django.db.models import Case, When
 from django.db.models.fields import IntegerField
-from django.http import JsonResponse
 
 from api.core.authentication import GovAuthentication
 from api.search import models
@@ -116,19 +115,10 @@ class ProductDocumentView(DocumentViewSet):
         response = self.document._index.validate_query(body=query)
         return response["valid"]
 
-    def dispatch(self, request, *args, **kwargs):
-        self.search._index = self.get_search_indexes()
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
         if not self.validate_search_terms():
-            return JsonResponse(
-                data={
-                    "error": "Invalid search string",
-                    "results": [],
-                    "count": 0,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return super().dispatch(request, *args, **kwargs)
+            raise ValidationError({"search": "Invalid search string"})
 
     def get_queryset(self):
         self.search._index = self.get_search_indexes()
