@@ -24,11 +24,6 @@ urlpatterns = [
         name="document",
     ),
     path(
-        "control-list-entries/<uuid:case_pk>/",
-        views.GoodsListControlCode.as_view(),
-        name="control_list_entries",
-    ),
-    path(
         "document_internal_good_on_application/<str:goods_on_application_pk>/",
         views.DocumentGoodOnApplicationInternalView.as_view(),
         name="documents_good_on_application_internal",
