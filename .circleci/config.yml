@@ -10,7 +10,7 @@ image_python_node: &image_python_node
   image: cimg/python:3.8.18-node
 
 image_postgres: &image_postgres
-  image: circleci/postgres:11
+  image: circleci/postgres:12
   environment:
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: password
