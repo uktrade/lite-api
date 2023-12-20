@@ -325,6 +325,19 @@ class ProductSearchTests(DataTestClient):
         for key, value in expected_data.items():
             self.assertEqual(hits[0][key], value)
 
+    def test_application_reference_code_refresh(self):
+        application = self.create_standard_application_case(self.organisation)
+        good_on_application = application.goods.first()
+        response = self.client.get(
+            self.product_search_url, {"search": good_on_application.good.name}, **self.gov_headers
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        hits = response["results"]
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["application"]["reference_code"], application.reference_code)
+
 
 class ProductSearchSuggestionsTests(ProductSearchTests):
     product_suggest_url = reverse("product_suggest")
