@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from compat import get_model
+from django.apps import apps
 from django.db import models, transaction
 from django.db.models import (
     BinaryField,
@@ -334,8 +334,8 @@ class CaseManager(models.Manager):
         )
 
         if not include_hidden and user:
-            EcjuQuery = get_model("cases", "ecjuquery")
-            CaseReviewDate = get_model("cases", "casereviewdate")
+            EcjuQuery = apps.get_model("cases", "ecjuquery")
+            CaseReviewDate = apps.get_model("cases", "casereviewdate")
 
             case_qs = case_qs.exclude(
                 id__in=EcjuQuery.objects.filter(raised_by_user__team_id=user.team.id, responded_at__isnull=True)
@@ -568,7 +568,7 @@ class CaseManager(models.Manager):
 
         # We filter for OIEL, OICL, OGLs, and specific SIELs (dependant on CLC codes present) as these are the only case
         #   types relevant for compliance cases
-        GoodOnLicence = get_model("licences", "GoodOnLicence")
+        GoodOnLicence = apps.get_model("licences", "GoodOnLicence")
         approved_goods_on_licence = GoodOnLicence.objects.filter(
             good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
         ).values_list("good", flat=True)

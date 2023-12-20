@@ -1,4 +1,4 @@
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from rest_framework import status
 from rest_framework.exceptions import APIException, ErrorDetail
 from rest_framework.utils.serializer_helpers import ReturnDict, ReturnList
@@ -20,7 +20,7 @@ def _get_error_details(data, default_code=None):
             return ReturnDict(ret, serializer=data.serializer)
         return ret
 
-    text = force_text(data)
+    text = force_str(data)
     code = getattr(data, "code", default_code)
     return ErrorDetail(text, code)
 

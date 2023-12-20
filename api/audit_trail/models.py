@@ -4,7 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timesince
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 
 from api.audit_trail.managers import AuditManager
 from api.audit_trail.enums import AuditType
