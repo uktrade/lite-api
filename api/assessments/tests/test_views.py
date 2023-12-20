@@ -16,6 +16,8 @@ from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.statuses.models import CaseStatus
 
+from lite_content.lite_api import strings
+
 
 class MakeAssessmentsViewTests(DataTestClient):
     def setUp(self):
@@ -39,6 +41,34 @@ class MakeAssessmentsViewTests(DataTestClient):
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_controlled_goods_must_have_report_summary_subject(self):
+        # Setting is_good_controlled to True requires a report_summary_subject to be non None
+        # verify that if this condition raises a ValidationError
+        regime_entry = RegimeEntry.objects.first()
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": None,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some string we expect to be overwritten",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        expected_response_data = {
+            "errors": [
+                {"report_summary_subject": [strings.Assessment.REQUIRE_REPORT_SUMMARY_SUBJECT_ON_CONTROLLED_GOODS]}
+            ]
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertDictEqual(response.json(), expected_response_data)
 
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_single_record(self):
