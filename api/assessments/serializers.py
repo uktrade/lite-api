@@ -70,15 +70,20 @@ class AssessmentSerializer(GoodControlReviewSerializer):
         list_serializer_class = AssessmentUpdateListSerializer
 
     def validate(self, data):
-        # If we have a report summary subject, overwrite whatever report_summary value
-        # we have with the string from the subject/prefix
-        if "report_summary_subject" in data:
+        if data.get("is_good_controlled") is False:
+            # Goods that are not controlled should have a blank report summary
+
+            data["report_summary"] = None
+            data["report_summary_prefix"] = None
+            data["report_summary_subject"] = None
+        elif "report_summary_subject" in data:
+            # If we have a report summary subject, overwrite whatever report_summary value
+            # we have with the string from the subject/prefix
             if data.get("report_summary_prefix") and data.get("report_summary_subject"):
                 data["report_summary"] = f"{data['report_summary_prefix'].name} {data['report_summary_subject'].name}"
             elif data.get("report_summary_subject"):
                 data["report_summary"] = data["report_summary_subject"].name
             else:
-                # Goods that are not controlled do not need a report summary
                 data["report_summary"] = None
         return data
 
