@@ -213,11 +213,11 @@ class MakeAssessmentsViewTests(DataTestClient):
         all_cles = [cle.rating for cle in good_on_application_3.control_list_entries.all()]
         assert all_cles == []
         assert good_on_application_3.report_summary_prefix_id == None
-        assert good_on_application_3.report_summary_subject_id == report_summary_subject.id
+        assert good_on_application_3.report_summary_subject_id == None
         assert good_on_application_3.is_good_controlled == False
         assert good_on_application_3.comment == "some comment"
         assert good_on_application_3.is_ncsc_military_information_security == True
-        assert good_on_application_3.report_summary == report_summary_subject.name
+        assert good_on_application_3.report_summary == None
         assert good_on_application_3.assessed_by == self.gov_user
         assert good_on_application_3.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
 
