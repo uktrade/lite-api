@@ -12,7 +12,7 @@ class UpdateApplicationDocumentTest(DataTestClient):
     def test_standard_application(self, mock_task):
         application = self.create_standard_application_case(self.organisation)
 
-        mock_task.assert_has_calls([call("applications.BaseApplication", str(application.pk))])
+        mock_task.assert_any_call([("applications.BaseApplication", application.pk)])
 
     @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
     @patch("api.search.signals.update_search_index")
@@ -21,14 +21,14 @@ class UpdateApplicationDocumentTest(DataTestClient):
             self.queue, self.create_standard_application_case(self.organisation), self.gov_user
         )
 
-        mock_task.assert_has_calls([call("applications.BaseApplication", str(assignment.case.baseapplication.pk))])
+        mock_task.assert_any_call([("applications.BaseApplication", assignment.case.baseapplication.pk)])
 
     @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
     @patch("api.search.signals.update_search_index")
     def test_case(self, mock_task):
         case = self.create_standard_application_case(self.organisation).get_case()
 
-        mock_task.assert_has_calls([call("applications.BaseApplication", str(case.baseapplication.pk))])
+        mock_task.assert_any_call([("applications.BaseApplication", case.baseapplication.pk)])
 
     @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
     @patch("api.search.signals.update_search_index")
@@ -39,7 +39,7 @@ class UpdateApplicationDocumentTest(DataTestClient):
         application.goods.add(good_on_app)
         application.save()
 
-        mock_task.assert_has_calls([call("applications.BaseApplication", str(good_on_app.application.pk))])
+        mock_task.assert_any_call([("applications.BaseApplication", good_on_app.application.pk)])
 
     @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
     @patch("api.search.signals.update_search_index")
@@ -48,8 +48,8 @@ class UpdateApplicationDocumentTest(DataTestClient):
         party = self.create_party("test party", self.organisation, PartyType.END_USER, application=application)
         party.save()
 
-        mock_task.assert_has_calls(
-            [call("applications.BaseApplication", str(party.parties_on_application.all()[0].application.pk))]
+        mock_task.assert_any_call(
+            [("applications.BaseApplication", party.parties_on_application.all()[0].application.pk)]
         )
 
     @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
@@ -57,6 +57,14 @@ class UpdateApplicationDocumentTest(DataTestClient):
     def test_organisation(self, mock_task):
         self.create_standard_application_case(self.organisation)
 
-        mock_task.assert_has_calls(
-            [call("applications.BaseApplication", str(self.organisation.cases.all()[0].baseapplication.pk))]
+        mock_task.assert_any_call(
+            [("applications.BaseApplication", self.organisation.cases.all()[0].baseapplication.pk)]
         )
+
+    @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
+    @patch("api.search.signals.update_search_index")
+    def test_good_on_application_update_in_index(self, mock_task):
+        application = self.create_standard_application_case(self.organisation)
+
+        for good_on_application in application.goods.all():
+            mock_task.assert_any_call([("applications.GoodOnApplication", good_on_application.pk)])
