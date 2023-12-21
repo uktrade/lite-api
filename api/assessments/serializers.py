@@ -77,9 +77,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
             data["report_summary_subject"] = None
         elif "report_summary_subject" in data:
             if data["report_summary_subject"] is None:
-                raise serializers.ValidationError(
-                    {"report_summary_subject": strings.Assessment.REQUIRE_REPORT_SUMMARY_SUBJECT_ON_CONTROLLED_GOODS}
-                )
+                raise serializers.ValidationError({"report_summary_subject": strings.Picklists.REQUIRED_REPORT_SUMMARY})
 
             # If we have a report summary subject, overwrite whatever report_summary value
             # we have with the string from the subject/prefix

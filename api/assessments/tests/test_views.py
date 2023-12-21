@@ -61,11 +61,7 @@ class MakeAssessmentsViewTests(DataTestClient):
             }
         ]
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
-        expected_response_data = {
-            "errors": [
-                {"report_summary_subject": [strings.Assessment.REQUIRE_REPORT_SUMMARY_SUBJECT_ON_CONTROLLED_GOODS]}
-            ]
-        }
+        expected_response_data = {"errors": [{"report_summary_subject": [strings.Picklists.REQUIRED_REPORT_SUMMARY]}]}
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertDictEqual(response.json(), expected_response_data)
