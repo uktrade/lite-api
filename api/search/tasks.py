@@ -6,12 +6,12 @@ UPDATE_SEARCH_INDEX_QUEUE = "update_search_index_queue"
 
 
 @background(queue=UPDATE_SEARCH_INDEX_QUEUE, schedule=0)
-def update_search_index(model_name, *ids):
+def update_search_index(model_pk_pairs):
     """Update the search index with instances of a model as specified by
     the supplied model_name and ids.
     """
-    model = apps.get_model(model_name)
 
-    for id_ in ids:
-        instance = model.objects.get(pk=id_)
+    for model_name, pk in model_pk_pairs:
+        model = apps.get_model(model_name)
+        instance = model.objects.get(pk=str(pk))
         registry.update(instance)

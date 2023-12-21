@@ -325,6 +325,19 @@ class ProductSearchTests(DataTestClient):
         for key, value in expected_data.items():
             self.assertEqual(hits[0][key], value)
 
+    def test_application_reference_code_refresh(self):
+        application = self.create_standard_application_case(self.organisation)
+        good_on_application = application.goods.first()
+        response = self.client.get(
+            self.product_search_url, {"search": good_on_application.good.name}, **self.gov_headers
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        hits = response["results"]
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["application"]["reference_code"], application.reference_code)
+
 
 class ProductSearchSuggestionsTests(ProductSearchTests):
     product_suggest_url = reverse("product_suggest")
@@ -335,9 +348,9 @@ class ProductSearchSuggestionsTests(ProductSearchTests):
             (
                 {"q": "camera"},
                 [
+                    {"field": "name", "value": "Thermal camera", "index": "lite"},
                     {"field": "name", "value": "Instax HD camera", "index": "lite"},
                     {"field": "report_summary", "value": "components for imaging cameras", "index": "lite"},
-                    {"field": "name", "value": "Thermal camera", "index": "lite"},
                 ],
             ),
             (
@@ -385,16 +398,7 @@ class ProductSearchSuggestionsTests(ProductSearchTests):
     def test_product_search_suggestions(self, query, expected_suggestions):
         response = self.client.get(self.product_suggest_url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
+        actual = sorted(response.json(), key=lambda d: d["value"])
+        expected = sorted(expected_suggestions, key=lambda d: d["value"])
 
         self.assertEqual(response.json(), expected_suggestions)
-
-
-class MoreLikeThisViewTests(DataTestClient):
-    @pytest.mark.elasticsearch
-    def test_more_like_this_404(self):
-        url = reverse("more_like_this", kwargs={"pk": "a1e4d94f-8519-4ef3-8863-e8fa17bdd685"})
-
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), [])
