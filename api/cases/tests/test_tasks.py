@@ -9,7 +9,7 @@ from django.utils import timezone
 from ..tasks import today, yesterday
 
 
-@override_settings(TIME_ZONE="utc")
+@override_settings(TIME_ZONE="UTC")
 @freeze_time("2020-01-01 12:00:01")
 class TodayTestCase(TestCase):
     def test_today_without_time(self):
@@ -27,7 +27,7 @@ class TodayTestCase(TestCase):
         )
 
 
-@override_settings(TIME_ZONE="utc")
+@override_settings(TIME_ZONE="UTC")
 @freeze_time("2022-07-12 12:00:01")
 class YesterdayTestCase(TestCase):
     FRIDAY = datetime.datetime(2022, 7, 8, 12, 0, 1)
