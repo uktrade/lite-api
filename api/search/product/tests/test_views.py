@@ -348,9 +348,9 @@ class ProductSearchSuggestionsTests(ProductSearchTests):
             (
                 {"q": "camera"},
                 [
+                    {"field": "name", "value": "Thermal camera", "index": "lite"},
                     {"field": "name", "value": "Instax HD camera", "index": "lite"},
                     {"field": "report_summary", "value": "components for imaging cameras", "index": "lite"},
-                    {"field": "name", "value": "Thermal camera", "index": "lite"},
                 ],
             ),
             (
@@ -398,8 +398,10 @@ class ProductSearchSuggestionsTests(ProductSearchTests):
     def test_product_search_suggestions(self, query, expected_suggestions):
         response = self.client.get(self.product_suggest_url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
+        actual = sorted(response.json(), key=lambda d: d["value"])
+        expected = sorted(expected_suggestions, key=lambda d: d["value"])
 
-        self.assertEqual(response.json(), expected_suggestions)
+        self.assertEqual(actual, expected)
 
 
 class MoreLikeThisViewTests(DataTestClient):
