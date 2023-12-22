@@ -28,6 +28,10 @@ Service for handling backend calls in LITE.
       If you want to run in Docker then uncomment the appropriate line in `.env` referring to `DATABASE_URL`.
     - In `.env`, also fill in the email field for `INTERNAL_USERS` and `EXPORTER_USERS` with valid values.
 
+  - HAWK Authentication is enabled on API/Exporter/caseworker services by default. If you get issuing making any api calls i.e missing authentication / key    mismatch 
+    - Check LITE_INTERNAL_HAWK_KEY ENV Keys match on API and caseworker
+    - Check LITE_EXPORTER_HAWK_KEY ENV Keys match on  API and expoter
+
   - Initialise submodules
 
     - `git submodule init`
