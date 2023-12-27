@@ -8,9 +8,11 @@ from test_helpers.clients import DataTestClient
 
 
 class ApplicationGoodOnApplicationDocumentViewTests(DataTestClient):
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
-    def test_audit_trail_create(self, upload_bytes_func, scan_document_func):
+    def test_audit_trail_create(self, upload_bytes_func, mock_virus_scan, mock_s3_operations_get_object):
+        mock_virus_scan.return_value = False
         application = self.create_draft_standard_application(organisation=self.organisation, user=self.exporter_user)
         good = self.create_good("A good", self.organisation)
 
@@ -32,7 +34,7 @@ class ApplicationGoodOnApplicationDocumentViewTests(DataTestClient):
                 "document_type": "section-five-certificate",
             },
         }
-
+        mock_s3_operations_get_object.return_value = data
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, 201, response.json())
