@@ -38,9 +38,7 @@ def scan_document_for_viruses(self, document_id):
 @shared_task
 def delete_document_from_s3(document_id):
     logging.warning(
-        "Maximum attempts of %s for document %s has been reached calling s3 delete",
-        MAX_ATTEMPTS,
-        document_id
+        "Maximum attempts of %s for document %s has been reached calling s3 delete", MAX_ATTEMPTS, document_id
     )
     document = Document.objects.get(id=document_id)
     document.delete_s3()

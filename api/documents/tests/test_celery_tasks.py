@@ -23,7 +23,7 @@ class DocumentVirusScan(DataTestClient):
         self.assertIsNone(document.virus_scanned_at)
 
         scan_document_for_viruses(str(document.id))
-        
+
         document.refresh_from_db()
         self.assertIsNotNone(document.virus_scanned_at)
         self.assertTrue(document.safe)
