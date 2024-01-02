@@ -1,5 +1,6 @@
 import os, io
 
+from datetime import datetime
 from unittest import mock
 from api.audit_trail.enums import AuditType
 from parameterized import parameterized
@@ -75,9 +76,10 @@ class GenerateDocumentTests(DataTestClient):
 
         audit = Audit.objects.all().first()
         self.assertEqual(AuditType(audit.verb), AuditType.GENERATE_DECISION_LETTER)
+        year_now = datetime.now().year
         self.assertEqual(
             audit.payload,
-            {"decision": advicetype, "case_reference": "GBSIEL/2023/0000001/P"},
+            {"decision": advicetype, "case_reference": f"GBSIEL/{year_now}/0000001/P"},
         )
 
         audit_text = AuditSerializer(audit).data["text"]
