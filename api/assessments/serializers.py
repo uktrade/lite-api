@@ -70,7 +70,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
         list_serializer_class = AssessmentUpdateListSerializer
 
     def validate(self, data):
-        if data.get("is_good_controlled") is False:
+        if "is_good_controlled" in data and data["is_good_controlled"] in (False, None):
             # Goods that are not controlled should have a blank report summary
             data["report_summary"] = None
             data["report_summary_prefix"] = None
