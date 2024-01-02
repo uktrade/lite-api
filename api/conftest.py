@@ -1,6 +1,9 @@
+import os
 from django.core.management import call_command
 from django.db.migrations.executor import MigrationExecutor
 from django import db
+
+from celery import Celery
 
 import re
 import glob
@@ -123,3 +126,14 @@ def migration(transactional_db):
 @pytest.fixture(autouse=True)
 def setup(settings):
     settings.HAWK_AUTHENTICATION_ENABLED = False
+
+
+@pytest.fixture(autouse=True)
+def celery_app():
+    # Setup the celery worker to run in process for tests
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.conf.settings")
+    celeryapp = Celery("api")
+    celeryapp.autodiscover_tasks(related_name="celery_tasks")
+    celeryapp.conf.update(CELERY_ALWAYS_EAGER=True)
+    celeryapp.conf.update(CELERY_TASK_STORE_EAGER_RESULT=True)
+    return celeryapp

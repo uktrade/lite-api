@@ -105,6 +105,8 @@ We currently have two mechanisms for background tasks in LITE;
 - django-background-tasks: `pipenv run ./manage.py process_tasks` will run all background tasks
 - celery: a celery container is running by default when using docker-compose.  If a working copy
     "on the metal" without docker, run celery with `watchmedo auto-restart -d . -R -p '*.py' -- celery -A api.conf worker -l info`
+- celery-scheduler: a celery container is running by default when using docker-compose. This is to monitor any scheduled tasks  If a working copy
+    "on the metal" without docker, run celery with `watchmedo auto-restart -d . -R -p '*.py' -- celery -A api.conf beat`
 
 ## Installing WeasyPrint for document generation
 
