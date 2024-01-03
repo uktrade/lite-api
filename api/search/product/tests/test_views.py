@@ -401,4 +401,4 @@ class ProductSearchSuggestionsTests(ProductSearchTests):
         actual = sorted(response.json(), key=lambda d: d["value"])
         expected = sorted(expected_suggestions, key=lambda d: d["value"])
 
-        self.assertEqual(response.json(), expected_suggestions)
+        self.assertEqual(actual, expected)
