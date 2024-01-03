@@ -123,6 +123,36 @@ class MakeAssessmentsViewTests(DataTestClient):
             "report_summary": good_on_application.report_summary,
         }
 
+    def test_making_a_good_uncontrolled_clears_report_fields(self):
+        # Setting is_good_controlled to False should set report_summary_prefix and report_summary_subject to None
+        good_on_application = self.good_on_application
+        regime_entry = RegimeEntry.objects.first()
+        report_summary_subject = ReportSummarySubject.objects.first()
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": ["ML1"],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": report_summary_subject.id,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some string we expect to be overwritten",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data[0]["is_good_controlled"] = False
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application.refresh_from_db()
+
+        assert good_on_application.report_summary_prefix_id is None
+        assert good_on_application.report_summary_subject_id is None
+
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_single_record_on_already_verified_good(self):
         good_on_application = self.good_on_application
