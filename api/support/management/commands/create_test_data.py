@@ -148,9 +148,9 @@ class Command(BaseCommand):
         # Create certain number of products for this organisation which
         # will be used in various applications
         for i in range(NUMBER_OF_PRODUCTS_IN_CATALOGUE):
-            organisation = random.choice(self.organisations)
-            random.shuffle(product_names)
-            name = random.choice(product_names)
+            organisation = random.choice(self.organisations)  # nosec
+            random.shuffle(product_names)  # nosec
+            name = random.choice(product_names)  # nosec
             self.products.append(GoodFactory(name=name, organisation=organisation))
 
     def handle(self, *args, **options):
@@ -187,16 +187,16 @@ class Command(BaseCommand):
             case.save()
             num_products = faker.random_number(1)
             for _ in range(num_products):
-                cle = random.choice(control_list_entries)
-                regime_entry = random.choice(regime_entries)
-                prefix = random.choice(rs_prefixes)
-                subject = random.choice(rs_subjects)
-                add_prefix = random.choice(rs_prefix_randomize)
+                cle = random.choice(control_list_entries)  # nosec
+                regime_entry = random.choice(regime_entries)  # nosec
+                prefix = random.choice(rs_prefixes)  # nosec
+                subject = random.choice(rs_subjects)  # nosec
+                add_prefix = random.choice(rs_prefix_randomize)  # nosec
                 report_summary = subject.name
                 if add_prefix:
                     report_summary = f"{prefix.name} {subject.name}"
 
-                good = random.choice(self.products)
+                good = random.choice(self.products)  # nosec
                 good_on_application = GoodOnApplicationFactory(
                     application=application,
                     good=good,
@@ -215,7 +215,7 @@ class Command(BaseCommand):
 
             # All applications are going to have three parties
             for party_type in [PartyType.CONSIGNEE, PartyType.END_USER, PartyType.ULTIMATE_END_USER]:
-                country_id, country_name = random.choice(list(RED_DESTINATION_MAP.items()))
+                country_id, country_name = random.choice(list(RED_DESTINATION_MAP.items()))  # nosec
                 country_data = {"id": country_id, "name": country_name}
                 country = CountryFactory(**country_data)
                 PartyOnApplicationFactory(
