@@ -66,6 +66,32 @@ class MakeAssessmentsViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertDictEqual(response.json(), expected_response_data)
 
+    def test_legacy_goods_are_allowed(self):
+        # Legacy GoodOnApplications have a report_summary but no report_summary_subject or report_summary_prefix
+        good_on_application = self.good_on_application
+        regime_entry = RegimeEntry.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": None,
+                "report_summary_subject": None,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some legacy summary",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        good_on_application.refresh_from_db()
+
+        assert good_on_application.report_summary == "some legacy summary"
+        assert good_on_application.report_summary_prefix is None
+        assert good_on_application.report_summary_subject is None
+
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_single_record(self):
         good_on_application = self.good_on_application
