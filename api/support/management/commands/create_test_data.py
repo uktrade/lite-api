@@ -1,8 +1,10 @@
+import logging
 import random
 
 from decimal import Decimal
 from faker import Faker
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -154,6 +156,15 @@ class Command(BaseCommand):
             self.products.append(GoodFactory(name=name, organisation=organisation))
 
     def handle(self, *args, **options):
+        env = settings.ENV
+        if env != "localhost":
+            logging.error("Command only allowed to execute in local environment, current env is %s\n", env)
+            return
+
+        if not settings.DEBUG:
+            logging.error("Command allowed only when DEBUG is enabled\n")
+            return
+
         user = {
             "first_name": "TAU",
             "last_name": "User",
