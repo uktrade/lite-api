@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from api.cases.tasks import get_application_target_sla
+from api.cases.celery_tasks import get_application_target_sla
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 

@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, time
 
-from background_task import background
+from celery import shared_task
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
@@ -17,9 +17,8 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 
 # DST safe version of midnight
-SLA_UPDATE_TASK_TIME = time(22, 30, 0)
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
-LOG_PREFIX = "update_cases_sla background task:"
+LOG_PREFIX = "update_cases_sla celery task:"
 
 STANDARD_APPLICATION_TARGET_DAYS = 20
 OPEN_APPLICATION_TARGET_DAYS = 60
@@ -80,7 +79,15 @@ def get_case_ids_with_active_ecju_queries(date):
     )
 
 
-@background(schedule=datetime.combine(timezone.localtime(), SLA_UPDATE_TASK_TIME, tzinfo=tz(settings.TIME_ZONE)))
+MAX_ATTEMPTS = 3
+RETRY_BACKOFF = 180
+
+
+@shared_task(
+    autoretry_for=(Exception,),
+    max_retries=MAX_ATTEMPTS,
+    retry_backoff=RETRY_BACKOFF,
+)
 def update_cases_sla():
     """
     Updates all applicable cases SLA.
