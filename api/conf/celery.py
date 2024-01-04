@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 
 from celery.schedules import crontab
 
@@ -23,5 +24,9 @@ app.conf.beat_schedule = {
     "update sanction search index at 7am, 7pm": {
         "task": "api.external_data.celery_tasks.update_sanction_search_index",
         "schedule": crontab(hour="7, 19", minute=0),
+    },
+    "update case SLAs 10.30pm": {
+        "task": "api.cases.celery_tasks.update_cases_sla",
+        "schedule": crontab(hour=22, minute=30),
     },
 }
