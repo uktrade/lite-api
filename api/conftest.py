@@ -1,4 +1,5 @@
 import os
+
 from django.core.management import call_command
 from django.db.migrations.executor import MigrationExecutor
 from django import db
