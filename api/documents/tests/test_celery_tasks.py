@@ -17,7 +17,11 @@ class DocumentVirusScan(DataTestClient):
     @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_document_scan_document_success(self, mock_virus_scan, mock_s3_operations_get_object):
-        mock_s3_operations_get_object.return_value = {"doc_data"}
+        mock_s3_operations_get_object.return_value = {
+            "name": "updated_document_name.pdf",
+            "s3_key": "s3_keykey.pdf",
+            "size": 123456,
+        }
         mock_virus_scan.return_value = False
         document = self.create_case_document(case=self.case, user=self.gov_user, name="jimmy")
         self.assertIsNone(document.virus_scanned_at)

@@ -9,6 +9,14 @@ from test_helpers.clients import DataTestClient
 
 
 class OrganisationDocumentViewTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.document_data = {
+            "name": "updated_document_name.pdf",
+            "s3_key": "s3_keykey.pdf",
+            "size": 123456,
+        }
+
     def create_document_on_organisation(self, name):
         url = reverse("organisations:documents", kwargs={"pk": self.organisation.pk})
         data = {
@@ -22,7 +30,7 @@ class OrganisationDocumentViewTests(DataTestClient):
     @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_create_organisation_document(self, mock_virus_scan, mock_s3_operations_get_object):
-        mock_s3_operations_get_object.return_value = {"doc_data"}
+        mock_s3_operations_get_object.return_value = self.document_data
         mock_virus_scan.return_value = False
         response = self.create_document_on_organisation("some-document")
 
@@ -42,7 +50,7 @@ class OrganisationDocumentViewTests(DataTestClient):
     @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_list_organisation_documents(self, mock_virus_scan, mock_s3_operations_get_object):
-        mock_s3_operations_get_object.return_value = {"doc_data"}
+        mock_s3_operations_get_object.return_value = self.document_data
         mock_virus_scan.return_value = False
         self.assertEqual(self.create_document_on_organisation("some-document-one").status_code, 201)
         self.assertEqual(self.create_document_on_organisation("some-document-two").status_code, 201)
@@ -58,7 +66,7 @@ class OrganisationDocumentViewTests(DataTestClient):
     @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_retrieve_organisation_documents(self, mock_virus_scan, mock_s3_operations_get_object):
-        mock_s3_operations_get_object.return_value = {"doc_data"}
+        mock_s3_operations_get_object.return_value = self.document_data
         mock_virus_scan.return_value = False
         response = self.create_document_on_organisation("some-document-one")
         self.assertEqual(response.status_code, 201)
@@ -97,7 +105,7 @@ class OrganisationDocumentViewTests(DataTestClient):
     @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_delete_organisation_documents(self, mock_virus_scan, mock_s3_operations_get_object):
-        mock_s3_operations_get_object.return_value = {"doc_data"}
+        mock_s3_operations_get_object.return_value = self.document_data
         mock_virus_scan.return_value = False
         response = self.create_document_on_organisation("some-document-one")
         self.assertEqual(response.status_code, 201)
@@ -120,7 +128,7 @@ class OrganisationDocumentViewTests(DataTestClient):
     @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_update_organisation_documents(self, mock_virus_scan, mock_s3_operations_get_object):
-        mock_s3_operations_get_object.return_value = {"doc_data"}
+        mock_s3_operations_get_object.return_value = self.document_data
         mock_virus_scan.return_value = False
         response = self.create_document_on_organisation("some-document-one")
         self.assertEqual(response.status_code, 201)
