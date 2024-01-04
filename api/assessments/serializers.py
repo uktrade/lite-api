@@ -1,3 +1,5 @@
+import logging
+
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -14,6 +16,8 @@ from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 from lite_content.lite_api import strings
+
+logger = logging.getLogger(__name__)
 
 
 class AssessmentUpdateListSerializer(serializers.ListSerializer):
@@ -75,13 +79,22 @@ class AssessmentSerializer(GoodControlReviewSerializer):
             data["report_summary"] = None
             data["report_summary_prefix"] = None
             data["report_summary_subject"] = None
+        elif (
+            data.get("report_summary") is not None
+            and data.get("report_summary_subject") is None
+            and data.get("report_summary_prefix") is None
+        ):
+            # Legacy GoodOnApplications only have a report_summary populated, not the subject/prefix
+            # - Once report_summary is removed, remove this check
+            logger.info(
+                "GoodOnApplication %s is legacy format: has report_summary but no report_summary_subject or report_summary_prefix",
+                data.get("id"),
+            )
         elif "report_summary_subject" in data:
             if data["report_summary_subject"] is None:
                 raise serializers.ValidationError({"report_summary_subject": strings.Picklists.REQUIRED_REPORT_SUMMARY})
 
-            # If we have a report summary subject, overwrite whatever report_summary value
-            # we have with the string from the subject/prefix
-            if data.get("report_summary_prefix") and data.get("report_summary_subject"):
+            if data.get("report_summary_prefix"):
                 data["report_summary"] = f"{data['report_summary_prefix'].name} {data['report_summary_subject'].name}"
             else:
                 data["report_summary"] = data["report_summary_subject"].name
