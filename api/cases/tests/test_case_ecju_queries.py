@@ -46,7 +46,7 @@ class ECJUQueriesViewTests(DataTestClient):
             case=self.case,
             response="I have a response",
             raised_by_user=self.gov_user_2,
-            responded_by_user=self.exporter_user,
+            responded_by_user=self.base_user,
             query_type=PicklistType.ECJU,
         )
 
