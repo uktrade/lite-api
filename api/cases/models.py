@@ -596,14 +596,14 @@ class EcjuQuery(TimestampableModel):
     responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
     raised_by_user = models.ForeignKey(
         GovUser,
-        related_name="govuser_ecju_query",
+        related_name="raised_by_user_ecju_query",
         on_delete=models.CASCADE,
         default=None,
         null=False,
     )
     responded_by_user = models.ForeignKey(
-        ExporterUser,
-        related_name="exportuser_ecju_query",
+        BaseUser,
+        related_name="responded_by_user_ecju_query",
         on_delete=models.CASCADE,
         default=None,
         null=True,

@@ -271,7 +271,8 @@ def populate_ecju_queries(case_map):
             "raised_by_user",
             "responded_by_user",
             "raised_by_user__baseuser_ptr",
-            "responded_by_user__baseuser_ptr",
+            "responded_by_user__govuser",
+            "responded_by_user__exporteruser",
         )
         .prefetch_related()
         .filter(case_id__in=list(case_map.keys()))
