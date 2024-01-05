@@ -68,7 +68,7 @@ from api.cases.serializers import (
     CaseOfficerUpdateSerializer,
     ReviewDateUpdateSerializer,
     EcjuQueryExporterViewSerializer,
-    EcjuQueryExporterRespondSerializer,
+    EcjuQueryUserResponseSerializer,
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
 )
@@ -612,7 +612,7 @@ class EcjuQueryDetail(APIView):
 
         data = {"response": request.data["response"], "responded_by_user": str(request.user.pk)}
 
-        serializer = EcjuQueryExporterRespondSerializer(instance=ecju_query, data=data, partial=True)
+        serializer = EcjuQueryUserResponseSerializer(instance=ecju_query, data=data, partial=True)
 
         if serializer.is_valid():
             if "validate_only" not in request.data or not request.data["validate_only"]:

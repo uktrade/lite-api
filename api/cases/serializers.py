@@ -57,7 +57,6 @@ from api.users.models import BaseUser, GovUser, GovNotification, ExporterUser
 from api.users.serializers import (
     BaseUserViewSerializer,
     GovUserViewSerializer,
-    ExporterUserViewSerializer,
     ExporterUserSimpleSerializer,
 )
 from lite_content.lite_api import strings
@@ -581,7 +580,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
 
     def get_responded_by_user_name(self, instance):
         if instance.responded_by_user:
-            return instance.responded_by_user.baseuser_ptr.get_full_name()
+            return instance.responded_by_user.get_full_name()
 
     def get_documents(self, instance):
         documents = EcjuQueryDocument.objects.filter(query=instance)
@@ -617,7 +616,7 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
         if instance.responded_by_user:
             return {
                 "id": instance.responded_by_user.pk,
-                "name": instance.responded_by_user.baseuser_ptr.get_full_name(),
+                "name": instance.responded_by_user.get_full_name(),
             }
 
     def get_documents(self, instance):
@@ -625,10 +624,10 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
         return SimpleEcjuQueryDocumentViewSerializer(documents, many=True).data
 
 
-class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
+class EcjuQueryUserResponseSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
     responded_by_user = PrimaryKeyRelatedSerializerField(
-        queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
+        queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer
     )
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
     documents = serializers.SerializerMethodField()
