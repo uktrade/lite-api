@@ -1,3 +1,5 @@
+import pytest
+
 from datetime import time, datetime
 from unittest import mock
 from unittest.mock import patch
@@ -38,7 +40,7 @@ def _set_submitted_at(case, time, date=timezone.localtime()):
 
 
 def run_update_cases_sla_task():
-    return update_cases_sla.apply().get()
+    return update_cases_sla.apply_async().get()
 
 
 class SlaCaseTests(DataTestClient):

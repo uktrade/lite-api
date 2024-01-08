@@ -10,7 +10,7 @@ import django.utils.timezone
 from django.db import connection
 from django.test import override_settings
 from faker import Faker
-from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
+from rest_framework.test import APITransactionTestCase, URLPatternsTestCase, APIClient
 import pytest
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
@@ -112,7 +112,7 @@ class Static:
     seeded = False
 
 
-class DataTestClient(APITestCase, URLPatternsTestCase):
+class DataTestClient(APITransactionTestCase, URLPatternsTestCase):
     """
     Test client which creates seeds the database with system data and sets up an initial organisation and user
     """

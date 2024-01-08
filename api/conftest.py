@@ -13,6 +13,8 @@ from importlib import import_module
 import pytest  # noqa
 from django.conf import settings
 
+pytest_plugins = ("celery.contrib.pytest",)
+
 
 def camelcase_to_underscore(string):
     """SRC: https://djangosnippets.org/snippets/585/"""
@@ -129,12 +131,34 @@ def setup(settings):
     settings.HAWK_AUTHENTICATION_ENABLED = False
 
 
-@pytest.fixture(autouse=True)
-def celery_app():
-    # Setup the celery worker to run in process for tests
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.conf.settings")
-    celeryapp = Celery("api")
-    celeryapp.autodiscover_tasks(related_name="celery_tasks")
-    celeryapp.conf.update(CELERY_ALWAYS_EAGER=True)
-    celeryapp.conf.update(CELERY_TASK_STORE_EAGER_RESULT=True)
-    return celeryapp
+@pytest.fixture(scope="session", autouse=True)
+def celery_config():
+    return {"broker_url": "redis://redis:6379/1", "result_backend": "redis://redis:6379/1"}
+
+
+@pytest.fixture(scope="function", autouse=True)
+def celery(celery_worker):
+    return
+
+
+@pytest.fixture(scope="session", autouse=True)
+def celery_worker_parameters(django_db_setup):
+    print(settings.DATABASES)
+    assert settings.DATABASES["default"]["NAME"].startswith("test_")
+    return {}
+
+
+@pytest.fixture(scope="session")
+def celery_enable_logging():
+    return True
+
+
+# @pytest.fixture(autouse=True)
+# def celery_app():
+#    # Setup the celery worker to run in process for tests
+#    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.conf.settings")
+#    celeryapp = Celery("api")
+#    celeryapp.autodiscover_tasks(related_name="celery_tasks")
+#    #celeryapp.conf.update(CELERY_ALWAYS_EAGER=True)
+#    #celeryapp.conf.update(CELERY_TASK_STORE_EAGER_RESULT=True)
+#    return celeryapp
