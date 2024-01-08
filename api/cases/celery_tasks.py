@@ -26,6 +26,9 @@ HMRC_QUERY_TARGET_DAYS = 2
 MOD_CLEARANCE_TARGET_DAYS = 30
 
 
+logger = logging.getLogger(__name__)
+
+
 def get_application_target_sla(_type):
     if _type == CaseTypeSubTypeEnum.STANDARD:
         return STANDARD_APPLICATION_TARGET_DAYS
@@ -96,7 +99,7 @@ def update_cases_sla():
     :return: How many cases the SLA was updated for or False if error / not ran
     """
 
-    logging.info(f"{LOG_PREFIX} SLA Update Started")
+    logger.info("SLA Update Started")
     date = timezone.localtime()
     if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
         try:
@@ -146,11 +149,11 @@ def update_cases_sla():
                     sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
                 )
 
-            logging.info(f"{LOG_PREFIX} SLA Update Successful. Updated {results} cases")
+            logger.info(f"SLA Update Successful. Updated {results} cases")
             return results
         except Exception as e:  # noqa
-            logging.error(e)
+            logger.error(e)
             return False
 
-    logging.info(f"{LOG_PREFIX} SLA Update Not Performed. Non-working day")
+    logger.info("SLA Update Not Performed. Non-working day")
     return False
