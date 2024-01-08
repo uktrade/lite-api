@@ -8,12 +8,12 @@ from api.licences.libraries.hmrc_integration_operations import HMRCIntegrationEx
 from api.licences.models import Licence
 
 
-MAX_ATTEMPTS = 10
+MAX_ATTEMPTS = 5
 RETRY_BACKOFF = 1200
 
 
 @shared_task(
-    autoretry_for=(HMRCIntegrationException,),
+    autoretry_for=(Exception,),
     max_retries=MAX_ATTEMPTS,
     retry_backoff=RETRY_BACKOFF,
 )
@@ -22,7 +22,7 @@ def send_licence_details_to_lite_hmrc(licence_id, action):
     Sends licence details to lite-hmrc
 
     :param licence_id:
-    :param licence_reference:
+    :param action:
     """
     try:
         with transaction.atomic():
