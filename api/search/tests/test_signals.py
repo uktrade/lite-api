@@ -34,7 +34,7 @@ class UpdateApplicationDocumentTest(DataTestClient):
         application = self.create_standard_application_case(self.organisation)
 
         self.assertCallsAreJSONEncodable(mock_task)
-        mock_task.assert_any_call([("applications.BaseApplication", str(application.pk))])
+        mock_task.delay.assert_any_call([("applications.BaseApplication", str(application.pk))])
 
     @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
     @patch("api.search.signals.update_search_index")
@@ -44,7 +44,7 @@ class UpdateApplicationDocumentTest(DataTestClient):
         )
 
         self.assertCallsAreJSONEncodable(mock_task)
-        mock_task.assert_any_call([("applications.BaseApplication", str(assignment.case.baseapplication.pk))])
+        mock_task.delay.assert_any_call([("applications.BaseApplication", str(assignment.case.baseapplication.pk))])
 
     @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
     @patch("api.search.signals.update_search_index")
@@ -52,7 +52,7 @@ class UpdateApplicationDocumentTest(DataTestClient):
         case = self.create_standard_application_case(self.organisation).get_case()
 
         self.assertCallsAreJSONEncodable(mock_task)
-        mock_task.assert_any_call([("applications.BaseApplication", str(case.baseapplication.pk))])
+        mock_task.delay.assert_any_call([("applications.BaseApplication", str(case.baseapplication.pk))])
 
     @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
     @patch("api.search.signals.update_search_index")
@@ -64,7 +64,7 @@ class UpdateApplicationDocumentTest(DataTestClient):
         application.save()
 
         self.assertCallsAreJSONEncodable(mock_task)
-        mock_task.assert_any_call([("applications.BaseApplication", str(good_on_app.application.pk))])
+        mock_task.delay.assert_any_call([("applications.BaseApplication", str(good_on_app.application.pk))])
 
     @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
     @patch("api.search.signals.update_search_index")
@@ -74,7 +74,7 @@ class UpdateApplicationDocumentTest(DataTestClient):
         party.save()
 
         self.assertCallsAreJSONEncodable(mock_task)
-        mock_task.assert_any_call(
+        mock_task.delay.assert_any_call(
             [("applications.BaseApplication", str(party.parties_on_application.all()[0].application.pk))]
         )
 
@@ -84,7 +84,7 @@ class UpdateApplicationDocumentTest(DataTestClient):
         self.create_standard_application_case(self.organisation)
 
         self.assertCallsAreJSONEncodable(mock_task)
-        mock_task.assert_any_call(
+        mock_task.delay.assert_any_call(
             [("applications.BaseApplication", str(self.organisation.cases.all()[0].baseapplication.pk))]
         )
 
@@ -95,4 +95,4 @@ class UpdateApplicationDocumentTest(DataTestClient):
 
         for good_on_application in application.goods.all():
             self.assertCallsAreJSONEncodable(mock_task)
-            mock_task.assert_any_call([("applications.GoodOnApplication", str(good_on_application.pk))])
+            mock_task.delay.assert_any_call([("applications.GoodOnApplication", str(good_on_application.pk))])
