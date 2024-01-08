@@ -59,4 +59,4 @@ def update_search_documents(sender, **kwargs):
 
     if to_update:
         to_update = [(model_name, str(pk)) for model_name, pk in to_update]
-        update_task = update_search_index.delay(to_update)
+        update_search_index.delay(to_update)
