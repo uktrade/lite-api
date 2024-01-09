@@ -470,6 +470,32 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.get_case_ids_with_active_ecju_queries")
+    def test_update_cases_sla_exception_handling(
+        self,
+        mock_case_ids,
+        mock_is_bank_holiday,
+        mock_is_weekend,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+
+        def exception_side_effect(*args):
+            raise Exception()
+
+        mock_case_ids.side_effect = exception_side_effect
+        case = self.create_standard_application_case(self.organisation)
+        sla_days_before_task_run = case.sla_days
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = run_update_cases_sla_task()
+        case.refresh_from_db()
+
+        self.assertEqual(results, False)
+        self.assertEqual(case.sla_days, sla_days_before_task_run)
+
 
 class WorkingDayTests(DataTestClient):
     @mock.patch("api.cases.celery_tasks.is_weekend")

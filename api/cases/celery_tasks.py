@@ -18,7 +18,6 @@ from api.staticdata.statuses.models import CaseStatus
 
 # DST safe version of midnight
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
-LOG_PREFIX = "update_cases_sla celery task:"
 
 STANDARD_APPLICATION_TARGET_DAYS = 20
 OPEN_APPLICATION_TARGET_DAYS = 60
