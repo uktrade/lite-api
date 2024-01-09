@@ -5,8 +5,6 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse
-from django.utils import timezone
-from django.utils.functional import cached_property
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
@@ -14,22 +12,14 @@ from rest_framework.views import APIView
 
 from api.applications.models import (
     GoodOnApplication,
-    BaseApplication,
     GoodOnApplicationInternalDocument,
-    StandardApplication,
 )
-from api.audit_trail import service as audit_trail_service
-from api.audit_trail.enums import AuditType
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
-from api.cases.libraries.get_case import get_case
-from api.core import constants
 from api.core.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from api.core.exceptions import BadRequestError
 from api.core.helpers import str_to_bool
-from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
-from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
 from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (
@@ -46,7 +36,6 @@ from api.goods.serializers import (
     GoodCreateSerializer,
     GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
-    ControlGoodOnApplicationSerializer,
     GoodListSerializer,
     GoodSerializerInternal,
     GoodSerializerExporter,
@@ -65,9 +54,7 @@ from lite_content.lite_api import strings
 from api.organisations.models import OrganisationDocumentType
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.queries.goods_query.models import GoodsQuery
-from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterNotification
-from api.workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
 good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
 
@@ -102,130 +89,6 @@ def get_new_report_summary_data(request):
         summary = f"{rs_prefix.name} {rs_subject.name}"
 
     return summary
-
-
-class GoodsListControlCode(APIView):
-    """
-    IMPORTANT: This endpoint is superseded by api/assessments/views.py:MakeAssessmentsView.
-    No further changes should be made here and instead should be made there, with callers moved over to using that new endpoint.
-    """
-
-    authentication_classes = (GovAuthentication,)
-    serializer_class = ControlGoodOnApplicationSerializer
-
-    @cached_property
-    def application(self):
-        return BaseApplication.objects.select_related("status").get(id=self.kwargs["case_pk"])
-
-    def get_queryset(self):
-        pks = self.request.data["objects"]
-        if not isinstance(pks, list):
-            pks = [pks]
-
-        results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], id__in=pks)
-        # This can be removed in the future as it's essentially a FF for the batching changes
-        if not results.exists():
-            results = GoodOnApplication.objects.filter(application_id=self.kwargs["case_pk"], good_id__in=pks)
-        return results
-
-    def check_permissions(self, request):
-        assert_user_has_permission(request.user.govuser, constants.GovPermissions.REVIEW_GOODS)
-
-    def get_application_line_items(self, case):
-        line_items = {}
-        application = StandardApplication.objects.get(id=case.id)
-        good_on_application_qs = self.get_queryset()
-        good_on_application_ids = [g.id for g in application.goods.all()]
-
-        for item in good_on_application_qs:
-            line_items[item.id] = good_on_application_ids.index(item.id)
-
-        return line_items
-
-    @transaction.atomic
-    def post(self, request, case_pk):
-        if CaseStatusEnum.is_terminal(self.application.status.status):
-            return JsonResponse(
-                data={"errors": {"error": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            new_report_summary = get_new_report_summary_data(request)
-        except ValidationError as ex:
-            return JsonResponse(
-                data={"errors": {"error": [ex.message]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        request.data["report_summary"] = new_report_summary
-
-        case = get_case(case_pk)
-        line_items = self.get_application_line_items(case)
-
-        # returns a list of GoodOnApplication or GoodsType based on request['objects']
-        for good in self.get_queryset():
-            data = request.data.copy()
-
-            # record assessment date and user details
-            good.assessed_by = request.user.govuser
-            good.assessment_date = timezone.now()
-
-            old_report_summary = good.report_summary
-            old_control_list_entries = list(good.control_list_entries.values_list("rating", flat=True))
-            old_is_controlled = good.is_good_controlled
-            old_regime_entries = list(good.regime_entries.values_list("name", flat=True))
-
-            report_summary_updated = new_report_summary != old_report_summary
-
-            serializer = self.serializer_class(good, data=data)
-            serializer.is_valid(raise_exception=True)
-            obj = serializer.save()
-
-            if "control_list_entries" in serializer.data or "is_good_controlled" in serializer.data:
-                new_control_list_entries = [item.rating for item in serializer.validated_data["control_list_entries"]]
-                new_is_controlled = serializer.validated_data["is_good_controlled"]
-                new_regime_entries = [
-                    regime_entry.name for regime_entry in serializer.validated_data.get("regime_entries", [])
-                ]
-
-                if (
-                    new_control_list_entries != old_control_list_entries
-                    or new_is_controlled != old_is_controlled
-                    or report_summary_updated
-                ):
-                    default_control = [strings.Goods.GOOD_NO_CONTROL_CODE]
-                    default_regimes = ["No regimes"]
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.PRODUCT_REVIEWED,
-                        action_object=good,
-                        target=case,
-                        payload={
-                            "line_no": line_items[good.id] + 1,
-                            "good_name": good.name,
-                            "new_control_list_entry": new_control_list_entries or default_control,
-                            "old_control_list_entry": old_control_list_entries or default_control,
-                            "old_is_good_controlled": "Yes" if old_is_controlled else "No",
-                            "new_is_good_controlled": "Yes" if new_is_controlled else "No",
-                            "old_report_summary": old_report_summary,
-                            "report_summary": new_report_summary,
-                            "additional_text": serializer.validated_data["comment"],
-                            "is_precedent": serializer.validated_data.get("is_precedent", False),
-                            "old_regime_entries": old_regime_entries or default_regimes,
-                            "new_regime_entries": new_regime_entries or default_regimes,
-                        },
-                    )
-
-            # Add or remove WASSENAAR flag based on whether the user chose to apply it
-            good = obj.good
-            if serializer.validated_data.get("is_wassenaar"):
-                good.flags.add(SystemFlags.WASSENAAR)
-            else:
-                good.flags.remove(SystemFlags.WASSENAAR)
-
-        apply_good_flagging_rules_for_case(case)
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class GoodList(ListCreateAPIView):

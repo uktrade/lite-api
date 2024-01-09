@@ -1,8 +1,7 @@
-from datetime import datetime
-
+from parameterized import parameterized
 from django.urls import reverse
 from freezegun import freeze_time
-import pytest
+
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
@@ -15,6 +14,8 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.statuses.models import CaseStatus
+
+from lite_content.lite_api import strings
 
 
 class MakeAssessmentsViewTests(DataTestClient):
@@ -39,6 +40,109 @@ class MakeAssessmentsViewTests(DataTestClient):
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_controlled_goods_must_have_report_summary_subject(self):
+        # Setting is_good_controlled to True requires a report_summary_subject to be non None
+        # verify that if this condition raises a ValidationError
+        regime_entry = RegimeEntry.objects.first()
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": None,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some string we expect to be overwritten",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        expected_response_data = {"errors": [{"report_summary_subject": [strings.Picklists.REQUIRED_REPORT_SUMMARY]}]}
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertDictEqual(response.json(), expected_response_data)
+
+    def test_legacy_report_summary(self):
+        # Legacy GoodOnApplications have a report_summary but no report_summary_subject or report_summary_prefix
+        good_on_application = self.good_on_application
+        regime_entry = RegimeEntry.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": None,
+                "report_summary_subject": None,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some legacy summary",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        good_on_application.refresh_from_db()
+
+        assert good_on_application.report_summary == "some legacy summary"
+        assert good_on_application.report_summary_prefix is None
+        assert good_on_application.report_summary_subject is None
+
+    def test_report_subject(self):
+        report_summary_subject = ReportSummarySubject.objects.first()
+        good_on_application = self.good_on_application
+        regime_entry = RegimeEntry.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": None,
+                "report_summary_subject": str(report_summary_subject.id),
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some legacy summary that will be overwritten",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        good_on_application.refresh_from_db()
+
+        assert good_on_application.report_summary == report_summary_subject.name
+        assert good_on_application.report_summary_prefix is None
+        assert good_on_application.report_summary_subject == report_summary_subject
+
+    def test_report_subject_and_prefix(self):
+        report_summary_subject = ReportSummarySubject.objects.first()
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        good_on_application = self.good_on_application
+        regime_entry = RegimeEntry.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": str(report_summary_prefix.id),
+                "report_summary_subject": str(report_summary_subject.id),
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some legacy summary that will be overwritten",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        good_on_application.refresh_from_db()
+
+        assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
+        assert good_on_application.report_summary_prefix == report_summary_prefix
+        assert good_on_application.report_summary_subject == report_summary_subject
 
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_single_record(self):
@@ -97,6 +201,36 @@ class MakeAssessmentsViewTests(DataTestClient):
             "report_summary": good_on_application.report_summary,
         }
 
+    def test_making_a_good_uncontrolled_clears_report_fields(self):
+        # Setting is_good_controlled to False should set report_summary_prefix and report_summary_subject to None
+        good_on_application = self.good_on_application
+        regime_entry = RegimeEntry.objects.first()
+        report_summary_subject = ReportSummarySubject.objects.first()
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": ["ML1"],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": report_summary_subject.id,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some string we expect to be overwritten",
+                "is_ncsc_military_information_security": True,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data[0]["is_good_controlled"] = False
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application.refresh_from_db()
+
+        assert good_on_application.report_summary_prefix_id is None
+        assert good_on_application.report_summary_subject_id is None
+
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_single_record_on_already_verified_good(self):
         good_on_application = self.good_on_application
@@ -142,6 +276,41 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
         assert good.report_summary_prefix_id == report_summary_prefix.id
         assert good.report_summary_subject_id == report_summary_subject.id
+
+    @freeze_time("2023-11-03 12:00:00")
+    def test_clear_assessments(self):
+        good_on_application = self.good_on_application
+        self.good.status = GoodStatus.VERIFIED
+        self.good.control_list_entries.set([ControlListEntry.objects.get(rating="ML3")])
+        self.good.save()
+
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [],
+                "report_summary_prefix": None,
+                "report_summary_subject": None,
+                "is_good_controlled": None,
+                "comment": None,
+                "is_ncsc_military_information_security": None,
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application.refresh_from_db()
+        all_cles = [cle.rating for cle in good_on_application.control_list_entries.all()]
+        assert all_cles == []
+        all_regime_entries = [regime_entry.id for regime_entry in good_on_application.regime_entries.all()]
+        assert all_regime_entries == []
+        assert good_on_application.report_summary_prefix_id == None
+        assert good_on_application.report_summary_subject_id == None
+        assert good_on_application.is_good_controlled == None
+        assert good_on_application.comment == None
+        assert good_on_application.is_ncsc_military_information_security == None
+        assert good_on_application.report_summary == None
+        assert good_on_application.assessed_by == self.gov_user
+        assert good_on_application.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
 
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_multiple_records(self):
@@ -213,11 +382,11 @@ class MakeAssessmentsViewTests(DataTestClient):
         all_cles = [cle.rating for cle in good_on_application_3.control_list_entries.all()]
         assert all_cles == []
         assert good_on_application_3.report_summary_prefix_id == None
-        assert good_on_application_3.report_summary_subject_id == report_summary_subject.id
+        assert good_on_application_3.report_summary_subject_id == None
         assert good_on_application_3.is_good_controlled == False
         assert good_on_application_3.comment == "some comment"
         assert good_on_application_3.is_ncsc_military_information_security == True
-        assert good_on_application_3.report_summary == report_summary_subject.name
+        assert good_on_application_3.report_summary == None
         assert good_on_application_3.assessed_by == self.gov_user
         assert good_on_application_3.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
 

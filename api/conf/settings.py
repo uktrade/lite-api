@@ -274,8 +274,11 @@ if REDIS_BASE_URL:
     CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
     CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
+CELERY_ALWAYS_EAGER = env.bool("CELERY_ALWAYS_EAGER", False)
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", False)
+CELERY_TASK_STORE_EAGER_RESULT = env.bool("CELERY_TASK_STORE_EAGER_RESULT", False)
 CELERY_TASK_SEND_SENT_EVENT = env.bool("CELERY_TASK_SEND_SENT_EVENT", True)
+
 
 S3_CONNECT_TIMEOUT = 60  # Maximum time, in seconds, to wait for an initial connection
 S3_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
