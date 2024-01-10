@@ -1,7 +1,7 @@
-import logging
 from datetime import datetime, time
 
 from celery import shared_task
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
@@ -25,7 +25,7 @@ HMRC_QUERY_TARGET_DAYS = 2
 MOD_CLEARANCE_TARGET_DAYS = 30
 
 
-logger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
 
 
 def get_application_target_sla(_type):
