@@ -302,6 +302,59 @@ class ECJUQueriesResponseTests(DataTestClient):
         self._test_exporter_responds_to_query(False, query_type)
         self._test_exporter_responds_to_query(True, query_type)
 
+    def test_caseworker_manually_closes_query(self):
+        case = self.create_standard_application_case(self.organisation)
+        ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
+
+        query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
+        data = {"response": "exporter provided details"}
+
+        response = self.client.put(query_response_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = response.json()["ecju_query"]
+        self.assertEqual(response["response"], data["response"])
+
+        query_response_audit = Audit.objects.filter(verb=AuditType.ECJU_QUERY_MANUALLY_CLOSED)
+        self.assertTrue(query_response_audit.exists())
+        audit_obj = query_response_audit.first()
+        audit_text = AuditSerializer(audit_obj).data["text"]
+        self.assertEqual(audit_text, " manually closed a query: exporter provided details.")
+        self.assertEqual(audit_obj.target.id, case.id)
+
+    def test_caseworker_manually_closes_query_exporter_responds_raises_error(self):
+        case = self.create_standard_application_case(self.organisation)
+        ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
+
+        query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
+        data = {"response": "exporter provided details"}
+
+        response = self.client.put(query_response_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = response.json()["ecju_query"]
+        self.assertEqual(response["response"], data["response"])
+
+        response = self.client.put(
+            query_response_url, {"response": "attempting to response to closed query"}, **self.exporter_headers
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_caseworker_manually_closes_query_already_closed_raises_error(self):
+        case = self.create_standard_application_case(self.organisation)
+        ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
+
+        query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
+        data = {"response": "exporter provided details"}
+
+        response = self.client.put(query_response_url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = response.json()["ecju_query"]
+        self.assertEqual(response["response"], data["response"])
+
+        response = self.client.put(
+            query_response_url, {"response": "attempting to close and closed query"}, **self.gov_headers
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_exporter_cannot_respond_to_same_ecju_query_twice(self):
         """Once a query is responded it is closed so ensure we cannot respond to closed queries"""
         case = self.create_standard_application_case(self.organisation)
