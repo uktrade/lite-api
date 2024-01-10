@@ -479,5 +479,8 @@ if ENABLE_DJANGO_SILK:
     middleware_index = MIDDLEWARE.index("django.contrib.messages.middleware.MessageMiddleware") + 1
     MIDDLEWARE.insert(middleware_index, "silk.middleware.SilkyMiddleware")
 
+if DEBUG:
+    INSTALLED_APPS.append("api.testing")
+
 
 CONTENT_DATA_MIGRATION_DIR = Path(BASE_DIR).parent / "lite_content/lite_api/migrations"
