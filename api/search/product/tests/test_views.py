@@ -18,9 +18,7 @@ from api.search.product.tests.test_helpers import create_test_data, delete_test_
 from test_helpers.clients import DataTestClient
 
 
-class ProductSearchTests(DataTestClient):
-    product_search_url = reverse("product_search-list")
-
+class BaseProductSearchTests(DataTestClient):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -33,6 +31,10 @@ class ProductSearchTests(DataTestClient):
     @classmethod
     def tearDownClass(cls):
         delete_test_data()
+
+
+class ProductSearchTests(BaseProductSearchTests):
+    product_search_url = reverse("product_search-list")
 
     def test_search_results_serializer(self):
         document = ProductDocumentType()
@@ -339,7 +341,7 @@ class ProductSearchTests(DataTestClient):
         self.assertEqual(hits[0]["application"]["reference_code"], application.reference_code)
 
 
-class ProductSearchSuggestionsTests(ProductSearchTests):
+class ProductSearchSuggestionsTests(BaseProductSearchTests):
     product_suggest_url = reverse("product_suggest")
 
     @pytest.mark.elasticsearch

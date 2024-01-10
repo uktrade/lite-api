@@ -180,3 +180,6 @@ bank-holidays.csv
 
 # Merge tool backup file
 *.orig
+
+# Celery beat DB file
+celerybeat-schedule*

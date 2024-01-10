@@ -6,7 +6,7 @@ from parameterized import parameterized
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from ..tasks import today, yesterday
+from ..celery_tasks import today, yesterday
 
 
 @override_settings(TIME_ZONE="utc")

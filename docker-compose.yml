@@ -47,6 +47,21 @@ services:
     networks:
       - lite
 
+  celery-scheduler:
+    build: .
+    volumes:
+      - .:/app
+    env_file: .env
+    links:
+      - db
+      - redis
+    depends_on:
+      - api
+    command:  pipenv run watchmedo auto-restart -d . -R -p '*.py' -- celery -A api.conf beat
+    networks:
+      - lite
+
+
   # Elasticsearch Docker Images: https://www.docker.elastic.co/
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
