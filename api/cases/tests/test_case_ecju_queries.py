@@ -241,9 +241,10 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
 
 
 class ECJUQueriesResponseTests(DataTestClient):
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def add_query_document(self, case_id, query_id, expected_status, doc_virus_scan_task):
-        doc_virus_scan_task.return_value = None
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
+    def add_query_document(self, case_id, query_id, expected_status, mock_virus_scan, mock_s3_operations_get_object):
+        mock_virus_scan.return_value = False
         url = reverse("cases:case_ecju_query_add_document", kwargs={"pk": case_id, "query_pk": query_id})
         file_name = faker.file_name()
         data = {
@@ -253,6 +254,7 @@ class ECJUQueriesResponseTests(DataTestClient):
             "size": 1 << 10,
             "virus_scanned_at": timezone.now(),
         }
+        mock_s3_operations_get_object.return_value = data
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, expected_status)
         return response.json()

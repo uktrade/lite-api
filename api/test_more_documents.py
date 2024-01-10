@@ -35,9 +35,12 @@ class DraftDocumentTests(DataTestClient):
             "description": "banana cake 2",
         }
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def test_upload_document_on_unsubmitted_application(self, mock_prepare_doc):
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
+    def test_upload_document_on_unsubmitted_application(self, mock_virus_scan, mock_s3_operations_get_object):
         """Test success in adding a document to an unsubmitted application."""
+        mock_s3_operations_get_object.return_value = self.data
+        mock_virus_scan.return_value = False
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
 
         response = self.client.get(self.url_draft, **self.exporter_headers)
@@ -54,9 +57,12 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(len(response_data), 2)
         self.assertTrue(self.data in response_data)
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def test_upload_multiple_documents_on_unsubmitted_application(self, mock_prepare_doc):
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
+    def test_upload_multiple_documents_on_unsubmitted_application(self, mock_virus_scan, mock_s3_operations_get_object):
         """Test success in adding multiple documents to an unsubmitted application."""
+        mock_s3_operations_get_object.return_value = self.data
+        mock_virus_scan.return_value = False
         data = [self.data, self.data2]
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
         self.client.post(self.url_draft, data=self.data2, **self.exporter_headers)
@@ -76,10 +82,13 @@ class DraftDocumentTests(DataTestClient):
         for document in data:
             self.assertTrue(document in response_data)
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_individual_draft_document(self, mock_delete_s3, mock_prepare_doc):
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
+    def test_delete_individual_draft_document(self, mock_virus_scan, mock_delete_s3, mock_s3_operations_get_object):
         """Test success in deleting a document from an unsubmitted application."""
+        mock_s3_operations_get_object.return_value = self.data
+        mock_virus_scan.return_value = False
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
         response = self.client.get(self.url_draft, **self.exporter_headers)
 
@@ -111,8 +120,13 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response.json()["document"]["size"], application_document.size)
 
     @parameterized.expand(get_case_statuses(read_only=False))
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def test_add_document_when_application_in_editable_state_success(self, editable_status, mock_prepare_doc):
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
+    def test_add_document_when_application_in_editable_state_success(
+        self, editable_status, mock_virus_scan, mock_s3_operations_get_object
+    ):
+        mock_s3_operations_get_object.return_value = self.data
+        mock_virus_scan.return_value = False
         application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
@@ -124,11 +138,14 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(application.applicationdocument_set.count(), 2)
 
     @parameterized.expand(get_case_statuses(read_only=False))
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.models.Document.delete_s3")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_delete_document_when_application_in_editable_state_success(
-        self, editable_status, mock_delete_s3, mock_prepare_doc
+        self, editable_status, mock_virus_scan, mock_delete_s3, mock_s3_operations_get_object
     ):
+        mock_s3_operations_get_object.return_value = self.data
+        mock_virus_scan.return_value = False
         application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
@@ -159,11 +176,14 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(application.applicationdocument_set.count(), 1)
 
     @parameterized.expand(get_case_statuses(read_only=True))
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.models.Document.delete_s3")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_delete_document_when_application_in_read_only_state_failure(
-        self, read_only_status, mock_delete_s3, mock_prepare_doc
+        self, read_only_status, mock_virus_scan, mock_delete_s3, mock_s3_operations_get_object
     ):
+        mock_s3_operations_get_object.return_value = self.data
+        mock_virus_scan.return_value = False
         application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()

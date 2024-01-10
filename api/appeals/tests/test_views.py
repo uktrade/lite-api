@@ -33,7 +33,6 @@ class TestAppealDocuments(DataTestClient):
             document.save()
 
         mock_scan_for_viruses.side_effect = set_safe
-
         response = self.client.post(
             self.url,
             {

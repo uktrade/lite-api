@@ -174,8 +174,9 @@ class ConsigneeOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def test_post_consignee_document_success(self, scan_document_for_viruses_function):
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
+    def test_post_consignee_document_success(self, mock_virus_scan, mock_s3_operations_get_object):
         """
         Given a standard draft has been created
         And the draft contains a consignee
@@ -183,6 +184,8 @@ class ConsigneeOnDraftTests(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
+        mock_s3_operations_get_object.return_value = self.new_document_data
+        mock_virus_scan.return_value = False
         party = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
         ).party
@@ -193,8 +196,9 @@ class ConsigneeOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def test_get_consignee_document_success(self, scan_document_for_viruses_function):
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
+    def test_get_consignee_document_success(self, mock_virus_scan, mock_s3_operations_get_object):
         """
         Given a standard draft has been created
         And the draft contains a consignee
@@ -202,6 +206,8 @@ class ConsigneeOnDraftTests(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached consignee document
         """
+        mock_s3_operations_get_object.return_value = self.new_document_data
+        mock_virus_scan.return_value = False
         party = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
         ).party
@@ -215,9 +221,12 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response_data["s3_key"], expected["s3_key"])
         self.assertEqual(response_data["size"], expected["size"])
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_consignee_document_success(self, delete_s3_function, scan_document_for_viruses_function):
+    def test_delete_consignee_document_success(
+        self, delete_s3_function, mock_virus_scan, mock_s3_operations_get_object
+    ):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -225,6 +234,8 @@ class ConsigneeOnDraftTests(DataTestClient):
         When there is an attempt to delete the document
         Then 204 NO CONTENT is returned
         """
+        mock_s3_operations_get_object.return_value = self.new_document_data
+        mock_virus_scan.return_value = False
         party = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
         ).party
@@ -235,9 +246,10 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_consignee_success(self, delete_s3_function, scan_document_for_viruses_function):
+    def test_delete_consignee_success(self, delete_s3_function, mock_virus_scan, mock_s3_operations_get_object):
         """
         Given a standard draft has been created
         And the draft contains a consignee user
@@ -245,6 +257,8 @@ class ConsigneeOnDraftTests(DataTestClient):
         When there is an attempt to delete the consignee
         Then 200 OK is returned
         """
+        mock_s3_operations_get_object.return_value = self.new_document_data
+        mock_virus_scan.return_value = False
         consignee = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
         ).party

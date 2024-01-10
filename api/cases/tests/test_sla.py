@@ -11,7 +11,7 @@ from rest_framework import status
 
 from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from api.cases.models import Case, CaseQueue, EcjuQuery
-from api.cases.tasks import (
+from api.cases.celery_tasks import (
     update_cases_sla,
     STANDARD_APPLICATION_TARGET_DAYS,
     OPEN_APPLICATION_TARGET_DAYS,
@@ -37,6 +37,10 @@ def _set_submitted_at(case, time, date=timezone.localtime()):
     case.save()
 
 
+def run_update_cases_sla_task():
+    return update_cases_sla.apply().get()
+
+
 class SlaCaseTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -53,8 +57,8 @@ class SlaCaseTests(DataTestClient):
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_sla_update_standard_application(
         self,
         mock_is_weekend,
@@ -68,7 +72,7 @@ class SlaCaseTests(DataTestClient):
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
 
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, 1)
@@ -76,8 +80,8 @@ class SlaCaseTests(DataTestClient):
 
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_sla_update_open_application(
         self,
         mock_is_weekend,
@@ -91,15 +95,15 @@ class SlaCaseTests(DataTestClient):
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
 
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_sla_update_hmrc_query(
         self,
         mock_is_weekend,
@@ -113,15 +117,15 @@ class SlaCaseTests(DataTestClient):
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
 
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_sla_update_exhibition_mod(
         self,
         mock_is_weekend,
@@ -135,7 +139,7 @@ class SlaCaseTests(DataTestClient):
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
         CaseQueue.objects.create(case=application.case_ptr, queue=self.queue)
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         sla = CaseAssignmentSLA.objects.get()
         case.refresh_from_db()
 
@@ -144,8 +148,8 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_sla_update_F680_mod(
         self,
         mock_is_weekend,
@@ -160,7 +164,7 @@ class SlaCaseTests(DataTestClient):
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
         CaseQueue.objects.create(queue=self.queue, case=application.case_ptr)
         sla = CaseAssignmentSLA.objects.create(sla_days=4, queue=self.queue, case=application.case_ptr)
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
 
         case.refresh_from_db()
         sla.refresh_from_db()
@@ -170,8 +174,8 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_sla_update_gifting_mod(
         self,
         mock_is_weekend,
@@ -185,7 +189,7 @@ class SlaCaseTests(DataTestClient):
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
 
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, 1)
@@ -198,7 +202,7 @@ class SlaCaseTests(DataTestClient):
         case = self.submit_application(query)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
 
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, 0)
@@ -207,8 +211,8 @@ class SlaCaseTests(DataTestClient):
 
 
 class SlaRulesTests(DataTestClient):
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_sla_cutoff_window(self, mock_is_weekend, mock_is_bank_holiday):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False
@@ -218,7 +222,7 @@ class SlaRulesTests(DataTestClient):
             case = self.submit_application(application)
             _set_submitted_at(case, submit_time)
 
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         cases = Case.objects.all().order_by("submitted_at")
 
         self.assertEqual(results, 1)
@@ -232,7 +236,7 @@ class SlaRulesTests(DataTestClient):
         case.last_closed_at = timezone.now()
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
 
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, 0)
@@ -244,14 +248,14 @@ class SlaRulesTests(DataTestClient):
         case.sla_updated_at = timezone.now()
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
 
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_unanswered_ecju_queries_today_before_cutoff(
         self,
         mock_is_weekend,
@@ -267,17 +271,17 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "api.cases.tasks.today",
+            "api.cases.celery_tasks.today",
             return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
-            results = update_cases_sla.now()
+            results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_unanswered_ecju_queries_today_after_cutoff(
         self,
         mock_is_weekend,
@@ -293,17 +297,17 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "api.cases.tasks.today",
+            "api.cases.celery_tasks.today",
             return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
-            results = update_cases_sla.now()
+            results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_unanswered_ecju_queries_yesterday_before_cutoff(
         self,
         mock_is_weekend,
@@ -319,17 +323,17 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "api.cases.tasks.today",
+            "api.cases.celery_tasks.today",
             return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
-            results = update_cases_sla.now()
+            results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_unanswered_ecju_queries_yesterday_after_cutoff(
         self,
         mock_is_weekend,
@@ -345,17 +349,17 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "api.cases.tasks.today",
+            "api.cases.celery_tasks.today",
             return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
-            results = update_cases_sla.now()
+            results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_answered_ecju_queries_today_before_cutoff(
         self,
         mock_is_weekend,
@@ -373,17 +377,17 @@ class SlaRulesTests(DataTestClient):
         query.save()
 
         with patch(
-            "api.cases.tasks.yesterday",
+            "api.cases.celery_tasks.yesterday",
             return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
-            results = update_cases_sla.now()
+            results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_answered_ecju_queries_today_after_cutoff(
         self,
         mock_is_weekend,
@@ -401,17 +405,17 @@ class SlaRulesTests(DataTestClient):
         query.save()
 
         with patch(
-            "api.cases.tasks.yesterday",
+            "api.cases.celery_tasks.yesterday",
             return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
-            results = update_cases_sla.now()
+            results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_answered_ecju_queries_yesterday_before_cutoff(
         self,
         mock_is_weekend,
@@ -429,17 +433,17 @@ class SlaRulesTests(DataTestClient):
         query.save()
 
         with patch(
-            "api.cases.tasks.yesterday",
+            "api.cases.celery_tasks.yesterday",
             return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
-            results = update_cases_sla.now()
+            results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_answered_ecju_queries_yesterday_after_cutoff(
         self,
         mock_is_weekend,
@@ -457,44 +461,70 @@ class SlaRulesTests(DataTestClient):
         query.save()
 
         with patch(
-            "api.cases.tasks.yesterday",
+            "api.cases.celery_tasks.yesterday",
             return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
-            results = update_cases_sla.now()
+            results = run_update_cases_sla_task()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.get_case_ids_with_active_ecju_queries")
+    def test_update_cases_sla_exception_handling(
+        self,
+        mock_case_ids,
+        mock_is_bank_holiday,
+        mock_is_weekend,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+
+        def exception_side_effect(*args):
+            raise Exception()
+
+        mock_case_ids.side_effect = exception_side_effect
+        case = self.create_standard_application_case(self.organisation)
+        sla_days_before_task_run = case.sla_days
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = run_update_cases_sla_task()
+        case.refresh_from_db()
+
+        self.assertEqual(results, False)
+        self.assertEqual(case.sla_days, sla_days_before_task_run)
+
 
 class WorkingDayTests(DataTestClient):
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_weekends_ignored(self, weekend_func, bank_holiday_func):
         weekend_func.return_value = True
         bank_holiday_func.return_value = False
 
-        result = update_cases_sla.now()
+        result = run_update_cases_sla_task()
 
         self.assertFalse(result)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_bank_holidays_ignored(self, weekend_func, bank_holiday_func):
         weekend_func.return_value = False
         bank_holiday_func.return_value = True
 
-        result = update_cases_sla.now()
+        result = run_update_cases_sla_task()
 
         self.assertFalse(result)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_bank_holiday_weekend_ignored(self, weekend_func, bank_holiday_func):
         weekend_func.return_value = False
         bank_holiday_func.return_value = False
 
-        result = update_cases_sla.now()
+        result = run_update_cases_sla_task()
 
         # Expecting update_cases_sla to be ran, but no cases found
         self.assertEqual(result, 0)
@@ -536,8 +566,8 @@ class SlaHmrcCaseTests(DataTestClient):
 
 
 class TerminalCaseSlaTests(DataTestClient):
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_sla_not_update_for_terminal(self, mock_is_weekend, mock_is_bank_holiday):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False
@@ -545,7 +575,7 @@ class TerminalCaseSlaTests(DataTestClient):
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
 
-        results = update_cases_sla.now()
+        results = run_update_cases_sla_task()
         case.refresh_from_db()
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
@@ -555,7 +585,7 @@ class TerminalCaseSlaTests(DataTestClient):
             application.status = get_case_status_by_status(case_status)
             application.save()
 
-            results = update_cases_sla.now()
+            results = run_update_cases_sla_task()
             case.refresh_from_db()
             self.assertEqual(results, 0)
             self.assertEqual(case.sla_days, 1)
@@ -563,8 +593,8 @@ class TerminalCaseSlaTests(DataTestClient):
 
 
 class DepartmentSLATests(DataTestClient):
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_department_sla_updated(self, mock_is_weekend, mock_is_bank_holiday):
         # The following is to ensure that this test doesn't fail on
         # non-working days.
@@ -583,12 +613,12 @@ class DepartmentSLATests(DataTestClient):
         # our team to a department
         self.team.department = test_department
         self.team.save()
-        update_cases_sla.now()
+        run_update_cases_sla_task()
         department_sla = DepartmentSLA.objects.get(department=test_department)
         self.assertEqual(department_sla.sla_days, 1)
 
-    @mock.patch("api.cases.tasks.is_weekend")
-    @mock.patch("api.cases.tasks.is_bank_holiday")
+    @mock.patch("api.cases.celery_tasks.is_weekend")
+    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
     def test_department_sla_updated_across_multiple_teams(self, mock_is_weekend, mock_is_bank_holiday):
         # The following is to ensure that this test doesn't fail on
         # non-working days.
@@ -616,7 +646,7 @@ class DepartmentSLATests(DataTestClient):
         test_team.save()
         CaseQueue.objects.create(case=case, queue=test_queue)
 
-        update_cases_sla.now()
+        run_update_cases_sla_task()
 
         # We only expect the SLA counter to have been updated once for the two
         # teams that are both associated with 'test_department'
