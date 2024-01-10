@@ -85,6 +85,11 @@ urlpatterns = [
         views.EcjuQueryDocumentDetail.as_view(),
         name="case_ecju_query_document_detail",
     ),
+    path(
+        "<uuid:pk>/ecju-queries-open-count/",
+        views.ECJUQueriesOpenCount.as_view(),
+        name="case_ecju_query_open_count",
+    ),
     path("<uuid:pk>/generated-documents/", include("api.cases.generated_documents.urls")),
     path("<uuid:pk>/finalise/", views.FinaliseView.as_view(), name="finalise"),
     path("<uuid:pk>/licences/", licences.LicencesView.as_view(), name="licences"),

@@ -583,6 +583,19 @@ class ECJUQueries(APIView):
             return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
 
 
+class ECJUQueriesOpenCount(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def get(self, request, pk):
+        """Gets count of all open queries."""
+        qs = EcjuQuery.objects.filter(
+            case__pk=pk,
+            responded_at__isnull=True,
+            response__isnull=True,
+        )
+        return JsonResponse(data={"count": qs.count()})
+
+
 class EcjuQueryDetail(APIView):
     """
     Details of a specific ECJU query
