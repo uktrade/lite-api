@@ -14,3 +14,23 @@ class PartyFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Party
+
+
+class ConsigneeFactory(PartyFactory):
+    type = PartyType.CONSIGNEE
+    sub_type = SubType.GOVERNMENT
+
+
+class EndUserFactory(PartyFactory):
+    type = PartyType.END_USER
+    sub_type = SubType.GOVERNMENT
+
+
+class ThirdPartyFactory(PartyFactory):
+    type = PartyType.THIRD_PARTY
+    sub_type = SubType.GOVERNMENT
+
+
+class UltimateEndUserFactory(PartyFactory):
+    type = PartyType.ULTIMATE_END_USER
+    sub_type = SubType.GOVERNMENT
