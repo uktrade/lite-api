@@ -11,6 +11,7 @@ class PartyFactory(factory.django.DjangoModelFactory):
     country = factory.SubFactory(CountryFactory)
     sub_type = SubType.OTHER
     type = PartyType.CONSIGNEE
+    website = ''
 
     class Meta:
         model = Party

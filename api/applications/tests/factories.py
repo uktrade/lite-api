@@ -73,6 +73,7 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     intended_end_use = "this is our intended end use"
     is_shipped_waybill_or_lading = True
     non_waybill_or_lading_route_details = None
+    is_mod_security_approved = False
     submitted_by = factory.SubFactory(ExporterUserFactory)
 
     class Meta:

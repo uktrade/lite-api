@@ -105,7 +105,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(response_data, errors)
 
     def test_get_third_parties(self):
-        third_party = self.draft.third_parties.all().first().party
+        third_party = self.draft.third_parties.first().party
         response = self.client.get(f"{self.url}?type={PartyType.THIRD_PARTY}", **self.exporter_headers)
         parties = response.json()["third_parties"]
 
@@ -118,7 +118,8 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(party["country"]["name"], str(third_party.country.name))
         self.assertEqual(party["website"], str(third_party.website))
         self.assertEqual(party["type"], str(third_party.type))
-        self.assertEqual(party["organisation"], str(third_party.organisation.id))
+        if third_party.organisation:
+            self.assertEqual(party["organisation"], str(third_party.organisation.id))
         self.assertEqual(party["sub_type"]["key"], str(third_party.sub_type))
         self.assertEqual(party["role"]["key"], str(third_party.role))
 

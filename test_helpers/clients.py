@@ -30,6 +30,12 @@ from api.applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
+from api.applications.tests.factories import (
+    GoodOnApplicationFactory,
+    PartyFactory,
+    PartyOnApplicationFactory,
+    StandardApplicationFactory,
+)
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -41,7 +47,6 @@ from api.cases.models import (
     Case,
     CaseDocument,
     CaseAssignment,
-    GoodCountryDecision,
     EcjuQuery,
     CaseType,
     Advice,
@@ -56,12 +61,10 @@ from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
 from api.addresses.tests.factories import AddressFactoryGB
 from api.goods.enums import (
-    GoodControlled,
     GoodPvGraded,
     PvGrading,
     ItemCategory,
     MilitaryUse,
-    Component,
     FirearmGoodType,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
@@ -80,6 +83,7 @@ from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from api.parties.enums import SubType, PartyType, PartyRole
 from api.parties.models import Party
 from api.parties.models import PartyDocument
+from api.parties.tests.factories import ConsigneeFactory, EndUserFactory, ThirdPartyFactory, UltimateEndUserFactory
 from api.picklists.enums import PickListStatus, PicklistType
 from api.picklists.models import PicklistItem
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
@@ -100,7 +104,7 @@ from api.staticdata.urls import urlpatterns as static_urlpatterns
 from api.teams.models import Team
 from api.users.tests.factories import GovUserFactory
 from test_helpers import colours
-from api.users.enums import UserStatuses, SystemUser, UserType
+from api.users.enums import SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -722,60 +726,34 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not user:
             user = UserOrganisationRelationship.objects.filter(organisation_id=organisation.id).first().user
 
-        application = StandardApplication(
+        application = StandardApplicationFactory(
             name=reference_name,
-            export_type=ApplicationExportType.PERMANENT,
             case_type_id=case_type_id,
-            have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-            reference_number_on_information_form="",
-            activity="Trade",
-            usage="Trade",
             organisation=organisation,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            is_military_end_use_controls=False,
-            is_informed_wmd=False,
-            is_suspected_wmd=False,
-            is_eu_military=False,
-            is_compliant_limitations_eu=None,
-            intended_end_use="this is our intended end use",
-            is_shipped_waybill_or_lading=True,
-            is_mod_security_approved=False,
-            non_waybill_or_lading_route_details=None,
-            status_id="00000000-0000-0000-0000-000000000000",
             submitted_by=user,
         )
 
-        application.save()
-
         if add_a_good:
-            if num_products == 1:
-                # Add a good to the standard application
-                self.good_on_application = GoodOnApplication.objects.create(
-                    good=good if good else GoodFactory(organisation=organisation, is_good_controlled=True),
+            if reuse_good:
+                good = GoodFactory(organisation=organisation, is_good_controlled=True)
+
+            for _ in range(num_products):
+                GoodOnApplicationFactory(
+                    good=good if reuse_good else GoodFactory(organisation=organisation, is_good_controlled=True),
                     application=application,
-                    quantity=10,
+                    quantity=random.randint(1, 50),
                     unit=Units.NAR,
-                    value=500,
+                    value=random.randint(100, 5000),
                 )
-            else:
-                if reuse_good:
-                    good = GoodFactory(organisation=organisation, is_good_controlled=True)
-                for _ in range(num_products):
-                    GoodOnApplication.objects.create(
-                        good=good if reuse_good else GoodFactory(organisation=organisation, is_good_controlled=True),
-                        application=application,
-                        quantity=random.randint(1, 50),
-                        unit=Units.NAR,
-                        value=random.randint(100, 5000),
-                    )
 
         if parties:
-            self.create_party("End User", organisation, PartyType.END_USER, application)
+            PartyOnApplicationFactory(application=application, party=ConsigneeFactory())
+            PartyOnApplicationFactory(application=application, party=EndUserFactory())
+            PartyOnApplicationFactory(application=application, party=ThirdPartyFactory())
+
             if ultimate_end_users:
-                self.create_party("Ult End User", organisation, PartyType.ULTIMATE_END_USER, application)
-            self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-            self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-            # Set the application party documents
+                PartyOnApplicationFactory(application=application, party=UltimateEndUserFactory())
 
             self.add_party_documents(application, safe_document)
 

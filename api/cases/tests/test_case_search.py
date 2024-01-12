@@ -141,12 +141,11 @@ class FilterAndSortTests(DataTestClient):
         cases_with_users = [case for case in response_data["cases"] if case["end_users"]]
         # All the non clc cases should have users.
         self.assertEqual(len(cases_with_users), 3)
-        end_user = {"name": "End User", "type": "end_user"}
-        ult_end_user = {"name": "Ult End User", "type": "ultimate_end_user"}
 
+        # The helper function that creates application uses factories to add parties to application
+        # so their names will be different hence only check necessary party types are present or not
         for case in cases_with_users:
-            self.assertIn(end_user, case["end_users"])
-            self.assertIn(ult_end_user, case["end_users"])
+            self.assertEqual(sorted([user["type"] for user in case["end_users"]]), ["end_user", "ultimate_end_user"])
 
     def test_get_app_type_cases(self):
         """

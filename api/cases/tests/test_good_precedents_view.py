@@ -108,6 +108,13 @@ class GoodPrecedentsListViewTests(DataTestClient):
 
         json = response.json()
 
+        # The helper function that creates application uses factories to add parties to application
+        # so their destinations will be different hence extract expected values instead of using
+        # fixed values in expected_data
+        expected_destinations = sorted(
+            [party_on_application.party.country.name for party_on_application in self.application.parties.all()]
+        )
+
         wassenaar_regime = RegimeEntry.objects.get(name="Wassenaar Arrangement")
         expected_data = {
             "count": len(CaseStatusEnum.precedent_statuses),
@@ -124,7 +131,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
                     "unit": None,
                     "value": None,
                     "control_list_entries": ["ML1a"],
-                    "destinations": ["Great Britain"],
+                    "destinations": expected_destinations,
                     "wassenaar": True,
                     "submitted_at": application.submitted_at.astimezone(timezone("UTC")).strftime(
                         "%Y-%m-%dT%H:%M:%S.%fZ"

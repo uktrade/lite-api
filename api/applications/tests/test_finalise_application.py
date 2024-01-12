@@ -638,6 +638,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
+        self.good_on_application = self.standard_application.goods.first()
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
 
     def test_get_approved_goods_success(self):
@@ -687,7 +688,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
         self.assertEqual(data[0]["good"]["id"], str(self.good_on_application.good.id))
         self.assertEqual(data[0]["good"]["description"], self.good_on_application.good.description)
         self.assertEqual(data[0]["quantity"], self.good_on_application.quantity)
-        self.assertEqual(data[0]["value"].split(".")[0], str(self.good_on_application.value))
+        self.assertEqual(data[0]["value"], str(self.good_on_application.value))
         self.assertEqual(data[0]["advice"]["type"]["key"], AdviceType.APPROVE)
         self.assertEqual(data[0]["advice"]["text"], advice_text)
 
@@ -712,6 +713,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
         super().setUp()
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.standard_application = self.create_standard_application_case(self.organisation)
+        self.good_on_application = self.standard_application.goods.first()
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
         self.date = timezone.now()
         self.data = {
