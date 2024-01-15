@@ -41,6 +41,7 @@ class AuditType(LiteEnum):
     CREATED_CASE_NOTE_WITH_MENTIONS = autostr()
     ECJU_QUERY = autostr()
     ECJU_QUERY_RESPONSE = autostr()
+    ECJU_QUERY_MANUALLY_CLOSED = autostr()
     UPDATED_STATUS = autostr()
     UPDATED_SUB_STATUS = autostr()
     UPDATED_APPLICATION_NAME = autostr()
