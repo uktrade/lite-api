@@ -5,7 +5,7 @@ from django.test import override_settings
 from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
-from api.licences.tests.factories import LicenceFactory
+from api.licences.tests.factories import StandardLicenceFactory
 from api.staticdata.countries.models import Country
 from test_helpers.clients import DataTestClient
 from api.applications.tests.factories import GoodOnApplicationFactory, GoodFactory
@@ -15,7 +15,7 @@ class AdviceDocumentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
-        self.licence = LicenceFactory(case=self.case)
+        self.licence = StandardLicenceFactory(case=self.case)
         self.template = self.create_letter_template(name="Template", case_types=[CaseTypeEnum.SIEL.id])
         self.url = reverse("cases:final_advice_documents", kwargs={"pk": self.case.id})
 

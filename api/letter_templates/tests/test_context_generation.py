@@ -15,7 +15,7 @@ from api.applications.enums import (
 from api.applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
-from api.cases.models import Advice
+from api.licences.tests.factories import StandardLicenceFactory
 from api.letter_templates.context_generator import EcjuQuerySerializer
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
@@ -31,7 +31,6 @@ from api.goods.enums import (
     MilitaryUse,
     Component,
     ItemCategory,
-    FirearmGoodType,
     GoodControlled,
     GoodPvGraded,
 )
@@ -443,7 +442,7 @@ class DocumentContextGenerationTests(DataTestClient):
                 self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL, good=product.good
             )
 
-        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        licence = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
         for product in application.goods.all():
             GoodOnLicenceFactory(
                 good=product,
@@ -482,7 +481,7 @@ class DocumentContextGenerationTests(DataTestClient):
                     advice_text="proviso",
                 )
 
-        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        licence = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
         for product in application.goods.all():
             GoodOnLicenceFactory(
                 good=product,
@@ -525,7 +524,7 @@ class DocumentContextGenerationTests(DataTestClient):
                     advice_text="proviso",
                 )
 
-        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        licence = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
         for product in application.goods.all():
             GoodOnLicenceFactory(
                 good=product,
@@ -630,7 +629,7 @@ class DocumentContextGenerationTests(DataTestClient):
             good=good,
         )
 
-        licence = self.create_licence(case, status=LicenceStatus.ISSUED, start_date=date(2023, 10, 5))
+        licence = StandardLicenceFactory(case=case, status=LicenceStatus.ISSUED)
         good_on_licence = GoodOnLicenceFactory(good=good_on_application, quantity=3, value=420, licence=licence)
 
         context = get_document_context(case)
@@ -662,7 +661,7 @@ class DocumentContextGenerationTests(DataTestClient):
             good=good,
         )
 
-        licence = self.create_licence(case, status=LicenceStatus.ISSUED, start_date=date(2023, 10, 5))
+        licence = StandardLicenceFactory(case=case, status=LicenceStatus.ISSUED)
         good_on_licence = GoodOnLicenceFactory(good=good_on_application, quantity=3, value=420, licence=licence)
 
         context = get_document_context(case)
@@ -743,7 +742,7 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_licence(self, start_date):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
 
-        licence = self.create_licence(case, status=LicenceStatus.ISSUED, start_date=start_date)
+        licence = StandardLicenceFactory(case=case, status=LicenceStatus.ISSUED, start_date=start_date)
         good_on_licence = GoodOnLicenceFactory(
             good=case.goods.first(), quantity=10, usage=20, value=30, licence=licence
         )
@@ -983,7 +982,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
         application = self.create_open_application_case(self.organisation)
 
-        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        licence = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
 
         olr = OpenLicenceReturnsFactory(organisation=self.organisation)
 
@@ -1018,7 +1017,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
         application = self.create_open_application_case(self.organisation)
 
-        self.create_licence(application, status=LicenceStatus.ISSUED)
+        StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
 
         olr = OpenLicenceReturnsFactory(organisation=self.organisation)
 

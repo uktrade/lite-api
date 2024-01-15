@@ -61,7 +61,8 @@ class ExportXML(DataTestClient):
                 stakeholder["SH_TYPE"], party.type.upper() if party.type != PartyType.THIRD_PARTY else "OTHER"
             )
             self.assertEqual(stakeholder["COUNTRY"], party.country.name)
-            self.assertEqual(stakeholder["ORG_NAME"], party.organisation.name)
+            if party.organisation:
+                self.assertEqual(stakeholder["ORG_NAME"], party.organisation.name)
             self.assertEqual(stakeholder["PD_SURNAME"], party.name)
             self.assertEqual(stakeholder["ADDRESS1"], party.address)
             # Ensure the correct EnforcementCheckID object is added for the import xml process

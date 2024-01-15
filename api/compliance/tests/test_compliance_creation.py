@@ -9,7 +9,7 @@ from api.cases.models import CaseType
 from api.compliance.helpers import generate_compliance_site_case
 from api.compliance.models import ComplianceSiteCase
 from api.goods.tests.factories import GoodFactory
-from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
+from api.licences.tests.factories import StandardLicenceFactory, GoodOnLicenceFactory
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from api.organisations.tests.factories import SiteFactory
 from test_helpers.clients import DataTestClient
@@ -72,7 +72,7 @@ class ComplianceCreateTests(DataTestClient):
         )
         GoodOnLicenceFactory(
             good=GoodOnApplicationFactory(application=case, good=good),
-            licence=LicenceFactory(case=case),
+            licence=StandardLicenceFactory(case=case),
             quantity=100,
             value=1,
         )
@@ -92,7 +92,7 @@ class ComplianceCreateTests(DataTestClient):
         )
         GoodOnLicenceFactory(
             good=GoodOnApplicationFactory(application=case, good=good),
-            licence=LicenceFactory(case=case),
+            licence=StandardLicenceFactory(case=case),
             quantity=100,
             value=1,
         )

@@ -19,6 +19,7 @@ from api.cases.generated_documents.helpers import html_to_pdf
 from api.letter_templates.helpers import generate_preview, DocumentPreviewError
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
@@ -151,7 +152,7 @@ class GenerateDocumentTests(DataTestClient):
         application = self.case
         licence = None
         if advice_type == AdviceType.APPROVE:
-            licence = self.create_licence(self.case, status=LicenceStatus.DRAFT)
+            licence = StandardLicenceFactory(case=self.case, status=LicenceStatus.DRAFT)
 
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
@@ -220,7 +221,7 @@ class GenerateDocumentTests(DataTestClient):
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_generate_licence_document_success(self, upload_bytes_file_func, html_to_pdf_func):
-        licence = self.create_licence(self.case, status=LicenceStatus.DRAFT)
+        licence = StandardLicenceFactory(case=self.case, status=LicenceStatus.DRAFT)
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
         self.data["visible_to_exporter"] = True
@@ -262,7 +263,7 @@ class GenerateDocumentTests(DataTestClient):
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_generate_new_licence_document_success(self, upload_bytes_file_func, html_to_pdf_func):
-        licence = self.create_licence(self.case, status=LicenceStatus.DRAFT)
+        licence = StandardLicenceFactory(case=self.case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
             self.case, self.letter_template, advice_type=AdviceType.APPROVE, licence=licence, visible_to_exporter=False
         )

@@ -9,7 +9,7 @@ from api.cases.notify import (
     notify_exporter_inform_letter,
     notify_exporter_appeal_acknowledgement,
 )
-from api.licences.tests.factories import LicenceFactory
+from api.licences.tests.factories import StandardLicenceFactory
 from api.users.tests.factories import ExporterUserFactory
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import (
@@ -28,7 +28,7 @@ class NotifyTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
-        self.licence = LicenceFactory(case=self.case)
+        self.licence = StandardLicenceFactory(case=self.case)
 
     @mock.patch("api.cases.notify.send_email")
     def test_notify_licence_issued(self, mock_send_email):

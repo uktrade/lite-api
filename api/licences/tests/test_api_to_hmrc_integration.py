@@ -24,6 +24,7 @@ from api.licences.libraries.hmrc_integration_operations import (
 )
 from api.licences.models import Licence, GoodOnLicence
 from api.licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
+from api.licences.tests.factories import StandardLicenceFactory
 from api.licences.celery_tasks import (
     send_licence_details_to_lite_hmrc,
     schedule_licence_details_to_lite_hmrc,
@@ -76,7 +77,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         action = licence_status_to_hmrc_integration_action.get(status)
         standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        standard_licence = self.create_licence(standard_application, status=status)
+        standard_licence = StandardLicenceFactory(case=standard_application, status=status)
         good_on_application = standard_application.goods.first()
         GoodOnLicenceFactory(
             good=good_on_application,
@@ -87,7 +88,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         )
         old_licence = None
         if action == HMRCIntegrationActionEnum.UPDATE:
-            old_licence = self.create_licence(standard_application, status=LicenceStatus.CANCELLED)
+            old_licence = StandardLicenceFactory(case=standard_application, status=LicenceStatus.CANCELLED)
             standard_application.licences.add(old_licence)
 
         data = HMRCIntegrationLicenceSerializer(standard_licence).data
@@ -115,7 +116,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         end_user.country = trade_country
         end_user.save()
         self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        standard_licence = self.create_licence(standard_application, status=status)
+        standard_licence = StandardLicenceFactory(case=standard_application, status=status)
         good_on_application = standard_application.goods.first()
         GoodOnLicenceFactory(
             good=good_on_application,
@@ -126,7 +127,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         )
         old_licence = None
         if action == HMRCIntegrationActionEnum.UPDATE:
-            old_licence = self.create_licence(standard_application, status=LicenceStatus.CANCELLED)
+            old_licence = StandardLicenceFactory(case=standard_application, status=LicenceStatus.CANCELLED)
             standard_application.licences.add(old_licence)
 
         data = HMRCIntegrationLicenceSerializer(standard_licence).data
@@ -158,7 +159,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         end_user.country = trade_country
         end_user.save()
         self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        standard_licence = self.create_licence(standard_application, status=status)
+        standard_licence = StandardLicenceFactory(case=standard_application, status=status)
         good_on_application = standard_application.goods.first()
         GoodOnLicenceFactory(
             good=good_on_application,
@@ -169,7 +170,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         )
         old_licence = None
         if action == HMRCIntegrationActionEnum.UPDATE:
-            old_licence = self.create_licence(standard_application, status=LicenceStatus.CANCELLED)
+            old_licence = StandardLicenceFactory(case=standard_application, status=LicenceStatus.CANCELLED)
             standard_application.licences.add(old_licence)
 
         data = HMRCIntegrationLicenceSerializer(standard_licence).data
@@ -200,7 +201,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         end_user.country = trade_country
         end_user.save()
         self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        standard_licence = self.create_licence(standard_application, status=status)
+        standard_licence = StandardLicenceFactory(case=standard_application, status=status)
         good_on_application = standard_application.goods.first()
         GoodOnLicenceFactory(
             good=good_on_application,
@@ -211,7 +212,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         )
         old_licence = None
         if action == HMRCIntegrationActionEnum.UPDATE:
-            old_licence = self.create_licence(standard_application, status=LicenceStatus.CANCELLED)
+            old_licence = StandardLicenceFactory(case=standard_application, status=LicenceStatus.CANCELLED)
             standard_application.licences.add(old_licence)
 
         data = HMRCIntegrationLicenceSerializer(standard_licence).data
@@ -341,7 +342,7 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         status = LicenceStatus.ISSUED
         self.hmrc_integration_status = licence_status_to_hmrc_integration_action.get(status)
-        self.standard_licence = self.create_licence(self.standard_application, status=status)
+        self.standard_licence = StandardLicenceFactory(case=self.standard_application, status=status)
 
     @mock.patch("api.licences.libraries.hmrc_integration_operations.post")
     @mock.patch("api.licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
@@ -391,7 +392,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        self.standard_licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.ISSUED)
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.licences.celery_tasks.schedule_licence_details_to_lite_hmrc")
@@ -467,7 +468,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         status = LicenceStatus.ISSUED
         self.hmrc_integration_status = licence_status_to_hmrc_integration_action.get(status)
-        self.standard_licence = self.create_licence(self.standard_application, status=status)
+        self.standard_licence = StandardLicenceFactory(case=self.standard_application, status=status)
         for product in self.standard_application.goods.all():
             GoodOnLicenceFactory(
                 good=product,
@@ -684,7 +685,7 @@ class HMRCIntegrationTests(DataTestClient):
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
-        licence = self.create_licence(application, status=LicenceStatus.DRAFT)
+        licence = StandardLicenceFactory(case=application, status=LicenceStatus.DRAFT)
         for product in application.goods.all():
             GoodOnLicence.objects.create(good=product, licence=licence, quantity=product.quantity, value=product.value)
         self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)

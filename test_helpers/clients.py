@@ -76,7 +76,7 @@ from api.goodstype.tests.factories import GoodsTypeFactory
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code
-from api.licences.models import GoodOnLicence, Licence
+from api.licences.tests.factories import StandardLicenceFactory
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation, ExternalLocation
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
@@ -92,7 +92,6 @@ from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.helpers import get_country
 from api.staticdata.countries.models import Country
-from api.staticdata.decisions.models import Decision
 from api.staticdata.f680_clearance_types.models import F680ClearanceType
 from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.management.commands import seedall
@@ -1083,28 +1082,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_licence(
         application: Case,
         status: LicenceStatus,
-        reference_code=None,
-        decisions=None,
-        hmrc_integration_sent_at=None,
-        start_date=None,
     ):
-        if not decisions:
-            decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
-        if not reference_code:
-            reference_code = get_licence_reference_code(application.reference_code)
-        if not start_date:
-            start_date = django.utils.timezone.now().date()
-
-        licence = Licence.objects.create(
+        return StandardLicenceFactory(
             case=application,
-            reference_code=reference_code,
-            start_date=start_date,
-            duration=get_default_duration(application),
             status=status,
-            hmrc_integration_sent_at=hmrc_integration_sent_at,
         )
-        licence.decisions.set(decisions)
-        return licence
 
     def create_routing_rule(
         self, team_id, queue_id, tier, status_id, additional_rules: list, is_python_criteria=False, active=True

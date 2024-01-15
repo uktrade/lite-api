@@ -21,6 +21,7 @@ from api.flags.models import Flag
 from api.flags.tests.factories import FlagFactory
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence, GoodOnLicence
+from api.licences.tests.factories import StandardLicenceFactory
 from lite_content.lite_api import strings
 from api.staticdata.statuses.models import CaseStatus
 from api.teams.enums import TeamIdEnum
@@ -68,7 +69,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_approve_application_reissue_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
-        existing_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        existing_licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.ISSUED)
         data = {"action": AdviceType.APPROVE, "duration": existing_licence.duration}
         data.update(self.post_date)
 
@@ -89,7 +90,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_approve_application_override_draft_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
-        existing_licence = self.create_licence(self.standard_application, status=LicenceStatus.DRAFT)
+        existing_licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.DRAFT)
         data = {"action": AdviceType.APPROVE, "duration": existing_licence.duration + 1}
         data.update(self.post_date)
 

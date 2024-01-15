@@ -11,7 +11,7 @@ from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.enums import AdviceType
 from api.goods.tests.factories import GoodFactory
-from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
+from api.licences.tests.factories import StandardLicenceFactory, GoodOnLicenceFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -33,7 +33,7 @@ class DataWorkspaceTests(DataTestClient):
         )
         GoodOnLicenceFactory(
             good=GoodOnApplicationFactory(application=case, good=good),
-            licence=LicenceFactory(case=case),
+            licence=StandardLicenceFactory(case=case),
             quantity=100,
             value=1,
         )

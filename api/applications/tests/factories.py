@@ -60,7 +60,7 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     name = "Application Test Name"
     export_type = ApplicationExportType.PERMANENT
     case_type_id = CaseTypeEnum.SIEL.id
-    have_you_been_informed = (ApplicationExportLicenceOfficialType.YES,)
+    have_you_been_informed = ApplicationExportLicenceOfficialType.YES
     reference_number_on_information_form = ""
     activity = "Trade"
     usage = "Trade"

@@ -9,8 +9,7 @@ from api.data_workspace.serializers import (
     LicenceWithoutGoodsSerializer,
 )
 from api.cases.tests.factories import EcjuQueryFactory, CaseAssignmentFactory
-from api.licences.tests.factories import LicenceFactory
-from api.staticdata.statuses.models import CaseStatus
+from api.licences.tests.factories import StandardLicenceFactory
 
 
 def test_EcjuQuerySerializer(db):
@@ -55,7 +54,7 @@ def test_AuditUpdatedLicenceStatusSerializer(db):
 
 
 def test_LicenceWithoutGoodsSerializer(db):
-    licence = LicenceFactory()
+    licence = StandardLicenceFactory()
     serialized = LicenceWithoutGoodsSerializer(licence)
     expected_fields = {
         "id",

@@ -6,14 +6,14 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from api.applications.models import BaseApplication
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
-from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
+from api.compliance.tests.factories import ComplianceSiteCaseFactory
 from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 from api.picklists.enums import PicklistType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -216,14 +216,14 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
-        self.licence_1 = self.create_licence(
-            self.create_open_application_case(self.organisation), status=LicenceStatus.ISSUED
+        self.licence_1 = StandardLicenceFactory(
+            case=self.create_open_application_case(self.organisation), status=LicenceStatus.ISSUED
         )
 
         application = self.create_open_application_case(self.organisation)
         application.submitted_by = ExporterUserFactory()
         application.save()
-        self.licence_2 = self.create_licence(application, status=LicenceStatus.ISSUED)
+        self.licence_2 = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
         self.data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
 
     @mock.patch("api.cases.views.views.notify.notify_exporter_ecju_query")
