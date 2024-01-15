@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from django.test import override_settings
 
+from api.goods.tests.factories import GoodFactory
 from api.parties.models import PartyType
 from test_helpers.clients import DataTestClient
 
@@ -58,7 +59,7 @@ class UpdateApplicationDocumentTest(DataTestClient):
     @patch("api.search.signals.update_search_index")
     def test_good(self, mock_task):
         application = self.create_standard_application_case(self.organisation)
-        good = self.create_good("test good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
         good_on_app = self.create_good_on_application(application, good)
         application.goods.add(good_on_app)
         application.save()

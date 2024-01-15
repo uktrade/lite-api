@@ -36,20 +36,20 @@ class GoodViewTests(DataTestClient):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_view_good__query_filter_by_description(self):
+    def test_view_good__query_filter_by_name(self):
         org = self.organisation
 
-        self.create_good("thing1", org)
-        self.create_good("Thing2", org)
-        self.create_good("item3", org)
+        GoodFactory(name="thing1", organisation=org)
+        GoodFactory(name="Thing2", organisation=org)
+        GoodFactory(name="item3", organisation=org)
 
-        url = reverse("goods:goods") + "?description=thing"
+        url = reverse("goods:goods") + "?name=thing"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]
         self.assertEqual(len(response_data), 2)
 
-        url = reverse("goods:goods") + "?description=item"
+        url = reverse("goods:goods") + "?name=item"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]

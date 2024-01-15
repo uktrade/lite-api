@@ -6,6 +6,7 @@ from api.applications.models import StandardApplication, GoodOnApplication
 from api.flags.enums import SystemFlags
 from parameterized import parameterized
 from api.goods.enums import GoodStatus
+from api.goods.tests.factories import GoodFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
@@ -21,7 +22,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
         super().setUp()
 
         # Create a common good
-        self.good = self.create_good("A good", self.organisation)
+        self.good = GoodFactory(organisation=self.organisation)
         self.good.flags.add(SystemFlags.WASSENAAR)
         # Create an application
         self.application = self.create_draft_standard_application(self.organisation)

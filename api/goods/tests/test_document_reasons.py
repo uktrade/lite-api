@@ -4,15 +4,14 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
-from lite_content.lite_api import strings
-from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
+from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
 
 
 class GoodDocumentAvaiabilityandSensitivityTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.good = self.create_good("a good", self.organisation)
+        self.good = GoodFactory(organisation=self.organisation)
         self.document_availability_url = reverse("goods:good_document_availability", kwargs={"pk": self.good.id})
         self.document_sensitivity_url = reverse("goods:good_document_sensitivity", kwargs={"pk": self.good.id})
 

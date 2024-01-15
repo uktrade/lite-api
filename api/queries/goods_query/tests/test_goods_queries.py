@@ -1,17 +1,16 @@
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-from parameterized import parameterized
 from rest_framework import status
 
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import CaseAssignment
 from api.core import constants
 from api.flags.enums import SystemFlags
 from api.flags.models import Flag
 from api.goods.enums import GoodStatus, GoodPvGraded, PvGrading
 from api.goods.models import Good
+from api.goods.tests.factories import GoodFactory
 from api.users.tests.factories import GovUserFactory
 from lite_content.lite_api import strings
 from api.picklists.enums import PicklistType, PickListStatus
@@ -22,7 +21,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
-from api.users.models import Role, GovUser
+from api.users.models import Role
 
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):
@@ -208,8 +207,8 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
 
 class PvGradingQueryCreateTests(DataTestClient):
     def test_given_an_unsure_pv_graded_good_exists_when_creating_pv_grading_query_then_201_created_is_returned(self):
-        pv_graded_good = self.create_good(
-            description="This is a good",
+        pv_graded_good = GoodFactory(
+            name="This is a good",
             organisation=self.organisation,
             is_good_controlled=False,
             is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
@@ -236,8 +235,8 @@ class PvGradingQueryCreateTests(DataTestClient):
         )
 
     def test_given_a_pv_graded_good_exists_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
-        pv_graded_good = self.create_good(
-            description="This is a good",
+        pv_graded_good = GoodFactory(
+            name="This is a good",
             organisation=self.organisation,
             is_good_controlled=False,
             is_pv_graded=GoodPvGraded.YES,
@@ -259,8 +258,8 @@ class PvGradingQueryCreateTests(DataTestClient):
         self.assertEqual(GoodsQuery.objects.count(), 0)
 
     def test_given_good_doesnt_require_pv_grading_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
-        pv_graded_good = self.create_good(
-            description="This is a good",
+        pv_graded_good = GoodFactory(
+            name="This is a good",
             organisation=self.organisation,
             is_good_controlled=False,
             is_pv_graded=GoodPvGraded.NO,
@@ -298,8 +297,8 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
             "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
         )
 
-        self.pv_graded_and_controlled_good = self.create_good(
-            description="This is a good",
+        self.pv_graded_and_controlled_good = GoodFactory(
+            name="This is a good",
             organisation=self.organisation,
             is_good_controlled=None,
             is_pv_graded=GoodPvGraded.GRADING_REQUIRED,

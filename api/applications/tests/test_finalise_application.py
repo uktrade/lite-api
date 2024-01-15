@@ -9,6 +9,7 @@ from rest_framework import status
 from api.applications.enums import LicenceDuration
 from api.applications.views.helpers.advice import CounterSignatureIncompleteError
 from api.applications.libraries.licence import get_default_duration
+from api.applications.tests.factories import GoodOnApplicationFactory
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
@@ -19,11 +20,13 @@ from api.core.constants import GovPermissions
 from api.flags.enums import FlagLevels
 from api.flags.models import Flag
 from api.flags.tests.factories import FlagFactory
+from api.goods.tests.factories import GoodFactory
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence, GoodOnLicence
 from api.licences.tests.factories import StandardLicenceFactory
 from lite_content.lite_api import strings
 from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.units.enums import Units
 from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 from test_helpers.clients import DataTestClient
@@ -254,8 +257,12 @@ class FinaliseApplicationTests(DataTestClient):
 
         # Add few more products
         for i in range(3):
-            good_on_app = self.create_good_on_application(
-                self.standard_application, self.create_good(f"product{i+2}", self.organisation)
+            good_on_app = GoodOnApplicationFactory(
+                application=self.standard_application,
+                good=GoodFactory(name=f"product{i+2}", organisation=self.organisation),
+                quantity=10,
+                unit=Units.NAR,
+                value=500,
             )
             self.create_advice(
                 self.gov_user,
@@ -655,8 +662,9 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
         )
 
         # Refuse a second good
-        second_good_on_app = self.create_good_on_application(
-            self.standard_application, self.create_good("a thing", self.organisation)
+        second_good_on_app = GoodOnApplicationFactory(
+            application=self.standard_application,
+            good=GoodFactory(organisation=self.organisation),
         )
         self.create_advice(
             self.gov_user,
@@ -668,8 +676,9 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
         )
 
         # NLR a third good
-        third_good_on_app = self.create_good_on_application(
-            self.standard_application, self.create_good("a thing", self.organisation)
+        third_good_on_app = GoodOnApplicationFactory(
+            application=self.standard_application,
+            good=GoodFactory(organisation=self.organisation),
         )
         self.create_advice(
             self.gov_user,

@@ -794,7 +794,7 @@ class FilterAndSortTests(DataTestClient):
     def test_get_cases_filter_by_includes_refusal_recommendation(self):
         case = self.create_standard_application_case(self.organisation)
         team_ogd = Team.objects.filter(is_ogd=True).first()
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
         self.gov_user.team = team_ogd
         self.gov_user.save()
 
@@ -810,7 +810,7 @@ class FilterAndSortTests(DataTestClient):
 
     def test_get_cases_filter_by_includes_refusal_recommendation_not_met(self):
         case = self.create_standard_application_case(self.organisation)
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
 
         factories.UserAdviceFactory(user=self.gov_user, case=case, good=good, type=AdviceType.REFUSE)
 

@@ -13,7 +13,7 @@ from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 import pytest
 
-from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
+from api.applications.enums import ApplicationExportType
 from api.applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
 from api.applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from api.applications.libraries.licence import get_default_duration
@@ -32,7 +32,6 @@ from api.applications.models import (
 )
 from api.applications.tests.factories import (
     GoodOnApplicationFactory,
-    PartyFactory,
     PartyOnApplicationFactory,
     StandardApplicationFactory,
 )
@@ -69,7 +68,7 @@ from api.goods.enums import (
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from api.applications.models import GoodOnApplicationInternalDocument
-from api.goods.tests.factories import GoodFactory
+from api.goods.tests.factories import FirearmFactory, GoodFactory, PvGradingDetailsFactory
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
 from api.goodstype.tests.factories import GoodsTypeFactory
@@ -479,85 +478,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         picklist_item.save()
         return picklist_item
 
-    @staticmethod
-    def create_good(
-        description: str,
-        organisation: Organisation,
-        is_good_controlled: str = False,
-        control_list_entries: Optional[List[str]] = None,
-        is_pv_graded: str = GoodPvGraded.YES,
-        pv_grading_details: PvGradingDetails = None,
-        item_category=ItemCategory.GROUP1_DEVICE,
-        is_military_use=MilitaryUse.NO,
-        modified_military_use_details=None,
-        component_details=None,
-        is_component=None,
-        uses_information_security=True,
-        information_security_details=None,
-        software_or_technology_details=None,
-        create_firearm_details=False,
-    ) -> Good:
-        warnings.warn(
-            "create_good is a deprecated function. Use a GoodFactory instead", category=DeprecationWarning, stacklevel=2
-        )
-
-        if is_pv_graded == GoodPvGraded.YES and not pv_grading_details:
-            pv_grading_details = PvGradingDetails.objects.create(
-                grading=None,
-                custom_grading="Custom Grading",
-                prefix="Prefix",
-                suffix="Suffix",
-                issuing_authority="Issuing Authority",
-                reference="ref123",
-                date_of_issue="2019-12-25",
-            )
-
-        firearm_details = None
-        if create_firearm_details:
-            firearm_details = FirearmGoodDetails.objects.create(
-                category=[],
-                type=FirearmGoodType.AMMUNITION,
-                calibre="0.5",
-                year_of_manufacture="1991",
-                is_covered_by_firearm_act_section_one_two_or_five="No",
-                section_certificate_number=None,
-                section_certificate_date_of_expiry=None,
-                serial_numbers_available=FirearmGoodDetails.SerialNumberAvailability.AVAILABLE,
-                no_identification_markings_details="",
-            )
-
-        good = Good(
-            description=description,
-            is_good_controlled=is_good_controlled,
-            part_number="123456",
-            organisation=organisation,
-            comment=None,
-            report_summary=None,
-            is_pv_graded=is_pv_graded,
-            pv_grading_details=pv_grading_details,
-            item_category=item_category,
-            is_military_use=is_military_use,
-            is_component=is_component,
-            uses_information_security=uses_information_security,
-            information_security_details=information_security_details,
-            modified_military_use_details=modified_military_use_details,
-            component_details=component_details,
-            software_or_technology_details=software_or_technology_details,
-            firearm_details=firearm_details,
-        )
-        good.save()
-
-        if good.is_good_controlled == True:
-            if not control_list_entries:
-                raise Exception("You need to set control list entries if the good is controlled")
-
-            control_list_entries = ControlListEntry.objects.filter(rating__in=control_list_entries)
-            good.control_list_entries.set(control_list_entries)
-
-        return good
-
     def create_goods_query(self, description, organisation, clc_reason, pv_reason) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, organisation=organisation)
+        good = GoodFactory(name=description, organisation=organisation)
 
         goods_query = GoodsQuery.objects.create(
             clc_raised_reasons=clc_reason,
@@ -575,7 +497,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return goods_query
 
     def create_clc_query(self, description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, organisation=organisation)
+        good = GoodFactory(name=description, organisation=organisation)
 
         clc_query = GoodsQuery.objects.create(
             clc_raised_reasons="this is a test text",
@@ -592,9 +514,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_pv_grading_query(description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(
-            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED
-        )
+        good = GoodFactory(name=description, organisation=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED)
 
         pv_grading_query = GoodsQuery.objects.create(
             clc_raised_reasons=None,

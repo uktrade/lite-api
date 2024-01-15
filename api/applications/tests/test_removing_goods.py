@@ -27,7 +27,9 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         And the good status is changed to DRAFT
         """
         draft = self.create_draft_standard_application(self.organisation)
-        application = self.submit_application(draft)  # This will submit the application and set the good status to SUBMITTED
+        application = self.submit_application(
+            draft
+        )  # This will submit the application and set the good status to SUBMITTED
         good_on_application = application.goods.first()
 
         url = reverse(
