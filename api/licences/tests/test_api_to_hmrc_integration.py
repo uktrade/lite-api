@@ -11,12 +11,10 @@ from django.test import override_settings
 from django.conf import settings
 
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
-from api.cases.models import CaseType
 from api.cases.tests.factories import GoodCountryDecisionFactory
 from api.core.constants import GovPermissions
 from api.core.helpers import add_months
 from api.conf.settings import MAX_ATTEMPTS, LITE_HMRC_REQUEST_TIMEOUT
-from api.licences.apps import LicencesConfig
 from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action
 from api.licences.helpers import get_approved_goods_types, get_approved_countries
 from api.licences.libraries.hmrc_integration_operations import (
@@ -26,16 +24,11 @@ from api.licences.libraries.hmrc_integration_operations import (
 )
 from api.licences.models import Licence, GoodOnLicence
 from api.licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
-from api.licences.tasks import (
-    send_licence_to_hmrc_integration,
-    TASK_BACK_OFF,
-    schedule_max_tried_task_as_new_task,
-    schedule_licence_for_hmrc_integration,
-    HMRC_INTEGRATION_QUEUE,
+from api.licences.celery_tasks import (
+    send_licence_details_to_lite_hmrc,
+    schedule_licence_details_to_lite_hmrc,
 )
 from api.licences.tests.factories import GoodOnLicenceFactory
-from api.open_general_licences.helpers import issue_open_general_licence
-from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from api.staticdata.countries.factories import CountryFactory
 from api.staticdata.countries.models import Country
 from api.staticdata.decisions.models import Decision
@@ -258,36 +251,6 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         self._assert_dto(data, open_licence, old_licence)
 
-    @parameterized.expand(
-        [
-            [LicenceStatus.ISSUED],
-            [LicenceStatus.REINSTATED],
-            [LicenceStatus.SUSPENDED],
-            [LicenceStatus.SURRENDERED],
-            [LicenceStatus.REVOKED],
-            [LicenceStatus.CANCELLED],
-        ]
-    )
-    def test_ogl_application(self, status):
-        action = licence_status_to_hmrc_integration_action.get(status)
-        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
-        open_general_licence_case = OpenGeneralLicenceCaseFactory(
-            open_general_licence=open_general_licence,
-            site=self.organisation.primary_site,
-            organisation=self.organisation,
-        )
-        open_general_licence_licence = Licence.objects.get(case=open_general_licence_case)
-
-        if action == HMRCIntegrationActionEnum.UPDATE:
-            # Cancel the original & issue a new OGL Licence
-            open_general_licence_licence.cancel()
-            new_licence = issue_open_general_licence(open_general_licence_case)
-            data = HMRCIntegrationLicenceSerializer(new_licence).data
-            self._assert_dto(data, new_licence, old_licence=open_general_licence_licence)
-        else:
-            data = HMRCIntegrationLicenceSerializer(open_general_licence_licence).data
-            self._assert_dto(data, open_general_licence_licence)
-
     def _assert_dto(self, data, licence, old_licence=None):
         if old_licence:
             self.assertEqual(len(data), 10)
@@ -431,68 +394,68 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_save_licence_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
-        schedule_licence_for_hmrc_integration.return_value = None
+    @mock.patch("api.licences.celery_tasks.schedule_licence_details_to_lite_hmrc")
+    def test_save_licence_calls_schedule_licence_details_to_lite_hmrc(self, schedule_licence_details_to_lite_hmrc):
+        schedule_licence_details_to_lite_hmrc.return_value = None
 
         self.standard_licence.save(send_status_change_to_hmrc=True)
 
-        schedule_licence_for_hmrc_integration.assert_called_with(
+        schedule_licence_details_to_lite_hmrc.assert_called_with(
             str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_save_licence_does_not_call_schedule_licence_for_hmrc_integration(
-        self, schedule_licence_for_hmrc_integration
+    @mock.patch("api.licences.celery_tasks.schedule_licence_details_to_lite_hmrc")
+    def test_save_licence_does_not_call_schedule_licence_details_to_lite_hmrc(
+        self, schedule_licence_details_to_lite_hmrc
     ):
-        schedule_licence_for_hmrc_integration.return_value = None
+        schedule_licence_details_to_lite_hmrc.return_value = None
 
         self.standard_licence.save()
 
-        schedule_licence_for_hmrc_integration.assert_not_called()
+        schedule_licence_details_to_lite_hmrc.assert_not_called()
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_licence_surrender_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
-        schedule_licence_for_hmrc_integration.return_value = None
+    @mock.patch("api.licences.celery_tasks.schedule_licence_details_to_lite_hmrc")
+    def test_licence_surrender_calls_schedule_licence_details_to_lite_hmrc(self, schedule_licence_details_to_lite_hmrc):
+        schedule_licence_details_to_lite_hmrc.return_value = None
 
         self.standard_licence.surrender()
 
-        schedule_licence_for_hmrc_integration.assert_called_with(
+        schedule_licence_details_to_lite_hmrc.assert_called_with(
             str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_licence_cancel_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
-        schedule_licence_for_hmrc_integration.return_value = None
+    @mock.patch("api.licences.celery_tasks.schedule_licence_details_to_lite_hmrc")
+    def test_licence_cancel_calls_schedule_licence_details_to_lite_hmrc(self, schedule_licence_details_to_lite_hmrc):
+        schedule_licence_details_to_lite_hmrc.return_value = None
 
         self.standard_licence.cancel()
 
-        schedule_licence_for_hmrc_integration.assert_called_with(
+        schedule_licence_details_to_lite_hmrc.assert_called_with(
             str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_licence_revoke_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
-        schedule_licence_for_hmrc_integration.return_value = None
+    @mock.patch("api.licences.celery_tasks.schedule_licence_details_to_lite_hmrc")
+    def test_licence_revoke_calls_schedule_licence_details_to_lite_hmrc(self, schedule_licence_details_to_lite_hmrc):
+        schedule_licence_details_to_lite_hmrc.return_value = None
 
         self.standard_licence.revoke()
 
-        schedule_licence_for_hmrc_integration.assert_called_with(
+        schedule_licence_details_to_lite_hmrc.assert_called_with(
             str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_licence_expire_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
-        schedule_licence_for_hmrc_integration.return_value = None
+    @mock.patch("api.licences.celery_tasks.schedule_licence_details_to_lite_hmrc")
+    def test_licence_expire_calls_schedule_licence_details_to_lite_hmrc(self, schedule_licence_details_to_lite_hmrc):
+        schedule_licence_details_to_lite_hmrc.return_value = None
 
         self.standard_licence.revoke()
 
-        schedule_licence_for_hmrc_integration.assert_called_with(
+        schedule_licence_details_to_lite_hmrc.assert_called_with(
             str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
@@ -514,157 +477,49 @@ class HMRCIntegrationTasksTests(DataTestClient):
                 value=product.value,
             )
 
-    @override_settings(BACKGROUND_TASK_ENABLED=False)
-    @mock.patch("api.licences.tasks.send_licence_to_hmrc_integration.now")
-    def test_schedule_licence_for_hmrc_integration(self, send_licence_to_hmrc_integration_now):
-        send_licence_to_hmrc_integration_now.return_value = None
+    @mock.patch("api.licences.celery_tasks.send_licence_details_to_lite_hmrc.delay")
+    def test_schedule_licence_details_to_lite_hmrc(self, send_licence_details_to_lite_hmrc_task):
+        send_licence_details_to_lite_hmrc_task.return_value = None
 
-        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), self.hmrc_integration_status)
+        schedule_licence_details_to_lite_hmrc(str(self.standard_licence.id), self.hmrc_integration_status)
 
-        send_licence_to_hmrc_integration_now.assert_called_with(
-            str(self.standard_licence.id), self.hmrc_integration_status, scheduled_as_background_task=False
+        send_licence_details_to_lite_hmrc_task.assert_called_with(
+            str(self.standard_licence.id), self.hmrc_integration_status
         )
 
-    @override_settings(BACKGROUND_TASK_ENABLED=True)
-    @mock.patch("api.licences.tasks.send_licence_to_hmrc_integration")
-    @mock.patch("api.licences.tasks.Task.objects.filter")
-    def test_schedule_licence_for_hmrc_integration_as_background_task(
-        self, task_filter, send_licence_to_hmrc_integration
-    ):
-        task_filter.return_value = MockTask(0, exists=False)
-        send_licence_to_hmrc_integration.return_value = None
-
-        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), self.hmrc_integration_status)
-
-        task_filter.assert_called_with(
-            queue=HMRC_INTEGRATION_QUEUE,
-            task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
-        )
-        send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id), self.hmrc_integration_status)
-
-    @override_settings(BACKGROUND_TASK_ENABLED=True)
-    @mock.patch("api.licences.tasks.send_licence_to_hmrc_integration")
-    @mock.patch("api.licences.tasks.Task.objects.filter")
-    def test_schedule_licence_for_hmrc_integration_as_background_task_already_existing(
-        self, task_filter, send_licence_to_hmrc_integration
-    ):
-        task_filter.return_value = MockTask(0, exists=True)
-        send_licence_to_hmrc_integration.return_value = None
-
-        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), self.hmrc_integration_status)
-
-        task_filter.assert_called_with(
-            queue=HMRC_INTEGRATION_QUEUE,
-            task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
-        )
-        send_licence_to_hmrc_integration.assert_not_called()
-
-    @mock.patch("api.licences.tasks.hmrc_integration_operations.send_licence")
+    @mock.patch("api.licences.celery_tasks.send_licence")
     def test_send_licence_to_hmrc_integration_success(self, send_licence):
         send_licence.return_value = None
 
-        # Note: Using `.now()` operation to test code synchronously
-        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), self.hmrc_integration_status)
+        schedule_licence_details_to_lite_hmrc(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence.assert_called_with(self.standard_licence, self.hmrc_integration_status)
 
-    @mock.patch("api.licences.tasks.Task.objects.get")
-    @mock.patch("api.licences.tasks.hmrc_integration_operations.send_licence")
-    def test_send_licence_to_hmrc_integration_failure(self, send_licence, task_get):
-        send_licence.side_effect = HMRCIntegrationException("Recieved an unexpected response")
-        task_get.return_value = MockTask(0)
+    @mock.patch("api.licences.celery_tasks.send_licence")
+    def test_send_licence_to_hmrc_integration_failure(self, send_licence):
+        send_licence.side_effect = HMRCIntegrationException("Received an unexpected response")
 
-        # Note: Using `.now()` operation to test code synchronously
-        send_licence_to_hmrc_integration.now(
-            str(self.standard_licence.id), self.hmrc_integration_status, scheduled_as_background_task=False
-        )
+        schedule_licence_details_to_lite_hmrc(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence.assert_called_with(self.standard_licence, self.hmrc_integration_status)
-        task_get.assert_not_called()
 
-    @mock.patch("api.licences.tasks.hmrc_integration_operations.send_licence")
+    @mock.patch("api.licences.celery_tasks.send_licence")
     def test_send_licence_to_hmrc_integration_with_background_task_success(self, send_licence):
         send_licence.return_value = None
 
-        # Note: Using `.now()` operation to test code synchronously
-        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), self.hmrc_integration_status)
+        send_licence_details_to_lite_hmrc.delay(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence.assert_called_once()
 
-    @mock.patch("api.licences.tasks.schedule_max_tried_task_as_new_task")
-    @mock.patch("api.licences.tasks.Task.objects.get")
-    @mock.patch("api.licences.tasks.hmrc_integration_operations.send_licence")
-    def test_send_licence_to_hmrc_integration_with_background_task_failure(
-        self, send_licence, task_get, schedule_max_tried_task_as_new_task
-    ):
-        send_licence.side_effect = HMRCIntegrationException("Recieved an unexpected response")
-        task_get.return_value = MockTask(0)
-        schedule_max_tried_task_as_new_task.return_value = None
+    @mock.patch("api.licences.celery_tasks.send_licence")
+    def test_send_licence_to_hmrc_integration_with_background_task_failure(self, send_licence):
+        send_licence.side_effect = HMRCIntegrationException("Received an unexpected response")
 
-        with self.assertRaises(Exception) as error:
-            # Note: Using `.now()` operation to test code synchronously
-            send_licence_to_hmrc_integration.now(str(self.standard_licence.id), self.hmrc_integration_status)
+        with self.assertRaises(HMRCIntegrationException) as error:
+            send_licence_details_to_lite_hmrc(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence.assert_called_once()
-        task_get.assert_called_with(
-            queue=HMRC_INTEGRATION_QUEUE,
-            task_params=f'[["{self.standard_licence.id}", "{ self.hmrc_integration_status}"], {{}}]',
-        )
-        schedule_max_tried_task_as_new_task.assert_not_called()
-        self.assertEqual(
-            str(error.exception),
-            f"Failed to send licence '{self.standard_licence.id}', action '{self.hmrc_integration_status}' "
-            f"to HMRC Integration",
-        )
-
-    @mock.patch("api.licences.tasks.schedule_max_tried_task_as_new_task")
-    @mock.patch("api.licences.tasks.Task.objects.get")
-    @mock.patch("api.licences.tasks.hmrc_integration_operations.send_licence")
-    def test_send_licence_to_hmrc_integration_with_background_task_failure_max_attempts(
-        self, send_licence, task_get, schedule_max_tried_task_as_new_task
-    ):
-        send_licence.side_effect = HMRCIntegrationException("Recieved an unexpected response")
-        task_get.return_value = MockTask(MAX_ATTEMPTS - 1)  # Make the current task attempt 1 less than MAX_ATTEMPTS
-        schedule_max_tried_task_as_new_task.return_value = None
-
-        with self.assertRaises(Exception) as error:
-            # Note: Using `.now()` operation to test code synchronously
-            send_licence_to_hmrc_integration.now(str(self.standard_licence.id), self.hmrc_integration_status)
-
-        send_licence.assert_called_once()
-        task_get.assert_called_with(
-            queue=HMRC_INTEGRATION_QUEUE,
-            task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
-        )
-        schedule_max_tried_task_as_new_task.assert_called_with(
-            str(self.standard_licence.id), self.hmrc_integration_status
-        )
-        self.assertEqual(
-            str(error.exception),
-            f"Failed to send licence '{self.standard_licence.id}', action "
-            f"'{self.hmrc_integration_status}' to HMRC Integration",
-        )
-
-    @mock.patch("api.licences.tasks.send_licence_to_hmrc_integration")
-    def test_schedule_max_tried_task_as_new_task(self, send_licence_to_hmrc_integration):
-        send_licence_to_hmrc_integration.return_value = None
-
-        schedule_max_tried_task_as_new_task(str(self.standard_licence.id), self.hmrc_integration_status)
-
-        send_licence_to_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), self.hmrc_integration_status, schedule=TASK_BACK_OFF
-        )
-
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_initialize_background_task_already_scheduled(self, schedule_licence_for_hmrc_integration):
-        schedule_licence_for_hmrc_integration.return_value = None
-
-        # When the application is restarted it will trigger this function
-        LicencesConfig.schedule_not_sent_licences()
-
-        schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), self.hmrc_integration_status
-        )
+        self.assertEqual(str(error.exception), "Received an unexpected response")
 
 
 class HMRCIntegrationTests(DataTestClient):
@@ -672,7 +527,7 @@ class HMRCIntegrationTests(DataTestClient):
         super().setUp()
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
 
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.core.requests.requests.request")
     def test_approve_standard_application_licence_success(self, request):
         request.return_value = MockResponse("", 201)
@@ -694,7 +549,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.licences.libraries.hmrc_integration_operations.send_licence")
     def test_siel_no_goods_skip_sending_details_to_hmrc(self, send_licence):
         standard_application, standard_licence = self._create_licence_for_submission(
@@ -711,7 +566,7 @@ class HMRCIntegrationTests(DataTestClient):
 
         send_licence.assert_not_called()
 
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.core.requests.requests.request")
     @pytest.mark.skip(reason="Currently we don't support open applications")
     def test_approve_open_application_licence_success(self, request):
@@ -733,7 +588,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.core.requests.requests.request")
     def test_surrender_licence_success(self, request):
         request.return_value = MockResponse("", 201)
@@ -760,7 +615,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.core.requests.requests.request")
     def test_revoke_licence_success(self, request):
         request.return_value = MockResponse("", 201)
@@ -789,30 +644,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
-    @mock.patch("api.core.requests.requests.request")
-    @pytest.mark.skip(reason="Currently we don't support ogel applications")
-    def test_create_ogel_licence_success(self, request):
-        request.return_value = MockResponse("", 201)
-        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
-        open_general_licence_case = OpenGeneralLicenceCaseFactory(
-            open_general_licence=open_general_licence,
-            site=self.organisation.primary_site,
-            organisation=self.organisation,
-        )
-        open_general_licence_licence = Licence.objects.get(case=open_general_licence_case)
-        expected_insert_json = HMRCIntegrationLicenceSerializer(open_general_licence_licence).data
-        expected_insert_json["action"] = HMRCIntegrationActionEnum.INSERT
-
-        request.assert_called_with(
-            "POST",
-            f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
-            json={"licence": expected_insert_json},
-            headers=ANY,
-            timeout=LITE_HMRC_REQUEST_TIMEOUT,
-        )
-
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.core.requests.requests.request")
     def test_reinstate_licence_success(self, request):
         request.return_value = MockResponse("", 201)
@@ -849,7 +681,7 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True, BACKGROUND_TASK_ENABLED=False)
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
         licence = self.create_licence(application, status=LicenceStatus.DRAFT)
