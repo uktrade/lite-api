@@ -7,6 +7,7 @@ from api.licences.models import Licence
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.cases.generated_documents.models import GeneratedCaseDocument
+from api.cases.tests.factories import FinalAdviceFactory
 from api.core.constants import GovPermissions
 from api.core.exceptions import PermissionDeniedError
 from api.licences.tests.factories import StandardLicenceFactory
@@ -23,7 +24,7 @@ class FinaliseCaseTests(DataTestClient):
         super().setUp()
         self.standard_case = self.create_standard_application_case(self.organisation)
         self.url = reverse("cases:finalise", kwargs={"pk": self.standard_case.id})
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_case, type=AdviceType.APPROVE)
         self.template = self.create_letter_template(
             name="Template",
             case_types=[CaseTypeEnum.SIEL.id],
@@ -86,7 +87,7 @@ class FinaliseCaseTests(DataTestClient):
     def test_grant_clearance_success(self, send_exporter_notifications_func, mock_notify):
         clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(clearance_case)
-        self.create_advice(self.gov_user, clearance_case, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        FinalAdviceFactory(user=self.gov_user, case=clearance_case, type=AdviceType.APPROVE)
         self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])

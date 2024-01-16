@@ -80,3 +80,11 @@ class GoodFactory(factory.django.DjangoModelFactory):
             return
 
         self.flags.set(extracted)
+
+    @factory.post_generation
+    def pv_grading_details(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if self.is_pv_graded == GoodPvGraded.NO:
+            self.pv_grading_details = None

@@ -14,7 +14,7 @@ from api.cases.tests.factories import GoodCountryDecisionFactory
 from api.goodstype.models import GoodsType
 from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum
 from api.licences.models import HMRCIntegrationUsageData, Licence
-from api.licences.tests.factories import GoodOnLicenceFactory
+from api.licences.tests.factories import GoodOnLicenceFactory, StandardLicenceFactory
 from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from api.staticdata.countries.models import Country
 from test_helpers.clients import DataTestClient
@@ -28,7 +28,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def create_siel_licence(self):
         standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        licence = self.create_licence(standard_application, status=LicenceStatus.ISSUED)
+        licence = StandardLicenceFactory(case=standard_application, status=LicenceStatus.ISSUED)
         self._create_good_on_licence(licence, standard_application.goods.first())
         return licence
 

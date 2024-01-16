@@ -20,34 +20,34 @@ from api.teams.tests.factories import TeamFactory, DepartmentFactory
 from api.users.tests.factories import GovUserFactory
 
 
-class UserAdviceFactory(factory.django.DjangoModelFactory):
+class BaseAdviceFactory(factory.django.DjangoModelFactory):
     text = factory.Faker("word")
     note = factory.Faker("word")
     type = AdviceType.APPROVE
+
+    @factory.post_generation
+    def denial_reasons(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if self.type == AdviceType.REFUSE:
+            denial_reasons = extracted or ["1a", "1b", "1c"]
+            self.denial_reasons.set(denial_reasons)
+
+    class Meta:
+        model = Advice
+
+
+class UserAdviceFactory(BaseAdviceFactory):
     level = AdviceLevel.USER
 
-    class Meta:
-        model = Advice
 
-
-class TeamAdviceFactory(factory.django.DjangoModelFactory):
-    text = factory.Faker("word")
-    note = factory.Faker("word")
-    type = AdviceType.APPROVE
+class TeamAdviceFactory(BaseAdviceFactory):
     level = AdviceLevel.TEAM
 
-    class Meta:
-        model = Advice
 
-
-class FinalAdviceFactory(factory.django.DjangoModelFactory):
-    text = factory.Faker("word")
-    note = factory.Faker("word")
-    type = AdviceType.APPROVE
+class FinalAdviceFactory(BaseAdviceFactory):
     level = AdviceLevel.FINAL
-
-    class Meta:
-        model = Advice
 
 
 class CountersignAdviceFactory(factory.django.DjangoModelFactory):
@@ -98,7 +98,6 @@ class DepartmentSLAFactory(factory.django.DjangoModelFactory):
 
 
 class CaseAssignmentFactory(factory.django.DjangoModelFactory):
-
     case = factory.SubFactory(CaseFactory)
     user = factory.SubFactory(GovUserFactory)
     queue = factory.SubFactory(QueueFactory)

@@ -11,7 +11,7 @@ from django.test import override_settings
 from django.conf import settings
 
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
-from api.cases.tests.factories import GoodCountryDecisionFactory
+from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.core.constants import GovPermissions
 from api.core.helpers import add_months
 from api.conf.settings import MAX_ATTEMPTS, LITE_HMRC_REQUEST_TIMEOUT
@@ -76,7 +76,8 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def test_standard_application(self, status):
         action = licence_status_to_hmrc_integration_action.get(status)
         standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        good = standard_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=standard_application, good=good)
         standard_licence = StandardLicenceFactory(case=standard_application, status=status)
         good_on_application = standard_application.goods.first()
         GoodOnLicenceFactory(
@@ -115,7 +116,8 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         end_user = standard_application.parties.get(party__type="end_user").party
         end_user.country = trade_country
         end_user.save()
-        self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        good = standard_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=standard_application, good=good)
         standard_licence = StandardLicenceFactory(case=standard_application, status=status)
         good_on_application = standard_application.goods.first()
         GoodOnLicenceFactory(
@@ -158,7 +160,8 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         end_user = standard_application.parties.get(party__type="end_user").party
         end_user.country = trade_country
         end_user.save()
-        self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        good = standard_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=standard_application, good=good)
         standard_licence = StandardLicenceFactory(case=standard_application, status=status)
         good_on_application = standard_application.goods.first()
         GoodOnLicenceFactory(
@@ -200,7 +203,8 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         end_user = standard_application.parties.get(party__type="end_user").party
         end_user.country = trade_country
         end_user.save()
-        self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        good = standard_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=standard_application, good=good)
         standard_licence = StandardLicenceFactory(case=standard_application, status=status)
         good_on_application = standard_application.goods.first()
         GoodOnLicenceFactory(
@@ -339,7 +343,8 @@ class HMRCIntegrationOperationsTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        good = self.standard_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_application, good=good)
         status = LicenceStatus.ISSUED
         self.hmrc_integration_status = licence_status_to_hmrc_integration_action.get(status)
         self.standard_licence = StandardLicenceFactory(case=self.standard_application, status=status)
@@ -391,7 +396,8 @@ class HMRCIntegrationLicenceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        good = self.standard_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_application, good=good)
         self.standard_licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.ISSUED)
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
@@ -465,7 +471,8 @@ class HMRCIntegrationTasksTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        good = self.standard_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_application, good=good)
         status = LicenceStatus.ISSUED
         self.hmrc_integration_status = licence_status_to_hmrc_integration_action.get(status)
         self.standard_licence = StandardLicenceFactory(case=self.standard_application, status=status)
@@ -686,9 +693,10 @@ class HMRCIntegrationTests(DataTestClient):
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
         licence = StandardLicenceFactory(case=application, status=LicenceStatus.DRAFT)
+        good = application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=application, good=good)
         for product in application.goods.all():
             GoodOnLicence.objects.create(good=product, licence=licence, quantity=product.quantity, value=product.value)
-        self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         template = self.create_letter_template(
             name=f"{timezone.now()}",
             case_types=[application.case_type],

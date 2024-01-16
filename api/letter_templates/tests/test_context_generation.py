@@ -14,7 +14,7 @@ from api.applications.enums import (
 )
 from api.applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
-from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from api.cases.enums import AdviceType, CaseTypeEnum
 from api.licences.tests.factories import StandardLicenceFactory
 from api.letter_templates.context_generator import EcjuQuerySerializer
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
@@ -438,9 +438,7 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_goods(self):
         application = self.create_standard_application_case(self.organisation, user=self.exporter_user, num_products=10)
         for product in application.goods.all():
-            self.create_advice(
-                self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL, good=product.good
-            )
+            FinalAdviceFactory(user=self.gov_user, case=application, good=product.good)
 
         licence = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
         for product in application.goods.all():
@@ -466,20 +464,8 @@ class DocumentContextGenerationTests(DataTestClient):
 
         # mixup approvals and proviso's to check the order later
         for index, product in enumerate(application.goods.all()):
-            if index % 2 == 0:
-                self.create_advice(
-                    self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL, good=product.good
-                )
-            else:
-                self.create_advice(
-                    self.gov_user,
-                    application,
-                    "good",
-                    AdviceType.PROVISO,
-                    AdviceLevel.FINAL,
-                    good=product.good,
-                    advice_text="proviso",
-                )
+            advice_type = AdviceType.PROVISO if index % 2 else AdviceType.APPROVE
+            FinalAdviceFactory(user=self.gov_user, case=application, good=product.good, type=advice_type)
 
         licence = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
         for product in application.goods.all():
@@ -506,23 +492,8 @@ class DocumentContextGenerationTests(DataTestClient):
 
         # mixup approvals and proviso's to check the order later
         for index, product in enumerate(application.goods.all()):
-            product.good = single_good
-            product.save()
-
-            if index % 2 == 0:
-                self.create_advice(
-                    self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL, good=product.good
-                )
-            else:
-                self.create_advice(
-                    self.gov_user,
-                    application,
-                    "good",
-                    AdviceType.PROVISO,
-                    AdviceLevel.FINAL,
-                    good=product.good,
-                    advice_text="proviso",
-                )
+            advice_type = AdviceType.PROVISO if index % 2 else AdviceType.APPROVE
+            FinalAdviceFactory(user=self.gov_user, case=application, good=product.good, type=advice_type)
 
         licence = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
         for product in application.goods.all():
@@ -543,18 +514,13 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def test_generate_context_with_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        final_advice = self.create_advice(
-            self.gov_user,
-            case,
-            "good",
-            AdviceType.REFUSE,
-            AdviceLevel.FINAL,
-            advice_text="abc",
-        )
         good = case.goods.first()
-        good.licenced_quantity = 10
-        good.licenced_value = 15
-        good.save()
+        final_advice = FinalAdviceFactory(
+            user=self.gov_user,
+            case=case,
+            type=AdviceType.REFUSE,
+            good=good.good,
+        )
 
         context = get_document_context(case)
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
@@ -568,21 +534,26 @@ class DocumentContextGenerationTests(DataTestClient):
         good was subsequently removed from the application.
         """
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        good = self.create_good_on_application(
-            case, GoodFactory(organisation=self.organisation, is_good_controlled=True)
+        another_good_on_application = GoodOnApplicationFactory(
+            application=case,
+            good=GoodFactory(organisation=self.organisation, is_good_controlled=True),
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
         )
-        self.create_advice(
-            self.gov_user,
-            case,
-            "good",
-            AdviceType.REFUSE,
-            AdviceLevel.FINAL,
-            advice_text="abc",
+        FinalAdviceFactory(
+            user=self.gov_user,
+            case=case,
+            type=AdviceType.REFUSE,
             good=case.goods.first().good,
         )
-        final_advice = self.create_advice(
-            self.gov_user, case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, advice_text="abc", good=good.good
+        final_advice = FinalAdviceFactory(
+            user=self.gov_user,
+            case=case,
+            type=AdviceType.REFUSE,
+            good=another_good_on_application.good,
         )
+
         case.goods.first().delete()  # Remove the first good from the application
 
         context = get_document_context(case)
@@ -594,18 +565,11 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def test_generate_context_with_proviso_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        final_advice = self.create_advice(
-            self.gov_user,
-            case,
-            "good",
-            AdviceType.PROVISO,
-            AdviceLevel.FINAL,
-            advice_text="abc",
-        )
         good = case.goods.first()
         good.licenced_quantity = 15
         good.licenced_value = 20
         good.save()
+        final_advice = FinalAdviceFactory(user=self.gov_user, case=case, type=AdviceType.PROVISO, good=good.good)
 
         context = get_document_context(case)
         render_to_string(template_name="letter_templates/case_context_test.html", context=context)
@@ -619,18 +583,10 @@ class DocumentContextGenerationTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         good_on_application = case.goods.first()
         good = good_on_application.good
-        approve_advice = self.create_advice(
-            self.gov_user,
-            case,
-            "good",
-            AdviceType.APPROVE,
-            AdviceLevel.FINAL,
-            advice_text="some advice text",
-            good=good,
-        )
+        FinalAdviceFactory(user=self.gov_user, case=case, good=good)
 
         licence = StandardLicenceFactory(case=case, status=LicenceStatus.ISSUED)
-        good_on_licence = GoodOnLicenceFactory(good=good_on_application, quantity=3, value=420, licence=licence)
+        GoodOnLicenceFactory(good=good_on_application, quantity=3, value=420, licence=licence)
 
         context = get_document_context(case)
 
@@ -642,24 +598,8 @@ class DocumentContextGenerationTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         good_on_application = case.goods.first()
         good = good_on_application.good
-        approve_advice = self.create_advice(
-            self.gov_user,
-            case,
-            "good",
-            AdviceType.APPROVE,
-            AdviceLevel.FINAL,
-            advice_text="some advice text",
-            good=good,
-        )
-        proviso_advice = self.create_advice(
-            self.gov_user,
-            case,
-            "good",
-            AdviceType.PROVISO,
-            AdviceLevel.FINAL,
-            advice_text="some advice text",
-            good=good,
-        )
+        FinalAdviceFactory(user=self.gov_user, case=case, good=good)
+        FinalAdviceFactory(user=self.gov_user, case=case, good=good, type=AdviceType.PROVISO)
 
         licence = StandardLicenceFactory(case=case, status=LicenceStatus.ISSUED)
         good_on_licence = GoodOnLicenceFactory(good=good_on_application, quantity=3, value=420, licence=licence)

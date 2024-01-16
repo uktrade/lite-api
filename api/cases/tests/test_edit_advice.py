@@ -7,7 +7,7 @@ from rest_framework import status
 from api.applications.models import StandardApplication
 from api.cases.enums import AdviceType, AdviceLevel, CountersignOrder
 from api.cases.models import Advice, CountersignAdvice
-from api.cases.tests.factories import CountersignAdviceFactory
+from api.cases.tests.factories import CountersignAdviceFactory, UserAdviceFactory
 from api.core.constants import GovPermissions
 from api.flags.enums import FlagLevels
 from api.flags.models import Flag
@@ -93,21 +93,20 @@ class AdviceFinalLevelUpdateTests(DataTestClient):
     def _setup_advice_for_application(self, application, advice_type, advice_level):
         # Create Advice objects for all entities
         for good_on_application in application.goods.all():
-            self.create_advice(
-                self.gov_user,
-                application,
-                "",
-                advice_type,
-                advice_level,
+            UserAdviceFactory(
+                user=self.gov_user,
+                case=application,
+                type=advice_type,
+                level=advice_level,
                 good=good_on_application.good,
             )
         for party_on_application in application.parties.all():
-            self.create_advice(
-                self.gov_user,
-                application,
-                party_on_application.party.type,
-                advice_type,
-                advice_level,
+            UserAdviceFactory(
+                user=self.gov_user,
+                case=application,
+                type=advice_type,
+                level=advice_level,
+                end_user=party_on_application.party,
             )
 
     @parameterized.expand(CaseStatusEnum._terminal_statuses)
@@ -277,21 +276,20 @@ class AdviceUpdateCountersignInvalidateTests(DataTestClient):
     def _setup_advice_for_application(self, application, advice_type, advice_level):
         # Create Advice objects for all entities
         for good_on_application in application.goods.all():
-            self.create_advice(
-                self.gov_user,
-                application,
-                "",
-                advice_type,
-                advice_level,
+            UserAdviceFactory(
+                user=self.gov_user,
+                case=application,
+                type=advice_type,
+                level=advice_level,
                 good=good_on_application.good,
             )
         for party_on_application in application.parties.all():
-            self.create_advice(
-                self.gov_user,
-                application,
-                party_on_application.party.type,
-                advice_type,
-                advice_level,
+            UserAdviceFactory(
+                user=self.gov_user,
+                case=application,
+                type=advice_type,
+                level=advice_level,
+                end_user=party_on_application.party,
             )
 
     @parameterized.expand(
