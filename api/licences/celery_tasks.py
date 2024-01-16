@@ -29,6 +29,7 @@ def send_licence_details_to_lite_hmrc(licence_id, action):
     try:
         with transaction.atomic():
             # transaction.atomic + select_for_update + nowait=True will throw an error if row has already been locked
+            logger.info("Attempt to acquire lock (non-blocking) before updating licence %s", str(licence_id))
             licence = Licence.objects.select_for_update(nowait=True).get(id=licence_id)
             send_licence(licence, action)
     except HMRCIntegrationException as e:
