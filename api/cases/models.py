@@ -612,6 +612,10 @@ class EcjuQuery(TimestampableModel):
         choices=ECJUQueryType.choices, max_length=50, default=ECJUQueryType.ECJU, null=False, blank=False
     )
 
+    @property
+    def is_query_closed(self):
+        return self.responded_at is not None
+
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
 
     def save(self, *args, **kwargs):

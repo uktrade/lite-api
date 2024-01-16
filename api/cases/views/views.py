@@ -617,7 +617,7 @@ class EcjuQueryDetail(APIView):
         If validate only, this will return if the data is acceptable or not.
         """
         ecju_query = get_ecju_query(ecju_pk)
-        if ecju_query.response:
+        if ecju_query.is_query_closed:
             return JsonResponse(
                 data={"errors": f"Responding to closed {ecju_query.get_query_type_display()} is not allowed"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -664,7 +664,7 @@ class EcjuQueryAddDocument(APIView):
         Adds a document to the specified good
         """
         ecju_query = get_ecju_query(kwargs["query_pk"])
-        if ecju_query.response:
+        if ecju_query.is_query_closed:
             return JsonResponse(
                 {"errors": "Adding document for a closed query is not allowed"}, status=status.HTTP_400_BAD_REQUEST
             )
