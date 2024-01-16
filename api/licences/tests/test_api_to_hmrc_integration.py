@@ -380,8 +380,8 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         requests_post.assert_called_once()
         self.assertEqual(
             str(error.exception),
-            f"An unexpected response was received when sending licence '{self.standard_licence.id}', "
-            f"action '{self.hmrc_integration_status}' to HMRC Integration -> status=400, message=Bad request",
+            f"An unexpected response was received when sending licence '{self.standard_licence.reference_code}', "
+            f"action '{self.hmrc_integration_status}' to lite-hmrc -> status=400, message=Bad request",
         )
         self.assertIsNone(self.standard_licence.hmrc_integration_sent_at)
 
@@ -477,14 +477,14 @@ class HMRCIntegrationTasksTests(DataTestClient):
                 value=product.value,
             )
 
-    @mock.patch("api.licences.celery_tasks.send_licence_details_to_lite_hmrc.delay")
+    @mock.patch("api.licences.celery_tasks.send_licence_details_to_lite_hmrc.apply_async")
     def test_schedule_licence_details_to_lite_hmrc(self, send_licence_details_to_lite_hmrc_task):
         send_licence_details_to_lite_hmrc_task.return_value = None
 
         schedule_licence_details_to_lite_hmrc(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence_details_to_lite_hmrc_task.assert_called_with(
-            str(self.standard_licence.id), self.hmrc_integration_status
+            args=(str(self.standard_licence.id), self.hmrc_integration_status), countdown=10
         )
 
     @mock.patch("api.licences.celery_tasks.send_licence")
@@ -507,7 +507,9 @@ class HMRCIntegrationTasksTests(DataTestClient):
     def test_send_licence_to_hmrc_integration_with_background_task_success(self, send_licence):
         send_licence.return_value = None
 
-        send_licence_details_to_lite_hmrc.delay(str(self.standard_licence.id), self.hmrc_integration_status)
+        send_licence_details_to_lite_hmrc.apply_async(
+            args=(str(self.standard_licence.id), self.hmrc_integration_status)
+        )
 
         send_licence.assert_called_once()
 

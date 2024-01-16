@@ -9,7 +9,7 @@ from api.licences.models import Licence
 
 MAX_ATTEMPTS = 5
 RETRY_BACKOFF = 1200
-
+DEFER_EXECUTION_DELAY = 10  # secs
 
 logger = get_task_logger(__name__)
 
@@ -29,8 +29,10 @@ def send_licence_details_to_lite_hmrc(licence_id, action):
     try:
         with transaction.atomic():
             # transaction.atomic + select_for_update + nowait=True will throw an error if row has already been locked
+            # nowait=True makes it non-blocking
             logger.info("Attempt to acquire lock (non-blocking) before updating licence %s", str(licence_id))
             licence = Licence.objects.select_for_update(nowait=True).get(id=licence_id)
+
             send_licence(licence, action)
     except HMRCIntegrationException as e:
         logger.error("Error sending licence %s details to lite-hmrc: %s", str(licence_id), str(e))
@@ -50,5 +52,8 @@ def schedule_licence_details_to_lite_hmrc(licence_id, action):
         )
         return
 
-    logger.info("Scheduling task to %s licence %s details to lite-hmrc", action, str(licence_id))
-    send_licence_details_to_lite_hmrc.delay(licence_id, action)
+    logger.info("Scheduling task to %s licence %s details in lite-hmrc", action, licence.reference_code)
+
+    # Defer task execution to allow for all Licence updates to complete
+    # so that the task be able to acquire lock when it executes
+    send_licence_details_to_lite_hmrc.apply_async(args=(licence_id, action), countdown=DEFER_EXECUTION_DELAY)
