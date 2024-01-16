@@ -1118,6 +1118,7 @@ class SearchAPITest(DataTestClient):
                     "raised_by_user": f"{self.ecju_query.raised_by_user.first_name} {self.ecju_query.raised_by_user.last_name}",
                     "responded_by_user": f"{self.ecju_query.responded_by_user.first_name} {self.ecju_query.responded_by_user.last_name}",
                     "query_type": self.ecju_query.query_type,
+                    "is_query_closed": self.ecju_query.is_query_closed,
                 }
             ],
         )

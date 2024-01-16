@@ -588,11 +588,7 @@ class ECJUQueriesOpenCount(APIView):
 
     def get(self, request, pk):
         """Gets count of all open queries."""
-        qs = EcjuQuery.objects.filter(
-            case__pk=pk,
-            responded_at__isnull=True,
-            response__isnull=True,
-        )
+        qs = EcjuQuery.objects.filter(case__pk=pk, is_query_closed=False)
         return JsonResponse(data={"count": qs.count()})
 
 

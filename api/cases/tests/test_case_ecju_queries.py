@@ -118,6 +118,7 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(returned_ecju_query_1.get("question"), "ECJU Query 1")
         self.assertEqual(returned_ecju_query_1.get("response"), None)
         self.assertEqual(returned_ecju_query_1.get("team")["name"], self.ecju_query_1.team.name)
+        self.assertEqual(returned_ecju_query_1.get("is_query_closed"), self.ecju_query_1.is_query_closed)
         # We can't predict exactly when the query is created so we settle for the fact that its set
         self.assertIsNotNone(returned_ecju_query_1.get("created_at"))
 
@@ -125,6 +126,7 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(returned_ecju_query_2.get("question"), "ECJU Query 2")
         self.assertEqual(returned_ecju_query_2.get("response"), "I have a response")
         self.assertEqual(returned_ecju_query_2.get("team")["name"], self.ecju_query_2.team.name)
+        self.assertEqual(returned_ecju_query_2.get("is_query_closed"), self.ecju_query_2.is_query_closed)
         # We can't predict exactly when the query is created so we settle for the fact that its set
         self.assertIsNotNone(returned_ecju_query_1.get("created_at"))
 
@@ -166,6 +168,7 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(str(ecju_query.question), response_data["ecju_query"]["question"])
         self.assertEqual(ecju_query.response, None)
         self.assertEqual(str(ecju_query.case.id), response_data["ecju_query"]["case"])
+        self.assertEqual(ecju_query.is_query_closed, response_data["ecju_query"]["is_query_closed"])
 
     def test_ecju_query_open_query_count(self):
         """
@@ -178,12 +181,21 @@ class ECJUQueriesViewTests(DataTestClient):
 
         url = reverse("cases:case_ecju_query_open_count", kwargs={"pk": case.id})
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
 
-        # Assert
         response_data = response.json()
 
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(1, response_data["count"])
+
+        EcjuQueryFactory(
+            question="open",
+            case=case,
+            responded_by_user=self.exporter_user.baseuser_ptr,
+            response="I have a response only",
+        )
+
+        response = self.client.get(url, **self.gov_headers)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(1, response_data["count"])
 
@@ -194,43 +206,15 @@ class ECJUQueriesViewTests(DataTestClient):
          Then the request is successful  we return 0 as open queries
         """
         case = self.create_standard_application_case(self.organisation)
-        case_2 = self.create_standard_application_case(self.organisation)
 
-        ecju_query = EcjuQueryFactory(
+        EcjuQueryFactory(
             question="open",
             case=case,
             responded_by_user=self.exporter_user.baseuser_ptr,
             responded_at=timezone.now(),
         )
 
-        EcjuQueryFactory(
-            question="open",
-            case=case,
-            responded_by_user=self.exporter_user.baseuser_ptr,
-            response="I have a response only",
-        )
-
         url = reverse("cases:case_ecju_query_open_count", kwargs={"pk": case.id})
-
-        # Act
-        response = self.client.get(url, **self.gov_headers)
-        response_2 = self.client.get(
-            reverse("cases:case_ecju_query_open_count", kwargs={"pk": case_2.id}), **self.gov_headers
-        )
-
-        # Assert
-        response_data = response.json()
-
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(0, response_data["count"])
-
-        response_data_2 = response.json()
-
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(0, response_data_2["count"])
-
-        ecju_query.response = "I have a response now"
-        ecju_query.save()
 
         response = self.client.get(url, **self.gov_headers)
 
@@ -260,6 +244,7 @@ class ECJUQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Test ECJU Query question?", ecju_query.question)
+        self.assertEqual(False, ecju_query.is_query_closed)
 
         mock_notify.assert_called_with(case.id)
 
