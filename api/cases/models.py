@@ -9,6 +9,8 @@ from django.db import models
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
+from queryable_properties.properties import queryable_property
+
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
     AdviceType,
@@ -611,6 +613,10 @@ class EcjuQuery(TimestampableModel):
     query_type = models.CharField(
         choices=ECJUQueryType.choices, max_length=50, default=ECJUQueryType.ECJU, null=False, blank=False
     )
+
+    @queryable_property
+    def is_query_closed(self):
+        return self.responded_at is not None
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
 
