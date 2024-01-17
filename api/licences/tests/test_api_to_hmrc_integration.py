@@ -477,14 +477,14 @@ class HMRCIntegrationTasksTests(DataTestClient):
                 value=product.value,
             )
 
-    @mock.patch("api.licences.celery_tasks.send_licence_details_to_lite_hmrc.apply_async")
+    @mock.patch("api.licences.celery_tasks.send_licence_details_to_lite_hmrc.delay")
     def test_schedule_licence_details_to_lite_hmrc(self, send_licence_details_to_lite_hmrc_task):
         send_licence_details_to_lite_hmrc_task.return_value = None
 
         schedule_licence_details_to_lite_hmrc(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence_details_to_lite_hmrc_task.assert_called_with(
-            args=(str(self.standard_licence.id), self.hmrc_integration_status), countdown=10
+            str(self.standard_licence.id), self.hmrc_integration_status
         )
 
     @mock.patch("api.licences.celery_tasks.send_licence")
@@ -507,9 +507,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
     def test_send_licence_to_hmrc_integration_with_background_task_success(self, send_licence):
         send_licence.return_value = None
 
-        send_licence_details_to_lite_hmrc.apply_async(
-            args=(str(self.standard_licence.id), self.hmrc_integration_status)
-        )
+        send_licence_details_to_lite_hmrc.delay(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence.assert_called_once()
 
