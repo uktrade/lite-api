@@ -35,7 +35,7 @@ class HMRCIntegrationException(APIException):
 def send_licence(licence: Licence, action: str):
     """Sends licence information to lite-hmrc"""
 
-    logging.info(f"Sending licence '{licence.reference_code}' with action '{action}' to lite-hmrc")
+    logging.info("Sending licence %s with action %s to lite-hmrc", licence.reference_code, action)
 
     url = f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
     data = {"licence": HMRCIntegrationLicenceSerializer(licence).data}
@@ -51,10 +51,11 @@ def send_licence(licence: Licence, action: str):
         )
 
     if response.status_code == status.HTTP_201_CREATED:
+        logging.info("Record that new licence %s with action %s is sent to lite-hmrc", licence.reference_code, action)
         licence.hmrc_integration_sent_at = timezone.now()
         licence.save()
 
-    logging.info(f"Successfully sent licence '{licence.reference_code}' with action '{action}' to lite-hmrc")
+    logging.info("Successfully sent licence %s with action %s to lite-hmrc", licence.reference_code, action)
 
 
 def get_mail_status(licence: Licence):
