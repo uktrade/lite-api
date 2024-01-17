@@ -118,6 +118,7 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(returned_ecju_query_1.get("question"), "ECJU Query 1")
         self.assertEqual(returned_ecju_query_1.get("response"), None)
         self.assertEqual(returned_ecju_query_1.get("team")["name"], self.ecju_query_1.team.name)
+        self.assertEqual(returned_ecju_query_1.get("is_query_closed"), self.ecju_query_1.is_query_closed)
         # We can't predict exactly when the query is created so we settle for the fact that its set
         self.assertIsNotNone(returned_ecju_query_1.get("created_at"))
 
@@ -125,6 +126,7 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(returned_ecju_query_2.get("question"), "ECJU Query 2")
         self.assertEqual(returned_ecju_query_2.get("response"), "I have a response")
         self.assertEqual(returned_ecju_query_2.get("team")["name"], self.ecju_query_2.team.name)
+        self.assertEqual(returned_ecju_query_2.get("is_query_closed"), self.ecju_query_2.is_query_closed)
         # We can't predict exactly when the query is created so we settle for the fact that its set
         self.assertIsNotNone(returned_ecju_query_1.get("created_at"))
 
@@ -166,6 +168,7 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(str(ecju_query.question), response_data["ecju_query"]["question"])
         self.assertEqual(ecju_query.response, None)
         self.assertEqual(str(ecju_query.case.id), response_data["ecju_query"]["case"])
+        self.assertEqual(ecju_query.is_query_closed, response_data["ecju_query"]["is_query_closed"])
 
     def test_ecju_query_open_query_count(self):
         """
@@ -260,6 +263,7 @@ class ECJUQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Test ECJU Query question?", ecju_query.question)
+        self.assertEqual(False, ecju_query.is_query_closed)
 
         mock_notify.assert_called_with(case.id)
 
