@@ -380,8 +380,8 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         requests_post.assert_called_once()
         self.assertEqual(
             str(error.exception),
-            f"An unexpected response was received when sending licence '{self.standard_licence.id}', "
-            f"action '{self.hmrc_integration_status}' to HMRC Integration -> status=400, message=Bad request",
+            f"An unexpected response was received when sending licence '{self.standard_licence.reference_code}', "
+            f"action '{self.hmrc_integration_status}' to lite-hmrc -> status=400, message=Bad request",
         )
         self.assertIsNone(self.standard_licence.hmrc_integration_sent_at)
 
