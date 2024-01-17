@@ -6,15 +6,13 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
-from queryable_properties.managers import QueryablePropertiesManager
-
-from django.db.models import Model, Q
-
 from rest_framework.exceptions import ValidationError
-
+from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
+
 
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
@@ -626,9 +624,10 @@ class EcjuQuery(TimestampableModel):
     def is_query_closed(self):
         return self.responded_at is not None
 
+    # This method allows the above propery to be used in filtering objects. Similar to db fields.
     @is_query_closed.filter(lookups=("exact",))
     def is_query_closed(self, lookup, value):
-        return Q(responded_at__isnull=not value)
+        return ~Q(responded_at__isnull=value)
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
 

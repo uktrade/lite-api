@@ -177,7 +177,7 @@ class ECJUQueriesViewTests(DataTestClient):
         Then the request is successful  we return the number of open ECJUQueries
         """
         case = self.create_standard_application_case(self.organisation)
-        EcjuQueryFactory(question="open", case=case, raised_by_user=self.gov_user, response=None)
+        EcjuQueryFactory(question="open query 1", case=case, raised_by_user=self.gov_user, response=None)
 
         url = reverse("cases:case_ecju_query_open_count", kwargs={"pk": case.id})
 
@@ -189,7 +189,7 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(1, response_data["count"])
 
         EcjuQueryFactory(
-            question="open",
+            question="open query 2",
             case=case,
             responded_by_user=self.exporter_user.baseuser_ptr,
             response="I have a response only",
@@ -208,7 +208,7 @@ class ECJUQueriesViewTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
 
         EcjuQueryFactory(
-            question="open",
+            question="closed query",
             case=case,
             responded_by_user=self.exporter_user.baseuser_ptr,
             responded_at=timezone.now(),
