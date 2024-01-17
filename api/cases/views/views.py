@@ -1,3 +1,5 @@
+import logging
+
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
@@ -954,6 +956,8 @@ class FinaliseView(UpdateAPIView):
                 )
 
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
+
+            logging.info("Initiate issue of licence %s (status: %s)", licence.reference_code, licence.status)
             licence.issue()
 
             return_payload["licence"] = licence.id
@@ -976,6 +980,7 @@ class FinaliseView(UpdateAPIView):
         old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
+        logging.info("Case status is now finalised")
 
         decisions = required_decisions.copy()
 
@@ -1016,6 +1021,8 @@ class FinaliseView(UpdateAPIView):
         documents.update(visible_to_exporter=True)
         for document in documents:
             document.send_exporter_notifications()
+
+        logging.info("Licence documents visible to exporter, notification sent")
 
         return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
 
