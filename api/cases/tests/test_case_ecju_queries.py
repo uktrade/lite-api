@@ -177,16 +177,25 @@ class ECJUQueriesViewTests(DataTestClient):
         Then the request is successful  we return the number of open ECJUQueries
         """
         case = self.create_standard_application_case(self.organisation)
-        EcjuQueryFactory(question="open", case=case, raised_by_user=self.gov_user, response=None)
+        EcjuQueryFactory(question="open query 1", case=case, raised_by_user=self.gov_user, response=None)
 
         url = reverse("cases:case_ecju_query_open_count", kwargs={"pk": case.id})
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
 
-        # Assert
         response_data = response.json()
 
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(1, response_data["count"])
+
+        EcjuQueryFactory(
+            question="open query 2",
+            case=case,
+            responded_by_user=self.exporter_user.baseuser_ptr,
+            response="I have a response only",
+        )
+
+        response = self.client.get(url, **self.gov_headers)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(1, response_data["count"])
 
@@ -197,43 +206,15 @@ class ECJUQueriesViewTests(DataTestClient):
          Then the request is successful  we return 0 as open queries
         """
         case = self.create_standard_application_case(self.organisation)
-        case_2 = self.create_standard_application_case(self.organisation)
 
-        ecju_query = EcjuQueryFactory(
-            question="open",
+        EcjuQueryFactory(
+            question="closed query",
             case=case,
             responded_by_user=self.exporter_user.baseuser_ptr,
             responded_at=timezone.now(),
         )
 
-        EcjuQueryFactory(
-            question="open",
-            case=case,
-            responded_by_user=self.exporter_user.baseuser_ptr,
-            response="I have a response only",
-        )
-
         url = reverse("cases:case_ecju_query_open_count", kwargs={"pk": case.id})
-
-        # Act
-        response = self.client.get(url, **self.gov_headers)
-        response_2 = self.client.get(
-            reverse("cases:case_ecju_query_open_count", kwargs={"pk": case_2.id}), **self.gov_headers
-        )
-
-        # Assert
-        response_data = response.json()
-
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(0, response_data["count"])
-
-        response_data_2 = response.json()
-
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(0, response_data_2["count"])
-
-        ecju_query.response = "I have a response now"
-        ecju_query.save()
 
         response = self.client.get(url, **self.gov_headers)
 

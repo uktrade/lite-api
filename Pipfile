@@ -74,6 +74,7 @@ django-queryable-properties = "~=1.9.1"
 django = "~=3.2.23"
 django-compat = "~=1.0.15"
 
+
 [requires]
 python_version = "3.8"
 python_full_version = "3.8.18"
