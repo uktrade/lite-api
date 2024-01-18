@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "7cdb730062d63ff8d4f696dcb957ede19f04045023a27dcd633e67bc67e77195"
+            "sha256": "5fd366e1b95b1af08d326d56b68b7fecaf3e44cabf20424d4ee3ad56ccc51d56"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -24,6 +24,14 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==5.2.0"
+        },
+        "appnope": {
+            "hashes": [
+                "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24",
+                "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"
+            ],
+            "markers": "sys_platform == 'darwin'",
+            "version": "==0.1.3"
         },
         "asgiref": {
             "hashes": [
@@ -420,17 +428,11 @@
             "markers": "python_version >= '3.6'",
             "version": "==0.0.4"
         },
-        "django-background-tasks": {
-            "hashes": [
-                "sha256:e1b19e8d495a276c9d64c5a1ff8b41132f75d2f58e45be71b78650dad59af9de"
-            ],
-            "index": "pypi",
-            "version": "==1.2.5"
-        },
         "django-compat": {
             "hashes": [
                 "sha256:3ac9a3bedc56b9365d9eb241bc5157d0c193769bf995f9a78dc1bc24e7c2331b"
             ],
+            "index": "pypi",
             "version": "==1.0.15"
         },
         "django-elasticsearch-dsl": {
@@ -1462,6 +1464,14 @@
         }
     },
     "develop": {
+        "appnope": {
+            "hashes": [
+                "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24",
+                "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"
+            ],
+            "markers": "sys_platform == 'darwin'",
+            "version": "==0.1.3"
+        },
         "astroid": {
             "hashes": [
                 "sha256:71ea07f44df9568a75d0f354c49143a4575d90645e9fead6dfb52c26a85ed13a",
@@ -1747,7 +1757,6 @@
                 "sha256:c36b6634d069b3f719610175020a9aed919421c87552185b085e04fbbdb10b7c",
                 "sha256:ed66e624884f76df22c8e16066d567aaa5a37d5b5fa19db2c6df6f7156db9048"
             ],
-            "index": "pypi",
             "markers": "python_version >= '3.7'",
             "version": "==3.1.41"
         },

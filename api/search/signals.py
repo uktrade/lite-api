@@ -1,4 +1,3 @@
-from background_task.models import Task
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -11,7 +10,7 @@ from api.search.celery_tasks import update_search_index
 
 @receiver(post_save)
 def update_search_documents(sender, **kwargs):
-    if not settings.LITE_API_ENABLE_ES or issubclass(sender, Task):
+    if not settings.LITE_API_ENABLE_ES:
         return
 
     app_label = sender._meta.app_label
