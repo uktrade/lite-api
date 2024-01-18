@@ -338,7 +338,7 @@ class CaseManager(models.Manager):
             CaseReviewDate = get_model("cases", "casereviewdate")
 
             case_qs = case_qs.exclude(
-                id__in=EcjuQuery.objects.filter(raised_by_user__team_id=user.team.id, responded_at__isnull=True)
+                id__in=EcjuQuery.objects.filter(raised_by_user__team_id=user.team.id, is_query_closed=False)
                 .values("case_id")
                 .distinct()
             )

@@ -47,7 +47,7 @@ class CasesSearchView(generics.ListAPIView):
                 ),
                 has_open_queries=Exists(
                     EcjuQuery.objects.filter(
-                        case=OuterRef("pk"), raised_by_user__team_id=user.team.id, responded_at__isnull=True
+                        case=OuterRef("pk"), raised_by_user__team_id=user.team.id, is_query_closed=False
                     )
                 ),
             )
