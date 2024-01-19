@@ -1,3 +1,5 @@
+import logging
+
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
@@ -68,7 +70,7 @@ from api.cases.serializers import (
     CaseOfficerUpdateSerializer,
     ReviewDateUpdateSerializer,
     EcjuQueryExporterViewSerializer,
-    EcjuQueryExporterRespondSerializer,
+    EcjuQueryUserResponseSerializer,
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
 )
@@ -583,6 +585,19 @@ class ECJUQueries(APIView):
             return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
 
 
+class ECJUQueriesOpenCount(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def get(self, request, pk):
+        """Gets count of all open queries."""
+        qs = EcjuQuery.objects.filter(
+            case__pk=pk,
+            responded_at__isnull=True,
+            response__isnull=True,
+        )
+        return JsonResponse(data={"count": qs.count()})
+
+
 class EcjuQueryDetail(APIView):
     """
     Details of a specific ECJU query
@@ -612,14 +627,17 @@ class EcjuQueryDetail(APIView):
 
         data = {"response": request.data["response"], "responded_by_user": str(request.user.pk)}
 
-        serializer = EcjuQueryExporterRespondSerializer(instance=ecju_query, data=data, partial=True)
+        serializer = EcjuQueryUserResponseSerializer(instance=ecju_query, data=data, partial=True)
 
         if serializer.is_valid():
             if "validate_only" not in request.data or not request.data["validate_only"]:
                 serializer.save()
+                is_govuser = hasattr(request.user, "govuser")
+                # If the user is a Govuser query is manually being closed by a caseworker
+                query_verb = AuditType.ECJU_QUERY_MANUALLY_CLOSED if is_govuser else AuditType.ECJU_QUERY_RESPONSE
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=AuditType.ECJU_QUERY_RESPONSE,
+                    verb=query_verb,
                     action_object=serializer.instance,
                     target=serializer.instance.case,
                     payload={"ecju_response": data["response"]},
@@ -938,6 +956,8 @@ class FinaliseView(UpdateAPIView):
                 )
 
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
+
+            logging.info("Initiate issue of licence %s (status: %s)", licence.reference_code, licence.status)
             licence.issue()
 
             return_payload["licence"] = licence.id
@@ -960,6 +980,7 @@ class FinaliseView(UpdateAPIView):
         old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
+        logging.info("Case status is now finalised")
 
         decisions = required_decisions.copy()
 
@@ -1000,6 +1021,8 @@ class FinaliseView(UpdateAPIView):
         documents.update(visible_to_exporter=True)
         for document in documents:
             document.send_exporter_notifications()
+
+        logging.info("Licence documents visible to exporter, notification sent")
 
         return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
 

@@ -114,6 +114,8 @@ INSTALLED_APPS = [
     "health_check.cache",
     "health_check.storage",
     "health_check.contrib.migrations",
+    "health_check.contrib.celery",
+    "health_check.contrib.celery_ping",
     "django_audit_log_middleware",
     "lite_routing",
     "api.appeals",
@@ -481,6 +483,9 @@ if ENABLE_DJANGO_SILK:
     INSTALLED_APPS.append("silk")
     middleware_index = MIDDLEWARE.index("django.contrib.messages.middleware.MessageMiddleware") + 1
     MIDDLEWARE.insert(middleware_index, "silk.middleware.SilkyMiddleware")
+
+if DEBUG:
+    INSTALLED_APPS.append("api.testing")
 
 
 CONTENT_DATA_MIGRATION_DIR = Path(BASE_DIR).parent / "lite_content/lite_api/migrations"

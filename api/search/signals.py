@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.goods.models import Good
-from api.search.tasks import update_search_index
+from api.search.celery_tasks import update_search_index
 
 
 @receiver(post_save)
@@ -58,11 +58,5 @@ def update_search_documents(sender, **kwargs):
         pass
 
     if to_update:
-        update_task = update_search_index
-
-        if not settings.BACKGROUND_TASK_ENABLED:
-            update_task = update_search_index.now
-
         to_update = [(model_name, str(pk)) for model_name, pk in to_update]
-
-        update_task(to_update)
+        update_search_index.delay(to_update)
