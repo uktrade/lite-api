@@ -8,6 +8,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from api.users.enums import UserType
 
 from rest_framework.exceptions import ValidationError
 from queryable_properties.managers import QueryablePropertiesManager
@@ -626,9 +627,11 @@ class EcjuQuery(TimestampableModel):
 
     @queryable_property
     def is_manually_closed(self):
-        if self.responded_by_user:
-            return GovUser.objects.filter(pk=self.responded_by_user.id).exists()
-        return False
+
+        if self.responded_by_user and self.responded_by_user.type == UserType.INTERNAL:
+            return True
+        else:
+            return False
 
     # This method allows the above propery to be used in filtering objects. Similar to db fields.
     @is_query_closed.filter(lookups=("exact",))
