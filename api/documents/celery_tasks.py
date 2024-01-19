@@ -32,7 +32,7 @@ def scan_document_for_viruses(self, document_id):
 
         try:
             document.scan_for_viruses()
-        except Exception as exc:  # noqa
+        except Exception:
             logger.exception("Document virus scan failed")
             raise
 
