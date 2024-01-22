@@ -13,6 +13,7 @@ from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
+from api.common.dates import working_days_in_range
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
 from api.licences.enums import LicenceStatus
 from api.picklists.enums import PicklistType
@@ -223,6 +224,47 @@ class ECJUQueriesViewTests(DataTestClient):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(0, response_data["count"])
+
+    def test_ecju_query_shows_correct_open_working_days_for_open_query(self):
+        case = self.create_standard_application_case(self.organisation)
+        created_at_datetime = timezone.datetime(2024, 1, 1, 12, 30, 0, 123456, tzinfo=timezone.now().tzinfo)
+        ecju_query = EcjuQueryFactory(
+            question="this is the question",
+            response=None,
+            responded_at=None,
+            case=case,
+            created_at=created_at_datetime,
+        )
+
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        assert response_data["ecju_queries"][0]["open_working_days"] == working_days_in_range(
+            created_at_datetime, timezone.now()
+        )
+
+    def test_ecju_query_shows_correct_open_working_days_for_closed_query(self):
+        case = self.create_standard_application_case(self.organisation)
+        created_at_datetime = timezone.datetime(2024, 1, 1, 12, 30, 0, 123456, tzinfo=timezone.now().tzinfo)
+        responded_at_datetime = timezone.datetime(2024, 1, 18, 12, 30, 0, 123456, tzinfo=timezone.now().tzinfo)
+        ecju_query = EcjuQueryFactory(
+            question="this is the question",
+            response="some response text",
+            responded_at=responded_at_datetime,
+            case=case,
+            created_at=created_at_datetime,
+        )
+
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        assert response_data["ecju_queries"][0]["open_working_days"] == working_days_in_range(
+            created_at_datetime, responded_at_datetime
+        )
 
 
 class ECJUQueriesCreateTest(DataTestClient):
