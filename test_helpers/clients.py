@@ -1098,6 +1098,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             ecju_query.created_at = created_at
         if responded_at:
             ecju_query.responded_at = responded_at
+        else:
+            # New ECJUQuery, send notification
+            ecju_query.send_notifications()
         ecju_query.save()
         return ecju_query
 

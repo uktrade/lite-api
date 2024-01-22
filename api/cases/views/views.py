@@ -3,6 +3,7 @@ import logging
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -569,7 +570,12 @@ class ECJUQueries(APIView):
         serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            is_new_query = serializer.instance is None
+            ecju_query = serializer.save(responded_at=timezone.now() if is_new_query else None)
+            if is_new_query:
+                ecju_query.send_notifications()
+            elif ecju_query.responded_by:
+                ecju_query.delete_notifications()
 
             # Audit the creation of the query
             audit_trail_service.create(

@@ -640,17 +640,12 @@ class EcjuQuery(TimestampableModel):
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
 
-    def save(self, *args, **kwargs):
-        existing_instance_count = EcjuQuery.objects.filter(id=self.id).count()
+    def send_notifications(self):
+        for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
+            user_relationship.send_notification(content_object=self, case=self.case)
 
-        # Only create a notification when saving a ECJU query for the first time
-        if existing_instance_count == 0:
-            super(EcjuQuery, self).save(*args, **kwargs)
-            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
-                user_relationship.send_notification(content_object=self, case=self.case)
-        else:
-            self.responded_at = timezone.now()
-            super(EcjuQuery, self).save(*args, **kwargs)
+    def delete_notifications(self):
+        ExporterNotification.objects.get_notifications_for_object(self).delete()
 
 
 class EcjuQueryDocument(Document):

@@ -1,5 +1,7 @@
 import uuid
 from abc import abstractmethod
+
+from django.db.models import QuerySet
 from phonenumber_field.modelfields import PhoneNumberField
 
 from django.conf import settings
@@ -99,6 +101,11 @@ class BaseUser(AbstractUser, TimestampableModel):
         pass
 
 
+class NotificationQuerySet(QuerySet):
+    def get_notifications_for_object(self, content_object):
+        return self.filter(content_type=content_object.content_type, object_id=content_object.object_id)
+
+
 class BaseNotification(models.Model):
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
 
@@ -109,6 +116,8 @@ class BaseNotification(models.Model):
     content_type = models.ForeignKey(ContentType, default=None, on_delete=models.CASCADE)
     object_id = models.UUIDField(default=uuid.uuid4)
     content_object = GenericForeignKey("content_type", "object_id")
+
+    objects = NotificationQuerySet.as_manager()
 
 
 class ExporterNotification(BaseNotification):
