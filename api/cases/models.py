@@ -29,6 +29,7 @@ from api.cases.enums import (
 from api.cases.libraries.reference_code import generate_reference_code
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from api.common.models import TimestampableModel, CreatedAt
+from api.common.dates import working_days_in_range
 from api.core.constants import GovPermissions
 from api.core.permissions import assert_user_has_permission
 from api.documents.models import Document
@@ -637,6 +638,12 @@ class EcjuQuery(TimestampableModel):
     @is_query_closed.filter(lookups=("exact",))
     def is_query_closed(self, lookup, value):
         return ~Q(responded_at__isnull=value)
+
+    @property
+    def open_working_days(self):
+        start_date = self.created_at
+        end_date = self.responded_at if self.responded_at else timezone.now()
+        return working_days_in_range(start_date=start_date, end_date=end_date)
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
 
