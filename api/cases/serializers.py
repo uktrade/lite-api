@@ -575,6 +575,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
             "query_type",
             "documents",
             "is_query_closed",
+            "is_manually_closed",
         )
 
     def get_raised_by_user_name(self, instance):
@@ -613,6 +614,7 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
             "responded_at",
             "documents",
             "is_query_closed",
+            "is_manually_closed",
         )
 
     def get_responded_by_user(self, instance):

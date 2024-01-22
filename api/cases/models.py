@@ -622,7 +622,13 @@ class EcjuQuery(TimestampableModel):
 
     @queryable_property
     def is_query_closed(self):
-        return self.responded_at is not None
+        return self.responded_by_user is not None
+
+    @queryable_property
+    def is_manually_closed(self):
+        if self.responded_by_user:
+            return GovUser.objects.filter(pk=self.responded_by_user.id).exists()
+        return False
 
     # This method allows the above propery to be used in filtering objects. Similar to db fields.
     @is_query_closed.filter(lookups=("exact",))
