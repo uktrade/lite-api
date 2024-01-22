@@ -28,7 +28,7 @@ def is_weekend(date):
 
 def working_days_in_range(start_date, end_date):
     dates_in_range = [start_date + timedelta(n) for n in range((end_date - start_date).days)]
-    return len([date for date in dates_in_range if not is_bank_holiday(date) or not is_weekend(date)])
+    return len([date for date in dates_in_range if (not is_bank_holiday(date) and not is_weekend(date))])
 
 
 def working_hours_in_range(start_date, end_date):
