@@ -18,6 +18,7 @@ from api.licences.enums import LicenceStatus
 from api.picklists.enums import PicklistType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.users.models import ExporterNotification
 from test_helpers.clients import DataTestClient
 from api.users.tests.factories import ExporterUserFactory
 
@@ -264,6 +265,28 @@ class ECJUQueriesCreateTest(DataTestClient):
 
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.assertFalse(EcjuQuery.objects.exists())
+
+    # @mock.patch("api.cases.views.views.notify.notify_exporter_ecju_query")
+    # def test_exporter_notification(self, query_type, mock_notify):
+    #     """
+    #     When a GOV user submits a valid query to a case
+    #     Then the request is successful and the query is saved
+    #     And an email is sent to the user
+    #     """
+    #     case = self.create_standard_application_case(self.organisation)
+    #     url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+    #     data = {"question": "Test ECJU Query question?", "query_type": query_type}
+    #
+    #     initial_exporter_notification_count = ExporterNotification.objects.count()
+    #     self.client.post(url, data, **self.gov_headers)
+    #     ecju_query = EcjuQuery.objects.get(case=case)
+    #     exporter_notification_count_after_creation = ExporterNotification.objects.get_notifications_for_object(ecju_query)
+    #
+    #     self.client.post(url, data, **self.gov_headers)
+    #
+    #     self.assertEqual(initial_exporter_notification_count, 0)
+    #     self.assertEqual(exporter_notification_count_after_creation.count(), 1)
+    #     import ipdb; ipdb.set_trace()
 
 
 class ECJUQueriesComplianceCreateTest(DataTestClient):

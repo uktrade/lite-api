@@ -103,7 +103,8 @@ class BaseUser(AbstractUser, TimestampableModel):
 
 class NotificationQuerySet(QuerySet):
     def get_notifications_for_object(self, content_object):
-        return self.filter(content_type=content_object.content_type, object_id=content_object.object_id)
+        content_type = ContentType.objects.get_for_model(content_object)
+        return self.filter(content_type=content_type, object_id=content_object.pk)
 
 
 class BaseNotification(models.Model):

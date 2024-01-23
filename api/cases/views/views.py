@@ -549,16 +549,7 @@ class ECJUQueries(APIView):
             .filter(case_id=pk)
             .order_by("created_at")
         )
-
-        if hasattr(request.user, "exporteruser"):
-            serializer = EcjuQueryExporterViewSerializer(case_ecju_queries, many=True)
-            delete_exporter_notifications(
-                user=request.user.exporteruser,
-                organisation_id=get_request_user_organisation_id(request),
-                objects=case_ecju_queries,
-            )
-        else:
-            serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
+        serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
 
         return JsonResponse(data={"ecju_queries": serializer.data}, status=status.HTTP_200_OK)
 
