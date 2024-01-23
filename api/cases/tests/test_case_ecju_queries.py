@@ -383,7 +383,40 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertEqual(audit_text, " manually closed a query: exporter provided details.")
         self.assertEqual(audit_obj.target.id, case.id)
 
-        response_get = self.client.get(query_response_url, data, **self.gov_headers)
+    def test_close_query_has_optional_response_exporter(self):
+        case = self.create_standard_application_case(self.organisation)
+        ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
+
+        self.assertIsNone(ecju_query.responded_at)
+
+        query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
+
+        data = {"response": None}
+        response = self.client.put(query_response_url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response_ecju_query = response.json()["ecju_query"]
+        self.assertIsNone(response_ecju_query["response"])
+        self.assertIsNotNone(response_ecju_query["responded_at"])
+
+    def test_close_query_has_optional_response_govuser(self):
+        case = self.create_standard_application_case(self.organisation)
+        ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
+
+        self.assertIsNone(ecju_query.responded_at)
+
+        query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
+
+        data = {"response": None}
+
+        response = self.client.put(query_response_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response_ecju_query = response.json()["ecju_query"]
+        self.assertIsNone(response_ecju_query["response"])
+        self.assertIsNotNone(response_ecju_query["responded_at"])
+
+        response_get = self.client.get(query_response_url, **self.gov_headers)
         self.assertEqual(True, response_get.json()["ecju_query"]["is_manually_closed"])
 
     def test_caseworker_manually_closes_query_exporter_responds_raises_error(self):
