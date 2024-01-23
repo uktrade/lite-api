@@ -398,9 +398,9 @@ class SlaRulesTests(DataTestClient):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False
         case = self.create_standard_application_case(self.organisation)
-        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+        _set_submitted_at(case, HOUR_AFTER_CUTOFF)
         query = self.create_ecju_query(case)
-        query.created_at = datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc)
+        query.created_at = datetime.combine(TODAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc)
         query.responded_at = responded_at
         query.save()
 
@@ -421,7 +421,7 @@ class SlaRulesTests(DataTestClient):
         mock_is_weekend,
         mock_is_bank_holiday,
         responded_at=datetime.combine(YESTERDAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc),
-        expected_results=0,
+        expected_results=1,
     ):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False
