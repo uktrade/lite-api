@@ -549,7 +549,11 @@ class ECJUQueries(APIView):
             .filter(case_id=pk)
             .order_by("created_at")
         )
-        serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
+
+        if hasattr(request.user, "exporteruser"):
+            serializer = EcjuQueryExporterViewSerializer(case_ecju_queries, many=True)
+        else:
+            serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
 
         return JsonResponse(data={"ecju_queries": serializer.data}, status=status.HTTP_200_OK)
 
