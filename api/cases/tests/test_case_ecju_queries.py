@@ -169,6 +169,7 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(ecju_query.response, None)
         self.assertEqual(str(ecju_query.case.id), response_data["ecju_query"]["case"])
         self.assertEqual(ecju_query.is_query_closed, response_data["ecju_query"]["is_query_closed"])
+        self.assertEqual(ecju_query.is_manually_closed, response_data["ecju_query"]["is_manually_closed"])
 
     def test_ecju_query_open_query_count(self):
         """
@@ -245,6 +246,7 @@ class ECJUQueriesCreateTest(DataTestClient):
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Test ECJU Query question?", ecju_query.question)
         self.assertEqual(False, ecju_query.is_query_closed)
+        self.assertEqual(False, ecju_query.is_manually_closed)
 
         mock_notify.assert_called_with(case.id)
 
@@ -343,6 +345,9 @@ class ECJUQueriesResponseTests(DataTestClient):
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
+        response_get = self.client.get(query_response_url, data, **self.gov_headers)
+        self.assertEqual(False, response_get.json()["ecju_query"]["is_manually_closed"])
+
         query_response_audit = Audit.objects.filter(verb=AuditType.ECJU_QUERY_RESPONSE)
         self.assertTrue(query_response_audit.exists())
         audit_obj = query_response_audit.first()
@@ -377,6 +382,9 @@ class ECJUQueriesResponseTests(DataTestClient):
         audit_text = AuditSerializer(audit_obj).data["text"]
         self.assertEqual(audit_text, " manually closed a query: exporter provided details.")
         self.assertEqual(audit_obj.target.id, case.id)
+
+        response_get = self.client.get(query_response_url, data, **self.gov_headers)
+        self.assertEqual(True, response_get.json()["ecju_query"]["is_manually_closed"])
 
     def test_caseworker_manually_closes_query_exporter_responds_raises_error(self):
         case = self.create_standard_application_case(self.organisation)
