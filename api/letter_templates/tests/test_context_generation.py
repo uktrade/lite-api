@@ -760,7 +760,7 @@ class DocumentContextGenerationTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         ecju_query = self.create_ecju_query(case)
         ecju_query.response = "abc"
-        ecju_query.responded_by_user = self.exporter_user
+        ecju_query.responded_by_user = self.base_user
         ecju_query.save()
 
         context = get_document_context(case)

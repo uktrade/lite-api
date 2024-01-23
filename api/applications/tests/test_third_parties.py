@@ -169,8 +169,9 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def test_post_third_party_document_success(self, scan_document_for_viruses_function):
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
+    def test_post_third_party_document_success(self, mock_virus_scan, mock_s3_operations_get_object):
         """
         Given a standard draft has been created
         And the draft contains a third party
@@ -178,14 +179,17 @@ class ThirdPartiesOnDraft(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
+        mock_s3_operations_get_object.return_value = self.new_document_data
+        mock_virus_scan.return_value = False
         PartyDocument.objects.filter(party=self.draft.third_parties.all().first().party).delete()
 
         response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
-    def test_get_third_party_document_success(self, scan_document_for_viruses_function):
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
+    def test_get_third_party_document_success(self, mock_virus_scan, mock_s3_operations_get_object):
         """
         Given a standard draft has been created
         And the draft contains a third party
@@ -193,6 +197,9 @@ class ThirdPartiesOnDraft(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached third party document
         """
+        mock_s3_operations_get_object.return_value = self.new_document_data
+        mock_virus_scan.return_value = False
+
         response = self.client.get(self.document_url, **self.exporter_headers)
         response_data = response.json()["document"]
         expected = self.new_document_data
@@ -201,9 +208,12 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(response_data["s3_key"], expected["s3_key"])
         self.assertEqual(response_data["size"], expected["size"])
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_third_party_document_success(self, delete_s3_function, scan_document_for_viruses_function):
+    def test_delete_third_party_document_success(
+        self, delete_s3_function, mock_virus_scan, mock_s3_operations_get_object
+    ):
         """
         Given a standard draft has been created
         And the draft contains a third party
@@ -211,14 +221,18 @@ class ThirdPartiesOnDraft(DataTestClient):
         When there is an attempt to delete the document
         Then 200 NO CONTENT is returned
         """
+        mock_s3_operations_get_object.return_value = self.new_document_data
+        mock_virus_scan.return_value = False
+
         response = self.client.delete(self.document_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch("api.documents.tasks.scan_document_for_viruses.now")
+    @mock.patch("api.documents.libraries.s3_operations.get_object")
+    @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_third_party_success(self, delete_s3_function, scan_document_for_viruses_function):
+    def test_delete_third_party_success(self, delete_s3_function, mock_virus_scan, mock_s3_operations_get_object):
         """
         Given a standard draft has been created
         And the draft contains a third party
@@ -226,6 +240,9 @@ class ThirdPartiesOnDraft(DataTestClient):
         When there is an attempt to delete third party
         Then 200 OK
         """
+        mock_s3_operations_get_object.return_value = self.new_document_data
+        mock_virus_scan.return_value = False
+
         self.assertEqual(self.draft.third_parties.count(), 1)
         poa = self.draft.third_parties.first()
         remove_tp_url = reverse(

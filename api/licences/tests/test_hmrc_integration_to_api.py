@@ -190,11 +190,11 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(licence.status, LicenceStatus.ISSUED)
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.licences.tasks.schedule_licence_for_hmrc_integration")
+    @mock.patch("api.licences.celery_tasks.schedule_licence_details_to_lite_hmrc")
     def test_update_usages_all_goods_exhausted_when_action_is_open_does_inform_hmrc_of_licence(
-        self, schedule_licence_for_hmrc_integration
+        self, schedule_licence_details_to_lite_hmrc
     ):
-        schedule_licence_for_hmrc_integration.return_value = None
+        schedule_licence_details_to_lite_hmrc.return_value = None
         licence = self.create_siel_licence()
         gol = licence.goods.first()
         original_usage = gol.usage

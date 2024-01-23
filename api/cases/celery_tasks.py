@@ -1,7 +1,7 @@
-import logging
 from datetime import datetime, time
 
-from background_task import background
+from celery import shared_task
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
@@ -17,14 +17,15 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 
 # DST safe version of midnight
-SLA_UPDATE_TASK_TIME = time(22, 30, 0)
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
-LOG_PREFIX = "update_cases_sla background task:"
 
 STANDARD_APPLICATION_TARGET_DAYS = 20
 OPEN_APPLICATION_TARGET_DAYS = 60
 HMRC_QUERY_TARGET_DAYS = 2
 MOD_CLEARANCE_TARGET_DAYS = 30
+
+
+logger = get_task_logger(__name__)
 
 
 def get_application_target_sla(_type):
@@ -80,7 +81,15 @@ def get_case_ids_with_active_ecju_queries(date):
     )
 
 
-@background(schedule=datetime.combine(timezone.localtime(), SLA_UPDATE_TASK_TIME, tzinfo=tz(settings.TIME_ZONE)))
+MAX_ATTEMPTS = 3
+RETRY_BACKOFF = 180
+
+
+@shared_task(
+    autoretry_for=(Exception,),
+    max_retries=MAX_ATTEMPTS,
+    retry_backoff=RETRY_BACKOFF,
+)
 def update_cases_sla():
     """
     Updates all applicable cases SLA.
@@ -89,7 +98,7 @@ def update_cases_sla():
     :return: How many cases the SLA was updated for or False if error / not ran
     """
 
-    logging.info(f"{LOG_PREFIX} SLA Update Started")
+    logger.info("SLA Update Started")
     date = timezone.localtime()
     if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
         try:
@@ -139,11 +148,11 @@ def update_cases_sla():
                     sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
                 )
 
-            logging.info(f"{LOG_PREFIX} SLA Update Successful. Updated {results} cases")
+            logger.info(f"SLA Update Successful. Updated {results} cases")
             return results
         except Exception as e:  # noqa
-            logging.error(e)
+            logger.error(e)
             return False
 
-    logging.info(f"{LOG_PREFIX} SLA Update Not Performed. Non-working day")
+    logger.info("SLA Update Not Performed. Non-working day")
     return False

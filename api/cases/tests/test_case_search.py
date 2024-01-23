@@ -423,7 +423,7 @@ class FilterAndSortTests(DataTestClient):
             case=self.application_cases[1],
             response="I have a response",
             raised_by_user=self.gov_user,
-            responded_by_user=self.exporter_user,
+            responded_by_user=self.base_user,
             query_type=PicklistType.ECJU,
         )
         ecju_query_with_response.save()
@@ -494,7 +494,7 @@ class FilterAndSortTests(DataTestClient):
             case=self.application_cases[1],
             response="I have a response",
             raised_by_user=self.gov_user,
-            responded_by_user=self.exporter_user,
+            responded_by_user=self.base_user,
             query_type=PicklistType.ECJU,
         )
         ecju_query_with_response.save()
@@ -989,7 +989,7 @@ class OpenEcjuQueriesForTeamOnWorkQueueTests(DataTestClient):
         ecju_query = self.create_ecju_query(self.case, gov_user=self.gov_user)
         ecju_query.response = "response"
         ecju_query.responded_at = datetime.datetime.now()
-        ecju_query.responded_by_user = self.exporter_user
+        ecju_query.responded_by_user = self.base_user
         ecju_query.save()
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -1049,7 +1049,7 @@ class SearchAPITest(DataTestClient):
             case=self.case,
             response="I have a response",
             raised_by_user=self.gov_user,
-            responded_by_user=self.exporter_user,
+            responded_by_user=self.base_user,
             query_type=PicklistType.ECJU,
             responded_at=datetime.datetime.now(),
         )
@@ -1118,6 +1118,7 @@ class SearchAPITest(DataTestClient):
                     "raised_by_user": f"{self.ecju_query.raised_by_user.first_name} {self.ecju_query.raised_by_user.last_name}",
                     "responded_by_user": f"{self.ecju_query.responded_by_user.first_name} {self.ecju_query.responded_by_user.last_name}",
                     "query_type": self.ecju_query.query_type,
+                    "is_query_closed": self.ecju_query.is_query_closed,
                 }
             ],
         )

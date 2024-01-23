@@ -1,4 +1,6 @@
-from unittest.mock import call, patch
+import json
+
+from unittest.mock import patch
 
 from django.test import override_settings
 
@@ -7,56 +9,64 @@ from test_helpers.clients import DataTestClient
 
 
 class UpdateApplicationDocumentTest(DataTestClient):
-    @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
-    @patch("api.search.signals.update_search_index")
-    def test_standard_application(self, mock_task):
+    @override_settings(LITE_API_ENABLE_ES=True)
+    @patch("api.search.celery_tasks.registry")
+    def test_standard_application(self, mock_registry):
         application = self.create_standard_application_case(self.organisation)
+        mock_registry.update.assert_any_call(application.baseapplication)
 
-        mock_task.assert_has_calls([call("applications.BaseApplication", str(application.pk))])
-
-    @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
-    @patch("api.search.signals.update_search_index")
-    def test_case_assignment(self, mock_task):
+    @override_settings(LITE_API_ENABLE_ES=True)
+    @patch("api.search.celery_tasks.registry")
+    def test_case_assignment(self, mock_registry):
         assignment = self.create_case_assignment(
             self.queue, self.create_standard_application_case(self.organisation), self.gov_user
         )
+        mock_registry.update.assert_any_call(assignment.case.baseapplication)
 
-        mock_task.assert_has_calls([call("applications.BaseApplication", str(assignment.case.baseapplication.pk))])
-
-    @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
-    @patch("api.search.signals.update_search_index")
-    def test_case(self, mock_task):
+    @override_settings(LITE_API_ENABLE_ES=True)
+    @patch("api.search.celery_tasks.registry")
+    def test_case(self, mock_registry):
         case = self.create_standard_application_case(self.organisation).get_case()
 
-        mock_task.assert_has_calls([call("applications.BaseApplication", str(case.baseapplication.pk))])
+        mock_registry.update.assert_any_call(case.baseapplication)
 
-    @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
-    @patch("api.search.signals.update_search_index")
-    def test_good(self, mock_task):
+    @override_settings(LITE_API_ENABLE_ES=True)
+    @patch("api.search.celery_tasks.registry")
+    def test_good(self, mock_registry):
         application = self.create_standard_application_case(self.organisation)
         good = self.create_good("test good", self.organisation)
         good_on_app = self.create_good_on_application(application, good)
         application.goods.add(good_on_app)
         application.save()
 
-        mock_task.assert_has_calls([call("applications.BaseApplication", str(good_on_app.application.pk))])
+        mock_registry.update.assert_any_call(good_on_app)
 
-    @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
-    @patch("api.search.signals.update_search_index")
-    def test_party(self, mock_task):
+    @override_settings(LITE_API_ENABLE_ES=True)
+    @patch("api.search.celery_tasks.registry")
+    def test_party(self, mock_registry):
         application = self.create_standard_application_case(self.organisation)
         party = self.create_party("test party", self.organisation, PartyType.END_USER, application=application)
         party.save()
 
-        mock_task.assert_has_calls(
-            [call("applications.BaseApplication", str(party.parties_on_application.all()[0].application.pk))]
-        )
+        mock_registry.update.assert_any_call(application.baseapplication)
 
-    @override_settings(BACKGROUND_TASK_ENABLED=True, LITE_API_ENABLE_ES=True)
-    @patch("api.search.signals.update_search_index")
-    def test_organisation(self, mock_task):
+    @override_settings(LITE_API_ENABLE_ES=True)
+    @patch("api.search.celery_tasks.registry")
+    def test_organisation(self, mock_registry):
+        application_organisation = self.create_standard_application_case(self.organisation)
+
+        mock_registry.update.assert_any_call(application_organisation.baseapplication)
+
+    @override_settings(LITE_API_ENABLE_ES=True)
+    @patch("api.search.celery_tasks.registry")
+    def test_good_on_application_update_in_index(self, mock_registry):
+        application = self.create_standard_application_case(self.organisation)
+
+        for good_on_application in application.goods.all():
+            mock_registry.update.assert_any_call(good_on_application)
+
+    @override_settings(LITE_API_ENABLE_ES=False)
+    @patch("api.search.celery_tasks.registry")
+    def test_standard_application_with_elasticsearch_disabled(self, mock_registry):
         self.create_standard_application_case(self.organisation)
-
-        mock_task.assert_has_calls(
-            [call("applications.BaseApplication", str(self.organisation.cases.all()[0].baseapplication.pk))]
-        )
+        mock_registry.update.assert_not_called()

@@ -94,9 +94,9 @@ class Licence(TimestampableModel):
             self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
-        from api.licences.tasks import schedule_licence_for_hmrc_integration
+        from api.licences.celery_tasks import schedule_licence_details_to_lite_hmrc
 
-        schedule_licence_for_hmrc_integration(str(self.id), licence_status_to_hmrc_integration_action.get(self.status))
+        schedule_licence_details_to_lite_hmrc(str(self.id), licence_status_to_hmrc_integration_action.get(self.status))
 
 
 class GoodOnLicence(TimestampableModel):

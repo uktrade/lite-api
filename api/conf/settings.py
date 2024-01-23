@@ -22,7 +22,6 @@ env = Env(
     ALLOWED_HOSTS=(str, ""),
     DEBUG=(bool, False),
     LOG_LEVEL=(str, "INFO"),
-    BACKGROUND_TASK_ENABLED=(bool, False),
     SUPPRESS_TEST_OUTPUT=(bool, False),
     HAWK_AUTHENTICATION_ENABLED=(bool, True),
     LITE_HMRC_INTEGRATION_ENABLED=(bool, False),
@@ -58,7 +57,6 @@ INSTALLED_APPS = [
     "api.applications",
     "api.audit_trail",
     "api.bookmarks",
-    "background_task",
     "api.cases",
     "api.cases.generated_documents",
     "api.compliance",
@@ -114,6 +112,8 @@ INSTALLED_APPS = [
     "health_check.cache",
     "health_check.storage",
     "health_check.contrib.migrations",
+    "health_check.contrib.celery",
+    "health_check.contrib.celery_ping",
     "django_audit_log_middleware",
     "lite_routing",
     "api.appeals",
@@ -230,12 +230,6 @@ DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/s
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-# Background tasks
-BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
-BACKGROUND_TASK_RUN_ASYNC = True
-# Number of times a task is retried given a failure occurs with exponential back-off = ((current_attempt ** 4) + 5)
-MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt (assuming instantaneous failures)
-
 # AWS
 VCAP_SERVICES = env.json("VCAP_SERVICES", {})
 
@@ -274,8 +268,11 @@ if REDIS_BASE_URL:
     CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
     CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
+CELERY_ALWAYS_EAGER = env.bool("CELERY_ALWAYS_EAGER", False)
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", False)
+CELERY_TASK_STORE_EAGER_RESULT = env.bool("CELERY_TASK_STORE_EAGER_RESULT", False)
 CELERY_TASK_SEND_SENT_EVENT = env.bool("CELERY_TASK_SEND_SENT_EVENT", True)
+
 
 S3_CONNECT_TIMEOUT = 60  # Maximum time, in seconds, to wait for an initial connection
 S3_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
@@ -478,6 +475,9 @@ if ENABLE_DJANGO_SILK:
     INSTALLED_APPS.append("silk")
     middleware_index = MIDDLEWARE.index("django.contrib.messages.middleware.MessageMiddleware") + 1
     MIDDLEWARE.insert(middleware_index, "silk.middleware.SilkyMiddleware")
+
+if DEBUG:
+    INSTALLED_APPS.append("api.testing")
 
 
 CONTENT_DATA_MIGRATION_DIR = Path(BASE_DIR).parent / "lite_content/lite_api/migrations"

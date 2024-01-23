@@ -37,7 +37,23 @@ services:
       - redis
     entrypoint: dockerize -wait tcp://db:5432 -wait tcp://api:8100
     command: celery -A api.conf worker -l info
-
+    
+  celery-scheduler:
+    build: .
+    volumes:
+      - .:/app
+    env_file: .env
+    links:
+      - db
+      - redis
+    depends_on:
+      - api
+      - db
+      - elasticsearch
+      - redis
+    entrypoint: dockerize -wait tcp://db:5432 -wait tcp://api:8100
+    command: celery -A api.conf beat
+    
   db:
     image: gcr.io/sre-docker-registry/lite-db:latest
     environment:

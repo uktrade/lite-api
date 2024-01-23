@@ -47,7 +47,7 @@ from api.cases.models import (
     Advice,
     CaseNoteMentions,
 )
-from api.cases.tasks import get_application_target_sla
+from api.cases.celery_tasks import get_application_target_sla
 from django.conf import settings
 from api.core.constants import Roles
 from api.conf.urls import urlpatterns
