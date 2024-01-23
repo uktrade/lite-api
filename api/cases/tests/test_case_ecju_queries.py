@@ -392,7 +392,6 @@ class ECJUQueriesResponseTests(DataTestClient):
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
         data = {"response": None}
-
         response = self.client.put(query_response_url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -417,7 +416,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertIsNone(response_ecju_query["response"])
         self.assertIsNotNone(response_ecju_query["responded_at"])
 
-        response_get = self.client.get(query_response_url, data, **self.gov_headers)
+        response_get = self.client.get(query_response_url, **self.gov_headers)
         self.assertEqual(True, response_get.json()["ecju_query"]["is_manually_closed"])
 
     def test_caseworker_manually_closes_query_exporter_responds_raises_error(self):
