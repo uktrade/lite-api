@@ -645,7 +645,7 @@ class EcjuQuery(TimestampableModel):
             user_relationship.send_notification(content_object=self, case=self.case)
 
     def delete_notifications(self):
-        ExporterNotification.objects.get_notifications_for_object(self).delete()
+        self.notifications.all().delete()
 
 
 class EcjuQueryDocument(Document):
