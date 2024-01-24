@@ -13,7 +13,7 @@ from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
-from api.common.dates import working_days_in_range
+from api.cases.helpers import working_days_in_range
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
 from api.licences.enums import LicenceStatus
 from api.picklists.enums import PicklistType

@@ -2,14 +2,9 @@ import pytest
 from django.utils.datetime_safe import date, datetime
 from parameterized import parameterized
 
-from api.common.dates import (
-    is_weekend,
-    is_bank_holiday,
-    number_of_days_since,
-    working_hours_in_range,
-    BANK_HOLIDAY_API,
-    working_days_in_range,
-)
+import requests_mock
+
+from api.common.dates import is_weekend, is_bank_holiday, number_of_days_since, working_hours_in_range, BANK_HOLIDAY_API
 from test_helpers.clients import DataTestClient
 
 
@@ -429,9 +424,3 @@ class DatesTests(DataTestClient):
 
         result = working_hours_in_range(start_date, end_date)
         self.assertEqual(result, expected_result)
-
-    def test_working_days_in_range(self):
-        start_date = datetime(2023, 12, 22, 12, 30, 0, 123456)
-        end_date = datetime(2024, 1, 22, 12, 30, 0, 123456)
-
-        self.assertEqual(working_days_in_range(start_date, end_date), 18)

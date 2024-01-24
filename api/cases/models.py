@@ -26,10 +26,10 @@ from api.cases.enums import (
     AdviceLevel,
     EnforcementXMLEntityTypes,
 )
+from api.cases.helpers import working_days_in_range
 from api.cases.libraries.reference_code import generate_reference_code
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from api.common.models import TimestampableModel, CreatedAt
-from api.common.dates import working_days_in_range
 from api.core.constants import GovPermissions
 from api.core.permissions import assert_user_has_permission
 from api.documents.models import Document
