@@ -153,7 +153,6 @@ def _validate_ultimate_end_users(draft, errors):
     if ultimate_end_user_required:
         if len(draft.ultimate_end_users.values_list()) == 0:
             errors["ultimate_end_users"] = [strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET]
-        # goods_types are used in open applications and we don't have end_users in them currently.
         else:
             # We make sure that an ultimate end user is not also the end user
             for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
