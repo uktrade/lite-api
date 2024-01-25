@@ -74,20 +74,20 @@ def check_party_document(party, is_mandatory):
     return None
 
 
-def check_parties_documents(parties, is_mandatory=True):
+def check_parties_documents(parties):
     """Check a given list of parties all have documents if is_mandatory. Also checks all documents are safe"""
 
     for poa in parties:
-        error = check_party_document(poa.party, is_mandatory)
+        error = check_party_document(poa.party, False)
         if error:
             return error
     return None
 
 
-def check_party_error(party, object_not_found_error, is_mandatory, is_document_mandatory=True):
+def check_party_error(party, object_not_found_error, is_document_mandatory=True):
     """Check a given party exists and has a document if is_document_mandatory"""
 
-    if is_mandatory and not party:
+    if not party:
         return object_not_found_error
     elif party:
         document_error = check_party_document(party, is_document_mandatory)
@@ -95,7 +95,7 @@ def check_party_error(party, object_not_found_error, is_mandatory, is_document_m
             return document_error
 
 
-def _validate_end_user(draft, errors, is_mandatory, open_application=False):
+def _validate_end_user(draft, errors):
     """Validates end user. If a document is mandatory, this is also validated."""
 
     # Document is only mandatory if application is standard permanent or HMRC query
@@ -104,7 +104,6 @@ def _validate_end_user(draft, errors, is_mandatory, open_application=False):
     end_user_errors = check_party_error(
         draft.end_user.party if draft.end_user else None,
         object_not_found_error=strings.Applications.Standard.NO_END_USER_SET,
-        is_mandatory=is_mandatory,
         is_document_mandatory=is_document_mandatory,
     )
     if end_user_errors:
@@ -113,7 +112,7 @@ def _validate_end_user(draft, errors, is_mandatory, open_application=False):
     return errors
 
 
-def _validate_consignee(draft, errors, is_mandatory):
+def _validate_consignee(draft, errors):
     """
     Checks there is an consignee if goods_recipients is set to VIA_CONSIGNEE or VIA_CONSIGNEE_AND_THIRD_PARTIES
     (with a document if is_document_mandatory)
@@ -123,7 +122,6 @@ def _validate_consignee(draft, errors, is_mandatory):
         consignee_errors = check_party_error(
             draft.consignee.party if draft.consignee else None,
             object_not_found_error=strings.Applications.Standard.NO_CONSIGNEE_SET,
-            is_mandatory=is_mandatory,
             is_document_mandatory=False,
         )
         if consignee_errors:
@@ -131,47 +129,38 @@ def _validate_consignee(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_security_approvals(draft, errors, is_mandatory):
+def _validate_security_approvals(draft, errors):
     """Checks there are security approvals for the draft"""
-    if is_mandatory:
-        if draft.is_mod_security_approved is None:
-            errors["security_approvals"] = [
-                "To submit the application, complete the 'Do you have a security approval?' section"
-            ]
+    if draft.is_mod_security_approved is None:
+        errors["security_approvals"] = [
+            "To submit the application, complete the 'Do you have a security approval?' section"
+        ]
     return errors
 
 
-def _validate_ultimate_end_users(draft, errors, is_mandatory, open_application=False):
+def _validate_ultimate_end_users(draft, errors):
     """
-    Checks all ultimate end users have documents if is_mandatory is True.
+    Checks all ultimate end users have documents.
     Also checks that at least one ultimate_end_user is present if there is an incorporated good
     """
     # Document is always optional even if there are incorporated goods
-    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory=False)
+    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all())
     if ultimate_end_user_documents_error:
         errors["ultimate_end_user_documents"] = [ultimate_end_user_documents_error]
 
-    if is_mandatory:
-        if open_application:
-            ultimate_end_user_required = True in [
-                goodstype.is_good_incorporated for goodstype in list(draft.goods_type.all())
-            ]
-        else:
-            ultimate_end_user_required = GoodOnApplication.objects.filter(
-                application=draft, is_good_incorporated=True
-            ).exists()
+    ultimate_end_user_required = GoodOnApplication.objects.filter(application=draft, is_good_incorporated=True).exists()
 
-        if ultimate_end_user_required:
-            if len(draft.ultimate_end_users.values_list()) == 0:
-                errors["ultimate_end_users"] = [strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET]
-            # goods_types are used in open applications and we don't have end_users in them currently.
-            elif not open_application:
-                # We make sure that an ultimate end user is not also the end user
-                for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
-                    if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.party.id):
-                        errors["ultimate_end_users"] = [
-                            strings.Applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
-                        ]
+    if ultimate_end_user_required:
+        if len(draft.ultimate_end_users.values_list()) == 0:
+            errors["ultimate_end_users"] = [strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET]
+        # goods_types are used in open applications and we don't have end_users in them currently.
+        else:
+            # We make sure that an ultimate end user is not also the end user
+            for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
+                if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.party.id):
+                    errors["ultimate_end_users"] = [
+                        strings.Applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
+                    ]
 
     return errors
 
@@ -219,24 +208,22 @@ def _validate_temporary_export_details(draft, errors):
     return errors
 
 
-def _validate_third_parties(draft, errors, is_mandatory):
+def _validate_third_parties(draft, errors):
     """Checks all third parties have documents if is_mandatory is True"""
 
-    third_parties_documents_error = check_parties_documents(draft.third_parties.all(), is_mandatory)
+    third_parties_documents_error = check_parties_documents(draft.third_parties.all())
     if third_parties_documents_error:
         errors["third_parties_documents"] = [third_parties_documents_error]
 
     return errors
 
 
-def _validate_goods(draft, errors, is_mandatory):
+def _validate_goods(draft, errors):
     """Checks Goods"""
 
     goods_on_application = GoodOnApplication.objects.filter(application=draft)
-
-    if is_mandatory:
-        if not goods_on_application:
-            errors["goods"] = [strings.Applications.Standard.NO_GOODS_SET]
+    if not goods_on_application:
+        errors["goods"] = [strings.Applications.Standard.NO_GOODS_SET]
 
     # Check goods documents
     if goods_on_application.exists():
@@ -256,13 +243,13 @@ def _validate_standard_licence(draft, errors):
     """Checks that a standard licence has all party types & goods"""
 
     errors = _validate_siel_locations(draft, errors)
-    errors = _validate_end_user(draft, errors, is_mandatory=True)
-    errors = _validate_security_approvals(draft, errors, is_mandatory=True)
-    errors = _validate_consignee(draft, errors, is_mandatory=True)
-    errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_goods(draft, errors, is_mandatory=True)
-    errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
-    errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
+    errors = _validate_end_user(draft, errors)
+    errors = _validate_security_approvals(draft, errors)
+    errors = _validate_consignee(draft, errors)
+    errors = _validate_third_parties(draft, errors)
+    errors = _validate_goods(draft, errors)
+    errors = _validate_ultimate_end_users(draft, errors)
+    errors = _validate_end_use_details(draft, errors)
     errors = _validate_route_of_goods(draft, errors)
     errors = _validate_temporary_export_details(draft, errors)
 
