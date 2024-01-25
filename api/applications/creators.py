@@ -165,7 +165,7 @@ def _validate_ultimate_end_users(draft, errors):
     return errors
 
 
-def _validate_end_use_details(draft, errors, application_type):
+def _validate_end_use_details(draft, errors):
     if (
         draft.is_military_end_use_controls is None
         or draft.is_informed_wmd is None
