@@ -7,13 +7,12 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from api.applications.models import BaseApplication
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
-from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
+from api.compliance.tests.factories import ComplianceSiteCaseFactory
 from api.licences.enums import LicenceStatus
 from api.picklists.enums import PicklistType
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -266,27 +265,25 @@ class ECJUQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.assertFalse(EcjuQuery.objects.exists())
 
-    # @mock.patch("api.cases.views.views.notify.notify_exporter_ecju_query")
-    # def test_exporter_notification(self, query_type, mock_notify):
-    #     """
-    #     When a GOV user submits a valid query to a case
-    #     Then the request is successful and the query is saved
-    #     And an email is sent to the user
-    #     """
-    #     case = self.create_standard_application_case(self.organisation)
-    #     url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
-    #     data = {"question": "Test ECJU Query question?", "query_type": query_type}
-    #
-    #     initial_exporter_notification_count = ExporterNotification.objects.count()
-    #     self.client.post(url, data, **self.gov_headers)
-    #     ecju_query = EcjuQuery.objects.get(case=case)
-    #     exporter_notification_count_after_creation = ExporterNotification.objects.get_notifications_for_object(ecju_query)
-    #
-    #     self.client.post(url, data, **self.gov_headers)
-    #
-    #     self.assertEqual(initial_exporter_notification_count, 0)
-    #     self.assertEqual(exporter_notification_count_after_creation.count(), 1)
-    #     import ipdb; ipdb.set_trace()
+    @mock.patch("api.cases.views.views.notify.notify_exporter_ecju_query")
+    def test_exporter_notification(self, mock_notify):
+        """ """
+        case = self.create_standard_application_case(self.organisation)
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+        data = {"question": "Test ECJU Query question?", "query_type": ECJUQueryType.ECJU}
+
+        initial_exporter_notification_count = ExporterNotification.objects.count()
+        self.client.post(url, data, **self.gov_headers)
+
+        ecju_query = EcjuQuery.objects.get(case=case)
+        exporter_notification_count_after_creation = ecju_query.notifications.count()
+
+        self.client.post(url, {"pk": ecju_query.pk, **data, "debug": True}, **self.gov_headers)
+        exporter_notification_count_after_update = ecju_query.notifications.count()
+
+        self.assertEqual(initial_exporter_notification_count, 0)
+        self.assertEqual(exporter_notification_count_after_creation, 1)
+        self.assertEqual(exporter_notification_count_after_update, 0, "Updating should have deleted the notification")
 
 
 class ECJUQueriesComplianceCreateTest(DataTestClient):

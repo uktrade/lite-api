@@ -644,9 +644,6 @@ class EcjuQuery(TimestampableModel):
         for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
             user_relationship.send_notification(content_object=self, case=self.case)
 
-    def delete_notifications(self):
-        self.notifications.all().delete()
-
 
 class EcjuQueryDocument(Document):
     query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, related_name="ecjuquery_document")

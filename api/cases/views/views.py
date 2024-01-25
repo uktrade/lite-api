@@ -98,6 +98,7 @@ from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_by_pk
+from api.users.models import BaseNotification
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
 
@@ -564,12 +565,14 @@ class ECJUQueries(APIView):
         serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
-            is_new_query = serializer.instance is None
+            is_new_query = not get_case(pk).case_ecju_query.exists()
             ecju_query = serializer.save(responded_at=None if is_new_query else timezone.now())
             if is_new_query:
                 ecju_query.send_notifications()
-            elif ecju_query.responded_by:
-                ecju_query.delete_notifications()
+            elif ecju_query.is_query_closed:
+                # When the query is responded to by a user, delete notifications
+                # for the exporter and any internal users.
+                BaseNotification.objects.filter(case=ecju_query.case).delete()
 
             # Audit the creation of the query
             audit_trail_service.create(

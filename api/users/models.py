@@ -1,7 +1,6 @@
 import uuid
 from abc import abstractmethod
 
-from django.db.models import QuerySet
 from phonenumber_field.modelfields import PhoneNumberField
 
 from django.conf import settings
