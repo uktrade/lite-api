@@ -22,7 +22,6 @@ env = Env(
     ALLOWED_HOSTS=(str, ""),
     DEBUG=(bool, False),
     LOG_LEVEL=(str, "INFO"),
-    BACKGROUND_TASK_ENABLED=(bool, False),
     SUPPRESS_TEST_OUTPUT=(bool, False),
     HAWK_AUTHENTICATION_ENABLED=(bool, True),
     LITE_HMRC_INTEGRATION_ENABLED=(bool, False),
@@ -58,7 +57,6 @@ INSTALLED_APPS = [
     "api.applications",
     "api.audit_trail",
     "api.bookmarks",
-    "background_task",
     "api.cases",
     "api.cases.generated_documents",
     "api.compliance",
@@ -231,12 +229,6 @@ LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "templat
 DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
-
-# Background tasks
-BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
-BACKGROUND_TASK_RUN_ASYNC = True
-# Number of times a task is retried given a failure occurs with exponential back-off = ((current_attempt ** 4) + 5)
-MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt (assuming instantaneous failures)
 
 # AWS
 VCAP_SERVICES = env.json("VCAP_SERVICES", {})
