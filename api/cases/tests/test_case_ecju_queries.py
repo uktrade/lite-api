@@ -265,10 +265,13 @@ class ECJUQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.assertFalse(EcjuQuery.objects.exists())
 
+
+class ECJUQueriesNotificationsTest(DataTestClient):
     @mock.patch("api.cases.views.views.notify.notify_exporter_ecju_query")
     def test_exporter_notification(self, mock_notify):
-        """ """
-        case = self.create_standard_application_case(self.organisation)
+        export_user = ExporterUserFactory()
+
+        case = self.create_standard_application_case(self.organisation, user=export_user)
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
         data = {"question": "Test ECJU Query question?", "query_type": ECJUQueryType.ECJU}
 
@@ -278,7 +281,11 @@ class ECJUQueriesCreateTest(DataTestClient):
         ecju_query = EcjuQuery.objects.get(case=case)
         exporter_notification_count_after_creation = ecju_query.notifications.count()
 
-        self.client.post(url, {"pk": ecju_query.pk, **data, "debug": True}, **self.gov_headers)
+        self.client.post(
+            url,
+            {"pk": ecju_query.pk, **data, "responded_by_user": export_user.baseuser_ptr.pk, "debug": True},
+            **self.gov_headers,
+        )
         exporter_notification_count_after_update = ecju_query.notifications.count()
 
         self.assertEqual(initial_exporter_notification_count, 0)

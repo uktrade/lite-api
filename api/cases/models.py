@@ -626,7 +626,6 @@ class EcjuQuery(TimestampableModel):
 
     @queryable_property
     def is_manually_closed(self):
-
         if self.responded_by_user and self.responded_by_user.type == UserType.INTERNAL:
             return True
         else:
