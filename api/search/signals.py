@@ -1,4 +1,3 @@
-from background_task.models import Task
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -6,12 +5,12 @@ from django.dispatch import receiver
 
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.goods.models import Good
-from api.search.tasks import update_search_index
+from api.search.celery_tasks import update_search_index
 
 
 @receiver(post_save)
 def update_search_documents(sender, **kwargs):
-    if not settings.LITE_API_ENABLE_ES or issubclass(sender, Task):
+    if not settings.LITE_API_ENABLE_ES:
         return
 
     app_label = sender._meta.app_label
@@ -58,11 +57,5 @@ def update_search_documents(sender, **kwargs):
         pass
 
     if to_update:
-        update_task = update_search_index
-
-        if not settings.BACKGROUND_TASK_ENABLED:
-            update_task = update_search_index.now
-
         to_update = [(model_name, str(pk)) for model_name, pk in to_update]
-
-        update_task(to_update)
+        update_search_index.delay(to_update)

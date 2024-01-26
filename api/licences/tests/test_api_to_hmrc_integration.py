@@ -14,7 +14,7 @@ from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTy
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.core.constants import GovPermissions
 from api.core.helpers import add_months
-from api.conf.settings import MAX_ATTEMPTS, LITE_HMRC_REQUEST_TIMEOUT
+from api.conf.settings import LITE_HMRC_REQUEST_TIMEOUT
 from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action
 from api.licences.helpers import get_approved_goods_types, get_approved_countries
 from api.licences.libraries.hmrc_integration_operations import (
@@ -386,8 +386,8 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         requests_post.assert_called_once()
         self.assertEqual(
             str(error.exception),
-            f"An unexpected response was received when sending licence '{self.standard_licence.id}', "
-            f"action '{self.hmrc_integration_status}' to HMRC Integration -> status=400, message=Bad request",
+            f"An unexpected response was received when sending licence '{self.standard_licence.reference_code}', "
+            f"action '{self.hmrc_integration_status}' to lite-hmrc -> status=400, message=Bad request",
         )
         self.assertIsNone(self.standard_licence.hmrc_integration_sent_at)
 
@@ -512,7 +512,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence.assert_called_with(self.standard_licence, self.hmrc_integration_status)
 
     @mock.patch("api.licences.celery_tasks.send_licence")
-    def test_send_licence_to_hmrc_integration_with_background_task_success(self, send_licence):
+    def test_send_licence_to_hmrc_integration_task_success(self, send_licence):
         send_licence.return_value = None
 
         send_licence_details_to_lite_hmrc.delay(str(self.standard_licence.id), self.hmrc_integration_status)
@@ -520,7 +520,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence.assert_called_once()
 
     @mock.patch("api.licences.celery_tasks.send_licence")
-    def test_send_licence_to_hmrc_integration_with_background_task_failure(self, send_licence):
+    def test_send_licence_to_hmrc_integration_task_failure(self, send_licence):
         send_licence.side_effect = HMRCIntegrationException("Received an unexpected response")
 
         with self.assertRaises(HMRCIntegrationException) as error:

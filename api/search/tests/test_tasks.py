@@ -1,16 +1,16 @@
 from unittest.mock import call, patch
 
-from api.search.tasks import update_search_index
+from api.search.celery_tasks import update_search_index
 from test_helpers.clients import DataTestClient
 
 
 class UpdateSearchIndexTests(DataTestClient):
-    @patch("api.search.tasks.registry")
+    @patch("api.search.celery_tasks.registry")
     def test_update_index(self, mock_registry):
         app1 = self.create_standard_application_case(self.organisation)
         app2 = self.create_standard_application_case(self.organisation)
 
-        update_search_index.now(
+        update_search_index.delay(
             [
                 ("applications.StandardApplication", app1.pk),
                 ("applications.StandardApplication", app2.pk),

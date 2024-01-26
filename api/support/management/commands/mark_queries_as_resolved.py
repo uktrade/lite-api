@@ -31,20 +31,20 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         case_reference = options.pop("case_reference")
         dry_run = options["dry_run"]
-        logging.info(f"Given case reference is: {case_reference}")
+        logging.info("Given case reference is: %s", case_reference)
 
         try:
             case = Case.objects.get(reference_code=case_reference)
         except Case.DoesNotExist:
-            logging.error(f"Case ({case_reference}) not found, please provide valid case reference")
+            logging.error("Case (%s) not found, please provide valid case reference", case_reference)
             return
 
-        unresolved_queries = case.case_ecju_query.filter(response=None)
+        unresolved_queries = case.case_ecju_query.filter(is_query_closed=False)
         if unresolved_queries.count() == 0:
-            logging.info(f"No unresolved queries for Case {case_reference} found, returning.")
+            logging.info("No unresolved queries for Case %s found, returning.", case_reference)
             return
 
-        logging.info(f"Number of unresolved queries for Case {case_reference}: {unresolved_queries.count()}")
+        logging.info("Number of unresolved queries for Case %s: %s", case_reference, unresolved_queries.count())
 
         for query in unresolved_queries:
             query.response = "Marked as resolved by LITE System"
@@ -52,5 +52,7 @@ class Command(BaseCommand):
                 query.save()
 
         logging.info(
-            f"Number of unresolved queries after update for Case {case_reference}: {case.case_ecju_query.filter(response=None).count()}"
+            "Number of unresolved queries after update for Case %s: %s ",
+            case_reference,
+            case.case_ecju_query.filter(is_query_closed=False).count(),
         )

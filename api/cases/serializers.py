@@ -229,6 +229,7 @@ class ECJUQuerySummarySerializer(serializers.Serializer):
     raised_by_user = serializers.SerializerMethodField()
     responded_by_user = serializers.SerializerMethodField()
     query_type = serializers.CharField()
+    is_query_closed = serializers.BooleanField()
 
     def _user_name(self, user):
         if not user:
@@ -573,6 +574,8 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
             "responded_at",
             "query_type",
             "documents",
+            "is_query_closed",
+            "is_manually_closed",
         )
 
     def get_raised_by_user_name(self, instance):
@@ -610,6 +613,8 @@ class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
             "created_at",
             "responded_at",
             "documents",
+            "is_query_closed",
+            "is_manually_closed",
         )
 
     def get_responded_by_user(self, instance):
@@ -629,7 +634,7 @@ class EcjuQueryUserResponseSerializer(serializers.ModelSerializer):
     responded_by_user = PrimaryKeyRelatedSerializerField(
         queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer
     )
-    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=True)
     documents = serializers.SerializerMethodField()
 
     class Meta:
