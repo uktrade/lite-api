@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models import Q
-from django.utils import timezone
 from api.users.enums import UserType
 
 from rest_framework.exceptions import ValidationError
