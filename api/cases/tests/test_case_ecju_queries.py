@@ -1,4 +1,5 @@
 from unittest import mock
+from datetime import timedelta
 
 from django.urls import reverse
 from django.utils import timezone
@@ -13,7 +14,6 @@ from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
-from api.cases.helpers import working_days_in_range
 from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
 from api.licences.enums import LicenceStatus
 from api.picklists.enums import PicklistType
@@ -225,9 +225,54 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(0, response_data["count"])
 
-    def test_ecju_query_shows_correct_open_working_days_for_open_query(self):
+    @parameterized.expand(
+        [
+            (
+                {
+                    "year": 2022,
+                    "month": 11,
+                    "day": 30,
+                    "hour": 9,
+                    "minute": 50,
+                    "second": 0,
+                    "microsecond": 123456,
+                    "tzinfo": timezone.utc,
+                },
+                291,
+            ),
+            (
+                {
+                    "year": 2023,
+                    "month": 12,
+                    "day": 15,
+                    "hour": 13,
+                    "minute": 37,
+                    "second": 0,
+                    "microsecond": 123456,
+                    "tzinfo": timezone.utc,
+                },
+                28,
+            ),
+            (
+                {
+                    "year": 2024,
+                    "month": 1,
+                    "day": 1,
+                    "hour": 12,
+                    "minute": 30,
+                    "second": 0,
+                    "microsecond": 123456,
+                    "tzinfo": timezone.utc,
+                },
+                19,
+            ),
+        ]
+    )
+    def test_ecju_query_shows_correct_open_working_days_for_open_query(
+        self, created_at_datetime_kwargs, expected_working_days
+    ):
         case = self.create_standard_application_case(self.organisation)
-        created_at_datetime = timezone.datetime(2024, 1, 1, 12, 30, 0, 123456, tzinfo=timezone.now().tzinfo)
+        created_at_datetime = timezone.datetime(**created_at_datetime_kwargs)
         ecju_query = EcjuQueryFactory(
             question="this is the question",
             response=None,
@@ -238,17 +283,70 @@ class ECJUQueriesViewTests(DataTestClient):
 
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
 
-        response = self.client.get(url, **self.gov_headers)
+        # for open queries there is no responded_at datetime
+        # and timezone.now() is used as the end date so
+        # this must be mocked to write a static test
+        mock_now = timezone.datetime(
+            year=2024, month=1, day=29, hour=13, minute=40, second=0, microsecond=0, tzinfo=timezone.utc
+        )
+        with mock.patch("django.utils.timezone.now", return_value=mock_now):
+            response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
 
-        assert response_data["ecju_queries"][0]["open_working_days"] == working_days_in_range(
-            created_at_datetime, timezone.now()
-        )
+        assert response_data["ecju_queries"][0]["open_working_days"] == expected_working_days
 
-    def test_ecju_query_shows_correct_open_working_days_for_closed_query(self):
+    @parameterized.expand(
+        [
+            (
+                {
+                    "year": 2022,
+                    "month": 11,
+                    "day": 30,
+                    "hour": 9,
+                    "minute": 50,
+                    "second": 0,
+                    "microsecond": 123456,
+                    "tzinfo": timezone.utc,
+                },
+                365,
+                252,
+            ),
+            (
+                {
+                    "year": 2023,
+                    "month": 12,
+                    "day": 15,
+                    "hour": 13,
+                    "minute": 37,
+                    "second": 0,
+                    "microsecond": 123456,
+                    "tzinfo": timezone.utc,
+                },
+                30,
+                18,
+            ),
+            (
+                {
+                    "year": 2024,
+                    "month": 1,
+                    "day": 28,
+                    "hour": 12,
+                    "minute": 6,
+                    "second": 0,
+                    "microsecond": 123456,
+                    "tzinfo": timezone.utc,
+                },
+                1,
+                0,
+            ),
+        ],
+    )
+    def test_ecju_query_shows_correct_open_working_days_for_closed_query(
+        self, created_at_datetime_kwargs, timedelta_days, expected_working_days
+    ):
         case = self.create_standard_application_case(self.organisation)
-        created_at_datetime = timezone.datetime(2024, 1, 1, 12, 30, 0, 123456, tzinfo=timezone.now().tzinfo)
-        responded_at_datetime = timezone.datetime(2024, 1, 18, 12, 30, 0, 123456, tzinfo=timezone.now().tzinfo)
+        created_at_datetime = timezone.datetime(**created_at_datetime_kwargs)
+        responded_at_datetime = created_at_datetime + timedelta(days=timedelta_days)
         ecju_query = EcjuQueryFactory(
             question="this is the question",
             response="some response text",
@@ -262,9 +360,7 @@ class ECJUQueriesViewTests(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
 
-        assert response_data["ecju_queries"][0]["open_working_days"] == working_days_in_range(
-            created_at_datetime, responded_at_datetime
-        )
+        assert response_data["ecju_queries"][0]["open_working_days"] == expected_working_days
 
 
 class ECJUQueriesCreateTest(DataTestClient):
