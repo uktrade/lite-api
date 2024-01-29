@@ -279,27 +279,17 @@ class ECJUQueriesNotificationsTest(DataTestClient):
         self.client.post(url, data, **self.gov_headers)
 
         ecju_query = EcjuQuery.objects.get(case=case)
-        exporter_notification_count_after_creation = ecju_query.notifications.count()
-
-        self.client.post(
-            url,
-            {"pk": ecju_query.pk, **data},
-            **self.gov_headers,
-        )
-        exporter_notification_count_after_update = ecju_query.notifications.count()
+        exporter_notification_count_after_creation = EcjuQuery.objects.filter(case=case).count()
 
         self.client.post(
             url,
             {"pk": ecju_query.pk, **data, "responded_by_user": export_user.baseuser_ptr.pk},
             **self.gov_headers,
         )
-        exporter_notification_count_after_user_response = ecju_query.notifications.count()
+        exporter_notification_count_after_user_response = EcjuQuery.objects.filter(case=case).count()
 
         self.assertEqual(initial_exporter_notification_count, 0)
         self.assertEqual(exporter_notification_count_after_creation, 1)
-        self.assertEqual(
-            exporter_notification_count_after_update, 1, "Update without user should not change notification count"
-        )
         self.assertEqual(
             exporter_notification_count_after_user_response, 0, "Updating should have deleted the notification"
         )

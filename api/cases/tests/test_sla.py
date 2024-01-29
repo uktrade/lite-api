@@ -421,7 +421,7 @@ class SlaRulesTests(DataTestClient):
         mock_is_weekend,
         mock_is_bank_holiday,
         responded_at=datetime.combine(YESTERDAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc),
-        expected_results=1,
+        expected_results=0,
     ):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False

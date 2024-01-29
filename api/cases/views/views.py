@@ -565,15 +565,7 @@ class ECJUQueries(APIView):
         serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
-            is_new_query = not get_case(pk).case_ecju_query.exists()
-            ecju_query = serializer.save(responded_at=None if is_new_query else timezone.now())
-
-            if is_new_query:
-                ecju_query.send_notifications()
-            elif ecju_query.is_query_closed:
-                # When the query is responded to by user, delete notifications
-                # for the exporter and any internal users.
-                BaseNotification.objects.filter(case=ecju_query.case).delete()
+            serializer.save()
 
             # Audit the creation of the query
             audit_trail_service.create(
@@ -619,7 +611,6 @@ class EcjuQueryDetail(APIView):
         If validate only, this will return if the data is acceptable or not.
         """
         ecju_query = get_ecju_query(ecju_pk)
-        is_new_query = not ecju_query.case.case_ecju_query.exists()
         if ecju_query.response:
             return JsonResponse(
                 data={"errors": f"Responding to closed {ecju_query.get_query_type_display()} is not allowed"},
@@ -632,7 +623,7 @@ class EcjuQueryDetail(APIView):
 
         if serializer.is_valid():
             if "validate_only" not in request.data or not request.data["validate_only"]:
-                serializer.save(responded_at=None if is_new_query else timezone.now())
+                serializer.save()
                 is_govuser = hasattr(request.user, "govuser")
                 # If the user is a Govuser query is manually being closed by a caseworker
                 query_verb = AuditType.ECJU_QUERY_MANUALLY_CLOSED if is_govuser else AuditType.ECJU_QUERY_RESPONSE
