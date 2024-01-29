@@ -678,7 +678,6 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "question",
             "case",
             "raised_by_user",
-            "responded_by_user",
             "query_type",
             "team",
         )
