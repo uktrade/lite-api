@@ -15,8 +15,6 @@ from api.cases.helpers import working_days_in_range
                 "day": 30,
                 "hour": 9,
                 "minute": 50,
-                "second": 0,
-                "microsecond": 123456,
                 "tzinfo": datetime.timezone.utc,
             },
             365,
@@ -29,13 +27,12 @@ from api.cases.helpers import working_days_in_range
                 "day": 15,
                 "hour": 13,
                 "minute": 37,
-                "second": 0,
-                "microsecond": 123456,
                 "tzinfo": datetime.timezone.utc,
             },
             30,
             18,
         ),
+        ({"year": 2024, "month": 1, "day": 22, "hour": 15, "minute": 40, "tzinfo": datetime.timezone.utc}, 7, 5),
         (
             {
                 "year": 2024,
@@ -43,8 +40,6 @@ from api.cases.helpers import working_days_in_range
                 "day": 28,
                 "hour": 12,
                 "minute": 6,
-                "second": 0,
-                "microsecond": 123456,
                 "tzinfo": datetime.timezone.utc,
             },
             1,
@@ -52,8 +47,8 @@ from api.cases.helpers import working_days_in_range
         ),
     ],
 )
-def test_working_days_in_range(created_at_datetime_kwargs, timedelta_days, expected_working_days):
+def test_working_days_in_range(created_at_datetime_kwargs, calendar_days, expected_working_days):
     start_date = datetime.datetime(**created_at_datetime_kwargs)
-    end_date = start_date + datetime.timedelta(days=timedelta_days)
+    end_date = start_date + datetime.timedelta(days=calendar_days)
 
     assert working_days_in_range(start_date, end_date) == expected_working_days

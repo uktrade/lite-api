@@ -7,6 +7,7 @@ from api.cases.tests.factories import EcjuQueryFactory
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
+from freezegun import freeze_time
 
 from api.applications.models import BaseApplication
 from api.audit_trail.enums import AuditType
@@ -234,8 +235,6 @@ class ECJUQueriesViewTests(DataTestClient):
                     "day": 30,
                     "hour": 9,
                     "minute": 50,
-                    "second": 0,
-                    "microsecond": 123456,
                     "tzinfo": timezone.utc,
                 },
                 291,
@@ -247,8 +246,6 @@ class ECJUQueriesViewTests(DataTestClient):
                     "day": 15,
                     "hour": 13,
                     "minute": 37,
-                    "second": 0,
-                    "microsecond": 123456,
                     "tzinfo": timezone.utc,
                 },
                 28,
@@ -260,14 +257,14 @@ class ECJUQueriesViewTests(DataTestClient):
                     "day": 1,
                     "hour": 12,
                     "minute": 30,
-                    "second": 0,
-                    "microsecond": 123456,
                     "tzinfo": timezone.utc,
                 },
                 19,
             ),
+            ({"year": 2024, "month": 1, "day": 22, "hour": 15, "minute": 40, "tzinfo": timezone.utc}, 5),
         ]
     )
+    @freeze_time("2024-01-29 15:00:00")
     def test_ecju_query_shows_correct_open_working_days_for_open_query(
         self, created_at_datetime_kwargs, expected_working_days
     ):
@@ -283,14 +280,7 @@ class ECJUQueriesViewTests(DataTestClient):
 
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
 
-        # for open queries there is no responded_at datetime
-        # and timezone.now() is used as the end date so
-        # this must be mocked to write a static test
-        mock_now = timezone.datetime(
-            year=2024, month=1, day=29, hour=13, minute=40, second=0, microsecond=0, tzinfo=timezone.utc
-        )
-        with mock.patch("django.utils.timezone.now", return_value=mock_now):
-            response = self.client.get(url, **self.gov_headers)
+        response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
 
         assert response_data["ecju_queries"][0]["open_working_days"] == expected_working_days
@@ -304,8 +294,6 @@ class ECJUQueriesViewTests(DataTestClient):
                     "day": 30,
                     "hour": 9,
                     "minute": 50,
-                    "second": 0,
-                    "microsecond": 123456,
                     "tzinfo": timezone.utc,
                 },
                 365,
@@ -318,13 +306,12 @@ class ECJUQueriesViewTests(DataTestClient):
                     "day": 15,
                     "hour": 13,
                     "minute": 37,
-                    "second": 0,
-                    "microsecond": 123456,
                     "tzinfo": timezone.utc,
                 },
                 30,
                 18,
             ),
+            ({"year": 2024, "month": 1, "day": 22, "hour": 15, "minute": 40, "tzinfo": timezone.utc}, 7, 5),
             (
                 {
                     "year": 2024,
@@ -332,8 +319,6 @@ class ECJUQueriesViewTests(DataTestClient):
                     "day": 28,
                     "hour": 12,
                     "minute": 6,
-                    "second": 0,
-                    "microsecond": 123456,
                     "tzinfo": timezone.utc,
                 },
                 1,
@@ -342,11 +327,11 @@ class ECJUQueriesViewTests(DataTestClient):
         ],
     )
     def test_ecju_query_shows_correct_open_working_days_for_closed_query(
-        self, created_at_datetime_kwargs, timedelta_days, expected_working_days
+        self, created_at_datetime_kwargs, calendar_days, expected_working_days
     ):
         case = self.create_standard_application_case(self.organisation)
         created_at_datetime = timezone.datetime(**created_at_datetime_kwargs)
-        responded_at_datetime = created_at_datetime + timedelta(days=timedelta_days)
+        responded_at_datetime = created_at_datetime + timedelta(days=calendar_days)
         ecju_query = EcjuQueryFactory(
             question="this is the question",
             response="some response text",
