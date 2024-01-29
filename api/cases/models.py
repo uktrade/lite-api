@@ -600,7 +600,7 @@ class EcjuQuery(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     question = models.CharField(null=False, blank=False, max_length=5000)
-    response = models.CharField(null=True, blank=False, max_length=2200)
+    response = models.CharField(null=True, blank=True, max_length=2200)
     case = models.ForeignKey(Case, related_name="case_ecju_query", on_delete=models.CASCADE)
     team = models.ForeignKey(Team, null=True, on_delete=models.CASCADE)
     responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
