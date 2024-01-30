@@ -28,7 +28,6 @@ from api.cases.enums import (
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.libraries.advice import group_advice
-from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.cases.libraries.finalise import get_required_decision_document_types
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
