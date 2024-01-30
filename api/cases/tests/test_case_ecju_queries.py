@@ -269,10 +269,8 @@ class ECJUQueriesCreateTest(DataTestClient):
 
 class ECJUQueriesNotificationsTest(DataTestClient):
     @staticmethod
-    def get_ecju_notifications_count_for_case(case):
-        return BaseNotification.objects.filter(
-            case=case, content_type=ContentType.objects.get_for_model(EcjuQuery)
-        ).count()
+    def get_ecju_notifications_for_case(case):
+        return BaseNotification.objects.filter(case=case, content_type=ContentType.objects.get_for_model(EcjuQuery))
 
     @mock.patch("api.cases.views.views.notify.notify_exporter_ecju_query")
     def test_exporter_notification(self, mock_notify):
@@ -282,11 +280,11 @@ class ECJUQueriesNotificationsTest(DataTestClient):
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
         data = {"question": "Test ECJU Query question?", "query_type": ECJUQueryType.ECJU}
 
-        initial_exporter_notification_count = self.get_ecju_notifications_count_for_case(case)
+        initial_exporter_notification_count = self.get_ecju_notifications_for_case(case).count()
+        self.assertEqual(initial_exporter_notification_count, 0)
 
         self.client.post(url, data, **self.gov_headers)
-
-        exporter_notification_count_after_creation = self.get_ecju_notifications_count_for_case(case)
+        exporter_notification_count_after_creation = self.get_ecju_notifications_for_case(case).count()
         self.assertEqual(exporter_notification_count_after_creation, 1)
 
         ecju_query = EcjuQuery.objects.get(case=case)
@@ -294,10 +292,7 @@ class ECJUQueriesNotificationsTest(DataTestClient):
         data = {"response": "Attached the requested documents"}
         self.client.put(query_response_url, data, **self.exporter_headers)
 
-        exporter_notification_count_after_user_response = self.get_ecju_notifications_count_for_case(case)
-
-        self.assertEqual(initial_exporter_notification_count, 0)
-        self.assertEqual(exporter_notification_count_after_creation, 1)
+        exporter_notification_count_after_user_response = self.get_ecju_notifications_for_case(case).count()
         self.assertEqual(
             exporter_notification_count_after_user_response, 0, "Updating should have deleted the notification"
         )

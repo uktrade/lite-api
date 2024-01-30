@@ -3,6 +3,7 @@ import logging
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -616,7 +617,11 @@ class EcjuQueryDetail(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = {"response": request.data["response"], "responded_by_user": str(request.user.pk)}
+        data = {
+            "response": request.data["response"],
+            "responded_by_user": str(request.user.pk),
+            "responded_at": timezone.now(),
+        }
 
         serializer = EcjuQueryUserResponseSerializer(instance=ecju_query, data=data, partial=True)
 
