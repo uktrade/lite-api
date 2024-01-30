@@ -569,7 +569,7 @@ class GoodsQueryGoodSerializer(serializers.ModelSerializer):
         model = Good
         fields = ["description", "name", "control_list_entries", "is_controlled", "part_number"]
 
-    is_controlled = serializers.NullBooleanField(source="is_good_controlled")
+    is_controlled = serializers.BooleanField(source="is_good_controlled", allow_null=True)
     control_list_entries = serializers.SerializerMethodField()
 
     def get_control_list_entries(self, obj):
