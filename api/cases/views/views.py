@@ -614,6 +614,7 @@ class EcjuQueryDetail(APIView):
         If not validate only Will update the ecju query instance, with a response, and return the data details.
         If validate only, this will return if the data is acceptable or not.
         """
+
         ecju_query = get_ecju_query(ecju_pk)
         if ecju_query.response:
             return JsonResponse(
@@ -621,7 +622,10 @@ class EcjuQueryDetail(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = {"response": request.data["response"], "responded_by_user": str(request.user.pk)}
+        data = {"responded_by_user": str(request.user.pk)}
+
+        if request.data.get("response"):
+            data.update({"response": request.data["response"]})
 
         serializer = EcjuQueryUserResponseSerializer(instance=ecju_query, data=data, partial=True)
 
@@ -636,7 +640,7 @@ class EcjuQueryDetail(APIView):
                     verb=query_verb,
                     action_object=serializer.instance,
                     target=serializer.instance.case,
-                    payload={"ecju_response": data["response"]},
+                    payload={"ecju_response": data.get("response")},
                 )
                 return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_201_CREATED)
             else:
