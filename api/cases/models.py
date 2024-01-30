@@ -647,7 +647,7 @@ class EcjuQuery(TimestampableModel):
             user_relationship.send_notification(content_object=self, case=self.case)
 
     def save(self, *args, **kwargs):
-        is_new_query = not self.pk
+        is_new_query = self._state.adding
         super().save(*args, **kwargs)
         if is_new_query:
             self.send_notifications()

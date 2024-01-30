@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils import timezone
 from api.cases.tests.factories import EcjuQueryFactory
@@ -17,7 +18,7 @@ from api.licences.enums import LicenceStatus
 from api.picklists.enums import PicklistType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
-from api.users.models import ExporterNotification
+from api.users.models import ExporterNotification, BaseNotification
 from test_helpers.clients import DataTestClient
 from api.users.tests.factories import ExporterUserFactory
 
@@ -267,6 +268,12 @@ class ECJUQueriesCreateTest(DataTestClient):
 
 
 class ECJUQueriesNotificationsTest(DataTestClient):
+    @staticmethod
+    def get_ecju_notifications_for_case(case):
+        return BaseNotification.objects.filter(
+            case=case, content_type=ContentType.objects.get_for_model(EcjuQuery)
+        ).count()
+
     @mock.patch("api.cases.views.views.notify.notify_exporter_ecju_query")
     def test_exporter_notification(self, mock_notify):
         export_user = ExporterUserFactory()
@@ -275,18 +282,18 @@ class ECJUQueriesNotificationsTest(DataTestClient):
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
         data = {"question": "Test ECJU Query question?", "query_type": ECJUQueryType.ECJU}
 
-        initial_exporter_notification_count = ExporterNotification.objects.count()
-        self.client.post(url, data, **self.gov_headers)
+        initial_exporter_notification_count = self.get_ecju_notifications_for_case(case)
 
-        ecju_query = EcjuQuery.objects.get(case=case)
-        exporter_notification_count_after_creation = EcjuQuery.objects.filter(case=case).count()
+        ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
 
-        self.client.post(
-            url,
-            {"pk": ecju_query.pk, **data, "responded_by_user": export_user.baseuser_ptr.pk},
-            **self.gov_headers,
-        )
-        exporter_notification_count_after_user_response = EcjuQuery.objects.filter(case=case).count()
+        exporter_notification_count_after_creation = self.get_ecju_notifications_for_case(case)
+        self.assertEqual(exporter_notification_count_after_creation, 1)
+
+        query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
+        data = {"response": "Attached the requested documents"}
+        self.client.put(query_response_url, data, **self.exporter_headers)
+
+        exporter_notification_count_after_user_response = self.get_ecju_notifications_for_case(case)
 
         self.assertEqual(initial_exporter_notification_count, 0)
         self.assertEqual(exporter_notification_count_after_creation, 1)

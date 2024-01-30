@@ -3,7 +3,6 @@ import logging
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
-from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -98,7 +97,6 @@ from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.users.libraries.get_user import get_user_by_pk
-from api.users.models import BaseNotification
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
 
