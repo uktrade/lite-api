@@ -8,7 +8,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
-from django.utils import timezone
 
 from api.users.enums import UserType
 
@@ -646,20 +645,11 @@ class EcjuQuery(TimestampableModel):
         for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
             user_relationship.send_notification(content_object=self, case=self.case)
 
-    def save(self, *args, **kwargs):
-        is_new_query = self._state.adding
-        super().save(*args, **kwargs)
-        if is_new_query:
-            self.send_notifications()
-        else:
-            self.responded_at = timezone.now()
-            if self.is_query_closed:
-                # When the query is responded to by user, delete notifications
-                # for the exporter and any internal users.
-                # Filter BaseNotification by GenericRelation to self
-                BaseNotification.objects.filter(
-                    object_id=self.id, content_type=ContentType.objects.get_for_model(EcjuQuery)
-                ).delete()
+    def delete_notifications(self):
+        # Delete both internal and external notifications on this ECJUQuery
+        BaseNotification.objects.filter(
+            object_id=self.id, content_type=ContentType.objects.get_for_model(EcjuQuery)
+        ).delete()
 
 
 class EcjuQueryDocument(Document):

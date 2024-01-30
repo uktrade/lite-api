@@ -563,7 +563,7 @@ class ECJUQueries(APIView):
         serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            ecju_query = serializer.save()
 
             # Audit the creation of the query
             audit_trail_service.create(
@@ -574,6 +574,7 @@ class ECJUQueries(APIView):
                 payload={"ecju_query": data["question"]},
             )
 
+            ecju_query.send_notifications()
             notify.notify_exporter_ecju_query(pk)
 
             return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
@@ -632,6 +633,7 @@ class EcjuQueryDetail(APIView):
                     target=serializer.instance.case,
                     payload={"ecju_response": data["response"]},
                 )
+                ecju_query.delete_notifications()
                 return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)

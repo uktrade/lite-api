@@ -269,7 +269,7 @@ class ECJUQueriesCreateTest(DataTestClient):
 
 class ECJUQueriesNotificationsTest(DataTestClient):
     @staticmethod
-    def get_ecju_notifications_for_case(case):
+    def get_ecju_notifications_count_for_case(case):
         return BaseNotification.objects.filter(
             case=case, content_type=ContentType.objects.get_for_model(EcjuQuery)
         ).count()
@@ -282,18 +282,19 @@ class ECJUQueriesNotificationsTest(DataTestClient):
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
         data = {"question": "Test ECJU Query question?", "query_type": ECJUQueryType.ECJU}
 
-        initial_exporter_notification_count = self.get_ecju_notifications_for_case(case)
+        initial_exporter_notification_count = self.get_ecju_notifications_count_for_case(case)
 
-        ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
+        self.client.post(url, data, **self.gov_headers)
 
-        exporter_notification_count_after_creation = self.get_ecju_notifications_for_case(case)
+        exporter_notification_count_after_creation = self.get_ecju_notifications_count_for_case(case)
         self.assertEqual(exporter_notification_count_after_creation, 1)
 
+        ecju_query = EcjuQuery.objects.get(case=case)
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Attached the requested documents"}
         self.client.put(query_response_url, data, **self.exporter_headers)
 
-        exporter_notification_count_after_user_response = self.get_ecju_notifications_for_case(case)
+        exporter_notification_count_after_user_response = self.get_ecju_notifications_count_for_case(case)
 
         self.assertEqual(initial_exporter_notification_count, 0)
         self.assertEqual(exporter_notification_count_after_creation, 1)
