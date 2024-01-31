@@ -89,10 +89,10 @@ def check_party_error(party, object_not_found_error, is_document_mandatory=True)
 
     if not party:
         return object_not_found_error
-    elif party:
-        document_error = check_party_document(party, is_document_mandatory)
-        if document_error:
-            return document_error
+
+    document_error = check_party_document(party, is_document_mandatory)
+    if document_error:
+        return document_error
 
 
 def _validate_end_user(draft, errors):
