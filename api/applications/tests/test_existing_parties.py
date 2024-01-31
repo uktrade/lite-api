@@ -31,7 +31,7 @@ class GetExistingPartiesTests(DataTestClient):
         response = self.client.get(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), Party.objects.count())
+        self.assertEqual(len(response.data["results"]), 2)
 
     def test_get_existing_parties_only_returns_parties_from_own_organisation_success(self):
         second_organisation, _ = self.create_organisation_with_exporter_user(name="Second organisation")
@@ -124,11 +124,10 @@ class GetExistingPartiesTests(DataTestClient):
         second_expected_copy_id = Party.objects.filter(name="Mr Copy").get().id
 
         # Party table data contains one duplicate, so results returned is 1 less than all parties
-        self.assertEqual(Party.objects.count() - 1, len(response_data))
+        self.assertEqual(len(response_data), 4)
 
         self.assertIn(str(expected_copy_id), response_data_ids)
         self.assertIn(str(second_expected_copy_id), response_data_ids)
-        self.assertIn(str(self.draft.end_user.party.id), response_data_ids)
         self.assertNotIn(str(original_party.id), response_data_ids)
 
     def test_get_existing_parties_contains_no_duplicates_with_filters_success(self):

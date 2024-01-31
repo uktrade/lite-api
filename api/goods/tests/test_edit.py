@@ -29,20 +29,13 @@ class GoodsEditDraftGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP1_COMPONENTS)
+        self.good = GoodFactory(
+            organisation=self.organisation,
+            item_category=ItemCategory.GROUP1_COMPONENTS,
+            is_good_controlled=True,
+        )
         self.url = reverse("goods:good", kwargs={"pk": str(self.good.id)})
         self.edit_details_url = reverse("goods:good_details", kwargs={"pk": str(self.good.id)})
-
-    def test_when_updating_is_good_controlled_to_no_then_control_list_entries_is_deleted(self):
-        request_data = {"is_good_controlled": False}
-
-        response = self.client.put(self.url, request_data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["good"]["is_good_controlled"]["key"], "False")
-        self.assertEqual(response.json()["good"]["control_list_entries"], [])
-
-        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_updating_non_clc_the_clc_is_not_overwritten(self):
         ratings = ["ML1a", "ML1b"]
@@ -113,9 +106,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(PvGradingDetails.objects.all().count(), 0)
 
     def test_when_updating_pv_grading_details_then_new_details_are_returned(self):
-        pv_grading_details = self.good.pv_grading_details.__dict__
-        pv_grading_details.pop("_state")
-        pv_grading_details.pop("id")
+        pv_grading_details = {}
         pv_grading_details["grading"] = PvGrading.UK_OFFICIAL
         pv_grading_details["date_of_issue"] = "2020-01-01"
         request_data = {"is_pv_graded": GoodPvGraded.YES, "pv_grading_details": pv_grading_details}

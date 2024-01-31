@@ -25,7 +25,7 @@ class GetCaseLicenceTests(DataTestClient):
             duration=100,
             reference_code="reference",
         )
-        self.good = GoodFactory(organisation=self.application.organisation)
+        self.good = GoodFactory(organisation=self.application.organisation, is_good_controlled=True)
         self.good_on_application = GoodOnApplicationFactory(
             application=self.application, good=self.good, quantity=100.0, value=Decimal("1000.00")
         )

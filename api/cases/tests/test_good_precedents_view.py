@@ -113,7 +113,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
         # so their destinations will be different hence extract expected values instead of using
         # fixed values in expected_data
         expected_destinations = sorted(
-            [party_on_application.party.country.name for party_on_application in self.application.parties.all()]
+            list(set(self.application.parties.values_list("party__country__name", flat=True)))
         )
 
         wassenaar_regime = RegimeEntry.objects.get(name="Wassenaar Arrangement")
