@@ -5,7 +5,6 @@ from django.db import migrations, models
 import django.db.migrations.operations.special
 import django.db.models.deletion
 import django.utils.timezone
-import jsonfield.fields
 import model_utils.fields
 import uuid
 
@@ -326,7 +325,7 @@ class Migration(migrations.Migration):
                 ("description", models.TextField(blank=True, null=True)),
                 ("target_object_id", models.CharField(blank=True, db_index=True, max_length=255, null=True)),
                 ("action_object_object_id", models.CharField(blank=True, db_index=True, max_length=255, null=True)),
-                ("payload", jsonfield.fields.JSONField(default=dict)),
+                ("payload", models.JSONField(default=dict)),
                 (
                     "action_object_content_type",
                     models.ForeignKey(
