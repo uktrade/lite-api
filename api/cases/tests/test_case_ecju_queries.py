@@ -514,12 +514,12 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
-        data = {}
+        data = {"response": ""}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         response_ecju_query = response.json()["ecju_query"]
-        self.assertIsNone(response_ecju_query["response"])
+        self.assertEqual(response_ecju_query["response"], "")
         self.assertIsNotNone(response_ecju_query["responded_at"])
 
     def test_close_query_has_optional_response_govuser(self):
@@ -530,13 +530,13 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
-        data = {"response": None}
+        data = {"response": ""}
 
         response = self.client.put(query_response_url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         response_ecju_query = response.json()["ecju_query"]
-        self.assertIsNone(response_ecju_query["response"])
+        self.assertEqual(response_ecju_query["response"], "")
         self.assertIsNotNone(response_ecju_query["responded_at"])
 
         response_get = self.client.get(query_response_url, **self.gov_headers)
