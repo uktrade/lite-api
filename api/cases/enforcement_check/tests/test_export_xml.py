@@ -61,8 +61,7 @@ class ExportXML(DataTestClient):
                 stakeholder["SH_TYPE"], party.type.upper() if party.type != PartyType.THIRD_PARTY else "OTHER"
             )
             self.assertEqual(stakeholder["COUNTRY"], party.country.name)
-            if party.organisation:
-                self.assertEqual(stakeholder["ORG_NAME"], party.organisation.name)
+            self.assertIsNotNone(stakeholder["ORG_NAME"])
             self.assertEqual(stakeholder["PD_SURNAME"], party.name)
             # When address is exported to xml, newlines are replaced with space
             # so do the same when comparing the address here

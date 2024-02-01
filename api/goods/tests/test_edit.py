@@ -17,9 +17,7 @@ from api.goods.enums import (
 )
 from api.goods.models import Good, PvGradingDetails
 from api.goods.tests.factories import GoodFactory
-from api.goods.views import GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT, GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX
-from api.goods.tests.factories import GoodFactory
-from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
+from api.goods.tests.factories import FirearmFactory, GoodFactory
 from lite_content.lite_api import strings
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from test_helpers.clients import DataTestClient
@@ -413,11 +411,16 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
     def test_edit_category_two_section_question_and_invalid_expiry_date_failure(self):
         """Test editing section of firearms question failure by providing an expiry date not in the future."""
-        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
-        good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five = "No"
-        good.firearm_details.section_certificate_number = None
-        good.firearm_details.section_certificate_date_of_expiry = None
-        good.firearm_details.save()
+        firearm_details = FirearmFactory(
+            is_covered_by_firearm_act_section_one_two_or_five="No",
+            section_certificate_number=None,
+            section_certificate_date_of_expiry=None,
+        )
+        good = GoodFactory(
+            organisation=self.organisation,
+            item_category=ItemCategory.GROUP2_FIREARMS,
+            firearm_details=firearm_details,
+        )
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {

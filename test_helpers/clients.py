@@ -667,9 +667,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 )
 
         if parties:
-            PartyOnApplicationFactory(application=application, party=ConsigneeFactory())
-            PartyOnApplicationFactory(application=application, party=EndUserFactory())
-            PartyOnApplicationFactory(application=application, party=ThirdPartyFactory())
+            PartyOnApplicationFactory(application=application, party=ConsigneeFactory(organisation=self.organisation))
+            PartyOnApplicationFactory(application=application, party=EndUserFactory(organisation=self.organisation))
+            PartyOnApplicationFactory(application=application, party=ThirdPartyFactory(organisation=self.organisation))
 
             if ultimate_end_users:
                 PartyOnApplicationFactory(application=application, party=UltimateEndUserFactory())
