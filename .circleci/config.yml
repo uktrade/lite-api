@@ -267,7 +267,7 @@ jobs:
           at: ~/repo/tmp
       - run: pip install coverage diff_cover
       - run: coverage combine tmp
-      - run: coverage xml
+      - run: coverage xml ae
       - run: coverage html
       - store_artifacts:
           path: htmlcov
