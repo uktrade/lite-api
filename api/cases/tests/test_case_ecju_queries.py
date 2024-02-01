@@ -519,7 +519,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         response_ecju_query = response.json()["ecju_query"]
-        self.assertEqual(response_ecju_query["response"], "")
+        self.assertIsNone(response_ecju_query["response"])
         self.assertIsNotNone(response_ecju_query["responded_at"])
 
     def test_close_query_has_optional_response_govuser(self):
@@ -536,7 +536,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         response_ecju_query = response.json()["ecju_query"]
-        self.assertEqual(response_ecju_query["response"], "")
+        self.assertIsNone(response_ecju_query["response"])
         self.assertIsNotNone(response_ecju_query["responded_at"])
 
         response_get = self.client.get(query_response_url, **self.gov_headers)
