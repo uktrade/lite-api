@@ -1,4 +1,5 @@
 from unittest import mock
+from datetime import timedelta
 
 from django.urls import reverse
 from django.utils import timezone
@@ -6,6 +7,7 @@ from api.cases.tests.factories import EcjuQueryFactory
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
+from freezegun import freeze_time
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -224,6 +226,127 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(0, response_data["count"])
 
+    @parameterized.expand(
+        [
+            (
+                {
+                    "year": 2022,
+                    "month": 11,
+                    "day": 30,
+                    "hour": 9,
+                    "minute": 50,
+                    "tzinfo": timezone.utc,
+                },
+                291,
+            ),
+            (
+                {
+                    "year": 2023,
+                    "month": 12,
+                    "day": 15,
+                    "hour": 13,
+                    "minute": 37,
+                    "tzinfo": timezone.utc,
+                },
+                28,
+            ),
+            (
+                {
+                    "year": 2024,
+                    "month": 1,
+                    "day": 1,
+                    "hour": 12,
+                    "minute": 30,
+                    "tzinfo": timezone.utc,
+                },
+                19,
+            ),
+            ({"year": 2024, "month": 1, "day": 22, "hour": 15, "minute": 40, "tzinfo": timezone.utc}, 5),
+        ]
+    )
+    @freeze_time("2024-01-29 15:00:00")
+    def test_ecju_query_shows_correct_open_working_days_for_open_query(
+        self, created_at_datetime_kwargs, expected_working_days
+    ):
+        case = self.create_standard_application_case(self.organisation)
+        created_at_datetime = timezone.datetime(**created_at_datetime_kwargs)
+        ecju_query = EcjuQueryFactory(
+            question="this is the question",
+            response=None,
+            responded_at=None,
+            case=case,
+            created_at=created_at_datetime,
+        )
+
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        assert response_data["ecju_queries"][0]["open_working_days"] == expected_working_days
+
+    @parameterized.expand(
+        [
+            (
+                {
+                    "year": 2022,
+                    "month": 11,
+                    "day": 30,
+                    "hour": 9,
+                    "minute": 50,
+                    "tzinfo": timezone.utc,
+                },
+                365,
+                252,
+            ),
+            (
+                {
+                    "year": 2023,
+                    "month": 12,
+                    "day": 15,
+                    "hour": 13,
+                    "minute": 37,
+                    "tzinfo": timezone.utc,
+                },
+                30,
+                18,
+            ),
+            ({"year": 2024, "month": 1, "day": 22, "hour": 15, "minute": 40, "tzinfo": timezone.utc}, 7, 5),
+            (
+                {
+                    "year": 2024,
+                    "month": 1,
+                    "day": 28,
+                    "hour": 12,
+                    "minute": 6,
+                    "tzinfo": timezone.utc,
+                },
+                1,
+                0,
+            ),
+        ],
+    )
+    def test_ecju_query_shows_correct_open_working_days_for_closed_query(
+        self, created_at_datetime_kwargs, calendar_days, expected_working_days
+    ):
+        case = self.create_standard_application_case(self.organisation)
+        created_at_datetime = timezone.datetime(**created_at_datetime_kwargs)
+        responded_at_datetime = created_at_datetime + timedelta(days=calendar_days)
+        ecju_query = EcjuQueryFactory(
+            question="this is the question",
+            response="some response text",
+            responded_at=responded_at_datetime,
+            case=case,
+            created_at=created_at_datetime,
+        )
+
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        assert response_data["ecju_queries"][0]["open_working_days"] == expected_working_days
+
 
 class ECJUQueriesCreateTest(DataTestClient):
     @parameterized.expand([ECJUQueryType.ECJU, ECJUQueryType.PRE_VISIT_QUESTIONNAIRE, ECJUQueryType.COMPLIANCE_ACTIONS])
@@ -391,7 +514,7 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
-        data = {"response": None}
+        data = {}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
