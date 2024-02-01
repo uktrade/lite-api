@@ -90,10 +90,24 @@ commands:
           key: dependencies-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
   upload_code_coverage:
+    parameters:
+      alias:
+        type: string
     steps:
       - run:
-          name: Upload code coverage
-          command: ./codecov
+          name: Rename coverage file
+          command: mkdir coverage-output && cp .coverage coverage-output/.coverage.<<parameters.alias>>
+      - persist_to_workspace:
+          root: coverage-output
+          paths:
+            - .coverage.*
+      - run:
+          name: Code coverage report
+          command: |
+            pipenv run coverage xml
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            chmod +x codecov
+            ./codecov
 
 jobs:
   tests:
@@ -110,16 +124,14 @@ jobs:
     steps:
       - setup
       - run:
-          name: Create report directories
-          command: |
-            mkdir test_results
-      - run:
           name: Run tests
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance and not migration" --junitxml=test_results/output.xml
-      - upload_code_coverage
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance and not migration"
+      - upload_code_coverage:
+          alias: tests
       - store_test_results:
-          path: test_results
+          path: tests
+
 
   seeding_tests:
     docker:
@@ -133,16 +145,11 @@ jobs:
     steps:
       - setup
       - run:
-          name: Create report directories
-          command: |
-            mkdir test_results
-      - run:
           name: Run seeding tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding --junitxml=test_results/output.xml
-      - upload_code_coverage
-      - store_test_results:
-          path: test_results
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
+      - upload_code_coverage:
+          alias: seeding_tests
 
   migration_tests:
     docker:
@@ -157,16 +164,13 @@ jobs:
     steps:
       - setup
       - run:
-          name: Create report directories
-          command: |
-            mkdir test_results
-      - run:
           name: Run migration tests
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k migration --junitxml=test_results/output.xml
-      - upload_code_coverage
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k migration
+      - upload_code_coverage:
+          alias: migration_tests
       - store_test_results:
-          path: test_results
+          path: migration_tests
 
   lite_routing_tests:
     docker:
@@ -182,16 +186,13 @@ jobs:
     steps:
       - setup
       - run:
-          name: Create report directories
-          command: |
-            mkdir test_results
-      - run:
           name: Run lite_routing tests
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k "not migration" --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing --junitxml=test_results/output.xml
-      - upload_code_coverage
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k "not migration" --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing
+      - upload_code_coverage:
+          alias: lite_routing_tests
       - store_test_results:
-          path: test_results
+          path: lite_routing_tests
 
   lite_routing_bdd_tests:
     docker:
@@ -212,19 +213,14 @@ jobs:
       - run:
           name: Create report directories
           command: |
-            mkdir test_results
             mkdir cucumber_results
-            mkdir cucumber_html
       - run:
           name: Run lite_routing tests
-          command: pipenv run pytest --circleci-parallelize --gherkin-terminal-reporter -vv lite_routing/routing_rules_internal/tests/bdd --junitxml=test_results/output.xml --cucumberjson=cucumber_results/cuc.json
+          command: pipenv run pytest --circleci-parallelize --gherkin-terminal-reporter -vv lite_routing/routing_rules_internal/tests/bdd --cucumberjson=cucumber_results/cuc.json
       - run:
           name: Generate html cucumber report
           command: node generate_cucumber_report.js
           when: always
-      - upload_code_coverage
-      - store_test_results:
-          path: test_results
       - store_artifacts:
           path: cucumber_html
 
@@ -240,16 +236,11 @@ jobs:
     steps:
       - setup
       - run:
-          name: Create report directories
-          command: |
-            mkdir test_results
-      - run:
           name: Run elasticsearch tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch --junitxml=test_results/output.xml
-      - upload_code_coverage
-      - store_test_results:
-          path: test_results
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
+      - upload_code_coverage:
+          alias: elastic_search_tests
 
   check_migrations:
     docker:
@@ -265,6 +256,28 @@ jobs:
       - run:
           name: Check migrations are made
           command: pipenv run ./manage.py makemigrations --check
+
+  check_coverage:
+    working_directory: ~/repo
+    docker:
+      - <<: *image_python
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo/tmp
+      - run: pip install coverage diff_cover
+      - run: coverage combine tmp
+      - run: coverage xml
+      - run: coverage html
+      - store_artifacts:
+          path: htmlcov
+      - run: diff-cover coverage.xml --compare-branch=origin/dev --html-report coverage-report.html
+      - store_artifacts:
+          path: coverage-report.html
+      - run: zip -r coverage.zip htmlcov coverage-report.html
+      - store_artifacts:
+          path: coverage.zip
+      - run: diff-cover coverage.xml --compare-branch=origin/dev --fail-under=100
 
   linting:
     docker:
@@ -362,8 +375,9 @@ jobs:
             fi
 
 workflows:
-  test:
+  tests:
     jobs:
+      - linting
       - tests
       - seeding_tests
       - lite_routing_tests
@@ -371,6 +385,13 @@ workflows:
       - elastic_search_tests
       - migration_tests
       - check_migrations
-      - linting
+      - check_coverage:
+          requires:
+              - tests
+              - seeding_tests
+              - elastic_search_tests
+              - migration_tests
+              - lite_routing_bdd_tests
+              - lite_routing_tests
       - check-lite-routing-sha
       - e2e_tests
