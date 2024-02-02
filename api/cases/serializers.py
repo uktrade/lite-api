@@ -576,6 +576,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
             "documents",
             "is_query_closed",
             "is_manually_closed",
+            "open_working_days",
         )
 
     def get_raised_by_user_name(self, instance):
