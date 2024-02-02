@@ -216,8 +216,6 @@ jobs:
           when: always
       - store_artifacts:
           path: cucumber_html
-      - upload_code_coverage:
-          alias: lite_routing_bdd_tests
 
   elastic_search_tests:
     docker:
@@ -386,7 +384,6 @@ workflows:
               - seeding_tests
               - elastic_search_tests
               - migration_tests
-              - lite_routing_bdd_tests
               - lite_routing_tests
       - check-lite-routing-sha
       - e2e_tests
