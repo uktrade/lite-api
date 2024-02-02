@@ -96,7 +96,7 @@ commands:
     steps:
       - run:
           name: Rename coverage file
-          command: mkdir coverage-output && cp .coverage coverage-output/.coverage.<<parameters.alias>>
+          command: mkdir coverage-output && cp .coverage coverage-output/.coverage.<<parameters.alias>>.$(cat /proc/sys/kernel/random/uuid)
       - persist_to_workspace:
           root: coverage-output
           paths:
