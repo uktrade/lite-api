@@ -256,6 +256,7 @@ jobs:
       - <<: *image_python
     steps:
       - checkout
+      - run: git submodule sync --recursive && git submodule update --recursive --init
       - attach_workspace:
           at: ~/lite-api/tmp
       - run: pip install coverage diff_cover
