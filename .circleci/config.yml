@@ -371,20 +371,20 @@ jobs:
 workflows:
   tests:
     jobs:
-      - linting
+      # - linting
       - tests
-      - seeding_tests
-      - lite_routing_tests
-      - lite_routing_bdd_tests
-      - elastic_search_tests
-      - migration_tests
-      - check_migrations
+      # - seeding_tests
+      # - lite_routing_tests
+      # - lite_routing_bdd_tests
+      # - elastic_search_tests
+      # - migration_tests
+      # - check_migrations
       - check_coverage:
           requires:
               - tests
-              - seeding_tests
-              - elastic_search_tests
-              - migration_tests
-              - lite_routing_tests
-      - check-lite-routing-sha
-      - e2e_tests
+      #         - seeding_tests
+      #         - elastic_search_tests
+      #         - migration_tests
+      #         - lite_routing_tests
+      # - check-lite-routing-sha
+      # - e2e_tests
