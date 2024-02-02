@@ -129,9 +129,6 @@ jobs:
             pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance and not migration"
       - upload_code_coverage:
           alias: tests
-      - store_test_results:
-          path: tests
-
 
   seeding_tests:
     docker:
@@ -169,8 +166,6 @@ jobs:
             pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k migration
       - upload_code_coverage:
           alias: migration_tests
-      - store_test_results:
-          path: migration_tests
 
   lite_routing_tests:
     docker:
@@ -191,8 +186,6 @@ jobs:
             pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k "not migration" --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing
       - upload_code_coverage:
           alias: lite_routing_tests
-      - store_test_results:
-          path: lite_routing_tests
 
   lite_routing_bdd_tests:
     docker:
@@ -223,6 +216,8 @@ jobs:
           when: always
       - store_artifacts:
           path: cucumber_html
+      - upload_code_coverage:
+          alias: lite_routing_bdd_tests
 
   elastic_search_tests:
     docker:
@@ -258,16 +253,16 @@ jobs:
           command: pipenv run ./manage.py makemigrations --check
 
   check_coverage:
-    working_directory: ~/repo
+    working_directory: ~/lite-api
     docker:
       - <<: *image_python
     steps:
       - checkout
       - attach_workspace:
-          at: ~/repo/tmp
+          at: ~/lite-api/tmp
       - run: pip install coverage diff_cover
       - run: coverage combine tmp
-      - run: coverage xml ae
+      - run: coverage xml
       - run: coverage html
       - store_artifacts:
           path: htmlcov
