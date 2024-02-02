@@ -69,32 +69,6 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 0)
 
-    def test_cant_view_draft_hmrc_query_list_as_exporter_success(self):
-        self.create_hmrc_query(organisation=self.organisation)
-
-        response = self.client.get(self.url, **self.exporter_headers)
-
-        result_count = response.json()["count"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(result_count, 0)
-
-    def test_view_hmrc_query_list_as_hmrc_exporter_success(self):
-        """
-        Ensure we can get a list of HMRC queries.
-        """
-        hmrc_query = self.create_hmrc_query(organisation=self.organisation)
-
-        response = self.client.get(self.url, **self.hmrc_exporter_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], hmrc_query.name)
-        self.assertEqual(response_data[0]["case_type"]["sub_type"]["key"], hmrc_query.case_type.sub_type)
-        self.assertIsNotNone(response_data[0]["updated_at"])
-        self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
-
     def test_view_draft_standard_application_as_exporter_success(self):
         standard_application = self.create_draft_standard_application(self.organisation)
 
@@ -278,38 +252,6 @@ class DraftTests(DataTestClient):
         self.assertEqual(
             SiteOnApplication.objects.filter(application__id=open_application.id).count(),
             1,
-        )
-
-    def test_view_draft_hmrc_query_as_hmrc_exporter_success(self):
-        hmrc_query = self.create_hmrc_query(self.organisation)
-
-        url = reverse("applications:application", kwargs={"pk": hmrc_query.id})
-
-        response = self.client.get(url, **self.hmrc_exporter_headers)
-
-        retrieved_application = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(retrieved_application["name"], hmrc_query.name)
-        self.assertEqual(
-            retrieved_application["case_type"]["reference"]["key"],
-            hmrc_query.case_type.reference,
-        )
-        self.assertIsNotNone(retrieved_application["created_at"])
-        self.assertIsNotNone(retrieved_application["updated_at"])
-        self.assertIsNone(retrieved_application["submitted_at"])
-        self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
-        self.assertEqual(retrieved_application["organisation"]["id"], str(hmrc_query.organisation.id))
-        self.assertEqual(
-            retrieved_application["hmrc_organisation"]["id"],
-            str(hmrc_query.hmrc_organisation.id),
-        )
-        self.assertIsNotNone(GoodsType.objects.get(application__id=hmrc_query.id))
-        self.assertEqual(retrieved_application["end_user"]["id"], str(hmrc_query.end_user.party.id))
-        self.assertEqual(retrieved_application["consignee"]["id"], str(hmrc_query.consignee.party.id))
-        self.assertEqual(
-            retrieved_application["third_parties"][0]["id"],
-            str(hmrc_query.third_parties.get().party.id),
         )
 
     def test_view_nonexisting_draft_failure(self):

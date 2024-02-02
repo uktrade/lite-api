@@ -4,7 +4,6 @@ from api.applications.models import (
     GiftingClearanceApplication,
     OpenApplication,
     StandardApplication,
-    HmrcQuery,
     ExhibitionClearanceApplication,
 )
 from api.cases.enums import CaseTypeSubTypeEnum
@@ -77,8 +76,6 @@ def get_application(pk, organisation_id=None):
             return obj
         elif application_type == CaseTypeSubTypeEnum.OPEN:
             return OpenApplication.objects.get(pk=pk, **kwargs)
-        elif application_type == CaseTypeSubTypeEnum.HMRC:
-            return HmrcQuery.objects.get(pk=pk)
         elif application_type == CaseTypeSubTypeEnum.EXHIBITION:
             return ExhibitionClearanceApplication.objects.get(pk=pk)
         elif application_type == CaseTypeSubTypeEnum.GIFTING:
@@ -90,7 +87,6 @@ def get_application(pk, organisation_id=None):
     except (
         StandardApplication.DoesNotExist,
         OpenApplication.DoesNotExist,
-        HmrcQuery.DoesNotExist,
     ):
         raise NotFoundError({"application": "Application not found - " + str(pk)})
 

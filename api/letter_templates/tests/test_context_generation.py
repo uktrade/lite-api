@@ -15,7 +15,6 @@ from api.applications.enums import (
 from api.applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
-from api.cases.models import Advice
 from api.letter_templates.context_generator import EcjuQuerySerializer
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
@@ -31,7 +30,6 @@ from api.goods.enums import (
     MilitaryUse,
     Component,
     ItemCategory,
-    FirearmGoodType,
     GoodControlled,
     GoodPvGraded,
 )
@@ -321,10 +319,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["country"]["code"], destination.country.id)
         self.assertEqual(context["contract_types"], destination.contract_types)
         self.assertEqual(context["other_contract_type"], destination.other_contract_type_text)
-
-    def _assert_hmrc_query_details(self, context, case):
-        self.assertEqual(context["query_reason"], case.reasoning)
-        self.assertEqual(context["have_goods_departed"], friendly_boolean(case.have_goods_departed))
 
     def _assert_exhibition_clearance_details(self, context, case):
         self.assertEqual(context["exhibition_title"], case.title)
@@ -885,17 +879,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_base_application_details(context["details"], case)
         self._assert_open_application_details(context["details"], case)
         self._assert_destination_details(context["destinations"][0], destination)
-
-    def test_generate_context_with_hmrc_query_details(self):
-        case = self.create_hmrc_query(self.organisation)
-
-        context = get_document_context(case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
-        self._assert_case_type_details(context["case_type"], case)
-        self._assert_hmrc_query_details(context["details"], case)
 
     def test_generate_context_with_exhibition_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)

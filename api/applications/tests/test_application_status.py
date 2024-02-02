@@ -353,19 +353,6 @@ class ApplicationManageStatusTests(DataTestClient):
             ["Licensing Unit Pre-circulation Cases to Review", "new queue"],
         )
 
-    def test_gov_user_set_hmrc_status_closed_success(self):
-        self.hmrc_query = self.create_hmrc_query(self.organisation)
-        self.submit_application(self.hmrc_query)
-
-        data = {"status": CaseStatusEnum.CLOSED}
-        url = reverse("applications:manage_status", kwargs={"pk": self.hmrc_query.id})
-        response = self.client.put(url, data=data, **self.gov_headers)
-
-        self.hmrc_query.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.hmrc_query.status, get_case_status_by_status(CaseStatusEnum.CLOSED))
-
     @parameterized.expand(
         [
             (

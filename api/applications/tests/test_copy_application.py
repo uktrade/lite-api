@@ -7,7 +7,6 @@ from api.applications.enums import ApplicationExportLicenceOfficialType, Applica
 from api.applications.models import (
     StandardApplication,
     OpenApplication,
-    HmrcQuery,
     GoodOnApplication,
     CountryOnApplication,
     SiteOnApplication,
@@ -405,47 +404,6 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.copied_application = F680ClearanceApplication.objects.get(id=self.response_data)
 
         self._validate_F680_application()
-
-    def test_copy_draft_hmrc_enquiry_successful(self):
-        """
-        Ensure we can copy an hmrc enquiry that is a draft
-        """
-        self.original_application = self.create_hmrc_query(self.organisation)
-
-        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
-
-        self.data = {"name": "New application"}
-
-        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
-        self.response_data = self.response.json()["data"]
-
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-        self.assertNotEqual(self.response_data, self.original_application.id)
-
-        self.copied_application = HmrcQuery.objects.get(id=self.response_data)
-
-        self._validate_hmrc_enquiry()
-
-    def test_copy_submitted_hmrc_enquiry_successful(self):
-        """
-        Ensure we can copy an hmrc enquiry that is submitted ongoing or otherwise
-        """
-        self.original_application = self.create_hmrc_query(self.organisation)
-        self.submit_application(self.original_application)
-
-        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
-
-        self.data = {"name": "New application"}
-
-        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
-        self.response_data = self.response.json()["data"]
-
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-        self.assertNotEqual(self.response_data, self.original_application.id)
-
-        self.copied_application = HmrcQuery.objects.get(id=self.response_data)
-
-        self._validate_hmrc_enquiry()
 
     def _validate_standard_application(self):
         self._validate_reset_data()

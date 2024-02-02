@@ -2,7 +2,6 @@ import datetime
 
 from django.urls import reverse
 from django import utils as django_utils
-from api.staticdata.statuses.factories import CaseStatusFactory
 from parameterized import parameterized
 from rest_framework import status
 
@@ -21,7 +20,6 @@ from api.cases.models import Case, CaseAssignment, EcjuQuery, CaseType
 from api.flags.models import Flag
 from api.goods.tests.factories import GoodFactory
 from api.picklists.enums import PicklistType
-from api.cases.tests.factories import CaseSIELFactory, FinalAdviceFactory
 from api.queues.constants import (
     UPDATED_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
@@ -33,7 +31,7 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.tests.factories import ReportSummaryPrefixFactory, ReportSummarySubjectFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
-from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.staticdata.statuses.models import CaseSubStatus
 from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
@@ -929,13 +927,9 @@ class CaseOrderingOnQueueTests(DataTestClient):
         """Test that a work queue returns cases in expected order (hmrc queries with goods not departed first)."""
         clc_query_1 = self.create_clc_query("Example CLC Query", self.organisation)
         standard_app = self.create_standard_application_case(self.organisation, "Example Application")
-        hmrc_query_1 = self.submit_application(self.create_hmrc_query(self.organisation))
         clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
-        hmrc_query_2 = self.submit_application(self.create_hmrc_query(self.organisation, have_goods_departed=True))
 
-        queue = QueueFactory(
-            team=self.gov_user.team, cases=[clc_query_1, standard_app, hmrc_query_1, clc_query_2, hmrc_query_2]
-        )
+        queue = QueueFactory(team=self.gov_user.team, cases=[clc_query_1, standard_app, clc_query_2])
 
         url = reverse("cases:search") + "?queue_id=" + str(queue.id)
         response = self.client.get(url, **self.gov_headers)
@@ -944,11 +938,9 @@ class CaseOrderingOnQueueTests(DataTestClient):
 
         actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
         expected_case_order_ids = [
-            str(hmrc_query_1.id),
             str(clc_query_1.id),
             str(standard_app.id),
             str(clc_query_2.id),
-            str(hmrc_query_2.id),
         ]
         self.assertEqual(actual_case_order_ids, expected_case_order_ids)
 

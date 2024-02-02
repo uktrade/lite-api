@@ -73,7 +73,6 @@ class CasesSearchView(generics.ListAPIView):
         service.populate_other_flags(cases)
         service.populate_organisation(cases)
         service.populate_is_recently_updated(cases)
-        service.get_hmrc_sla_hours(cases)
         service.populate_activity_updates(case_map)
         service.populate_destinations(case_map)
         service.populate_good_details(case_map)

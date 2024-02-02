@@ -24,7 +24,6 @@ from api.applications.models import (
     CountryOnApplication,
     StandardApplication,
     OpenApplication,
-    HmrcQuery,
     ApplicationDocument,
     ExhibitionClearanceApplication,
     GiftingClearanceApplication,
@@ -41,7 +40,6 @@ from api.cases.models import (
     Case,
     CaseDocument,
     CaseAssignment,
-    GoodCountryDecision,
     EcjuQuery,
     CaseType,
     Advice,
@@ -56,12 +54,10 @@ from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
 from api.addresses.tests.factories import AddressFactoryGB
 from api.goods.enums import (
-    GoodControlled,
     GoodPvGraded,
     PvGrading,
     ItemCategory,
     MilitaryUse,
-    Component,
     FirearmGoodType,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
@@ -73,7 +69,7 @@ from api.goodstype.tests.factories import GoodsTypeFactory
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code
-from api.licences.models import GoodOnLicence, Licence
+from api.licences.models import Licence
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation, ExternalLocation
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
@@ -100,7 +96,7 @@ from api.staticdata.urls import urlpatterns as static_urlpatterns
 from api.teams.models import Team
 from api.users.tests.factories import GovUserFactory
 from test_helpers import colours
-from api.users.enums import UserStatuses, SystemUser, UserType
+from api.users.enums import SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -952,45 +948,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft = self.create_draft_open_application(organisation, reference_name)
 
         return self.submit_application(draft, self.exporter_user)
-
-    def create_hmrc_query(
-        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True, have_goods_departed=False
-    ):
-        application = HmrcQuery(
-            name=reference_name,
-            case_type_id=CaseTypeEnum.HMRC.id,
-            activity="Trade",
-            usage="Trade",
-            organisation=organisation,
-            hmrc_organisation=self.hmrc_organisation,
-            reasoning="I Am Easy to Find",
-            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            have_goods_departed=have_goods_departed,
-            submitted_by=self.hmrc_exporter_user,
-        )
-        application.save()
-
-        end_user = self.create_party("End User", organisation, PartyType.END_USER, application)
-        consignee = self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-        third_party = self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-
-        self.assertEqual(end_user, application.end_user.party)
-        self.assertEqual(consignee, application.consignee.party)
-        self.assertEqual(third_party, application.third_parties.get().party)
-
-        goods_type = GoodsTypeFactory(application=application)
-
-        # Set the application party documents
-        self.create_document_for_party(application.end_user.party, safe=safe_document)
-        self.create_document_for_party(application.consignee.party, safe=safe_document)
-        self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
-
-        self.create_document_for_goods_type(goods_type)
-
-        # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
-
-        return application
 
     def create_standard_application_case(
         self,
