@@ -1,7 +1,4 @@
-from decimal import Decimal
-
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 
 from api.applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
@@ -9,7 +6,7 @@ from api.cases.enums import AdviceType, CaseTypeEnum
 from api.cases.tests.factories import FinalAdviceFactory
 from api.goods.tests.factories import GoodFactory
 from api.licences.enums import LicenceStatus
-from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
+from api.licences.tests.factories import StandardLicenceFactory, GoodOnLicenceFactory
 from api.staticdata.units.enums import Units
 from test_helpers.clients import DataTestClient
 
@@ -17,12 +14,7 @@ from test_helpers.clients import DataTestClient
 class GetLicenceTests(DataTestClient):
     def test_get_licence_gov_view(self):
         application = StandardApplicationFactory()
-        licence = LicenceFactory(
-            case=application,
-            start_date=timezone.now().date(),
-            status=LicenceStatus.ISSUED,
-            duration=100,
-        )
+        licence = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
         self.url = reverse("cases:licences", kwargs={"pk": application.id})
 
         good = GoodFactory(organisation=application.organisation)
@@ -92,7 +84,8 @@ class GetLicenceTests(DataTestClient):
             ]
         )
         licences = {
-            application: self.create_licence(application, status=LicenceStatus.ISSUED) for application in applications
+            application: StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
+            for application in applications
         }
         documents = {
             application: self.create_generated_case_document(application, template, licence=licences[application])

@@ -1,5 +1,6 @@
 from api.cases.models import Advice
-from api.cases.enums import AdviceLevel, AdviceType
+from api.cases.enums import AdviceType
+from api.cases.tests.factories import UserAdviceFactory
 from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 
@@ -12,13 +13,14 @@ class DeleteUserAdviceTests(DataTestClient):
         self.application = self.create_draft_standard_application(self.organisation)
         self.case = self.submit_application(self.application)
         self.gov_user_2 = GovUserFactory(baseuser_ptr__email="user@email.com", team=self.team)
-
+        self.good = self.case.goods.first().good
+        self.end_user = self.case.end_user
         self.standard_case_url = reverse("cases:user_advice", kwargs={"pk": self.case.id})
 
     def test_delete_current_user_advice(self):
-        self.create_advice(self.gov_user, self.application, "end_user", AdviceType.APPROVE, AdviceLevel.USER)
-        self.create_advice(self.gov_user_2, self.application, "good", AdviceType.REFUSE, AdviceLevel.USER)
-        self.create_advice(self.gov_user, self.application, "good", AdviceType.PROVISO, AdviceLevel.USER)
+        UserAdviceFactory(user=self.gov_user, case=self.case, type=AdviceType.APPROVE, good=self.good)
+        UserAdviceFactory(user=self.gov_user, case=self.case, type=AdviceType.PROVISO, end_user=self.end_user.party)
+        UserAdviceFactory(user=self.gov_user_2, case=self.case, type=AdviceType.REFUSE, good=self.good)
 
         resp = self.client.delete(self.standard_case_url, **self.gov_headers)
 
@@ -28,7 +30,7 @@ class DeleteUserAdviceTests(DataTestClient):
         self.assertEqual(remaining_records[0].user, self.gov_user_2)
 
     def test_creates_audit_trail(self):
-        self.create_advice(self.gov_user, self.application, "end_user", AdviceType.APPROVE, AdviceLevel.USER)
+        UserAdviceFactory(user=self.gov_user, case=self.case, type=AdviceType.APPROVE, end_user=self.end_user.party)
 
         self.client.delete(self.standard_case_url, **self.gov_headers)
 

@@ -1,6 +1,7 @@
 from api.cases.enums import AdviceType
 from api.cases.libraries import advice
 from api.cases.tests import factories
+from api.goods.tests.factories import GoodFactory
 from api.users.tests.factories import GovUserFactory
 from api.teams.tests.factories import TeamFactory
 
@@ -11,7 +12,7 @@ class TestAdviceHelpers(DataTestClient):
     def test_group_advice_single_approve(self):
         # given there is a case
         case = self.create_standard_application_case(self.organisation)
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
 
         # and the case has a single approve
         factories.UserAdviceFactory.create(type=AdviceType.APPROVE, case=case, user=self.gov_user, good=good)
@@ -35,7 +36,7 @@ class TestAdviceHelpers(DataTestClient):
 
         # given there is a case
         case = self.create_standard_application_case(self.organisation)
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
 
         # and the case has an approve
         factories.UserAdviceFactory.create(type=AdviceType.APPROVE, case=case, user=self.gov_user, good=good)
@@ -60,7 +61,7 @@ class TestAdviceHelpers(DataTestClient):
 
         # given there is a case
         case = self.create_standard_application_case(self.organisation)
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
         # and the case has an approve
         factories.UserAdviceFactory.create(type=AdviceType.APPROVE, case=case, user=self.gov_user, good=good)
         # and the case has an reject
@@ -86,7 +87,7 @@ class TestAdviceHelpers(DataTestClient):
 
         # given there is a case
         case = self.create_standard_application_case(self.organisation)
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
 
         # and the case has collated advice from one team
         factories.UserAdviceFactory.create(type=AdviceType.APPROVE, case=case, user=self.gov_user, good=good)
