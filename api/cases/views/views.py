@@ -3,6 +3,7 @@ import logging
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
+from django.contrib.contenttypes.models import ContentType
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -10,6 +11,7 @@ from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIVie
 from rest_framework.views import APIView
 
 from api.applications.models import GoodOnApplication
+from api.users.models import BaseNotification
 from api.applications.serializers.advice import (
     CountersignAdviceSerializer,
     CountryWithFlagsSerializer,
@@ -26,7 +28,6 @@ from api.cases.enums import (
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.libraries.advice import group_advice
-from api.cases.libraries.delete_notifications import delete_exporter_notifications
 from api.cases.libraries.finalise import get_required_decision_document_types
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
@@ -551,11 +552,6 @@ class ECJUQueries(APIView):
 
         if hasattr(request.user, "exporteruser"):
             serializer = EcjuQueryExporterViewSerializer(case_ecju_queries, many=True)
-            delete_exporter_notifications(
-                user=request.user.exporteruser,
-                organisation_id=get_request_user_organisation_id(request),
-                objects=case_ecju_queries,
-            )
         else:
             serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
 
@@ -570,7 +566,6 @@ class ECJUQueries(APIView):
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-
             # Audit the creation of the query
             audit_trail_service.create(
                 actor=request.user,
@@ -632,6 +627,10 @@ class EcjuQueryDetail(APIView):
         if serializer.is_valid():
             if "validate_only" not in request.data or not request.data["validate_only"]:
                 serializer.save()
+                # Delete any notifications against this query
+                ecju_query_type = ContentType.objects.get_for_model(EcjuQuery)
+                BaseNotification.objects.filter(object_id=ecju_pk, content_type=ecju_query_type).delete()
+
                 is_govuser = hasattr(request.user, "govuser")
                 # If the user is a Govuser query is manually being closed by a caseworker
                 query_verb = AuditType.ECJU_QUERY_MANUALLY_CLOSED if is_govuser else AuditType.ECJU_QUERY_RESPONSE
