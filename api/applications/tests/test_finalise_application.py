@@ -9,20 +9,24 @@ from rest_framework import status
 from api.applications.enums import LicenceDuration
 from api.applications.views.helpers.advice import CounterSignatureIncompleteError
 from api.applications.libraries.licence import get_default_duration
+from api.applications.tests.factories import GoodOnApplicationFactory
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel, CountersignOrder
 from api.cases.models import Advice, Case
-from api.cases.tests.factories import CountersignAdviceFactory
+from api.cases.tests.factories import CountersignAdviceFactory, FinalAdviceFactory, UserAdviceFactory
 from api.core.constants import GovPermissions
 from api.flags.enums import FlagLevels
 from api.flags.models import Flag
 from api.flags.tests.factories import FlagFactory
+from api.goods.tests.factories import GoodFactory
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence, GoodOnLicence
+from api.licences.tests.factories import StandardLicenceFactory
 from lite_content.lite_api import strings
 from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.units.enums import Units
 from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 from test_helpers.clients import DataTestClient
@@ -68,7 +72,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_approve_application_reissue_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
-        existing_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        existing_licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.ISSUED)
         data = {"action": AdviceType.APPROVE, "duration": existing_licence.duration}
         data.update(self.post_date)
 
@@ -89,7 +93,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_approve_application_override_draft_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
-        existing_licence = self.create_licence(self.standard_application, status=LicenceStatus.DRAFT)
+        existing_licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.DRAFT)
         data = {"action": AdviceType.APPROVE, "duration": existing_licence.duration + 1}
         data.update(self.post_date)
 
@@ -242,28 +246,19 @@ class FinaliseApplicationTests(DataTestClient):
         changes are picked up and only products that require licence are associated to the licence.
         """
         # Approve existing product on the application
-        self.create_advice(
-            self.gov_user,
-            self.standard_application,
-            "good",
-            AdviceType.APPROVE,
-            AdviceLevel.FINAL,
-            advice_text="approve",
-        )
+        good = self.standard_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_application, good=good)
 
         # Add few more products
         for i in range(3):
-            good_on_app = self.create_good_on_application(
-                self.standard_application, self.create_good(f"product{i+2}", self.organisation)
+            good_on_app = GoodOnApplicationFactory(
+                application=self.standard_application,
+                good=GoodFactory(name=f"product{i+2}", organisation=self.organisation),
+                quantity=10,
+                unit=Units.NAR,
+                value=500,
             )
-            self.create_advice(
-                self.gov_user,
-                self.standard_application,
-                "",
-                AdviceType.APPROVE,
-                AdviceLevel.FINAL,
-                good=good_on_app.good,
-            )
+            FinalAdviceFactory(user=self.gov_user, case=self.standard_application, good=good_on_app.good)
 
         # get the finalise form
         response = self.client.get(self.url, **self.gov_headers)
@@ -349,21 +344,20 @@ class FinaliseApplicationTests(DataTestClient):
     def _setup_advice_for_application(self, application, advice_type, advice_level):
         # Create Advice objects for all entities
         for good_on_application in application.goods.all():
-            self.create_advice(
-                self.gov_user,
-                application,
-                "",
-                advice_type,
-                advice_level,
+            UserAdviceFactory(
+                user=self.gov_user,
+                case=application,
+                type=advice_type,
+                level=advice_level,
                 good=good_on_application.good,
             )
         for party_on_application in application.parties.all():
-            self.create_advice(
-                self.gov_user,
-                application,
-                party_on_application.party.type,
-                advice_type,
-                advice_level,
+            UserAdviceFactory(
+                user=self.gov_user,
+                case=application,
+                type=advice_type,
+                level=advice_level,
+                end_user=party_on_application.party,
             )
 
     @parameterized.expand(
@@ -638,43 +632,36 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
+        self.good_on_application = self.standard_application.goods.first()
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
 
     def test_get_approved_goods_success(self):
         # Approve the existing good
         advice_text = "looks good to me"
-        self.create_advice(
-            self.gov_user,
-            self.standard_application,
-            "good",
-            AdviceType.APPROVE,
-            AdviceLevel.FINAL,
-            advice_text=advice_text,
-        )
+        good = self.standard_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_application, good=good, text=advice_text)
 
         # Refuse a second good
-        second_good_on_app = self.create_good_on_application(
-            self.standard_application, self.create_good("a thing", self.organisation)
+        second_good_on_app = GoodOnApplicationFactory(
+            application=self.standard_application,
+            good=GoodFactory(organisation=self.organisation),
         )
-        self.create_advice(
-            self.gov_user,
-            self.standard_application,
-            "",
-            AdviceType.REFUSE,
-            AdviceLevel.FINAL,
+        FinalAdviceFactory(
+            user=self.gov_user,
+            case=self.standard_application,
+            type=AdviceType.REFUSE,
             good=second_good_on_app.good,
         )
 
         # NLR a third good
-        third_good_on_app = self.create_good_on_application(
-            self.standard_application, self.create_good("a thing", self.organisation)
+        third_good_on_app = GoodOnApplicationFactory(
+            application=self.standard_application,
+            good=GoodFactory(organisation=self.organisation),
         )
-        self.create_advice(
-            self.gov_user,
-            self.standard_application,
-            "",
-            AdviceType.NO_LICENCE_REQUIRED,
-            AdviceLevel.FINAL,
+        FinalAdviceFactory(
+            user=self.gov_user,
+            case=self.standard_application,
+            type=AdviceType.NO_LICENCE_REQUIRED,
             good=third_good_on_app.good,
         )
 
@@ -687,14 +674,15 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
         self.assertEqual(data[0]["good"]["id"], str(self.good_on_application.good.id))
         self.assertEqual(data[0]["good"]["description"], self.good_on_application.good.description)
         self.assertEqual(data[0]["quantity"], self.good_on_application.quantity)
-        self.assertEqual(data[0]["value"].split(".")[0], str(self.good_on_application.value))
+        self.assertEqual(data[0]["value"], str(self.good_on_application.value))
         self.assertEqual(data[0]["advice"]["type"]["key"], AdviceType.APPROVE)
         self.assertEqual(data[0]["advice"]["text"], advice_text)
 
     def test_get_proviso_goods_success(self):
         # Proviso the existing good
-        advice = self.create_advice(
-            self.gov_user, self.standard_application, "good", AdviceType.PROVISO, AdviceLevel.FINAL
+        good = self.standard_application.goods.first().good
+        advice = FinalAdviceFactory(
+            user=self.gov_user, case=self.standard_application, good=good, type=AdviceType.PROVISO
         )
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -712,6 +700,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
         super().setUp()
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.standard_application = self.create_standard_application_case(self.organisation)
+        self.good_on_application = self.standard_application.goods.first()
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
         self.date = timezone.now()
         self.data = {
@@ -721,7 +710,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
             "month": self.date.month,
             "day": self.date.day,
         }
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_application, good=self.good_on_application.good)
 
     def test_approve_success(self):
         good_value = 1

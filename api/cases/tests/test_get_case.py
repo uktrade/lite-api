@@ -79,6 +79,7 @@ class CaseGetTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data["case"]["data"]["third_parties"]), 1)
 
         self._assert_party(
             self.standard_application.third_parties.last().party,
@@ -92,7 +93,8 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(str(expected.country.name), actual["country"]["name"])
         self.assertEqual(str(expected.website), actual["website"])
         self.assertEqual(str(expected.type), actual["type"])
-        self.assertEqual(str(expected.organisation.id), actual["organisation"])
+        if expected.organisation:
+            self.assertEqual(str(expected.organisation.id), actual["organisation"])
 
         sub_type = actual["sub_type"]
         # sub_type is not always a dict.

@@ -1,6 +1,7 @@
 from django.urls import reverse
 
 from api.cases.enums import AdviceType, AdviceLevel
+from api.cases.tests.factories import FinalAdviceFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -8,14 +9,7 @@ class AdviceDataWorkspaceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(
-            self.gov_user,
-            self.standard_application,
-            "good",
-            AdviceType.APPROVE,
-            AdviceLevel.FINAL,
-            advice_text="advice_text",
-        )
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_application, type=AdviceType.APPROVE)
 
     def test_advice(self):
         url = reverse("data_workspace:dw-advice-list")
@@ -59,14 +53,7 @@ class AdviceDenialReasonsDataWorkspaceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(
-            self.gov_user,
-            self.standard_application,
-            "good",
-            AdviceType.REFUSE,
-            AdviceLevel.FINAL,
-            advice_text="advice_text",
-        )
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_application, type=AdviceType.REFUSE)
 
     def test_advice_denial_reason(self):
         url = reverse("data_workspace:dw-advice-denial-reasons-list")

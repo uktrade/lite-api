@@ -60,7 +60,7 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     name = "Application Test Name"
     export_type = ApplicationExportType.PERMANENT
     case_type_id = CaseTypeEnum.SIEL.id
-    have_you_been_informed = (ApplicationExportLicenceOfficialType.YES,)
+    have_you_been_informed = ApplicationExportLicenceOfficialType.YES
     reference_number_on_information_form = ""
     activity = "Trade"
     usage = "Trade"
@@ -73,6 +73,7 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     intended_end_use = "this is our intended end use"
     is_shipped_waybill_or_lading = True
     non_waybill_or_lading_route_details = None
+    is_mod_security_approved = False
     submitted_by = factory.SubFactory(ExporterUserFactory)
 
     class Meta:

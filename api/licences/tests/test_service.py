@@ -11,7 +11,7 @@ from api.goods.tests.factories import GoodFactory
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.licences.enums import LicenceStatus
 from api.licences.service import get_case_licences
-from api.licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
+from api.licences.tests.factories import StandardLicenceFactory, GoodOnLicenceFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -19,14 +19,13 @@ class GetCaseLicenceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.application = StandardApplicationFactory()
-        self.licence = LicenceFactory(
+        self.licence = StandardLicenceFactory(
             case=self.application,
-            start_date=timezone.now().date(),
             status=LicenceStatus.REVOKED,
             duration=100,
             reference_code="reference",
         )
-        self.good = GoodFactory(organisation=self.application.organisation)
+        self.good = GoodFactory(organisation=self.application.organisation, is_good_controlled=True)
         self.good_on_application = GoodOnApplicationFactory(
             application=self.application, good=self.good, quantity=100.0, value=Decimal("1000.00")
         )
