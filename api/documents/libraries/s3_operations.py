@@ -17,13 +17,24 @@ from api.conf.settings import (
     AWS_STORAGE_BUCKET_NAME,
 )
 
-_client = boto3.client(
-    "s3",
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=AWS_REGION,
-    config=Config(connect_timeout=S3_CONNECT_TIMEOUT, read_timeout=S3_REQUEST_TIMEOUT),
-)
+
+_client = None
+
+
+def init_s3_client():
+    # We want to instantiate this once, ideally, but there may be cases where we
+    # want to explicitly re-instiate the client e.g. in tests.
+    global _client
+    _client = boto3.client(
+        "s3",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION,
+        config=Config(connect_timeout=S3_CONNECT_TIMEOUT, read_timeout=S3_REQUEST_TIMEOUT),
+    )
+
+
+init_s3_client()
 
 
 def get_object(document_id, s3_key):
