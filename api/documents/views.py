@@ -53,7 +53,7 @@ class DocumentStream(RetrieveAPIView):
     """
 
     authentication_classes = (SharedAuthentication,)
-    queryset = Document.objects.all()
+    queryset = Document.objects.filter(safe=True)
     permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
 
     def retrieve(self, request, *args, **kwargs):

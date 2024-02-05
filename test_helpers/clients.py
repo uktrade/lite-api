@@ -348,7 +348,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     @staticmethod
-    def create_case_document(case: Case, user: GovUser, name: str, visible_to_exporter=True):
+    def create_case_document(case: Case, user: GovUser, name: str, visible_to_exporter=True, safe=True):
         case_doc = CaseDocument(
             case=case,
             description="This is a document",
@@ -357,7 +357,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             s3_key="thisisakey",
             size=123456,
             virus_scanned_at=None,
-            safe=None,
+            safe=safe,
             visible_to_exporter=visible_to_exporter,
         )
         case_doc.save()
