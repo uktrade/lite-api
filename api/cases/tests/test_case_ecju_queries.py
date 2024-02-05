@@ -514,7 +514,7 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
-        data = {}
+        data = {"response": ""}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -530,7 +530,7 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
-        data = {"response": None}
+        data = {"response": ""}
 
         response = self.client.put(query_response_url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
