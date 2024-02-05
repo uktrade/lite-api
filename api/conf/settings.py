@@ -33,6 +33,7 @@ env = Env(
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
     GIT_COMMIT=(str, ""),
+    AWS_S3_BUCKETS=(dict, {}),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -233,22 +234,44 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # AWS
 VCAP_SERVICES = env.json("VCAP_SERVICES", {})
 
+AWS_S3_BUCKETS = {}
+FILE_UPLOAD_STAGED_NAME = "file-upload-staged"
+FILE_UPLOAD_PROCESSED_NAME = "file-upload-processed"
+
 if VCAP_SERVICES:
     if "aws-s3-bucket" not in VCAP_SERVICES:
         raise Exception("S3 Bucket not bound to environment")
-
-    aws_credentials = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]
     AWS_ENDPOINT_URL = None
-    AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
-    AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
-    AWS_REGION = aws_credentials["aws_region"]
-    AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
+
+    for bucket_details in VCAP_SERVICES["aws-s3-bucket"]:
+        bucket_name = None
+        if FILE_UPLOAD_PROCESSED_NAME in bucket_details["tags"]:
+            bucket_name = FILE_UPLOAD_PROCESSED_NAME
+        elif FILE_UPLOAD_STAGED_NAME in bucket_details["tags"]:
+            bucket_name = FILE_UPLOAD_STAGED_NAME
+        else:
+            # Skip buckets which are not tagged with the expected names
+            continue
+
+        AWS_S3_BUCKETS[bucket_name] = {
+            "AWS_ACCESS_KEY_ID": bucket_details["aws_access_key_id"],
+            "AWS_SECRET_ACCESS_KEY": bucket_details["aws_secret_access_key"],
+            "AWS_REGION": aws_credentials["aws_region"],
+            "AWS_STORAGE_BUCKET_NAME": aws_credentials["bucket_name"],
+        }
 else:
     AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
-    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-    AWS_REGION = env("AWS_REGION")
-    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_BUCKETS = env.json("AWS_S3_BUCKETS", {})
+
+if FILE_UPLOAD_PROCESSED_NAME not in AWS_S3_BUCKETS:
+    raise Exception("S3 file upload processed bucket not found")
+
+if FILE_UPLOAD_STAGED_NAME not in AWS_S3_BUCKETS:
+    raise Exception("S3 file upload staged bucket not found")
+
+
+FILE_UPLOAD_PROCESSED_BUCKET = AWS_S3_BUCKETS[FILE_UPLOAD_PROCESSED_NAME]
+FILE_UPLOAD_STAGED_BUCKET = AWS_S3_BUCKETS[FILE_UPLOAD_STAGED_NAME]
 
 if "redis" in VCAP_SERVICES:
     REDIS_BASE_URL = VCAP_SERVICES["redis"][0]["credentials"]["uri"]

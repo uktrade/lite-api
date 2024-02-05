@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from api.core.authentication import SharedAuthentication
+
 from api.conf.settings import env
 from api.documents.libraries.s3_operations import init_s3_client
 
@@ -22,7 +23,7 @@ class UploadDocumentForTests(APIView):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-        s3 = init_s3_client()
+        s3 = init_s3_client()["processed"]
         s3_key = "lite-e2e-test-file.txt"
 
         file_to_upload_abs_path = os.path.abspath(
@@ -30,7 +31,7 @@ class UploadDocumentForTests(APIView):
         )
 
         try:
-            s3.upload_file(file_to_upload_abs_path, settings.AWS_STORAGE_BUCKET_NAME, s3_key)
+            s3.upload_file(file_to_upload_abs_path, settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"], s3_key)
         except Exception as e:  # noqa
             return JsonResponse(
                 data={"errors": "Error uploading file to S3"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
