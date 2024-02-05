@@ -18,6 +18,3 @@ omit =
     ./lite_routing/management/commands/generate_rules_docs.py
 
 branch = True
-
-plugins =
-    django_coverage_plugin
