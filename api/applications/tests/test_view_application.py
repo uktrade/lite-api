@@ -313,3 +313,32 @@ class DraftTests(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 0)
+
+    def test_view_submitted_applications(self):
+        url = reverse("applications:applications") + "?submitted=true"
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 0)
+
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        application = self.create_draft_standard_application(self.organisation)
+
+        self.submit_application(application)
+        url = reverse("applications:applications") + "?submitted=true"
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 1)
+
+    def test_organisation_has_existing_applications(self):
+        url = reverse("applications:existing")
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["applications"], False)
+
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        application = self.create_draft_standard_application(self.organisation)
+        self.submit_application(application)
+
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["applications"], True)
