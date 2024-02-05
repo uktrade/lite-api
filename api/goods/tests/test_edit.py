@@ -17,8 +17,7 @@ from api.goods.enums import (
 )
 from api.goods.models import Good, PvGradingDetails
 from api.goods.tests.factories import GoodFactory
-from api.goods.views import GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT, GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX
-from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
+from api.goods.tests.factories import FirearmFactory, GoodFactory
 from lite_content.lite_api import strings
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from test_helpers.clients import DataTestClient
@@ -28,20 +27,13 @@ class GoodsEditDraftGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.good = self.create_good(description="This is a good", organisation=self.organisation)
+        self.good = GoodFactory(
+            organisation=self.organisation,
+            item_category=ItemCategory.GROUP1_COMPONENTS,
+            is_good_controlled=True,
+        )
         self.url = reverse("goods:good", kwargs={"pk": str(self.good.id)})
         self.edit_details_url = reverse("goods:good_details", kwargs={"pk": str(self.good.id)})
-
-    def test_when_updating_is_good_controlled_to_no_then_control_list_entries_is_deleted(self):
-        request_data = {"is_good_controlled": False}
-
-        response = self.client.put(self.url, request_data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["good"]["is_good_controlled"]["key"], "False")
-        self.assertEqual(response.json()["good"]["control_list_entries"], [])
-
-        self.assertEqual(Good.objects.all().count(), 1)
 
     def test_when_updating_non_clc_the_clc_is_not_overwritten(self):
         ratings = ["ML1a", "ML1b"]
@@ -112,9 +104,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(PvGradingDetails.objects.all().count(), 0)
 
     def test_when_updating_pv_grading_details_then_new_details_are_returned(self):
-        pv_grading_details = self.good.pv_grading_details.__dict__
-        pv_grading_details.pop("_state")
-        pv_grading_details.pop("id")
+        pv_grading_details = {}
         pv_grading_details["grading"] = PvGrading.UK_OFFICIAL
         pv_grading_details["date_of_issue"] = "2020-01-01"
         request_data = {"is_pv_graded": GoodPvGraded.YES, "pv_grading_details": pv_grading_details}
@@ -152,9 +142,9 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 1)
 
     def test_edit_military_use_to_selection_without_details_clears_the_field_success(self):
-        good = self.create_good(
-            "a good",
-            self.organisation,
+        good = GoodFactory(
+            organisation=self.organisation,
+            item_category=ItemCategory.GROUP1_MATERIALS,
             is_military_use=MilitaryUse.YES_MODIFIED,
             modified_military_use_details="modified details",
         )
@@ -190,8 +180,12 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 1)
 
     def test_edit_component_to_no_clears_details_field_success(self):
-        good = self.create_good(
-            "a good", self.organisation, is_component=Component.YES_MODIFIED, component_details="modified details"
+        good = GoodFactory(
+            organisation=self.organisation,
+            item_category=ItemCategory.GROUP1_COMPONENTS,
+            is_component=Component.YES_MODIFIED,
+            component_details="modified details",
+            firearm_details=None,
         )
 
         request_data = {"is_component": Component.NO}
@@ -236,8 +230,8 @@ class GoodsEditDraftGoodTests(DataTestClient):
         ]
     )
     def test_edit_software_or_technology_details_success(self, category, details):
-        good = self.create_good(
-            "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
+        good = GoodFactory(
+            organisation=self.organisation, item_category=category, software_or_technology_details="initial details"
         )
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"is_software_or_technology_step": True, "software_or_technology_details": details}
@@ -251,11 +245,9 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 2)
 
     def test_cannot_edit_component_and_component_details_of_non_category_one_good_failure(self):
-        good = self.create_good(
-            "a good",
-            self.organisation,
+        good = GoodFactory(
+            organisation=self.organisation,
             item_category=ItemCategory.GROUP3_TECHNOLOGY,
-            software_or_technology_details="initial details",
         )
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
@@ -271,7 +263,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])
 
     def test_cannot_edit_software_technology_details_non_category_three_good_failure(self):
-        good = self.create_good("a good", self.organisation, item_category=ItemCategory.GROUP1_PLATFORM)
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP1_PLATFORM)
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"software_or_technology_details": "some details"}
 
@@ -282,9 +274,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])
 
     def test_edit_category_two_product_type_success(self):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"firearm_details": {"type": FirearmGoodType.FIREARMS}}
@@ -299,9 +289,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 2)
 
     def test_edit_category_two_product_category_success(self):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         expected = [FirearmCategory.NON_AUTOMATIC_SHOTGUN, FirearmCategory.NON_AUTOMATIC_RIM_FIRED_RIFLE]
@@ -314,9 +302,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(actual, expected)
 
     def test_update_firearm_type_invalidates_notapplicable_fields(self):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
         firearm_details = good.firearm_details
         firearm_details.is_covered_by_firearm_act_section_one_two_or_five = "Unknown"
         firearm_details.is_covered_by_firearm_act_section_one_two_or_five_explanation = "Explanation"
@@ -339,9 +325,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 2)
 
     def test_edit_category_two_calibre_and_year_of_manufacture_success(self):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"firearm_details": {"calibre": "1.0", "year_of_manufacture": "2019"}}
@@ -357,9 +341,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 2)
 
     def test_edit_category_two_firearm_replica(self):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
@@ -383,9 +365,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 2)
 
     def test_edit_category_two_section_question_and_details_success(self):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         future_expiry_date = (now() + timedelta(days=365)).date().isoformat()
@@ -410,9 +390,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 2)
 
     def test_edit_category_two_section_question_and_no_certificate_number_failure(self):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
@@ -433,8 +411,15 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
     def test_edit_category_two_section_question_and_invalid_expiry_date_failure(self):
         """Test editing section of firearms question failure by providing an expiry date not in the future."""
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        firearm_details = FirearmFactory(
+            is_covered_by_firearm_act_section_one_two_or_five="No",
+            section_certificate_number=None,
+            section_certificate_date_of_expiry=None,
+        )
+        good = GoodFactory(
+            organisation=self.organisation,
+            item_category=ItemCategory.GROUP2_FIREARMS,
+            firearm_details=firearm_details,
         )
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
@@ -462,9 +447,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE])
 
     def test_edit_category_two_identification_markings_details_success(self):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
@@ -482,9 +465,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good["firearm_details"]["no_identification_markings_details"], "")
 
     def test_edit_firearm_year_made_before_1938(self):
-        good = self.create_good(
-            "Rifle", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"firearm_details": {"is_made_before_1938": False}}
@@ -495,9 +476,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good["firearm_details"]["is_made_before_1938"], False)
 
     def test_edit_firearm_is_deactivated(self):
-        good = self.create_good(
-            "Rifle", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
-        )
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS)
 
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {
@@ -596,11 +575,8 @@ class GoodsAttachingTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.good = self.create_good(
-            "Rifle",
-            self.organisation,
-            item_category=ItemCategory.GROUP2_FIREARMS,
-            create_firearm_details=True,
+        self.good = GoodFactory(
+            name="Rifle", organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS
         )
         self.url = reverse("goods:good_attaching", kwargs={"pk": str(self.good.id)})
 

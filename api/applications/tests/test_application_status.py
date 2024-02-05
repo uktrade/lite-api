@@ -9,6 +9,7 @@ from api.core.authentication import SharedAuthentication
 from api.core.constants import GovPermissions
 from api.cases.models import CaseAssignment
 from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 from api.teams.models import Team
 from api.users.models import UserOrganisationRelationship, Permission
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -102,7 +103,7 @@ class ApplicationManageStatusTests(DataTestClient):
         )
         if case_status == CaseStatusEnum.REVOKED:
             self.standard_application.licences.add(
-                self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+                StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.ISSUED)
             )
 
         data = {"status": case_status}
@@ -134,7 +135,7 @@ class ApplicationManageStatusTests(DataTestClient):
         ]
     )
     def test_certain_case_statuses_changes_licence_status(self, case_status, licence_status):
-        licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.ISSUED)
 
         data = {"status": case_status}
         response = self.client.put(self.url, data=data, **self.gov_headers)
@@ -195,7 +196,7 @@ class ApplicationManageStatusTests(DataTestClient):
     def test_exporter_set_application_status_surrendered_success(self):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
-        self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.ISSUED)
         surrendered_status = get_case_status_by_status("surrendered")
 
         data = {"status": CaseStatusEnum.SURRENDERED}
@@ -285,7 +286,7 @@ class ApplicationManageStatusTests(DataTestClient):
     def test_gov_set_status_for_all_except_applicant_editing_and_finalised_success(self, case_status):
         if case_status == CaseStatusEnum.REVOKED:
             self.standard_application.licences.add(
-                self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+                StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.ISSUED)
             )
 
         data = {"status": case_status}

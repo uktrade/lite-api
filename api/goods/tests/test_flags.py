@@ -4,6 +4,7 @@ from rest_framework import status
 
 from api.audit_trail.models import Audit
 from api.cases.models import Case
+from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -11,8 +12,8 @@ class GoodFlagsManagementTests(DataTestClient):
     def setUp(self):
         super().setUp()
         # Goods
-        self.good = self.create_good("a good", self.organisation)
-        self.good_2 = self.create_good("a second good", self.organisation)
+        self.good = GoodFactory(organisation=self.organisation)
+        self.good_2 = GoodFactory(organisation=self.organisation)
 
         # Teams
         self.other_team = self.create_team("Team")

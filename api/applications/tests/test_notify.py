@@ -2,7 +2,7 @@ from unittest import mock
 
 from api.applications import notify
 from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
-from api.cases.tests.factories import CountersignAdviceFactory
+from api.cases.tests.factories import CountersignAdviceFactory, FinalAdviceFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.teams.enums import TeamIdEnum
@@ -43,12 +43,12 @@ class NotifyTests(DataTestClient):
         self.case.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
         self.case._previous_status = CaseStatus.objects.get(status=CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN)
         self.case.save()
-        advice = self.create_advice(
-            self.gov_user,
-            self.case,
-            "good",
-            AdviceType.REFUSE,
-            AdviceLevel.FINAL,
+        good_on_application = self.case.goods.first()
+        advice = FinalAdviceFactory(
+            user=self.gov_user,
+            case=self.case,
+            type=AdviceType.REFUSE,
+            good=good_on_application.good,
         )
         countersign_advice = CountersignAdviceFactory(
             order=CountersignOrder.FIRST_COUNTERSIGN,
@@ -84,13 +84,6 @@ class NotifyTests(DataTestClient):
         self.case.status = CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
         self.case._previous_status = CaseStatus.objects.get(status=CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN)
         self.case.save()
-        advice = self.create_advice(
-            self.gov_user,
-            self.case,
-            "good",
-            AdviceType.REFUSE,
-            AdviceLevel.FINAL,
-        )
         notify.notify_caseworker_countersign_return(self.case)
 
         mock_send_email.assert_not_called()

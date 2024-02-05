@@ -9,6 +9,7 @@ from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.licences.views.main import LicenceType
+from api.licences.tests.factories import StandardLicenceFactory
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -50,7 +51,7 @@ class GetLicencesTests(DataTestClient):
             for application in self.applications
         ]
         self.licences = {
-            application: self.create_licence(application, status=LicenceStatus.ISSUED)
+            application: StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
             for application in self.applications
         }
 
@@ -134,7 +135,7 @@ class GetLicencesTests(DataTestClient):
         self.assertTrue(str(self.licences[self.gifting_application].id) in ids)
 
     def test_draft_licences_are_not_included(self):
-        draft_licence = self.create_licence(self.standard_application, status=LicenceStatus.DRAFT)
+        draft_licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.DRAFT)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -164,7 +165,9 @@ class GetLicencesFilterTests(DataTestClient):
         self.url = reverse("licences:licences")
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.open_application = self.create_open_application_case(self.organisation)
-        self.standard_application_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        self.standard_application_licence = StandardLicenceFactory(
+            case=self.standard_application, status=LicenceStatus.ISSUED
+        )
         self.open_application_licence = self.create_licence(self.open_application, status=LicenceStatus.ISSUED)
 
     def test_only_my_organisations_licences_are_returned(self):

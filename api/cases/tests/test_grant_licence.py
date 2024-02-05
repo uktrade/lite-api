@@ -7,8 +7,10 @@ from api.licences.models import Licence
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from api.cases.generated_documents.models import GeneratedCaseDocument
+from api.cases.tests.factories import FinalAdviceFactory
 from api.core.constants import GovPermissions
 from api.core.exceptions import PermissionDeniedError
+from api.licences.tests.factories import StandardLicenceFactory
 from lite_content.lite_api.strings import Cases
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -22,7 +24,7 @@ class FinaliseCaseTests(DataTestClient):
         super().setUp()
         self.standard_case = self.create_standard_application_case(self.organisation)
         self.url = reverse("cases:finalise", kwargs={"pk": self.standard_case.id})
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        FinalAdviceFactory(user=self.gov_user, case=self.standard_case, type=AdviceType.APPROVE)
         self.template = self.create_letter_template(
             name="Template",
             case_types=[CaseTypeEnum.SIEL.id],
@@ -33,7 +35,7 @@ class FinaliseCaseTests(DataTestClient):
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_success(self, send_exporter_notifications_func, mock_notify):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        licence = self.create_licence(self.standard_case, status=LicenceStatus.DRAFT)
+        licence = StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
             self.standard_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
         )
@@ -63,7 +65,7 @@ class FinaliseCaseTests(DataTestClient):
 
     def test_grant_standard_application_wrong_permission_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
-        self.create_licence(self.standard_case, status=LicenceStatus.DRAFT)
+        StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
@@ -73,7 +75,7 @@ class FinaliseCaseTests(DataTestClient):
 
     def test_missing_advice_document_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.create_licence(self.standard_case, status=LicenceStatus.DRAFT)
+        StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
 
@@ -85,11 +87,11 @@ class FinaliseCaseTests(DataTestClient):
     def test_grant_clearance_success(self, send_exporter_notifications_func, mock_notify):
         clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(clearance_case)
-        self.create_advice(self.gov_user, clearance_case, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        FinalAdviceFactory(user=self.gov_user, case=clearance_case, type=AdviceType.APPROVE)
         self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
-        licence = self.create_licence(clearance_case, status=LicenceStatus.DRAFT)
+        licence = StandardLicenceFactory(case=clearance_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
             clearance_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
         )
@@ -120,7 +122,7 @@ class FinaliseCaseTests(DataTestClient):
         self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.create_licence(clearance_case, status=LicenceStatus.DRAFT)
+        StandardLicenceFactory(case=clearance_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(clearance_case, self.template, advice_type=AdviceType.APPROVE)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
@@ -146,7 +148,7 @@ class FinaliseCaseTests(DataTestClient):
         self.gov_user.role.permissions.set(
             [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.REOPEN_CLOSED_CASES.name]
         )
-        licence = self.create_licence(self.standard_case, status=LicenceStatus.DRAFT)
+        licence = StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
             self.standard_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
         )

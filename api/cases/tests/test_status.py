@@ -8,6 +8,7 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.models import CaseAssignment
 from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -49,7 +50,7 @@ class ChangeStatusTests(DataTestClient):
         ]
     )
     def test_certain_case_statuses_changes_licence_status(self, case_status, licence_status):
-        licence = self.create_licence(self.case, status=LicenceStatus.ISSUED)
+        licence = StandardLicenceFactory(case=self.case, status=LicenceStatus.ISSUED)
 
         data = {"status": case_status}
         response = self.client.patch(self.url, data=data, **self.gov_headers)
