@@ -1,9 +1,9 @@
 from django.urls import reverse
 from unittest import mock
 
-from api.applications.serializers import good as serializers
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
+from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -14,7 +14,7 @@ class ApplicationGoodOnApplicationDocumentViewTests(DataTestClient):
     def test_audit_trail_create(self, upload_bytes_func, mock_virus_scan, mock_s3_operations_get_object):
         mock_virus_scan.return_value = False
         application = self.create_draft_standard_application(organisation=self.organisation, user=self.exporter_user)
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
 
         url = reverse(
             "applications:application-goods-documents",

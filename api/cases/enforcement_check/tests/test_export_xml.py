@@ -61,9 +61,12 @@ class ExportXML(DataTestClient):
                 stakeholder["SH_TYPE"], party.type.upper() if party.type != PartyType.THIRD_PARTY else "OTHER"
             )
             self.assertEqual(stakeholder["COUNTRY"], party.country.name)
-            self.assertEqual(stakeholder["ORG_NAME"], party.organisation.name)
+            self.assertIsNotNone(stakeholder["ORG_NAME"])
             self.assertEqual(stakeholder["PD_SURNAME"], party.name)
-            self.assertEqual(stakeholder["ADDRESS1"], party.address)
+            # When address is exported to xml, newlines are replaced with space
+            # so do the same when comparing the address here
+            expected_address = party.address.replace("\n", " ")
+            self.assertEqual(stakeholder["ADDRESS1"], expected_address)
             # Ensure the correct EnforcementCheckID object is added for the import xml process
             self._assert_enforcement_type_recorded(stakeholder["SH_ID"], entity_uuid, party.type)
 

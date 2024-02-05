@@ -4,6 +4,7 @@ from rest_framework import status
 
 from api.audit_trail.enums import AuditType
 from api.licences.models import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -96,7 +97,7 @@ class DataWorkspaceAuditUpdatedLicenceStatusTests(DataTestClient):
         super().setUp()
         self.url = reverse("data_workspace:dw-audit-licence-updated-status-list")
         case = self.create_standard_application_case(self.organisation, "Test Application")
-        licence = self.create_licence(case, LicenceStatus.ISSUED)
+        licence = StandardLicenceFactory(case=case, status=LicenceStatus.ISSUED)
 
     def test_audit_updated_status(self):
         expected_fields = ("created_at", "user", "case", "licence", "status")

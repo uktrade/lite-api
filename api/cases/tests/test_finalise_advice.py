@@ -1,10 +1,10 @@
 from unittest import mock
 from django.urls import reverse
 from rest_framework import status
-from django.test import override_settings
 
 from api.audit_trail.models import Audit
-from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
+from api.cases.enums import AdviceType, CaseTypeEnum
+from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.libraries.get_case import get_case
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.core.constants import GovPermissions
@@ -19,7 +19,7 @@ class RefuseAdviceTests(DataTestClient):
         super().setUp()
         self.application = self.create_standard_application_case(self.organisation)
         self.url = reverse("cases:finalise", kwargs={"pk": self.application.id})
-        self.create_advice(self.gov_user, self.application, "good", AdviceType.REFUSE, AdviceLevel.FINAL)
+        FinalAdviceFactory(user=self.gov_user, case=self.application, type=AdviceType.REFUSE)
         self.template = self.create_letter_template(
             name="Template",
             case_types=[CaseTypeEnum.SIEL.id],
@@ -81,7 +81,7 @@ class NLRAdviceTests(DataTestClient):
         super().setUp()
         self.application = self.create_standard_application_case(self.organisation)
         self.url = reverse("cases:finalise", kwargs={"pk": self.application.id})
-        self.create_advice(self.gov_user, self.application, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.FINAL)
+        FinalAdviceFactory(user=self.gov_user, case=self.application, type=AdviceType.NO_LICENCE_REQUIRED)
         self.template = self.create_letter_template(
             name="Template",
             case_types=[CaseTypeEnum.SIEL.id],
@@ -122,7 +122,7 @@ class ApproveAdviceTests(DataTestClient):
         super().setUp()
         self.application = self.create_standard_application_case(self.organisation)
         self.url = reverse("cases:finalise", kwargs={"pk": self.application.id})
-        self.create_advice(self.gov_user, self.application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        FinalAdviceFactory(user=self.gov_user, case=self.application, type=AdviceType.APPROVE)
         self.template = self.create_letter_template(
             name="Template",
             case_types=[CaseTypeEnum.SIEL.id],

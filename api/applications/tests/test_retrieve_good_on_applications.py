@@ -6,8 +6,13 @@ from test_helpers.clients import DataTestClient
 
 
 class RetrieveGoodsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        draft = self.create_draft_standard_application(self.organisation)
+        self.application = self.submit_application(draft)
+        self.good_on_application = self.application.goods.first()
+
     def test_exporter_retrieve_a_good_on_application(self):
-        self.create_draft_standard_application(self.organisation)
         self.good_on_application.good.status = GoodStatus.VERIFIED
         self.good_on_application.good.save()
 
@@ -26,7 +31,6 @@ class RetrieveGoodsTests(DataTestClient):
         )
 
     def test_caseworker_retrieve_a_good_on_application(self):
-        self.create_draft_standard_application(self.organisation)
         self.good_on_application.good.status = GoodStatus.VERIFIED
         self.good_on_application.good.save()
 
