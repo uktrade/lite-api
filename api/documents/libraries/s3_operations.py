@@ -7,7 +7,7 @@ from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ReadTimeoutError
 
 from django.conf import settings
-from django.http import StreamingHttpResponse
+from django.http import FileResponse
 
 
 _client = None
@@ -68,16 +68,15 @@ def delete_file(document_id, s3_key):
         )
 
 
-def _stream_file(result):
-    for chunk in iter(lambda: result["Body"].read(settings.STREAMING_CHUNK_SIZE), b""):
-        yield chunk
-
-
 def document_download_stream(document):
     s3_response = get_object(document.id, document.s3_key)
     content_type = mimetypes.MimeTypes().guess_type(document.name)[0]
 
-    response = StreamingHttpResponse(streaming_content=_stream_file(s3_response), content_type=content_type)
-    response["Content-Disposition"] = f'attachment; filename="{document.name}"'
+    response = FileResponse(
+        s3_response["Body"],
+        as_attachment=True,
+        filename=document.name,
+    )
+    response["Content-Type"] = content_type
 
     return response

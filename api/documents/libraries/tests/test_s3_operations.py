@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 from moto import mock_aws
 
 from django.conf import settings
-from django.http import StreamingHttpResponse
+from django.http import FileResponse
 from django.test import override_settings, SimpleTestCase
 
 from ..s3_operations import (
@@ -154,7 +154,7 @@ class S3OperationsDocumentDownloadStreamTests(SimpleTestCase):
 
             response = document_download_stream(mock_document)
 
-        self.assertIsInstance(response, StreamingHttpResponse)
+        self.assertIsInstance(response, FileResponse)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/msword")
         self.assertEqual(response["Content-Disposition"], 'attachment; filename="test.doc"')
