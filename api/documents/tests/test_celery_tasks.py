@@ -6,10 +6,10 @@ from test_helpers.clients import DataTestClient
 from django.utils.timezone import now
 
 from rest_framework.exceptions import ValidationError
-from api.documents.celery_tasks import scan_document_for_viruses, delete_document_from_s3
+from api.documents.celery_tasks import scan_document_for_viruses, delete_document_from_s3, process_uploaded_document
 
 
-class DocumentVirusScan(DataTestClient):
+class TestCeleryTasks(DataTestClient):
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
@@ -41,7 +41,7 @@ class DocumentVirusScan(DataTestClient):
         scan_document_for_viruses(str(document.id))
         mock_document_scan_for_viruses.called_once()
 
-    @mock.patch("api.documents.celery_tasks.scan_document_for_viruses.apply_async")
+    @mock.patch("api.documents.celery_tasks.process_uploaded_document.apply_async")
     def test_process_document_raises_validation_exception(self, mock_scan_for_viruses):
         # given there is a case document
 
@@ -74,3 +74,20 @@ class DocumentVirusScan(DataTestClient):
         document = self.create_case_document(case=self.case, user=self.gov_user, name="jimmy")
         delete_document_from_s3(str(document.id))
         mock_delete_s3.called_once()
+
+    @mock.patch("api.documents.models.Document.move_staged_document")
+    @mock.patch("api.documents.models.Document.scan_for_viruses")
+    def test_process_uploaded_document_success(self, mock_scan_for_viruses, mock_move_staged_document):
+        document = self.create_case_document(case=self.case, user=self.gov_user, name="jimmy")
+        process_uploaded_document(str(document.id))
+        mock_move_staged_document.assert_called()
+        mock_scan_for_viruses.assert_called()
+
+    @mock.patch("api.documents.models.Document.move_staged_document")
+    @mock.patch("api.documents.models.Document.scan_for_viruses")
+    def test_process_uploaded_document_failure(self, mock_scan_for_viruses, mock_move_staged_document):
+        document = self.create_case_document(case=self.case, user=self.gov_user, name="jimmy")
+        mock_move_staged_document.side_effect = Exception("FAIL")
+        with pytest.raises(Exception):
+            process_uploaded_document(str(document.id))
+        mock_scan_for_viruses.assert_not_called()

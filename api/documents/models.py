@@ -19,10 +19,13 @@ class Document(TimestampableModel):
     def __str__(self):
         return self.name
 
-    def delete_s3(self):
+    def delete_s3(self, bucket="processed"):
         """Removes the document's file from S3."""
 
-        s3_operations.delete_file(self.id, self.s3_key)
+        s3_operations.delete_file(self.id, self.s3_key, bucket=bucket)
+
+    def move_staged_document(self):
+        s3_operations.move_staged_document_to_processed(self.id, self.s3_key)
 
     def scan_for_viruses(self):
         """Retrieves the document's file from S3 and scans it for viruses."""
