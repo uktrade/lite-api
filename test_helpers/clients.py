@@ -26,9 +26,6 @@ from api.applications.models import (
     OpenApplication,
     HmrcQuery,
     ApplicationDocument,
-    ExhibitionClearanceApplication,
-    GiftingClearanceApplication,
-    F680ClearanceApplication,
 )
 from api.applications.tests.factories import (
     GoodOnApplicationFactory,
@@ -683,80 +680,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
-
-    def create_mod_clearance_application(
-        self,
-        organisation,
-        case_type,
-        reference_name="MOD Clearance Draft",
-        safe_document=True,
-        additional_information=True,
-    ):
-        if case_type == CaseTypeEnum.F680:
-            model = F680ClearanceApplication
-        elif case_type == CaseTypeEnum.GIFTING:
-            model = GiftingClearanceApplication
-        elif case_type == CaseTypeEnum.EXHIBITION:
-            model = ExhibitionClearanceApplication
-        else:
-            raise BaseException("Invalid case type when creating test MOD Clearance application")
-
-        application = model.objects.create(
-            name=reference_name,
-            activity="Trade",
-            usage="Trade",
-            organisation=organisation,
-            case_type_id=case_type.id,
-            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            clearance_level=PvGrading.UK_UNCLASSIFIED if case_type == CaseTypeEnum.F680 else None,
-            submitted_by=self.exporter_user,
-        )
-
-        if case_type == CaseTypeEnum.EXHIBITION:
-            application.title = "title"
-            application.required_by_date = "2030-07-20"
-            application.first_exhibition_date = "2030-07-20"
-            application.save()
-            # must be refreshed to return data in same format as database call
-            application.refresh_from_db()
-        elif case_type == CaseTypeEnum.F680:
-            application.types.add(F680ClearanceType.objects.first())
-            self.create_party("End User", organisation, PartyType.END_USER, application)
-            self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-            self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
-            if additional_information:
-                self.add_additional_information(application)
-            application.intended_end_use = "intended end use here"
-            application.save()
-        else:
-            self.create_party("End User", organisation, PartyType.END_USER, application)
-            self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-            self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
-
-        if case_type not in [CaseTypeEnum.F680, CaseTypeEnum.EXHIBITION, CaseTypeEnum.GIFTING]:
-            self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-
-        # Add a good to the standard application
-        self.good_on_application = GoodOnApplication.objects.create(
-            good=GoodFactory(organisation=organisation, is_good_controlled=True),
-            application=application,
-            quantity=10,
-            unit=Units.NAR,
-            value=500,
-        )
-
-        self.create_application_document(application)
-
-        if case_type == CaseTypeEnum.EXHIBITION:
-            # Add a site to the application
-            SiteOnApplication(site=organisation.primary_site, application=application).save()
-
-        return application
-
-    def create_mod_clearance_application_case(self, organisation, case_type):
-        draft = self.create_mod_clearance_application(organisation, case_type)
-
-        return self.submit_application(draft, self.exporter_user)
 
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(

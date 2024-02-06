@@ -12,9 +12,6 @@ from api.applications.models import (
     OpenApplication,
     HmrcQuery,
     BaseApplication,
-    ExhibitionClearanceApplication,
-    GiftingClearanceApplication,
-    F680ClearanceApplication,
 )
 from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
@@ -63,60 +60,6 @@ class DraftTests(DataTestClient):
         standard_application = StandardApplication.objects.get()
         self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertEqual(StandardApplication.objects.count(), 1)
-
-    def test_create_draft_exhibition_clearance_application_successful(self):
-        """
-        Ensure we can create a new Exhibition Clearance draft object
-        """
-        self.assertEqual(ExhibitionClearanceApplication.objects.count(), 0)
-
-        data = {
-            "name": "Test",
-            "application_type": CaseTypeReferenceEnum.EXHC,
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(ExhibitionClearanceApplication.objects.count(), 1)
-
-    def test_create_draft_gifting_clearance_application_successful(self):
-        """
-        Ensure we can create a new Gifting Clearance draft object
-        """
-        self.assertEqual(GiftingClearanceApplication.objects.count(), 0)
-
-        data = {
-            "name": "Test",
-            "application_type": CaseTypeReferenceEnum.GIFT,
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-        application = GiftingClearanceApplication.objects.get()
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(GiftingClearanceApplication.objects.count(), 1)
-        self.assertEqual(application.name, data["name"])
-        self.assertEqual(application.case_type.id, CaseTypeEnum.GIFTING.id)
-
-    def test_create_draft_f680_clearance_application_successful(self):
-        """
-        Ensure we can create a new F680 Clearance draft object
-        """
-        self.assertEqual(F680ClearanceApplication.objects.count(), 0)
-
-        data = {
-            "name": "Test",
-            "application_type": CaseTypeReferenceEnum.F680,
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-        application = F680ClearanceApplication.objects.get()
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(F680ClearanceApplication.objects.count(), 1)
-        self.assertEqual(application.name, data["name"])
-        self.assertEqual(application.case_type.id, CaseTypeEnum.F680.id)
 
     def test_create_draft_open_application_successful(self):
         """

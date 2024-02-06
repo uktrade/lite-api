@@ -23,26 +23,15 @@ class GetLicencesTests(DataTestClient):
         super().setUp()
         self.url = reverse("licences:licences")
         self.standard_application = self.create_standard_application_case(self.organisation)
-        self.f680_application = self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.F680)
-        self.gifting_application = self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.GIFTING)
-        self.exhibition_application = self.create_mod_clearance_application_case(
-            self.organisation, CaseTypeEnum.EXHIBITION
-        )
         self.open_application = self.create_open_application_case(self.organisation)
         self.open_application.goods_type.first().countries.set([Country.objects.first()])
         self.applications = [
             self.standard_application,
-            self.f680_application,
-            self.gifting_application,
-            self.exhibition_application,
             self.open_application,
         ]
         self.template = self.create_letter_template(
             case_types=[
                 CaseTypeEnum.SIEL.id,
-                CaseTypeEnum.F680.id,
-                CaseTypeEnum.GIFTING.id,
-                CaseTypeEnum.EXHIBITION.id,
                 CaseTypeEnum.OIEL.id,
             ]
         )
@@ -122,17 +111,6 @@ class GetLicencesTests(DataTestClient):
         self.assertEqual(len(response_data), 2)
         self.assertTrue(str(self.licences[self.standard_application].id) in ids)
         self.assertTrue(str(self.licences[self.open_application].id) in ids)
-
-    def test_get_clearance_licences_only(self):
-        response = self.client.get(self.url + "?licence_type=" + LicenceType.CLEARANCE, **self.exporter_headers)
-        response_data = response.json()["results"]
-        ids = [licence["id"] for licence in response_data]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 3)
-        self.assertTrue(str(self.licences[self.exhibition_application].id) in ids)
-        self.assertTrue(str(self.licences[self.f680_application].id) in ids)
-        self.assertTrue(str(self.licences[self.gifting_application].id) in ids)
 
     def test_draft_licences_are_not_included(self):
         draft_licence = StandardLicenceFactory(case=self.standard_application, status=LicenceStatus.DRAFT)

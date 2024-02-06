@@ -55,26 +55,6 @@ class ReferenceCode(DataTestClient):
         )
         self.assertEqual(open_application.reference_code, expected_reference)
 
-    def test_exhibition_clearance_reference_code(self):
-        exhibition_clearance = self.create_mod_clearance_application(
-            self.organisation, case_type=CaseTypeEnum.EXHIBITION
-        )
-        exhibition_clearance = self.submit_application(exhibition_clearance)
-        expected_reference = build_expected_reference(CaseTypeEnum.EXHIBITION.reference)
-        self.assertEqual(exhibition_clearance.reference_code, expected_reference)
-
-    def test_f680_clearance_reference_code(self):
-        f680_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
-        f680_clearance = self.submit_application(f680_clearance)
-        expected_reference = build_expected_reference(CaseTypeEnum.F680.reference)
-        self.assertEqual(f680_clearance.reference_code, expected_reference)
-
-    def test_gifting_clearance_reference_code(self):
-        gifting_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
-        gifting_clearance = self.submit_application(gifting_clearance)
-        expected_reference = build_expected_reference(CaseTypeEnum.GIFTING.reference)
-        self.assertEqual(gifting_clearance.reference_code, expected_reference)
-
     def test_hmrc_query_reference_code(self):
         hmrc_query = self.create_hmrc_query(self.organisation)
         hmrc_query = self.submit_application(hmrc_query)

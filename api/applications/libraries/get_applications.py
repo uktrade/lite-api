@@ -1,11 +1,8 @@
 from api.applications.models import (
     BaseApplication,
-    F680ClearanceApplication,
-    GiftingClearanceApplication,
     OpenApplication,
     StandardApplication,
     HmrcQuery,
-    ExhibitionClearanceApplication,
 )
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.exceptions import NotFoundError
@@ -79,12 +76,6 @@ def get_application(pk, organisation_id=None):
             return OpenApplication.objects.get(pk=pk, **kwargs)
         elif application_type == CaseTypeSubTypeEnum.HMRC:
             return HmrcQuery.objects.get(pk=pk)
-        elif application_type == CaseTypeSubTypeEnum.EXHIBITION:
-            return ExhibitionClearanceApplication.objects.get(pk=pk)
-        elif application_type == CaseTypeSubTypeEnum.GIFTING:
-            return GiftingClearanceApplication.objects.get(pk=pk)
-        elif application_type == CaseTypeSubTypeEnum.F680:
-            return F680ClearanceApplication.objects.get(pk=pk)
         else:
             raise NotImplementedError(f"get_application does not support this application type: {application_type}")
     except (
