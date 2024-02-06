@@ -91,6 +91,13 @@ class OrganisationDocumentViewTests(DataTestClient):
             document__safe=True,
             organisation=self.organisation,
         )
+        other_organisation, _ = self.create_organisation_with_exporter_user()
+        DocumentOnOrganisationFactory.create(
+            document__name="other-organisation-some-document-three",
+            document__s3_key="thisisakey",
+            document__safe=True,
+            organisation=other_organisation,
+        )
 
         url = reverse("organisations:documents", kwargs={"pk": self.organisation.pk})
 

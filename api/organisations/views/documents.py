@@ -8,6 +8,7 @@ from api.audit_trail.enums import AuditType
 from api.core.authentication import SharedAuthentication
 from api.documents.libraries.s3_operations import document_download_stream
 from api.organisations import (
+    filters,
     models,
     permissions,
     serializers,
@@ -16,15 +17,15 @@ from api.organisations import (
 
 class DocumentOnOrganisationView(viewsets.ModelViewSet):
     authentication_classes = (SharedAuthentication,)
+    filter_backends = (filters.OrganisationFilter,)
     lookup_url_kwarg = "document_on_application_pk"
     permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
+    queryset = models.DocumentOnOrganisation.objects.all()
     serializer_class = serializers.DocumentOnOrganisationSerializer
 
-    def get_queryset(self):
-        return models.DocumentOnOrganisation.objects.filter(organisation_id=self.kwargs["pk"])
-
     def list(self, request, pk):
-        serializer = self.serializer_class(self.get_queryset(), many=True)
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.serializer_class(queryset, many=True)
         return JsonResponse({"documents": serializer.data})
 
     def retrieve(self, request, pk, document_on_application_pk):
@@ -86,14 +87,10 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
 
 class DocumentOnOrganisationStreamView(RetrieveAPIView):
     authentication_classes = (SharedAuthentication,)
+    filter_backends = (filters.OrganisationFilter,)
     lookup_url_kwarg = "document_on_application_pk"
     permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
-
-    def get_queryset(self):
-        return models.DocumentOnOrganisation.objects.filter(
-            organisation_id=self.kwargs["pk"],
-            document__safe=True,
-        )
+    queryset = models.DocumentOnOrganisation.objects.filter(document__safe=True)
 
     def retrieve(self, request, *args, **kwargs):
         document = self.get_object()
