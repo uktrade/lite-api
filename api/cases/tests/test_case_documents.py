@@ -40,15 +40,15 @@ class CaseDocumentDownloadTests(DataTestClient):
         self.file = self.create_case_document(self.case, self.gov_user, "Test")
         self.path = "cases:document_download"
 
-        s3 = init_s3_client()
+        s3 = init_s3_client()["processed"]
         s3.create_bucket(
-            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Bucket=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
             CreateBucketConfiguration={
-                "LocationConstraint": settings.AWS_REGION,
+                "LocationConstraint": settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_REGION"],
             },
         )
         s3.put_object(
-            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Bucket=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
             Key=self.file.s3_key,
             Body=b"test",
         )
