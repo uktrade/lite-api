@@ -635,7 +635,7 @@ class EcjuQueryUserResponseSerializer(serializers.ModelSerializer):
     responded_by_user = PrimaryKeyRelatedSerializerField(
         queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer
     )
-    response = serializers.CharField(max_length=2200, allow_blank=True, allow_null=True)
+    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=True)
     documents = serializers.SerializerMethodField()
 
     class Meta:
