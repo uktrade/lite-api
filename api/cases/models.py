@@ -621,6 +621,7 @@ class EcjuQuery(TimestampableModel):
     query_type = models.CharField(
         choices=ECJUQueryType.choices, max_length=50, default=ECJUQueryType.ECJU, null=False, blank=False
     )
+    chaser_email_sent_on = models.DateTimeField(blank=True, null=True)
 
     @queryable_property
     def is_query_closed(self):
@@ -636,7 +637,7 @@ class EcjuQuery(TimestampableModel):
     # This method allows the above propery to be used in filtering objects. Similar to db fields.
     @is_query_closed.filter(lookups=("exact",))
     def is_query_closed(self, lookup, value):
-        return ~Q(responded_at__isnull=value)
+        return ~Q(responded_by_user__isnull=value)
 
     @property
     def open_working_days(self):
