@@ -1,10 +1,15 @@
 import datetime
+
 from unittest import mock
 
+from moto import mock_aws
+
+from django.http import FileResponse
 from django.urls import reverse
 
 from api.organisations.enums import OrganisationDocumentType
 from api.organisations.models import DocumentOnOrganisation
+from api.organisations.tests.factories import DocumentOnOrganisationFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -162,3 +167,87 @@ class OrganisationDocumentViewTests(DataTestClient):
             document_on_application.reference_code,
             "567",
         )
+
+
+@mock_aws
+class DocumentOnOrganisationStreamViewTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.create_default_bucket()
+        self.put_object_in_default_bucket("thisisakey", b"test")
+
+    def test_document_stream_as_caseworker(self):
+        document_on_application = DocumentOnOrganisationFactory.create(
+            document__s3_key="thisisakey",
+            document__safe=True,
+            organisation=self.organisation,
+        )
+
+        url = reverse(
+            "organisations:document_stream",
+            kwargs={
+                "pk": self.organisation.pk,
+                "document_on_application_pk": document_on_application.pk,
+            },
+        )
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response, FileResponse)
+        self.assertEqual(b"".join(response.streaming_content), b"test")
+
+    def test_document_stream_as_exporter(self):
+        document_on_application = DocumentOnOrganisationFactory.create(
+            document__s3_key="thisisakey",
+            document__safe=True,
+            organisation=self.organisation,
+        )
+
+        url = reverse(
+            "organisations:document_stream",
+            kwargs={
+                "pk": self.organisation.pk,
+                "document_on_application_pk": document_on_application.pk,
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response, FileResponse)
+        self.assertEqual(b"".join(response.streaming_content), b"test")
+
+    def test_unsafe_document_stream_as_caseworker(self):
+        document_on_application = DocumentOnOrganisationFactory.create(
+            document__s3_key="thisisakey",
+            document__safe=False,
+            organisation=self.organisation,
+        )
+
+        url = reverse(
+            "organisations:document_stream",
+            kwargs={
+                "pk": self.organisation.pk,
+                "document_on_application_pk": document_on_application.pk,
+            },
+        )
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_unsafe_document_stream_as_exporter(self):
+        document_on_application = DocumentOnOrganisationFactory.create(
+            document__s3_key="thisisakey",
+            document__safe=False,
+            organisation=self.organisation,
+        )
+
+        url = reverse(
+            "organisations:document_stream",
+            kwargs={
+                "pk": self.organisation.pk,
+                "document_on_application_pk": document_on_application.pk,
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, 404)

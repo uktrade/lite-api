@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.generics import RetrieveAPIView
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -6,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.core.authentication import SharedAuthentication
+from api.documents.libraries.s3_operations import document_download_stream
 from api.organisations import models, serializers
 
 
@@ -75,3 +77,19 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
             },
         )
         return JsonResponse({"document": serializer.data}, status=200)
+
+
+class DocumentOnOrganisationStreamView(RetrieveAPIView):
+    authentication_classes = (SharedAuthentication,)
+    lookup_url_kwarg = "document_on_application_pk"
+
+    def get_queryset(self):
+        return models.DocumentOnOrganisation.objects.filter(
+            organisation_id=self.kwargs["pk"],
+            document__safe=True,
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        document = self.get_object()
+        document = document.document
+        return document_download_stream(document)

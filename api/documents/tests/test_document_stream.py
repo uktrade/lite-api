@@ -1,5 +1,3 @@
-import boto3
-
 from moto import mock_aws
 
 from django.http import StreamingHttpResponse
@@ -7,37 +5,13 @@ from django.urls import reverse
 
 from test_helpers.clients import DataTestClient
 
-from api.conf.settings import (
-    AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY,
-    AWS_REGION,
-    AWS_STORAGE_BUCKET_NAME,
-)
-from api.documents.libraries.s3_operations import init_s3_client
-
 
 @mock_aws
 class DocumentStream(DataTestClient):
     def setUp(self):
         super().setUp()
-        init_s3_client()
-        s3 = boto3.client(
-            "s3",
-            aws_access_key_id=AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-            region_name=AWS_REGION,
-        )
-        s3.create_bucket(
-            Bucket=AWS_STORAGE_BUCKET_NAME,
-            CreateBucketConfiguration={
-                "LocationConstraint": AWS_REGION,
-            },
-        )
-        s3.put_object(
-            Bucket=AWS_STORAGE_BUCKET_NAME,
-            Key="thisisakey",
-            Body=b"test",
-        )
+        self.create_default_bucket()
+        self.put_object_in_default_bucket("thisisakey", b"test")
 
     def test_document_stream_as_caseworker(self):
         # given there is a case document
