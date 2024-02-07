@@ -53,6 +53,7 @@ from api.cases.celery_tasks import get_application_target_sla
 from django.conf import settings
 from api.core.constants import Roles
 from api.conf.urls import urlpatterns
+from api.documents.libraries.s3_operations import init_s3_client
 from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
@@ -1028,6 +1029,23 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             )
             out.append(user)
         return out
+
+    def create_default_bucket(self):
+        s3 = init_s3_client()
+        s3.create_bucket(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            CreateBucketConfiguration={
+                "LocationConstraint": settings.AWS_REGION,
+            },
+        )
+
+    def put_object_in_default_bucket(self, key, body):
+        s3 = init_s3_client()
+        s3.put_object(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Key=key,
+            Body=body,
+        )
 
 
 @pytest.mark.performance
