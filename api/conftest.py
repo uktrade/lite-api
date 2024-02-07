@@ -132,7 +132,7 @@ def setup(settings):
     settings.HAWK_AUTHENTICATION_ENABLED = False
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope="session")
 def mock_aws_calls():
     with mock_aws():
         clients = init_s3_client()

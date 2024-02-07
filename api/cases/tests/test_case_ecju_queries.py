@@ -23,6 +23,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from api.users.tests.factories import ExporterUserFactory
+from test_helpers.file_uploads import upload_file
 
 faker = Faker()
 
@@ -424,20 +425,20 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
 
 
 class ECJUQueriesResponseTests(DataTestClient):
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def add_query_document(self, case_id, query_id, expected_status, mock_virus_scan, mock_s3_operations_get_object):
+    def add_query_document(self, case_id, query_id, expected_status, mock_virus_scan):
         mock_virus_scan.return_value = False
         url = reverse("cases:case_ecju_query_add_document", kwargs={"pk": case_id, "query_pk": query_id})
         file_name = faker.file_name()
+        s3_key = f"{file_name}_{faker.uuid4()}"
         data = {
             "name": file_name,
-            "s3_key": f"{file_name}_{faker.uuid4()}",
+            "s3_key": s3_key,
             "description": faker.text(),
             "size": 1 << 10,
             "virus_scanned_at": timezone.now(),
         }
-        mock_s3_operations_get_object.return_value = data
+        upload_file(s3_key)
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, expected_status)
         return response.json()

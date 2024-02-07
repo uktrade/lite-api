@@ -12,6 +12,7 @@ from api.parties.models import Party
 from api.parties.models import PartyDocument
 from api.staticdata.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
+from test_helpers.file_uploads import upload_file
 
 
 class EndUserOnDraftTests(DataTestClient):
@@ -33,11 +34,13 @@ class EndUserOnDraftTests(DataTestClient):
             "applications:party_document", kwargs={"pk": self.draft.id, "party_pk": self.draft.end_user.party.id}
         )
 
+        s3_key = "s3_keykey.pdf"
         self.new_document_data = {
             "name": "updated_document_name.pdf",
-            "s3_key": "s3_keykey.pdf",
+            "s3_key": s3_key,
             "size": 123456,
         }
+        upload_file(s3_key)
 
     @parameterized.expand([SubType.GOVERNMENT, SubType.COMMERCIAL, SubType.OTHER])
     def test_set_end_user_on_draft_standard_application_successful(self, data_type):
@@ -174,9 +177,8 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_get_end_user_document_successful(self, mock_virus_scan, mock_s3_operations_get_object):
+    def test_get_end_user_document_successful(self, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -184,7 +186,6 @@ class EndUserOnDraftTests(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached end user document
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         response = self.client.get(self.document_url, **self.exporter_headers)
         response_data = response.json()["document"]
@@ -210,16 +211,14 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_post_document_when_no_end_user_exists_failure(self, mock_virus_scan, mock_s3_operations_get_object):
+    def test_post_document_when_no_end_user_exists_failure(self, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft does not contain an end user
         When there is an attempt to submit a document
         Then a 400 BAD REQUEST is returned
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
@@ -263,9 +262,8 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
         self.assertEqual(None, response.json()["document"])
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_post_end_user_document_success(self, mock_virus_scan, mock_s3_operations_get_object):
+    def test_post_end_user_document_success(self, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -273,7 +271,6 @@ class EndUserOnDraftTests(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         party = PartyOnApplication.objects.get(
             application=self.draft, deleted_at__isnull=True, party__type=PartyType.END_USER
@@ -285,11 +282,8 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_post_end_user_document_when_a_document_already_exists_success(
-        self, mock_virus_scan, mock_s3_operations_get_object
-    ):
+    def test_post_end_user_document_when_a_document_already_exists_success(self, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -297,7 +291,6 @@ class EndUserOnDraftTests(DataTestClient):
         When there is an attempt to post a document
         Then a 400 BAD REQUEST is returned
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         end_user = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
@@ -311,10 +304,9 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(party_documents.count(), 1)
         self.assertEqual(party_documents.first().name, "updated_document_name.pdf")
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_end_user_document_success(self, delete_s3_function, mock_virus_scan, mock_s3_operations_get_object):
+    def test_delete_end_user_document_success(self, delete_s3_function, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -322,17 +314,15 @@ class EndUserOnDraftTests(DataTestClient):
         When there is an attempt to delete the document
         Then 204 NO CONTENT is returned
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         response = self.client.delete(self.document_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_end_user_success(self, delete_s3_function, mock_virus_scan, mock_s3_operations_get_object):
+    def test_delete_end_user_success(self, delete_s3_function, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -340,7 +330,6 @@ class EndUserOnDraftTests(DataTestClient):
         When there is an attempt to delete the end user
         Then 204 NO CONTENT is returned
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         end_user = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True

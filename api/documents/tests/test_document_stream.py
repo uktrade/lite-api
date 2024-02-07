@@ -6,20 +6,15 @@ from django.http import StreamingHttpResponse
 from django.urls import reverse
 
 from test_helpers.clients import DataTestClient
+from test_helpers.file_uploads import upload_file
 
 from api.conf import settings
-from api.documents.libraries.s3_operations import init_s3_client
 
 
 class DocumentStream(DataTestClient):
     def setUp(self):
         super().setUp()
-        s3 = init_s3_client()["processed"]
-        s3.put_object(
-            Bucket=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
-            Key="thisisakey",
-            Body=b"test",
-        )
+        upload_file("thisisakey")
 
     def test_document_stream_as_caseworker(self):
         # given there is a case document

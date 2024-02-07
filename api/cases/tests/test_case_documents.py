@@ -9,8 +9,7 @@ from rest_framework import status
 
 from lite_content.lite_api.strings import Documents
 from test_helpers.clients import DataTestClient
-
-from api.documents.libraries.s3_operations import init_s3_client
+from test_helpers.file_uploads import upload_file
 
 
 class CaseDocumentsTests(DataTestClient):
@@ -38,13 +37,7 @@ class CaseDocumentDownloadTests(DataTestClient):
         self.case = self.submit_application(self.standard_application)
         self.file = self.create_case_document(self.case, self.gov_user, "Test")
         self.path = "cases:document_download"
-
-        s3 = init_s3_client()["processed"]
-        s3.put_object(
-            Bucket=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
-            Key=self.file.s3_key,
-            Body=b"test",
-        )
+        upload_file(self.file.s3_key)
 
     def test_download_case_document_success(self):
         url = reverse(self.path, kwargs={"case_pk": self.case.id, "document_pk": self.file.id})

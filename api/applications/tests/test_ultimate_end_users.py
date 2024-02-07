@@ -11,6 +11,7 @@ from api.parties.enums import PartyType
 from api.parties.models import Party
 from api.parties.models import PartyDocument
 from test_helpers.clients import DataTestClient
+from test_helpers.file_uploads import upload_file
 
 
 class UltimateEndUsersOnDraft(DataTestClient):
@@ -28,6 +29,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
             "s3_key": "s3_keykey.pdf",
             "size": 123456,
         }
+        upload_file("s3_keykey.pdf")
 
     def test_set_multiple_ultimate_end_users_on_draft_successful(self):
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
@@ -140,9 +142,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_post_ultimate_end_user_document_success(self, mock_virus_scan, mock_s3_operations_get_object):
+    def test_post_ultimate_end_user_document_success(self, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -150,7 +151,6 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         PartyDocument.objects.filter(party=self.draft.ultimate_end_users.first().party).delete()
 
@@ -158,9 +158,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_get_ultimate_end_user_document_success(self, mock_virus_scan, mock_s3_operations_get_object):
+    def test_get_ultimate_end_user_document_success(self, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -168,7 +167,6 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached ultimate end user document
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         response = self.client.get(self.document_url, **self.exporter_headers)
         response_data = response.json()["document"]
@@ -178,12 +176,9 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response_data["s3_key"], expected["s3_key"])
         self.assertEqual(response_data["size"], expected["size"])
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_ultimate_end_user_document_success(
-        self, delete_s3_function, mock_virus_scan, mock_s3_operations_get_object
-    ):
+    def test_delete_ultimate_end_user_document_success(self, delete_s3_function, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -191,17 +186,15 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When there is an attempt to delete the document
         Then 204 NO CONTENT is returned
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         response = self.client.delete(self.document_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.models.Document.delete_s3")
-    def test_delete_ultimate_end_user_success(self, delete_s3_function, mock_virus_scan, mock_s3_operations_get_object):
+    def test_delete_ultimate_end_user_success(self, delete_s3_function, mock_virus_scan):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -209,7 +202,6 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When there is an attempt to delete the document
         Then 200 OK
         """
-        mock_s3_operations_get_object.return_value = self.new_document_data
         mock_virus_scan.return_value = False
         self.assertEqual(self.draft.ultimate_end_users.count(), 1)
         party_on_application = self.draft.ultimate_end_users.first()

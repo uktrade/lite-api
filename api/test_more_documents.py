@@ -9,6 +9,7 @@ from rest_framework import status
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from test_helpers.file_uploads import upload_file
 
 
 class DraftDocumentTests(DataTestClient):
@@ -35,12 +36,11 @@ class DraftDocumentTests(DataTestClient):
             "size": 476,
             "description": "banana cake 2",
         }
+        upload_file(self.test_filename)
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_upload_document_on_unsubmitted_application(self, mock_virus_scan, mock_s3_operations_get_object):
+    def test_upload_document_on_unsubmitted_application(self, mock_virus_scan):
         """Test success in adding a document to an unsubmitted application."""
-        mock_s3_operations_get_object.return_value = self.data
         mock_virus_scan.return_value = False
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
 
@@ -58,11 +58,9 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(len(response_data), 2)
         self.assertTrue(self.data in response_data)
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_upload_multiple_documents_on_unsubmitted_application(self, mock_virus_scan, mock_s3_operations_get_object):
+    def test_upload_multiple_documents_on_unsubmitted_application(self, mock_virus_scan):
         """Test success in adding multiple documents to an unsubmitted application."""
-        mock_s3_operations_get_object.return_value = self.data
         mock_virus_scan.return_value = False
         data = [self.data, self.data2]
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
@@ -119,12 +117,8 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response.json()["document"]["size"], application_document.size)
 
     @parameterized.expand(get_case_statuses(read_only=False))
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_add_document_when_application_in_editable_state_success(
-        self, editable_status, mock_virus_scan, mock_s3_operations_get_object
-    ):
-        mock_s3_operations_get_object.return_value = self.data
+    def test_add_document_when_application_in_editable_state_success(self, editable_status, mock_virus_scan):
         mock_virus_scan.return_value = False
         application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
@@ -137,13 +131,11 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(application.applicationdocument_set.count(), 2)
 
     @parameterized.expand(get_case_statuses(read_only=False))
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.models.Document.delete_s3")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_delete_document_when_application_in_editable_state_success(
-        self, editable_status, mock_virus_scan, mock_delete_s3, mock_s3_operations_get_object
+        self, editable_status, mock_virus_scan, mock_delete_s3
     ):
-        mock_s3_operations_get_object.return_value = self.data
         mock_virus_scan.return_value = False
         application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
@@ -175,13 +167,11 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(application.applicationdocument_set.count(), 1)
 
     @parameterized.expand(get_case_statuses(read_only=True))
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.models.Document.delete_s3")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     def test_delete_document_when_application_in_read_only_state_failure(
-        self, read_only_status, mock_virus_scan, mock_delete_s3, mock_s3_operations_get_object
+        self, read_only_status, mock_virus_scan, mock_delete_s3
     ):
-        mock_s3_operations_get_object.return_value = self.data
         mock_virus_scan.return_value = False
         application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)

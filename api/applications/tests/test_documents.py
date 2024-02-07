@@ -5,21 +5,22 @@ from django.urls import reverse
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from test_helpers.clients import DataTestClient
+from test_helpers.file_uploads import upload_file
 
 
 class ApplicationDocumentViewTests(DataTestClient):
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
     @mock.patch("api.documents.libraries.s3_operations.upload_bytes_file")
-    def test_audit_trail_create(self, upload_bytes_func, mock_virus_scan, mock_s3_operations_get_object):
+    def test_audit_trail_create(self, upload_bytes_func, mock_virus_scan):
         mock_virus_scan.return_value = False
         application = self.create_draft_standard_application(organisation=self.organisation, user=self.exporter_user)
 
         url = reverse("applications:application_documents", kwargs={"pk": application.pk})
 
+        s3_key = "section5_20210223145814.png"
         data = {
             "name": "section5.png",
-            "s3_key": "section5_20210223145814.png",
+            "s3_key": s3_key,
             "size": 1,
             "document_on_organisation": {
                 "expiry_date": "2222-01-01",
@@ -27,7 +28,7 @@ class ApplicationDocumentViewTests(DataTestClient):
                 "document_type": "section-five-certificate",
             },
         }
-        mock_s3_operations_get_object.return_value = data
+        upload_file(s3_key)
 
         response = self.client.post(url, data, **self.exporter_headers)
 
