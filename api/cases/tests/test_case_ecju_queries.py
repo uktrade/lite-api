@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.urls import reverse
 from django.utils import timezone
 from api.cases.tests.factories import EcjuQueryFactory
+from api.users.models import BaseNotification
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
@@ -494,6 +495,8 @@ class ECJUQueriesResponseTests(DataTestClient):
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "exporter provided details"}
 
+        self.assertEqual(1, BaseNotification.objects.filter(object_id=ecju_query.id).count())
+
         response = self.client.put(query_response_url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = response.json()["ecju_query"]
@@ -505,6 +508,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         audit_text = AuditSerializer(audit_obj).data["text"]
         self.assertEqual(audit_text, " manually closed a query: exporter provided details.")
         self.assertEqual(audit_obj.target.id, case.id)
+        self.assertEqual(0, BaseNotification.objects.filter(object_id=ecju_query.id).count())
 
     def test_close_query_has_optional_response_exporter(self):
         case = self.create_standard_application_case(self.organisation)
@@ -528,6 +532,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
 
         self.assertIsNone(ecju_query.responded_at)
+        self.assertEqual(1, BaseNotification.objects.filter(object_id=ecju_query.id).count())
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
@@ -612,12 +617,15 @@ class ECJUQueriesResponseTests(DataTestClient):
         response_data = response.json()
         ecju_query = EcjuQuery.objects.get(case=case)
 
+        self.assertEqual(1, BaseNotification.objects.filter(object_id=ecju_query.id).count())
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Please provide required documents", ecju_query.question)
         self.assertIsNone(ecju_query.response)
 
         self.add_query_document(case.id, ecju_query.id, status.HTTP_201_CREATED)
+
+        self.assertEqual(1, BaseNotification.objects.filter(object_id=ecju_query.id).count())
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Attached the requested documents"}
@@ -626,6 +634,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
         self.assertEqual(len(response["documents"]), 1)
+        self.assertEqual(0, BaseNotification.objects.filter(object_id=ecju_query.id).count())
 
         # try to add document again
         self.add_query_document(case.id, ecju_query.id, status.HTTP_400_BAD_REQUEST)

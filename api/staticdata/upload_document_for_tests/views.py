@@ -1,12 +1,13 @@
 import os
 
-import boto3
+from django.conf import settings
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
 from api.core.authentication import SharedAuthentication
-from api.conf.settings import env, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+from api.conf.settings import env
+from api.documents.libraries.s3_operations import init_s3_client
 
 
 class UploadDocumentForTests(APIView):
@@ -21,11 +22,7 @@ class UploadDocumentForTests(APIView):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-        s3 = boto3.client(
-            "s3",
-            aws_access_key_id=AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        )
+        s3 = init_s3_client()
         s3_key = "lite-e2e-test-file.txt"
 
         file_to_upload_abs_path = os.path.abspath(
@@ -33,7 +30,7 @@ class UploadDocumentForTests(APIView):
         )
 
         try:
-            s3.upload_file(file_to_upload_abs_path, AWS_STORAGE_BUCKET_NAME, s3_key)
+            s3.upload_file(file_to_upload_abs_path, settings.AWS_STORAGE_BUCKET_NAME, s3_key)
         except Exception as e:  # noqa
             return JsonResponse(
                 data={"errors": "Error uploading file to S3"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR

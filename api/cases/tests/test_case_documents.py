@@ -1,12 +1,16 @@
 import uuid
-from unittest import mock
 
-from django.http import StreamingHttpResponse
+from moto import mock_aws
+
+from django.conf import settings
+from django.http import FileResponse
 from django.urls import reverse
 from rest_framework import status
 
 from lite_content.lite_api.strings import Documents
 from test_helpers.clients import DataTestClient
+
+from api.documents.libraries.s3_operations import init_s3_client
 
 
 class CaseDocumentsTests(DataTestClient):
@@ -27,6 +31,7 @@ class CaseDocumentsTests(DataTestClient):
         self.assertEqual(len(response_data["documents"]), 2)
 
 
+@mock_aws
 class CaseDocumentDownloadTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -35,16 +40,26 @@ class CaseDocumentDownloadTests(DataTestClient):
         self.file = self.create_case_document(self.case, self.gov_user, "Test")
         self.path = "cases:document_download"
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
-    def test_download_case_document_success(self, get_object_function):
-        get_object_function.return_value = None
+        s3 = init_s3_client()
+        s3.create_bucket(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            CreateBucketConfiguration={
+                "LocationConstraint": settings.AWS_REGION,
+            },
+        )
+        s3.put_object(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Key=self.file.s3_key,
+            Body=b"test",
+        )
+
+    def test_download_case_document_success(self):
         url = reverse(self.path, kwargs={"case_pk": self.case.id, "document_pk": self.file.id})
 
         response = self.client.get(url, **self.exporter_headers)
 
-        get_object_function.assert_called_once()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(isinstance(response, StreamingHttpResponse))
+        self.assertTrue(isinstance(response, FileResponse))
         self.assertEqual(response.headers["content-disposition"], 'attachment; filename="Test"')
 
     def test_download_case_document_invalid_organisation_failure(self):

@@ -323,13 +323,31 @@ jobs:
       - image: cimg/python:3.8.18
     steps:
       - run:
+          name: Add known hosts
+          command: |
+            mkdir ~/.ssh
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - run:
+          name: Create temporary branch and commit on lite-frontend
+          command: |
+            TEMPORARY_BRANCH_NAME="lite-api-ci-tmp-"
+            TEMPORARY_BRANCH_NAME+=$(cat /proc/sys/kernel/random/uuid)
+            git clone git@github.com:uktrade/lite-frontend.git
+            cd lite-frontend
+            git config user.email $GIT_EMAIL
+            git config user.name "LITE CI"
+            git checkout -b $TEMPORARY_BRANCH_NAME
+            git commit --allow-empty -m "Testing lite-api"
+            git push origin $TEMPORARY_BRANCH_NAME
+            echo "export TEMPORARY_BRANCH_NAME=$TEMPORARY_BRANCH_NAME" >> $BASH_ENV
+      - run:
           name: Kick off lite-frontend e2e pipeline
           command: |
             PIPELINE_ID=$(curl --location --request POST 'https://circleci.com/api/v2/project/github/uktrade/lite-frontend/pipeline' \
             --header 'Content-Type: application/json' \
             --header "Circle-Token: ${LITE_FRONTEND_E2E_CI_TOKEN}" \
             --data-raw '{
-                "branch": "dev",
+                "branch": "'"$TEMPORARY_BRANCH_NAME"'",
                 "parameters": {
                   "run_ui_tests": true,
                   "run_unit_tests": false,
@@ -367,6 +385,12 @@ jobs:
               echo https://app.circleci.com/pipelines/github/uktrade/lite-frontend/$PIPELINE_NUMBER/workflows/$ID
               exit 1
             fi
+      - run:
+          name: Clean up branch
+          when: always
+          command: |
+            cd lite-frontend
+            git push origin --delete $TEMPORARY_BRANCH_NAME
 
 workflows:
   tests:
