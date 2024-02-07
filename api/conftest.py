@@ -1,10 +1,7 @@
-import os
-
 from django.core.management import call_command
 from django.db.migrations.executor import MigrationExecutor
 from django import db
 
-from celery import Celery
 from moto import mock_aws
 
 import re
