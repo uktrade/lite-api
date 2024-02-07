@@ -18,9 +18,11 @@ from api.cases.libraries.delete_notifications import delete_exporter_notificatio
 from api.core.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from api.core.exceptions import BadRequestError
 from api.core.helpers import str_to_bool
+from api.core.views import DocumentStreamAPIView
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
 from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
+from api.goods.filters import GoodFilter
 from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (
     FIREARMS_CORE_TYPES,
@@ -31,6 +33,10 @@ from api.goods.helpers import (
 from api.goods.libraries.get_goods import get_good, get_good_document
 from api.goods.libraries.save_good import create_or_update_good
 from api.goods.models import Good, GoodDocument
+from api.goods.permissions import (
+    IsDocumentInOrganisation,
+    IsGoodDraft,
+)
 from api.goods.serializers import (
     GoodAttachingSerializer,
     GoodCreateSerializer,
@@ -537,6 +543,20 @@ class GoodDocumentDetail(APIView):
                 good_on_application.delete()
 
         return JsonResponse({"document": "deleted success"})
+
+
+class GoodDocumentStream(DocumentStreamAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    filter_backends = (GoodFilter,)
+    lookup_url_kwarg = "doc_pk"
+    queryset = GoodDocument.objects.all()
+    permission_classes = (
+        IsDocumentInOrganisation,
+        IsGoodDraft,
+    )
+
+    def get_document(self, instance):
+        return instance
 
 
 class DocumentGoodOnApplicationInternalView(APIView):

@@ -24,6 +24,11 @@ urlpatterns = [
         name="document",
     ),
     path(
+        "<uuid:pk>/documents/<uuid:doc_pk>/stream/",
+        views.GoodDocumentStream.as_view(),
+        name="document_stream",
+    ),
+    path(
         "document_internal_good_on_application/<str:goods_on_application_pk>/",
         views.DocumentGoodOnApplicationInternalView.as_view(),
         name="documents_good_on_application_internal",
