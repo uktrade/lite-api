@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from unittest.mock import Mock, patch
+from uuid import uuid4
 
 from moto import mock_aws
 
@@ -128,70 +129,56 @@ class S3OperationsMoveStagedDocumentToProcessedTests(SimpleTestCase):
         mock_staged_client.delete_object.assert_called_with(Bucket="staged", Key="s3-key")
 
 
-@contextmanager
-def _create_bucket(s3):
-    s3.create_bucket(
-        Bucket=TEST_AWS_BUCKET_NAME,
-        CreateBucketConfiguration={
-            "LocationConstraint": settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_REGION"],
-        },
-    )
-    yield
-
-
 def get_s3_client():
     return init_s3_client()["processed"]
 
 
-@mock_aws
 class S3OperationsDeleteFileTests(SimpleTestCase):
     def test_delete_file(self):
         s3 = get_s3_client()
-        with _create_bucket(s3):
-            s3.put_object(
-                Bucket=TEST_AWS_BUCKET_NAME,
-                Key="s3-key",
-                Body=b"test",
-            )
+        s3_key = f"s3-key-{{uuid4()}}"
+        s3.put_object(
+            Bucket=TEST_AWS_BUCKET_NAME,
+            Key=s3_key,
+            Body=b"test",
+        )
 
-            delete_file("document-id", "s3-key")
+        delete_file("document-id", s3_key)
 
-            objs = s3.list_objects(Bucket=TEST_AWS_BUCKET_NAME)
-            keys = [o["Key"] for o in objs.get("Contents", [])]
-            self.assertNotIn("s3-key", keys)
+        objs = s3.list_objects(Bucket=TEST_AWS_BUCKET_NAME)
+        keys = [o["Key"] for o in objs.get("Contents", [])]
+        self.assertNotIn(s3_key, keys)
 
 
-@mock_aws
 class S3OperationsUploadBytesFileTests(SimpleTestCase):
     def test_upload_bytes_file(self):
         s3 = get_s3_client()
-        with _create_bucket(s3):
-            upload_bytes_file(b"test", "s3-key")
+        s3_key = f"s3-key-{{uuid4()}}"
+        upload_bytes_file(b"test", s3_key)
 
-            obj = s3.get_object(
-                Bucket=TEST_AWS_BUCKET_NAME,
-                Key="s3-key",
-            )
-            self.assertEqual(obj["Body"].read(), b"test")
+        obj = s3.get_object(
+            Bucket=TEST_AWS_BUCKET_NAME,
+            Key=s3_key,
+        )
+        self.assertEqual(obj["Body"].read(), b"test")
 
 
-@mock_aws
 class S3OperationsDocumentDownloadStreamTests(SimpleTestCase):
     def test_document_download_stream(self):
         s3 = get_s3_client()
-        with _create_bucket(s3):
-            s3.put_object(
-                Bucket=TEST_AWS_BUCKET_NAME,
-                Key="s3-key",
-                Body=b"test",
-            )
+        s3_key = f"s3-key-{{uuid4()}}"
+        s3.put_object(
+            Bucket=TEST_AWS_BUCKET_NAME,
+            Key=s3_key,
+            Body=b"test",
+        )
 
-            mock_document = Mock()
-            mock_document.id = "document-id"
-            mock_document.s3_key = "s3-key"
-            mock_document.name = "test.doc"
+        mock_document = Mock()
+        mock_document.id = "document-id"
+        mock_document.s3_key = s3_key
+        mock_document.name = "test.doc"
 
-            response = document_download_stream(mock_document)
+        response = document_download_stream(mock_document)
 
         self.assertIsInstance(response, FileResponse)
         self.assertEqual(response.status_code, 200)
