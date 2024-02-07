@@ -2,23 +2,16 @@ import unittest
 
 from django.urls import reverse_lazy
 from parameterized import parameterized
-from rest_framework import status
 
 from api.applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
 from api.applications.tests.factories import PartyOnApplicationFactory
 from api.cases.enums import CaseTypeEnum
-from api.core import constants
 from api.flags.enums import FlagLevels, FlagStatuses
 from api.flags.models import Flag, FlaggingRule
 from api.goods.enums import GoodStatus
 from api.goods.tests.factories import GoodFactory
 from api.goodstype.models import GoodsType
-from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.control_list_entries.helpers import (
-    get_clc_child_nodes,
-    get_clc_parent_nodes,
-    get_control_list_entry,
-)
+from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.models import Team
@@ -31,7 +24,6 @@ from api.workflow.flagging_rules_automation import (
     get_active_legacy_flagging_rules_for_level,
     apply_flagging_rule_to_all_open_cases,
 )
-from api.users.models import Role
 
 
 class FlaggingRulesAutomation(DataTestClient):
@@ -458,39 +450,6 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
 
         self.assertIn(case_flag, application.flags.all())
         self.assertIn(good_flag, good.flags.all())
-        self.assertIn(destination_flag, party.flags.all())
-
-    def test_hmrc_application(self):
-        application = self.create_hmrc_query(self.organisation)
-
-        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
-        self.create_flagging_rule(
-            FlagLevels.CASE, self.team, flag=case_flag, matching_values=[application.case_type.reference]
-        )
-
-        goods_type = GoodsType.objects.filter(application_id=application.id).first()
-        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-
-        goods_type.control_list_entries.set([get_control_list_entry("ML1a")])
-        self.create_flagging_rule(
-            FlagLevels.GOOD, self.team, flag=good_flag, matching_values=[goods_type.control_list_entries.first().rating]
-        )
-
-        party = PartyOnApplication.objects.filter(application_id=application.id).first().party
-        destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
-        self.create_flagging_rule(
-            FlagLevels.DESTINATION, self.team, flag=destination_flag, matching_values=[party.country_id]
-        )
-
-        self.submit_application(application)
-        apply_flagging_rules_to_case(application)
-
-        application.refresh_from_db()
-        goods_type.refresh_from_db()
-        party.refresh_from_db()
-
-        self.assertIn(case_flag, application.flags.all())
-        self.assertIn(good_flag, goods_type.flags.all())
         self.assertIn(destination_flag, party.flags.all())
 
     def test_F680_application(self):

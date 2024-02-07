@@ -1,10 +1,9 @@
 import random
 import timeit
 import uuid
-import warnings
 import sys
 from django.utils import timezone
-from typing import Optional, List, Tuple
+from typing import List, Tuple
 
 import django.utils.timezone
 from django.db import connection
@@ -24,7 +23,6 @@ from api.applications.models import (
     CountryOnApplication,
     StandardApplication,
     OpenApplication,
-    HmrcQuery,
     ApplicationDocument,
     ExhibitionClearanceApplication,
     GiftingClearanceApplication,
@@ -60,22 +58,15 @@ from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
 from api.addresses.tests.factories import AddressFactoryGB
-from api.goods.enums import (
-    GoodPvGraded,
-    PvGrading,
-    ItemCategory,
-    MilitaryUse,
-    FirearmGoodType,
-)
-from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
+from api.goods.enums import GoodPvGraded, PvGrading
+from api.goods.models import Good, GoodDocument
 from api.applications.models import GoodOnApplicationInternalDocument
-from api.goods.tests.factories import FirearmFactory, GoodFactory, PvGradingDetailsFactory
+from api.goods.tests.factories import GoodFactory
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
-from api.licences.helpers import get_licence_reference_code
 from api.licences.tests.factories import StandardLicenceFactory
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation, ExternalLocation
@@ -89,7 +80,6 @@ from api.picklists.models import PicklistItem
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
 from api.queues.models import Queue
-from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.helpers import get_country
 from api.staticdata.countries.models import Country
 from api.staticdata.f680_clearance_types.models import F680ClearanceType
@@ -850,45 +840,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft = self.create_draft_open_application(organisation, reference_name)
 
         return self.submit_application(draft, self.exporter_user)
-
-    def create_hmrc_query(
-        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True, have_goods_departed=False
-    ):
-        application = HmrcQuery(
-            name=reference_name,
-            case_type_id=CaseTypeEnum.HMRC.id,
-            activity="Trade",
-            usage="Trade",
-            organisation=organisation,
-            hmrc_organisation=self.hmrc_organisation,
-            reasoning="I Am Easy to Find",
-            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            have_goods_departed=have_goods_departed,
-            submitted_by=self.hmrc_exporter_user,
-        )
-        application.save()
-
-        end_user = self.create_party("End User", organisation, PartyType.END_USER, application)
-        consignee = self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-        third_party = self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-
-        self.assertEqual(end_user, application.end_user.party)
-        self.assertEqual(consignee, application.consignee.party)
-        self.assertEqual(third_party, application.third_parties.get().party)
-
-        goods_type = GoodsTypeFactory(application=application)
-
-        # Set the application party documents
-        self.create_document_for_party(application.end_user.party, safe=safe_document)
-        self.create_document_for_party(application.consignee.party, safe=safe_document)
-        self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
-
-        self.create_document_for_goods_type(goods_type)
-
-        # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
-
-        return application
 
     def create_standard_application_case(
         self,

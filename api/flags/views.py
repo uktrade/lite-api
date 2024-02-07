@@ -7,7 +7,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from api.applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
+from api.applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -302,8 +302,6 @@ class AssignFlags(APIView):
         if not qs:
             qs = EndUserAdvisoryQuery.objects.filter(Q(end_user=party))
 
-        if not qs:
-            qs = HmrcQuery.objects.filter(parties__party=party)
         if qs.exists():
             return qs.first().get_case()
 
