@@ -11,23 +11,10 @@ from api.conf import settings
 from api.documents.libraries.s3_operations import init_s3_client
 
 
-@mock_aws
 class DocumentStream(DataTestClient):
     def setUp(self):
         super().setUp()
-        init_s3_client()
-        s3 = boto3.client(
-            "s3",
-            aws_access_key_id=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_ACCESS_KEY_ID"],
-            aws_secret_access_key=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_SECRET_ACCESS_KEY"],
-            region_name=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_REGION"],
-        )
-        s3.create_bucket(
-            Bucket=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
-            CreateBucketConfiguration={
-                "LocationConstraint": settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_REGION"],
-            },
-        )
+        s3 = init_s3_client()["processed"]
         s3.put_object(
             Bucket=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
             Key="thisisakey",

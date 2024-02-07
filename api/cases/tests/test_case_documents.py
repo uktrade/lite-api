@@ -31,7 +31,6 @@ class CaseDocumentsTests(DataTestClient):
         self.assertEqual(len(response_data["documents"]), 2)
 
 
-@mock_aws
 class CaseDocumentDownloadTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -41,12 +40,6 @@ class CaseDocumentDownloadTests(DataTestClient):
         self.path = "cases:document_download"
 
         s3 = init_s3_client()["processed"]
-        s3.create_bucket(
-            Bucket=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
-            CreateBucketConfiguration={
-                "LocationConstraint": settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_REGION"],
-            },
-        )
         s3.put_object(
             Bucket=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
             Key=self.file.s3_key,

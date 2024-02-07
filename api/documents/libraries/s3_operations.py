@@ -74,6 +74,7 @@ def move_staged_document_to_processed(document_id, s3_key):
     # Grab the document from the staged S3 bucket
     try:
         staged_document = get_object(document_id, s3_key, "staged")
+
     except ClientError as exc:
         logger.warning(f"An error occurred when retrieving file '{s3_key}' on document '{document_id}': {exc}")
         # TODO: When we move over to using two S3 buckets, we should make this raise an exception.

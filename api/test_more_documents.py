@@ -1,6 +1,7 @@
 import uuid
 from unittest import mock
 
+from django.conf import settings
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -82,12 +83,10 @@ class DraftDocumentTests(DataTestClient):
         for document in data:
             self.assertTrue(document in response_data)
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.models.Document.delete_s3")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_delete_individual_draft_document(self, mock_virus_scan, mock_delete_s3, mock_s3_operations_get_object):
+    def test_delete_individual_draft_document(self, mock_virus_scan, mock_delete_s3):
         """Test success in deleting a document from an unsubmitted application."""
-        mock_s3_operations_get_object.return_value = self.data
         mock_virus_scan.return_value = False
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
         response = self.client.get(self.url_draft, **self.exporter_headers)

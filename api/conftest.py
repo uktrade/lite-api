@@ -5,6 +5,7 @@ from django.db.migrations.executor import MigrationExecutor
 from django import db
 
 from celery import Celery
+from moto import mock_aws
 
 import re
 import glob
@@ -12,6 +13,8 @@ from importlib import import_module
 
 import pytest  # noqa
 from django.conf import settings
+
+from api.documents.libraries.s3_operations import init_s3_client
 
 
 def camelcase_to_underscore(string):
@@ -130,11 +133,19 @@ def setup(settings):
 
 
 @pytest.fixture(autouse=True)
-def celery_app():
-    # Setup the celery worker to run in process for tests
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.conf.settings")
-    celeryapp = Celery("api")
-    celeryapp.autodiscover_tasks(related_name="celery_tasks")
-    celeryapp.conf.update(CELERY_ALWAYS_EAGER=True)
-    celeryapp.conf.update(CELERY_TASK_STORE_EAGER_RESULT=True)
-    return celeryapp
+def mock_aws_calls():
+    with mock_aws():
+        clients = init_s3_client()
+        clients["processed"].create_bucket(
+            Bucket=settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
+            CreateBucketConfiguration={
+                "LocationConstraint": settings.FILE_UPLOAD_PROCESSED_BUCKET["AWS_REGION"],
+            },
+        )
+        clients["staged"].create_bucket(
+            Bucket=settings.FILE_UPLOAD_STAGED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
+            CreateBucketConfiguration={
+                "LocationConstraint": settings.FILE_UPLOAD_STAGED_BUCKET["AWS_REGION"],
+            },
+        )
+        yield

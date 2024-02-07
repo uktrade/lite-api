@@ -2,10 +2,12 @@ import datetime
 from unittest import mock
 
 from django.urls import reverse
+from django.conf import settings
 
 from api.organisations.enums import OrganisationDocumentType
 from api.organisations.models import DocumentOnOrganisation
 from test_helpers.clients import DataTestClient
+from api.documents.libraries.s3_operations import init_s3_client
 
 
 class OrganisationDocumentViewTests(DataTestClient):
@@ -19,6 +21,12 @@ class OrganisationDocumentViewTests(DataTestClient):
 
     def create_document_on_organisation(self, name):
         url = reverse("organisations:documents", kwargs={"pk": self.organisation.pk})
+        s3 = init_s3_client()["staged"]
+        s3.put_object(
+            Bucket=settings.FILE_UPLOAD_STAGED_BUCKET["AWS_STORAGE_BUCKET_NAME"],
+            Key=name,
+            Body=b"test",
+        )
         data = {
             "document": {"name": name, "s3_key": name, "size": 476},
             "expiry_date": "2026-01-01",
@@ -63,10 +71,8 @@ class OrganisationDocumentViewTests(DataTestClient):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()["documents"]), 3)
 
-    @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
-    def test_retrieve_organisation_documents(self, mock_virus_scan, mock_s3_operations_get_object):
-        mock_s3_operations_get_object.return_value = self.document_data
+    def test_retrieve_organisation_documents(self, mock_virus_scan):
         mock_virus_scan.return_value = False
         response = self.create_document_on_organisation("some-document-one")
         self.assertEqual(response.status_code, 201)
