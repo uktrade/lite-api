@@ -26,6 +26,7 @@ from api.cases.enums import (
     AdviceLevel,
     EnforcementXMLEntityTypes,
 )
+from api.cases.helpers import working_days_in_range
 from api.cases.libraries.reference_code import generate_reference_code
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from api.common.models import TimestampableModel, CreatedAt
@@ -599,7 +600,7 @@ class EcjuQuery(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     question = models.CharField(null=False, blank=False, max_length=5000)
-    response = models.CharField(null=True, blank=False, max_length=2200)
+    response = models.CharField(null=True, blank=True, max_length=2200)
     case = models.ForeignKey(Case, related_name="case_ecju_query", on_delete=models.CASCADE)
     team = models.ForeignKey(Team, null=True, on_delete=models.CASCADE)
     responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
@@ -627,7 +628,6 @@ class EcjuQuery(TimestampableModel):
 
     @queryable_property
     def is_manually_closed(self):
-
         if self.responded_by_user and self.responded_by_user.type == UserType.INTERNAL:
             return True
         else:
@@ -637,6 +637,12 @@ class EcjuQuery(TimestampableModel):
     @is_query_closed.filter(lookups=("exact",))
     def is_query_closed(self, lookup, value):
         return ~Q(responded_at__isnull=value)
+
+    @property
+    def open_working_days(self):
+        start_date = self.created_at
+        end_date = self.responded_at if self.responded_at else timezone.now()
+        return working_days_in_range(start_date=start_date, end_date=end_date)
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
 

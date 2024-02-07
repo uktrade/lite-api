@@ -6,6 +6,7 @@ from api.applications.models import (
     GoodOnApplication,
 )
 from api.goods.enums import GoodPvGraded, GoodStatus
+from api.goods.tests.factories import GoodFactory
 from api.goods.models import Good
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation
@@ -111,8 +112,8 @@ class Command(SeedCommand):
 
         goods_added = [
             verify_good(
-                tc.create_good(
-                    description=name,
+                GoodFactory(
+                    name=name,
                     organisation=organisation,
                     is_good_controlled=random.choice([True, False, None]),
                     control_list_entries=["ML1a"],

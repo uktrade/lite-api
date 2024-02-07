@@ -27,6 +27,15 @@ def is_weekend(date):
 
 
 def working_days_in_range(start_date, end_date):
+    """
+    This function does not work as intended and should not be used, please see
+    LTD-4628 for more information.
+
+    This is because of the predicate used in the list
+    comprehension, which incorrectly returns True early. An example fix is to replace the list comprehension
+    with `[date for date in dates_in_range if (not is_bank_holiday(date) and not is_weekend(date))]`
+    but this should be done and released at the same time as the other fixes in LTD-4628.
+    """
     dates_in_range = [start_date + timedelta(n) for n in range((end_date - start_date).days)]
     return len([date for date in dates_in_range if not is_bank_holiday(date) or not is_weekend(date)])
 

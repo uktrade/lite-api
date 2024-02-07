@@ -13,7 +13,7 @@ from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 import pytest
 
-from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
+from api.applications.enums import ApplicationExportType
 from api.applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
 from api.applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from api.applications.libraries.licence import get_default_duration
@@ -30,6 +30,11 @@ from api.applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
+from api.applications.tests.factories import (
+    GoodOnApplicationFactory,
+    PartyOnApplicationFactory,
+    StandardApplicationFactory,
+)
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -41,7 +46,6 @@ from api.cases.models import (
     Case,
     CaseDocument,
     CaseAssignment,
-    GoodCountryDecision,
     EcjuQuery,
     CaseType,
     Advice,
@@ -56,30 +60,29 @@ from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
 from api.addresses.tests.factories import AddressFactoryGB
 from api.goods.enums import (
-    GoodControlled,
     GoodPvGraded,
     PvGrading,
     ItemCategory,
     MilitaryUse,
-    Component,
     FirearmGoodType,
 )
 from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from api.applications.models import GoodOnApplicationInternalDocument
-from api.goods.tests.factories import GoodFactory
+from api.goods.tests.factories import FirearmFactory, GoodFactory, PvGradingDetailsFactory
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import get_licence_reference_code
-from api.licences.models import GoodOnLicence, Licence
+from api.licences.tests.factories import StandardLicenceFactory
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation, ExternalLocation
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from api.parties.enums import SubType, PartyType, PartyRole
 from api.parties.models import Party
 from api.parties.models import PartyDocument
+from api.parties.tests.factories import ConsigneeFactory, EndUserFactory, ThirdPartyFactory, UltimateEndUserFactory
 from api.picklists.enums import PickListStatus, PicklistType
 from api.picklists.models import PicklistItem
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
@@ -88,7 +91,6 @@ from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.helpers import get_country
 from api.staticdata.countries.models import Country
-from api.staticdata.decisions.models import Decision
 from api.staticdata.f680_clearance_types.models import F680ClearanceType
 from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.management.commands import seedall
@@ -100,7 +102,7 @@ from api.staticdata.urls import urlpatterns as static_urlpatterns
 from api.teams.models import Team
 from api.users.tests.factories import GovUserFactory
 from test_helpers import colours
-from api.users.enums import UserStatuses, SystemUser, UserType
+from api.users.enums import SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -476,85 +478,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         picklist_item.save()
         return picklist_item
 
-    @staticmethod
-    def create_good(
-        description: str,
-        organisation: Organisation,
-        is_good_controlled: str = False,
-        control_list_entries: Optional[List[str]] = None,
-        is_pv_graded: str = GoodPvGraded.YES,
-        pv_grading_details: PvGradingDetails = None,
-        item_category=ItemCategory.GROUP1_DEVICE,
-        is_military_use=MilitaryUse.NO,
-        modified_military_use_details=None,
-        component_details=None,
-        is_component=None,
-        uses_information_security=True,
-        information_security_details=None,
-        software_or_technology_details=None,
-        create_firearm_details=False,
-    ) -> Good:
-        warnings.warn(
-            "create_good is a deprecated function. Use a GoodFactory instead", category=DeprecationWarning, stacklevel=2
-        )
-
-        if is_pv_graded == GoodPvGraded.YES and not pv_grading_details:
-            pv_grading_details = PvGradingDetails.objects.create(
-                grading=None,
-                custom_grading="Custom Grading",
-                prefix="Prefix",
-                suffix="Suffix",
-                issuing_authority="Issuing Authority",
-                reference="ref123",
-                date_of_issue="2019-12-25",
-            )
-
-        firearm_details = None
-        if create_firearm_details:
-            firearm_details = FirearmGoodDetails.objects.create(
-                category=[],
-                type=FirearmGoodType.AMMUNITION,
-                calibre="0.5",
-                year_of_manufacture="1991",
-                is_covered_by_firearm_act_section_one_two_or_five="No",
-                section_certificate_number=None,
-                section_certificate_date_of_expiry=None,
-                serial_numbers_available=FirearmGoodDetails.SerialNumberAvailability.AVAILABLE,
-                no_identification_markings_details="",
-            )
-
-        good = Good(
-            description=description,
-            is_good_controlled=is_good_controlled,
-            part_number="123456",
-            organisation=organisation,
-            comment=None,
-            report_summary=None,
-            is_pv_graded=is_pv_graded,
-            pv_grading_details=pv_grading_details,
-            item_category=item_category,
-            is_military_use=is_military_use,
-            is_component=is_component,
-            uses_information_security=uses_information_security,
-            information_security_details=information_security_details,
-            modified_military_use_details=modified_military_use_details,
-            component_details=component_details,
-            software_or_technology_details=software_or_technology_details,
-            firearm_details=firearm_details,
-        )
-        good.save()
-
-        if good.is_good_controlled == True:
-            if not control_list_entries:
-                raise Exception("You need to set control list entries if the good is controlled")
-
-            control_list_entries = ControlListEntry.objects.filter(rating__in=control_list_entries)
-            good.control_list_entries.set(control_list_entries)
-
-        return good
-
     def create_goods_query(self, description, organisation, clc_reason, pv_reason) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, organisation=organisation)
+        good = GoodFactory(name=description, organisation=organisation)
 
         goods_query = GoodsQuery.objects.create(
             clc_raised_reasons=clc_reason,
@@ -572,7 +497,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return goods_query
 
     def create_clc_query(self, description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, organisation=organisation)
+        good = GoodFactory(name=description, organisation=organisation)
 
         clc_query = GoodsQuery.objects.create(
             clc_raised_reasons="this is a test text",
@@ -589,9 +514,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_pv_grading_query(description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(
-            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED
-        )
+        good = GoodFactory(name=description, organisation=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED)
 
         pv_grading_query = GoodsQuery.objects.create(
             clc_raised_reasons=None,
@@ -722,60 +645,34 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not user:
             user = UserOrganisationRelationship.objects.filter(organisation_id=organisation.id).first().user
 
-        application = StandardApplication(
+        application = StandardApplicationFactory(
             name=reference_name,
-            export_type=ApplicationExportType.PERMANENT,
             case_type_id=case_type_id,
-            have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-            reference_number_on_information_form="",
-            activity="Trade",
-            usage="Trade",
             organisation=organisation,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            is_military_end_use_controls=False,
-            is_informed_wmd=False,
-            is_suspected_wmd=False,
-            is_eu_military=False,
-            is_compliant_limitations_eu=None,
-            intended_end_use="this is our intended end use",
-            is_shipped_waybill_or_lading=True,
-            is_mod_security_approved=False,
-            non_waybill_or_lading_route_details=None,
-            status_id="00000000-0000-0000-0000-000000000000",
             submitted_by=user,
         )
 
-        application.save()
-
         if add_a_good:
-            if num_products == 1:
-                # Add a good to the standard application
-                self.good_on_application = GoodOnApplication.objects.create(
-                    good=good if good else GoodFactory(organisation=organisation, is_good_controlled=True),
+            if reuse_good:
+                good = GoodFactory(organisation=organisation, is_good_controlled=True)
+
+            for _ in range(num_products):
+                GoodOnApplicationFactory(
+                    good=good if reuse_good else GoodFactory(organisation=organisation, is_good_controlled=True),
                     application=application,
-                    quantity=10,
+                    quantity=random.randint(1, 50),
                     unit=Units.NAR,
-                    value=500,
+                    value=random.randint(100, 5000),
                 )
-            else:
-                if reuse_good:
-                    good = GoodFactory(organisation=organisation, is_good_controlled=True)
-                for _ in range(num_products):
-                    GoodOnApplication.objects.create(
-                        good=good if reuse_good else GoodFactory(organisation=organisation, is_good_controlled=True),
-                        application=application,
-                        quantity=random.randint(1, 50),
-                        unit=Units.NAR,
-                        value=random.randint(100, 5000),
-                    )
 
         if parties:
-            self.create_party("End User", organisation, PartyType.END_USER, application)
+            PartyOnApplicationFactory(application=application, party=ConsigneeFactory(organisation=self.organisation))
+            PartyOnApplicationFactory(application=application, party=EndUserFactory(organisation=self.organisation))
+            PartyOnApplicationFactory(application=application, party=ThirdPartyFactory(organisation=self.organisation))
+
             if ultimate_end_users:
-                self.create_party("Ult End User", organisation, PartyType.ULTIMATE_END_USER, application)
-            self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-            self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-            # Set the application party documents
+                PartyOnApplicationFactory(application=application, party=UltimateEndUserFactory())
 
             self.add_party_documents(application, safe_document)
 
@@ -1105,28 +1002,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_licence(
         application: Case,
         status: LicenceStatus,
-        reference_code=None,
-        decisions=None,
-        hmrc_integration_sent_at=None,
-        start_date=None,
     ):
-        if not decisions:
-            decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
-        if not reference_code:
-            reference_code = get_licence_reference_code(application.reference_code)
-        if not start_date:
-            start_date = django.utils.timezone.now().date()
-
-        licence = Licence.objects.create(
+        return StandardLicenceFactory(
             case=application,
-            reference_code=reference_code,
-            start_date=start_date,
-            duration=get_default_duration(application),
             status=status,
-            hmrc_integration_sent_at=hmrc_integration_sent_at,
         )
-        licence.decisions.set(decisions)
-        return licence
 
     def create_routing_rule(
         self, team_id, queue_id, tier, status_id, additional_rules: list, is_python_criteria=False, active=True

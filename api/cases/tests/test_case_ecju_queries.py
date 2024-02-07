@@ -1,4 +1,5 @@
 from unittest import mock
+from datetime import timedelta
 
 from django.urls import reverse
 from django.utils import timezone
@@ -6,15 +7,16 @@ from api.cases.tests.factories import EcjuQueryFactory
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
+from freezegun import freeze_time
 
-from api.applications.models import BaseApplication
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
-from api.compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
+from api.compliance.tests.factories import ComplianceSiteCaseFactory
 from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 from api.picklists.enums import PicklistType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -224,6 +226,127 @@ class ECJUQueriesViewTests(DataTestClient):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(0, response_data["count"])
 
+    @parameterized.expand(
+        [
+            (
+                {
+                    "year": 2022,
+                    "month": 11,
+                    "day": 30,
+                    "hour": 9,
+                    "minute": 50,
+                    "tzinfo": timezone.utc,
+                },
+                291,
+            ),
+            (
+                {
+                    "year": 2023,
+                    "month": 12,
+                    "day": 15,
+                    "hour": 13,
+                    "minute": 37,
+                    "tzinfo": timezone.utc,
+                },
+                28,
+            ),
+            (
+                {
+                    "year": 2024,
+                    "month": 1,
+                    "day": 1,
+                    "hour": 12,
+                    "minute": 30,
+                    "tzinfo": timezone.utc,
+                },
+                19,
+            ),
+            ({"year": 2024, "month": 1, "day": 22, "hour": 15, "minute": 40, "tzinfo": timezone.utc}, 5),
+        ]
+    )
+    @freeze_time("2024-01-29 15:00:00")
+    def test_ecju_query_shows_correct_open_working_days_for_open_query(
+        self, created_at_datetime_kwargs, expected_working_days
+    ):
+        case = self.create_standard_application_case(self.organisation)
+        created_at_datetime = timezone.datetime(**created_at_datetime_kwargs)
+        ecju_query = EcjuQueryFactory(
+            question="this is the question",
+            response=None,
+            responded_at=None,
+            case=case,
+            created_at=created_at_datetime,
+        )
+
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        assert response_data["ecju_queries"][0]["open_working_days"] == expected_working_days
+
+    @parameterized.expand(
+        [
+            (
+                {
+                    "year": 2022,
+                    "month": 11,
+                    "day": 30,
+                    "hour": 9,
+                    "minute": 50,
+                    "tzinfo": timezone.utc,
+                },
+                365,
+                252,
+            ),
+            (
+                {
+                    "year": 2023,
+                    "month": 12,
+                    "day": 15,
+                    "hour": 13,
+                    "minute": 37,
+                    "tzinfo": timezone.utc,
+                },
+                30,
+                18,
+            ),
+            ({"year": 2024, "month": 1, "day": 22, "hour": 15, "minute": 40, "tzinfo": timezone.utc}, 7, 5),
+            (
+                {
+                    "year": 2024,
+                    "month": 1,
+                    "day": 28,
+                    "hour": 12,
+                    "minute": 6,
+                    "tzinfo": timezone.utc,
+                },
+                1,
+                0,
+            ),
+        ],
+    )
+    def test_ecju_query_shows_correct_open_working_days_for_closed_query(
+        self, created_at_datetime_kwargs, calendar_days, expected_working_days
+    ):
+        case = self.create_standard_application_case(self.organisation)
+        created_at_datetime = timezone.datetime(**created_at_datetime_kwargs)
+        responded_at_datetime = created_at_datetime + timedelta(days=calendar_days)
+        ecju_query = EcjuQueryFactory(
+            question="this is the question",
+            response="some response text",
+            responded_at=responded_at_datetime,
+            case=case,
+            created_at=created_at_datetime,
+        )
+
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        assert response_data["ecju_queries"][0]["open_working_days"] == expected_working_days
+
 
 class ECJUQueriesCreateTest(DataTestClient):
     @parameterized.expand([ECJUQueryType.ECJU, ECJUQueryType.PRE_VISIT_QUESTIONNAIRE, ECJUQueryType.COMPLIANCE_ACTIONS])
@@ -275,14 +398,14 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
-        self.licence_1 = self.create_licence(
-            self.create_open_application_case(self.organisation), status=LicenceStatus.ISSUED
+        self.licence_1 = StandardLicenceFactory(
+            case=self.create_open_application_case(self.organisation), status=LicenceStatus.ISSUED
         )
 
         application = self.create_open_application_case(self.organisation)
         application.submitted_by = ExporterUserFactory()
         application.save()
-        self.licence_2 = self.create_licence(application, status=LicenceStatus.ISSUED)
+        self.licence_2 = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
         self.data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
 
     @mock.patch("api.cases.views.views.notify.notify_exporter_ecju_query")
@@ -391,7 +514,7 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
-        data = {}
+        data = {"response": ""}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -399,7 +522,8 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertIsNone(response_ecju_query["response"])
         self.assertIsNotNone(response_ecju_query["responded_at"])
 
-    def test_close_query_has_optional_response_govuser(self):
+    @parameterized.expand(["", None])
+    def test_close_query_has_required_response_govuser(self, response_value):
         case = self.create_standard_application_case(self.organisation)
         ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
 
@@ -407,17 +531,11 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
-        data = {"response": None}
+        data = {"response": response_value}
 
         response = self.client.put(query_response_url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        response_ecju_query = response.json()["ecju_query"]
-        self.assertIsNone(response_ecju_query["response"])
-        self.assertIsNotNone(response_ecju_query["responded_at"])
-
-        response_get = self.client.get(query_response_url, **self.gov_headers)
-        self.assertEqual(True, response_get.json()["ecju_query"]["is_manually_closed"])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], "Enter a reason why you are closing the query")
 
     def test_caseworker_manually_closes_query_exporter_responds_raises_error(self):
         case = self.create_standard_application_case(self.organisation)

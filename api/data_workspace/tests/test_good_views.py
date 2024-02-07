@@ -1,5 +1,6 @@
 from django.test import override_settings
 from api.goods.models import GoodControlListEntry
+from api.goods.tests.factories import GoodFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
 from django.urls import reverse
 from rest_framework import status
@@ -10,7 +11,7 @@ from test_helpers.clients import DataTestClient
 class DataWorkspaceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.good = DataTestClient.create_good(description="Test good", organisation=self.organisation)
+        self.good = GoodFactory(name="Test good", organisation=self.organisation)
 
     @override_settings(HAWK_AUTHENTICATION_ENABLED=False)
     def test_goods(self):

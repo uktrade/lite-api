@@ -8,9 +8,9 @@ from api.applications.models import GoodOnApplication
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum
 from api.goods.enums import ItemType
-from lite_content.lite_api import strings
-from api.staticdata.missing_document_reasons.enums import GoodMissingDocumentReasons
+from api.goods.tests.factories import GoodFactory
 from api.staticdata.units.enums import Units
+from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 from test_helpers.decorators import none_param_tester
 
@@ -19,7 +19,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_draft_standard_application(self.organisation)
-        self.good = self.create_good("A good", self.organisation)
+        self.good = GoodFactory(name="A good", organisation=self.organisation)
 
     def test_add_a_good_to_a_draft(self):
         self.create_good_document(
@@ -56,7 +56,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         good_name = "A good"
         organisation_2, _ = self.create_organisation_with_exporter_user()
-        good = self.create_good(good_name, organisation_2)
+        good = GoodFactory(name=good_name, organisation=organisation_2)
         self.create_good_document(
             good,
             user=self.exporter_user,
@@ -242,7 +242,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, data["response"])
 
     def test_adding_good_without_document_or_reason_success(self):
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
         good.is_document_available = False
         good.save()
         data = {
@@ -259,7 +259,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_adding_good_with_reason_official_sensitive_success(self):
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
         good.is_document_sensitive = True
         good.save()
         data = {
@@ -281,7 +281,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         Ensure all params have to be sent otherwise fail
         """
         self.create_draft_standard_application(self.organisation)
-        self.create_good("A good", self.organisation)
+        GoodFactory(organisation=self.organisation)
         self.create_good_document(
             self.good,
             user=self.exporter_user,
@@ -308,7 +308,7 @@ class AddingGoodsOnApplicationFirearmsTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_draft_standard_application(self.organisation)
-        self.good = self.create_good("A good", self.organisation, create_firearm_details=True)
+        self.good = GoodFactory(organisation=self.organisation)
 
     @parameterized.expand(
         [
@@ -410,7 +410,7 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.good = self.create_good("A good", self.organisation)
+        self.good = GoodFactory(organisation=self.organisation)
 
     def test_add_a_good_to_a_exhibition_draft_choice(self):
         self.create_good_document(

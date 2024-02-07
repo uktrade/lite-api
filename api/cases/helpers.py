@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from api.common.dates import is_bank_holiday, is_weekend
 from api.cases.enums import CaseTypeReferenceEnum
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import GovUser, GovNotification
@@ -73,3 +76,8 @@ def can_set_status(case, status):
         return False
 
     return True
+
+
+def working_days_in_range(start_date, end_date):
+    dates_in_range = [start_date + timedelta(n) for n in range((end_date - start_date).days)]
+    return len([date for date in dates_in_range if (not is_bank_holiday(date) and not is_weekend(date))])

@@ -31,7 +31,8 @@ class GetExistingPartiesTests(DataTestClient):
         response = self.client.get(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), Party.objects.count())
+        # parties of this organisation
+        self.assertEqual(len(response.data["results"]), Party.objects.filter(organisation=self.organisation).count())
 
     def test_get_existing_parties_only_returns_parties_from_own_organisation_success(self):
         second_organisation, _ = self.create_organisation_with_exporter_user(name="Second organisation")
@@ -123,19 +124,18 @@ class GetExistingPartiesTests(DataTestClient):
         expected_copy_id = Party.objects.filter(name="Mr Original", address="456 abc st.").get().id
         second_expected_copy_id = Party.objects.filter(name="Mr Copy").get().id
 
-        # Party table data contains one duplicate, so results returned is 1 less than all parties
-        self.assertEqual(Party.objects.count() - 1, len(response_data))
+        # Party table data contains one duplicate, so results returned is 1 less than all parties of this organisation
+        self.assertEqual(len(response_data), Party.objects.filter(organisation=self.organisation).count() - 1)
 
         self.assertIn(str(expected_copy_id), response_data_ids)
         self.assertIn(str(second_expected_copy_id), response_data_ids)
-        self.assertIn(str(self.draft.end_user.party.id), response_data_ids)
         self.assertNotIn(str(original_party.id), response_data_ids)
 
     def test_get_existing_parties_contains_no_duplicates_with_filters_success(self):
-        params = f"?name=Mr"
+        params = "?name=Unique"
 
         original_party = Party.objects.create(
-            name="Mr Original",
+            name="Unique name",
             address="123 abc st.",
             website="https://www.gov.py",
             country=self.country,
@@ -145,7 +145,7 @@ class GetExistingPartiesTests(DataTestClient):
         )
 
         copied_party = Party.objects.create(
-            name="Mr Original",
+            name="Unique name",
             address="123 abc st.",
             website="https://www.gov.py",
             country=self.country,

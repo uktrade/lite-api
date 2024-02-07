@@ -2,7 +2,6 @@ import datetime
 
 from django.urls import reverse
 from django import utils as django_utils
-from api.staticdata.statuses.factories import CaseStatusFactory
 from parameterized import parameterized
 from rest_framework import status
 
@@ -16,12 +15,12 @@ from api.applications.tests.factories import (
     SanctionMatchFactory,
     PartyOnApplicationFactory,
 )
-from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from api.cases.enums import AdviceType, CaseTypeEnum
 from api.cases.models import Case, CaseAssignment, EcjuQuery, CaseType
 from api.flags.models import Flag
 from api.goods.tests.factories import GoodFactory
 from api.picklists.enums import PicklistType
-from api.cases.tests.factories import CaseSIELFactory, FinalAdviceFactory
+from api.cases.tests.factories import FinalAdviceFactory
 from api.queues.constants import (
     UPDATED_CASES_QUEUE_ID,
     SYSTEM_QUEUES,
@@ -33,7 +32,7 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.tests.factories import ReportSummaryPrefixFactory, ReportSummarySubjectFactory
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
-from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.staticdata.statuses.models import CaseSubStatus
 from api.users.tests.factories import GovUserFactory
 from test_helpers.clients import DataTestClient
 from api.users.enums import UserStatuses
@@ -141,12 +140,11 @@ class FilterAndSortTests(DataTestClient):
         cases_with_users = [case for case in response_data["cases"] if case["end_users"]]
         # All the non clc cases should have users.
         self.assertEqual(len(cases_with_users), 3)
-        end_user = {"name": "End User", "type": "end_user"}
-        ult_end_user = {"name": "Ult End User", "type": "ultimate_end_user"}
 
+        # The helper function that creates application uses factories to add parties to application
+        # so their names will be different hence only check necessary party types are present or not
         for case in cases_with_users:
-            self.assertIn(end_user, case["end_users"])
-            self.assertIn(ult_end_user, case["end_users"])
+            self.assertEqual(sorted([user["type"] for user in case["end_users"]]), ["end_user", "ultimate_end_user"])
 
     def test_get_app_type_cases(self):
         """
@@ -795,7 +793,7 @@ class FilterAndSortTests(DataTestClient):
     def test_get_cases_filter_by_includes_refusal_recommendation(self):
         case = self.create_standard_application_case(self.organisation)
         team_ogd = Team.objects.filter(is_ogd=True).first()
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
         self.gov_user.team = team_ogd
         self.gov_user.save()
 
@@ -811,7 +809,7 @@ class FilterAndSortTests(DataTestClient):
 
     def test_get_cases_filter_by_includes_refusal_recommendation_not_met(self):
         case = self.create_standard_application_case(self.organisation)
-        good = self.create_good("A good", self.organisation)
+        good = GoodFactory(organisation=self.organisation)
 
         factories.UserAdviceFactory(user=self.gov_user, case=case, good=good, type=AdviceType.REFUSE)
 
@@ -1057,18 +1055,14 @@ class SearchAPITest(DataTestClient):
 
     def test_api_success(self):
         self._create_data()
-        self.advice = self.create_advice(
-            self.gov_user, self.case, "good", AdviceType.APPROVE, AdviceLevel.FINAL, good=self.good
-        )
+        self.advice = FinalAdviceFactory(user=self.gov_user, case=self.case, type=AdviceType.APPROVE, good=self.good)
         self.gov_user2 = self.create_gov_user(
             team=self.create_team(name="other_team"), email="new_user2@digital.trade.gov.uk"
         )
-        self.group_advice = self.create_advice(
-            self.gov_user2, self.case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, good=self.good
+        self.group_advice = FinalAdviceFactory(
+            user=self.gov_user2, case=self.case, type=AdviceType.REFUSE, good=self.good
         )
-        self.create_advice(
-            self.gov_user2, self.group_advice.case, "good", AdviceType.REFUSE, AdviceLevel.FINAL, good=self.good
-        )
+        FinalAdviceFactory(user=self.gov_user2, case=self.case, type=AdviceType.REFUSE, good=self.good)
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["results"]

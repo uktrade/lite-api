@@ -6,6 +6,7 @@ from api.applications.models import StandardApplication, GoodOnApplication
 from api.flags.enums import SystemFlags
 from parameterized import parameterized
 from api.goods.enums import GoodStatus
+from api.goods.tests.factories import GoodFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
@@ -21,7 +22,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
         super().setUp()
 
         # Create a common good
-        self.good = self.create_good("A good", self.organisation)
+        self.good = GoodFactory(organisation=self.organisation)
         self.good.flags.add(SystemFlags.WASSENAAR)
         # Create an application
         self.application = self.create_draft_standard_application(self.organisation)
@@ -108,6 +109,13 @@ class GoodPrecedentsListViewTests(DataTestClient):
 
         json = response.json()
 
+        # The helper function that creates application uses factories to add parties to application
+        # so their destinations will be different hence extract expected values instead of using
+        # fixed values in expected_data
+        expected_destinations = sorted(
+            list(set(self.application.parties.values_list("party__country__name", flat=True)))
+        )
+
         wassenaar_regime = RegimeEntry.objects.get(name="Wassenaar Arrangement")
         expected_data = {
             "count": len(CaseStatusEnum.precedent_statuses),
@@ -124,7 +132,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
                     "unit": None,
                     "value": None,
                     "control_list_entries": ["ML1a"],
-                    "destinations": ["Great Britain"],
+                    "destinations": expected_destinations,
                     "wassenaar": True,
                     "submitted_at": application.submitted_at.astimezone(timezone("UTC")).strftime(
                         "%Y-%m-%dT%H:%M:%S.%fZ"
