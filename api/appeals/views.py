@@ -7,7 +7,9 @@ from django.shortcuts import get_object_or_404
 
 from api.core.authentication import ExporterAuthentication
 from api.core.permissions import IsExporterInOrganisation
+from api.core.views import DocumentStreamAPIView
 
+from .filters import AppealFilter
 from .models import (
     Appeal,
     AppealDocument,
@@ -36,9 +38,15 @@ class AppealCreateDocumentAPIView(BaseAppealDocumentAPIView, CreateAPIView):
 
 
 class AppealDocumentAPIView(BaseAppealDocumentAPIView, RetrieveAPIView):
+    filter_backends = (AppealFilter,)
     lookup_url_kwarg = "document_pk"
+    queryset = AppealDocument.objects.all()
 
-    def get_queryset(self):
-        return AppealDocument.objects.filter(
-            appeal_id=self.kwargs["pk"],
-        )
+
+class AppealDocumentStreamAPIView(BaseAppealDocumentAPIView, DocumentStreamAPIView):
+    filter_backends = (AppealFilter,)
+    lookup_url_kwarg = "document_pk"
+    queryset = AppealDocument.objects.all()
+
+    def get_document(self, instance):
+        return instance
