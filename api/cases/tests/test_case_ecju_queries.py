@@ -675,3 +675,26 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()
         self.assertIsNotNone(response["document"]["id"])
+
+    @parameterized.expand(["this is some response text", ""])
+    def test_exporter_responding_to_query_creates_case_note_mention_for_caseworker(self, response_text):
+        case = self.create_standard_application_case(self.organisation)
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+        question_text = "this is the question text"
+        data = {"question": question_text, "query_type": ECJUQueryType.ECJU}
+
+        response = self.client.post(url, data, **self.gov_headers)
+        response_data = response.json()
+        ecju_query = EcjuQuery.objects.get(case=case)
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
+        self.assertEqual(question_text, ecju_query.question)
+        self.assertIsNone(ecju_query.response)
+
+        url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
+        data = {"response": response_text}
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(list(response.json().keys()), ["ecju_query", "case_note", "case_note_mentions"])
