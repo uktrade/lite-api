@@ -617,6 +617,15 @@ class EcjuQueryDetail(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        is_govuser = hasattr(request.user, "govuser")
+        is_blank_response = not bool(request.data.get("response"))
+
+        # response is required only when a govuser closes a query
+        if is_govuser and is_blank_response:
+            return JsonResponse(
+                data={"errors": "Enter a reason why you are closing the query"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         data = {"responded_by_user": str(request.user.pk)}
 
         if request.data.get("response"):
@@ -631,7 +640,6 @@ class EcjuQueryDetail(APIView):
                 ecju_query_type = ContentType.objects.get_for_model(EcjuQuery)
                 BaseNotification.objects.filter(object_id=ecju_pk, content_type=ecju_query_type).delete()
 
-                is_govuser = hasattr(request.user, "govuser")
                 # If the user is a Govuser query is manually being closed by a caseworker
                 query_verb = AuditType.ECJU_QUERY_MANUALLY_CLOSED if is_govuser else AuditType.ECJU_QUERY_RESPONSE
                 audit_trail_service.create(
