@@ -13,7 +13,6 @@ class DeleteApplication(DataTestClient):
         super().setUp()
         self.applications = {
             CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
-            CaseTypeSubTypeEnum.HMRC: self.create_hmrc_query(self.organisation),
             CaseTypeSubTypeEnum.EXHIBITION: self.create_mod_clearance_application(
                 self.organisation, case_type=CaseTypeEnum.EXHIBITION
             ),
@@ -30,7 +29,6 @@ class DeleteApplication(DataTestClient):
         [
             (CaseTypeSubTypeEnum.STANDARD, "EXPORTER"),
             (CaseTypeSubTypeEnum.EXHIBITION, "EXPORTER"),
-            (CaseTypeSubTypeEnum.HMRC, "HMRC"),
             (CaseTypeSubTypeEnum.GIFTING, "EXPORTER"),
             (CaseTypeSubTypeEnum.F680, "EXPORTER"),
         ]
@@ -57,7 +55,6 @@ class DeleteApplication(DataTestClient):
             (CaseTypeSubTypeEnum.EXHIBITION, "GOV"),
             (CaseTypeSubTypeEnum.GIFTING, "GOV"),
             (CaseTypeSubTypeEnum.F680, "GOV"),
-            (CaseTypeSubTypeEnum.HMRC, "EXPORTER"),
         ]
     )
     def test_delete_draft_application_as_invalid_user_failure(self, application_type, user):
@@ -78,7 +75,6 @@ class DeleteApplication(DataTestClient):
         [
             (CaseTypeSubTypeEnum.STANDARD, "EXPORTER"),
             (CaseTypeSubTypeEnum.EXHIBITION, "EXPORTER"),
-            (CaseTypeSubTypeEnum.HMRC, "HMRC"),
             (CaseTypeSubTypeEnum.GIFTING, "EXPORTER"),
             (CaseTypeSubTypeEnum.F680, "EXPORTER"),
         ]

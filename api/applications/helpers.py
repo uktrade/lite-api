@@ -29,11 +29,6 @@ from api.applications.serializers.gifting_clearance import (
     GiftingClearanceViewSerializer,
     GiftingClearanceUpdateSerializer,
 )
-from api.applications.serializers.hmrc_query import (
-    HmrcQueryCreateSerializer,
-    HmrcQueryViewSerializer,
-    HmrcQueryUpdateSerializer,
-)
 from api.applications.serializers.open_application import (
     OpenApplicationCreateSerializer,
     OpenApplicationUpdateSerializer,
@@ -61,8 +56,6 @@ def get_application_view_serializer(application: BaseApplication):
         return StandardApplicationViewSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-        return HmrcQueryViewSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceViewSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.GIFTING:
@@ -85,8 +78,6 @@ def get_application_create_serializer(case_type):
         return StandardApplicationCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationCreateSerializer
-    elif sub_type == CaseTypeSubTypeEnum.HMRC:
-        return HmrcQueryCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.GIFTING:
@@ -102,8 +93,6 @@ def get_application_update_serializer(application: BaseApplication):
         return StandardApplicationUpdateSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationUpdateSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-        return HmrcQueryUpdateSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceUpdateSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.GIFTING:
