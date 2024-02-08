@@ -689,8 +689,9 @@ class EcjuQueryDetail(APIView):
                 case_note_mentions_serializer.save()
                 audit_trail_service.create_system_user_audit(
                     verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS,
+                    action_object=case_note_serializer.instance,
                     target=ecju_query_serializer.instance.case,
-                    payload={},
+                    payload={"mention_users": case_note_mentions_serializer.get_user_mention_names()},
                 )
                 return {
                     "case_note": case_note_serializer.data,
