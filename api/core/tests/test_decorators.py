@@ -118,17 +118,6 @@ class DecoratorTests(DataTestClient):
         resp = a_view(request=request, pk=application.pk)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    def test_authorised_to_view_application_hmrc_organisation_success(self):
-        application = self.create_hmrc_query(self.organisation)
-        request = _FakeRequest(self.exporter_user, application.hmrc_organisation)
-
-        @authorised_to_view_application(ExporterUser)
-        def a_view(request, *args, **kwargs):
-            return HttpResponse()
-
-        resp = a_view(request=request, pk=application.pk)
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-
     def test_authorised_to_view_application_wrong_user_type_failure(self):
         application = self.create_standard_application_case(self.organisation)
         request = _FakeRequest(self.exporter_user, self.organisation)
@@ -145,21 +134,6 @@ class DecoratorTests(DataTestClient):
         application = self.create_standard_application_case(self.organisation)
         organisation = OrganisationFactory()
         request = _FakeRequest(self.exporter_user, organisation)
-
-        @authorised_to_view_application(ExporterUser)
-        def a_view(request, *args, **kwargs):
-            return HttpResponse()
-
-        resp = a_view(request=request, pk=application.pk)
-        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertTrue(
-            "You can only perform this operation on an application that has been opened within your organisation"
-            in resp.content.decode("utf-8")
-        )
-
-    def test_authorised_to_view_application_wrong_hmrc_organisation_failure(self):
-        application = self.create_hmrc_query(self.organisation)
-        request = _FakeRequest(self.exporter_user, self.organisation)
 
         @authorised_to_view_application(ExporterUser)
         def a_view(request, *args, **kwargs):
