@@ -104,7 +104,6 @@ from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
 from api.users.enums import SystemUser
-from api.users.models import BaseUser
 
 
 class CaseDetail(APIView):
@@ -656,47 +655,51 @@ class EcjuQueryDetail(APIView):
 
                 # Create case note mention notification for case worker.
                 # LITE system is the user that creates the case note.
-                exporter_user_full_name = getattr(get_user_by_pk(request.user.pk), "full_name", "Exporter user")
-                case_note_data = {
-                    "text": f"{exporter_user_full_name} has responded to a query.",
-                    "case": serializer.instance.case.id,
-                    "user": SystemUser.id,
-                }
-                case_note_serializer = CaseNoteSerializer(data=case_note_data)
-                if case_note_serializer.is_valid():
-                    case_note_serializer.save()
-                    case_note_mentions_data = [
-                        {"user": ecju_query.raised_by_user.pk, "case_note": case_note_serializer.instance.id}
-                    ]
-                    case_note_mentions_serializer = CaseNoteMentionsSerializer(
-                        data=case_note_mentions_data,
-                        many=True,
-                    )
-                    if case_note_mentions_serializer.is_valid():
-                        case_note_mentions_serializer.save()
-                        audit_trail_service.create_system_user_audit(
-                            verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS, target=serializer.instance.case, payload={}
-                        )
-                        return JsonResponse(
-                            data={
-                                "ecju_query": serializer.data,
-                                "case_note": case_note_serializer.data,
-                                "case_note_mentions": case_note_mentions_serializer.data,
-                            },
-                            status=status.HTTP_201_CREATED,
-                        )
-                    else:
-                        return JsonResponse(
-                            data={"errors": case_note_mentions_serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-                        )
-                else:
-                    return JsonResponse(
-                        data={"errors": case_note_serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-                    )
+                mentions_data = self._create_case_note_mention(request, ecju_query, serializer)
+                if "errors" in mentions_data.keys():
+                    return JsonResponse(data=mentions_data)
+
+                return JsonResponse(
+                    data={"ecju_query": serializer.data, **mentions_data},
+                    status=status.HTTP_201_CREATED,
+                )
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def _create_case_note_mention(self, request, ecju_query, ecju_query_serializer):
+        exporter_user_full_name = getattr(get_user_by_pk(request.user.pk), "full_name", "Exporter user")
+        case_note_data = {
+            "text": f"{exporter_user_full_name} has responded to a query.",
+            "case": ecju_query_serializer.instance.case.id,
+            "user": SystemUser.id,
+        }
+        case_note_serializer = CaseNoteSerializer(data=case_note_data)
+        if case_note_serializer.is_valid():
+            case_note_serializer.save()
+            case_note_mentions_data = [
+                {"user": ecju_query.raised_by_user.pk, "case_note": case_note_serializer.instance.id}
+            ]
+            case_note_mentions_serializer = CaseNoteMentionsSerializer(
+                data=case_note_mentions_data,
+                many=True,
+            )
+            if case_note_mentions_serializer.is_valid():
+                case_note_mentions_serializer.save()
+                audit_trail_service.create_system_user_audit(
+                    verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS,
+                    target=ecju_query_serializer.instance.case,
+                    payload={},
+                )
+                return {
+                    "case_note": case_note_serializer.data,
+                    "case_note_mentions": case_note_mentions_serializer.data,
+                }
+            else:
+                return {"errors": case_note_mentions_serializer.errors}
+        else:
+            return {"errors": case_note_serializer.errors}
 
 
 class EcjuQueryAddDocument(APIView):
