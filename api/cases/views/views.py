@@ -657,7 +657,7 @@ class EcjuQueryDetail(APIView):
                 # LITE system is the user that creates the case note.
                 mentions_data = self._create_case_note_mention(request, ecju_query, serializer)
                 if "errors" in mentions_data.keys():
-                    return JsonResponse(data=mentions_data)
+                    return JsonResponse(data=mentions_data, status=status.HTTP_400_BAD_REQUEST)
 
                 return JsonResponse(
                     data={"ecju_query": serializer.data, **mentions_data},
