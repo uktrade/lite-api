@@ -119,6 +119,7 @@ INSTALLED_APPS = [
     "api.appeals",
     "api.assessments",
     "api.document_data",
+    "api.survey",
 ]
 
 MIDDLEWARE = [
