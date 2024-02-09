@@ -18,11 +18,11 @@ from api.cases.libraries.delete_notifications import delete_exporter_notificatio
 from api.core.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from api.core.exceptions import BadRequestError
 from api.core.helpers import str_to_bool
+from api.core.filters import ParentFilter
 from api.core.views import DocumentStreamAPIView
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
 from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
-from api.goods.filters import GoodFilter
 from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (
     FIREARMS_CORE_TYPES,
@@ -547,7 +547,8 @@ class GoodDocumentDetail(APIView):
 
 class GoodDocumentStream(DocumentStreamAPIView):
     authentication_classes = (ExporterAuthentication,)
-    filter_backends = (GoodFilter,)
+    filter_backends = (ParentFilter,)
+    parent_id_lookup_field = "good_id"
     lookup_url_kwarg = "doc_pk"
     queryset = GoodDocument.objects.all()
     permission_classes = (
