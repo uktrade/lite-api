@@ -715,9 +715,10 @@ class ECJUQueriesResponseTests(DataTestClient):
         expected_exporter_user = ecju_query.responded_by_user
         expected_mention_users_text = f"{expected_gov_user.full_name} ({expected_gov_user.team.name})"
         expected_case_note_text = f"{expected_exporter_user.get_full_name()} has responded to a query."
-        expected_audit_payload = (
-            {"mention_users": [expected_mention_users_text], "additional_text": expected_case_note_text},
-        )
+        expected_audit_payload = {
+            "mention_users": [expected_mention_users_text],
+            "additional_text": expected_case_note_text,
+        }
 
         self.assertEqual(case_note_mentions.user, expected_gov_user)
         self.assertEqual(case_note.text, expected_case_note_text)
