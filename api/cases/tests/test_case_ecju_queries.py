@@ -23,6 +23,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from api.users.tests.factories import ExporterUserFactory
+from api.cases.models import CaseNoteMentions
 
 faker = Faker()
 
@@ -679,6 +680,8 @@ class ECJUQueriesResponseTests(DataTestClient):
     @parameterized.expand(["this is some response text", ""])
     def test_exporter_responding_to_query_creates_case_note_mention_for_caseworker(self, response_text):
         case = self.create_standard_application_case(self.organisation)
+
+        # caseworker raises a query
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
         question_text = "this is the question text"
         data = {"question": question_text, "query_type": ECJUQueryType.ECJU}
@@ -687,14 +690,35 @@ class ECJUQueriesResponseTests(DataTestClient):
         response_data = response.json()
         ecju_query = EcjuQuery.objects.get(case=case)
 
+        self.assertFalse(ecju_query.is_query_closed)
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual(question_text, ecju_query.question)
         self.assertIsNone(ecju_query.response)
 
+        # exporter responds to the query
         url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": response_text}
+
         response = self.client.put(url, data, **self.exporter_headers)
+        ecju_query = EcjuQuery.objects.get(case=case)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(list(response.json().keys()), ["ecju_query", "case_note", "case_note_mentions"])
+        self.assertTrue(ecju_query.is_query_closed)
+
+        # check case note mention is created
+        case_note_mentions = CaseNoteMentions.objects.first()
+        case_note = case_note_mentions.case_note
+        audit_object = Audit.objects.first()
+
+        expected_gov_user = ecju_query.raised_by_user
+        expected_exporter_user = ecju_query.responded_by_user
+        expected_mention_users_text = f"{expected_gov_user.full_name} ({expected_gov_user.team.name})"
+        expected_case_note_text = f"{expected_exporter_user.get_full_name()} has responded to a query."
+        expected_audit_payload = (
+            {"mention_users": [expected_mention_users_text], "additional_text": expected_case_note_text},
+        )
+
+        self.assertEqual(case_note_mentions.user, expected_gov_user)
+        self.assertEqual(case_note.text, expected_case_note_text)
+        self.assertEqual(audit_object.payload, expected_audit_payload)

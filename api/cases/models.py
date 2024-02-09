@@ -14,7 +14,6 @@ from rest_framework.exceptions import ValidationError
 from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
 
-
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
     AdviceType,
@@ -53,6 +52,7 @@ from api.users.models import (
     UserOrganisationRelationship,
     ExporterNotification,
 )
+from api.users.enums import SystemUser
 from lite_content.lite_api import strings
 
 denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
@@ -311,6 +311,24 @@ class Case(TimestampableModel):
             verb=AuditType.UPDATED_SUB_STATUS,
             target=case,
             payload={"sub_status": self.sub_status.name, "status": CaseStatusEnum.get_text(self.status.status)},
+        )
+
+    def create_system_mention(self, case_note_text, mention_user):
+        """
+        Create a LITE system mention e.g. exporter responded to an ECJU query
+        """
+        from api.audit_trail import service as audit_trail_service
+
+        case_note = CaseNote(text=case_note_text, case=self, user=BaseUser.objects.get(id=SystemUser.id))
+        case_note.save()
+        case_note_mentions = CaseNoteMentions(user=mention_user, case_note=case_note)
+        case_note_mentions.save()
+        audit_payload = {
+            "mention_users": [f"{mention_user.full_name} ({mention_user.team.name})"],
+            "additional_text": case_note_text,
+        }
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS, action_object=case_note, target=self, payload=audit_payload
         )
 
 
