@@ -74,8 +74,6 @@ from api.cases.serializers import (
     EcjuQueryUserResponseSerializer,
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
-    CaseNoteSerializer,
-    CaseNoteMentionsSerializer,
 )
 from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
@@ -103,7 +101,6 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
-from api.users.enums import SystemUser
 
 
 class CaseDetail(APIView):
