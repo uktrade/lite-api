@@ -9,13 +9,13 @@ from django.utils import timezone
 from api.audit_trail.service import serialize_case_activity
 from api.staticdata.countries.serializers import CountrySerializer
 
-from api.applications.models import HmrcQuery, PartyOnApplication, GoodOnApplication, DenialMatchOnApplication
+from api.applications.models import PartyOnApplication, GoodOnApplication, DenialMatchOnApplication
 from api.audit_trail.models import Audit
-from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
+from api.cases.enums import CaseTypeEnum, AdviceType
 from api.cases import serializers as cases_serializers
 from api.applications.serializers.advice import AdviceSearchViewSerializer
 from api.cases.models import Case, EcjuQuery, Advice
-from api.common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
+from api.common.dates import working_days_in_range, number_of_days_since
 from api.flags.serializers import CaseListFlagSerializer
 from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -180,18 +180,6 @@ def populate_is_recently_updated(cases: List[Dict]):
             working_days_in_range(case["submitted_at"], now) < settings.RECENTLY_UPDATED_WORKING_DAYS
             or audit_dict.get(case["id"])
         )
-
-
-def get_hmrc_sla_hours(cases: List[Dict]):
-    hmrc_cases = [case["id"] for case in cases if case["case_type"]["sub_type"]["key"] == CaseTypeSubTypeEnum.HMRC]
-    hmrc_cases_goods_not_left_country = [
-        str(id)
-        for id in HmrcQuery.objects.filter(id__in=hmrc_cases, have_goods_departed=False).values_list("id", flat=True)
-    ]
-
-    for case in cases:
-        if case["id"] in hmrc_cases_goods_not_left_country:
-            case["sla_hours_since_raised"] = working_hours_in_range(case["submitted_at"], timezone.now())
 
 
 def populate_destinations(case_map):

@@ -39,4 +39,9 @@ urlpatterns = [
         documents.DocumentOnOrganisationView.as_view({"get": "retrieve", "delete": "delete", "put": "update"}),
         name="documents",
     ),
+    path(
+        "<uuid:pk>/document/<uuid:document_on_application_pk>/stream/",
+        documents.DocumentOnOrganisationStreamView.as_view(),
+        name="document_stream",
+    ),
 ]

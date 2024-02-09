@@ -7,7 +7,7 @@ from rest_framework import status
 
 from api.applications.enums import GoodsTypeCategory
 from api.applications.libraries.get_applications import get_application
-from api.applications.models import BaseApplication, HmrcQuery
+from api.applications.models import BaseApplication
 from api.cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -137,17 +137,12 @@ def authorised_to_view_application(user_type: Union[Type[GovUser], Type[Exporter
                 )
 
             if user.type == UserType.EXPORTER:
-                pk = _get_application_id(request, kwargs)
                 organisation_id = get_request_user_organisation_id(request.request)
                 required_application_details = _get_application(request, kwargs).values(
                     "case_type__sub_type", "organisation_id"
                 )[0]
 
-                if required_application_details["case_type__sub_type"] == CaseTypeSubTypeEnum.HMRC:
-                    has_access = HmrcQuery.objects.filter(pk=pk, hmrc_organisation=organisation_id).exists()
-                else:
-                    has_access = required_application_details["organisation_id"] == organisation_id
-
+                has_access = required_application_details["organisation_id"] == organisation_id
                 if not has_access:
                     return JsonResponse(
                         data={

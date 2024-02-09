@@ -927,13 +927,9 @@ class CaseOrderingOnQueueTests(DataTestClient):
         """Test that a work queue returns cases in expected order (hmrc queries with goods not departed first)."""
         clc_query_1 = self.create_clc_query("Example CLC Query", self.organisation)
         standard_app = self.create_standard_application_case(self.organisation, "Example Application")
-        hmrc_query_1 = self.submit_application(self.create_hmrc_query(self.organisation))
         clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
-        hmrc_query_2 = self.submit_application(self.create_hmrc_query(self.organisation, have_goods_departed=True))
 
-        queue = QueueFactory(
-            team=self.gov_user.team, cases=[clc_query_1, standard_app, hmrc_query_1, clc_query_2, hmrc_query_2]
-        )
+        queue = QueueFactory(team=self.gov_user.team, cases=[clc_query_1, standard_app, clc_query_2])
 
         url = reverse("cases:search") + "?queue_id=" + str(queue.id)
         response = self.client.get(url, **self.gov_headers)
@@ -942,11 +938,9 @@ class CaseOrderingOnQueueTests(DataTestClient):
 
         actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
         expected_case_order_ids = [
-            str(hmrc_query_1.id),
             str(clc_query_1.id),
             str(standard_app.id),
             str(clc_query_2.id),
-            str(hmrc_query_2.id),
         ]
         self.assertEqual(actual_case_order_ids, expected_case_order_ids)
 

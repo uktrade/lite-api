@@ -58,6 +58,7 @@ class SiteFactory(factory.django.DjangoModelFactory):
 
 class DocumentOnOrganisationFactory(factory.django.DjangoModelFactory):
     document = factory.SubFactory(DocumentFactory)
+    expiry_date = factory.Faker("future_date")
 
     class Meta:
         model = models.DocumentOnOrganisation
