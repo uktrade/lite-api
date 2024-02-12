@@ -1,4 +1,5 @@
-from api.conf import settings
+from django.conf import settings
+from api.core.helpers import get_exporter_frontend_url
 import pytest
 import datetime
 from unittest import mock
@@ -692,6 +693,10 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         settings.GOV_NOTIFY_ENABLED = True
+        # Require a valid formatted key else NotificationsAPIClient will complain with missing service id key.
+        settings.GOV_NOTIFY_KEY = (
+            "faketestkey-aa1539a1-0ba4-4ac2-b6ff-ae557aed2169-aa1539a1-0ba4-4ac2-b6ff-ae557aed2169"
+        )
         self.case = self.create_standard_application_case(self.organisation)
         self.date_15_working_days_from_today = datetime.datetime(2024, 1, 16, 12, 00)
 
@@ -811,9 +816,10 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
         schedule_all_ecju_query_chaser_emails.apply()
 
         mock_send_email.assert_called_once()
+
         expected_payload = ExporterECJUQueryChaser(
             case_reference=self.case.reference_code,
-            exporter_frontend_ecju_queries_url=f"https://exporter.lite.service.localhost.uktrade.digital/applications/{self.case.pk}/ecju-queries/",
+            exporter_frontend_ecju_queries_url=get_exporter_frontend_url(f"/applications/{self.case.pk}/ecju-queries/"),
             remaining_days=5,
         )
         mock_send_email.assert_called_with(

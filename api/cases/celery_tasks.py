@@ -172,14 +172,15 @@ def schedule_all_ecju_query_chaser_emails():
     """
     Sends an ECJU 15 working days reminder
     Runs as a background task daily at a given time.
-    Doesn't run on non-working days (bank-holidays & weekends)
+    Can accommodate reruns and can send reminders if any have been missed upto 20 days after ECJU Query created
     """
     logger.info("Sending all ECJU query chaser emails started")
 
     try:
+
         ecju_query_reminders = []
         ecju_queries = EcjuQuery.objects.filter(
-            Q(is_query_closed=False) & Q(chaser_email_sent_on__isnull=True) & Q(case__status__is_terminal=False)
+            is_query_closed=False, chaser_email_sent_on__isnull=True, case__status__is_terminal=False
         )
 
         for ecju_query in ecju_queries:
@@ -227,5 +228,6 @@ def mark_ecju_queries_as_sent(ecju_query_id):
     logger.info("Mark ECJU queries with chaser_email_sent as true for ecju_query_ids (%s) ", ecju_query_id)
     ecju_query = EcjuQuery.objects.get(chaser_email_sent_on__isnull=True, id=ecju_query_id)
     ecju_query.chaser_email_sent_on = timezone.datetime.now()
-    # Save base so we don't impact any over fields
+    # Save base so we don't impact responded_at field. 
+    # Currently we override save method so it fills in responded_at field. This is not the behaviour we want here.  
     ecju_query.save_base()
