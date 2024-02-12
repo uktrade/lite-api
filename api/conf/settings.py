@@ -118,6 +118,7 @@ INSTALLED_APPS = [
     "lite_routing",
     "api.appeals",
     "api.assessments",
+    "api.document_data",
 ]
 
 MIDDLEWARE = [
