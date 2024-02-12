@@ -15,7 +15,7 @@ class SurveyResponse(TimestampableModel):
     experienced_issue = ArrayField(models.CharField(choices=ExperiencedIssueEnum.choices), blank=True, null=True)
     helpful_guidance = models.CharField(choices=SatisfactionRatingEnum.choices, blank=True, default="")
     user_account_process = models.CharField(choices=UserAccountEnum.choices, blank=True, default="")
-    service_improvements_feedback = models.TextField(blank=True, null=True)
+    service_improvements_feedback = models.TextField(blank=True, default="")
 
     def __str__(self):
-        return "SurveyResponse #{0} - {1}".format(self.id, self.recommendation)
+        return f"SurveyResponse #{self.id} - {self.recommendation}"
