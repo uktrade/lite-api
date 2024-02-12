@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
-from .models import Survey
+from .models import SurveyResponse
 
 
 class SurveySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Survey
+        model = SurveyResponse
         fields = "__all__"
 
     def to_representation(self, instance):

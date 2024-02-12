@@ -2,13 +2,14 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
-from api.survey.models import Survey
+from api.survey.models import SurveyResponse
+from api.survey.enums import RecommendationChoiceType
 
 
 class SurveyCreateTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.survey = Survey.objects.create(
+        self.survey = SurveyResponse.objects.create(
             recommendation="SATISFIED",
         )
 
@@ -22,7 +23,7 @@ class SurveyCreateTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["recommendation"], data["recommendation"])
+        self.assertEqual(response_data["recommendation"], RecommendationChoiceType.SATISFIED)
 
     def test_update_survey(self):
         url = reverse("survey:surveys_update", kwargs={"pk": self.survey.id})
@@ -40,6 +41,6 @@ class SurveyCreateTests(DataTestClient):
             response.status_code,
             status.HTTP_200_OK,
         )
-        survey_instance = Survey.objects.get(id=self.survey.id)
+        survey_instance = SurveyResponse.objects.get(id=self.survey.id)
         for field, expected_value in data.items():
             assert getattr(survey_instance, field) == expected_value, f"Field {field} does not match."
