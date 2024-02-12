@@ -17,8 +17,8 @@ from api.organisations import (
 class DocumentOnOrganisationView(viewsets.ModelViewSet):
     authentication_classes = (SharedAuthentication,)
     filter_backends = (ParentFilter,)
+    parent_filter_id_lookup_field = "organisation_id"
     lookup_url_kwarg = "document_on_application_pk"
-    parent_id_lookup_field = "organisation_id"
     permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
     queryset = models.DocumentOnOrganisation.objects.all()
     serializer_class = serializers.DocumentOnOrganisationSerializer
@@ -88,8 +88,8 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
 class DocumentOnOrganisationStreamView(DocumentStreamAPIView):
     authentication_classes = (SharedAuthentication,)
     filter_backends = (ParentFilter,)
+    parent_filter_id_lookup_field = "organisation_id"
     lookup_url_kwarg = "document_on_application_pk"
-    parent_id_lookup_field = "organisation_id"
     permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
     queryset = models.DocumentOnOrganisation.objects.all()
 

@@ -548,7 +548,7 @@ class GoodDocumentDetail(APIView):
 class GoodDocumentStream(DocumentStreamAPIView):
     authentication_classes = (ExporterAuthentication,)
     filter_backends = (ParentFilter,)
-    parent_id_lookup_field = "good_id"
+    parent_filter_id_lookup_field = "good_id"
     lookup_url_kwarg = "doc_pk"
     queryset = GoodDocument.objects.all()
     permission_classes = (
