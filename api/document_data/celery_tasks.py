@@ -21,15 +21,45 @@ RETRY_BACKOFF = 180
 )
 def backup_document_data():
     """Backup document data into the database."""
-    for document in Document.objects.filter(safe=True):
+
+    # When running this command by hand it's best to set the logging as follows:
+    #    import logging
+    #    from api.document_data.celery_tasks import logger
+    #    logger.setLevel(logging.DEBUG)
+    #    from api.documents.libraries.s3_operations import logger
+    #    logger.setLevel(logging.WARNING)
+    #
+    # This will ensure that you get the debug output of this particular file but
+    # miss the extra info from the get_object call
+
+    safe_documents = Document.objects.filter(safe=True)
+    count = safe_documents.count()
+    logger.debug(
+        "Backing up %s documents",
+        count,
+    )
+    for index, document in enumerate(safe_documents, start=1):
+        logger.debug(
+            "Processing %s of %s",
+            index,
+            count,
+        )
         try:
             file = get_object(document.id, document.s3_key)
         except ClientError:
-            logger.warning(f"Failed to retrieve file '{document.s3_key}' from S3 for document '{document.id}'")
+            logger.warning(
+                "Failed to retrieve file '%s' from S3 for document '%s'",
+                document.s3_key,
+                document.id,
+            )
             continue
 
         if not file:
-            logger.warning(f"Failed to retrieve file '{document.s3_key}' from S3 for document '{document.id}'")
+            logger.warning(
+                "Failed to retrieve file '%s' from S3 for document '%s'",
+                document.s3_key,
+                document.id,
+            )
             continue
 
         try:
@@ -40,11 +70,28 @@ def backup_document_data():
                 last_modified=file["LastModified"],
                 s3_key=document.s3_key,
             )
-            logger.info(f"Created '{document.s3_key}' for document '{document.id}'")
+            logger.info(
+                "Created '%s' for document '%s'",
+                document.s3_key,
+                document.id,
+            )
             continue
 
         if file["LastModified"] > document_data.last_modified:
             document_data.last_modified = file["LastModified"]
             document_data.data = file["Body"].read()
             document_data.save()
-            logger.info(f"Updated '{document.s3_key}' for document '{document.id}'")
+            logger.info(
+                "Updated '%s' for document '%s'",
+                document.s3_key,
+                document.id,
+            )
+            continue
+
+        logger.debug(
+            "Nothing required for '%s' for document '%s'",
+            document.s3_key,
+            document.id,
+        )
+
+    logger.debug("Completed backing up documents")

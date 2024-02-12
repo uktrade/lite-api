@@ -10,6 +10,9 @@ from django.conf import settings
 from django.http import FileResponse
 
 
+logger = logging.getLogger(__name__)
+
+
 _client = None
 
 
@@ -35,14 +38,14 @@ init_s3_client()
 
 
 def get_object(document_id, s3_key):
-    logging.info(f"Retrieving file '{s3_key}' on document '{document_id}'")
+    logger.info(f"Retrieving file '{s3_key}' on document '{document_id}'")
 
     try:
         return _client.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=s3_key)
     except ReadTimeoutError:
-        logging.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
+        logger.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
     except BotoCoreError as exc:
-        logging.warning(
+        logger.warning(
             f"An unexpected error occurred when retrieving file '{s3_key}' on document '{document_id}': {exc}"
         )
 
@@ -56,16 +59,14 @@ def upload_bytes_file(raw_file, s3_key):
 
 
 def delete_file(document_id, s3_key):
-    logging.info(f"Deleting file '{s3_key}' on document '{document_id}'")
+    logger.info(f"Deleting file '{s3_key}' on document '{document_id}'")
 
     try:
         _client.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=s3_key)
     except ReadTimeoutError:
-        logging.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
+        logger.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
     except BotoCoreError as exc:
-        logging.warning(
-            f"An unexpected error occurred when deleting file '{s3_key}' on document '{document_id}': {exc}"
-        )
+        logger.warning(f"An unexpected error occurred when deleting file '{s3_key}' on document '{document_id}': {exc}")
 
 
 def document_download_stream(document):
