@@ -11,7 +11,7 @@ from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIVie
 from rest_framework.views import APIView
 
 from api.applications.models import GoodOnApplication
-from api.users.models import BaseNotification
+from api.users.models import BaseNotification, ExporterUser
 from api.applications.serializers.advice import (
     CountersignAdviceSerializer,
     CountryWithFlagsSerializer,
@@ -606,11 +606,6 @@ class EcjuQueryDetail(APIView):
         return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk, ecju_pk):
-        """
-        If not validate only Will update the ecju query instance, with a response, and return the data details.
-        If validate only, this will return if the data is acceptable or not.
-        """
-
         ecju_query = get_ecju_query(ecju_pk)
         if ecju_query.response:
             return JsonResponse(
@@ -618,53 +613,51 @@ class EcjuQueryDetail(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        is_govuser = hasattr(request.user, "govuser")
+        is_govuser_request = hasattr(request.user, "govuser")
         is_blank_response = not bool(request.data.get("response"))
-
         # response is required only when a govuser closes a query
-        if is_govuser and is_blank_response:
+        if is_govuser_request and is_blank_response:
             return JsonResponse(
                 data={"errors": "Enter a reason why you are closing the query"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        exporter_user_full_name = getattr(get_user_by_pk(request.user.pk), "full_name", "Exporter user")
-
         data = {"responded_by_user": str(request.user.pk)}
-
         if request.data.get("response"):
             data.update({"response": request.data["response"]})
 
         serializer = EcjuQueryUserResponseSerializer(instance=ecju_query, data=data, partial=True)
-
         if serializer.is_valid():
-            if "validate_only" not in request.data or not request.data["validate_only"]:
-                serializer.save()
-                # Delete any notifications against this query
-                ecju_query_type = ContentType.objects.get_for_model(EcjuQuery)
-                BaseNotification.objects.filter(object_id=ecju_pk, content_type=ecju_query_type).delete()
+            serializer.save()
 
-                # If the user is a Govuser query is manually being closed by a caseworker
-                query_verb = AuditType.ECJU_QUERY_MANUALLY_CLOSED if is_govuser else AuditType.ECJU_QUERY_RESPONSE
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=query_verb,
-                    action_object=serializer.instance,
-                    target=serializer.instance.case,
-                    payload={"ecju_response": data.get("response")},
-                )
+            # Delete any notifications against this query
+            ecju_query_type = ContentType.objects.get_for_model(EcjuQuery)
+            BaseNotification.objects.filter(object_id=ecju_pk, content_type=ecju_query_type).delete()
 
-                create_system_mention(
-                    case=ecju_query.case,
-                    case_note_text=f"{exporter_user_full_name} has responded to a query.",
-                    mention_user=ecju_query.raised_by_user,
-                )
+            # If the user is a govuser then query is manually being closed by a case worker
+            query_verb = AuditType.ECJU_QUERY_MANUALLY_CLOSED if is_govuser_request else AuditType.ECJU_QUERY_RESPONSE
+            audit_trail_service.create(
+                actor=request.user,
+                verb=query_verb,
+                action_object=serializer.instance,
+                target=serializer.instance.case,
+                payload={"ecju_response": data.get("response")},
+            )
 
-                return JsonResponse(
-                    data={"ecju_query": serializer.data},
-                    status=status.HTTP_201_CREATED,
-                )
-            else:
-                return JsonResponse(data={}, status=status.HTTP_200_OK)
+            # if an exporter responds to a query, create a mention notification
+            # for the case worker that lets them know the query has been responded to
+            if not is_govuser_request:
+                try:
+                    exporter_user_full_name = ExporterUser.objects.get(baseuser_ptr_id=request.user.pk).full_name
+                    create_system_mention(
+                        case=ecju_query.case,
+                        case_note_text=f"{exporter_user_full_name} has responded to a query.",
+                        mention_user=ecju_query.raised_by_user,
+                    )
+                except ExporterUser.DoesNotExist:
+                    raise NotFoundError({"user": f"ExporterUser not found for pk: {request.user.pk}"})
+
+            # TODO change this to 200
+            return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
