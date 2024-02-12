@@ -656,8 +656,7 @@ class EcjuQueryDetail(APIView):
                 except ExporterUser.DoesNotExist:
                     raise NotFoundError({"user": f"ExporterUser not found for pk: {request.user.pk}"})
 
-            # TODO change this to 200
-            return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 

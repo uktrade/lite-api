@@ -466,7 +466,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Attached the requested documents"}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -499,7 +499,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertEqual(1, BaseNotification.objects.filter(object_id=ecju_query.id).count())
 
         response = self.client.put(query_response_url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -521,7 +521,7 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         data = {"response": ""}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_ecju_query = response.json()["ecju_query"]
         self.assertIsNone(response_ecju_query["response"])
@@ -551,7 +551,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         data = {"response": "exporter provided details"}
 
         response = self.client.put(query_response_url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -568,7 +568,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         data = {"response": "exporter provided details"}
 
         response = self.client.put(query_response_url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -595,7 +595,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Additional details included"}
         response = self.client.put(url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -631,7 +631,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Attached the requested documents"}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
         self.assertEqual(len(response["documents"]), 1)
@@ -660,7 +660,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Additional details included"}
         response = self.client.put(url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
         self.assertEqual(len(response["documents"]), 1)
@@ -703,7 +703,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
         ecju_query = EcjuQuery.objects.get(case=case)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(ecju_query.is_query_closed)
 
         # check case note mention is created
