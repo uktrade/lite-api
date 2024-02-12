@@ -27,6 +27,7 @@ from api.cases.enums import (
 )
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
+from api.cases.helpers import create_system_mention
 from api.cases.libraries.advice import group_advice
 from api.cases.libraries.finalise import get_required_decision_document_types
 from api.cases.libraries.get_case import get_case, get_case_document
@@ -652,7 +653,8 @@ class EcjuQueryDetail(APIView):
                     payload={"ecju_response": data.get("response")},
                 )
 
-                ecju_query.case.create_system_mention(
+                create_system_mention(
+                    case=ecju_query.case,
                     case_note_text=f"{exporter_user_full_name} has responded to a query.",
                     mention_user=ecju_query.raised_by_user,
                 )
