@@ -133,7 +133,10 @@ class GoodDocumentsTests(DataTestClient):
 class GoodDocumentStreamTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.good = GoodFactory(organisation=self.organisation)
+        self.good = GoodFactory(
+            organisation=self.organisation,
+            status=GoodStatus.DRAFT,
+        )
         self.create_default_bucket()
         self.put_object_in_default_bucket("thisisakey", b"test")
 
