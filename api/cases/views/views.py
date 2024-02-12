@@ -606,6 +606,9 @@ class EcjuQueryDetail(APIView):
         return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk, ecju_pk):
+        """
+        Update an ECJU query to be closed
+        """
         ecju_query = get_ecju_query(ecju_pk)
         if ecju_query.response:
             return JsonResponse(
