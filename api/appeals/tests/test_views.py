@@ -1,5 +1,8 @@
 from unittest import mock
 
+from moto import mock_aws
+
+from django.http import FileResponse
 from django.urls import reverse
 from django.utils.timezone import now
 
@@ -169,6 +172,92 @@ class TestAppealDocuments(DataTestClient):
 
         url = reverse(
             "appeals:document",
+            kwargs={
+                "pk": str(self.appeal.pk),
+                "document_pk": str(appeal_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
+
+@mock_aws
+class TestAppealDocumentStream(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.appeal = AppealFactory()
+        application = self.create_standard_application_case(
+            organisation=self.exporter_user.organisation,
+        )
+        application.appeal = self.appeal
+        application.save()
+
+        self.create_default_bucket()
+        self.put_object_in_default_bucket("thisisakey", b"test")
+
+    def test_get_document_stream(self):
+        appeal_document = AppealDocumentFactory(
+            appeal=self.appeal,
+            s3_key="thisisakey",
+            safe=True,
+        )
+
+        url = reverse(
+            "appeals:document_stream",
+            kwargs={
+                "pk": str(self.appeal.pk),
+                "document_pk": str(appeal_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(response, FileResponse)
+        self.assertEqual(b"".join(response.streaming_content), b"test")
+
+    def test_get_document_stream_invalid_appeal_pk(self):
+        appeal_document = AppealDocumentFactory(appeal=self.appeal)
+
+        url = reverse(
+            "appeals:document_stream",
+            kwargs={
+                "pk": "0f415f8a-e3e8-4c49-b053-ef03b1c477d5",
+                "document_pk": str(appeal_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+    def test_get_document_stream_invalid_document_pk(self):
+        url = reverse(
+            "appeals:document_stream",
+            kwargs={
+                "pk": str(self.appeal.pk),
+                "document_pk": "0b551122-1ac2-4ea2-82b3-f1aaf0bf4923",
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+    def test_get_document_stream_different_organisation(self):
+        self.appeal.baseapplication.organisation = self.create_organisation_with_exporter_user()[0]
+        self.appeal.baseapplication.save()
+        appeal_document = AppealDocumentFactory(appeal=self.appeal)
+
+        url = reverse(
+            "appeals:document_stream",
             kwargs={
                 "pk": str(self.appeal.pk),
                 "document_pk": str(appeal_document.pk),

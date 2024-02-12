@@ -1,12 +1,11 @@
 from rest_framework import viewsets
-from rest_framework.generics import RetrieveAPIView
 
 from django.http import JsonResponse
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.core.authentication import SharedAuthentication
-from api.documents.libraries.s3_operations import document_download_stream
+from api.core.views import DocumentStreamAPIView
 from api.organisations import (
     filters,
     models,
@@ -85,14 +84,12 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
         return JsonResponse({"document": serializer.data}, status=200)
 
 
-class DocumentOnOrganisationStreamView(RetrieveAPIView):
+class DocumentOnOrganisationStreamView(DocumentStreamAPIView):
     authentication_classes = (SharedAuthentication,)
     filter_backends = (filters.OrganisationFilter,)
     lookup_url_kwarg = "document_on_application_pk"
     permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
-    queryset = models.DocumentOnOrganisation.objects.filter(document__safe=True)
+    queryset = models.DocumentOnOrganisation.objects.all()
 
-    def retrieve(self, request, *args, **kwargs):
-        document = self.get_object()
-        document = document.document
-        return document_download_stream(document)
+    def get_document(self, instance):
+        return instance.document
