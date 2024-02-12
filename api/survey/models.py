@@ -11,7 +11,7 @@ class SurveyResponse(TimestampableModel):
     recommendation = models.CharField(
         choices=RecommendationChoiceType.choices,
     )
-    other_detail = models.TextField(blank=True, null=True)
+    other_detail = models.TextField(blank=True, default="")
     experienced_issue = ArrayField(models.CharField(choices=ExperiencedIssueEnum.choices), blank=True, null=True)
     helpful_guidance = models.CharField(choices=SatisfactionRatingEnum.choices, blank=True, default="")
     user_account_process = models.CharField(choices=UserAccountEnum.choices, blank=True, default="")
