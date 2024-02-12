@@ -19,9 +19,8 @@ class SurveyCreateTests(DataTestClient):
             "recommendation": "SATISFIED",
         }
 
-        response = self.client.post(url, data, **self.gov_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
         response_data = response.json()
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["recommendation"], RecommendationChoiceType.SATISFIED)
 
@@ -36,7 +35,7 @@ class SurveyCreateTests(DataTestClient):
             "service_improvements_feedback": "Feedback words",
         }
 
-        response = self.client.patch(url, data, **self.gov_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK,
