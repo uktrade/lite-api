@@ -34,3 +34,8 @@ def send_email(email_address, template_id, data):
     return NotificationsAPIClient(settings.GOV_NOTIFY_KEY).send_email_notification(
         email_address=email_address, template_id=template_id, personalisation=data
     )
+
+
+@shared_task(bind=True, max_retries=3, retry_backoff=1)
+def retry_test(self):
+    raise self.retry()

@@ -256,8 +256,8 @@ if VCAP_SERVICES:
         AWS_S3_BUCKETS[bucket_name] = {
             "AWS_ACCESS_KEY_ID": bucket_details["aws_access_key_id"],
             "AWS_SECRET_ACCESS_KEY": bucket_details["aws_secret_access_key"],
-            "AWS_REGION": aws_credentials["aws_region"],
-            "AWS_STORAGE_BUCKET_NAME": aws_credentials["bucket_name"],
+            "AWS_REGION": bucket_details["aws_region"],
+            "AWS_STORAGE_BUCKET_NAME": bucket_details["bucket_name"],
         }
 else:
     AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
