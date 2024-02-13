@@ -23,6 +23,8 @@ class SurveyCreateTests(DataTestClient):
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["recommendation"], RecommendationChoiceType.SATISFIED)
+        survey_response = SurveyResponse.objects.get(id=response_data["id"])
+        self.assertEqual(survey_response.recommendation, RecommendationChoiceType.SATISFIED)
 
     def test_update_survey(self):
         url = reverse("survey:surveys_update", kwargs={"pk": self.survey.id})
