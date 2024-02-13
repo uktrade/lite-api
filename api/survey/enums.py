@@ -23,6 +23,7 @@ class UserAccountEnum(models.TextChoices):
     NEITHER_DIFFICULT_NOR_EASY = "NEUTRAL", "NEUTRAL"
     EASY = "EASY", "EASY"
     VERY_EASY = "VERY EASY", "VERY EASY"
+    EXISTING = "EXISTING", "EXISTING"
 
 
 class ExperiencedIssueEnum(models.TextChoices):
