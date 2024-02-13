@@ -6,6 +6,7 @@ from moto import mock_aws
 
 from botocore.exceptions import ClientError
 
+from django.test import override_settings
 from django.utils import timezone
 
 from test_helpers.clients import DataTestClient
@@ -173,6 +174,27 @@ class TestBackupDocumentData(DataTestClient):
         )
 
         backup_document_data()
+        self.assertEqual(
+            DocumentData.objects.count(),
+            0,
+        )
+
+    @override_settings(
+        BACKUP_DOCUMENT_DATA_TO_DB=False,
+    )
+    def test_stop_backup_new_document_data(self):
+        self.put_object_in_default_bucket("thisisakey", b"test")
+        DocumentFactory.create(
+            s3_key="thisisakey",
+            safe=True,
+        )
+        self.assertEqual(
+            DocumentData.objects.count(),
+            0,
+        )
+
+        backup_document_data()
+
         self.assertEqual(
             DocumentData.objects.count(),
             0,

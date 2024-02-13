@@ -2,6 +2,8 @@ from botocore.exceptions import ClientError
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
+from django.conf import settings
+
 from api.documents.libraries.s3_operations import get_object
 from api.documents.models import Document
 from api.document_data.models import DocumentData
@@ -31,6 +33,10 @@ def backup_document_data():
     #
     # This will ensure that you get the debug output of this particular file but
     # miss the extra info from the get_object call
+
+    if not settings.BACKUP_DOCUMENT_DATA_TO_DB:
+        logger.info("Skipping backup document data to db")
+        return
 
     safe_documents = Document.objects.filter(safe=True)
     count = safe_documents.count()
