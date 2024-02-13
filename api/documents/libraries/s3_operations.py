@@ -43,10 +43,17 @@ def get_object(document_id, s3_key):
     try:
         return _client.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=s3_key)
     except ReadTimeoutError:
-        logger.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
+        logger.warning(
+            "Timeout exceeded when retrieving file '%s' on document '%s'",
+            s3_key,
+            document_id,
+        )
     except BotoCoreError as exc:
         logger.warning(
-            f"An unexpected error occurred when retrieving file '{s3_key}' on document '{document_id}': {exc}"
+            "An unexpected error occurred when retrieving file '%s' on document '%s': %s",
+            s3_key,
+            document_id,
+            exc,
         )
 
 
@@ -64,9 +71,18 @@ def delete_file(document_id, s3_key):
     try:
         _client.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=s3_key)
     except ReadTimeoutError:
-        logger.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
+        logger.warning(
+            "Timeout exceeded when retrieving file '%s' on document '%s'",
+            s3_key,
+            document_id,
+        )
     except BotoCoreError as exc:
-        logger.warning(f"An unexpected error occurred when deleting file '{s3_key}' on document '{document_id}': {exc}")
+        logger.warning(
+            "An unexpected error occurred when deleting file '%s' on document '%s': %s",
+            s3_key,
+            document_id,
+            exc,
+        )
 
 
 def document_download_stream(document):
