@@ -53,6 +53,10 @@ class TestBackupDocumentData(DataTestClient):
             document_data.last_modified,
             s3_object["LastModified"],
         )
+        self.assertEqual(
+            document_data.content_type,
+            s3_object["ContentType"],
+        )
 
     def test_update_existing_document_data(self):
         self.put_object_in_default_bucket("thisisakey", b"test")
@@ -95,6 +99,10 @@ class TestBackupDocumentData(DataTestClient):
         self.assertEqual(
             document_data.last_modified,
             s3_object["LastModified"],
+        )
+        self.assertEqual(
+            document_data.content_type,
+            s3_object["ContentType"],
         )
 
     def test_leave_existing_document_data(self):

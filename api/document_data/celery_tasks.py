@@ -75,23 +75,27 @@ def backup_document_data():
                 data=file["Body"].read(),
                 last_modified=file["LastModified"],
                 s3_key=document.s3_key,
+                content_type=file["ContentType"],
             )
             logger.info(
                 "Created '%s' for document '%s'",
                 document.s3_key,
                 document.id,
             )
+            file["Body"].close()
             continue
 
         if file["LastModified"] > document_data.last_modified:
             document_data.last_modified = file["LastModified"]
             document_data.data = file["Body"].read()
+            document_data.content_type = file["ContentType"]
             document_data.save()
             logger.info(
                 "Updated '%s' for document '%s'",
                 document.s3_key,
                 document.id,
             )
+            file["Body"].close()
             continue
 
         logger.debug(

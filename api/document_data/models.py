@@ -10,3 +10,4 @@ class DocumentData(TimestampableModel):
     s3_key = models.CharField(unique=True, max_length=1000)
     data = models.BinaryField()
     last_modified = models.DateTimeField()
+    content_type = models.CharField(max_length=255)
