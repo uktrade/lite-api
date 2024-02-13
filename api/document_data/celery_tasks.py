@@ -44,45 +44,46 @@ def backup_document_data():
         "Backing up %s documents",
         count,
     )
-    for index, document in enumerate(safe_documents, start=1):
+    for index, (document_id, document_s3_key) in enumerate(safe_documents.values_list("pk", "s3_key"), start=1):
         logger.debug(
             "Processing %s of %s",
             index,
             count,
         )
         try:
-            file = get_object(document.id, document.s3_key)
+            file = get_object(document_id, document_s3_key)
         except ClientError:
             logger.warning(
                 "Failed to retrieve file '%s' from S3 for document '%s'",
-                document.s3_key,
-                document.id,
+                document_s3_key,
+                document_id,
             )
             continue
 
         if not file:
             logger.warning(
                 "Failed to retrieve file '%s' from S3 for document '%s'",
-                document.s3_key,
-                document.id,
+                document_s3_key,
+                document_id,
             )
             continue
 
         try:
-            document_data = DocumentData.objects.get(s3_key=document.s3_key)
+            document_data = DocumentData.objects.get(s3_key=document_s3_key)
         except DocumentData.DoesNotExist:
             DocumentData.objects.create(
                 data=file["Body"].read(),
                 last_modified=file["LastModified"],
-                s3_key=document.s3_key,
+                s3_key=document_s3_key,
                 content_type=file["ContentType"],
             )
             logger.info(
                 "Created '%s' for document '%s'",
-                document.s3_key,
-                document.id,
+                document_s3_key,
+                document_id,
             )
             file["Body"].close()
+            del file  # Clear this out for garbage collection
             continue
 
         if file["LastModified"] > document_data.last_modified:
@@ -92,16 +93,17 @@ def backup_document_data():
             document_data.save()
             logger.info(
                 "Updated '%s' for document '%s'",
-                document.s3_key,
-                document.id,
+                document_s3_key,
+                document_id,
             )
             file["Body"].close()
+            del file  # Clear this out for garbage collection
             continue
 
         logger.debug(
             "Nothing required for '%s' for document '%s'",
-            document.s3_key,
-            document.id,
+            document_s3_key,
+            document_id,
         )
 
     logger.debug("Completed backing up documents")
