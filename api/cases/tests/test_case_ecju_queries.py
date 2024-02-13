@@ -15,6 +15,7 @@ from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
+from api.core.exceptions import NotFoundError
 from api.compliance.tests.factories import ComplianceSiteCaseFactory
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import StandardLicenceFactory

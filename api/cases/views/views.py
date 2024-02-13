@@ -646,18 +646,15 @@ class EcjuQueryDetail(APIView):
                 payload={"ecju_response": data.get("response")},
             )
 
-            # if an exporter responds to a query, create a mention notification
+            # If an exporter responds to a query, create a mention notification
             # for the case worker that lets them know the query has been responded to
             if not is_govuser_request:
-                try:
-                    exporter_user_full_name = ExporterUser.objects.get(baseuser_ptr_id=request.user.pk).full_name
-                    create_system_mention(
-                        case=ecju_query.case,
-                        case_note_text=f"{exporter_user_full_name} has responded to a query.",
-                        mention_user=ecju_query.raised_by_user,
-                    )
-                except ExporterUser.DoesNotExist:
-                    raise NotFoundError({"user": f"ExporterUser not found for pk: {request.user.pk}"})
+                exporter_user_full_name = ExporterUser.objects.get(baseuser_ptr_id=request.user.pk).full_name
+                create_system_mention(
+                    case=ecju_query.case,
+                    case_note_text=f"{exporter_user_full_name} has responded to a query.",
+                    mention_user=ecju_query.raised_by_user,
+                )
 
             return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_200_OK)
 
