@@ -118,6 +118,7 @@ INSTALLED_APPS = [
     "lite_routing",
     "api.appeals",
     "api.assessments",
+    "api.document_data",
 ]
 
 MIDDLEWARE = [
@@ -483,3 +484,5 @@ if DEBUG:
 
 
 CONTENT_DATA_MIGRATION_DIR = Path(BASE_DIR).parent / "lite_content/lite_api/migrations"
+
+BACKUP_DOCUMENT_DATA_TO_DB = env("BACKUP_DOCUMENT_DATA_TO_DB", default=True)
