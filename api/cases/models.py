@@ -14,7 +14,6 @@ from rest_framework.exceptions import ValidationError
 from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
 
-
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
     AdviceType,
