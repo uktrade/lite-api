@@ -86,17 +86,17 @@ def backup_document_data():
             del file  # Clear this out for garbage collection
             continue
 
-        if file["LastModified"] > document_data.last_modified:
-            document_data.last_modified = file["LastModified"]
-            document_data.data = file["Body"].read()
-            document_data.content_type = file["ContentType"]
+        if file["LastModified"] > document_data.last_modified:  # noqa: WS03
+            document_data.last_modified = file["LastModified"]  # noqa: WS03
+            document_data.data = file["Body"].read()  # noqa: WS03
+            document_data.content_type = file["ContentType"]  # noqa: WS03
             document_data.save()
             logger.info(
                 "Updated '%s' for document '%s'",
                 document_s3_key,
                 document_id,
             )
-            file["Body"].close()
+            file["Body"].close()  # noqa: WS03
             del file  # Clear this out for garbage collection
             continue
 
