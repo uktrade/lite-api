@@ -6,8 +6,13 @@ from .models import SurveyResponse
 class SurveyResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = SurveyResponse
-        fields = "__all__"
+        fields = fields = (
+            "id",
+            "recommendation",
+        )
 
-    def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        return {"id": rep["id"], "recommendation": rep["recommendation"]}
+
+class SurveyResponseUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SurveyResponse
+        fields = "__all__"

@@ -31,7 +31,7 @@ class SurveyCreateTests(DataTestClient):
         data = {
             "recommendation": "SATISFIED",
             "other_detail": "Words",
-            "experienced_issue": ["FEATURE", "OTHER"],
+            "experienced_issue": ["NO_ISSUE", "UNCLEAR"],
             "helpful_guidance": "DISAGREE",
             "user_account_process": "EASY",
             "service_improvements_feedback": "Feedback words",
