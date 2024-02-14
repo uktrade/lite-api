@@ -5,9 +5,9 @@ from django.http import JsonResponse
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.core.authentication import SharedAuthentication
+from api.core.filters import ParentFilter
 from api.core.views import DocumentStreamAPIView
 from api.organisations import (
-    filters,
     models,
     permissions,
     serializers,
@@ -16,7 +16,8 @@ from api.organisations import (
 
 class DocumentOnOrganisationView(viewsets.ModelViewSet):
     authentication_classes = (SharedAuthentication,)
-    filter_backends = (filters.OrganisationFilter,)
+    filter_backends = (ParentFilter,)
+    parent_filter_id_lookup_field = "organisation_id"
     lookup_url_kwarg = "document_on_application_pk"
     permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
     queryset = models.DocumentOnOrganisation.objects.all()
@@ -86,7 +87,8 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
 
 class DocumentOnOrganisationStreamView(DocumentStreamAPIView):
     authentication_classes = (SharedAuthentication,)
-    filter_backends = (filters.OrganisationFilter,)
+    filter_backends = (ParentFilter,)
+    parent_filter_id_lookup_field = "organisation_id"
     lookup_url_kwarg = "document_on_application_pk"
     permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
     queryset = models.DocumentOnOrganisation.objects.all()

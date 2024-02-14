@@ -1,7 +1,14 @@
+import logging
+
 from contextlib import contextmanager
 from unittest.mock import Mock, patch
 
 from moto import mock_aws
+
+from botocore.exceptions import (
+    BotoCoreError,
+    ReadTimeoutError,
+)
 
 from django.conf import settings
 from django.http import FileResponse
@@ -92,6 +99,40 @@ class S3OperationsGetObjectTests(SimpleTestCase):
         self.assertEqual(returned_object, mock_object)
         mock_client.get_object.assert_called_with(Bucket="test-bucket", Key="s3-key")
 
+    @patch("api.documents.libraries.s3_operations._client")
+    def test_get_object_read_timeout_error(self, mock_client):
+        mock_client.get_object.side_effect = ReadTimeoutError(
+            endpoint_url="endpoint_url",
+        )
+
+        with self.assertLogs(
+            "api.documents.libraries.s3_operations",
+            logging.WARNING,
+        ) as al:
+            returned_object = get_object("document-id", "s3-key")
+
+        self.assertIsNone(returned_object)
+        self.assertIn(
+            "WARNING:api.documents.libraries.s3_operations:Timeout exceeded when retrieving file 's3-key' on document 'document-id'",
+            al.output,
+        )
+
+    @patch("api.documents.libraries.s3_operations._client")
+    def test_get_object_boto_core_error(self, mock_client):
+        mock_client.get_object.side_effect = BotoCoreError()
+
+        with self.assertLogs(
+            "api.documents.libraries.s3_operations",
+            logging.WARNING,
+        ) as al:
+            returned_object = get_object("document-id", "s3-key")
+
+        self.assertIsNone(returned_object)
+        self.assertIn(
+            "WARNING:api.documents.libraries.s3_operations:An unexpected error occurred when retrieving file 's3-key' on document 'document-id': An unspecified error occurred",
+            al.output,
+        )
+
 
 @contextmanager
 def _create_bucket(s3):
@@ -120,6 +161,38 @@ class S3OperationsDeleteFileTests(SimpleTestCase):
             objs = s3.list_objects(Bucket=settings.AWS_STORAGE_BUCKET_NAME)
             keys = [o["Key"] for o in objs.get("Contents", [])]
             self.assertNotIn("s3-key", keys)
+
+    @patch("api.documents.libraries.s3_operations._client")
+    def test_delete_file_read_timeout_error(self, mock_client):
+        mock_client.delete_object.side_effect = ReadTimeoutError(
+            endpoint_url="endpoint_url",
+        )
+
+        with self.assertLogs(
+            "api.documents.libraries.s3_operations",
+            logging.WARNING,
+        ) as al:
+            delete_file("document-id", "s3-key")
+
+        self.assertIn(
+            "WARNING:api.documents.libraries.s3_operations:Timeout exceeded when retrieving file 's3-key' on document 'document-id'",
+            al.output,
+        )
+
+    @patch("api.documents.libraries.s3_operations._client")
+    def test_delete_file_boto_core_error(self, mock_client):
+        mock_client.delete_object.side_effect = BotoCoreError()
+
+        with self.assertLogs(
+            "api.documents.libraries.s3_operations",
+            logging.WARNING,
+        ) as al:
+            delete_file("document-id", "s3-key")
+
+        self.assertIn(
+            "WARNING:api.documents.libraries.s3_operations:An unexpected error occurred when deleting file 's3-key' on document 'document-id': An unspecified error occurred",
+            al.output,
+        )
 
 
 @mock_aws

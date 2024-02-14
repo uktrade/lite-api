@@ -1,10 +1,16 @@
 from django.urls import reverse
 from rest_framework import status
 
+from moto import mock_aws
+from parameterized import parameterized
+
+from django.http import FileResponse
+
 from api.applications.models import GoodOnApplication
 from test_helpers.clients import DataTestClient
 
 from api.applications.tests.factories import StandardApplicationFactory
+from api.goods.enums import GoodStatus
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory
 
@@ -121,3 +127,110 @@ class GoodDocumentsTests(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["document"]["description"], "Updated document description")
+
+
+@mock_aws
+class GoodDocumentStreamTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.good = GoodFactory(
+            organisation=self.organisation,
+            status=GoodStatus.DRAFT,
+        )
+        self.create_default_bucket()
+        self.put_object_in_default_bucket("thisisakey", b"test")
+
+    def test_get_good_document_stream(self):
+        good_document = self.create_good_document(
+            good=self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            s3_key="thisisakey",
+            name="doc1.pdf",
+        )
+
+        url = reverse(
+            "goods:document_stream",
+            kwargs={
+                "pk": str(self.good.pk),
+                "doc_pk": str(good_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(response, FileResponse)
+        self.assertEqual(b"".join(response.streaming_content), b"test")
+
+    def test_get_good_document_stream_invalid_good_pk(self):
+        another_good = GoodFactory(organisation=self.organisation)
+        good_document = self.create_good_document(
+            good=self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            s3_key="thisisakey",
+            name="doc1.pdf",
+        )
+
+        url = reverse(
+            "goods:document_stream",
+            kwargs={
+                "pk": str(another_good.pk),
+                "doc_pk": str(good_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_good_document_stream_other_organisation(self):
+        other_organisation = self.create_organisation_with_exporter_user()[0]
+        self.good.organisation = other_organisation
+        self.good.save()
+        good_document = self.create_good_document(
+            good=self.good,
+            user=self.exporter_user,
+            organisation=other_organisation,
+            s3_key="thisisakey",
+            name="doc1.pdf",
+        )
+
+        url = reverse(
+            "goods:document_stream",
+            kwargs={
+                "pk": str(self.good.pk),
+                "doc_pk": str(good_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @parameterized.expand(
+        [
+            GoodStatus.SUBMITTED,
+            GoodStatus.QUERY,
+            GoodStatus.VERIFIED,
+        ],
+    )
+    def test_get_good_document_stream_good_not_draft(self, good_status):
+        self.good.status = good_status
+        self.good.save()
+        good_document = self.create_good_document(
+            good=self.good,
+            user=self.exporter_user,
+            organisation=self.organisation,
+            s3_key="thisisakey",
+            name="doc1.pdf",
+        )
+
+        url = reverse(
+            "goods:document_stream",
+            kwargs={
+                "pk": str(self.good.pk),
+                "doc_pk": str(good_document.pk),
+            },
+        )
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
