@@ -79,11 +79,6 @@ commands:
           command: |
             pipenv sync --dev
             pipenv install endesive==1.5.9
-      - run:
-          name: Install code coverage
-          command: |
-            curl -Os https://uploader.codecov.io/latest/linux/codecov
-            chmod +x codecov
       - save_cache:
           paths:
             - ./.venv
@@ -101,13 +96,6 @@ commands:
           root: coverage-output
           paths:
             - .coverage.*
-      - run:
-          name: Code coverage report
-          command: |
-            pipenv run coverage xml
-            curl -Os https://uploader.codecov.io/latest/linux/codecov
-            chmod +x codecov
-            ./codecov
 
 jobs:
   tests:
