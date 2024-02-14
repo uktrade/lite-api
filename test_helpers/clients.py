@@ -1047,6 +1047,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             Body=body,
         )
 
+    def get_object_from_default_bucket(self, key):
+        s3 = init_s3_client()
+        return s3.get_object(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Key=key,
+        )
+
 
 @pytest.mark.performance
 # we need to set debug to true otherwise we can't see the amount of queries
