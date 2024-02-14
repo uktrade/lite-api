@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.test import override_settings
+
 from api.core.helpers import get_exporter_frontend_url
 import pytest
 import datetime
@@ -10,7 +12,7 @@ from django.utils import timezone
 from api.cases.celery_tasks import (
     schedule_all_ecju_query_chaser_emails,
     send_ecju_query_chaser_email,
-    mark_ecju_queries_as_sent,
+    mark_ecju_query_as_sent,
 )
 from api.cases.tests.factories import EcjuQueryFactory
 from api.users.models import BaseNotification
@@ -694,7 +696,6 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
     @freeze_time("2024-02-06 12:00:00")
     def setUp(self):
         super().setUp()
-        settings.GOV_NOTIFY_ENABLED = True
         # Require a valid formatted key else NotificationsAPIClient will complain with missing service id key.
         settings.GOV_NOTIFY_KEY = (
             "faketestkey-aa1539a1-0ba4-4ac2-b6ff-ae557aed2169-aa1539a1-0ba4-4ac2-b6ff-ae557aed2169"
@@ -712,6 +713,7 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
         )
 
     @freeze_time("2024-02-06 12:00:00")
+    @override_settings(GOV_NOTIFY_ENABLED=True)
     @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
     def test_schedule_all_ecju_query_chaser_emails_filters(self, mock_gov_notification):
 
@@ -722,14 +724,14 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
             created_at=datetime.datetime(2024, 1, 17, 12, 00),
         )
 
-        EcjuQueryFactory(
+        ecju_quey_send_1 = EcjuQueryFactory(
             question="ECJU Query 15 days",
             case=self.case,
             raised_by_user=self.gov_user,
             created_at=self.date_15_working_days_from_today,
         )
 
-        EcjuQueryFactory(
+        ecju_quey_send_2 = EcjuQueryFactory(
             question="ECJU Query reminder after 20 days",
             case=self.case,
             raised_by_user=self.gov_user,
@@ -747,8 +749,12 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
 
         schedule_all_ecju_query_chaser_emails.apply()
         self.assertEqual(mock_gov_notification.call_count, 2)
-        # Have extra because of the muliple ECJU Queries 15 day reminder on the same case
+
         self.assertEqual(EcjuQuery.objects.filter(chaser_email_sent_on__isnull=True).count(), 2)
+        ecju_quey_send_1.refresh_from_db()
+        ecju_quey_send_2.refresh_from_db()
+        self.assertIsNotNone(ecju_quey_send_1.chaser_email_sent_on)
+        self.assertIsNotNone(ecju_quey_send_2.chaser_email_sent_on)
 
     @freeze_time("2024-02-06 12:00:00")
     @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
@@ -828,10 +834,11 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
             self.case.submitted_by.email,
             TemplateType.EXPORTER_ECJU_QUERY_CHASER,
             expected_payload,
-            mark_ecju_queries_as_sent.si(self.ecju_query_case_1.pk),
+            mark_ecju_query_as_sent.si(self.ecju_query_case_1.pk),
         )
 
     @freeze_time("2024-02-06 12:00:00")
+    @override_settings(GOV_NOTIFY_ENABLED=True)
     @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
     def test_schedule_all_ecju_query_chaser_emails_callback_marks_sent(self, mock_gov_notification):
 
@@ -875,13 +882,13 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
         self.assertIsNone(self.ecju_query_case_1.chaser_email_sent_on)
 
     @freeze_time("2024-02-06 12:00:00")
-    def test_mark_ecju_queries_as_sent(self):
+    def test_mark_ecju_query_as_sent(self):
         self.ecju_query_case_1.chaser_email_sent_on = None
         self.ecju_query_case_1.save_base()
 
         self.assertIsNone(self.ecju_query_case_1.responded_at)
 
-        mark_ecju_queries_as_sent(self.ecju_query_case_1.pk)
+        mark_ecju_query_as_sent(self.ecju_query_case_1.pk)
 
         self.ecju_query_case_1.refresh_from_db()
         self.assertIsNotNone(self.ecju_query_case_1.chaser_email_sent_on)

@@ -27,11 +27,12 @@ app.conf.beat_schedule = {
         "task": "api.cases.celery_tasks.update_cases_sla",
         "schedule": crontab(hour=22, minute=30),
     },
-    "send ecju query chaser emails 8pm, 4pm": {
-        "task": "api.cases.celery_tasks.schedule_all_ecju_query_chaser_emails",
-        "schedule": crontab(hour="8, 16", minute=0),
     "backup document data 2am": {
         "task": "api.document_data.celery_tasks.backup_document_data",
         "schedule": crontab(hour=2, minute=0),
+    },
+    "send ecju query chaser emails 8pm, 4pm": {
+        "task": "api.cases.celery_tasks.schedule_all_ecju_query_chaser_emails",
+        "schedule": crontab(hour="8, 16", minute=0),
     },
 }

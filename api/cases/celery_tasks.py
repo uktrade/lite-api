@@ -159,15 +159,7 @@ def update_cases_sla():
     return False
 
 
-WORKING_DAYS_ECJU_QUERY_CHASER_REMINDER = 15
-WORKING_DAYS_APPLICATION = 20
-
-
-@shared_task(
-    autoretry_for=(Exception,),
-    max_retries=MAX_ATTEMPTS,
-    retry_backoff=RETRY_BACKOFF,
-)
+@shared_task
 def schedule_all_ecju_query_chaser_emails():
     """
     Sends an ECJU 15 working days reminder
@@ -184,28 +176,25 @@ def schedule_all_ecju_query_chaser_emails():
         )
 
         for ecju_query in ecju_queries:
-            if (
-                ecju_query.open_working_days >= WORKING_DAYS_ECJU_QUERY_CHASER_REMINDER
-                and ecju_query.open_working_days <= WORKING_DAYS_APPLICATION
-            ):
+            if ecju_query.open_working_days >= 15 and ecju_query.open_working_days <= 20:
                 ecju_query_reminders.append(ecju_query.id)
 
         for ecju_query_id in ecju_query_reminders:
             # Now lets loop round and send the notifications
+            logger.info(
+                "Sending all ECJU query chaser email via send_ecju_query_chaser_email for ecju_query_id %s",
+                ecju_query_id,
+            )
             send_ecju_query_chaser_email.delay(ecju_query_id)
 
         logger.info("Sending all ECJU query chaser emails started finished")
 
-    except Exception as e:  # noqa
+    except Exception as e:
         logger.error(e)
         raise e
 
 
-@shared_task(
-    autoretry_for=(Exception,),
-    max_retries=MAX_ATTEMPTS,
-    retry_backoff=RETRY_BACKOFF,
-)
+@shared_task
 def send_ecju_query_chaser_email(ecju_query_id):
     """
     Sends an ecju query chaser email based on a case
@@ -213,21 +202,21 @@ def send_ecju_query_chaser_email(ecju_query_id):
     """
     logger.info("Sending ECJU Query chaser emails for ecju_query_id %s started", ecju_query_id)
     try:
-        notify_exporter_ecju_query_chaser(ecju_query_id, callback=mark_ecju_queries_as_sent.si(ecju_query_id))
+        notify_exporter_ecju_query_chaser(ecju_query_id, callback=mark_ecju_query_as_sent.si(ecju_query_id))
         logger.info("Sending ECJU Query chaser email for ecju_query_id %s finished", ecju_query_id)
-    except Exception as e:  # noqa
+    except Exception as e:
         logger.error(e)
         raise e
 
 
 @shared_task
-def mark_ecju_queries_as_sent(ecju_query_id):
+def mark_ecju_query_as_sent(ecju_query_id):
     """
     Used as a call back method to set chaser_email_sent once a chaser email has been sent
     """
-    logger.info("Mark ECJU queries with chaser_email_sent as true for ecju_query_ids (%s) ", ecju_query_id)
+    logger.info("Mark ECJU query with chaser_email_sent_on for ecju_query_id (%s) ", ecju_query_id)
     ecju_query = EcjuQuery.objects.get(chaser_email_sent_on__isnull=True, id=ecju_query_id)
     ecju_query.chaser_email_sent_on = timezone.datetime.now()
-    # Save base so we don't impact responded_at field. 
-    # Currently we override save method so it fills in responded_at field. This is not the behaviour we want here.  
+    # Save base so we don't impact responded_at field.
+    # Currently we override save method so it fills in responded_at field. This is not the behaviour we want here.
     ecju_query.save_base()

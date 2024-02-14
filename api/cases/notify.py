@@ -106,7 +106,6 @@ def notify_exporter_ecju_query(case_pk):
 
 
 def notify_exporter_ecju_query_chaser(ecju_query_id, callback):
-    APPLICATION_WORKING_DAYS = 20
     ecju_query = EcjuQuery.objects.get(id=ecju_query_id)
 
     exporter_frontend_ecju_queries_url = get_exporter_frontend_url(f"/applications/{ecju_query.case_id}/ecju-queries/")
@@ -116,7 +115,7 @@ def notify_exporter_ecju_query_chaser(ecju_query_id, callback):
         {
             "case_reference": ecju_query.case.reference_code,
             "exporter_frontend_ecju_queries_url": exporter_frontend_ecju_queries_url,
-            "remaining_days": APPLICATION_WORKING_DAYS - ecju_query.open_working_days,
+            "remaining_days": 20 - ecju_query.open_working_days,
         },
         callback,
     )
