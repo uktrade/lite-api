@@ -1,4 +1,5 @@
 from django.urls import reverse
+from api.survey.models import SurveyResponse
 from rest_framework import status
 
 from api.parties.enums import PartyType
@@ -12,6 +13,15 @@ class DataWorkspaceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.create_party("Test Party", self.organisation, PartyType.END_USER)
+
+        self.survey = SurveyResponse.objects.create(
+            recommendation="SATISFIED",
+            other_detail="Words",
+            experienced_issue=["NO_ISSUE", "UNCLEAR"],
+            helpful_guidance="DISAGREE",
+            user_account_process="EASY",
+            service_improvements_feedback="Feedback words",
+        )
 
     def test_organisations(self):
         url = reverse("data_workspace:dw-organisations-list")
@@ -144,3 +154,22 @@ class DataWorkspaceTests(DataTestClient):
         assert last_result["sla_days"] == department_sla.sla_days
         assert last_result["case"] == str(department_sla.case.id)
         assert last_result["department"] == str(department_sla.department.id)
+
+    def test_survey_response(self):
+        url = reverse("data_workspace:dw-survey-reponse-list")
+        response = self.client.get(url)
+        payload = response.json()
+
+        # Ensure we get some expected fields
+        expected_fields = {
+            "recommendation",
+            "helpful_guidance",
+            "service_improvements_feedback",
+            "id",
+            "created_at",
+            "experienced_issue",
+            "user_account_process",
+            "other_detail",
+            "updated_at",
+        }
+        assert set(payload["results"][0].keys()) == expected_fields
