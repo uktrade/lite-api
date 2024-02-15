@@ -82,6 +82,7 @@ class ExporterECJUQueryChaser(EmailData):
     case_reference: str
     exporter_frontend_ecju_queries_url: str
     remaining_days: int
+    open_working_days: int
 
 
 @dataclass(frozen=True)
