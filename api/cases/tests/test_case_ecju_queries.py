@@ -829,6 +829,7 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
             case_reference=self.case.reference_code,
             exporter_frontend_ecju_queries_url=get_exporter_frontend_url(f"/applications/{self.case.pk}/ecju-queries/"),
             remaining_days=5,
+            open_working_days=15,
         )
         mock_send_email.assert_called_with(
             self.case.submitted_by.email,
