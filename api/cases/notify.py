@@ -116,6 +116,7 @@ def notify_exporter_ecju_query_chaser(ecju_query_id, callback):
             "case_reference": ecju_query.case.reference_code,
             "exporter_frontend_ecju_queries_url": exporter_frontend_ecju_queries_url,
             "remaining_days": 20 - ecju_query.open_working_days,
+            "open_working_days": ecju_query.open_working_days,
         },
         callback,
     )
