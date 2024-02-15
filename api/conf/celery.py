@@ -31,4 +31,8 @@ app.conf.beat_schedule = {
         "task": "api.document_data.celery_tasks.backup_document_data",
         "schedule": crontab(hour=2, minute=0),
     },
+    "send ecju query chaser emails 8pm, 4pm": {
+        "task": "api.cases.celery_tasks.schedule_all_ecju_query_chaser_emails",
+        "schedule": crontab(hour="8, 16", minute=0),
+    },
 }
