@@ -121,6 +121,7 @@ INSTALLED_APPS = [
     "api.assessments",
     "api.document_data",
     "api.survey",
+    "api.db_dump",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
