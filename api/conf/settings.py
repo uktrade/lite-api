@@ -121,7 +121,7 @@ INSTALLED_APPS = [
     "api.assessments",
     "api.document_data",
     "api.survey",
-    "api.db_dump",
+    "django_db_anonymiser.db_anonymiser",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
@@ -498,3 +498,5 @@ if DEBUG:
 CONTENT_DATA_MIGRATION_DIR = Path(BASE_DIR).parent / "lite_content/lite_api/migrations"
 
 BACKUP_DOCUMENT_DATA_TO_DB = env("BACKUP_DOCUMENT_DATA_TO_DB", default=True)
+
+DB_ANONYMISER_CONFIG_LOCATION = Path(BASE_DIR) / "conf" / "anonymise_model_config.yaml"

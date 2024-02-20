@@ -1,6 +1,6 @@
 config:
   addons:
-    - api.db_dump
+    - django_db_anonymiser.db_anonymiser
 
 strategy:
   users_baseuser:
@@ -41,3 +41,4 @@ strategy:
     contact_telephone: faker.phone_number
   site:
     name: faker.name
+  document_data_documentdata: skip_rows

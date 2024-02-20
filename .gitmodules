@@ -6,3 +6,6 @@
 	path = lite_routing
 	url = git@github.com:uktrade/lite-routing.git
 	branch = main
+[submodule "django_db_anonymiser"]
+	path = django_db_anonymiser
+	url = git@github.com:uktrade/django-db-anoynmiser.git
