@@ -78,6 +78,14 @@ class ExporterECJUQuery(EmailData):
 
 
 @dataclass(frozen=True)
+class ExporterECJUQueryChaser(EmailData):
+    case_reference: str
+    exporter_frontend_ecju_queries_url: str
+    remaining_days: int
+    open_working_days: int
+
+
+@dataclass(frozen=True)
 class CaseWorkerNewRegistration(EmailData):
     organisation_name: str
     applicant_email: str

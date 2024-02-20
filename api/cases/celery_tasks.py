@@ -10,11 +10,12 @@ from django.utils import timezone
 from pytz import timezone as tz
 
 from api.cases.enums import CaseTypeSubTypeEnum
-from api.cases.models import Case, CaseAssignmentSLA, CaseQueue, DepartmentSLA
-from api.cases.models import EcjuQuery
+from api.cases.models import Case, CaseAssignmentSLA, CaseQueue, DepartmentSLA, EcjuQuery
 from api.common.dates import is_weekend, is_bank_holiday
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
+from api.cases.notify import notify_exporter_ecju_query_chaser
+
 
 # DST safe version of midnight
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
@@ -156,3 +157,66 @@ def update_cases_sla():
 
     logger.info("SLA Update Not Performed. Non-working day")
     return False
+
+
+@shared_task
+def schedule_all_ecju_query_chaser_emails():
+    """
+    Sends an ECJU 15 working days reminder
+    Runs as a background task daily at a given time.
+    Can accommodate reruns and can send reminders if any have been missed upto 20 days after ECJU Query created
+    """
+    logger.info("Sending all ECJU query chaser emails started")
+
+    try:
+
+        ecju_query_reminders = []
+        ecju_queries = EcjuQuery.objects.filter(
+            is_query_closed=False, chaser_email_sent_on__isnull=True, case__status__is_terminal=False
+        )
+
+        for ecju_query in ecju_queries:
+            if ecju_query.open_working_days >= 15 and ecju_query.open_working_days <= 20:
+                ecju_query_reminders.append(ecju_query.id)
+
+        for ecju_query_id in ecju_query_reminders:
+            # Now lets loop round and send the notifications
+            logger.info(
+                "Sending all ECJU query chaser email via send_ecju_query_chaser_email for ecju_query_id %s",
+                ecju_query_id,
+            )
+            send_ecju_query_chaser_email.delay(ecju_query_id)
+
+        logger.info("Sending all ECJU query chaser emails started finished")
+
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+
+@shared_task
+def send_ecju_query_chaser_email(ecju_query_id):
+    """
+    Sends an ecju query chaser email based on a case
+    Call back is to mark the relevent queries as chaser sent
+    """
+    logger.info("Sending ECJU Query chaser emails for ecju_query_id %s started", ecju_query_id)
+    try:
+        notify_exporter_ecju_query_chaser(ecju_query_id, callback=mark_ecju_query_as_sent.si(ecju_query_id))
+        logger.info("Sending ECJU Query chaser email for ecju_query_id %s finished", ecju_query_id)
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+
+@shared_task
+def mark_ecju_query_as_sent(ecju_query_id):
+    """
+    Used as a call back method to set chaser_email_sent once a chaser email has been sent
+    """
+    logger.info("Mark ECJU query with chaser_email_sent_on for ecju_query_id (%s) ", ecju_query_id)
+    ecju_query = EcjuQuery.objects.get(chaser_email_sent_on__isnull=True, id=ecju_query_id)
+    ecju_query.chaser_email_sent_on = timezone.datetime.now()
+    # Save base so we don't impact responded_at field.
+    # Currently we override save method so it fills in responded_at field. This is not the behaviour we want here.
+    ecju_query.save_base()
