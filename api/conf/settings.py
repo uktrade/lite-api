@@ -33,6 +33,7 @@ env = Env(
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
     GIT_COMMIT=(str, ""),
+    MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -120,6 +121,14 @@ INSTALLED_APPS = [
     "api.assessments",
     "api.document_data",
 ]
+
+MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
+
+if "MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS":
+    INSTALLED_APPS += [
+        "mock_virus_scan",
+    ]
+
 
 MIDDLEWARE = [
     "allow_cidr.middleware.AllowCIDRMiddleware",
