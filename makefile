@@ -23,6 +23,13 @@ doc-seed:
 	docker exec -it api pipenv run ./manage.py seedinternalusers
 	docker exec -it api pipenv run ./manage.py seedexporterusers
 
+first-run:
+	docker exec -it api pipenv run ./manage.py migrate
+	docker exec -it api pipenv run ./manage.py seedrolepermissions
+	docker exec -it api pipenv run ./manage.py seedinternalusers
+	docker exec -it api pipenv run ./manage.py seedexporterusers
+	docker exec -it api pipenv run ./manage.py create_test_data 10
+
 doc-test:
 	docker exec -it api pipenv run ./manage.py test
 
