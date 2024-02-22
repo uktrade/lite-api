@@ -1,6 +1,9 @@
 config:
   addons:
     - django_db_anonymiser.db_anonymiser
+  extra_parameters:
+    pg_dump:
+        - "--exclude-table-data=document_data_documentdata"
 
 strategy:
   users_baseuser:
@@ -41,4 +44,3 @@ strategy:
     contact_telephone: faker.phone_number
   site:
     name: faker.name
-  document_data_documentdata: skip_rows
