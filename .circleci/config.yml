@@ -267,11 +267,8 @@ jobs:
     steps:
       - setup
       - run:
-          name: Prospector
-          command: pipenv run prospector -W pylint -W pep257 -W mccabe
-      - run:
-          name: Black
-          command: pipenv run black . --check --diff
+          name: Ruff and Black
+          command: pipenv run ruff . && pipenv run black . --check --diff
       - run:
           name: Bandit
           command: |
@@ -393,10 +390,10 @@ workflows:
       - check_migrations
       - check_coverage:
           requires:
-              - tests
-              - seeding_tests
-              - elastic_search_tests
-              - migration_tests
-              - lite_routing_tests
+            - tests
+            - seeding_tests
+            - elastic_search_tests
+            - migration_tests
+            - lite_routing_tests
       - check-lite-routing-sha
       - e2e_tests
