@@ -31,7 +31,7 @@ strategy:
     address: faker.address
     consignee_name: faker.name
   organisation:
-    name: faker.name
+    name: faker.company_name
     phone_number: faker.phone_number
     website: faker.website
     eori_number: faker.eori_number
