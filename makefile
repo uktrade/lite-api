@@ -19,15 +19,11 @@ doc-runserver:
 	docker exec -it api pipenv run ./manage.py runserver localhost:8100
 
 doc-seed:
-	docker exec -it api pipenv run ./manage.py seedrolepermissions
-	docker exec -it api pipenv run ./manage.py seedinternalusers
-	docker exec -it api pipenv run ./manage.py seedexporterusers
+	docker exec -it api pipenv run ./manage.py seedall
 
 first-run:
 	docker exec -it api pipenv run ./manage.py migrate
-	docker exec -it api pipenv run ./manage.py seedrolepermissions
-	docker exec -it api pipenv run ./manage.py seedinternalusers
-	docker exec -it api pipenv run ./manage.py seedexporterusers
+	docker exec -it api pipenv run ./manage.py seedall
 	docker exec -it api pipenv run ./manage.py create_test_data 10
 
 doc-test:
@@ -49,9 +45,7 @@ pip-runserver:
 	pipenv run ./manage.py runserver localhost:8100
 
 pip-seed:
-	pipenv run ./manage.py seedrolepermissions
-	pipenv run ./manage.py seedinternalusers
-	pipenv run ./manage.py seedexporterusers
+	pipenv run ./manage.py seedall
 
 pip-test:
 	pipenv run ./manage.py test
@@ -63,9 +57,7 @@ secrets:
 	cp local.env .env
 
 seed:
-	./manage.py seedrolepermissions
-	./manage.py seedinternalusers
-	./manage.py seedexporterusers
+	./manage.py seedall
 
 start-e2e:
 	$(docker-base) up
