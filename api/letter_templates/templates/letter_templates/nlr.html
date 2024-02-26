@@ -71,7 +71,7 @@
 
     The following items do not require a licence:
   {% endfilter %}
-  <table class="govuk-table">
+  <table id="nlr-products-table" class="govuk-table">
     <thead class="govuk-table__head">
       <tr class="govuk-table__row">
         <th class="govuk-table__header">#</th>
@@ -82,7 +82,7 @@
     </thead>
     <tbody>
       {% for good in goods.no_licence_required %}
-        <tr class="govuk-table__row">
+        <tr id="nlr-product-row-{{ forloop.counter }}" class="govuk-table__row">
           <td class="govuk-table__cell">{{ forloop.counter }}</td>
           <td class="govuk-table__cell">{{ good.good.name }}</td>
           <td class="govuk-table__cell">{{ good.good.description }}</td>
