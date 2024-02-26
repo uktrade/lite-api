@@ -17,7 +17,13 @@ class OrganisationListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = OrganisationDetailSerializer
     pagination_class = LimitOffsetPagination
-    queryset = Organisation.objects.all()
+    # We ensure that organisations with the same name always come out
+    # in the same order by additionally ordering by created_at
+    # and by id. If just name is used, the order is non-deterministic
+    # when multiple organisations have the same name. This can mean the
+    # same organisation being emitted on different pages, causing
+    # primary key violations in Data Workspace.
+    queryset = Organisation.objects.order_by("name", "created_at", "id")
 
 
 class PartyListView(viewsets.ReadOnlyModelViewSet):
