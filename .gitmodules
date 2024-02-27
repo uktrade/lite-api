@@ -8,4 +8,4 @@
 	branch = main
 [submodule "django_db_anonymiser"]
 	path = django_db_anonymiser
-	url = git@github.com:uktrade/django-db-anoynmiser.git
+	url = git@github.com:uktrade/django-db-anonymiser.git
