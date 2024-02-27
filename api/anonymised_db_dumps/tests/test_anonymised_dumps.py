@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 
+from django.conf import settings
 from django.core.management import call_command
 from django.test import TransactionTestCase
 
@@ -19,12 +20,13 @@ class TestAnonymiseDumps(TransactionTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.create_test_data()
+        cls.dump_location = f"/tmp/{settings.DB_ANONYMISER_DUMP_FILE_NAME}"
         try:
-            os.remove("/tmp/anonymised.sql")
+            os.remove(cls.dump_location)
         except FileNotFoundError:
             pass
         call_command("dump_and_anonymise", keep_local_dumpfile=True, skip_s3_upload=True)
-        with open("/tmp/anonymised.sql", "r") as f:
+        with open(cls.dump_location, "r") as f:
             cls.anonymised_sql = f.read()
 
     @classmethod
