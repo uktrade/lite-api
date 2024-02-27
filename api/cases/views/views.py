@@ -573,7 +573,7 @@ class ECJUQueries(APIView):
                 verb=AuditType.ECJU_QUERY,
                 action_object=serializer.instance,
                 target=serializer.instance.case,
-                payload={"ecju_query": data["question"]},
+                payload={"additional_text": data["question"]},
             )
 
             notify.notify_exporter_ecju_query(pk)
@@ -643,7 +643,7 @@ class EcjuQueryDetail(APIView):
                 verb=query_verb,
                 action_object=serializer.instance,
                 target=serializer.instance.case,
-                payload={"ecju_response": data.get("response")},
+                payload={"additional_text": data.get("response")},
             )
 
             # If an exporter responds to a query, create a mention notification

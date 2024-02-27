@@ -491,7 +491,9 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertTrue(query_response_audit.exists())
         audit_obj = query_response_audit.first()
         audit_text = AuditSerializer(audit_obj).data["text"]
-        self.assertEqual(audit_text, " responded to an ECJU Query: Attached the requested documents.")
+        audit_payload = AuditSerializer(audit_obj).data["payload"]
+        self.assertEqual(audit_payload, {"additional_text": "Attached the requested documents"})
+        self.assertEqual(audit_text, " responded to an ECJU Query.")
         self.assertEqual(audit_obj.target.id, case.id)
 
         if add_documents:
@@ -521,7 +523,9 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertTrue(query_response_audit.exists())
         audit_obj = query_response_audit.first()
         audit_text = AuditSerializer(audit_obj).data["text"]
-        self.assertEqual(audit_text, " manually closed a query: exporter provided details.")
+        audit_payload = AuditSerializer(audit_obj).data["payload"]
+        self.assertEqual(audit_text, " manually closed a query.")
+        self.assertEqual(audit_payload, {"additional_text": "exporter provided details"})
         self.assertEqual(audit_obj.target.id, case.id)
         self.assertEqual(0, BaseNotification.objects.filter(object_id=ecju_query.id).count())
 
