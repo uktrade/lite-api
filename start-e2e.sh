@@ -2,6 +2,8 @@
 cd /app/
 pipenv run ./manage.py migrate --noinput
 
+pipenv run ./manage.py seedall
+
 # Create initial users
 INTERNAL_USERS='[{"email"=>"foo@bar.gov.uk"}]' pipenv run ./manage.py seedinternalusers
 EXPORTER_USERS='[{"email"=>"test-exporter@example.com"}]' pipenv run ./manage.py seedexporterusers
