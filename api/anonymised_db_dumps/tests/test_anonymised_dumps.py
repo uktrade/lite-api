@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from api.appeals.tests.factories import AppealFactory
-from api.cases.tests.factories import CaseNoteFactory, FinalAdviceFactory
+from api.cases.tests.factories import CaseNoteFactory, EcjuQueryFactory, FinalAdviceFactory
 from api.document_data.models import DocumentData
 from api.organisations.tests.factories import SiteFactory, OrganisationFactory
 from api.addresses.tests.factories import AddressFactory
@@ -91,6 +91,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.advice = FinalAdviceFactory(
             text="final advice text", user=GovUserFactory(), note="advice note", proviso="advice proviso"
         )
+        cls.ecju_query = EcjuQueryFactory(question="ecju query question", response="ecju query response")
 
     @classmethod
     def delete_test_data(cls):
@@ -105,6 +106,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.appeal.delete()
         cls.case_note.delete()
         cls.advice.delete()
+        cls.ecju_query.delete()
 
     def test_users_baseuser_anonymised(self):
         assert str(self.base_user.id) in self.anonymised_sql
@@ -180,3 +182,11 @@ class TestAnonymiseDumps(TransactionTestCase):
     def test_advice_proviso_anonymised(self):
         assert str(self.advice.id) in self.anonymised_sql
         assert self.advice.proviso not in self.anonymised_sql
+
+    def test_ecju_query_question_anonymised(self):
+        assert str(self.ecju_query.id) in self.anonymised_sql
+        assert self.ecju_query.question not in self.anonymised_sql
+
+    def test_ecju_query_response_anonymised(self):
+        assert str(self.ecju_query.id) in self.anonymised_sql
+        assert self.ecju_query.response not in self.anonymised_sql

@@ -52,3 +52,6 @@ strategy:
     text: faker.text
     note: faker.text
     proviso: faker.text
+  cases_ecjuquery:
+    question: faker.text
+    response: faker.text
