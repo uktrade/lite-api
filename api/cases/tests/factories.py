@@ -21,10 +21,20 @@ from api.teams.tests.factories import TeamFactory, DepartmentFactory
 from api.users.tests.factories import BaseUserFactory, GovUserFactory
 
 
+class CaseFactory(factory.django.DjangoModelFactory):
+    case_type = factory.Iterator(CaseType.objects.all())
+    status = factory.Iterator(CaseStatus.objects.all())
+    organisation = factory.SubFactory(OrganisationFactory)
+
+    class Meta:
+        model = Case
+
+
 class BaseAdviceFactory(factory.django.DjangoModelFactory):
     text = factory.Faker("word")
     note = factory.Faker("word")
     type = AdviceType.APPROVE
+    case = factory.SubFactory(CaseFactory)
 
     @factory.post_generation
     def denial_reasons(self, create, extracted, **kwargs):
@@ -69,15 +79,6 @@ class GoodCountryDecisionFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = GoodCountryDecision
-
-
-class CaseFactory(factory.django.DjangoModelFactory):
-    case_type = factory.Iterator(CaseType.objects.all())
-    status = factory.Iterator(CaseStatus.objects.all())
-    organisation = factory.SubFactory(OrganisationFactory)
-
-    class Meta:
-        model = Case
 
 
 class CaseSIELFactory(CaseFactory):

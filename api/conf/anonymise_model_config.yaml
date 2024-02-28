@@ -48,3 +48,5 @@ strategy:
     grounds_for_appeal: faker.text
   cases_casenote:
     text: faker.text
+  advice:
+    text: faker.text

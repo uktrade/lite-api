@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from api.appeals.tests.factories import AppealFactory
-from api.cases.tests.factories import CaseNoteFactory
+from api.cases.tests.factories import CaseNoteFactory, FinalAdviceFactory
 from api.document_data.models import DocumentData
 from api.organisations.tests.factories import SiteFactory, OrganisationFactory
 from api.addresses.tests.factories import AddressFactory
@@ -14,7 +14,7 @@ from api.staticdata.countries.models import Country
 from api.queries.end_user_advisories.tests.factories import EndUserAdvisoryQueryFactory
 from api.external_data.tests.factories import DenialFactory
 from api.parties.tests.factories import PartyFactory
-from api.users.tests.factories import BaseUserFactory
+from api.users.tests.factories import BaseUserFactory, RoleFactory, GovUserFactory
 
 
 # Note: This must inherit from TransactionTestCase - if we use DataTestClient
@@ -41,6 +41,7 @@ class TestAnonymiseDumps(TransactionTestCase):
 
     @classmethod
     def create_test_data(cls):
+        RoleFactory(id="00000000-0000-0000-0000-000000000001")
         cls.document_data = DocumentData.objects.create(
             s3_key="somefile.txt", content_type="csv", last_modified=datetime.now()
         )
@@ -87,6 +88,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         )
         cls.appeal = AppealFactory(grounds_for_appeal="appeal grounds")
         cls.case_note = CaseNoteFactory(text="case note text")
+        cls.advice = FinalAdviceFactory(text="final advice text", user=GovUserFactory())
 
     @classmethod
     def delete_test_data(cls):
@@ -100,6 +102,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.base_user.delete()
         cls.appeal.delete()
         cls.case_note.delete()
+        cls.advice.delete()
 
     def test_users_baseuser_anonymised(self):
         assert str(self.base_user.id) in self.anonymised_sql
@@ -163,3 +166,7 @@ class TestAnonymiseDumps(TransactionTestCase):
     def test_case_note_anonymised(self):
         assert str(self.case_note.id) in self.anonymised_sql
         assert self.case_note.text not in self.anonymised_sql
+
+    def test_advice_anonymised(self):
+        assert str(self.advice.id) in self.anonymised_sql
+        assert self.advice.text not in self.anonymised_sql
