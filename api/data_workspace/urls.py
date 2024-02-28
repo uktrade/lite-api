@@ -89,4 +89,5 @@ router_v1.register(
     audit_views.AuditUpdatedLicenceStatusListView,
     basename="dw-audit-licence-updated-status",
 )
+router_v1.register("survey-response", views.SurveyResponseListView, basename="dw-survey-reponse")
 urlpatterns = [path("v0/", include(router_v0.urls)), path("v1/", include(router_v1.urls))]

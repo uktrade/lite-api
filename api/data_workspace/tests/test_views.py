@@ -1,4 +1,5 @@
 from django.urls import reverse
+from api.survey.models import SurveyResponse
 from rest_framework import status
 
 from api.parties.enums import PartyType
@@ -6,12 +7,23 @@ from test_helpers.clients import DataTestClient
 from api.teams.tests.factories import TeamFactory
 from api.cases.tests.factories import DepartmentSLAFactory
 from api.teams.models import Department
+from api.survey import enums
 
 
 class DataWorkspaceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.create_party("Test Party", self.organisation, PartyType.END_USER)
+
+        self.survey = SurveyResponse.objects.create(
+            user_journey=enums.UserJourney.APPLICATION_SUBMISSION,
+            satisfaction_rating=enums.RecommendationChoiceType.SATISFIED,
+            experienced_issue=[enums.ExperiencedIssueEnum.NO_ISSUE, enums.ExperiencedIssueEnum.SYSTEM_SLOW],
+            other_detail="Words",
+            service_improvements_feedback="Feedback words",
+            guidance_application_process_helpful=enums.HelpfulGuidanceEnum.DISAGREE,
+            process_of_creating_account=enums.UserAccountEnum.EASY,
+        )
 
     def test_organisations(self):
         url = reverse("data_workspace:dw-organisations-list")
@@ -144,3 +156,23 @@ class DataWorkspaceTests(DataTestClient):
         assert last_result["sla_days"] == department_sla.sla_days
         assert last_result["case"] == str(department_sla.case.id)
         assert last_result["department"] == str(department_sla.department.id)
+
+    def test_survey_response(self):
+        url = reverse("data_workspace:dw-survey-reponse-list")
+        response = self.client.get(url)
+        payload = response.json()
+
+        # Ensure we get some expected fields
+        expected_fields = {
+            "id",
+            "feedback_submission_date",
+            "url",
+            "user_journey",
+            "satisfaction_rating",
+            "experienced_issue",
+            "other_detail",
+            "service_improvements_feedback",
+            "guidance_application_process_helpful",
+            "process_of_creating_account",
+        }
+        assert set(payload["results"][0].keys()) == expected_fields
