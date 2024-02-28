@@ -37,21 +37,21 @@
                 <strong>Registered No. {{ organisation.registration_number}}</strong>
           </span>
         </td>
-        <td class="border-black" colspan="3">
+        <td id="licence-reference-column" class="border-black" colspan="3">
           <span class="cell__heading">2. Licence number</span>
           <span class="cell__uppercase">{{ licence.reference_code }}</span>
         </td>
-        <td class="border-black" colspan="3">
+        <td id="licence-start-date" class="border-black" colspan="3">
           <span class="cell__heading">3a. Commencement date</span>
           <span class="cell__uppercase">{{ licence.start_date }}</span>
         </td>
       </tr>
       <tr>
-        <td class="border-black" colspan="3">
+        <td id="application-reference-code" class="border-black" colspan="3">
           <span class="cell__heading">2a. Application number</span>
           <span class="cell__uppercase">{{ case_reference }}</span>
         </td>
-        <td class="border-black" colspan="3">
+        <td id="licence-end-date" class="border-black" colspan="3">
           <span class="cell__heading">3b. Expiry date</span>
           <span class="cell__uppercase">{{ licence.end_date }}</span>
         </td>
@@ -80,7 +80,7 @@
         </td>
       </tr>
       <tr>
-        <td class="border-black" colspan="5">
+        <td id="consignee-details" class="border-black" colspan="5">
           <span class="cell__heading">5. Consignee(s)/Destination(s)</span>
           <span class="cell__uppercase">
               <span class="cell__uppercase">
@@ -133,7 +133,7 @@
         </td>
       </tr>
       <tr>
-        <td class="border-black" colspan="5" rowspan="3">
+        <td id="end-user-details" class="border-black" colspan="5" rowspan="3">
           <span class="cell__heading">10. End User(if different from consignee)</span>
           <span class="cell__uppercase">
             {{ end_user.name }}<br>
@@ -203,7 +203,7 @@
           <span class="cell__heading">20. Contract date</span>
           <span class="cell__uppercase">{{ current_date }}</span>
         </td>
-        <td class="border-black" colspan="3">
+        <td id="export-type" class="border-black" colspan="3">
           <span class="cell__heading">21. Customs export procedure(Type of licence)</span>
           <span class="cell__uppercase">{{ details.export_type }}</span>
         </td>
@@ -217,7 +217,7 @@
     </table>
 
 	<p style="page-break-before: always">
-    <table>
+    <table id="products-table">
         <tr>
         <td class="border-top-black padding-none align-centre" rowspan="999">
           <div class="text-large border-left-black border-bottom-black">1</div>
@@ -276,11 +276,11 @@
       </tr>
         {% for good_item in goods.approve %}
           {% with good=good_item.good firearm_details=good_item.firearm_details %}
-            <tr>
+            <tr id="product-row-{{ forloop.counter}}" >
                 <td class="border-black" colspan="1">{{ forloop.counter }}</td>
-                <td class="border-black" colspan="5">
+                <td id="row-{{ forloop.counter}}-description" class="border-black" colspan="5">
                   <table border="0">
-                    <tr>
+                    <tr id="row-{{ forloop.counter}}-description-name">
                         <td><strong>Name:</strong></td>
                         <td>{% if good.name %}{{ good.name }}{% else %}{{ good.description }}{% endif %}
                         </td>
@@ -289,32 +289,32 @@
                         <td><strong>Description:</strong></td>
                         <td>{{ good.description|default_na }}</td>
                     </tr>
-                    <tr>
+                    <tr id="row-{{ forloop.counter}}-description-part-number">
                       <td><strong>Part number:</strong></td>
                       <td>{{ good.part_number|default_na }}</td>
                     </tr>
                     {% if firearm_details and firearm_details.has_serial_numbers %}
-                      <tr>
+                      <tr id="row-{{ forloop.counter}}-description-serial-numbers">
                         <td><strong>Serial number:</strong></td>
                         <td>
                           {{ firearm_details.serial_numbers|format_serial_numbers|join:"<br>" }}
                         </td>
                       </tr>
                     {% else %}
-                      <tr>
+                      <tr id="row-{{ forloop.counter}}-description-serial-numbers-na">
                         <td><strong>Serial number:</strong></td>
                         <td>N/A</td>
                       </tr>
                     {% endif %}
                   </table>
                 </td>
-                <td class="border-black" colspan="2">
+                <td id="row-{{ forloop.counter}}-control-list-entries" class="border-black" colspan="2">
                     {% for clc in good.control_list_entries %}
                         {{ clc }}{% if not forloop.last %},{% endif %}
                     {% endfor %}
                 </td>
-                <td class="border-black" colspan="2">{{ good_item.value }}</td>
-                <td class="border-black" colspan="2">{{ good_item.quantity }}</td>
+                <td id="row-{{ forloop.counter}}-value" class="border-black" colspan="2">{{ good_item.value }}</td>
+                <td id="row-{{ forloop.counter}}-quantity" class="border-black" colspan="2">{{ good_item.quantity }}</td>
             </tr>
           {% endwith %}
         {% endfor %}

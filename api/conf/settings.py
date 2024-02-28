@@ -33,6 +33,7 @@ env = Env(
     GOV_NOTIFY_ENABLED=(bool, False),
     DOCUMENT_SIGNING_ENABLED=(bool, False),
     GIT_COMMIT=(str, ""),
+    MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -118,7 +119,16 @@ INSTALLED_APPS = [
     "lite_routing",
     "api.appeals",
     "api.assessments",
+    "api.document_data",
 ]
+
+MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
+
+if "MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS":
+    INSTALLED_APPS += [
+        "mock_virus_scan",
+    ]
+
 
 MIDDLEWARE = [
     "allow_cidr.middleware.AllowCIDRMiddleware",
@@ -238,11 +248,13 @@ if VCAP_SERVICES:
         raise Exception("S3 Bucket not bound to environment")
 
     aws_credentials = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]
+    AWS_ENDPOINT_URL = None
     AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
     AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
     AWS_REGION = aws_credentials["aws_region"]
     AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
 else:
+    AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
     AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
     AWS_REGION = env("AWS_REGION")
@@ -454,7 +466,7 @@ SANCTION_LIST_SOURCES = env.json(
     {
         "un_sanctions_file": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
         "office_financial_sanctions_file": "https://ofsistorage.blob.core.windows.net/publishlive/2022format/ConList.xml",
-        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1129559/UK_Sanctions_List.xml",
+        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/media/65ca02639c5b7f0012951caf/UK_Sanctions_List.xml",
     },
 )
 LITE_INTERNAL_NOTIFICATION_EMAILS = env.json("LITE_INTERNAL_NOTIFICATION_EMAILS", {})
@@ -481,3 +493,5 @@ if DEBUG:
 
 
 CONTENT_DATA_MIGRATION_DIR = Path(BASE_DIR).parent / "lite_content/lite_api/migrations"
+
+BACKUP_DOCUMENT_DATA_TO_DB = env("BACKUP_DOCUMENT_DATA_TO_DB", default=True)

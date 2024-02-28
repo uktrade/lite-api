@@ -47,7 +47,6 @@ from api.applications.libraries.goods_on_applications import add_goods_flags_to_
 from api.applications.libraries.licence import get_default_duration
 from api.applications.models import (
     BaseApplication,
-    HmrcQuery,
     SiteOnApplication,
     GoodOnApplication,
     CountryOnApplication,
@@ -94,7 +93,6 @@ from api.licences.helpers import get_licence_reference_code, update_licence_stat
 from api.licences.models import Licence
 from api.licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
-from api.organisations.enums import OrganisationType
 from api.organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
 from api.organisations.models import Site
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -124,28 +122,18 @@ class ApplicationList(ListCreateAPIView):
 
         organisation = get_request_user_organisation(self.request)
 
-        if organisation.type == OrganisationType.HMRC:
-            if submitted is None:
-                applications = HmrcQuery.objects.filter(hmrc_organisation=organisation)
-            elif submitted:
-                applications = HmrcQuery.objects.submitted(hmrc_organisation=organisation)
-            else:
-                applications = HmrcQuery.objects.drafts(hmrc_organisation=organisation)
+        if submitted is None:
+            applications = BaseApplication.objects.filter(organisation=organisation)
+        elif submitted:
+            applications = BaseApplication.objects.submitted(organisation)
         else:
-            if submitted is None:
-                applications = BaseApplication.objects.filter(organisation=organisation)
-            elif submitted:
-                applications = BaseApplication.objects.submitted(organisation)
-            else:
-                applications = BaseApplication.objects.drafts(organisation)
+            applications = BaseApplication.objects.drafts(organisation)
 
-            users_sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
-            disallowed_applications = SiteOnApplication.objects.exclude(site__id__in=users_sites).values_list(
-                "application", flat=True
-            )
-            applications = applications.exclude(id__in=disallowed_applications).exclude(
-                case_type_id=CaseTypeEnum.HMRC.id
-            )
+        users_sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
+        disallowed_applications = SiteOnApplication.objects.exclude(site__id__in=users_sites).values_list(
+            "application", flat=True
+        )
+        applications = applications.exclude(id__in=disallowed_applications)
 
         return applications.prefetch_related("status", "case_type").select_subclasses()
 
@@ -204,7 +192,6 @@ class ApplicationsRequireSerialNumbersList(ListAPIView):
 class ApplicationExisting(APIView):
     """
     This view returns boolean values depending on the type of organisation:
-    HMRC - Whether the organisation has existing submitted queries
     Standard - Whether the organisation has any drafts/applications
     """
 
@@ -212,16 +199,12 @@ class ApplicationExisting(APIView):
 
     def get(self, request):
         organisation = get_request_user_organisation(request)
-        if organisation.type == "hmrc":
-            has_queries = HmrcQuery.objects.submitted(hmrc_organisation=organisation).exists()
-            return JsonResponse(data={"queries": has_queries})
-        else:
-            has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
-            return JsonResponse(
-                data={
-                    "applications": has_applications,
-                }
-            )
+        has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
+        return JsonResponse(
+            data={
+                "applications": has_applications,
+            }
+        )
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):

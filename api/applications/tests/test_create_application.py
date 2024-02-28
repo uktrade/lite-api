@@ -10,7 +10,6 @@ from api.applications.enums import (
 from api.applications.models import (
     StandardApplication,
     OpenApplication,
-    HmrcQuery,
     BaseApplication,
 )
 from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
@@ -77,35 +76,6 @@ class DraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.count(), 1)
-
-    def test_create_draft_hmrc_query_successful(self):
-        """
-        Ensure we can create a new HMRC query draft object
-        """
-        data = {
-            "name": "Test",
-            "application_type": CaseTypeReferenceEnum.CRE,
-            "organisation": self.organisation.id,
-        }
-
-        response = self.client.post(self.url, data, **self.hmrc_exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(HmrcQuery.objects.count(), 1)
-
-    def test_create_draft_hmrc_query_failure(self):
-        """
-        Ensure that a normal exporter cannot create an HMRC query
-        """
-        data = {
-            "application_type": CaseTypeReferenceEnum.CRE,
-            "organisation": self.organisation.id,
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(HmrcQuery.objects.count(), 0)
 
     @parameterized.expand(
         [

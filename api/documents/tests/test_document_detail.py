@@ -1,10 +1,9 @@
 from django.urls import reverse
 
-from api.documents import permissions
 from test_helpers.clients import DataTestClient
 
 
-class CertificateDownload(DataTestClient):
+class DocumentDetail(DataTestClient):
     def test_document_detail_as_caseworker(self):
         # given there is a case document
         case = self.create_standard_application_case(self.organisation)

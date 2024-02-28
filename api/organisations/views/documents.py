@@ -1,27 +1,35 @@
 from rest_framework import viewsets
 
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.core.authentication import SharedAuthentication
-from api.organisations import models, serializers
+from api.core.filters import ParentFilter
+from api.core.views import DocumentStreamAPIView
+from api.organisations import (
+    models,
+    permissions,
+    serializers,
+)
 
 
 class DocumentOnOrganisationView(viewsets.ModelViewSet):
     authentication_classes = (SharedAuthentication,)
+    filter_backends = (ParentFilter,)
+    parent_filter_id_lookup_field = "organisation_id"
+    lookup_url_kwarg = "document_on_application_pk"
+    permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
+    queryset = models.DocumentOnOrganisation.objects.all()
     serializer_class = serializers.DocumentOnOrganisationSerializer
 
-    def get_queryset(self):
-        return models.DocumentOnOrganisation.objects.filter(organisation_id=self.kwargs["pk"])
-
     def list(self, request, pk):
-        serializer = self.serializer_class(self.get_queryset(), many=True)
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.serializer_class(queryset, many=True)
         return JsonResponse({"documents": serializer.data})
 
     def retrieve(self, request, pk, document_on_application_pk):
-        instance = get_object_or_404(self.get_queryset(), pk=document_on_application_pk)
+        instance = self.get_object()
         serializer = self.serializer_class(instance)
         return JsonResponse(serializer.data)
 
@@ -43,7 +51,7 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
         return JsonResponse({"document": serializer.data}, status=201)
 
     def delete(self, request, pk, document_on_application_pk):
-        instance = get_object_or_404(self.get_queryset(), pk=document_on_application_pk)
+        instance = self.get_object()
         instance.delete()
         organisation = models.Organisation.objects.get(pk=pk)
         audit_trail_service.create(
@@ -58,7 +66,7 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
         return JsonResponse({}, status=204)
 
     def update(self, request, pk, document_on_application_pk):
-        instance = get_object_or_404(self.get_queryset(), pk=document_on_application_pk)
+        instance = self.get_object()
         organisation = models.Organisation.objects.get(pk=pk)
         serializer = self.serializer_class(
             instance=instance, data=request.data, partial=True, context={"organisation": organisation}
@@ -75,3 +83,15 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
             },
         )
         return JsonResponse({"document": serializer.data}, status=200)
+
+
+class DocumentOnOrganisationStreamView(DocumentStreamAPIView):
+    authentication_classes = (SharedAuthentication,)
+    filter_backends = (ParentFilter,)
+    parent_filter_id_lookup_field = "organisation_id"
+    lookup_url_kwarg = "document_on_application_pk"
+    permission_classes = (permissions.IsCaseworkerOrInDocumentOrganisation,)
+    queryset = models.DocumentOnOrganisation.objects.all()
+
+    def get_document(self, instance):
+        return instance.document

@@ -28,7 +28,7 @@ Service for handling backend calls in LITE.
       If you want to run in Docker then uncomment the appropriate line in `.env` referring to `DATABASE_URL`.
     - In `.env`, also fill in the email field for `INTERNAL_USERS` and `EXPORTER_USERS` with valid values.
 
-  - HAWK Authentication is enabled on API/Exporter/caseworker services by default. If you get issuing making any api calls i.e missing authentication / key    mismatch 
+  - HAWK Authentication is enabled on API/Exporter/caseworker services by default. If you get issuing making any api calls i.e missing authentication / key    mismatch
     - Check LITE_INTERNAL_HAWK_KEY ENV Keys match on API and caseworker
     - Check LITE_EXPORTER_HAWK_KEY ENV Keys match on  API and expoter
 
@@ -54,6 +54,9 @@ Service for handling backend calls in LITE.
     - (Known issue: by default Elasticsearch is enabled in the `.env` file and this can show a connection error at the end of the migration script. This can be safely ignored as the migration succeeding is not dependent on Elasticsearch running. Or you can disable Elasticsearch temporarily in the `.env` file if you prefer.)
   - Option 2:
     - Run the `make doc-migrate` command which does all of the above in one
+  - Option 3:
+    - Run `docker-compose up` to start the API's Django server
+    - Run the `make first-run` command which will run the migrations, seedall and populate the databse with test data
 
 - Starting the service for the first time
   - `docker-compose up` - to start the API's Django server
@@ -61,6 +64,9 @@ Service for handling backend calls in LITE.
 - If your database is empty (i.e. you just ran the migrations) then at this point you might want to seed your database with the static data
   - `docker exec -it api pipenv run ./manage.py seedall` - running with Docker
   - `pipenv run ./manage.py seedall` - without Docker
+- You'll also want to populate the db with some test values
+  - `docker exec -it api pipenv run ./manage.py create_test_data 10` - running with Docker
+  - `pipenv run ./manage.py create_test_data 10` - without Docker
 
 - Starting the service
   - In general you can use `docker-compose up --build` if you want to make sure new changes are included in the build
@@ -100,9 +106,7 @@ EXPORTER_USERS='[{"email"=>"foo@bar.com"}]' ./manage.py seedexporterusers
 ```
 
 ## Running background tasks
-
-We currently have two mechanisms for background tasks in LITE;
-- django-background-tasks: `pipenv run ./manage.py process_tasks` will run all background tasks
+We currently use celery for async tasks and scheduling in LITE;
 - celery: a celery container is running by default when using docker-compose.  If a working copy
     "on the metal" without docker, run celery with `watchmedo auto-restart -d . -R -p '*.py' -- celery -A api.conf worker -l info`
 - celery-scheduler: a celery container is running by default when using docker-compose. This is to monitor any scheduled tasks  If a working copy

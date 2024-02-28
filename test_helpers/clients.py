@@ -1,10 +1,9 @@
 import random
 import timeit
 import uuid
-import warnings
 import sys
 from django.utils import timezone
-from typing import Optional, List, Tuple
+from typing import List, Tuple
 
 import django.utils.timezone
 from django.db import connection
@@ -24,7 +23,6 @@ from api.applications.models import (
     CountryOnApplication,
     StandardApplication,
     OpenApplication,
-    HmrcQuery,
     ApplicationDocument,
 )
 from api.applications.tests.factories import (
@@ -52,26 +50,20 @@ from api.cases.celery_tasks import get_application_target_sla
 from django.conf import settings
 from api.core.constants import Roles
 from api.conf.urls import urlpatterns
+from api.documents.libraries.s3_operations import init_s3_client
 from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
 from api.addresses.tests.factories import AddressFactoryGB
-from api.goods.enums import (
-    GoodPvGraded,
-    PvGrading,
-    ItemCategory,
-    MilitaryUse,
-    FirearmGoodType,
-)
-from api.goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
+from api.goods.enums import GoodPvGraded, PvGrading
+from api.goods.models import Good, GoodDocument
 from api.applications.models import GoodOnApplicationInternalDocument
-from api.goods.tests.factories import FirearmFactory, GoodFactory, PvGradingDetailsFactory
+from api.goods.tests.factories import GoodFactory
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
-from api.licences.helpers import get_licence_reference_code
 from api.licences.tests.factories import StandardLicenceFactory
 from api.organisations.enums import OrganisationType
 from api.organisations.models import Organisation, ExternalLocation
@@ -85,7 +77,6 @@ from api.picklists.models import PicklistItem
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
 from api.queues.models import Queue
-from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.helpers import get_country
 from api.staticdata.countries.models import Country
 from api.staticdata.f680_clearance_types.models import F680ClearanceType
@@ -345,7 +336,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     @staticmethod
-    def create_case_document(case: Case, user: GovUser, name: str, visible_to_exporter=True):
+    def create_case_document(case: Case, user: GovUser, name: str, visible_to_exporter=True, safe=True):
         case_doc = CaseDocument(
             case=case,
             description="This is a document",
@@ -354,7 +345,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             s3_key="thisisakey",
             size=123456,
             virus_scanned_at=None,
-            safe=None,
+            safe=safe,
             visible_to_exporter=visible_to_exporter,
         )
         case_doc.save()
@@ -773,45 +764,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return self.submit_application(draft, self.exporter_user)
 
-    def create_hmrc_query(
-        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True, have_goods_departed=False
-    ):
-        application = HmrcQuery(
-            name=reference_name,
-            case_type_id=CaseTypeEnum.HMRC.id,
-            activity="Trade",
-            usage="Trade",
-            organisation=organisation,
-            hmrc_organisation=self.hmrc_organisation,
-            reasoning="I Am Easy to Find",
-            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            have_goods_departed=have_goods_departed,
-            submitted_by=self.hmrc_exporter_user,
-        )
-        application.save()
-
-        end_user = self.create_party("End User", organisation, PartyType.END_USER, application)
-        consignee = self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-        third_party = self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-
-        self.assertEqual(end_user, application.end_user.party)
-        self.assertEqual(consignee, application.consignee.party)
-        self.assertEqual(third_party, application.third_parties.get().party)
-
-        goods_type = GoodsTypeFactory(application=application)
-
-        # Set the application party documents
-        self.create_document_for_party(application.end_user.party, safe=safe_document)
-        self.create_document_for_party(application.consignee.party, safe=safe_document)
-        self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
-
-        self.create_document_for_goods_type(goods_type)
-
-        # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
-
-        return application
-
     def create_standard_application_case(
         self,
         organisation: Organisation,
@@ -1000,6 +952,30 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             )
             out.append(user)
         return out
+
+    def create_default_bucket(self):
+        s3 = init_s3_client()
+        s3.create_bucket(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            CreateBucketConfiguration={
+                "LocationConstraint": settings.AWS_REGION,
+            },
+        )
+
+    def put_object_in_default_bucket(self, key, body):
+        s3 = init_s3_client()
+        s3.put_object(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Key=key,
+            Body=body,
+        )
+
+    def get_object_from_default_bucket(self, key):
+        s3 = init_s3_client()
+        return s3.get_object(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Key=key,
+        )
 
 
 @pytest.mark.performance

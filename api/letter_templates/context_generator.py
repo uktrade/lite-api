@@ -29,7 +29,6 @@ from api.applications.models import (
     ApplicationDocument,
     StandardApplication,
     OpenApplication,
-    HmrcQuery,
     CountryOnApplication,
     GoodOnApplication,
 )
@@ -399,30 +398,6 @@ class FlattenedOpenApplicationSerializer(OpenApplicationSerializer):
         open_application = OpenApplication.objects.get(id=obj.pk)
         open_application_data = OpenApplicationSerializer(open_application).data
         serialized = {**ret["baseapplication"], **open_application_data}
-        return serialized
-
-
-class HmrcQuerySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HmrcQuery
-        fields = ["query_reason", "have_goods_departed"]
-
-    query_reason = serializers.CharField(source="reasoning")
-    have_goods_departed = FriendlyBooleanField()
-
-
-class FlattenedHmrcQuerySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Case
-        fields = ["baseapplication"]
-
-    baseapplication = BaseApplicationSerializer()
-
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        hmrc_query = HmrcQuery.objects.get(id=obj.pk)
-        hmrc_query_data = HmrcQuerySerializer(hmrc_query).data
-        serialized = {**ret["baseapplication"], **hmrc_query_data}
         return serialized
 
 
@@ -862,7 +837,6 @@ def get_document_context(case, addressee=None):
 SERIALIZER_MAPPING = {
     CaseTypeSubTypeEnum.STANDARD: FlattenedStandardApplicationSerializer,
     CaseTypeSubTypeEnum.OPEN: FlattenedOpenApplicationSerializer,
-    CaseTypeSubTypeEnum.HMRC: FlattenedHmrcQuerySerializer,
     CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQuerySerializer,
     CaseTypeSubTypeEnum.GOODS: GoodsQuerySerializer,
     CaseTypeSubTypeEnum.COMP_SITE: FlattenedComplianceSiteWithVisitReportsSerializer,

@@ -1,11 +1,23 @@
+from django.conf import settings
+from django.test import override_settings
+
+from api.core.helpers import get_exporter_frontend_url
+import pytest
+import datetime
 from unittest import mock
 from datetime import timedelta
 
 from django.urls import reverse
 from django.utils import timezone
+from api.cases.celery_tasks import (
+    schedule_all_ecju_query_chaser_emails,
+    send_ecju_query_chaser_email,
+    mark_ecju_query_as_sent,
+)
 from api.cases.tests.factories import EcjuQueryFactory
 from api.users.models import BaseNotification
 from faker import Faker
+from gov_notify.payloads import ExporterECJUQueryChaser
 from parameterized import parameterized
 from rest_framework import status
 from freezegun import freeze_time
@@ -15,6 +27,7 @@ from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
+from api.core.exceptions import NotFoundError
 from api.compliance.tests.factories import ComplianceSiteCaseFactory
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import StandardLicenceFactory
@@ -23,6 +36,8 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from api.users.tests.factories import ExporterUserFactory
+from gov_notify.enums import TemplateType
+from api.cases.models import CaseNoteMentions
 
 faker = Faker()
 
@@ -465,7 +480,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Attached the requested documents"}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -498,7 +513,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertEqual(1, BaseNotification.objects.filter(object_id=ecju_query.id).count())
 
         response = self.client.put(query_response_url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -520,13 +535,14 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         data = {"response": ""}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_ecju_query = response.json()["ecju_query"]
         self.assertIsNone(response_ecju_query["response"])
         self.assertIsNotNone(response_ecju_query["responded_at"])
 
-    def test_close_query_has_optional_response_govuser(self):
+    @parameterized.expand(["", None])
+    def test_close_query_has_required_response_govuser(self, response_value):
         case = self.create_standard_application_case(self.organisation)
         ecju_query = self.create_ecju_query(case, question="provide details please", gov_user=self.gov_user)
 
@@ -535,18 +551,11 @@ class ECJUQueriesResponseTests(DataTestClient):
 
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
-        data = {"response": ""}
+        data = {"response": response_value}
 
         response = self.client.put(query_response_url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        response_ecju_query = response.json()["ecju_query"]
-        self.assertIsNone(response_ecju_query["response"])
-        self.assertIsNotNone(response_ecju_query["responded_at"])
-
-        response_get = self.client.get(query_response_url, **self.gov_headers)
-        self.assertEqual(True, response_get.json()["ecju_query"]["is_manually_closed"])
-        self.assertEqual(0, BaseNotification.objects.filter(object_id=ecju_query.id).count())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], "Enter a reason why you are closing the query")
 
     def test_caseworker_manually_closes_query_exporter_responds_raises_error(self):
         case = self.create_standard_application_case(self.organisation)
@@ -556,7 +565,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         data = {"response": "exporter provided details"}
 
         response = self.client.put(query_response_url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -573,7 +582,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         data = {"response": "exporter provided details"}
 
         response = self.client.put(query_response_url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -600,7 +609,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Additional details included"}
         response = self.client.put(url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
 
@@ -636,7 +645,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         query_response_url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Attached the requested documents"}
         response = self.client.put(query_response_url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
         self.assertEqual(len(response["documents"]), 1)
@@ -665,7 +674,7 @@ class ECJUQueriesResponseTests(DataTestClient):
         url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
         data = {"response": "Additional details included"}
         response = self.client.put(url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()["ecju_query"]
         self.assertEqual(response["response"], data["response"])
         self.assertEqual(len(response["documents"]), 1)
@@ -681,3 +690,255 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()
         self.assertIsNotNone(response["document"]["id"])
+
+
+class ECJUQueriesChaserNotificationTests(DataTestClient):
+    @freeze_time("2024-02-06 12:00:00")
+    def setUp(self):
+        super().setUp()
+        # Require a valid formatted key else NotificationsAPIClient will complain with missing service id key.
+        settings.GOV_NOTIFY_KEY = (
+            "faketestkey-aa1539a1-0ba4-4ac2-b6ff-ae557aed2169-aa1539a1-0ba4-4ac2-b6ff-ae557aed2169"
+        )
+        self.case = self.create_standard_application_case(self.organisation)
+        self.date_15_working_days_from_today = datetime.datetime(2024, 1, 16, 12, 00)
+
+        self.ecju_query_case_1 = EcjuQueryFactory(
+            question="ECJU Query 15 days",
+            case=self.case,
+            raised_by_user=self.gov_user,
+            response=None,
+            created_at=self.date_15_working_days_from_today,
+            chaser_email_sent_on=self.date_15_working_days_from_today,
+        )
+
+    @freeze_time("2024-02-06 12:00:00")
+    @override_settings(GOV_NOTIFY_ENABLED=True)
+    @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
+    def test_schedule_all_ecju_query_chaser_emails_filters(self, mock_gov_notification):
+
+        EcjuQueryFactory(
+            question="ECJU Query 14 days",
+            case=self.case,
+            raised_by_user=self.gov_user,
+            created_at=datetime.datetime(2024, 1, 17, 12, 00),
+        )
+
+        ecju_quey_send_1 = EcjuQueryFactory(
+            question="ECJU Query 15 days",
+            case=self.case,
+            raised_by_user=self.gov_user,
+            created_at=self.date_15_working_days_from_today,
+        )
+
+        ecju_quey_send_2 = EcjuQueryFactory(
+            question="ECJU Query reminder after 20 days",
+            case=self.case,
+            raised_by_user=self.gov_user,
+            created_at=datetime.datetime(2024, 1, 9, 12, 00),
+        )
+
+        EcjuQueryFactory(
+            question="ECJU Query reminder sent old",
+            case=self.case,
+            raised_by_user=self.gov_user,
+            created_at=datetime.datetime(2024, 1, 17, 12, 00),
+        )
+
+        self.assertEqual(EcjuQuery.objects.filter(chaser_email_sent_on__isnull=True).count(), 4)
+
+        schedule_all_ecju_query_chaser_emails.apply()
+        self.assertEqual(mock_gov_notification.call_count, 2)
+
+        self.assertEqual(EcjuQuery.objects.filter(chaser_email_sent_on__isnull=True).count(), 2)
+        ecju_quey_send_1.refresh_from_db()
+        ecju_quey_send_2.refresh_from_db()
+        self.assertIsNotNone(ecju_quey_send_1.chaser_email_sent_on)
+        self.assertIsNotNone(ecju_quey_send_2.chaser_email_sent_on)
+
+    @freeze_time("2024-02-06 12:00:00")
+    @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
+    def test_schedule_all_ecju_query_chaser_emails_filters_terminal(self, mock_gov_notification):
+
+        self.case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        self.case.save()
+
+        ecju_response_query = EcjuQueryFactory(
+            question="Terminal Case 15 days",
+            case=self.case,
+            raised_by_user=self.gov_user,
+            created_at=self.date_15_working_days_from_today,
+        )
+
+        schedule_all_ecju_query_chaser_emails.apply()
+        mock_gov_notification.assert_not_called()
+
+        ecju_response_query.refresh_from_db()
+        self.assertIsNone(ecju_response_query.chaser_email_sent_on)
+
+    @freeze_time("2024-02-06 12:00:00")
+    @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
+    def test_schedule_all_ecju_query_chaser_emails_filters_responded(self, mock_gov_notification):
+
+        case_2 = self.create_standard_application_case(self.organisation)
+
+        ecju_response_query = EcjuQueryFactory(
+            question="ECJU Query 2 15 days",
+            case=case_2,
+            response="I have a response",
+            raised_by_user=self.gov_user,
+            responded_by_user=self.base_user,
+            created_at=self.date_15_working_days_from_today,
+        )
+
+        schedule_all_ecju_query_chaser_emails.apply()
+        mock_gov_notification.assert_not_called()
+
+        ecju_response_query.refresh_from_db()
+        self.assertIsNone(ecju_response_query.chaser_email_sent_on)
+
+    @freeze_time("2024-02-06 12:00:00")
+    @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
+    def test_schedule_all_ecju_query_chaser_emails_filters_is_chaser_email_sent(self, mock_gov_notification):
+
+        case_2 = self.create_standard_application_case(self.organisation)
+
+        EcjuQueryFactory(
+            question="ECJU Query 15 days",
+            case=case_2,
+            raised_by_user=self.gov_user,
+            created_at=self.date_15_working_days_from_today,
+            chaser_email_sent_on=datetime.datetime.now(),
+        )
+
+        schedule_all_ecju_query_chaser_emails.apply()
+        mock_gov_notification.assert_not_called()
+
+    @freeze_time("2024-02-06 12:00:00")
+    @mock.patch("api.cases.notify.send_email")
+    def test_schedule_all_ecju_query_chaser_emails_send_mail_params(self, mock_send_email):
+
+        self.ecju_query_case_1.chaser_email_sent_on = None
+        self.ecju_query_case_1.save()
+
+        schedule_all_ecju_query_chaser_emails.apply()
+
+        mock_send_email.assert_called_once()
+
+        expected_payload = ExporterECJUQueryChaser(
+            case_reference=self.case.reference_code,
+            exporter_frontend_ecju_queries_url=get_exporter_frontend_url(f"/applications/{self.case.pk}/ecju-queries/"),
+            remaining_days=5,
+            open_working_days=15,
+        )
+        mock_send_email.assert_called_with(
+            self.case.submitted_by.email,
+            TemplateType.EXPORTER_ECJU_QUERY_CHASER,
+            expected_payload,
+            mark_ecju_query_as_sent.si(self.ecju_query_case_1.pk),
+        )
+
+    @freeze_time("2024-02-06 12:00:00")
+    @override_settings(GOV_NOTIFY_ENABLED=True)
+    @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
+    def test_schedule_all_ecju_query_chaser_emails_callback_marks_sent(self, mock_gov_notification):
+
+        self.ecju_query_case_1.chaser_email_sent_on = None
+        self.ecju_query_case_1.save()
+
+        schedule_all_ecju_query_chaser_emails.apply()
+
+        mock_gov_notification.assert_called_once()
+
+        self.ecju_query_case_1.refresh_from_db()
+
+        self.assertIsNotNone(self.ecju_query_case_1.chaser_email_sent_on)
+
+    @freeze_time("2024-02-06 12:00:00")
+    @mock.patch("api.cases.celery_tasks.send_ecju_query_chaser_email.delay")
+    def test_send_ecju_query_notifications_raises_exception(self, mock_send_ecju_query_chaser_email):
+        self.ecju_query_case_1.chaser_email_sent_on = None
+        self.ecju_query_case_1.save()
+
+        mock_send_ecju_query_chaser_email.side_effect = Exception()
+        with pytest.raises(Exception):
+            schedule_all_ecju_query_chaser_emails()
+
+        mock_send_ecju_query_chaser_email.assert_called_once()
+        self.assertEqual(EcjuQuery.objects.filter(chaser_email_sent_on__isnull=False).count(), 0)
+
+    @freeze_time("2024-02-06 12:00:00")
+    @mock.patch("api.cases.notify.send_email")
+    @mock.patch("api.cases.notify._notify_exporter_ecju_query_chaser")
+    def test_send_ecju_query_chaser_email_raises_exception(self, mock_notify_chaser_email, mock_send_email):
+        self.ecju_query_case_1.chaser_email_sent_on = None
+        self.ecju_query_case_1.save()
+
+        mock_notify_chaser_email.side_effect = Exception()
+
+        with pytest.raises(Exception):
+            send_ecju_query_chaser_email(self.ecju_query_case_1.pk)
+        mock_send_email.assert_not_called()
+        self.ecju_query_case_1.refresh_from_db()
+        self.assertIsNone(self.ecju_query_case_1.chaser_email_sent_on)
+
+    @freeze_time("2024-02-06 12:00:00")
+    def test_mark_ecju_query_as_sent(self):
+        self.ecju_query_case_1.chaser_email_sent_on = None
+        self.ecju_query_case_1.save_base()
+
+        self.assertIsNone(self.ecju_query_case_1.responded_at)
+
+        mark_ecju_query_as_sent(self.ecju_query_case_1.pk)
+
+        self.ecju_query_case_1.refresh_from_db()
+        self.assertIsNotNone(self.ecju_query_case_1.chaser_email_sent_on)
+        # Need to esnure responded_at is not impacted auto_now_add and save business logic shouldn't be executed
+        self.assertIsNone(self.ecju_query_case_1.responded_at)
+
+    @parameterized.expand(["this is some response text", ""])
+    def test_exporter_responding_to_query_creates_case_note_mention_for_caseworker(self, response_text):
+        case = self.create_standard_application_case(self.organisation)
+
+        # caseworker raises a query
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+        question_text = "this is the question text"
+        data = {"question": question_text, "query_type": ECJUQueryType.ECJU}
+
+        response = self.client.post(url, data, **self.gov_headers)
+        response_data = response.json()
+        ecju_query = EcjuQuery.objects.get(case=case)
+
+        self.assertFalse(ecju_query.is_query_closed)
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
+        self.assertEqual(question_text, ecju_query.question)
+        self.assertIsNone(ecju_query.response)
+
+        # exporter responds to the query
+        url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
+        data = {"response": response_text}
+
+        response = self.client.put(url, data, **self.exporter_headers)
+        ecju_query = EcjuQuery.objects.get(case=case)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(ecju_query.is_query_closed)
+
+        # check case note mention is created
+        case_note_mentions = CaseNoteMentions.objects.first()
+        case_note = case_note_mentions.case_note
+        audit_object = Audit.objects.first()
+
+        expected_gov_user = ecju_query.raised_by_user
+        expected_exporter_user = ecju_query.responded_by_user
+        expected_mention_users_text = f"{expected_gov_user.full_name} ({expected_gov_user.team.name})"
+        expected_case_note_text = f"{expected_exporter_user.get_full_name()} has responded to a query."
+        expected_audit_payload = {
+            "mention_users": [expected_mention_users_text],
+            "additional_text": expected_case_note_text,
+        }
+
+        self.assertEqual(case_note_mentions.user, expected_gov_user)
+        self.assertEqual(case_note.text, expected_case_note_text)
+        self.assertEqual(audit_object.payload, expected_audit_payload)

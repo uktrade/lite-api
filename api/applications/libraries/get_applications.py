@@ -2,7 +2,6 @@ from api.applications.models import (
     BaseApplication,
     OpenApplication,
     StandardApplication,
-    HmrcQuery,
 )
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.exceptions import NotFoundError
@@ -74,14 +73,11 @@ def get_application(pk, organisation_id=None):
             return obj
         elif application_type == CaseTypeSubTypeEnum.OPEN:
             return OpenApplication.objects.get(pk=pk, **kwargs)
-        elif application_type == CaseTypeSubTypeEnum.HMRC:
-            return HmrcQuery.objects.get(pk=pk)
         else:
             raise NotImplementedError(f"get_application does not support this application type: {application_type}")
     except (
         StandardApplication.DoesNotExist,
         OpenApplication.DoesNotExist,
-        HmrcQuery.DoesNotExist,
     ):
         raise NotFoundError({"application": "Application not found - " + str(pk)})
 

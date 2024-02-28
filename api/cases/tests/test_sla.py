@@ -3,11 +3,9 @@ from unittest import mock
 from unittest.mock import patch
 
 from django.conf import settings
-from django.urls import reverse
 from django.utils import timezone
 from parameterized import parameterized
 from pytz import timezone as tz
-from rest_framework import status
 
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import Case, CaseQueue, EcjuQuery
@@ -16,7 +14,6 @@ from api.cases.celery_tasks import (
     STANDARD_APPLICATION_TARGET_DAYS,
     OPEN_APPLICATION_TARGET_DAYS,
     SLA_UPDATE_CUTOFF_TIME,
-    HMRC_QUERY_TARGET_DAYS,
 )
 from api.cases.models import CaseQueue, DepartmentSLA
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -46,7 +43,15 @@ class SlaCaseTests(DataTestClient):
         self.case_types = {
             CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
             CaseTypeSubTypeEnum.OPEN: self.create_draft_open_application(self.organisation),
+<<<<<<< HEAD
             CaseTypeSubTypeEnum.HMRC: self.create_hmrc_query(self.organisation),
+=======
+            CaseTypeSubTypeEnum.EXHIBITION: self.create_mod_clearance_application(
+                self.organisation, CaseTypeEnum.EXHIBITION
+            ),
+            CaseTypeSubTypeEnum.F680: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680),
+            CaseTypeSubTypeEnum.GIFTING: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.GIFTING),
+>>>>>>> dev
             CaseTypeSubTypeEnum.GOODS: self.create_clc_query("abc", self.organisation),
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
@@ -82,28 +87,6 @@ class SlaCaseTests(DataTestClient):
         mock_is_bank_holiday,
         application_type=CaseTypeSubTypeEnum.OPEN,
         target=OPEN_APPLICATION_TARGET_DAYS,
-    ):
-        mock_is_weekend.return_value = False
-        mock_is_bank_holiday.return_value = False
-        application = self.case_types[application_type]
-        case = self.submit_application(application)
-        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-
-        results = run_update_cases_sla_task()
-        case.refresh_from_db()
-
-        self.assertEqual(results, 1)
-        self.assertEqual(case.sla_days, 1)
-        self.assertEqual(case.sla_remaining_days, target - 1)
-
-    @mock.patch("api.cases.celery_tasks.is_weekend")
-    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
-    def test_sla_update_hmrc_query(
-        self,
-        mock_is_weekend,
-        mock_is_bank_holiday,
-        application_type=CaseTypeSubTypeEnum.HMRC,
-        target=HMRC_QUERY_TARGET_DAYS,
     ):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False
@@ -450,41 +433,6 @@ class WorkingDayTests(DataTestClient):
 
         # Expecting update_cases_sla to be ran, but no cases found
         self.assertEqual(result, 0)
-
-
-class SlaHmrcCaseTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-        self.hmrc_query = self.create_hmrc_query(self.organisation)
-        self.submit_application(self.hmrc_query)
-        self.url = reverse("cases:search")
-
-    def test_sla_hours_appears_on_hmrc_queries_when_goods_not_yet_left_country(self):
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertIn("sla_hours_since_raised", response_data[0])
-
-    def test_sla_hours_does_not_appear_on_hmrc_queries_when_goods_have_left_country(self):
-        self.hmrc_query.have_goods_departed = True
-        self.hmrc_query.save()
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertNotIn("sla_hours_since_raised", response_data[0])
-
-    def test_sla_hours_does_not_appear_on_other_cases(self):
-        self.hmrc_query.delete()
-        self.create_standard_application_case(self.organisation)
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["results"]["cases"]
-        self.assertNotIn("sla_hours_since_raised", response_data[0])
 
 
 class TerminalCaseSlaTests(DataTestClient):

@@ -55,12 +55,6 @@ class ReferenceCode(DataTestClient):
         )
         self.assertEqual(open_application.reference_code, expected_reference)
 
-    def test_hmrc_query_reference_code(self):
-        hmrc_query = self.create_hmrc_query(self.organisation)
-        hmrc_query = self.submit_application(hmrc_query)
-        expected_reference = build_expected_reference(CaseTypeEnum.HMRC.reference)
-        self.assertEqual(hmrc_query.reference_code, expected_reference)
-
     def test_end_user_advisory_reference_code(self):
         end_user_advisory_query = self.create_end_user_advisory_case("", "", self.organisation)
         expected_reference = build_expected_reference(CaseTypeEnum.EUA.reference)

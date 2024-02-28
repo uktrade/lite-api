@@ -14,11 +14,6 @@ from api.applications.serializers.end_use_details import (
     OpenEndUseDetailsUpdateSerializer,
     StandardEndUseDetailsUpdateSerializer,
 )
-from api.applications.serializers.hmrc_query import (
-    HmrcQueryCreateSerializer,
-    HmrcQueryViewSerializer,
-    HmrcQueryUpdateSerializer,
-)
 from api.applications.serializers.open_application import (
     OpenApplicationCreateSerializer,
     OpenApplicationUpdateSerializer,
@@ -46,8 +41,6 @@ def get_application_view_serializer(application: BaseApplication):
         return StandardApplicationViewSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-        return HmrcQueryViewSerializer
     else:
         raise BadRequestError(
             {
@@ -64,8 +57,6 @@ def get_application_create_serializer(case_type):
         return StandardApplicationCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationCreateSerializer
-    elif sub_type == CaseTypeSubTypeEnum.HMRC:
-        return HmrcQueryCreateSerializer
     else:
         raise BadRequestError({"application_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]})
 
@@ -75,8 +66,6 @@ def get_application_update_serializer(application: BaseApplication):
         return StandardApplicationUpdateSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationUpdateSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-        return HmrcQueryUpdateSerializer
     else:
         raise BadRequestError(
             {

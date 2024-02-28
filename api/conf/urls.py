@@ -53,3 +53,6 @@ if settings.ADMIN_ENABLED:
 
 if settings.ENABLE_DJANGO_SILK:
     urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
+
+if settings.MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS:
+    urlpatterns += [path("mock_virus_scan/", include("mock_virus_scan.urls"))]
