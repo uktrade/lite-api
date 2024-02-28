@@ -88,7 +88,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         )
         cls.appeal = AppealFactory(grounds_for_appeal="appeal grounds")
         cls.case_note = CaseNoteFactory(text="case note text")
-        cls.advice = FinalAdviceFactory(text="final advice text", user=GovUserFactory())
+        cls.advice = FinalAdviceFactory(text="final advice text", user=GovUserFactory(), note="advice note", proviso="advice proviso")
 
     @classmethod
     def delete_test_data(cls):
@@ -167,6 +167,14 @@ class TestAnonymiseDumps(TransactionTestCase):
         assert str(self.case_note.id) in self.anonymised_sql
         assert self.case_note.text not in self.anonymised_sql
 
-    def test_advice_anonymised(self):
+    def test_advice_text_anonymised(self):
         assert str(self.advice.id) in self.anonymised_sql
         assert self.advice.text not in self.anonymised_sql
+
+    def test_advice_note_anonymised(self):
+        assert str(self.advice.id) in self.anonymised_sql
+        assert self.advice.note not in self.anonymised_sql
+
+    def test_advice_proviso_anonymised(self):
+        assert str(self.advice.id) in self.anonymised_sql
+        assert self.advice.proviso not in self.anonymised_sql

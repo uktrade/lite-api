@@ -50,3 +50,5 @@ strategy:
     text: faker.text
   advice:
     text: faker.text
+    note: faker.text
+    proviso: faker.text
