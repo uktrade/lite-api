@@ -7,7 +7,9 @@ from django.test import TransactionTestCase
 
 from api.appeals.tests.factories import AppealFactory
 from api.cases.tests.factories import CaseNoteFactory, EcjuQueryFactory, FinalAdviceFactory
+from api.documents.tests.factories import DocumentFactory
 from api.document_data.models import DocumentData
+from api.goods.tests.factories import FirearmFactory
 from api.organisations.tests.factories import SiteFactory, OrganisationFactory
 from api.addresses.tests.factories import AddressFactory
 from api.staticdata.countries.models import Country
@@ -41,6 +43,7 @@ class TestAnonymiseDumps(TransactionTestCase):
 
     @classmethod
     def create_test_data(cls):
+        # Required as GovUser creation assumes this role exists
         RoleFactory(id="00000000-0000-0000-0000-000000000001")
         cls.document_data = DocumentData.objects.create(
             s3_key="somefile.txt", content_type="csv", last_modified=datetime.now()
@@ -92,6 +95,11 @@ class TestAnonymiseDumps(TransactionTestCase):
             text="final advice text", user=GovUserFactory(), note="advice note", proviso="advice proviso"
         )
         cls.ecju_query = EcjuQueryFactory(question="ecju query question", response="ecju query response")
+        cls.document = DocumentFactory(name="document_name.txt", s3_key="document_s3_key.txt")
+        cls.firearm_good_details = FirearmFactory(
+            serial_numbers=["serial number 1", "serial number 2"], serial_number="serial number"
+        )
+        cls.firearm_good_details_2 = FirearmFactory(serial_numbers=[], serial_number="serial number")
 
     @classmethod
     def delete_test_data(cls):
@@ -107,6 +115,8 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.case_note.delete()
         cls.advice.delete()
         cls.ecju_query.delete()
+        cls.document.delete()
+        cls.firearm_good_details.delete()
 
     def test_users_baseuser_anonymised(self):
         assert str(self.base_user.id) in self.anonymised_sql
@@ -190,3 +200,22 @@ class TestAnonymiseDumps(TransactionTestCase):
     def test_ecju_query_response_anonymised(self):
         assert str(self.ecju_query.id) in self.anonymised_sql
         assert self.ecju_query.response not in self.anonymised_sql
+
+    def test_document_name_anonymised(self):
+        assert str(self.document.id) in self.anonymised_sql
+        assert self.document.name not in self.anonymised_sql
+
+    def test_document_s3_key_anonymised(self):
+        assert str(self.document.id) in self.anonymised_sql
+        assert self.document.s3_key not in self.anonymised_sql
+
+    def test_firearm_good_details_serial_numbers_anonymised(self):
+        assert str(self.firearm_good_details.id) in self.anonymised_sql
+        for value in self.firearm_good_details.serial_numbers:
+
+            assert value not in self.anonymised_sql
+
+    def test_firearm_good_details_serial_number_anonymised(self):
+        assert str(self.firearm_good_details.id) in self.anonymised_sql
+
+        assert self.firearm_good_details.serial_number not in self.anonymised_sql
