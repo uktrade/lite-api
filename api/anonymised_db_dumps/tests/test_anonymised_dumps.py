@@ -88,7 +88,9 @@ class TestAnonymiseDumps(TransactionTestCase):
         )
         cls.appeal = AppealFactory(grounds_for_appeal="appeal grounds")
         cls.case_note = CaseNoteFactory(text="case note text")
-        cls.advice = FinalAdviceFactory(text="final advice text", user=GovUserFactory(), note="advice note", proviso="advice proviso")
+        cls.advice = FinalAdviceFactory(
+            text="final advice text", user=GovUserFactory(), note="advice note", proviso="advice proviso"
+        )
 
     @classmethod
     def delete_test_data(cls):
