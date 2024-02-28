@@ -38,5 +38,4 @@ class ExperiencedIssueEnum(models.TextChoices):
 
 
 class UserJourney(models.TextChoices):
-    BETA_FEEDBACK_BANNER = "BETA_FEEDBACK BANNER", "BETA_FEEDBACK BANNER"
     APPLICATION_SUBMISSION = "APPLICATION_SUBMISSION", "APPLICATION_SUBMISSION"
