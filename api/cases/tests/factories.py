@@ -6,6 +6,7 @@ from api.cases.models import (
     CountersignAdvice,
     Case,
     CaseAssignment,
+    CaseNote,
     CaseStatus,
     CaseType,
     EcjuQuery,
@@ -17,7 +18,7 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.staticdata.countries.factories import CountryFactory
 from api.teams.tests.factories import TeamFactory, DepartmentFactory
-from api.users.tests.factories import GovUserFactory
+from api.users.tests.factories import BaseUserFactory, GovUserFactory
 
 
 class BaseAdviceFactory(factory.django.DjangoModelFactory):
@@ -115,3 +116,11 @@ class EcjuQueryFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = EcjuQuery
+
+
+class CaseNoteFactory(factory.django.DjangoModelFactory):
+    case = factory.SubFactory(CaseFactory)
+    user = factory.SubFactory(BaseUserFactory)
+
+    class Meta:
+        model = CaseNote

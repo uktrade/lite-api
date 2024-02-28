@@ -6,6 +6,7 @@ from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from api.appeals.tests.factories import AppealFactory
+from api.cases.tests.factories import CaseNoteFactory
 from api.document_data.models import DocumentData
 from api.organisations.tests.factories import SiteFactory, OrganisationFactory
 from api.addresses.tests.factories import AddressFactory
@@ -16,6 +17,9 @@ from api.parties.tests.factories import PartyFactory
 from api.users.tests.factories import BaseUserFactory
 
 
+# Note: This must inherit from TransactionTestCase - if we use DataTestClient
+# instead, the DB state changes will occur in transactions that are not
+# visible to the pg_dump command called by db_anonymiser
 class TestAnonymiseDumps(TransactionTestCase):
     @classmethod
     def setUpClass(cls):
@@ -82,6 +86,7 @@ class TestAnonymiseDumps(TransactionTestCase):
             phone_number="+44baseuser",
         )
         cls.appeal = AppealFactory(grounds_for_appeal="appeal grounds")
+        cls.case_note = CaseNoteFactory(text="case note text")
 
     @classmethod
     def delete_test_data(cls):
@@ -94,6 +99,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.party.delete()
         cls.base_user.delete()
         cls.appeal.delete()
+        cls.case_note.delete()
 
     def test_users_baseuser_anonymised(self):
         assert str(self.base_user.id) in self.anonymised_sql
@@ -153,3 +159,7 @@ class TestAnonymiseDumps(TransactionTestCase):
     def test_appeal_anonymised(self):
         assert str(self.appeal.id) in self.anonymised_sql
         assert self.appeal.grounds_for_appeal not in self.anonymised_sql
+
+    def test_case_note_anonymised(self):
+        assert str(self.case_note.id) in self.anonymised_sql
+        assert self.case_note.text not in self.anonymised_sql

@@ -46,3 +46,5 @@ strategy:
     name: faker.name
   appeals_appeal:
     grounds_for_appeal: faker.text
+  cases_casenote:
+    text: faker.text
