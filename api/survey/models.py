@@ -28,4 +28,4 @@ class SurveyResponse(models.Model):
     process_of_creating_account = models.CharField(choices=UserAccountEnum.choices, blank=True, default="")
 
     def __str__(self):
-        return f"SurveyResponse #{self.id} - {self.recommendation}"
+        return f"SurveyResponse #{self.id} - {self.satisfaction_rating}"
