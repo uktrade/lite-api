@@ -39,7 +39,7 @@ class SurveyCreateTests(DataTestClient):
             "url": "N/A",
             "user_journey": UserJourney.APPLICATION_SUBMISSION,
             "satisfaction_rating": RecommendationChoiceType.SATISFIED,
-            "experienced_issue": [ExperiencedIssueEnum.NO_ISSUE, ExperiencedIssueEnum.SYSTEM_SLOW],
+            "experienced_issues": [ExperiencedIssueEnum.NO_ISSUE, ExperiencedIssueEnum.SYSTEM_SLOW],
             "other_detail": "Words",
             "service_improvements_feedback": "Feedback words",
             "guidance_application_process_helpful": HelpfulGuidanceEnum.DISAGREE,
