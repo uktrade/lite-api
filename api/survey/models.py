@@ -21,7 +21,7 @@ class SurveyResponse(models.Model):
     satisfaction_rating = models.CharField(
         choices=RecommendationChoiceType.choices,
     )
-    experienced_issue = ArrayField(models.CharField(choices=ExperiencedIssueEnum.choices), blank=True, default="")
+    experienced_issue = ArrayField(models.CharField(choices=ExperiencedIssueEnum.choices), blank=True, null=True)
     other_detail = models.TextField(blank=True, default="")
     service_improvements_feedback = models.TextField(blank=True, default="")
     guidance_application_process_helpful = models.CharField(choices=HelpfulGuidanceEnum.choices, blank=True, default="")

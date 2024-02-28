@@ -7,6 +7,7 @@ from test_helpers.clients import DataTestClient
 from api.teams.tests.factories import TeamFactory
 from api.cases.tests.factories import DepartmentSLAFactory
 from api.teams.models import Department
+from api.survey import enums
 
 
 class DataWorkspaceTests(DataTestClient):
@@ -15,12 +16,13 @@ class DataWorkspaceTests(DataTestClient):
         self.create_party("Test Party", self.organisation, PartyType.END_USER)
 
         self.survey = SurveyResponse.objects.create(
-            recommendation="SATISFIED",
+            user_journey=enums.UserJourney.APPLICATION_SUBMISSION,
+            satisfaction_rating=enums.RecommendationChoiceType.SATISFIED,
+            experienced_issue=[enums.ExperiencedIssueEnum.NO_ISSUE, enums.ExperiencedIssueEnum.SYSTEM_SLOW],
             other_detail="Words",
-            experienced_issue=["NO_ISSUE", "UNCLEAR"],
-            helpful_guidance="DISAGREE",
-            user_account_process="EASY",
             service_improvements_feedback="Feedback words",
+            guidance_application_process_helpful=enums.HelpfulGuidanceEnum.DISAGREE,
+            process_of_creating_account=enums.UserAccountEnum.EASY,
         )
 
     def test_organisations(self):
@@ -162,14 +164,15 @@ class DataWorkspaceTests(DataTestClient):
 
         # Ensure we get some expected fields
         expected_fields = {
-            "recommendation",
-            "helpful_guidance",
-            "service_improvements_feedback",
             "id",
-            "created_at",
+            "feedback_submission_date",
+            "url",
+            "user_journey",
+            "satisfaction_rating",
             "experienced_issue",
-            "user_account_process",
             "other_detail",
-            "updated_at",
+            "service_improvements_feedback",
+            "guidance_application_process_helpful",
+            "process_of_creating_account",
         }
         assert set(payload["results"][0].keys()) == expected_fields
