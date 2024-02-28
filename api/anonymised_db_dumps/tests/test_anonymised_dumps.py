@@ -6,6 +6,7 @@ from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from api.appeals.tests.factories import AppealFactory
+from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
 from api.cases.tests.factories import CaseNoteFactory, EcjuQueryFactory, FinalAdviceFactory
 from api.documents.tests.factories import DocumentFactory
 from api.document_data.models import DocumentData
@@ -100,6 +101,7 @@ class TestAnonymiseDumps(TransactionTestCase):
             serial_numbers=["serial number 1", "serial number 2"], serial_number="serial number"
         )
         cls.good = GoodFactory(description="some good description", organisation=OrganisationFactory())
+        cls.good_on_application = GoodOnApplicationFactory(comment="some goa comment", application=StandardApplicationFactory(), good=cls.good)
 
     @classmethod
     def delete_test_data(cls):
@@ -117,6 +119,8 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.ecju_query.delete()
         cls.document.delete()
         cls.firearm_good_details.delete()
+        cls.good.delete()
+        cls.good_on_application.delete()
 
     def test_users_baseuser_anonymised(self):
         assert str(self.base_user.id) in self.anonymised_sql
@@ -224,3 +228,8 @@ class TestAnonymiseDumps(TransactionTestCase):
         assert str(self.good.id) in self.anonymised_sql
 
         assert self.good.description not in self.anonymised_sql
+
+    def test_good_on_application_comment_anonymised(self):
+        assert str(self.good_on_application.id) in self.anonymised_sql
+
+        assert self.good_on_application.comment not in self.anonymised_sql

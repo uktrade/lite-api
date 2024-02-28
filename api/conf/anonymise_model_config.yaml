@@ -64,3 +64,5 @@ strategy:
     serial_numbers: goods_anonymisers.serial_numbers
   good:
     description: faker.short_text
+  applications_goodonapplication:
+    comment: faker.text
