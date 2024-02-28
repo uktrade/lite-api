@@ -9,7 +9,7 @@ from api.appeals.tests.factories import AppealFactory
 from api.cases.tests.factories import CaseNoteFactory, EcjuQueryFactory, FinalAdviceFactory
 from api.documents.tests.factories import DocumentFactory
 from api.document_data.models import DocumentData
-from api.goods.tests.factories import FirearmFactory
+from api.goods.tests.factories import FirearmFactory, GoodFactory
 from api.organisations.tests.factories import SiteFactory, OrganisationFactory
 from api.addresses.tests.factories import AddressFactory
 from api.staticdata.countries.models import Country
@@ -99,7 +99,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.firearm_good_details = FirearmFactory(
             serial_numbers=["serial number 1", "serial number 2"], serial_number="serial number"
         )
-        cls.firearm_good_details_2 = FirearmFactory(serial_numbers=[], serial_number="serial number")
+        cls.good = GoodFactory(description="some good description", organisation=OrganisationFactory())
 
     @classmethod
     def delete_test_data(cls):
@@ -219,3 +219,8 @@ class TestAnonymiseDumps(TransactionTestCase):
         assert str(self.firearm_good_details.id) in self.anonymised_sql
 
         assert self.firearm_good_details.serial_number not in self.anonymised_sql
+
+    def test_good_description_anonymised(self):
+        assert str(self.good.id) in self.anonymised_sql
+
+        assert self.good.description not in self.anonymised_sql
