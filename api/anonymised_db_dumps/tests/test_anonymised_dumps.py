@@ -101,7 +101,9 @@ class TestAnonymiseDumps(TransactionTestCase):
             serial_numbers=["serial number 1", "serial number 2"], serial_number="serial number"
         )
         cls.good = GoodFactory(description="some good description", organisation=OrganisationFactory())
-        cls.good_on_application = GoodOnApplicationFactory(comment="some goa comment", application=StandardApplicationFactory(), good=cls.good)
+        cls.good_on_application = GoodOnApplicationFactory(
+            comment="some goa comment", application=StandardApplicationFactory(), good=cls.good
+        )
 
     @classmethod
     def delete_test_data(cls):
