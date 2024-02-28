@@ -1,10 +1,11 @@
 from django.db.models import F
 
 from api.core.helpers import get_exporter_frontend_url
-from api.cases.models import Case
+from api.cases.models import Case, EcjuQuery
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import (
     ExporterECJUQuery,
+    ExporterECJUQueryChaser,
     ExporterLicenceIssued,
     ExporterLicenceRefused,
     ExporterNoLicenceRequired,
@@ -104,9 +105,31 @@ def notify_exporter_ecju_query(case_pk):
     )
 
 
+def notify_exporter_ecju_query_chaser(ecju_query_id, callback):
+    ecju_query = EcjuQuery.objects.get(id=ecju_query_id)
+
+    exporter_frontend_ecju_queries_url = get_exporter_frontend_url(f"/applications/{ecju_query.case_id}/ecju-queries/")
+
+    _notify_exporter_ecju_query_chaser(
+        ecju_query.case.submitted_by.email,
+        {
+            "case_reference": ecju_query.case.reference_code,
+            "exporter_frontend_ecju_queries_url": exporter_frontend_ecju_queries_url,
+            "remaining_days": 20 - ecju_query.open_working_days,
+            "open_working_days": ecju_query.open_working_days,
+        },
+        callback,
+    )
+
+
 def _notify_exporter_ecju_query(email, data):
     payload = ExporterECJUQuery(**data)
     send_email(email, TemplateType.EXPORTER_ECJU_QUERY, payload)
+
+
+def _notify_exporter_ecju_query_chaser(email, data, callback):
+    payload = ExporterECJUQueryChaser(**data)
+    send_email(email, TemplateType.EXPORTER_ECJU_QUERY_CHASER, payload, callback)
 
 
 def _notify_exporter_no_licence_required(email, data):

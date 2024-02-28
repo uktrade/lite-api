@@ -94,6 +94,7 @@ class DataWorkspaceTests(DataTestClient):
             "responded_by_user",
             "responded_at",
             "created_at",
+            "chaser_email_sent_on",
         }
         allowed_actions = {"HEAD", "OPTIONS", "GET"}
 
