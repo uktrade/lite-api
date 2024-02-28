@@ -3,20 +3,20 @@ from rest_framework import status
 
 from test_helpers.clients import DataTestClient
 from api.survey.models import SurveyResponse
-from api.survey.enums import RecommendationChoiceType
+from api.survey.enums import RecommendationChoiceType, ExperiencedIssueEnum, HelpfulGuidanceEnum, UserAccountEnum
 
 
 class SurveyCreateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.survey = SurveyResponse.objects.create(
-            recommendation="SATISFIED",
+            recommendation=RecommendationChoiceType.SATISFIED,
         )
 
     def test_create_survey(self):
         url = reverse("survey:surveys")
         data = {
-            "recommendation": "SATISFIED",
+            "recommendation": RecommendationChoiceType.SATISFIED,
         }
 
         response = self.client.post(url, data, **self.exporter_headers)
@@ -29,11 +29,11 @@ class SurveyCreateTests(DataTestClient):
     def test_update_survey(self):
         url = reverse("survey:surveys_update", kwargs={"pk": self.survey.id})
         data = {
-            "recommendation": "SATISFIED",
+            "recommendation": RecommendationChoiceType.SATISFIED,
             "other_detail": "Words",
-            "experienced_issue": ["NO_ISSUE", "UNCLEAR"],
-            "helpful_guidance": "DISAGREE",
-            "user_account_process": "EASY",
+            "experienced_issue": [ExperiencedIssueEnum.NO_ISSUE, ExperiencedIssueEnum.SYSTEM_SLOW],
+            "helpful_guidance": HelpfulGuidanceEnum.DISAGREE,
+            "user_account_process": UserAccountEnum.EASY,
             "service_improvements_feedback": "Feedback words",
         }
 
