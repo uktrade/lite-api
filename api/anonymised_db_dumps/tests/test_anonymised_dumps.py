@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TransactionTestCase
 
+from api.appeals.tests.factories import AppealFactory
 from api.document_data.models import DocumentData
 from api.organisations.tests.factories import SiteFactory, OrganisationFactory
 from api.addresses.tests.factories import AddressFactory
@@ -80,6 +81,7 @@ class TestAnonymiseDumps(TransactionTestCase):
             email="base@user.email",
             phone_number="+44baseuser",
         )
+        cls.appeal = AppealFactory(grounds_for_appeal="appeal grounds")
 
     @classmethod
     def delete_test_data(cls):
@@ -91,6 +93,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.denial.delete()
         cls.party.delete()
         cls.base_user.delete()
+        cls.appeal.delete()
 
     def test_users_baseuser_anonymised(self):
         assert str(self.base_user.id) in self.anonymised_sql
@@ -146,3 +149,7 @@ class TestAnonymiseDumps(TransactionTestCase):
     def test_document_data_excluded(self):
         assert self.document_data.s3_key not in self.anonymised_sql
         assert str(self.document_data.id) not in self.anonymised_sql
+
+    def test_appeal_anonymised(self):
+        assert str(self.appeal.id) in self.anonymised_sql
+        assert self.appeal.grounds_for_appeal not in self.anonymised_sql

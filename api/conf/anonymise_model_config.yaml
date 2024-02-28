@@ -44,3 +44,5 @@ strategy:
     contact_telephone: faker.phone_number
   site:
     name: faker.name
+  appeals_appeal:
+    grounds_for_appeal: faker.text
