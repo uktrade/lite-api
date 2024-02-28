@@ -18,7 +18,7 @@ class DataWorkspaceTests(DataTestClient):
         self.survey = SurveyResponse.objects.create(
             user_journey=enums.UserJourney.APPLICATION_SUBMISSION,
             satisfaction_rating=enums.RecommendationChoiceType.SATISFIED,
-            experienced_issue=[enums.ExperiencedIssueEnum.NO_ISSUE, enums.ExperiencedIssueEnum.SYSTEM_SLOW],
+            experienced_issues=[enums.ExperiencedIssueEnum.NO_ISSUE, enums.ExperiencedIssueEnum.SYSTEM_SLOW],
             other_detail="Words",
             service_improvements_feedback="Feedback words",
             guidance_application_process_helpful=enums.HelpfulGuidanceEnum.DISAGREE,
@@ -169,7 +169,7 @@ class DataWorkspaceTests(DataTestClient):
             "url",
             "user_journey",
             "satisfaction_rating",
-            "experienced_issue",
+            "experienced_issues",
             "other_detail",
             "service_improvements_feedback",
             "guidance_application_process_helpful",
