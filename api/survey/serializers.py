@@ -6,10 +6,7 @@ from .models import SurveyResponse
 class SurveyResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = SurveyResponse
-        fields = fields = (
-            "id",
-            "recommendation",
-        )
+        fields = fields = ("id", "satisfaction_rating", "user_journey")
 
 
 class SurveyResponseUpdateSerializer(serializers.ModelSerializer):

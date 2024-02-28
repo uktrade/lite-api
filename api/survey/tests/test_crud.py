@@ -16,32 +16,34 @@ class SurveyCreateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.survey = SurveyResponse.objects.create(
-            recommendation=RecommendationChoiceType.SATISFIED, user_journey=UserJourney.BETA_FEEDBACK_BANNER
+            satisfaction_rating=RecommendationChoiceType.SATISFIED, user_journey=UserJourney.APPLICATION_SUBMISSION
         )
 
     def test_create_survey(self):
         url = reverse("survey:surveys")
         data = {
-            "recommendation": RecommendationChoiceType.SATISFIED,
+            "satisfaction_rating": RecommendationChoiceType.SATISFIED,
+            "user_journey": UserJourney.APPLICATION_SUBMISSION,
         }
 
         response = self.client.post(url, data, **self.exporter_headers)
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["recommendation"], RecommendationChoiceType.SATISFIED)
+        self.assertEqual(response_data["satisfaction_rating"], RecommendationChoiceType.SATISFIED)
         survey_response = SurveyResponse.objects.get(id=response_data["id"])
-        self.assertEqual(survey_response.recommendation, RecommendationChoiceType.SATISFIED)
+        self.assertEqual(survey_response.satisfaction_rating, RecommendationChoiceType.SATISFIED)
 
     def test_update_survey(self):
         url = reverse("survey:surveys_update", kwargs={"pk": self.survey.id})
         data = {
-            "user_journey": UserJourney.BETA_FEEDBACK_BANNER,
-            "recommendation": RecommendationChoiceType.SATISFIED,
-            "other_detail": "Words",
+            "url": "N/A",
+            "user_journey": UserJourney.APPLICATION_SUBMISSION,
+            "satisfaction_rating": RecommendationChoiceType.SATISFIED,
             "experienced_issue": [ExperiencedIssueEnum.NO_ISSUE, ExperiencedIssueEnum.SYSTEM_SLOW],
-            "helpful_guidance": HelpfulGuidanceEnum.DISAGREE,
-            "user_account_process": UserAccountEnum.EASY,
+            "other_detail": "Words",
             "service_improvements_feedback": "Feedback words",
+            "guidance_application_process_helpful": HelpfulGuidanceEnum.DISAGREE,
+            "process_of_creating_account": UserAccountEnum.EASY,
         }
 
         response = self.client.put(url, data, **self.exporter_headers)
