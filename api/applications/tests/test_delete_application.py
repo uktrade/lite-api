@@ -2,7 +2,6 @@ from django.urls import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 
 from api.applications.models import BaseApplication
-from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
 
@@ -21,9 +20,9 @@ class DeleteApplication(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(response.json()["status"], strings.Applications.Generic.DELETE_DRAFT_APPLICATION)
+        self.assertEqual(response.json()["status"], "Draft application deleted")
         self.assertEqual(number_of_applications - 1, BaseApplication.objects.all().count())
-        self.assertTrue(self.draft not in BaseApplication.objects.all())
+        self.assertNotIn(self.draft, BaseApplication.objects.all())
 
     def test_delete_draft_application_as_invalid_user_failure(self):
         """
@@ -49,5 +48,5 @@ class DeleteApplication(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], strings.Applications.Generic.DELETE_SUBMITTED_APPLICATION_ERROR)
+        self.assertEqual(response.json()["errors"], "Only draft applications can be deleted")
         self.assertEqual(number_of_applications, BaseApplication.objects.all().count())
