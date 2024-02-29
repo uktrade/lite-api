@@ -1,8 +1,11 @@
 import os
 from datetime import datetime
+from pathlib import Path
+import subprocess
 
 from django.conf import settings
 from django.core.management import call_command
+from django.db import connection
 from django.test import TransactionTestCase
 
 from api.appeals.tests.factories import AppealFactory
@@ -18,12 +21,21 @@ from api.queries.end_user_advisories.tests.factories import EndUserAdvisoryQuery
 from api.external_data.tests.factories import DenialFactory
 from api.parties.tests.factories import PartyFactory
 from api.users.tests.factories import BaseUserFactory, RoleFactory, GovUserFactory
+from api.users.models import BaseUser
 
 
 # Note: This must inherit from TransactionTestCase - if we use DataTestClient
 # instead, the DB state changes will occur in transactions that are not
 # visible to the pg_dump command called by db_anonymiser
 class TestAnonymiseDumps(TransactionTestCase):
+    def _fixture_teardown(self):
+        # NOTE: TransactionTestCase will truncate all tables by default
+        # before the run of each test case.  By overriding this method,
+        # we prevent this truncation from happening.  It would be nice if Django
+        # supplied some configurable way to do this, but that does not seem to be
+        # the case.
+        return
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -33,9 +45,41 @@ class TestAnonymiseDumps(TransactionTestCase):
             os.remove(cls.dump_location)
         except FileNotFoundError:
             pass
+
         call_command("dump_and_anonymise", keep_local_dumpfile=True, skip_s3_upload=True)
         with open(cls.dump_location, "r") as f:
             cls.anonymised_sql = f.read()
+
+        # Drop the existing test DB
+        connection.close()
+        db_details = settings.DATABASES["default"]
+        postgres_url_base = (
+            f"postgresql://{db_details['USER']}:{db_details['PASSWORD']}@{db_details['HOST']}:{db_details['PORT']}"
+        )
+        postgres_db_url = f"{postgres_url_base}/postgres"
+        subprocess.run(
+            (
+                "psql",
+                "--dbname",
+                postgres_db_url,
+            ),
+            input=f"DROP DATABASE \"{db_details['NAME']}\"; CREATE DATABASE \"{db_details['NAME']}\";",
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+        )
+
+        # Load the dumped data in to the test DB
+        lite_db_url = f"{postgres_url_base}/{db_details['NAME']}"
+        subprocess.run(
+            (
+                "psql",
+                "--dbname",
+                lite_db_url,
+            ),
+            input=cls.anonymised_sql,
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -125,11 +169,11 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.good_on_application.delete()
 
     def test_users_baseuser_anonymised(self):
-        assert str(self.base_user.id) in self.anonymised_sql
-        assert str(self.base_user.first_name) not in self.anonymised_sql
-        assert str(self.base_user.last_name) not in self.anonymised_sql
-        assert str(self.base_user.email) not in self.anonymised_sql
-        assert str(self.base_user.phone_number) not in self.anonymised_sql
+        updated_user = BaseUser.objects.get(id=self.base_user.id)
+        assert updated_user.first_name != self.base_user.first_name
+        assert updated_user.last_name != self.base_user.last_name
+        assert updated_user.email != self.base_user.email
+        assert updated_user.phone_number != self.base_user.phone_number
 
     def test_party_anonymised(self):
         assert str(self.party.id) in self.anonymised_sql
