@@ -10,7 +10,8 @@ from api.queues.models import Queue
 from api.queues.serializers import QueueListSerializer
 from api.teams.models import Team, Department
 from api.teams.serializers import TeamReadOnlySerializer
-from api.data_workspace.serializers import DepartmentSerializer
+from api.data_workspace.serializers import DepartmentSerializer, SurveyResponseSerializer
+from api.survey.models import SurveyResponse
 
 
 class OrganisationListView(viewsets.ReadOnlyModelViewSet):
@@ -58,3 +59,10 @@ class DepartmentListView(viewsets.ReadOnlyModelViewSet):
     serializer_class = DepartmentSerializer
     pagination_class = LimitOffsetPagination
     queryset = Department.objects.all()
+
+
+class SurveyResponseListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    serializer_class = SurveyResponseSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = SurveyResponse.objects.all()
