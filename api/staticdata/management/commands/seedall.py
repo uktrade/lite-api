@@ -19,18 +19,7 @@ SEED_COMMANDS = {
     ],
     "Dev": ["seedexporterusers"],
     "Tests": [
-        "seedcasetypes",
-        "seedrolepermissions",
-        "seedsystemuser",
-        "seedadminteam",
-        "seedinternalusers",
         "seedexporterusers",
-        "seedcontrollistentries",
-        "seeddenialreasons",
-        "seedcountries",
-        "seedlayouts",
-        "seedfinaldecisions",
-        "seedf680clearancetypes",
         "seedlettertemplates",
     ],
 }
