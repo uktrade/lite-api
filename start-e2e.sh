@@ -6,7 +6,7 @@ pipenv run ./manage.py seedall
 
 # Create initial users
 INTERNAL_USERS='[{"email"=>"foo@bar.gov.uk"}]' pipenv run ./manage.py seedinternalusers
-EXPORTER_USERS='[{"email"=>"test-exporter@example.com"}]' pipenv run ./manage.py seedexporterusers
+EXPORTER_USERS='[{"email"=>"lite-ops@digital.trade.gov.uk"}]' pipenv run ./manage.py seedexporterusers
 
 # Fill sanctions in ES
 LITE_API_ENABLE_ES=true pipenv run ./manage.py ingest_ui_test_sanctions
