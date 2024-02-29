@@ -43,15 +43,6 @@ class SlaCaseTests(DataTestClient):
         self.case_types = {
             CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
             CaseTypeSubTypeEnum.OPEN: self.create_draft_open_application(self.organisation),
-<<<<<<< HEAD
-            CaseTypeSubTypeEnum.HMRC: self.create_hmrc_query(self.organisation),
-=======
-            CaseTypeSubTypeEnum.EXHIBITION: self.create_mod_clearance_application(
-                self.organisation, CaseTypeEnum.EXHIBITION
-            ),
-            CaseTypeSubTypeEnum.F680: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680),
-            CaseTypeSubTypeEnum.GIFTING: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.GIFTING),
->>>>>>> dev
             CaseTypeSubTypeEnum.GOODS: self.create_clc_query("abc", self.organisation),
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
