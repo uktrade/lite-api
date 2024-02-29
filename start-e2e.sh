@@ -2,7 +2,7 @@
 cd /app/
 pipenv run ./manage.py migrate --noinput
 
-pipenv run ./manage.py seedall
+pipenv run ./manage.py seedall --test
 
 # Create initial users
 INTERNAL_USERS='[{"email"=>"foo@bar.gov.uk"}]' pipenv run ./manage.py seedinternalusers
