@@ -9,19 +9,29 @@ from django.db import connection
 from django.test import TransactionTestCase
 
 from api.appeals.tests.factories import AppealFactory
+from api.appeals.models import Appeal
 from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
+from api.applications.models import GoodOnApplication, StandardApplication
 from api.cases.tests.factories import CaseNoteFactory, EcjuQueryFactory, FinalAdviceFactory
+from api.cases.models import CaseNote, EcjuQuery, Advice
 from api.documents.tests.factories import DocumentFactory
+from api.documents.models import Document
 from api.document_data.models import DocumentData
 from api.goods.tests.factories import FirearmFactory, GoodFactory
+from api.goods.models import FirearmGoodDetails, Good
 from api.organisations.tests.factories import SiteFactory, OrganisationFactory
+from api.organisations.models import Site, Organisation
 from api.addresses.tests.factories import AddressFactory
+from api.addresses.models import Address
 from api.staticdata.countries.models import Country
 from api.queries.end_user_advisories.tests.factories import EndUserAdvisoryQueryFactory
+from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.external_data.tests.factories import DenialFactory
+from api.external_data.models import Denial
 from api.parties.tests.factories import PartyFactory
+from api.parties.models import Party
 from api.users.tests.factories import BaseUserFactory, RoleFactory, GovUserFactory
-from api.users.models import BaseUser
+from api.users.models import BaseUser, GovUser
 
 
 # Note: This must inherit from TransactionTestCase - if we use DataTestClient
@@ -176,106 +186,105 @@ class TestAnonymiseDumps(TransactionTestCase):
         assert updated_user.phone_number != self.base_user.phone_number
 
     def test_party_anonymised(self):
-        assert str(self.party.id) in self.anonymised_sql
-        assert str(self.party.name) not in self.anonymised_sql
-        assert str(self.party.address) not in self.anonymised_sql
-        assert str(self.party.website) not in self.anonymised_sql
-        assert str(self.party.email) not in self.anonymised_sql
-        assert str(self.party.phone_number) not in self.anonymised_sql
-        assert str(self.party.signatory_name_euu) not in self.anonymised_sql
-        assert str(self.party.details) not in self.anonymised_sql
+        updated_party = Party.objects.get(id=self.party.id)
+        assert str(self.party.name) != updated_party.name
+        assert str(self.party.address) != updated_party.address
+        assert str(self.party.website) != updated_party.website
+        assert str(self.party.email) != updated_party.email
+        assert str(self.party.phone_number) != updated_party.phone_number
+        assert str(self.party.signatory_name_euu) != updated_party.signatory_name_euu
+        assert str(self.party.details) != updated_party.details
 
     def test_address_anonymised(self):
-        assert str(self.address.id) in self.anonymised_sql
-        assert self.address.address_line_1 not in self.anonymised_sql
-        assert self.address.address_line_2 not in self.anonymised_sql
-        assert self.address.region not in self.anonymised_sql
-        assert self.address.postcode not in self.anonymised_sql
-        assert self.address.city not in self.anonymised_sql
+        updated_address = Address.objects.get(id=self.address.id)
+        assert self.address.address_line_1 != updated_address.address_line_1
+        assert self.address.address_line_2 != updated_address.address_line_2
+        assert self.address.region != updated_address.region
+        assert self.address.postcode != updated_address.postcode
+        assert self.address.city != updated_address.city
 
     def test_external_data_denial_anonymised(self):
-        assert str(self.denial.id) in self.anonymised_sql
-        assert self.denial.name not in self.anonymised_sql
-        assert self.denial.address not in self.anonymised_sql
-        assert self.denial.consignee_name not in self.anonymised_sql
+        updated_denial = Denial.objects.get(id=self.denial.id)
+        assert self.denial.name != updated_denial.name
+        assert self.denial.address != updated_denial.address
+        assert self.denial.consignee_name != updated_denial.consignee_name
 
     def test_organisation_anonymised(self):
-        assert str(self.organisation.id) in self.anonymised_sql
-        assert self.organisation.name not in self.anonymised_sql
-        assert str(self.organisation.phone_number) not in self.anonymised_sql
-        assert self.organisation.website not in self.anonymised_sql
-        assert self.organisation.eori_number not in self.anonymised_sql
-        assert self.organisation.sic_number not in self.anonymised_sql
-        assert self.organisation.vat_number not in self.anonymised_sql
-        assert self.organisation.registration_number not in self.anonymised_sql
+        updated_organisation = Organisation.objects.get(id=self.organisation.id)
+        assert self.organisation.name != updated_organisation.name
+        assert str(self.organisation.phone_number) != updated_organisation.phone_number
+        assert self.organisation.website != updated_organisation.website
+        assert self.organisation.eori_number != updated_organisation.eori_number
+        assert self.organisation.sic_number != updated_organisation.sic_number
+        assert self.organisation.vat_number != updated_organisation.vat_number
+        assert self.organisation.registration_number != updated_organisation.registration_number
 
     def test_enduser_advisory_query_anonymised(self):
-        assert str(self.end_user_advisory_query.id) in self.anonymised_sql
-        assert self.end_user_advisory_query.contact_name not in self.anonymised_sql
-        assert self.end_user_advisory_query.contact_telephone not in self.anonymised_sql
-        assert self.end_user_advisory_query.contact_email not in self.anonymised_sql
+        updated_end_user_advisory = EndUserAdvisoryQuery.objects.get(id=self.end_user_advisory_query.id)
+        assert self.end_user_advisory_query.contact_name != updated_end_user_advisory.contact_name
+        assert self.end_user_advisory_query.contact_telephone != updated_end_user_advisory.contact_telephone
+        assert self.end_user_advisory_query.contact_email != updated_end_user_advisory.contact_email
 
     def test_site_anonymised(self):
-        assert str(self.site.id) in self.anonymised_sql
-        assert self.site.name not in self.anonymised_sql
+        updated_site = Site.objects.get(id=self.site.id)
+        assert self.site.name != updated_site.name
 
     def test_document_data_excluded(self):
-        assert self.document_data.s3_key not in self.anonymised_sql
-        assert str(self.document_data.id) not in self.anonymised_sql
+        assert DocumentData.objects.count() == 0
 
     def test_appeal_anonymised(self):
-        assert str(self.appeal.id) in self.anonymised_sql
-        assert self.appeal.grounds_for_appeal not in self.anonymised_sql
+        updated_appeal = Appeal.objects.get(id=self.appeal.id)
+        assert self.appeal.grounds_for_appeal != updated_appeal.grounds_for_appeal
 
     def test_case_note_anonymised(self):
-        assert str(self.case_note.id) in self.anonymised_sql
-        assert self.case_note.text not in self.anonymised_sql
+        updated_case_note = CaseNote.objects.get(id=self.case_note.id)
+        assert self.case_note.text != updated_case_note.text
 
     def test_advice_text_anonymised(self):
-        assert str(self.advice.id) in self.anonymised_sql
-        assert self.advice.text not in self.anonymised_sql
+        updated_advice = Advice.objects.get(id=self.advice.id)
+        assert self.advice.text != updated_advice.text
 
     def test_advice_note_anonymised(self):
-        assert str(self.advice.id) in self.anonymised_sql
-        assert self.advice.note not in self.anonymised_sql
+        updated_advice = Advice.objects.get(id=self.advice.id)
+        assert self.advice.note != updated_advice.note
 
     def test_advice_proviso_anonymised(self):
-        assert str(self.advice.id) in self.anonymised_sql
-        assert self.advice.proviso not in self.anonymised_sql
+        updated_advice = Advice.objects.get(id=self.advice.id)
+        assert self.advice.proviso != updated_advice.proviso
 
     def test_ecju_query_question_anonymised(self):
-        assert str(self.ecju_query.id) in self.anonymised_sql
-        assert self.ecju_query.question not in self.anonymised_sql
+        updated_ecju_query = EcjuQuery.objects.get(id=self.ecju_query.id)
+        assert self.ecju_query.question != updated_ecju_query.question
 
     def test_ecju_query_response_anonymised(self):
-        assert str(self.ecju_query.id) in self.anonymised_sql
-        assert self.ecju_query.response not in self.anonymised_sql
+        updated_ecju_query = EcjuQuery.objects.get(id=self.ecju_query.id)
+        assert self.ecju_query.response != updated_ecju_query.response
 
     def test_document_name_anonymised(self):
-        assert str(self.document.id) in self.anonymised_sql
-        assert self.document.name not in self.anonymised_sql
+        updated_document = Document.objects.get(id=self.document.id)
+        assert self.document.name != updated_document.name
 
     def test_document_s3_key_anonymised(self):
-        assert str(self.document.id) in self.anonymised_sql
-        assert self.document.s3_key not in self.anonymised_sql
+        updated_document = Document.objects.get(id=self.document.id)
+        assert self.document.s3_key != updated_document.s3_key
 
     def test_firearm_good_details_serial_numbers_anonymised(self):
-        assert str(self.firearm_good_details.id) in self.anonymised_sql
+        updated_firearm_good_details = FirearmGoodDetails.objects.get(id=self.firearm_good_details.id)
         for value in self.firearm_good_details.serial_numbers:
 
-            assert value not in self.anonymised_sql
+            assert value not in updated_firearm_good_details.serial_numbers
+        assert len(updated_firearm_good_details.serial_numbers) == len(self.firearm_good_details.serial_numbers)
 
     def test_firearm_good_details_serial_number_anonymised(self):
-        assert str(self.firearm_good_details.id) in self.anonymised_sql
+        updated_firearm_good_details = FirearmGoodDetails.objects.get(id=self.firearm_good_details.id)
 
-        assert self.firearm_good_details.serial_number not in self.anonymised_sql
+        assert self.firearm_good_details.serial_number != updated_firearm_good_details.serial_number
 
     def test_good_description_anonymised(self):
-        assert str(self.good.id) in self.anonymised_sql
-
-        assert self.good.description not in self.anonymised_sql
+        updated_good = Good.objects.get(id=self.good.id)
+        assert self.good.description != updated_good.description
 
     def test_good_on_application_comment_anonymised(self):
-        assert str(self.good_on_application.id) in self.anonymised_sql
+        updated_good_on_application = GoodOnApplication.objects.get(id=self.good_on_application.id)
 
-        assert self.good_on_application.comment not in self.anonymised_sql
+        assert self.good_on_application.comment != updated_good_on_application.comment
