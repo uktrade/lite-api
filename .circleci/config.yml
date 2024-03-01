@@ -114,7 +114,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance and not migration and not anonymised_db_dumps and not db_anonymiser"
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
       - upload_code_coverage:
           alias: tests
 
@@ -150,7 +150,7 @@ jobs:
       - run:
           name: Run anonymised DB dump tests
           command: |
-            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k anonymised_db_dumps
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc api/anonymised_db_dumps
       - upload_code_coverage:
           alias: anonymised_db_dumps
 
