@@ -1,4 +1,5 @@
 from api.audit_trail.models import Audit
+from api.survey.models import SurveyResponse
 from api.teams.models import Department
 from api.cases.models import CaseAssignment, EcjuQuery, DepartmentSLA
 from api.licences.serializers.view_licence import LicenceListSerializer
@@ -117,3 +118,9 @@ class LicenceWithoutGoodsSerializer(LicenceListSerializer):
     def get_goods(self, instance):
         # Good are not required by reporting
         return []
+
+
+class SurveyResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SurveyResponse
+        fields = "__all__"
