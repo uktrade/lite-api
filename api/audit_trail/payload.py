@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 from api.audit_trail.enums import AuditType
 from api.audit_trail import formatters
 from lite_content.lite_api import strings
@@ -151,4 +153,11 @@ audit_type_format = {
     AuditType.LU_CREATE_MEETING_NOTE: formatters.create_lu_meeting_note,
     AuditType.CREATE_REFUSAL_CRITERIA: formatters.create_refusal_criteria,
     AuditType.EXPORTER_APPEALED_REFUSAL: " appealed refusal",
+}
+
+
+ADDITIONAL_TEXT_FORMATTERS = {
+    AuditType.ECJU_QUERY: itemgetter("ecju_query"),
+    AuditType.ECJU_QUERY_RESPONSE: itemgetter("ecju_response"),
+    AuditType.ECJU_QUERY_MANUALLY_CLOSED: itemgetter("ecju_response"),
 }
