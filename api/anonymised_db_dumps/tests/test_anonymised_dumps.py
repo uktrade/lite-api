@@ -12,6 +12,9 @@ from api.appeals.tests.factories import AppealFactory
 from api.appeals.models import Appeal
 from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
 from api.applications.models import GoodOnApplication, StandardApplication
+from api.audit_trail.tests.factories import AuditFactory
+from api.audit_trail.models import Audit
+from api.audit_trail.enums import AuditType
 from api.cases.tests.factories import CaseNoteFactory, EcjuQueryFactory, FinalAdviceFactory
 from api.cases.models import CaseNote, EcjuQuery, Advice
 from api.documents.tests.factories import DocumentFactory
@@ -158,6 +161,244 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.good_on_application = GoodOnApplicationFactory(
             comment="some goa comment", application=StandardApplicationFactory(), good=cls.good
         )
+        cls.create_audit_trail_data()
+
+    @classmethod
+    def create_audit_trail_data(cls):
+        cls.audit_entries = {
+            AuditType.ADD_CASE_OFFICER_TO_CASE: AuditFactory(
+                verb=AuditType.ADD_CASE_OFFICER_TO_CASE, payload={"case_officer": "some officer"}
+            ),
+            AuditType.ADD_PARTY: AuditFactory(
+                verb=AuditType.ADD_PARTY, payload={"party_name": "some party", "party_type": "ultimate_end_user"}
+            ),
+            AuditType.APPROVED_ORGANISATION: AuditFactory(
+                verb=AuditType.APPROVED_ORGANISATION, payload={"organisation_name": "some organisation"}
+            ),
+            AuditType.ASSIGN_USER_TO_CASE: AuditFactory(
+                verb=AuditType.ASSIGN_USER_TO_CASE,
+                payload={"additional_text": "allocated self to the case", "queue": "some queue", "user": "some user"},
+            ),
+            AuditType.CREATE_REFUSAL_CRITERIA: AuditFactory(
+                verb=AuditType.CREATE_REFUSAL_CRITERIA,
+                payload={
+                    "additional_text": "some text",
+                    "advice_type": "refuse",
+                    "firstname": "somefirst",
+                    "lastname": "somelast",
+                },
+            ),
+            AuditType.CREATED_CASE_NOTE: AuditFactory(
+                verb=AuditType.CREATED_CASE_NOTE,
+                payload={
+                    "additional_text": "some text",
+                },
+            ),
+            AuditType.CREATED_CASE_NOTE_WITH_MENTIONS: AuditFactory(
+                verb=AuditType.CREATED_CASE_NOTE_WITH_MENTIONS,
+                payload={
+                    "additional_text": "some text",
+                    "mention_users": ["user one", "user two"],
+                },
+            ),
+            AuditType.CREATED_ORGANISATION: AuditFactory(
+                verb=AuditType.CREATED_ORGANISATION,
+                payload={
+                    "organisation_name": "some organisation",
+                },
+            ),
+            AuditType.CREATED_SITE: AuditFactory(
+                verb=AuditType.CREATED_SITE,
+                payload={
+                    "site_name": "some site",
+                },
+            ),
+            AuditType.DELETE_APPLICATION_DOCUMENT: AuditFactory(
+                verb=AuditType.DELETE_APPLICATION_DOCUMENT,
+                payload={
+                    "file_name": "somefile.txt",
+                },
+            ),
+            AuditType.DELETE_PARTY_DOCUMENT: AuditFactory(
+                verb=AuditType.DELETE_PARTY_DOCUMENT,
+                payload={
+                    "file_name": "somefile.txt",
+                    "party_name": "some party",
+                    "party_type": "end_user",
+                },
+            ),
+            AuditType.DESTINATION_ADD_FLAGS: AuditFactory(
+                verb=AuditType.DESTINATION_ADD_FLAGS,
+                payload={
+                    "added_flags": ["flag1", "flag2"],
+                    "destination_name": "some destination",
+                },
+            ),
+            AuditType.DOCUMENT_ON_ORGANISATION_CREATE: AuditFactory(
+                verb=AuditType.DOCUMENT_ON_ORGANISATION_CREATE,
+                payload={
+                    "file_name": "somefile.txt",
+                    "document_type": "some doc type",
+                },
+            ),
+            AuditType.DOCUMENT_ON_ORGANISATION_DELETE: AuditFactory(
+                verb=AuditType.DOCUMENT_ON_ORGANISATION_DELETE,
+                payload={
+                    "file_name": "somefile.txt",
+                    "document_type": "some doc type",
+                },
+            ),
+            AuditType.ECJU_QUERY: AuditFactory(
+                verb=AuditType.ECJU_QUERY,
+                payload={
+                    "ecju_query": "some query",
+                },
+            ),
+            AuditType.ECJU_QUERY_MANUALLY_CLOSED: AuditFactory(
+                verb=AuditType.ECJU_QUERY_MANUALLY_CLOSED,
+                payload={
+                    "ecju_response": "some response",
+                },
+            ),
+            AuditType.ECJU_QUERY_RESPONSE: AuditFactory(
+                verb=AuditType.ECJU_QUERY_RESPONSE,
+                payload={
+                    "ecju_response": "some response",
+                },
+            ),
+            AuditType.LU_ADVICE: AuditFactory(
+                verb=AuditType.LU_ADVICE,
+                payload={
+                    "advice_type": "proviso",
+                    "firstname": "somefirst",
+                    "lastname": "somelast",
+                },
+            ),
+            AuditType.LU_COUNTERSIGN: AuditFactory(
+                verb=AuditType.LU_COUNTERSIGN,
+                payload={
+                    "firstname": "somefirst",
+                    "lastname": "somelast",
+                    "department": "somedept",
+                    "countersign_accepted": True,
+                    "order": 1,
+                },
+            ),
+            AuditType.LU_CREATE_MEETING_NOTE: AuditFactory(
+                verb=AuditType.LU_CREATE_MEETING_NOTE,
+                payload={
+                    "firstname": "somefirst",
+                    "lastname": "somelast",
+                    "advice_type": "proviso",
+                    "additional_text": "some text",
+                },
+            ),
+            AuditType.LU_EDIT_ADVICE: AuditFactory(
+                verb=AuditType.LU_EDIT_ADVICE,
+                payload={
+                    "firstname": "somefirst",
+                    "lastname": "somelast",
+                    "advice_type": "proviso",
+                    "additional_text": "some text",
+                },
+            ),
+            AuditType.LU_EDIT_MEETING_NOTE: AuditFactory(
+                verb=AuditType.LU_EDIT_MEETING_NOTE,
+                payload={
+                    "firstname": "somefirst",
+                    "lastname": "somelast",
+                    "advice_type": "proviso",
+                    "additional_text": "some text",
+                },
+            ),
+            AuditType.REGISTER_ORGANISATION: AuditFactory(
+                verb=AuditType.REGISTER_ORGANISATION,
+                payload={
+                    "organisation_name": "some organisation",
+                    "email": "email@example.net",
+                },
+            ),
+            AuditType.REJECTED_ORGANISATION: AuditFactory(
+                verb=AuditType.REJECTED_ORGANISATION,
+                payload={
+                    "organisation_name": "some organisation",
+                },
+            ),
+            AuditType.REMOVE_CASE_OFFICER_FROM_CASE: AuditFactory(
+                verb=AuditType.REMOVE_CASE_OFFICER_FROM_CASE,
+                payload={
+                    "case_officer": "some officer",
+                },
+            ),
+            AuditType.REMOVE_PARTY: AuditFactory(
+                verb=AuditType.REMOVE_PARTY,
+                payload={
+                    "party_name": "some party",
+                    "party_type": "end_user",
+                },
+            ),
+            AuditType.REMOVE_USER_FROM_CASE: AuditFactory(
+                verb=AuditType.REMOVE_USER_FROM_CASE,
+                payload={
+                    "removed_user_id": "some id",
+                    "removed_user_name": "some name",
+                    "removed_user_queue_id": "some id",
+                    "removed_user_queue_name": "some queue",
+                },
+            ),
+            AuditType.UPDATE_APPLICATION_END_USE_DETAIL: AuditFactory(
+                verb=AuditType.UPDATE_APPLICATION_END_USE_DETAIL,
+                payload={
+                    "end_use_detail": "some detail",
+                    "new_end_use_detail": "some detail",
+                    "old_end_use_detail": "some detail",
+                },
+            ),
+            AuditType.UPDATED_ORGANISATION: AuditFactory(
+                verb=AuditType.UPDATED_ORGANISATION,
+                payload={
+                    "key": "some key",
+                    "new": "some name",
+                    "old": "some old name",
+                },
+            ),
+            AuditType.UPDATED_SITE: AuditFactory(
+                verb=AuditType.UPDATED_SITE,
+                payload={
+                    "key": "some key",
+                    "new": "some name",
+                    "old": "some old name",
+                },
+            ),
+            AuditType.UPDATED_SITE_NAME: AuditFactory(
+                verb=AuditType.UPDATED_SITE_NAME,
+                payload={
+                    "key": "some key",
+                    "new": "some name",
+                    "old": "some old name",
+                },
+            ),
+            AuditType.UPLOAD_APPLICATION_DOCUMENT: AuditFactory(
+                verb=AuditType.UPLOAD_APPLICATION_DOCUMENT,
+                payload={
+                    "file_name": "somefile.txt",
+                },
+            ),
+            AuditType.UPLOAD_CASE_DOCUMENT: AuditFactory(
+                verb=AuditType.UPLOAD_CASE_DOCUMENT,
+                payload={
+                    "file_name": "somefile.txt",
+                },
+            ),
+            AuditType.UPLOAD_PARTY_DOCUMENT: AuditFactory(
+                verb=AuditType.UPLOAD_PARTY_DOCUMENT,
+                payload={
+                    "file_name": "somefile.txt",
+                    "party_name": "some party",
+                    "party_type": "end_user",
+                },
+            ),
+        }
 
     @classmethod
     def delete_test_data(cls):
@@ -177,6 +418,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.firearm_good_details.delete()
         cls.good.delete()
         cls.good_on_application.delete()
+        Audit.objects.all().delete()
 
     def test_users_baseuser_anonymised(self):
         updated_user = BaseUser.objects.get(id=self.base_user.id)
@@ -288,3 +530,217 @@ class TestAnonymiseDumps(TransactionTestCase):
         updated_good_on_application = GoodOnApplication.objects.get(id=self.good_on_application.id)
 
         assert self.good_on_application.comment != updated_good_on_application.comment
+
+    def test_audit_trail_anonymisation_add_case_officer_to_case_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.ADD_CASE_OFFICER_TO_CASE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["case_officer"] != previous_audit.payload["case_officer"]
+
+    def test_audit_trail_anonymisation_add_party_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.ADD_PARTY]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["party_name"] != previous_audit.payload["party_name"]
+        assert updated_audit.payload["party_type"] == previous_audit.payload["party_type"]
+
+    def test_audit_trail_anonymisation_approved_organisation_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.APPROVED_ORGANISATION]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["organisation_name"] != previous_audit.payload["organisation_name"]
+
+    def test_audit_trail_anonymisation_assign_user_to_case_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.ASSIGN_USER_TO_CASE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["user"] != previous_audit.payload["user"]
+        assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
+        assert updated_audit.payload["queue"] == previous_audit.payload["queue"]
+
+    def test_audit_trail_anonymisation_create_refusal_criteria_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.CREATE_REFUSAL_CRITERIA]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+        assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
+
+    def test_audit_trail_anonymisation_created_case_note_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.CREATED_CASE_NOTE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        # TODO: Review additional_text..
+        assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
+
+    def test_audit_trail_anonymisation_created_case_note_with_mentions_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.CREATED_CASE_NOTE_WITH_MENTIONS]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        # TODO: Review additional_text..
+        assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
+        assert updated_audit.payload["mention_users"] != previous_audit.payload["mention_users"]
+        assert len(updated_audit.payload["mention_users"]) == len(previous_audit.payload["mention_users"])
+
+    def test_audit_trail_anonymisation_created_organisation_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.CREATED_ORGANISATION]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["organisation_name"] != previous_audit.payload["organisation_name"]
+
+    def test_audit_trail_anonymisation_created_site_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.CREATED_SITE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["site_name"] != previous_audit.payload["site_name"]
+
+    def test_audit_trail_anonymisation_delete_application_document_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.DELETE_APPLICATION_DOCUMENT]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["file_name"] != previous_audit.payload["file_name"]
+
+    def test_audit_trail_anonymisation_delete_party_document_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.DELETE_PARTY_DOCUMENT]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["file_name"] != previous_audit.payload["file_name"]
+        assert updated_audit.payload["party_name"] != previous_audit.payload["party_name"]
+        assert updated_audit.payload["party_type"] == previous_audit.payload["party_type"]
+
+    def test_audit_trail_anonymisation_delete_party_document_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.DESTINATION_ADD_FLAGS]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["added_flags"] == previous_audit.payload["added_flags"]
+        assert updated_audit.payload["destination_name"] != previous_audit.payload["destination_name"]
+
+    def test_audit_trail_anonymisation_document_on_organisation_create_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.DOCUMENT_ON_ORGANISATION_CREATE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["file_name"] != previous_audit.payload["file_name"]
+        assert updated_audit.payload["document_type"] == previous_audit.payload["document_type"]
+
+    def test_audit_trail_anonymisation_document_on_organisation_delete_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.DOCUMENT_ON_ORGANISATION_DELETE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["file_name"] != previous_audit.payload["file_name"]
+        assert updated_audit.payload["document_type"] == previous_audit.payload["document_type"]
+
+    def test_audit_trail_anonymisation_ecju_query_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.ECJU_QUERY]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["ecju_query"] != previous_audit.payload["ecju_query"]
+
+    def test_audit_trail_anonymisation_ecju_query_manually_closed_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.ECJU_QUERY_MANUALLY_CLOSED]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["ecju_response"] != previous_audit.payload["ecju_response"]
+
+    def test_audit_trail_anonymisation_ecju_query_response_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.ECJU_QUERY_RESPONSE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["ecju_response"] != previous_audit.payload["ecju_response"]
+
+    def test_audit_trail_anonymisation_lu_advice_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.LU_ADVICE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+        assert updated_audit.payload["advice_type"] == previous_audit.payload["advice_type"]
+
+    def test_audit_trail_anonymisation_lu_countersign_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.LU_COUNTERSIGN]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+        assert updated_audit.payload["countersign_accepted"] == previous_audit.payload["countersign_accepted"]
+        assert updated_audit.payload["department"] == previous_audit.payload["department"]
+        assert updated_audit.payload["order"] == previous_audit.payload["order"]
+
+    def test_audit_trail_anonymisation_lu_create_meeting_note_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.LU_CREATE_MEETING_NOTE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
+        assert updated_audit.payload["advice_type"] == previous_audit.payload["advice_type"]
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+
+    def test_audit_trail_anonymisation_lu_edit_advice_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.LU_EDIT_ADVICE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
+        assert updated_audit.payload["advice_type"] == previous_audit.payload["advice_type"]
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+
+    def test_audit_trail_anonymisation_lu_edit_meeting_note_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.LU_EDIT_MEETING_NOTE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["additional_text"] == previous_audit.payload["additional_text"]
+        assert updated_audit.payload["advice_type"] == previous_audit.payload["advice_type"]
+        assert updated_audit.payload["firstname"] != previous_audit.payload["firstname"]
+        assert updated_audit.payload["lastname"] != previous_audit.payload["lastname"]
+
+    def test_audit_trail_anonymisation_register_organisation_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.REGISTER_ORGANISATION]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["organisation_name"] != previous_audit.payload["organisation_name"]
+        assert updated_audit.payload["email"] != previous_audit.payload["email"]
+
+    def test_audit_trail_anonymisation_rejected_organisation_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.REJECTED_ORGANISATION]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["organisation_name"] != previous_audit.payload["organisation_name"]
+
+    def test_audit_trail_anonymisation_remove_case_officer_from_case_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.REMOVE_CASE_OFFICER_FROM_CASE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["case_officer"] != previous_audit.payload["case_officer"]
+
+    def test_audit_trail_anonymisation_remove_party_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.REMOVE_PARTY]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["party_name"] != previous_audit.payload["party_name"]
+        assert updated_audit.payload["party_type"] == previous_audit.payload["party_type"]
+
+    def test_audit_trail_anonymisation_remove_user_from_case_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.REMOVE_USER_FROM_CASE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["removed_user_name"] != previous_audit.payload["removed_user_name"]
+        assert updated_audit.payload["removed_user_id"] == previous_audit.payload["removed_user_id"]
+        assert updated_audit.payload["removed_user_queue_id"] == previous_audit.payload["removed_user_queue_id"]
+        assert updated_audit.payload["removed_user_queue_name"] == previous_audit.payload["removed_user_queue_name"]
+
+    def test_audit_trail_anonymisation_update_application_end_use_detail(self):
+        previous_audit = self.audit_entries[AuditType.UPDATE_APPLICATION_END_USE_DETAIL]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["new_end_use_detail"] != previous_audit.payload["new_end_use_detail"]
+        assert updated_audit.payload["old_end_use_detail"] != previous_audit.payload["old_end_use_detail"]
+        assert updated_audit.payload["end_use_detail"] == previous_audit.payload["end_use_detail"]
+
+    def test_audit_trail_anonymisation_updated_organisation_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.UPDATED_ORGANISATION]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["new"] != previous_audit.payload["new"]
+        assert updated_audit.payload["old"] != previous_audit.payload["old"]
+        assert updated_audit.payload["key"] == previous_audit.payload["key"]
+
+    def test_audit_trail_anonymisation_updated_site_anonymised(self):
+        previous_audit = self.audit_entries[AuditType.UPDATED_SITE]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["new"] != previous_audit.payload["new"]
+        assert updated_audit.payload["old"] != previous_audit.payload["old"]
+        assert updated_audit.payload["key"] == previous_audit.payload["key"]
+
+    def test_audit_trail_anonymisation_updated_site_name(self):
+        previous_audit = self.audit_entries[AuditType.UPDATED_SITE_NAME]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["new"] != previous_audit.payload["new"]
+        assert updated_audit.payload["old"] != previous_audit.payload["old"]
+        assert updated_audit.payload["key"] == previous_audit.payload["key"]
+
+    def test_audit_trail_anonymisation_upload_application_document(self):
+        previous_audit = self.audit_entries[AuditType.UPLOAD_APPLICATION_DOCUMENT]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["file_name"] != previous_audit.payload["file_name"]
+
+    def test_audit_trail_anonymisation_upload_case_document(self):
+        previous_audit = self.audit_entries[AuditType.UPLOAD_CASE_DOCUMENT]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["file_name"] != previous_audit.payload["file_name"]
+
+    def test_audit_trail_anonymisation_upload_party_document(self):
+        previous_audit = self.audit_entries[AuditType.UPLOAD_PARTY_DOCUMENT]
+        updated_audit = Audit.objects.get(id=previous_audit.id)
+        assert updated_audit.payload["file_name"] != previous_audit.payload["file_name"]
+        assert updated_audit.payload["party_name"] != previous_audit.payload["party_name"]
+        assert updated_audit.payload["party_type"] == previous_audit.payload["party_type"]

@@ -2,6 +2,7 @@ config:
   addons:
     - django_db_anonymiser.db_anonymiser
     - api.goods
+    - api.audit_trail
   extra_parameters:
     pg_dump:
         - "--exclude-table-data=document_data_documentdata"
@@ -66,3 +67,5 @@ strategy:
     description: faker.short_text
   applications_goodonapplication:
     comment: faker.text
+  audit_trail_audit:
+    payload: audit_trail_anonymisers.payload
