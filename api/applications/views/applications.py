@@ -252,15 +252,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Prevent minor edits of additional_information
-        if not application.is_major_editable() and any(
-            [request.data.get(field) for field in constants.F680.ADDITIONAL_INFORMATION_FIELDS]
-        ):
-            return JsonResponse(
-                data={"errors": {"Additional details": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
