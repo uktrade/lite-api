@@ -1,0 +1,46 @@
+config:
+  addons:
+    - django_db_anonymiser.db_anonymiser
+  extra_parameters:
+    pg_dump:
+        - "--exclude-table-data=document_data_documentdata"
+
+strategy:
+  users_baseuser:
+    first_name: faker.first_name
+    last_name: faker.last_name
+    email: faker.email
+    phone_number: faker.phone_number
+  parties_party:
+    name: faker.name
+    address: faker.address
+    website: faker.website
+    email: faker.email
+    phone_number: faker.phone_number
+    signatory_name_euu: faker.name
+    details: faker.text
+  address:
+    address_line_1: faker.street_address
+    address_line_2: faker.city
+    region: faker.city
+    postcode: faker.postcode
+    city: faker.city
+    address: faker.address
+  external_data_denial:
+    name: faker.name
+    address: faker.address
+    consignee_name: faker.name
+  organisation:
+    name: faker.company_name
+    phone_number: faker.phone_number
+    website: faker.website
+    eori_number: faker.eori_number
+    sic_number: faker.sic_number
+    vat_number: faker.vat_number
+    registration_number: faker.registration_number
+  end_user_advisories_enduseradvisoryquery:
+    contact_name: faker.name
+    contact_email: faker.email
+    contact_telephone: faker.phone_number
+  site:
+    name: faker.name

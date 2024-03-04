@@ -11,8 +11,6 @@ from separatedvaluesfield.models import SeparatedValuesField
 from api.applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
-    ServiceEquipmentType,
-    MTCRAnswers,
     GoodsTypeCategory,
     ContractType,
     SecurityClassifiedApprovalsType,
@@ -20,7 +18,7 @@ from api.applications.enums import (
 )
 
 from api.appeals.models import Appeal
-from api.applications.managers import BaseApplicationManager, HmrcQueryManager
+from api.applications.managers import BaseApplicationManager
 from api.audit_trail.models import (
     Audit,
     AuditType,
@@ -36,14 +34,13 @@ from api.flags.models import Flag
 from api.goods.enums import ItemType, PvGrading
 from api.goods.models import Good
 from api.organisations.enums import OrganisationDocumentType
-from api.organisations.models import Organisation, Site, ExternalLocation
+from api.organisations.models import Site, ExternalLocation
 from api.parties.enums import PartyType
 from api.parties.models import Party
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
-from api.staticdata.f680_clearance_types.models import F680ClearanceType
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import (
@@ -333,53 +330,6 @@ class OpenApplication(BaseApplication):
     )
     goodstype_category = models.CharField(choices=GoodsTypeCategory.choices, blank=False, null=True, max_length=100)
     contains_firearm_goods = models.BooleanField(blank=True, default=None, null=True)
-
-
-# MOD Clearances Applications
-# Exhibition includes End User, Consignee, Ultimate end users & Third parties
-class ExhibitionClearanceApplication(BaseApplication):
-    title = models.CharField(blank=False, null=True, max_length=255)
-    first_exhibition_date = models.DateField(blank=False, null=True)
-    required_by_date = models.DateField(blank=False, null=True)
-    reason_for_clearance = models.TextField(default=None, blank=True, null=True, max_length=2000)
-
-
-# Gifting includes End User & Third parties
-class GiftingClearanceApplication(BaseApplication):
-    pass
-
-
-# F680 includes End User & Third parties
-class F680ClearanceApplication(BaseApplication):
-    types = models.ManyToManyField(F680ClearanceType, related_name="f680_clearance_application")
-
-    expedited = models.BooleanField(default=None, null=True)
-    expedited_date = models.DateField(null=True, default=None)
-
-    foreign_technology = models.BooleanField(default=None, null=True)
-    foreign_technology_description = models.CharField(max_length=2200, null=True)
-
-    locally_manufactured = models.BooleanField(blank=True, default=None, null=True)
-    locally_manufactured_description = models.CharField(max_length=2200, null=True)
-
-    mtcr_type = models.CharField(choices=MTCRAnswers.choices, null=True, max_length=50)
-
-    electronic_warfare_requirement = models.BooleanField(default=None, null=True)
-
-    uk_service_equipment = models.BooleanField(default=None, null=True)
-    uk_service_equipment_description = models.CharField(max_length=2200, null=True)
-    uk_service_equipment_type = models.CharField(choices=ServiceEquipmentType.choices, null=True, max_length=50)
-
-    prospect_value = models.DecimalField(max_digits=15, decimal_places=2, null=True)
-
-
-# Queries
-class HmrcQuery(BaseApplication):
-    hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
-    reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
-    have_goods_departed = models.BooleanField(default=False)  # Signal in signals.py
-
-    objects = HmrcQueryManager()
 
 
 class ApplicationDocument(Document):

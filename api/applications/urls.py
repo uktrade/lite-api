@@ -132,7 +132,6 @@ urlpatterns = [
     ),
     # Existing parties
     path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties"),
-    path("<uuid:pk>/exhibition-details/", applications.ExhibitionDetails.as_view(), name="exhibition"),
     # Denial matches
     path(
         "<uuid:pk>/denial-matches/",

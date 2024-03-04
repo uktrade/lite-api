@@ -32,27 +32,6 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self._create_good_on_licence(licence, standard_application.goods.first())
         return licence
 
-    def create_f680_licence(self):
-        f680_application = self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.F680)
-        self.create_advice(self.gov_user, f680_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        licence = self.create_licence(f680_application, status=LicenceStatus.ISSUED)
-        self._create_good_on_licence(licence, f680_application.goods.first())
-        return licence
-
-    def create_gifting_licence(self):
-        gifting_application = self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.GIFTING)
-        self.create_advice(self.gov_user, gifting_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        licence = self.create_licence(gifting_application, status=LicenceStatus.ISSUED)
-        self._create_good_on_licence(licence, gifting_application.goods.first())
-        return licence
-
-    def create_exhibition_licence(self):
-        exhibition_application = self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.create_advice(self.gov_user, exhibition_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        licence = self.create_licence(exhibition_application, status=LicenceStatus.ISSUED)
-        self._create_good_on_licence(licence, exhibition_application.goods.first())
-        return licence
-
     def create_ogl_licence(self):
         open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
         open_general_licence_case = OpenGeneralLicenceCaseFactory(
@@ -86,9 +65,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             value=good_on_application.value,
         )
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_accepted_licence_standard_applications(self, create_licence):
         licence = create_licence(self)
         gol_first = licence.goods.first()
@@ -159,9 +136,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             ).exists()
         )
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_all_goods_exhausted_on_licence(self, create_licence):
         licence = create_licence(self)
         gol = licence.goods.first()
@@ -221,9 +196,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
         self.assertEqual(licence.status, LicenceStatus.ISSUED)
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_usage_data_id_already_reported(self, create_licence):
         licence = create_licence(self)
         usage_data_id = str(uuid.uuid4())
@@ -242,9 +215,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(licence.goods.first().usage, original_usage)
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_no_usage_data_id_bad_request(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.goods.first().usage
@@ -271,9 +242,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(licence.goods.first().usage, original_usage)
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(licences=licence).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_no_licences_bad_request(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.goods.first().usage
@@ -289,9 +258,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(licence.goods.first().usage, original_usage)
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_no_licence_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
         usage_data_id = str(uuid.uuid4())
@@ -311,9 +278,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_invalid_licence_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
         usage_data_id = str(uuid.uuid4())
@@ -340,9 +305,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_no_action_rejected_licence(self, create_licence):
         licence = create_licence(self)
         usage_data_id = str(uuid.uuid4())
@@ -368,9 +331,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_invalid_action_rejected_licence(self, create_licence):
         licence = create_licence(self)
         usage_data_id = str(uuid.uuid4())
@@ -397,9 +358,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_no_goods_rejected_licence(self, create_licence):
         licence = create_licence(self)
         usage_data_id = str(uuid.uuid4())
@@ -420,9 +379,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_no_good_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
         usage_data_id = str(uuid.uuid4())
@@ -445,9 +402,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_invalid_good_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
         usage_data_id = str(uuid.uuid4())
@@ -474,9 +429,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_no_good_usage_rejected_licence(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.goods.first().usage
@@ -505,9 +458,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(licence.goods.first().usage, original_usage)
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_multiple_licences_invalid_licence_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.goods.first().usage
@@ -541,9 +492,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=invalid_licence_id).exists()
         )
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_multiple_licences_invalid_good_id_rejected_licence(self, create_licence):
         licence_1 = create_licence(self)
         licence_1_original_usage = licence_1.goods.first().usage
@@ -578,9 +527,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence_1).exists())
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence_2).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_multiple_goods_invalid_good_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.goods.first().usage
@@ -616,9 +563,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(licence.goods.first().usage, original_usage)
         self.assertFalse(HMRCIntegrationUsageData.objects.filter(id=usage_data_id).exists())
 
-    @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
-    )
+    @parameterized.expand([[create_siel_licence]])
     def test_update_usages_multiple_licences_and_goods_invalid_good_id_rejected_licence(self, create_licence):
         usage_data_id = str(uuid.uuid4())
         usage_data = 10

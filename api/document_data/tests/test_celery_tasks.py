@@ -33,7 +33,7 @@ class TestBackupDocumentData(DataTestClient):
             0,
         )
 
-        backup_document_data()
+        backup_document_data.apply()
 
         self.assertEqual(
             DocumentData.objects.count(),
@@ -69,7 +69,7 @@ class TestBackupDocumentData(DataTestClient):
             0,
         )
 
-        backup_document_data()
+        backup_document_data.apply()
         self.assertEqual(
             DocumentData.objects.count(),
             1,
@@ -80,7 +80,7 @@ class TestBackupDocumentData(DataTestClient):
         document_data.save()
         self.put_object_in_default_bucket("thisisakey", b"new contents")
 
-        backup_document_data()
+        backup_document_data.apply()
 
         self.assertEqual(
             DocumentData.objects.count(),
@@ -116,7 +116,7 @@ class TestBackupDocumentData(DataTestClient):
             0,
         )
 
-        backup_document_data()
+        backup_document_data.apply()
         self.assertEqual(
             DocumentData.objects.count(),
             1,
@@ -127,7 +127,7 @@ class TestBackupDocumentData(DataTestClient):
         document_data.save()
         self.put_object_in_default_bucket("thisisakey", b"new contents")
 
-        backup_document_data()
+        backup_document_data.apply()
 
         self.assertEqual(
             DocumentData.objects.count(),
@@ -161,7 +161,7 @@ class TestBackupDocumentData(DataTestClient):
             0,
         )
 
-        backup_document_data()
+        backup_document_data.apply()
         self.assertEqual(
             DocumentData.objects.count(),
             0,
@@ -181,7 +181,7 @@ class TestBackupDocumentData(DataTestClient):
             0,
         )
 
-        backup_document_data()
+        backup_document_data.apply()
         self.assertEqual(
             DocumentData.objects.count(),
             0,
@@ -201,7 +201,7 @@ class TestBackupDocumentData(DataTestClient):
             0,
         )
 
-        backup_document_data()
+        backup_document_data.apply()
 
         self.assertEqual(
             DocumentData.objects.count(),
