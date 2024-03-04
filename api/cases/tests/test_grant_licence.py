@@ -5,7 +5,7 @@ from rest_framework import status
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.audit_trail.models import Audit
-from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
+from api.cases.enums import AdviceType, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.tests.factories import FinalAdviceFactory
 from api.core.constants import GovPermissions
@@ -81,54 +81,6 @@ class FinaliseCaseTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": {"decision-approve": [Cases.Licence.MISSING_DOCUMENTS]}})
-
-    @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
-    @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
-    def test_grant_clearance_success(self, send_exporter_notifications_func, mock_notify):
-        clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.submit_application(clearance_case)
-        FinalAdviceFactory(user=self.gov_user, case=clearance_case, type=AdviceType.APPROVE)
-        self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
-
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
-        licence = StandardLicenceFactory(case=clearance_case, status=LicenceStatus.DRAFT)
-        self.create_generated_case_document(
-            clearance_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
-        )
-
-        response = self.client.put(self.url, data={}, **self.gov_headers)
-        clearance_case.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json()["licence"], str(licence.id))
-        self.assertEqual(
-            Licence.objects.filter(
-                case=clearance_case,
-                status=LicenceStatus.ISSUED,
-                decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
-            ).count(),
-            1,
-        )
-        self.assertEqual(clearance_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
-        for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
-            self.assertTrue(document.visible_to_exporter)
-        self.assertEqual(Audit.objects.count(), 7)
-        send_exporter_notifications_func.assert_called()
-        mock_notify.assert_called_with(clearance_case.get_case())
-
-    def test_grant_clearance_wrong_permission_failure(self):
-        clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.submit_application(clearance_case)
-        self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
-
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        StandardLicenceFactory(case=clearance_case, status=LicenceStatus.DRAFT)
-        self.create_generated_case_document(clearance_case, self.template, advice_type=AdviceType.APPROVE)
-
-        response = self.client.put(self.url, data={}, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.json(), {"errors": {"error": PermissionDeniedError.default_detail}})
 
     def test_finalise_case_without_licence_success(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
