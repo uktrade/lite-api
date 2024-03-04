@@ -1,3 +1,4 @@
+from operator import itemgetter
 from api.audit_trail.enums import AuditType
 from api.audit_trail import formatters
 from lite_content.lite_api import strings
@@ -10,6 +11,13 @@ def format_payload(audit_type, payload):
         text = formatters.format_text(audit_type_format[audit_type], **payload)
 
     return text
+
+
+ADDITIONAL_TEXT_FORMATTERS = {
+    AuditType.ECJU_QUERY: itemgetter("ecju_query"),
+    AuditType.ECJU_QUERY_RESPONSE: itemgetter("ecju_response"),
+    AuditType.ECJU_QUERY_MANUALLY_CLOSED: itemgetter("ecju_response"),
+}
 
 
 audit_type_format = {
@@ -49,9 +57,9 @@ audit_type_format = {
     AuditType.PV_GRADING_RESPONSE: strings.Audit.PV_GRADING_RESPONSE,
     AuditType.CREATED_CASE_NOTE: strings.Audit.CREATED_CASE_NOTE,
     AuditType.CREATED_CASE_NOTE_WITH_MENTIONS: " mentioned ",
-    AuditType.ECJU_QUERY: " added an ECJU Query: {ecju_query}",
-    AuditType.ECJU_QUERY_RESPONSE: " responded to an ECJU Query: {ecju_response}",
-    AuditType.ECJU_QUERY_MANUALLY_CLOSED: " manually closed a query: {ecju_response}",
+    AuditType.ECJU_QUERY: " added an ECJU Query.",
+    AuditType.ECJU_QUERY_RESPONSE: " responded to an ECJU Query.",
+    AuditType.ECJU_QUERY_MANUALLY_CLOSED: " manually closed a query.",
     AuditType.UPDATED_STATUS: formatters.get_updated_status,
     AuditType.UPDATED_SUB_STATUS: formatters.get_updated_sub_status,
     AuditType.UPDATED_APPLICATION_NAME: strings.Audit.UPDATED_APPLICATION_NAME,

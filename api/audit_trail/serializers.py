@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
-from api.audit_trail.payload import format_payload
+from api.audit_trail.payload import format_payload, ADDITIONAL_TEXT_FORMATTERS
 from api.users.enums import UserType
 
 
@@ -66,4 +66,8 @@ class AuditSerializer(serializers.ModelSerializer):
         return format_payload(verb, payload)
 
     def get_additional_text(self, instance):
-        return instance.payload.get("additional_text", "")
+        verb = AuditType(instance.verb)
+        return ADDITIONAL_TEXT_FORMATTERS.get(
+            verb,
+            lambda payload: payload.get("additional_text", ""),
+        )(instance.payload)
