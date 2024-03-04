@@ -121,6 +121,7 @@ INSTALLED_APPS = [
     "api.assessments",
     "api.document_data",
     "api.survey",
+    "django_db_anonymiser.db_anonymiser",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
@@ -244,16 +245,20 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # AWS
 VCAP_SERVICES = env.json("VCAP_SERVICES", {})
 
+S3_BUCKET_TAG_FILE_UPLOADS = "file-uploads"
+
 if VCAP_SERVICES:
     if "aws-s3-bucket" not in VCAP_SERVICES:
         raise Exception("S3 Bucket not bound to environment")
 
-    aws_credentials = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]
-    AWS_ENDPOINT_URL = None
-    AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
-    AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
-    AWS_REGION = aws_credentials["aws_region"]
-    AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
+    for bucket_details in VCAP_SERVICES["aws-s3-bucket"]:
+        if S3_BUCKET_TAG_FILE_UPLOADS in bucket_details["tags"]:
+            aws_credentials = bucket_details["credentials"]
+            AWS_ENDPOINT_URL = None
+            AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
+            AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
+            AWS_REGION = aws_credentials["aws_region"]
+            AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
 else:
     AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
     AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
@@ -497,3 +502,28 @@ if DEBUG:
 CONTENT_DATA_MIGRATION_DIR = Path(BASE_DIR).parent / "lite_content/lite_api/migrations"
 
 BACKUP_DOCUMENT_DATA_TO_DB = env("BACKUP_DOCUMENT_DATA_TO_DB", default=True)
+
+
+S3_BUCKET_TAG_ANONYMISER_DESTINATION = "anonymiser"
+
+if VCAP_SERVICES:
+    if "aws-s3-bucket" not in VCAP_SERVICES:
+        raise Exception("S3 Bucket not bound to environment")
+
+    for bucket_details in VCAP_SERVICES["aws-s3-bucket"]:
+        if S3_BUCKET_TAG_ANONYMISER_DESTINATION in bucket_details["tags"]:
+            aws_credentials = bucket_details["credentials"]
+            DB_ANONYMISER_AWS_ENDPOINT_URL = None
+            DB_ANONYMISER_AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
+            DB_ANONYMISER_AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
+            DB_ANONYMISER_AWS_REGION = aws_credentials["aws_region"]
+            DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
+else:
+    DB_ANONYMISER_AWS_ENDPOINT_URL = AWS_ENDPOINT_URL
+    DB_ANONYMISER_AWS_ACCESS_KEY_ID = env("DB_ANONYMISER_AWS_ACCESS_KEY_ID", default=None)
+    DB_ANONYMISER_AWS_SECRET_ACCESS_KEY = env("DB_ANONYMISER_AWS_SECRET_ACCESS_KEY", default=None)
+    DB_ANONYMISER_AWS_REGION = env("DB_ANONYMISER_AWS_REGION", default=None)
+    DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME = env("DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME", default=None)
+
+DB_ANONYMISER_CONFIG_LOCATION = Path(BASE_DIR) / "conf" / "anonymise_model_config.yaml"
+DB_ANONYMISER_DUMP_FILE_NAME = env.str("DB_ANONYMISER_DUMP_FILE_NAME", "anonymised.sql")
