@@ -1,5 +1,4 @@
 import json
-import re
 
 from faker import Faker
 
@@ -27,7 +26,6 @@ ALL_SANITIZERS = {
     "destination_name": db_anonymiser_sanitizers.sanitize_name,
     "file_name": db_anonymiser_sanitizers.sanitize_filename,
     "ecju_query": db_anonymiser_sanitizers.sanitize_text,
-    "ecju_response": db_anonymiser_sanitizers.sanitize_text,
     "ecju_response": db_anonymiser_sanitizers.sanitize_text,
     "email": db_anonymiser_sanitizers.sanitize_email,
     "removed_user_name": db_anonymiser_sanitizers.sanitize_name,
