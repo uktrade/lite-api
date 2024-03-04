@@ -10,14 +10,8 @@ class GetNLRsTests(DataTestClient):
         super().setUp()
         self.url = reverse("licences:nlrs")
         self.standard_application = self.create_standard_application_case(self.organisation)
-        self.f680_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
-        self.gifting_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.GIFTING)
-        self.exhibition_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.applications = [
             self.standard_application,
-            self.f680_application,
-            self.gifting_application,
-            self.exhibition_application,
         ]
         self.template = self.create_letter_template(
             case_types=[

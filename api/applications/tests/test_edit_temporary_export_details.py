@@ -6,7 +6,6 @@ from rest_framework import status
 from api.applications.enums import ApplicationExportType
 from lite_content.lite_api import strings
 from api.audit_trail.models import Audit
-from api.cases.enums import CaseTypeEnum
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -29,18 +28,6 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(
             response.json()["errors"],
             {"temp_export_details": ["Cannot update temporary export details for a permanent export type"]},
-        )
-
-    def test_perform_action_on_non_open_or_standard_applications_failure(self):
-        permanent_application = self.create_mod_clearance_application(
-            self.organisation, case_type=CaseTypeEnum.EXHIBITION
-        )
-        url = reverse("applications:temporary_export_details", kwargs={"pk": permanent_application.id})
-        response = self.client.put(url, {}, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"], ["This operation can only be used on applications of type: open, standard"]
         )
 
     def test_edit_unsubmitted_standard_application_all_temporary_export_details_success(self):

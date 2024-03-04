@@ -14,21 +14,6 @@ from api.applications.serializers.end_use_details import (
     OpenEndUseDetailsUpdateSerializer,
     StandardEndUseDetailsUpdateSerializer,
 )
-from api.applications.serializers.exhibition_clearance import (
-    ExhibitionClearanceCreateSerializer,
-    ExhibitionClearanceViewSerializer,
-    ExhibitionClearanceUpdateSerializer,
-)
-from api.applications.serializers.f680_clearance import (
-    F680ClearanceCreateSerializer,
-    F680ClearanceViewSerializer,
-    F680ClearanceUpdateSerializer,
-)
-from api.applications.serializers.gifting_clearance import (
-    GiftingClearanceCreateSerializer,
-    GiftingClearanceViewSerializer,
-    GiftingClearanceUpdateSerializer,
-)
 from api.applications.serializers.open_application import (
     OpenApplicationCreateSerializer,
     OpenApplicationUpdateSerializer,
@@ -56,12 +41,6 @@ def get_application_view_serializer(application: BaseApplication):
         return StandardApplicationViewSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
-        return ExhibitionClearanceViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.GIFTING:
-        return GiftingClearanceViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
-        return F680ClearanceViewSerializer
     else:
         raise BadRequestError(
             {
@@ -78,12 +57,6 @@ def get_application_create_serializer(case_type):
         return StandardApplicationCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationCreateSerializer
-    elif sub_type == CaseTypeSubTypeEnum.EXHIBITION:
-        return ExhibitionClearanceCreateSerializer
-    elif sub_type == CaseTypeSubTypeEnum.GIFTING:
-        return GiftingClearanceCreateSerializer
-    elif sub_type == CaseTypeSubTypeEnum.F680:
-        return F680ClearanceCreateSerializer
     else:
         raise BadRequestError({"application_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]})
 
@@ -93,12 +66,6 @@ def get_application_update_serializer(application: BaseApplication):
         return StandardApplicationUpdateSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationUpdateSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
-        return ExhibitionClearanceUpdateSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.GIFTING:
-        return GiftingClearanceUpdateSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
-        return F680ClearanceUpdateSerializer
     else:
         raise BadRequestError(
             {

@@ -53,10 +53,8 @@ from api.applications.models import (
     ExternalLocationOnApplication,
     PartyOnApplication,
     StandardApplication,
-    F680ClearanceApplication,
 )
 from api.applications.notify import notify_exporter_case_opened_for_editing
-from api.applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from api.applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
@@ -79,7 +77,7 @@ from api.core.decorators import (
     authorised_to_view_application,
     allowed_application_types,
 )
-from api.core.helpers import convert_date_to_string, str_to_bool
+from api.core.helpers import str_to_bool
 from api.core.permissions import (
     assert_user_has_permission,
     IsExporterInOrganisation,
@@ -97,7 +95,6 @@ from api.licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
 from api.organisations.models import Site
-from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -255,22 +252,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Prevent minor edits of the f680 clearance types
-        if not application.is_major_editable() and request.data.get("types"):
-            return JsonResponse(
-                data={"errors": {"types": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Prevent minor edits of additional_information
-        if not application.is_major_editable() and any(
-            [request.data.get(field) for field in constants.F680.ADDITIONAL_INFORMATION_FIELDS]
-        ):
-            return JsonResponse(
-                data={"errors": {"Additional details": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -295,26 +276,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         if request.data.get("clearance_level"):
             serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-        # Audit block
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
-            if request.data.get("types"):
-                old_types = [
-                    F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
-                ]
-                new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
-                serializer.save()
-
-                if set(old_types) != set(new_types):
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
-                        target=case,
-                        payload={"old_types": old_types, "new_types": new_types},
-                    )
-                return JsonResponse(data={}, status=status.HTTP_200_OK)
-            else:
-                serializer.save()
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             save_and_audit_have_you_been_informed_ref(request, application, serializer)
@@ -787,9 +748,6 @@ class ApplicationCopy(APIView):
         # Get all parties connected to the application and produce a copy (and replace reference for each one)
         self.duplicate_parties_on_new_application()
 
-        # Get all f680 clearance types
-        self.duplicate_f680_clearance_types()
-
         # Remove usage & licenced quantity/ value
         self.new_application.goods_type.update(usage=0)
 
@@ -918,86 +876,6 @@ class ApplicationCopy(APIView):
             good.countries.set(old_good_countries)
             good.flags.set(old_good_flags)
             good.control_list_entries.set(old_good_control_list_entries)
-
-    def duplicate_f680_clearance_types(self):
-        if self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
-            self.new_application.types.set(
-                list(
-                    F680ClearanceApplication.objects.get(id=self.old_application_id).types.values_list("id", flat=True)
-                )
-            )
-
-
-class ExhibitionDetails(ListCreateAPIView):
-    authentication_classes = (ExporterAuthentication,)
-    queryset = BaseApplication.objects.all()
-    serializer = ExhibitionClearanceDetailSerializer
-
-    @application_in_state(is_major_editable=True)
-    @authorised_to_view_application(ExporterUser)
-    def post(self, request, pk):
-        application = get_application(pk)
-        serializer = self.serializer(instance=application, data=request.data)
-        if serializer.is_valid():
-            old_title = application.title
-            old_first_exhibition_date = application.first_exhibition_date
-            old_required_by_date = application.required_by_date
-            old_reason_for_clearance = application.reason_for_clearance
-            case = application.get_case()
-            serializer.save()
-            validated_data = serializer.validated_data
-
-            if validated_data["title"] != old_title:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_TITLE,
-                    target=case,
-                    payload={
-                        "old_title": old_title,
-                        "new_title": validated_data["title"],
-                    },
-                )
-
-            if validated_data["first_exhibition_date"] != old_first_exhibition_date:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_START_DATE,
-                    target=application.get_case(),
-                    payload={
-                        "old_first_exhibition_date": convert_date_to_string(old_first_exhibition_date)
-                        if old_first_exhibition_date
-                        else "",
-                        "new_first_exhibition_date": convert_date_to_string(validated_data["first_exhibition_date"]),
-                    },
-                )
-
-            if validated_data["required_by_date"] != old_required_by_date:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE,
-                    target=application.get_case(),
-                    payload={
-                        "old_required_by_date": convert_date_to_string(old_required_by_date)
-                        if old_required_by_date
-                        else "",
-                        "new_required_by_date": convert_date_to_string(validated_data["required_by_date"]),
-                    },
-                )
-
-            if validated_data.get("reason_for_clearance") != old_reason_for_clearance:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE,
-                    target=application.get_case(),
-                    payload={
-                        "old_reason_for_clearance": old_reason_for_clearance,
-                        "new_reason_for_clearance": validated_data["reason_for_clearance"],
-                    },
-                )
-
-            return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationRouteOfGoods(UpdateAPIView):

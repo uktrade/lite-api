@@ -1,5 +1,6 @@
 ignore-paths:
   - separatedvaluesfield
+  - django_db_anonymiser
 
 uses:
   - django

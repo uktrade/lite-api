@@ -8,13 +8,12 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.appeals.constants import APPEAL_DAYS
-from api.applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
+from api.applications.enums import GoodsTypeCategory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.licences.enums import LicenceStatus
 from api.parties.enums import PartyRole, PartyType, SubType
 from api.staticdata.denial_reasons.serializers import DenialReasonSerializer
-from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
 from api.staticdata.units.enums import Units
 from api.goods.enums import (
     PvGrading,
@@ -30,8 +29,6 @@ from api.applications.models import (
     ApplicationDocument,
     StandardApplication,
     OpenApplication,
-    ExhibitionClearanceApplication,
-    F680ClearanceApplication,
     CountryOnApplication,
     GoodOnApplication,
 )
@@ -309,65 +306,6 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
     compliant_limitations_eu_reference = serializers.CharField(source="compliant_limitations_eu_ref")
 
 
-class F680ClearanceApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = F680ClearanceApplication
-        fields = [
-            "expedited",
-            "expedited_date",
-            "foreign_technology",
-            "foreign_technology_description",
-            "locally_manufactured",
-            "locally_manufactured_description",
-            "mtcr_type",
-            "electronic_warfare_requirement",
-            "uk_service_equipment",
-            "uk_service_equipment_description",
-            "uk_service_equipment_type",
-            "prospect_value",
-            "clearance_level",
-            "clearance_types",
-        ]
-
-    expedited_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
-    expedited = FriendlyBooleanField()
-    foreign_technology = FriendlyBooleanField()
-    locally_manufactured = FriendlyBooleanField()
-    electronic_warfare_requirement = FriendlyBooleanField()
-    uk_service_equipment = FriendlyBooleanField()
-    clearance_types = serializers.SerializerMethodField()
-    mtcr_type = serializers.SerializerMethodField()
-    uk_service_equipment_type = serializers.SerializerMethodField()
-    clearance_level = serializers.SerializerMethodField()
-
-    def get_uk_service_equipment_type(self, obj):
-        return ServiceEquipmentType.to_str(obj.uk_service_equipment_type) if obj.uk_service_equipment_type else None
-
-    def get_mtcr_type(self, obj):
-        return MTCRAnswers.to_str(obj.mtcr_type) if obj.mtcr_type else None
-
-    def get_clearance_types(self, obj):
-        return [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in obj.types.all()]
-
-    def get_clearance_level(self, obj):
-        return PvGrading.to_str(obj.clearance_level)
-
-
-class FlattenedF680ClearanceApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Case
-        fields = ["baseapplication"]
-
-    baseapplication = BaseApplicationSerializer()
-
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        f680 = F680ClearanceApplication.objects.get(id=obj.pk)
-        f680_data = F680ClearanceApplicationSerializer(f680).data
-        serialized = {**ret["baseapplication"], **f680_data}
-        return serialized
-
-
 class TemporaryExportDetailsSerializer(serializers.Serializer):
     """
     Serializes both OpenApplication and StandardApplication
@@ -460,31 +398,6 @@ class FlattenedOpenApplicationSerializer(OpenApplicationSerializer):
         open_application = OpenApplication.objects.get(id=obj.pk)
         open_application_data = OpenApplicationSerializer(open_application).data
         serialized = {**ret["baseapplication"], **open_application_data}
-        return serialized
-
-
-class ExhibitionClearanceApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ExhibitionClearanceApplication
-        fields = ["exhibition_title", "first_exhibition_date", "required_by_date", "reason_for_clearance"]
-
-    exhibition_title = serializers.CharField(source="title")
-    first_exhibition_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
-    required_by_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
-
-
-class FlattenedExhibitionClearanceApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Case
-        fields = ["baseapplication"]
-
-    baseapplication = BaseApplicationSerializer()
-
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        exhibition_clearance = ExhibitionClearanceApplication.objects.get(id=obj.pk)
-        exhibition_clearance_data = ExhibitionClearanceApplicationSerializer(exhibition_clearance).data
-        serialized = {**ret["baseapplication"], **exhibition_clearance_data}
         return serialized
 
 
@@ -924,9 +837,6 @@ def get_document_context(case, addressee=None):
 SERIALIZER_MAPPING = {
     CaseTypeSubTypeEnum.STANDARD: FlattenedStandardApplicationSerializer,
     CaseTypeSubTypeEnum.OPEN: FlattenedOpenApplicationSerializer,
-    CaseTypeSubTypeEnum.EXHIBITION: FlattenedExhibitionClearanceApplicationSerializer,
-    CaseTypeSubTypeEnum.F680: FlattenedF680ClearanceApplicationSerializer,
-    CaseTypeSubTypeEnum.GIFTING: BaseApplicationSerializer,
     CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQuerySerializer,
     CaseTypeSubTypeEnum.GOODS: GoodsQuerySerializer,
     CaseTypeSubTypeEnum.COMP_SITE: FlattenedComplianceSiteWithVisitReportsSerializer,
