@@ -491,7 +491,9 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertTrue(query_response_audit.exists())
         audit_obj = query_response_audit.first()
         audit_text = AuditSerializer(audit_obj).data["text"]
-        self.assertEqual(audit_text, " responded to an ECJU Query: Attached the requested documents.")
+        audit_additional_text = AuditSerializer(audit_obj).data["additional_text"]
+        self.assertEqual(audit_text, " responded to an ECJU Query.")
+        self.assertEqual(audit_additional_text, "Attached the requested documents")
         self.assertEqual(audit_obj.target.id, case.id)
 
         if add_documents:
@@ -521,7 +523,10 @@ class ECJUQueriesResponseTests(DataTestClient):
         self.assertTrue(query_response_audit.exists())
         audit_obj = query_response_audit.first()
         audit_text = AuditSerializer(audit_obj).data["text"]
-        self.assertEqual(audit_text, " manually closed a query: exporter provided details.")
+        audit_additional_text = AuditSerializer(audit_obj).data["additional_text"]
+
+        self.assertEqual(audit_text, " manually closed a query.")
+        self.assertEqual(audit_additional_text, "exporter provided details")
         self.assertEqual(audit_obj.target.id, case.id)
         self.assertEqual(0, BaseNotification.objects.filter(object_id=ecju_query.id).count())
 
@@ -942,3 +947,4 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
         self.assertEqual(case_note_mentions.user, expected_gov_user)
         self.assertEqual(case_note.text, expected_case_note_text)
         self.assertEqual(audit_object.payload, expected_audit_payload)
+        self.assertEqual(audit_object.payload["additional_text"], expected_case_note_text)

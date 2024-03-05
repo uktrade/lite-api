@@ -3,10 +3,14 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
+from django.utils import timezone
 
 from api.documents.libraries.s3_operations import get_object
 from api.documents.models import Document
-from api.document_data.models import DocumentData
+from api.document_data.models import (
+    BackupLog,
+    DocumentData,
+)
 
 
 logger = get_task_logger(__name__)
@@ -18,10 +22,11 @@ RETRY_BACKOFF = 180
 
 @shared_task(
     autoretry_for=(Exception,),
+    bind=True,
     max_retries=MAX_ATTEMPTS,
     retry_backoff=RETRY_BACKOFF,
 )
-def backup_document_data():
+def backup_document_data(self):
     """Backup document data into the database."""
 
     # When running this command by hand it's best to set the logging as follows:
@@ -37,6 +42,8 @@ def backup_document_data():
     if not settings.BACKUP_DOCUMENT_DATA_TO_DB:
         logger.info("Skipping backup document data to db")
         return
+
+    backup_log = BackupLog.objects.create(task_id=self.request.id)
 
     safe_documents = Document.objects.filter(safe=True)
     count = safe_documents.count()
@@ -105,5 +112,8 @@ def backup_document_data():
             document_s3_key,
             document_id,
         )
+
+    backup_log.ended_at = timezone.now()
+    backup_log.save()
 
     logger.debug("Completed backing up documents")

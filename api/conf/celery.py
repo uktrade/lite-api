@@ -17,6 +17,10 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 # Load celery_tasks.py modules from all registered Django apps.
 app.autodiscover_tasks(related_name="celery_tasks")
 
+
+BACKUP_DOCUMENT_DATA_SCHEDULE_NAME = "backup document data 2am"
+
+
 # Define any regular scheduled tasks
 app.conf.beat_schedule = {
     "update sanction search index at 7am, 7pm": {
@@ -27,7 +31,7 @@ app.conf.beat_schedule = {
         "task": "api.cases.celery_tasks.update_cases_sla",
         "schedule": crontab(hour=22, minute=30),
     },
-    "backup document data 2am": {
+    BACKUP_DOCUMENT_DATA_SCHEDULE_NAME: {
         "task": "api.document_data.celery_tasks.backup_document_data",
         "schedule": crontab(hour=2, minute=0),
     },

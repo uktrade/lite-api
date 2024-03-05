@@ -114,7 +114,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing -k "not seeding and not elasticsearch and not performance and not migration"
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
       - upload_code_coverage:
           alias: tests
 
@@ -135,6 +135,24 @@ jobs:
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
       - upload_code_coverage:
           alias: seeding_tests
+
+  anonymised_db_dump_tests:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_elasticsearch
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    steps:
+      - setup
+      - run:
+          name: Run anonymised DB dump tests
+          command: |
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc api/anonymised_db_dumps
+      - upload_code_coverage:
+          alias: anonymised_db_dumps
 
   migration_tests:
     docker:
@@ -400,3 +418,4 @@ workflows:
               - lite_routing_tests
       - check-lite-routing-sha
       - e2e_tests
+      - anonymised_db_dump_tests

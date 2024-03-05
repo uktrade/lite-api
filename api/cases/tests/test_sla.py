@@ -7,16 +7,15 @@ from django.utils import timezone
 from parameterized import parameterized
 from pytz import timezone as tz
 
-from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import Case, CaseQueue, EcjuQuery
 from api.cases.celery_tasks import (
     update_cases_sla,
     STANDARD_APPLICATION_TARGET_DAYS,
     OPEN_APPLICATION_TARGET_DAYS,
-    MOD_CLEARANCE_TARGET_DAYS,
     SLA_UPDATE_CUTOFF_TIME,
 )
-from api.cases.models import CaseAssignmentSLA, CaseQueue, DepartmentSLA
+from api.cases.models import CaseQueue, DepartmentSLA
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.models import Department
@@ -44,11 +43,6 @@ class SlaCaseTests(DataTestClient):
         self.case_types = {
             CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
             CaseTypeSubTypeEnum.OPEN: self.create_draft_open_application(self.organisation),
-            CaseTypeSubTypeEnum.EXHIBITION: self.create_mod_clearance_application(
-                self.organisation, CaseTypeEnum.EXHIBITION
-            ),
-            CaseTypeSubTypeEnum.F680: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680),
-            CaseTypeSubTypeEnum.GIFTING: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.GIFTING),
             CaseTypeSubTypeEnum.GOODS: self.create_clc_query("abc", self.organisation),
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
@@ -84,78 +78,6 @@ class SlaCaseTests(DataTestClient):
         mock_is_bank_holiday,
         application_type=CaseTypeSubTypeEnum.OPEN,
         target=OPEN_APPLICATION_TARGET_DAYS,
-    ):
-        mock_is_weekend.return_value = False
-        mock_is_bank_holiday.return_value = False
-        application = self.case_types[application_type]
-        case = self.submit_application(application)
-        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-
-        results = run_update_cases_sla_task()
-        case.refresh_from_db()
-
-        self.assertEqual(results, 1)
-        self.assertEqual(case.sla_days, 1)
-        self.assertEqual(case.sla_remaining_days, target - 1)
-
-    @mock.patch("api.cases.celery_tasks.is_weekend")
-    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
-    def test_sla_update_exhibition_mod(
-        self,
-        mock_is_weekend,
-        mock_is_bank_holiday,
-        application_type=CaseTypeSubTypeEnum.EXHIBITION,
-        target=MOD_CLEARANCE_TARGET_DAYS,
-    ):
-        mock_is_weekend.return_value = False
-        mock_is_bank_holiday.return_value = False
-        application = self.case_types[application_type]
-        case = self.submit_application(application)
-        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-        CaseQueue.objects.create(case=application.case_ptr, queue=self.queue)
-        results = run_update_cases_sla_task()
-        sla = CaseAssignmentSLA.objects.get()
-        case.refresh_from_db()
-
-        self.assertEqual(sla.sla_days, 1)
-        self.assertEqual(results, 1)
-        self.assertEqual(case.sla_days, 1)
-        self.assertEqual(case.sla_remaining_days, target - 1)
-
-    @mock.patch("api.cases.celery_tasks.is_weekend")
-    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
-    def test_sla_update_F680_mod(
-        self,
-        mock_is_weekend,
-        mock_is_bank_holiday,
-        application_type=CaseTypeSubTypeEnum.F680,
-        target=MOD_CLEARANCE_TARGET_DAYS,
-    ):
-        mock_is_weekend.return_value = False
-        mock_is_bank_holiday.return_value = False
-        application = self.case_types[application_type]
-        case = self.submit_application(application)
-        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-        CaseQueue.objects.create(queue=self.queue, case=application.case_ptr)
-        sla = CaseAssignmentSLA.objects.create(sla_days=4, queue=self.queue, case=application.case_ptr)
-        results = run_update_cases_sla_task()
-
-        case.refresh_from_db()
-        sla.refresh_from_db()
-
-        self.assertEqual(sla.sla_days, 5)
-        self.assertEqual(results, 1)
-        self.assertEqual(case.sla_days, 1)
-        self.assertEqual(case.sla_remaining_days, target - 1)
-
-    @mock.patch("api.cases.celery_tasks.is_weekend")
-    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
-    def test_sla_update_gifting_mod(
-        self,
-        mock_is_weekend,
-        mock_is_bank_holiday,
-        application_type=CaseTypeSubTypeEnum.GIFTING,
-        target=MOD_CLEARANCE_TARGET_DAYS,
     ):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False

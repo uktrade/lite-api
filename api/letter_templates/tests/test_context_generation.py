@@ -1,20 +1,17 @@
-from datetime import date
-
-from django.template.loader import render_to_string
 import pytest
 
+from datetime import date
+from django.template.loader import render_to_string
 from parameterized import parameterized
 
 from api.applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsTypeCategory,
-    MTCRAnswers,
-    ServiceEquipmentType,
 )
 from api.applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
-from api.cases.enums import AdviceType, CaseTypeEnum
+from api.cases.enums import AdviceType
 from api.licences.tests.factories import StandardLicenceFactory
 from api.letter_templates.context_generator import EcjuQuerySerializer
 from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
@@ -27,7 +24,6 @@ from api.compliance.tests.factories import (
 from api.core.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, get_value_from_enum
 from api.goods.enums import (
     PvGrading,
-    ItemType,
     MilitaryUse,
     Component,
     ItemCategory,
@@ -43,7 +39,6 @@ from api.licences.tests.factories import GoodOnLicenceFactory
 from api.parties.enums import PartyType, SubType
 from api.parties.models import Party
 from api.staticdata.countries.models import Country
-from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
@@ -326,29 +321,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["first_exhibition_date"], case.first_exhibition_date.strftime(DATE_FORMAT))
         self.assertEqual(context["required_by_date"], case.required_by_date.strftime(DATE_FORMAT))
         self.assertEqual(context["reason_for_clearance"], case.reason_for_clearance)
-
-    def _assert_f680_clearance_details(self, context, case):
-        self.assertEqual(
-            context["clearance_types"],
-            [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in case.types.all()],
-        )
-        self.assertEqual(context["expedited"], friendly_boolean(case.expedited))
-        self.assertEqual(context["expedited_date"], case.expedited_date.strftime(DATE_FORMAT))
-        self.assertEqual(context["foreign_technology"], friendly_boolean(case.foreign_technology))
-        self.assertEqual(context["foreign_technology_description"], case.foreign_technology_description)
-        self.assertEqual(context["locally_manufactured"], friendly_boolean(case.locally_manufactured))
-        self.assertEqual(context["locally_manufactured_description"], case.locally_manufactured_description)
-        self.assertEqual(context["mtcr_type"], MTCRAnswers.to_str(case.mtcr_type))
-        self.assertEqual(
-            context["electronic_warfare_requirement"], friendly_boolean(case.electronic_warfare_requirement)
-        )
-        self.assertEqual(context["uk_service_equipment"], friendly_boolean(case.uk_service_equipment))
-        self.assertEqual(context["uk_service_equipment_description"], case.uk_service_equipment_description)
-        self.assertEqual(
-            context["uk_service_equipment_type"], ServiceEquipmentType.to_str(case.uk_service_equipment_type)
-        )
-        self.assertEqual(context["prospect_value"], "{:.2f}".format(case.prospect_value))
-        self.assertEqual(context["clearance_level"], PvGrading.to_str(case.clearance_level))
 
     def _assert_end_user_advisory_details(self, context, case):
         self.assertEqual(context["note"], case.note)
@@ -820,58 +792,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_base_application_details(context["details"], case)
         self._assert_open_application_details(context["details"], case)
         self._assert_destination_details(context["destinations"][0], destination)
-
-    def test_generate_context_with_exhibition_clearance_details(self):
-        case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
-        case.reason_for_clearance = "abc"
-        good = case.goods.first()
-        good.item_type = ItemType.BROCHURE
-        good.other_item_type = "abc"
-        good.save()
-        case.save()
-
-        context = get_document_context(case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
-        self._assert_case_type_details(context["case_type"], case)
-        self._assert_exhibition_clearance_details(context["details"], case)
-        self._assert_good(context["goods"]["all"][0], good)
-
-    def test_generate_context_with_f680_clearance_details(self):
-        case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
-        case.expedited = True
-        case.expedited_date = date(year=2020, month=1, day=1)
-        case.foreign_technology = False
-        case.foreign_technology_description = "abc"
-        case.locally_manufactured = True
-        case.locally_manufactured_description = "def"
-        case.mtcr_type = MTCRAnswers.CATEGORY_1
-        case.electronic_warfare_requirement = None
-        case.uk_service_equipment = False
-        case.uk_service_equipment_description = "ghi"
-        case.uk_service_equipment_type = ServiceEquipmentType.MOD_FUNDED
-        case.prospect_value = 500.50
-        case.save()
-
-        context = get_document_context(case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
-        self._assert_case_type_details(context["case_type"], case)
-        self._assert_f680_clearance_details(context["details"], case)
-
-    def test_generate_context_with_gifting_clearance_details(self):
-        case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
-
-        context = get_document_context(case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
-        self._assert_case_type_details(context["case_type"], case)
 
     def test_generate_context_with_end_user_advisory_query_details(self):
         case = self.create_end_user_advisory(note="abc", reasoning="def", organisation=self.organisation)

@@ -1,11 +1,9 @@
 import unittest
 
-from django.urls import reverse_lazy
 from parameterized import parameterized
 
 from api.applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
 from api.applications.tests.factories import PartyOnApplicationFactory
-from api.cases.enums import CaseTypeEnum
 from api.flags.enums import FlagLevels, FlagStatuses
 from api.flags.models import Flag, FlaggingRule
 from api.goods.enums import GoodStatus
@@ -27,145 +25,6 @@ from api.workflow.flagging_rules_automation import (
 
 
 class FlaggingRulesAutomation(DataTestClient):
-    def test_adding_case_type_flag(self):
-        flag = self.create_flag(name="case flag", level=FlagLevels.CASE, team=self.team)
-        self.create_flagging_rule(
-            level=FlagLevels.CASE, team=self.team, flag=flag, matching_values=[CaseTypeEnum.EXHIBITION.reference]
-        )
-
-        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.submit_application(case)
-
-        apply_flagging_rules_to_case(case)
-
-        case.refresh_from_db()
-
-        self.assertTrue(flag in list(case.flags.all()))
-
-    def test_adding_goods_type_flag_from_case(self):
-        flag = self.create_flag(name="good flag", level=FlagLevels.GOOD, team=self.team)
-        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.submit_application(case)
-        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
-        self.create_flagging_rule(
-            level=FlagLevels.GOOD, team=self.team, flag=flag, matching_values=[good.control_list_entries.first().rating]
-        )
-
-        apply_flagging_rules_to_case(case)
-
-        good_flags = list(good.flags.all())
-
-        self.assertTrue(flag in good_flags)
-
-    def test_adding_goods_type_flag_with_exclusion_entries(self):
-        flag = self.create_flag(name="good flag", level=FlagLevels.GOOD, team=self.team)
-        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.submit_application(case)
-        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
-        self.create_flagging_rule(
-            level=FlagLevels.GOOD,
-            team=self.team,
-            flag=flag,
-            matching_values=[good.control_list_entries.first().rating],
-            matching_groups=["ML5"],
-            excluded_values=[good.control_list_entries.first().rating],
-        )
-
-        apply_flagging_rules_to_case(case)
-
-        good.flags.count() >= 1
-
-    def test_adding_goods_type_flag_from_case_with_verified_only_rule_failure(self):
-        """Test flag not applied to good when flagging rule is for verified goods only."""
-        flag = self.create_flag(name="for verified good flag", level=FlagLevels.GOOD, team=self.team)
-        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.submit_application(case)
-        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
-
-        self.create_flagging_rule(
-            level=FlagLevels.GOOD,
-            team=self.team,
-            flag=flag,
-            matching_values=[good.control_list_entries.first().rating],
-            is_for_verified_goods_only=True,
-        )
-
-        apply_flagging_rules_to_case(case)
-
-        good_flags = list(good.flags.all())
-        self.assertFalse(flag in good_flags)
-
-    def test_adding_goods_type_flag_from_case_with_verified_only_rule_success(self):
-        """Test flag is applied to verified good when the flagging rule is applicable to only verified goods."""
-        flag = self.create_flag(name="for verified good flag", level=FlagLevels.GOOD, team=self.team)
-        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.submit_application(case)
-        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
-        good.status = GoodStatus.VERIFIED
-        good.save()
-
-        self.create_flagging_rule(
-            level=FlagLevels.GOOD,
-            team=self.team,
-            flag=flag,
-            matching_values=[good.control_list_entries.first().rating],
-            is_for_verified_goods_only=True,
-        )
-
-        apply_flagging_rules_to_case(case)
-
-        good_flags = list(good.flags.all())
-        self.assertTrue(flag in good_flags)
-
-    def test_adding_destination_type_flag_from_case(self):
-        flag = self.create_flag(name="good flag", level=FlagLevels.DESTINATION, team=self.team)
-        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
-        self.submit_application(case)
-        party = PartyOnApplication.objects.filter(application_id=case.id).first().party
-        self.create_flagging_rule(
-            level=FlagLevels.DESTINATION, team=self.team, flag=flag, matching_values=[party.country_id]
-        )
-
-        apply_flagging_rules_to_case(case)
-
-        party_flags = list(party.flags.all())
-
-        self.assertTrue(flag in party_flags)
-
-    def test_case_dont_add_deactivated_flag(self):
-        flag = self.create_flag(name="case flag", level=FlagLevels.CASE, team=self.team)
-        self.create_flagging_rule(
-            level=FlagLevels.CASE, team=self.team, flag=flag, matching_values=[CaseTypeEnum.EXHIBITION.reference]
-        )
-        flag.status = FlagStatuses.DEACTIVATED
-        flag.save()
-
-        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-
-        apply_flagging_rules_to_case(case)
-
-        case.refresh_from_db()
-
-        self.assertTrue(flag not in list(case.flags.all()))
-
-    def test_case_dont_add_deactivated_flagging_rule(self):
-        flag = self.create_flag(name="case flag", level=FlagLevels.CASE, team=self.team)
-        self.create_flagging_rule(
-            level=FlagLevels.CASE,
-            team=self.team,
-            flag=flag,
-            matching_values=[CaseTypeEnum.EXHIBITION.reference],
-            status=FlagStatuses.DEACTIVATED,
-        )
-
-        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-
-        apply_flagging_rules_to_case(case)
-
-        case.refresh_from_db()
-
-        self.assertTrue(flag not in list(case.flags.all()))
-
     def test_get_active_flagging_rules_goods(self):
         active_flag = self.create_flag(name="good flag", level=FlagLevels.GOOD, team=self.team)
         self.create_flagging_rule(level=FlagLevels.GOOD, team=self.team, flag=active_flag, matching_values=["abc"])
@@ -451,61 +310,6 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
         self.assertIn(case_flag, application.flags.all())
         self.assertIn(good_flag, good.flags.all())
         self.assertIn(destination_flag, party.flags.all())
-
-    def test_F680_application(self):
-        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
-
-        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
-        self.create_flagging_rule(
-            FlagLevels.CASE, self.team, flag=case_flag, matching_values=[application.case_type.reference]
-        )
-
-        good = GoodOnApplication.objects.filter(application_id=application.id).first().good
-        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(
-            FlagLevels.GOOD, self.team, flag=good_flag, matching_values=[good.control_list_entries.first().rating]
-        )
-
-        party = PartyOnApplication.objects.filter(application_id=application.id).first().party
-        destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
-        self.create_flagging_rule(
-            FlagLevels.DESTINATION, self.team, flag=destination_flag, matching_values=[party.country_id]
-        )
-
-        self.submit_application(application)
-        apply_flagging_rules_to_case(application)
-
-        application.refresh_from_db()
-        good.refresh_from_db()
-        party.refresh_from_db()
-
-        self.assertIn(case_flag, application.flags.all())
-        self.assertIn(good_flag, good.flags.all())
-        self.assertIn(destination_flag, party.flags.all())
-
-    def test_exhibition_application(self):
-        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
-        self.submit_application(application)
-
-        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
-        self.create_flagging_rule(
-            FlagLevels.CASE, self.team, flag=case_flag, matching_values=[application.case_type.reference]
-        )
-
-        good = GoodOnApplication.objects.filter(application_id=application.id).first().good
-        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(
-            FlagLevels.GOOD, self.team, flag=good_flag, matching_values=[good.control_list_entries.first().rating]
-        )
-
-        self.submit_application(application)
-        apply_flagging_rules_to_case(application)
-
-        application.refresh_from_db()
-        good.refresh_from_db()
-
-        self.assertIn(case_flag, application.flags.all())
-        self.assertIn(good_flag, good.flags.all())
 
     def test_goods_query_application(self):
         query = self.create_clc_query("query", self.organisation)

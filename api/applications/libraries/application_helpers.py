@@ -10,7 +10,6 @@ from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.constants import GovPermissions
 from api.core.permissions import assert_user_has_permission
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.applications.models import HmrcQuery
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.users.models import GovUser
 from lite_content.lite_api import strings
@@ -69,7 +68,7 @@ def can_status_be_set_by_gov_user(user: GovUser, original_status: str, new_statu
     return True
 
 
-def create_submitted_audit(request: Request, application: HmrcQuery, old_status: str) -> None:
+def create_submitted_audit(request: Request, application, old_status: str) -> None:
     audit_trail_service.create(
         actor=request.user,
         verb=AuditType.UPDATED_STATUS,

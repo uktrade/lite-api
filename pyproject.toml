@@ -21,5 +21,6 @@ exclude = '''
   | dist
   | separatedvaluesfield
   | migrations
+  | django_db_anonymiser
 )/
 '''

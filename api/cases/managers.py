@@ -3,14 +3,7 @@ from typing import List
 
 from django.apps import apps
 from django.db import models, transaction
-from django.db.models import (
-    BinaryField,
-    Case,
-    Prefetch,
-    Q,
-    Sum,
-    When,
-)
+from django.db.models import Prefetch, Q, Sum
 from django.utils import timezone
 
 from api.cases.enums import AdviceLevel, CaseTypeEnum
@@ -464,15 +457,7 @@ class CaseManager(models.Manager):
             case_qs = case_qs.with_report_summary_subject_or_prefix(report_summary)
 
         if is_work_queue:
-            case_qs = case_qs.annotate(
-                case_order=Case(
-                    When(baseapplication__hmrcquery__have_goods_departed=False, then=0),
-                    default=1,
-                    output_field=BinaryField(),
-                )
-            )
-
-            case_qs = case_qs.order_by("case_order", "submitted_at")
+            case_qs = case_qs.order_by("submitted_at")
         else:
             case_qs = case_qs.order_by_date()
 
