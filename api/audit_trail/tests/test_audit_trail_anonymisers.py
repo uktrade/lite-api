@@ -37,31 +37,24 @@ def test_sanitize_payload():
     }
     sanitized_payload = sanitize_payload(json.dumps(payload))
     assert json.loads(sanitized_payload) == {
-        "case_officer": "Dr. Leanne Smith",
-        "destination_name": "Gail Morgan",
-        "ecju_query": "At saepe quae. A laudantium sint doloribus eveniet sit "
-        "deleniti necessitatibus. Rem consequuntur molestiae at "
-        "voluptatibus. Voluptatum laudantium error enim commodi ex "
-        "ullam. Vitae nobis nesciunt ipsam nisi. Et doloribus delectus "
-        "reprehenderit alias voluptatem.",
-        "ecju_response": "Architecto perspiciatis consectetur corrupti aliquam "
-        "aspernatur praesentium. Placeat saepe minima maxime "
-        "doloremque dolor perspiciatis. Neque iste optio voluptatum "
-        "totam recusandae. Eveniet beatae nesciunt excepturi.",
-        "email": "dixondonna@thompson-pickering.com",
-        "file_name": "ea.key",
-        "firstname": "Chloe",
-        "lastname": "Smith",
-        "mention_users": ["Dr. Gerard Poole", "Garry Sutton-Richardson"],
-        "new": "Jodie Saunders",
+        "case_officer": "Dr Rhys Thomas",
+        "destination_name": "Amelia Sheppard",
+        "ecju_query": "Nostrum totam vitae labore sint ea. Totam at saepe quae quos numquam nostrum. Doloribus eveniet sit deleniti necessitatibus dolores. Rem ipsum aspernatur eum. Voluptatum laudantium error enim commodi ex ullam.",
+        "ecju_response": "Molestias enim at reiciendis et doloribus delectus reprehenderit. Nostrum omnis labore. Perspiciatis consectetur corrupti aliquam. Tempore unde molestiae hic.",
+        "email": "zoe33@example.net",
+        "file_name": "consequuntur.docx",
+        "firstname": "Bradley",
+        "lastname": "Davey",
+        "mention_users": ["Malcolm Scott", "Jay Barker"],
+        "new": "Dr Sally Harper",
         "new_end_use_detail": "Ratione culpa cum minus. Nisi ipsam cupiditate iusto.",
-        "old": "Conor Metcalfe",
+        "old": "Susan Robinson",
         "old_end_use_detail": "Quibusdam repudiandae aspernatur nisi praesentium cum. "
         "Odit fugiat soluta necessitatibus impedit.",
-        "organisation_name": "Jones Group",
-        "party_name": "Dawn Leonard",
-        "removed_user_name": "Dr. Martin Warren",
-        "site_name": "Deborah Williams",
+        "organisation_name": "Morgan-Evans",
+        "party_name": "Norman Gibbons",
+        "removed_user_name": "Rhys Jackson",
+        "site_name": "Denise Gibson",
         "unchanged": "unchanged value",
-        "user": "Dr. Oliver Davey",
+        "user": "Tina Khan",
     }
