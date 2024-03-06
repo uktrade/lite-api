@@ -8,7 +8,6 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.appeals.constants import APPEAL_DAYS
-from api.applications.enums import GoodsTypeCategory
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from api.licences.enums import LicenceStatus
@@ -28,8 +27,6 @@ from api.applications.models import (
     BaseApplication,
     ApplicationDocument,
     StandardApplication,
-    OpenApplication,
-    CountryOnApplication,
     GoodOnApplication,
 )
 from api.goods.models import PvGradingDetails, Good, FirearmGoodDetails
@@ -195,18 +192,6 @@ class PartySerializer(serializers.ModelSerializer):
         return obj.sub_type_other if obj.sub_type_other else get_value_from_enum(obj.sub_type, SubType)
 
 
-class CountryOnApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CountryOnApplication
-        fields = ["country", "contract_types", "other_contract_type"]
-
-    country = CountrySerializer()
-    other_contract_type = serializers.SerializerMethodField()
-
-    def get_other_contract_type(self, obj):
-        return obj.other_contract_type_text
-
-
 class CaseNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseNote
@@ -354,50 +339,6 @@ class FlattenedStandardApplicationSerializer(StandardApplicationSerializer):
         standard_application = StandardApplication.objects.get(id=obj.pk)
         standard_application_data = StandardApplicationSerializer(standard_application).data
         serialized = {**ret["baseapplication"], **standard_application_data}
-        return serialized
-
-
-class OpenApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OpenApplication
-        fields = [
-            "export_type",
-            "contains_firearm_goods",
-            "shipped_waybill_or_lading",
-            "non_waybill_or_lading_route_details",
-            "proposed_return_date",
-            "trade_control_activity",
-            "trade_control_activity_other",
-            "trade_control_product_categories",
-            "goodstype_category",
-            "temporary_export_details",
-        ]
-
-    contains_firearm_goods = FriendlyBooleanField()
-    shipped_waybill_or_lading = FriendlyBooleanField(source="is_shipped_waybill_or_lading")
-    proposed_return_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
-    goodstype_category = serializers.SerializerMethodField()
-    temporary_export_details = serializers.SerializerMethodField()
-
-    def get_temporary_export_details(self, obj):
-        return TemporaryExportDetailsSerializer(obj).data
-
-    def get_goodstype_category(self, obj):
-        return GoodsTypeCategory.get_text(obj.goodstype_category) if obj.goodstype_category else None
-
-
-class FlattenedOpenApplicationSerializer(OpenApplicationSerializer):
-    class Meta:
-        model = Case
-        fields = ["baseapplication"]
-
-    baseapplication = BaseApplicationSerializer()
-
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        open_application = OpenApplication.objects.get(id=obj.pk)
-        open_application_data = OpenApplicationSerializer(open_application).data
-        serialized = {**ret["baseapplication"], **open_application_data}
         return serialized
 
 
@@ -764,7 +705,6 @@ def get_document_context(case, addressee=None):
     sites = Site.objects.filter(sites_on_application__application_id=case.pk)
     external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
-    destinations = CountryOnApplication.objects.filter(application_id=case.pk).order_by("country__name")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
     if base_application:
         ultimate_end_users = (
@@ -827,7 +767,6 @@ def get_document_context(case, addressee=None):
         "sites": FlattenedSiteSerializer(sites, many=True).data,
         "external_locations": ExternalLocationSerializer(external_locations, many=True).data,
         "documents": ApplicationDocumentSerializer(documents, many=True).data,
-        "destinations": CountryOnApplicationSerializer(destinations, many=True).data,
         "appeal_deadline": appeal_deadline.strftime("%d %B %Y"),
         "date_application_submitted": date_application_submitted,
         "exporter_reference": exporter_reference,
@@ -836,7 +775,6 @@ def get_document_context(case, addressee=None):
 
 SERIALIZER_MAPPING = {
     CaseTypeSubTypeEnum.STANDARD: FlattenedStandardApplicationSerializer,
-    CaseTypeSubTypeEnum.OPEN: FlattenedOpenApplicationSerializer,
     CaseTypeSubTypeEnum.EUA: EndUserAdvisoryQuerySerializer,
     CaseTypeSubTypeEnum.GOODS: GoodsQuerySerializer,
     CaseTypeSubTypeEnum.COMP_SITE: FlattenedComplianceSiteWithVisitReportsSerializer,

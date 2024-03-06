@@ -6,13 +6,10 @@ from rest_framework.reverse import reverse_lazy
 from api.applications.enums import ApplicationExportLicenceOfficialType, ApplicationExportType
 from api.applications.models import (
     StandardApplication,
-    OpenApplication,
     GoodOnApplication,
-    CountryOnApplication,
     SiteOnApplication,
 )
-from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
-from api.goodstype.models import GoodsType
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.parties.models import PartyDocument
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -157,128 +154,6 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self._validate_standard_application()
 
-    def test_copy_draft_open_application_successful(self):
-        """
-        Ensure we can copy an open application that is a draft
-        """
-        self.original_application = self.create_draft_open_application(self.organisation)
-
-        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
-
-        self.data = {"name": "New application"}
-
-        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
-        self.response_data = self.response.json()["data"]
-
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-        self.assertNotEqual(self.response_data, self.original_application.id)
-
-        self.copied_application = OpenApplication.objects.get(id=self.response_data)
-
-        self._validate_open_application()
-
-    def test_copy_draft_open_trade_control_application_successful(self):
-        """
-        Ensure we can copy an open application that is a draft
-        """
-        self.original_application = self.create_draft_open_application(
-            self.organisation, case_type_id=CaseTypeEnum.OICL.id
-        )
-        self.original_application.trade_control_activity = TradeControlActivity.OTHER
-        self.original_application.trade_control_activity_other = "other activity"
-        self.original_application.trade_control_product_categories = [
-            key for key, _ in TradeControlProductCategory.choices
-        ]
-        self.original_application.save()
-
-        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
-
-        self.data = {"name": "New application"}
-
-        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
-        self.response_data = self.response.json()["data"]
-
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-        self.assertNotEqual(self.response_data, self.original_application.id)
-
-        self.copied_application = OpenApplication.objects.get(id=self.response_data)
-
-        self._validate_open_application()
-
-    def test_copy_draft_open_temporary_application_successful(self):
-        """
-        Ensure we can copy an open temporary application that is a draft
-        """
-        self.original_application = self.create_draft_open_application(self.organisation)
-        self.original_application.export_type = ApplicationExportType.TEMPORARY
-        self.original_application.temp_export_details = "temporary export details"
-        self.original_application.is_temp_direct_control = True
-        self.original_application.proposed_return_date = "2025-05-11"
-
-        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
-
-        self.data = {"name": "New application"}
-
-        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
-        self.response_data = self.response.json()["data"]
-
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-        self.assertNotEqual(self.response_data, self.original_application.id)
-
-        self.copied_application = OpenApplication.objects.get(id=self.response_data)
-
-        self._validate_open_application()
-
-    def test_copy_submitted_open_temporary_application_successful(self):
-        """
-        Ensure we can copy an open temporary application that is submitted (ongoing or otherwise)
-        """
-        self.original_application = self.create_draft_open_application(self.organisation)
-        self.original_application.export_type = ApplicationExportType.TEMPORARY
-        self.original_application.temp_export_details = "temporary export details"
-        self.original_application.is_temp_direct_control = True
-        self.original_application.proposed_return_date = "2025-05-11"
-        coa = CountryOnApplication.objects.get(application=self.original_application, country_id="FR")
-        coa.contract_types = ["navy", "army"]
-        coa.save()
-
-        self.submit_application(self.original_application)
-
-        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
-
-        self.data = {"name": "New application"}
-
-        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
-        self.response_data = self.response.json()["data"]
-
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-        self.assertNotEqual(self.response_data, self.original_application.id)
-
-        self.copied_application = OpenApplication.objects.get(id=self.response_data)
-
-        self._validate_open_application()
-
-    def test_copy_submitted_open_application_successful(self):
-        """
-        Ensure we can copy an open application that is submitted (ongoing or otherwise)
-        """
-        self.original_application = self.create_draft_open_application(self.organisation)
-        self.submit_application(self.original_application)
-
-        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
-
-        self.data = {"name": "New application"}
-
-        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
-        self.response_data = self.response.json()["data"]
-
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-        self.assertNotEqual(self.response_data, self.original_application.id)
-
-        self.copied_application = OpenApplication.objects.get(id=self.response_data)
-
-        self._validate_open_application()
-
     def _validate_standard_application(self):
         self._validate_reset_data()
         self._validate_end_use_details()
@@ -290,28 +165,6 @@ class CopyApplicationSuccessTests(DataTestClient):
         self._validate_case_data()
         self._validate_route_of_goods()
         self._validate_temporary_export_details()
-        self._validate_trade_control_details()
-
-    def _validate_open_application(self):
-        self._validate_reset_data()
-        self._validate_end_use_details()
-        self._validate_goodstype()
-        self._validate_site_on_application()
-        self._validate_country_on_application()
-        self._validate_case_data()
-        self._validate_route_of_goods()
-        self._validate_temporary_export_details()
-        self._validate_trade_control_details()
-
-    def _validate_trade_control_details(self):
-        if self.original_application.case_type.id in [CaseTypeEnum.SICL.id, CaseTypeEnum.OICL.id]:
-            self.assertEqual(
-                self.original_application.trade_control_activity, self.copied_application.trade_control_activity
-            )
-            self.assertEqual(
-                self.original_application.trade_control_product_categories,
-                self.copied_application.trade_control_product_categories,
-            )
 
     def _validate_reset_data(self):
         self.assertNotEqual(self.copied_application.id, self.original_application.id)
@@ -361,12 +214,6 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.assertEqual(len(new_goods_on_app), len(original_goods_on_app))
 
-    def _validate_f680_clearance_types(self):
-        new_types_app = self.copied_application.types.all()
-        original_types_on_app = self.original_application.types.all()
-        for type in original_types_on_app:
-            self.assertIn(type, new_types_app)
-
     def _validate_party_details(self, new_party, original_party):
         self.assertNotEqual(new_party.id, original_party.id)
         self.assertGreater(new_party.created_at, original_party.created_at)
@@ -414,16 +261,6 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertEqual(list(self.copied_application.applicationdocument_set.all()), [])
         self.assertEqual(list(self.copied_application.casedocument_set.all()), [])
 
-    def _validate_country_on_application(self):
-        self.assertIsNotNone(self.copied_application.application_countries)
-        new_countries = list(
-            CountryOnApplication.objects.filter(application=self.copied_application).values("country").all()
-        )
-        for country in (
-            CountryOnApplication.objects.filter(application=self.original_application).values("country").all()
-        ):
-            self.assertIn(country, new_countries)
-
     def _validate_site_on_application(self):
         self.assertIsNotNone(self.copied_application.application_sites)
         new_sites = list(SiteOnApplication.objects.filter(application=self.copied_application).values("site").all())
@@ -431,36 +268,6 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertEqual(len(new_sites), len(old_sites))
         for site in old_sites:
             self.assertIn(site, new_sites)
-
-    def _validate_goodstype(self):
-        new_goodstype_objects = GoodsType.objects.filter(application_id=self.copied_application.id)
-        self.assertIsNotNone(new_goodstype_objects)
-
-        for goodstype in new_goodstype_objects:
-            # we seed multiple goodstype with the same data currently, so testing that there are the same amount of
-            #  goodstype on both old and new application based on the current goodstype data.
-            control_list_entries_ids = goodstype.control_list_entries.values_list("id", flat=True)
-            old_goodsType = len(
-                GoodsType.objects.filter(
-                    description=goodstype.description,
-                    is_good_controlled=goodstype.is_good_controlled,
-                    control_list_entries__in=control_list_entries_ids,
-                    is_good_incorporated=goodstype.is_good_incorporated,
-                    application=self.original_application,
-                ).all()
-            )
-            new_goodsType = len(
-                GoodsType.objects.filter(
-                    description=goodstype.description,
-                    is_good_controlled=goodstype.is_good_controlled,
-                    control_list_entries__in=control_list_entries_ids,
-                    is_good_incorporated=goodstype.is_good_incorporated,
-                    application=self.copied_application,
-                    usage=0,
-                ).all()
-            )
-
-            self.assertEqual(old_goodsType, new_goodsType)
 
 
 class CopyApplicationFailTests(DataTestClient):

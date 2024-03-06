@@ -11,18 +11,12 @@ from separatedvaluesfield.models import SeparatedValuesField
 from api.applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
-    GoodsTypeCategory,
-    ContractType,
     SecurityClassifiedApprovalsType,
     NSGListType,
 )
-
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager
-from api.audit_trail.models import (
-    Audit,
-    AuditType,
-)
+from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
@@ -39,14 +33,10 @@ from api.parties.enums import PartyType
 from api.parties.models import Party
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
-from api.staticdata.statuses.enums import (
-    CaseStatusEnum,
-    CaseSubStatusIdEnum,
-)
+from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
@@ -313,25 +303,6 @@ class StandardApplication(BaseApplication):
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
 
 
-class OpenApplication(BaseApplication):
-    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
-    is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
-    non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
-    temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
-    is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
-    temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
-    proposed_return_date = models.DateField(blank=True, null=True)
-    trade_control_activity = models.CharField(
-        choices=TradeControlActivity.choices, blank=False, null=True, max_length=100
-    )
-    trade_control_activity_other = models.CharField(blank=False, null=True, max_length=100)
-    trade_control_product_categories = SeparatedValuesField(
-        choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
-    )
-    goodstype_category = models.CharField(choices=GoodsTypeCategory.choices, blank=False, null=True, max_length=100)
-    contains_firearm_goods = models.BooleanField(blank=True, default=None, null=True)
-
-
 class ApplicationDocument(Document):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True)
@@ -539,19 +510,6 @@ class GoodOnApplicationInternalDocument(Document):
     good_on_application = models.ForeignKey(
         GoodOnApplication, on_delete=models.CASCADE, related_name="good_on_application_internal_documents"
     )
-
-
-class CountryOnApplication(models.Model):
-    """
-    Open licence applications export to countries, instead of an end user
-    """
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    application = models.ForeignKey(OpenApplication, related_name="application_countries", on_delete=models.CASCADE)
-    country = models.ForeignKey(Country, related_name="countries_on_application", on_delete=models.CASCADE)
-    contract_types = SeparatedValuesField(max_length=350, choices=ContractType.choices, null=True, default=None)
-    other_contract_type_text = models.CharField(max_length=150, null=True, default=None)
-    flags = models.ManyToManyField(Flag, related_name="countries_on_applications")
 
 
 class PartyOnApplicationManager(models.Manager):

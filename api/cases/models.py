@@ -238,7 +238,6 @@ class Case(TimestampableModel):
         """
         from api.applications.models import PartyOnApplication
         from api.applications.models import GoodOnApplication
-        from api.applications.models import CountryOnApplication
         from api.goodstype.models import GoodsType
 
         parameter_set = set(self.flags.all()) | {self.case_type} | set(self.organisation.flags.all())
@@ -253,9 +252,6 @@ class Case(TimestampableModel):
 
         for goods_type in GoodsType.objects.filter(application=self.id):
             parameter_set = parameter_set | set(goods_type.flags.all())
-
-        for coa in CountryOnApplication.objects.filter(application=self.id):
-            parameter_set = parameter_set | {coa.country} | set(coa.country.flags.all())
 
         return parameter_set
 

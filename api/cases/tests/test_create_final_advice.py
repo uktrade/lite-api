@@ -4,13 +4,11 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.cases.enums import AdviceType, AdviceLevel
+from api.cases.models import Advice
 from api.cases.generated_documents.models import GeneratedCaseDocument
-from api.cases.models import Advice, GoodCountryDecision
-from api.cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
+from api.cases.tests.factories import FinalAdviceFactory
 from api.core import constants
 from api.goods.enums import PvGrading
-from api.goodstype.tests.factories import GoodsTypeFactory
-from api.staticdata.countries.models import Country
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -443,34 +441,3 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertFalse(GeneratedCaseDocument.objects.filter(case=self.standard_case).exists())
-
-
-class CreateFinalAdviceOpenApplicationTests(DataTestClient):
-    def test_change_approve_final_advice_deletes_good_country_decisions(self):
-        self.gov_user.role.permissions.set(
-            [
-                constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
-            ]
-        )
-        case = self.create_open_application_case(self.organisation)
-        url = reverse("cases:case_final_advice", kwargs={"pk": case.id})
-        goods_type = GoodsTypeFactory(application=case)
-        FinalAdviceFactory(
-            user=self.gov_user,
-            team=self.team,
-            case=case,
-            goods_type=goods_type,
-            type=AdviceType.APPROVE,
-        )
-        GoodCountryDecisionFactory(case=case, goods_type=goods_type, country=Country.objects.first())
-
-        data = {
-            "text": "Changed my mind. Reject this",
-            "type": AdviceType.REFUSE,
-            "goods_type": str(goods_type.id),
-        }
-        response = self.client.post(url, **self.gov_headers, data=[data])
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json()["advice"][0]["goods_type"], str(goods_type.id))
-        self.assertFalse(GoodCountryDecision.objects.filter(goods_type=goods_type).exists())

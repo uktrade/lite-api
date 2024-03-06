@@ -9,7 +9,6 @@ from api.applications.views import (
     party_documents,
     external_locations,
     sites,
-    countries,
     documents,
     end_use_details,
     temporary_export_details,
@@ -78,21 +77,10 @@ urlpatterns = [
         name="good_on_application_update_serial_numbers",
     ),
     # Goods types
-    path("<uuid:pk>/goodstypes/", goods.ApplicationGoodsTypes.as_view(), name="application_goodstypes"),
-    path(
-        "<uuid:pk>/goodstype/<uuid:goodstype_pk>/",
-        goods.ApplicationGoodsType.as_view(),
-        name="application_goodstype",
-    ),
     path(
         "<uuid:pk>/goodstype/<uuid:goods_type_pk>/document/",
         documents.GoodsTypeDocumentView.as_view(),
         name="goods_type_document",
-    ),
-    path(
-        "<uuid:pk>/goodstype/assign-countries/",
-        goods.ApplicationGoodsTypeCountries.as_view(),
-        name="application_goodstype_assign_countries",
     ),
     # Parties
     path("<uuid:pk>/parties/", parties.ApplicationPartyView.as_view(), name="parties"),
@@ -115,8 +103,6 @@ urlpatterns = [
     ),
     # Sites, locations and countries
     path("<uuid:pk>/sites/", sites.ApplicationSites.as_view(), name="application_sites"),
-    path("<uuid:pk>/contract-types/", countries.ApplicationContractTypes.as_view(), name="contract_types"),
-    path("<uuid:pk>/countries-contract-types/", countries.LightCountries.as_view(), name="country_contract_types"),
     path(
         "<uuid:pk>/external_locations/",
         external_locations.ApplicationExternalLocations.as_view(),
@@ -127,7 +113,6 @@ urlpatterns = [
         external_locations.ApplicationRemoveExternalLocation.as_view(),
         name="application_remove_external_location",
     ),
-    path("<uuid:pk>/countries/", countries.ApplicationCountries.as_view(), name="countries"),
     # Supporting Documents
     path("<uuid:pk>/documents/", documents.ApplicationDocumentView.as_view(), name="application_documents"),
     path(

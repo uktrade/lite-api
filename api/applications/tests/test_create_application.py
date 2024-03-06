@@ -2,16 +2,8 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from api.applications.enums import (
-    ApplicationExportType,
-    ApplicationExportLicenceOfficialType,
-    GoodsTypeCategory,
-)
-from api.applications.models import (
-    StandardApplication,
-    OpenApplication,
-    BaseApplication,
-)
+from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
+from api.applications.models import StandardApplication, BaseApplication
 from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
@@ -60,23 +52,6 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertEqual(StandardApplication.objects.count(), 1)
 
-    def test_create_draft_open_application_successful(self):
-        """
-        Ensure we can create a new open application draft object
-        """
-        data = {
-            "name": "Test",
-            "application_type": CaseTypeReferenceEnum.OIEL,
-            "export_type": ApplicationExportType.TEMPORARY,
-            "goodstype_category": GoodsTypeCategory.MILITARY,
-            "contains_firearm_goods": True,
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(OpenApplication.objects.count(), 1)
-
     @parameterized.expand(
         [
             [{}],
@@ -113,13 +88,10 @@ class DraftTests(DataTestClient):
             response.json()["errors"]["application_type"][0], strings.Applications.Generic.SELECT_A_LICENCE_TYPE
         )
 
-    @parameterized.expand(
-        [(CaseTypeEnum.SICL.reference, StandardApplication), (CaseTypeEnum.OICL.reference, OpenApplication)]
-    )
-    def test_trade_control_application(self, case_type, model):
+    def test_trade_control_application(self):
         data = {
             "name": "Test",
-            "application_type": case_type,
+            "application_type": CaseTypeEnum.SICL.reference,
             "trade_control_activity": TradeControlActivity.OTHER,
             "trade_control_activity_other": "other activity type",
             "trade_control_product_categories": [key for key, _ in TradeControlProductCategory.choices],
@@ -129,7 +101,7 @@ class DraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         application_id = response.json()["id"]
-        application = model.objects.get(id=application_id)
+        application = StandardApplication.objects.get(id=application_id)
 
         self.assertEqual(application.trade_control_activity, data["trade_control_activity"])
         self.assertEqual(application.trade_control_activity_other, data["trade_control_activity_other"])
@@ -151,21 +123,6 @@ class DraftTests(DataTestClient):
             ),
             (
                 CaseTypeEnum.SICL.reference,
-                "trade_control_product_categories",
-                strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR,
-            ),
-            (
-                CaseTypeEnum.OICL.reference,
-                "trade_control_activity",
-                strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR,
-            ),
-            (
-                CaseTypeEnum.OICL.reference,
-                "trade_control_activity_other",
-                strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
-            ),
-            (
-                CaseTypeEnum.OICL.reference,
                 "trade_control_product_categories",
                 strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR,
             ),

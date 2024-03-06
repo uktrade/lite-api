@@ -12,17 +12,13 @@ from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 import pytest
 
-from api.applications.enums import ApplicationExportType
-from api.applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
+from api.applications.libraries.edit_applications import set_case_flags_on_submitted_standard_application
 from api.applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
-from api.applications.libraries.licence import get_default_duration
 from api.applications.models import (
     BaseApplication,
     GoodOnApplication,
     SiteOnApplication,
-    CountryOnApplication,
     StandardApplication,
-    OpenApplication,
     ApplicationDocument,
 )
 from api.applications.tests.factories import (
@@ -55,13 +51,12 @@ from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from api.flags.models import Flag, FlaggingRule
 from api.flags.tests.factories import FlagFactory
 from api.addresses.tests.factories import AddressFactoryGB
-from api.goods.enums import GoodPvGraded, PvGrading
+from api.goods.enums import GoodPvGraded
 from api.goods.models import Good, GoodDocument
 from api.applications.models import GoodOnApplicationInternalDocument
 from api.goods.tests.factories import GoodFactory
 from api.goodstype.document.models import GoodsTypeDocument
 from api.goodstype.models import GoodsType
-from api.goodstype.tests.factories import GoodsTypeFactory
 from api.letter_templates.models import LetterTemplate
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import StandardLicenceFactory
@@ -79,7 +74,6 @@ from api.queries.goods_query.models import GoodsQuery
 from api.queues.models import Queue
 from api.staticdata.countries.helpers import get_country
 from api.staticdata.countries.models import Country
-from api.staticdata.f680_clearance_types.models import F680ClearanceType
 from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.management.commands import seedall
 from api.staticdata.management.commands.seedall import SEED_COMMANDS
@@ -315,8 +309,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
-            set_case_flags_on_submitted_standard_or_open_application(application)
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            set_case_flags_on_submitted_standard_application(application)
 
         add_goods_flags_to_submitted_application(application)
         apply_flagging_rules_to_case(application)
@@ -560,8 +554,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         elif advice_field == "good":
             if case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
                 advice.good = GoodOnApplication.objects.filter(application=case).first().good
-            elif case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-                advice.goods_type = GoodsType.objects.filter(application=case).first()
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = "I am easy to proviso"
@@ -720,49 +712,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_document_for_party(application.ultimate_end_users.first().party, safe=safe_document)
 
         return application
-
-    def create_draft_open_application(
-        self, organisation: Organisation, reference_name="Open Draft", case_type_id=CaseTypeEnum.OIEL.id
-    ):
-        application = OpenApplication(
-            name=reference_name,
-            case_type_id=case_type_id,
-            export_type=ApplicationExportType.PERMANENT,
-            activity="Trade",
-            usage="Trade",
-            organisation=organisation,
-            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            is_military_end_use_controls=False,
-            is_informed_wmd=False,
-            is_suspected_wmd=False,
-            intended_end_use="intended end use is none of your business",
-            is_shipped_waybill_or_lading=True,
-            non_waybill_or_lading_route_details=None,
-            status_id="00000000-0000-0000-0000-000000000000",
-            submitted_by=self.exporter_user,
-        )
-
-        application.save()
-
-        # Add a goods description
-        GoodsTypeFactory(application=application, is_good_controlled=True)
-        GoodsTypeFactory(application=application, is_good_controlled=True)
-
-        # Add a country to the application - GB cannot be a destination on licences!
-        CountryOnApplication(application=application, country=get_country("FR")).save()
-
-        # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
-
-        return application
-
-    def create_open_application_case(self, organisation: Organisation, reference_name="Open Application Case"):
-        """
-        Creates a complete open application case
-        """
-        draft = self.create_draft_open_application(organisation, reference_name)
-
-        return self.submit_application(draft, self.exporter_user)
 
     def create_standard_application_case(
         self,

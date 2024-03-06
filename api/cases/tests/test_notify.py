@@ -96,7 +96,7 @@ class NotifyTests(DataTestClient):
 
     @mock.patch("api.cases.notify.send_email")
     def test_notify_exporter_ecju_query(self, mock_send_email):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_standard_application_case(self.organisation)
         application.submitted_by = ExporterUserFactory()
         application.save()
 

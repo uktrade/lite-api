@@ -14,11 +14,6 @@ from api.applications.serializers.end_use_details import (
     OpenEndUseDetailsUpdateSerializer,
     StandardEndUseDetailsUpdateSerializer,
 )
-from api.applications.serializers.open_application import (
-    OpenApplicationCreateSerializer,
-    OpenApplicationUpdateSerializer,
-    OpenApplicationViewSerializer,
-)
 from api.applications.serializers.standard_application import (
     StandardApplicationCreateSerializer,
     StandardApplicationUpdateSerializer,
@@ -39,8 +34,6 @@ logger = logging.getLogger(__name__)
 def get_application_view_serializer(application: BaseApplication):
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-        return OpenApplicationViewSerializer
     else:
         raise BadRequestError(
             {
@@ -55,8 +48,6 @@ def get_application_create_serializer(case_type):
 
     if sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationCreateSerializer
-    elif sub_type == CaseTypeSubTypeEnum.OPEN:
-        return OpenApplicationCreateSerializer
     else:
         raise BadRequestError({"application_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]})
 
@@ -64,8 +55,6 @@ def get_application_create_serializer(case_type):
 def get_application_update_serializer(application: BaseApplication):
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationUpdateSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-        return OpenApplicationUpdateSerializer
     else:
         raise BadRequestError(
             {

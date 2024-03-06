@@ -1,10 +1,6 @@
-from django.utils import timezone
-
-from api.applications import constants
-from api.applications.enums import ApplicationExportType, GoodsTypeCategory, ContractType
+from api.applications.enums import ApplicationExportType, GoodsTypeCategory
 from api.applications.models import (
     ApplicationDocument,
-    CountryOnApplication,
     GoodOnApplication,
     SiteOnApplication,
     ExternalLocationOnApplication,
@@ -13,24 +9,9 @@ from api.applications.models import (
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.helpers import str_to_bool
 from api.goods.models import GoodDocument
-from api.goodstype.models import GoodsType
-from api.goodstype.document.models import GoodsTypeDocument
 from lite_content.lite_api import strings
 from api.parties.models import PartyDocument
 from api.parties.enums import PartyType
-
-
-def _validate_locations(application, errors):
-    """Site & External location errors"""
-    if (
-        not SiteOnApplication.objects.filter(application=application).exists()
-        and not ExternalLocationOnApplication.objects.filter(application=application).exists()
-        and not getattr(application, "have_goods_departed", False)
-        and not getattr(application, "goodstype_category", None) == GoodsTypeCategory.CRYPTOGRAPHIC
-    ):
-        errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
-
-    return errors
 
 
 def _validate_siel_locations(application, errors):
@@ -150,22 +131,6 @@ def _validate_consignee(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_countries(draft, errors, is_mandatory):
-    """Checks there are countries for the draft"""
-
-    if is_mandatory:
-        results = CountryOnApplication.objects.filter(application=draft)
-        if not results.exists():
-            errors["countries"] = [strings.Applications.Open.NO_COUNTRIES_SET]
-        elif getattr(draft, "goodstype_category", None) not in GoodsTypeCategory.IMMUTABLE_GOODS:
-            for coa in results:
-                if not coa.contract_types:
-                    errors["contract_types"] = [strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES]
-                    break
-
-    return errors
-
-
 def _validate_security_approvals(draft, errors, is_mandatory):
     """Checks there are security approvals for the draft"""
     if is_mandatory:
@@ -173,29 +138,6 @@ def _validate_security_approvals(draft, errors, is_mandatory):
             errors["security_approvals"] = [
                 "To submit the application, complete the 'Do you have a security approval?' section"
             ]
-    return errors
-
-
-def _validate_goods_types(draft, errors, is_mandatory):
-    """Checks there are GoodsTypes for the draft"""
-
-    goods_types = GoodsType.objects.filter(application=draft)
-
-    if is_mandatory:
-        if not goods_types:
-            errors["goods"] = [strings.Applications.Open.NO_GOODS_SET]
-
-    # Check goods documents
-    if goods_types:
-        document_errors = _get_document_errors(
-            GoodsTypeDocument.objects.filter(goods_type__in=goods_types),
-            processing_error=strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING,
-            virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
-        )
-
-        if document_errors:
-            errors["goods"] = [document_errors]
-
     return errors
 
 
@@ -275,27 +217,6 @@ def _validate_agree_to_declaration(request, errors):
     return errors
 
 
-def _validate_additional_information(draft, errors):
-    for field in constants.F680.REQUIRED_FIELDS:
-        if getattr(draft, field) is None or getattr(draft, field) == "":
-            errors["additional_information"] = [
-                strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
-            ]
-        if getattr(draft, field) is True:
-            secondary_field = constants.F680.REQUIRED_SECONDARY_FIELDS.get(field, False)
-            if secondary_field and not getattr(draft, secondary_field):
-                errors["additional_information"] = [
-                    strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
-                ]
-
-    today = timezone.now().date()
-
-    if getattr(draft, "expedited_date") and getattr(draft, "expedited_date") < today:
-        errors["questions"] = strings.Applications.F680.AdditionalInformation.Errors.PAST_DATE
-
-    return errors
-
-
 def _validate_temporary_export_details(draft, errors):
     if (
         draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]
@@ -340,25 +261,6 @@ def _validate_goods(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_has_clearance_level(draft, errors, is_mandatory):
-    """Checks draft has clearance level"""
-
-    if is_mandatory:
-        if not draft.clearance_level:
-            errors["clearance_level"] = [strings.Applications.Standard.NO_CLEARANCE_LEVEL]
-
-    return errors
-
-
-def _validate_exhibition_details(draft, errors):
-    """Checks that an exhibition clearance has details"""
-
-    if not all(getattr(draft, attribute) for attribute in ["title", "first_exhibition_date", "required_by_date"]):
-        errors["details"] = [strings.Applications.Exhibition.Error.NO_DETAILS]
-
-    return errors
-
-
 def _validate_standard_licence(draft, errors):
     """Checks that a standard licence has all party types & goods"""
 
@@ -376,107 +278,12 @@ def _validate_standard_licence(draft, errors):
     return errors
 
 
-def _validate_exhibition_clearance(draft, errors):
-    """Checks that an exhibition clearance has goods, locations and details"""
-
-    errors = _validate_exhibition_details(draft, errors)
-    errors = _validate_goods(draft, errors, is_mandatory=True)
-    errors = _validate_locations(draft, errors)
-
-    return errors
-
-
-def _validate_gifting_clearance(draft, errors):
-    """Checks that a gifting clearance has an end_user and goods"""
-
-    errors = _validate_end_user(draft, errors, is_mandatory=True)
-    errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_goods(draft, errors, is_mandatory=True)
-
-    if draft.consignee:
-        errors["consignee"] = [strings.Applications.Gifting.CONSIGNEE]
-
-    if draft.ultimate_end_users:
-        errors["ultimate_end_users"] = [strings.Applications.Gifting.ULTIMATE_END_USERS]
-
-    if SiteOnApplication.objects.filter(application=draft).exists():
-        errors["location"] = [strings.Applications.Gifting.LOCATIONS]
-
-    return errors
-
-
-def _validate_f680_clearance(draft, errors):
-    """F680 require goods and at least 1 end user or third party"""
-
-    errors = _validate_has_clearance_level(draft, errors, is_mandatory=True)
-    errors = _validate_goods(draft, errors, is_mandatory=True)
-    errors = _validate_end_user(draft, errors, is_mandatory=False)
-    errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_additional_information(draft, errors)
-    errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
-
-    if not draft.end_user and not draft.third_parties.exists():
-        errors["party"] = [strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY]
-
-    if draft.consignee:
-        errors["consignee"] = [strings.Applications.F680.CONSIGNEE]
-
-    if draft.ultimate_end_users:
-        errors["ultimate_end_users"] = [strings.Applications.F680.ULTIMATE_END_USERS]
-
-    if SiteOnApplication.objects.filter(application=draft).exists():
-        errors["location"] = [strings.Applications.F680.LOCATIONS]
-
-    if not draft.types.exists():
-        errors["types"] = [strings.Applications.F680.NO_CLEARANCE_TYPE]
-
-    return errors
-
-
-def _validate_open_licence(draft, errors):
-    """Open licences require countries & goods types"""
-
-    errors = _validate_locations(draft, errors)
-    errors = _validate_countries(draft, errors, is_mandatory=True)
-    errors = _validate_goods_types(draft, errors, is_mandatory=True)
-    errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
-    errors = _validate_temporary_export_details(draft, errors)
-    errors = _validate_route_of_goods(draft, errors)
-
-    # Check if end user is mandatory based on contract type 'nuclear related' being selected for any country
-    contract_types = CountryOnApplication.objects.filter(application_id=draft.id).values_list(
-        "contract_types", flat=True
-    )
-    unique_contract_types = []
-    for contract_type in contract_types:
-        if contract_type:
-            unique_contract_types.extend(contract_type.split(","))
-
-    end_user_mandatory = ContractType.NUCLEAR_RELATED in set(unique_contract_types)
-    errors = _validate_end_user(draft, errors, is_mandatory=end_user_mandatory, open_application=True)
-
-    if draft.goodstype_category == GoodsTypeCategory.MILITARY:
-        errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True, open_application=True)
-
-    return errors
-
-
 def _validate_route_of_goods(draft, errors):
     if (
         draft.is_shipped_waybill_or_lading is None
         and not getattr(draft, "goodstype_category", None) == GoodsTypeCategory.CRYPTOGRAPHIC
     ):
         errors["route_of_goods"] = [strings.Applications.Generic.NO_ROUTE_OF_GOODS]
-    return errors
-
-
-def _validate_hmrc_query(draft, errors):
-    """HMRC queries require goods types & an end user"""
-
-    errors = _validate_locations(draft, errors)
-    errors = _validate_goods_types(draft, errors, is_mandatory=True)
-    errors = _validate_end_user(draft, errors, is_mandatory=True)
-
     return errors
 
 
@@ -503,16 +310,6 @@ def validate_application_ready_for_submission(application):
     # Perform additional validation and append errors if found
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         _validate_standard_licence(application, errors)
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-        _validate_open_licence(application, errors)
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-        _validate_hmrc_query(application, errors)
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
-        _validate_exhibition_clearance(application, errors)
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.GIFTING:
-        _validate_gifting_clearance(application, errors)
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
-        _validate_f680_clearance(application, errors)
     else:
         errors["unsupported_application"] = ["You can only validate a supported application type"]
 

@@ -4,24 +4,15 @@ from datetime import date
 from django.template.loader import render_to_string
 from parameterized import parameterized
 
-from api.applications.enums import (
-    ApplicationExportType,
-    ApplicationExportLicenceOfficialType,
-    GoodsTypeCategory,
-)
-from api.applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
+from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
+from api.applications.models import ExternalLocationOnApplication, GoodOnApplication
 from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.enums import AdviceType
 from api.licences.tests.factories import StandardLicenceFactory
 from api.letter_templates.context_generator import EcjuQuerySerializer
-from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
-from api.compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
-from api.compliance.tests.factories import (
-    ComplianceVisitCaseFactory,
-    ComplianceSiteCaseFactory,
-    OpenLicenceReturnsFactory,
-)
-from api.core.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, get_value_from_enum
+from api.cases.tests.factories import FinalAdviceFactory
+
+from api.core.helpers import add_months, DATE_FORMAT, friendly_boolean, get_value_from_enum
 from api.goods.enums import (
     PvGrading,
     MilitaryUse,
@@ -31,16 +22,12 @@ from api.goods.enums import (
     GoodPvGraded,
 )
 from api.goods.tests.factories import GoodFactory, FirearmFactory
-from api.goodstype.tests.factories import GoodsTypeFactory
 from api.cases.tests.factories import EcjuQueryFactory
 from api.letter_templates.context_generator import get_document_context
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.parties.enums import PartyType, SubType
 from api.parties.models import Party
-from api.staticdata.countries.models import Country
-from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from api.staticdata.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -298,18 +285,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
         self._assert_temporary_export_details(context["temporary_export_details"], case)
 
-    def _assert_open_application_details(self, context, case):
-        self.assertEqual(context["export_type"], case.export_type)
-        self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods))
-        self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading))
-        self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details)
-        self.assertEqual(context["proposed_return_date"], case.proposed_return_date.strftime(DATE_FORMAT))
-        self.assertEqual(context["trade_control_activity"], case.trade_control_activity)
-        self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other)
-        self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
-        self.assertEqual(context["goodstype_category"], GoodsTypeCategory.get_text(case.goodstype_category))
-        self._assert_temporary_export_details(context["temporary_export_details"], case)
-
     def _assert_destination_details(self, context, destination):
         self.assertEqual(context["country"]["name"], destination.country.name)
         self.assertEqual(context["country"]["code"], destination.country.id)
@@ -349,20 +324,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["type"], case.case_type.type)
         self.assertEqual(context["reference"], case.case_type.reference)
         self.assertEqual(context["sub_type"], case.case_type.sub_type)
-
-    def _assert_compliance_visit_case_details(self, context, case):
-        self.assertEqual(context["visit_type"], ComplianceVisitTypes.to_str(case.visit_type))
-        self.assertEqual(context["visit_date"], case.visit_date.strftime(DATE_FORMAT))
-        self.assertEqual(context["overall_risk_value"], ComplianceRiskValues.to_str(case.overall_risk_value))
-        self.assertEqual(context["licence_risk_value"], case.licence_risk_value)
-        self.assertEqual(context["overview"], case.overview)
-        self.assertEqual(context["inspection"], case.inspection)
-        self.assertEqual(context["compliance_overview"], case.compliance_overview)
-        self.assertEqual(context["compliance_risk_value"], ComplianceRiskValues.to_str(case.compliance_risk_value))
-        self.assertEqual(context["individuals_overview"], case.individuals_overview)
-        self.assertEqual(context["individuals_risk_value"], ComplianceRiskValues.to_str(case.individuals_risk_value))
-        self.assertEqual(context["products_overview"], case.products_overview)
-        self.assertEqual(context["products_risk_value"], ComplianceRiskValues.to_str(case.products_risk_value))
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types
@@ -577,75 +538,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["quantity"], "3.0 Items")
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["value"], "£420.00")
 
-    @pytest.mark.skip("skip as we don't support this application type")
-    def test_generate_context_with_goods_types(self):
-        case = self.create_open_application_case(self.organisation)
-        approved_goods_type = case.goods_type.last()
-        refused_goods_type = case.goods_type.first()
-        refused_with_final_advice_goods_type = GoodsTypeFactory(application=case)
-        approved_country = Country.objects.first()
-        refused_country = Country.objects.last()
-        refused_with_final_advice_country = Country.objects.all()[1]
-
-        # Add a country refused at final advice level
-        FinalAdviceFactory(
-            user=self.gov_user,
-            team=self.team,
-            case=case,
-            country=refused_with_final_advice_country,
-            type=AdviceType.REFUSE,
-        )
-
-        # Add a goods type refused at final advice level
-        refused_with_final_advice_goods_type.countries.set([approved_country])
-        FinalAdviceFactory(
-            user=self.gov_user,
-            team=self.team,
-            case=case,
-            goods_type=refused_with_final_advice_goods_type,
-            type=AdviceType.REFUSE,
-        )
-
-        # Add approve & refuse GoodCountryDecisions
-        approved_goods_type.countries.set([refused_with_final_advice_country, approved_country])
-        refused_goods_type.countries.set([refused_country])
-        GoodCountryDecisionFactory(case=case, country=approved_country, goods_type=approved_goods_type, approve=True)
-        GoodCountryDecisionFactory(case=case, country=refused_country, goods_type=refused_goods_type, approve=False)
-
-        context = get_document_context(case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
-
-        # All goods types should be in all
-        self.assertEqual(len(context["goods"]["all"]), 3)
-        self._assert_goods_type(context["goods"]["all"][0], approved_goods_type)
-        self._assert_goods_type(context["goods"]["all"][1], refused_goods_type)
-        self._assert_goods_type(context["goods"]["all"][2], refused_with_final_advice_goods_type)
-
-        # Only the approved goods type with the approved country should be in approved
-        self.assertEqual(len(context["goods"]["approve"]), 1)
-        self.assertEqual(len(context["goods"]["approve"][approved_country.name]), 1)
-        self._assert_goods_type(context["goods"]["approve"][approved_country.name][0], approved_goods_type)
-
-        self.assertEqual(len(context["goods"]["refuse"]), 2)
-
-        # Rejected GoodCountryDecision
-        self.assertEqual(len(context["goods"]["refuse"][refused_country.name]), 1)
-        self._assert_goods_type(context["goods"]["refuse"][refused_country.name][0], refused_goods_type)
-
-        # Rejected goods type at final advice level
-        self.assertEqual(len(context["goods"]["refuse"][approved_country.name]), 2)
-        self._assert_goods_type(
-            context["goods"]["refuse"][approved_country.name][0], refused_with_final_advice_goods_type
-        )
-
-        # Rejected country at final advice level (on approved goods type)
-        self.assertEqual(len(context["goods"]["refuse"][refused_with_final_advice_country.name]), 1)
-        self._assert_goods_type(
-            context["goods"]["refuse"][refused_with_final_advice_country.name][0], approved_goods_type
-        )
-
     @parameterized.expand([(date(2020, 1, 31),), (date(2020, 4, 30),), (date(2020, 10, 13),)])
     def test_generate_context_with_licence(self, start_date):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
@@ -767,32 +659,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_base_application_details(context["details"], case)
         self._assert_standard_application_details(context["details"], case)
 
-    def test_generate_context_with_open_application_details(self):
-        case = self.create_open_application_case(self.organisation)
-        case.export_type = ApplicationExportType.TEMPORARY
-        case.reference_number_on_information_form = "123"
-        case.has_you_been_informed = ApplicationExportLicenceOfficialType.YES
-        case.contains_firearm_goods = True
-        case.shipped_waybill_or_lading = False
-        case.non_waybill_or_lading_route_details = "abc"
-        case.proposed_return_date = date(year=2020, month=1, day=1)
-        case.trade_control_activity = TradeControlActivity.MARITIME_ANTI_PIRACY
-        case.trade_control_activity_other = "other"
-        case.trade_control_product_categories = [TradeControlProductCategory.CATEGORY_A]
-        case.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
-        destination = CountryOnApplication.objects.filter(application_id=case.pk).first()
-        case.save()
-
-        context = get_document_context(case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
-        self._assert_case_type_details(context["case_type"], case)
-        self._assert_base_application_details(context["details"], case)
-        self._assert_open_application_details(context["details"], case)
-        self._assert_destination_details(context["destinations"][0], destination)
-
     def test_generate_context_with_end_user_advisory_query_details(self):
         case = self.create_end_user_advisory(note="abc", reasoning="def", organisation=self.organisation)
 
@@ -812,75 +678,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_goods_query_details(context["details"], case)
-
-    def test_generate_context_with_compliance_visit_details(self):
-        compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
-            site=self.organisation.primary_site,
-        )
-        comp_visit_case = ComplianceVisitCaseFactory(
-            organisation=self.organisation,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
-            site_case=compliance_case,
-        )
-
-        application = self.create_open_application_case(self.organisation)
-
-        licence = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
-
-        olr = OpenLicenceReturnsFactory(organisation=self.organisation)
-
-        context = get_document_context(comp_visit_case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-
-        self.assertEqual(context["case_reference"], comp_visit_case.reference_code)
-        self._assert_compliance_visit_case_details(context["details"], comp_visit_case)
-
-        self._assert_address(context["details"]["site_case"], self.organisation.primary_site.address)
-        self.assertEqual(context["details"]["site_case"]["licences"][0]["reference_code"], application.reference_code)
-        self.assertEqual(context["details"]["site_case"]["open_licence_returns"][0]["year"], olr.year)
-        self.assertEqual(
-            context["details"]["site_case"]["open_licence_returns"][0]["file_name"], f"{olr.year}OpenLicenceReturns.csv"
-        )
-        self.assertEqual(
-            context["details"]["site_case"]["open_licence_returns"][0]["timestamp"],
-            olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
-        )
-
-    def test_generate_context_with_compliance_site_details(self):
-        compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
-            site=self.organisation.primary_site,
-        )
-        comp_visit_case = ComplianceVisitCaseFactory(
-            organisation=self.organisation,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
-            site_case=compliance_case,
-        )
-
-        application = self.create_open_application_case(self.organisation)
-
-        StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
-
-        olr = OpenLicenceReturnsFactory(organisation=self.organisation)
-
-        context = get_document_context(compliance_case)
-        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
-
-        self.assertEqual(context["case_reference"], compliance_case.reference_code)
-        self._assert_compliance_visit_case_details(context["details"]["visit_reports"][0], comp_visit_case)
-        self._assert_address(context["details"], self.organisation.primary_site.address)
-        self.assertEqual(context["details"]["licences"][0]["reference_code"], application.reference_code)
-        self.assertEqual(context["details"]["open_licence_returns"][0]["year"], olr.year)
-        self.assertEqual(
-            context["details"]["open_licence_returns"][0]["file_name"], f"{olr.year}OpenLicenceReturns.csv"
-        )
-        self.assertEqual(
-            context["details"]["open_licence_returns"][0]["timestamp"],
-            olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
-        )
 
     def test_generate_context_with_category_1_good_details(self):
         application = self.create_standard_application_case(self.organisation)

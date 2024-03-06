@@ -1,10 +1,9 @@
 from django.db import transaction
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.views import APIView
 
-from api.applications.enums import GoodsTypeCategory
 from api.applications.helpers import delete_uploaded_document
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.libraries.get_applications import get_application
@@ -32,12 +31,8 @@ from api.goods.enums import GoodStatus
 from api.goods.helpers import FIREARMS_CORE_TYPES, get_rfd_status
 from api.goods.libraries.get_goods import get_good_with_organisation
 from api.goods.serializers import FirearmDetailsSerializer
-from api.goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
-from api.goodstype.models import GoodsType
-from api.goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
-from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterUser
 
@@ -332,156 +327,6 @@ class ApplicationGoodOnApplicationDocumentDetailView(APIView):
         document.delete()
 
         return JsonResponse({"document": "deleted success"})
-
-
-class ApplicationGoodsTypes(APIView):
-    """Goodstypes belonging to an open application."""
-
-    authentication_classes = (ExporterAuthentication,)
-
-    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_to_view_application(ExporterUser)
-    def get(self, request, pk):
-        goods_types = GoodsType.objects.filter(application_id=pk).order_by("created_at")
-        goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
-
-        return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
-
-    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @application_in_state(is_major_editable=True)
-    @authorised_to_view_application(ExporterUser)
-    def post(self, request, pk):
-        """
-        Post a goodstype
-        """
-        application = get_application(pk)
-        if (
-            hasattr(application, "goodstype_category")
-            and application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS
-        ):
-            raise BadRequestError(detail="You cannot do this action for this type of open application")
-        request.data["application"] = application
-        serializer = GoodsTypeSerializer(data=request.data)
-
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
-                action_object=serializer.instance,
-                target=application.get_case(),
-                payload={serializer.instance.description},
-            )
-
-            return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
-
-
-class ApplicationGoodsType(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_to_view_application(ExporterUser)
-    def get(self, request, pk, goodstype_pk):
-        """
-        Gets a goodstype
-        """
-        application = get_application(pk)
-        goods_type = get_goods_type(goodstype_pk)
-        default_countries = Country.objects.filter(countries_on_application__application=application)
-
-        goods_type_data = GoodsTypeViewSerializer(goods_type, default_countries=default_countries).data
-
-        return JsonResponse(data={"good": goods_type_data}, status=status.HTTP_200_OK)
-
-    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_to_view_application(ExporterUser)
-    def delete(self, request, pk, goodstype_pk):
-        """
-        Deletes a goodstype
-        """
-        application = get_application(pk)
-        if (
-            hasattr(application, "goodstype_category")
-            and application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS
-        ):
-            raise BadRequestError(detail="You cannot do this action for this type of open application")
-        goods_type = get_goods_type(goodstype_pk)
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
-            delete_goods_type_document_if_exists(goods_type)
-        goods_type.delete()
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.REMOVE_GOOD_TYPE_FROM_APPLICATION,
-            action_object=goods_type,
-            target=Case.objects.get(id=application.id),
-            payload={"good_type_name": goods_type.description},
-        )
-
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-
-class ApplicationGoodsTypeCountries(APIView):
-    """
-    Sets countries on goodstype
-    """
-
-    authentication_classes = (ExporterAuthentication,)
-
-    @transaction.atomic
-    @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    @application_in_state(is_major_editable=True)
-    @authorised_to_view_application(ExporterUser)
-    def put(self, request, pk):
-        application = get_application(pk)
-        if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
-            raise BadRequestError(detail="You cannot do this action for this type of open application")
-        data = request.data
-
-        for good, countries in data.items():
-            good = get_goods_type(good)
-
-            # Validate that at least one country has been selected per good
-            if not countries:
-                return JsonResponse(
-                    {"errors": "Select at least one country for each good"}, status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Validate that the countries given are valid countries
-            if not Country.objects.filter(pk__in=countries).count() == len(countries):
-                return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-            initial_countries = list(good.countries.all())
-            good.countries.set(countries)
-            removed_countries = [country.name for country in initial_countries if country not in good.countries.all()]
-            added_countries = [country.name for country in good.countries.all() if country not in initial_countries]
-
-            if removed_countries:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.REMOVED_COUNTRIES_FROM_GOOD,
-                    action_object=good,
-                    target=Case.objects.get(id=application.id),
-                    payload={
-                        "good_type_name": good.description,
-                        "countries": ", ".join(removed_countries),
-                    },
-                )
-
-            if added_countries:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.ASSIGNED_COUNTRIES_TO_GOOD,
-                    action_object=good,
-                    target=Case.objects.get(id=application.id),
-                    payload={
-                        "good_type_name": good.description,
-                        "countries": ", ".join(added_countries),
-                    },
-                )
-
-        return JsonResponse(data=data, status=status.HTTP_200_OK)
 
 
 class ApplicationGoodOnApplicationUpdateSerialNumbers(APIView):

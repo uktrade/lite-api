@@ -1,8 +1,4 @@
-from api.applications.models import (
-    BaseApplication,
-    OpenApplication,
-    StandardApplication,
-)
+from api.applications.models import BaseApplication, StandardApplication
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.exceptions import NotFoundError
 
@@ -71,14 +67,9 @@ def get_application(pk, organisation_id=None):
             )
             obj = qs.get(pk=pk, **kwargs)
             return obj
-        elif application_type == CaseTypeSubTypeEnum.OPEN:
-            return OpenApplication.objects.get(pk=pk, **kwargs)
         else:
             raise NotImplementedError(f"get_application does not support this application type: {application_type}")
-    except (
-        StandardApplication.DoesNotExist,
-        OpenApplication.DoesNotExist,
-    ):
+    except (StandardApplication.DoesNotExist,):
         raise NotFoundError({"application": "Application not found - " + str(pk)})
 
 
