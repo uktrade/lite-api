@@ -597,7 +597,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         assert updated_audit.payload["party_name"] != previous_audit.payload["party_name"]
         assert updated_audit.payload["party_type"] == previous_audit.payload["party_type"]
 
-    def test_audit_trail_anonymisation_delete_party_document_anonymised(self):
+    def test_audit_trail_anonymisation_destination_add_flags_anonymised(self):
         previous_audit = self.audit_entries[AuditType.DESTINATION_ADD_FLAGS]
         updated_audit = Audit.objects.get(id=previous_audit.id)
         assert updated_audit.payload["added_flags"] == previous_audit.payload["added_flags"]
