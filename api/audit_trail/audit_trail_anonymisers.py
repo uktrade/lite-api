@@ -16,7 +16,7 @@ def sanitize_mention_users(users):
 
 ALL_SANITIZERS = {
     "case_officer": db_anonymiser_sanitizers.sanitize_name,
-    "party_name": db_anonymiser_sanitizers.sanitize_name,
+    "party_name": db_anonymiser_sanitizers.sanitize_company_name,
     "organisation_name": db_anonymiser_sanitizers.sanitize_company_name,
     "user": db_anonymiser_sanitizers.sanitize_name,
     "firstname": db_anonymiser_sanitizers.sanitize_first_name,
