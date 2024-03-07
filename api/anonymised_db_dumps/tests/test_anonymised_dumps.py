@@ -20,8 +20,8 @@ from api.cases.models import CaseNote, EcjuQuery, Advice
 from api.documents.tests.factories import DocumentFactory
 from api.documents.models import Document
 from api.document_data.models import DocumentData
-from api.goods.tests.factories import FirearmFactory, GoodFactory
-from api.goods.models import FirearmGoodDetails, Good
+from api.goods.tests.factories import GoodFactory
+from api.goods.models import Good
 from api.organisations.tests.factories import SiteFactory, OrganisationFactory
 from api.organisations.models import Site, Organisation
 from api.addresses.tests.factories import AddressFactory
@@ -154,9 +154,6 @@ class TestAnonymiseDumps(TransactionTestCase):
         )
         cls.ecju_query = EcjuQueryFactory(question="ecju query question", response="ecju query response")
         cls.document = DocumentFactory(name="document_name.txt", s3_key="document_s3_key.txt")
-        cls.firearm_good_details = FirearmFactory(
-            serial_numbers=["serial number 1", "serial number 2"], serial_number="serial number"
-        )
         cls.good = GoodFactory(description="some good description", organisation=OrganisationFactory())
         cls.good_on_application = GoodOnApplicationFactory(
             comment="some goa comment", application=StandardApplicationFactory(), good=cls.good
@@ -415,7 +412,6 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.advice.delete()
         cls.ecju_query.delete()
         cls.document.delete()
-        cls.firearm_good_details.delete()
         cls.good.delete()
         cls.good_on_application.delete()
         Audit.objects.all().delete()
@@ -509,18 +505,6 @@ class TestAnonymiseDumps(TransactionTestCase):
     def test_document_s3_key_anonymised(self):
         updated_document = Document.objects.get(id=self.document.id)
         assert self.document.s3_key != updated_document.s3_key
-
-    def test_firearm_good_details_serial_numbers_anonymised(self):
-        updated_firearm_good_details = FirearmGoodDetails.objects.get(id=self.firearm_good_details.id)
-        for value in self.firearm_good_details.serial_numbers:
-
-            assert value not in updated_firearm_good_details.serial_numbers
-        assert len(updated_firearm_good_details.serial_numbers) == len(self.firearm_good_details.serial_numbers)
-
-    def test_firearm_good_details_serial_number_anonymised(self):
-        updated_firearm_good_details = FirearmGoodDetails.objects.get(id=self.firearm_good_details.id)
-
-        assert self.firearm_good_details.serial_number != updated_firearm_good_details.serial_number
 
     def test_good_description_anonymised(self):
         updated_good = Good.objects.get(id=self.good.id)

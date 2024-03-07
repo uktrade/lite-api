@@ -51,8 +51,8 @@ def test_sanitize_payload():
         "old": "Susan Robinson",
         "old_end_use_detail": "Quibusdam repudiandae aspernatur nisi praesentium cum. "
         "Odit fugiat soluta necessitatibus impedit.",
-        "organisation_name": "Morgan-Evans",
-        "party_name": "Norman Gibbons",
+        "organisation_name": "Evans-Norman",
+        "party_name": "Jones, Bell and Burke",
         "removed_user_name": "Rhys Jackson",
         "site_name": "Denise Gibson",
         "unchanged": "unchanged value",

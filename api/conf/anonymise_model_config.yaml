@@ -60,9 +60,6 @@ strategy:
   documents_document:
     name: faker.filename
     s3_key: faker.filename
-  goods_firearmgooddetails:
-    serial_number: goods_anonymisers.serial_number
-    serial_numbers: goods_anonymisers.serial_numbers
   good:
     description: faker.short_text
   applications_goodonapplication:
