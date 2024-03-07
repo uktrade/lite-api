@@ -2,7 +2,7 @@ import factory
 
 from api.staticdata.countries.factories import CountryFactory
 from api.parties.enums import SubType, PartyType
-from api.parties.models import Party
+from api.parties.models import Party, PartyDocument
 
 
 class PartyFactory(factory.django.DjangoModelFactory):
@@ -15,6 +15,11 @@ class PartyFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Party
+
+
+class PartyDocumentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = PartyDocument
 
 
 class ConsigneeFactory(PartyFactory):

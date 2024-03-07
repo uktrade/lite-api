@@ -7,7 +7,9 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.applications.libraries.get_applications import get_application
 from api.applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
+from api.applications.permissions import IsPartyDocumentInOrganisation
 from api.core.authentication import ExporterAuthentication
+from api.core.views import DocumentStreamAPIView
 from api.core.decorators import authorised_to_view_application
 from api.parties.models import PartyDocument
 from api.users.models import ExporterUser
@@ -64,3 +66,18 @@ class PartyDocumentView(APIView):
         )
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
+
+class PartyDocumentStream(DocumentStreamAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    lookup_url_kwarg = "document_pk"
+    permission_classes = (IsPartyDocumentInOrganisation,)
+
+    def get_queryset(self):
+        return PartyDocument.objects.filter(
+            party_id=self.kwargs["party_pk"],
+            party__parties_on_application__application__id=self.kwargs["pk"],
+        )
+
+    def get_document(self, instance):
+        return instance
