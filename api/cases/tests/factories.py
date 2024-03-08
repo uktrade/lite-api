@@ -6,6 +6,7 @@ from api.cases.models import (
     CountersignAdvice,
     Case,
     CaseAssignment,
+    CaseNote,
     CaseStatus,
     CaseType,
     EcjuQuery,
@@ -17,13 +18,23 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.goodstype.tests.factories import GoodsTypeFactory
 from api.staticdata.countries.factories import CountryFactory
 from api.teams.tests.factories import TeamFactory, DepartmentFactory
-from api.users.tests.factories import GovUserFactory
+from api.users.tests.factories import BaseUserFactory, GovUserFactory
+
+
+class CaseFactory(factory.django.DjangoModelFactory):
+    case_type = factory.Iterator(CaseType.objects.all())
+    status = factory.Iterator(CaseStatus.objects.all())
+    organisation = factory.SubFactory(OrganisationFactory)
+
+    class Meta:
+        model = Case
 
 
 class BaseAdviceFactory(factory.django.DjangoModelFactory):
     text = factory.Faker("word")
     note = factory.Faker("word")
     type = AdviceType.APPROVE
+    case = factory.SubFactory(CaseFactory)
 
     @factory.post_generation
     def denial_reasons(self, create, extracted, **kwargs):
@@ -70,15 +81,6 @@ class GoodCountryDecisionFactory(factory.django.DjangoModelFactory):
         model = GoodCountryDecision
 
 
-class CaseFactory(factory.django.DjangoModelFactory):
-    case_type = factory.Iterator(CaseType.objects.all())
-    status = factory.Iterator(CaseStatus.objects.all())
-    organisation = factory.SubFactory(OrganisationFactory)
-
-    class Meta:
-        model = Case
-
-
 class CaseSIELFactory(CaseFactory):
     case_type_id = CaseTypeEnum.SIEL.id
 
@@ -115,3 +117,11 @@ class EcjuQueryFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = EcjuQuery
+
+
+class CaseNoteFactory(factory.django.DjangoModelFactory):
+    case = factory.SubFactory(CaseFactory)
+    user = factory.SubFactory(BaseUserFactory)
+
+    class Meta:
+        model = CaseNote
