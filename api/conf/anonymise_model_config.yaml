@@ -1,6 +1,8 @@
 config:
   addons:
     - django_db_anonymiser.db_anonymiser
+    - api.goods
+    - api.audit_trail
   extra_parameters:
     pg_dump:
         - "--exclude-table-data=document_data_documentdata"
@@ -44,3 +46,23 @@ strategy:
     contact_telephone: faker.phone_number
   site:
     name: faker.name
+  appeals_appeal:
+    grounds_for_appeal: faker.text
+  cases_casenote:
+    text: faker.text
+  advice:
+    text: faker.text
+    note: faker.text
+    proviso: faker.text
+  cases_ecjuquery:
+    question: faker.text
+    response: faker.text
+  documents_document:
+    name: faker.filename
+    s3_key: faker.filename
+  good:
+    description: faker.short_text
+  applications_goodonapplication:
+    comment: faker.text
+  audit_trail_audit:
+    payload: audit_trail_anonymisers.payload
