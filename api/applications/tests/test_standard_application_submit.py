@@ -203,7 +203,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET,
+            text="To submit the application, add an ultimate end-user",
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 

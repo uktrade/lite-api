@@ -221,7 +221,7 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory, open_application=F
 
         if ultimate_end_user_required:
             if len(draft.ultimate_end_users.values_list()) == 0:
-                errors["ultimate_end_users"] = [strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET]
+                errors["ultimate_end_users"] = ["To submit the application, add an ultimate end-user"]
             # goods_types are used in open applications and we don't have end_users in them currently.
             elif not open_application:
                 # We make sure that an ultimate end user is not also the end user
