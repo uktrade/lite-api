@@ -217,7 +217,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertNotContains(
             response,
-            text=strings.Applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
+            text="To submit the application, attach a document to the ultimate end-users",
         )
 
     def test_submit_draft_without_third_party_documents_success(self):
