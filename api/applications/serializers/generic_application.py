@@ -8,7 +8,7 @@ from api.applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from api.applications.libraries.get_applications import get_application
-from api.applications.models import BaseApplication, ApplicationDenialReason
+from api.applications.models import BaseApplication
 from api.applications.serializers.document import ApplicationDocumentSerializer
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import CaseType
@@ -227,9 +227,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         instance.status = validated_data.get("status", instance.status)
         instance.clearance_level = validated_data.get("clearance_level", instance.clearance_level)
 
-        # Remove any previous denial reasons
         if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
-            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
             instance.last_closed_at = timezone.now()
 
         instance = super().update(instance, validated_data)
