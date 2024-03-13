@@ -168,18 +168,18 @@ class ApplicationPartyMixin:
 class BaseApplication(ApplicationPartyMixin, Case):
     name = models.TextField(default=None, blank=False, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
+    # TODO: This field is only null in the DB. Delete?
     usage = models.TextField(default=None, blank=True, null=True)
+    # TODO: This field is only null in the DB. Delete?
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
+    # TODO: The following block of fields can probably be moved to StandardApplication
     is_military_end_use_controls = models.BooleanField(blank=True, default=None, null=True)
     military_end_use_controls_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
-
     is_informed_wmd = models.BooleanField(blank=True, default=None, null=True)
     informed_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
-
     is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
     suspected_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
-
     is_eu_military = models.BooleanField(blank=True, default=None, null=True)
     is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
     compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
@@ -281,10 +281,13 @@ class StandardApplication(BaseApplication):
     is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
     temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
     proposed_return_date = models.DateField(blank=True, null=True)
+    # TODO: This field is only null in the DB. Delete?
     trade_control_activity = models.CharField(
         choices=TradeControlActivity.choices, blank=False, null=True, max_length=100
     )
+    # TODO: This field is only null in the DB. Delete?
     trade_control_activity_other = models.CharField(blank=False, null=True, max_length=100)
+    # TODO: This field is only null in the DB. Delete?
     trade_control_product_categories = SeparatedValuesField(
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
@@ -320,6 +323,7 @@ class SiteOnApplication(models.Model):
     application = models.ForeignKey(BaseApplication, related_name="application_sites", on_delete=models.CASCADE)
 
 
+# TODO: This model has no records in the DB. Delete?
 class ApplicationDenialReason(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(
@@ -331,6 +335,7 @@ class ApplicationDenialReason(models.Model):
     reason_details = models.TextField(default=None, blank=True, null=True, max_length=2200)
 
 
+# TODO: This model has no records in the DB. Delete?
 class ExternalLocationOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     external_location = models.ForeignKey(
