@@ -228,7 +228,7 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory, open_application=F
                 for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                     if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.party.id):
                         errors["ultimate_end_users"] = [
-                            strings.Applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
+                            "To submit the application, an ultimate end-user cannot be the same as the end user"
                         ]
 
     return errors
