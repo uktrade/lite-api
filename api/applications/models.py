@@ -53,7 +53,88 @@ class ApplicationException(APIException):
         self.data = data
 
 
-class ApplicationPartyMixin:
+class BaseApplication(Case):
+    name = models.TextField(default=None, blank=False, null=True)
+    activity = models.TextField(default=None, blank=True, null=True)
+    # TODO: This field is only null in the DB. Delete?
+    usage = models.TextField(default=None, blank=True, null=True)
+    # TODO: This field is only null in the DB. Delete?
+    clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
+
+    # TODO: The following block of fields can probably be moved to StandardApplication
+    is_military_end_use_controls = models.BooleanField(blank=True, default=None, null=True)
+    military_end_use_controls_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
+    is_informed_wmd = models.BooleanField(blank=True, default=None, null=True)
+    informed_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
+    is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
+    suspected_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
+    is_eu_military = models.BooleanField(blank=True, default=None, null=True)
+    is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
+    compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
+
+    intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
+    agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
+    foi_reason = models.TextField(blank=True, default="")
+
+    appeal = models.OneToOneField(Appeal, blank=True, null=True, on_delete=models.SET_NULL)
+    appeal_deadline = models.DateTimeField(
+        blank=True, null=True, default=None, help_text="Date before which Exporter can initiate an appeal on a refusal"
+    )
+
+    objects = BaseApplicationManager()
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def add_to_queue(self, queue):
+        case = self.get_case()
+
+        self.queues.add(queue)
+
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.MOVE_CASE,
+            target=case,
+            payload={
+                "queues": [queue.name],
+                "queue_ids": [str(queue.id)],
+                "case_status": case.status.status,
+            },
+        )
+
+    def set_status(self, status):
+        case = self.get_case()
+
+        old_status = self.status
+        self.status = get_case_status_by_status(status)
+
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.UPDATED_STATUS,
+            target=case,
+            payload={
+                "status": {
+                    "new": self.status.status,
+                    "old": old_status.status,
+                },
+            },
+        )
+
+        self.save()
+
+    def set_appealed(self, appeal, exporter_user):
+        self.appeal = appeal
+        self.save()
+
+        audit_trail_service.create(
+            actor=exporter_user,
+            verb=AuditType.EXPORTER_APPEALED_REFUSAL,
+            target=self.get_case(),
+            payload={},
+        )
+
+        self.set_status(CaseStatusEnum.UNDER_APPEAL)
+        self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
+        self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
+
     def add_party(self, party):
         if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
             raise ApplicationException({"bad_request": PartyErrors.BAD_CASE_TYPE})
@@ -163,89 +244,6 @@ class ApplicationPartyMixin:
         Standard and HMRC Query applications
         """
         return self.active_parties.filter(party__type=PartyType.THIRD_PARTY)
-
-
-class BaseApplication(ApplicationPartyMixin, Case):
-    name = models.TextField(default=None, blank=False, null=True)
-    activity = models.TextField(default=None, blank=True, null=True)
-    # TODO: This field is only null in the DB. Delete?
-    usage = models.TextField(default=None, blank=True, null=True)
-    # TODO: This field is only null in the DB. Delete?
-    clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
-
-    # TODO: The following block of fields can probably be moved to StandardApplication
-    is_military_end_use_controls = models.BooleanField(blank=True, default=None, null=True)
-    military_end_use_controls_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
-    is_informed_wmd = models.BooleanField(blank=True, default=None, null=True)
-    informed_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
-    is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
-    suspected_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
-    is_eu_military = models.BooleanField(blank=True, default=None, null=True)
-    is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
-    compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
-
-    intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
-    agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
-    foi_reason = models.TextField(blank=True, default="")
-
-    appeal = models.OneToOneField(Appeal, blank=True, null=True, on_delete=models.SET_NULL)
-    appeal_deadline = models.DateTimeField(
-        blank=True, null=True, default=None, help_text="Date before which Exporter can initiate an appeal on a refusal"
-    )
-
-    objects = BaseApplicationManager()
-
-    class Meta:
-        ordering = ["created_at"]
-
-    def add_to_queue(self, queue):
-        case = self.get_case()
-
-        self.queues.add(queue)
-
-        audit_trail_service.create_system_user_audit(
-            verb=AuditType.MOVE_CASE,
-            target=case,
-            payload={
-                "queues": [queue.name],
-                "queue_ids": [str(queue.id)],
-                "case_status": case.status.status,
-            },
-        )
-
-    def set_status(self, status):
-        case = self.get_case()
-
-        old_status = self.status
-        self.status = get_case_status_by_status(status)
-
-        audit_trail_service.create_system_user_audit(
-            verb=AuditType.UPDATED_STATUS,
-            target=case,
-            payload={
-                "status": {
-                    "new": self.status.status,
-                    "old": old_status.status,
-                },
-            },
-        )
-
-        self.save()
-
-    def set_appealed(self, appeal, exporter_user):
-        self.appeal = appeal
-        self.save()
-
-        audit_trail_service.create(
-            actor=exporter_user,
-            verb=AuditType.EXPORTER_APPEALED_REFUSAL,
-            target=self.get_case(),
-            payload={},
-        )
-
-        self.set_status(CaseStatusEnum.UNDER_APPEAL)
-        self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
-        self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
 
 # Licence Applications

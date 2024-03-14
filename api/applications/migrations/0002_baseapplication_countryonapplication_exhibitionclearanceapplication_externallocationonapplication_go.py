@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
             options={
                 "abstract": False,
             },
-            bases=(api.applications.models.ApplicationPartyMixin, "cases.case"),
+            bases=("cases.case",),
         ),
         migrations.CreateModel(
             name="CountryOnApplication",
