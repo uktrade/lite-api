@@ -61,17 +61,6 @@ class BaseApplication(Case):
     # TODO: This field is only null in the DB. Delete?
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
-    # TODO: The following block of fields can probably be moved to StandardApplication
-    is_military_end_use_controls = models.BooleanField(blank=True, default=None, null=True)
-    military_end_use_controls_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
-    is_informed_wmd = models.BooleanField(blank=True, default=None, null=True)
-    informed_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
-    is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
-    suspected_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
-    is_eu_military = models.BooleanField(blank=True, default=None, null=True)
-    is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
-    compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
-
     intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
     agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
     foi_reason = models.TextField(blank=True, default="")
@@ -302,6 +291,16 @@ class StandardApplication(BaseApplication):
     f1686_reference_number = models.CharField(default=None, blank=True, null=True, max_length=100)
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
+
+    is_military_end_use_controls = models.BooleanField(blank=True, default=None, null=True)
+    military_end_use_controls_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
+    is_informed_wmd = models.BooleanField(blank=True, default=None, null=True)
+    informed_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
+    is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
+    suspected_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
+    is_eu_military = models.BooleanField(blank=True, default=None, null=True)
+    is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
+    compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
 
 
 class ApplicationDocument(Document):
