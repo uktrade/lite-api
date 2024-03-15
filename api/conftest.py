@@ -127,6 +127,10 @@ def migration(transactional_db):
 @pytest.fixture(autouse=True)
 def setup(settings):
     settings.HAWK_AUTHENTICATION_ENABLED = False
+    settings.MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = True
+    settings.AV_SERVICE_URL = "http://localhost:8100/mock_virus_scan/scan"
+    settings.AV_SERVICE_USERNAME = ""
+    settings.AV_SERVICE_PASSWORD = ""
 
 
 @pytest.fixture(autouse=True)
