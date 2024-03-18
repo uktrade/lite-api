@@ -29,3 +29,24 @@ class FlaggingRulesRouter:
 
 
 flagging_rules = FlaggingRulesRouter()
+
+
+class RoutingRulesRouter:
+    def __init__(self):
+        self._rules = {}
+
+    def register(self, *, rule_pk):
+        def _register(fn):
+            self._rules[rule_pk] = fn
+            return fn
+
+        return _register
+
+    def get_criteria_function(self, rule_pk):
+        try:
+            return self._rules[str(rule_pk)]
+        except KeyError:
+            raise NotImplementedError(f"criteria_function for rule {rule_pk} does not exist")
+
+
+routing_rules = RoutingRulesRouter()
