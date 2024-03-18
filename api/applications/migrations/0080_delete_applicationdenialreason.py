@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("applications", "0078_remove_f680clearanceapplication_baseapplication_ptr_and_more"),
+        ("applications", "0079_remove_openapplication_baseapplication_ptr_and_more"),
     ]
 
     operations = [
