@@ -141,38 +141,38 @@ class Migration(migrations.Migration):
         migrations.RunPython(populate_moved_fields, reverse_populate_moved_fields),
         migrations.RemoveField(
             model_name="baseapplication",
-            name="compliant_limitations_eu_ref",
+            name="compliant_limitations_eu_ref_base",
         ),
         migrations.RemoveField(
             model_name="baseapplication",
-            name="informed_wmd_ref",
+            name="informed_wmd_ref_base",
         ),
         migrations.RemoveField(
             model_name="baseapplication",
-            name="is_compliant_limitations_eu",
+            name="is_compliant_limitations_eu_base",
         ),
         migrations.RemoveField(
             model_name="baseapplication",
-            name="is_eu_military",
+            name="is_eu_military_base",
         ),
         migrations.RemoveField(
             model_name="baseapplication",
-            name="is_informed_wmd",
+            name="is_informed_wmd_base",
         ),
         migrations.RemoveField(
             model_name="baseapplication",
-            name="is_military_end_use_controls",
+            name="is_military_end_use_controls_base",
         ),
         migrations.RemoveField(
             model_name="baseapplication",
-            name="is_suspected_wmd",
+            name="is_suspected_wmd_base",
         ),
         migrations.RemoveField(
             model_name="baseapplication",
-            name="military_end_use_controls_ref",
+            name="military_end_use_controls_ref_base",
         ),
         migrations.RemoveField(
             model_name="baseapplication",
-            name="suspected_wmd_ref",
+            name="suspected_wmd_ref_base",
         ),
     ]
