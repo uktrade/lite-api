@@ -27,6 +27,9 @@ class FlaggingRulesRouter:
         except KeyError:
             raise NotImplementedError(f"criteria_function for rule {rule_pk} does not exist")
 
+    def has_criteria_function(self, level, rule_pk):
+        return rule_pk in self._rules[level]
+
 
 flagging_rules = FlaggingRulesRouter()
 
@@ -47,6 +50,9 @@ class RoutingRulesRouter:
             return self._rules[str(rule_pk)]
         except KeyError:
             raise NotImplementedError(f"criteria_function for rule {rule_pk} does not exist")
+
+    def has_criteria_function(self, rule_pk):
+        return rule_pk in self._rules
 
 
 routing_rules = RoutingRulesRouter()
