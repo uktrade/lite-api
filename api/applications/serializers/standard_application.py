@@ -60,7 +60,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "have_you_been_informed",
                 "reference_number_on_information_form",
                 "activity",
-                "usage",
                 "destinations",
                 "denial_matches",
                 "additional_documents",
