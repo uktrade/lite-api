@@ -266,29 +266,10 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
         fields = [
             "user_reference",
             "end_use_details",
-            "military_end_use_controls_reference",
-            "military_end_use_controls",
-            "informed_wmd",
-            "suspected_wmd",
-            "suspected_wmd_reference",
-            "informed_wmd_reference",
-            "eu_military",
-            "compliant_limitations_eu_reference",
-            "compliant_limitations_eu",
         ]
 
     user_reference = serializers.CharField(source="name")
     end_use_details = serializers.CharField(source="intended_end_use")
-    military_end_use_controls_reference = serializers.CharField(source="military_end_use_controls_ref")
-    military_end_use_controls = FriendlyBooleanField(source="is_military_end_use_controls")
-    informed_wmd = FriendlyBooleanField(source="is_informed_wmd")
-    informed_wmd_reference = serializers.CharField(source="informed_wmd_ref")
-    suspected_wmd = FriendlyBooleanField(source="is_suspected_wmd")
-    suspected_wmd_reference = serializers.CharField(source="suspected_wmd_ref")
-    informed_wmd_reference = serializers.CharField(source="informed_wmd_ref")
-    eu_military = FriendlyBooleanField(source="is_eu_military")
-    compliant_limitations_eu = FriendlyBooleanField(source="is_compliant_limitations_eu")
-    compliant_limitations_eu_reference = serializers.CharField(source="compliant_limitations_eu_ref")
 
 
 class TemporaryExportDetailsSerializer(serializers.Serializer):
@@ -316,12 +297,31 @@ class StandardApplicationSerializer(serializers.ModelSerializer):
             "trade_control_activity_other",
             "trade_control_product_categories",
             "temporary_export_details",
+            "military_end_use_controls_reference",
+            "military_end_use_controls",
+            "informed_wmd",
+            "suspected_wmd",
+            "suspected_wmd_reference",
+            "informed_wmd_reference",
+            "eu_military",
+            "compliant_limitations_eu_reference",
+            "compliant_limitations_eu",
         ]
 
     has_been_informed = serializers.CharField(source="have_you_been_informed")
     shipped_waybill_or_lading = FriendlyBooleanField(source="is_shipped_waybill_or_lading")
     proposed_return_date = serializers.DateField(format=DATE_FORMAT, input_formats=None)
     temporary_export_details = serializers.SerializerMethodField()
+    military_end_use_controls_reference = serializers.CharField(source="military_end_use_controls_ref")
+    military_end_use_controls = FriendlyBooleanField(source="is_military_end_use_controls")
+    informed_wmd = FriendlyBooleanField(source="is_informed_wmd")
+    informed_wmd_reference = serializers.CharField(source="informed_wmd_ref")
+    suspected_wmd = FriendlyBooleanField(source="is_suspected_wmd")
+    suspected_wmd_reference = serializers.CharField(source="suspected_wmd_ref")
+    informed_wmd_reference = serializers.CharField(source="informed_wmd_ref")
+    eu_military = FriendlyBooleanField(source="is_eu_military")
+    compliant_limitations_eu = FriendlyBooleanField(source="is_compliant_limitations_eu")
+    compliant_limitations_eu_reference = serializers.CharField(source="compliant_limitations_eu_ref")
 
     def get_temporary_export_details(self, obj):
         return TemporaryExportDetailsSerializer(obj).data

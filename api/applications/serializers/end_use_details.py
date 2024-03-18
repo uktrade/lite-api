@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.applications.models import BaseApplication
+from api.applications.models import BaseApplication, StandardApplication
 from api.applications.serializers.serializer_helper import validate_field
 from lite_content.lite_api.strings import Applications as strings
 
@@ -29,7 +29,7 @@ class StandardEndUseDetailsUpdateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = BaseApplication
+        model = StandardApplication
         fields = (
             "is_military_end_use_controls",
             "military_end_use_controls_ref",
