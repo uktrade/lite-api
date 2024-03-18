@@ -153,6 +153,7 @@ class TestAnonymiseDumps(TransactionTestCase):
             text="final advice text", user=GovUserFactory(), note="advice note", proviso="advice proviso"
         )
         cls.ecju_query = EcjuQueryFactory(question="ecju query question", response="ecju query response")
+        cls.ecju_query_empty_response = EcjuQueryFactory(question="ecju query question", response=None)
         cls.document = DocumentFactory(name="document_name.txt", s3_key="document_s3_key.txt")
         cls.good = GoodFactory(description="some good description", organisation=OrganisationFactory())
         cls.good_on_application = GoodOnApplicationFactory(
@@ -497,6 +498,8 @@ class TestAnonymiseDumps(TransactionTestCase):
     def test_ecju_query_response_anonymised(self):
         updated_ecju_query = EcjuQuery.objects.get(id=self.ecju_query.id)
         assert self.ecju_query.response != updated_ecju_query.response
+        updated_ecju_query_empty_response = EcjuQuery.objects.get(id=self.ecju_query_empty_response.id)
+        assert updated_ecju_query_empty_response.response == None
 
     def test_document_name_anonymised(self):
         updated_document = Document.objects.get(id=self.document.id)
