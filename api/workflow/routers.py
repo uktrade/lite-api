@@ -3,10 +3,12 @@ from enum import auto, Enum
 
 class FlaggingRulesRouter:
     class Level(Enum):
+        CASE = auto()
         PRODUCT = auto()
 
     def __init__(self):
         self._rules = {
+            self.Level.CASE: {},
             self.Level.PRODUCT: {},
         }
 
