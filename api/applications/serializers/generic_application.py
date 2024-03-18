@@ -7,7 +7,6 @@ from api.applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
-from api.applications.libraries.get_applications import get_application
 from api.applications.models import BaseApplication
 from api.applications.serializers.document import ApplicationDocumentSerializer
 from api.cases.enums import CaseTypeSubTypeEnum
