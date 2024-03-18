@@ -33,7 +33,6 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     have_you_been_informed = ApplicationExportLicenceOfficialType.YES
     reference_number_on_information_form = ""
     activity = "Trade"
-    usage = "Trade"
     organisation = factory.SubFactory(OrganisationFactory)
     is_military_end_use_controls = False
     is_informed_wmd = False

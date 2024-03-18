@@ -57,8 +57,6 @@ class BaseApplication(Case):
     name = models.TextField(default=None, blank=False, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
     # TODO: This field is only null in the DB. Delete?
-    usage = models.TextField(default=None, blank=True, null=True)
-    # TODO: This field is only null in the DB. Delete?
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
     intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
