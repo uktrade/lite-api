@@ -33,7 +33,6 @@ from api.parties.enums import PartyType
 from api.parties.models import Party
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
@@ -56,7 +55,7 @@ class ApplicationException(APIException):
 class BaseApplication(Case):
     name = models.TextField(default=None, blank=False, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
-    # TODO: This field is only null in the DB. Delete?
+    # TODO: This field is only null in the DB. Delete? NOTE: accompanying frontend changes necessary
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
     intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
@@ -266,13 +265,13 @@ class StandardApplication(BaseApplication):
     is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
     temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
     proposed_return_date = models.DateField(blank=True, null=True)
-    # TODO: This field is only null in the DB. Delete?
+    # TODO: This field is only null in the DB. Delete? NOTE: accompanying frontend changes necessary
     trade_control_activity = models.CharField(
         choices=TradeControlActivity.choices, blank=False, null=True, max_length=100
     )
-    # TODO: This field is only null in the DB. Delete?
+    # TODO: This field is only null in the DB. Delete? NOTE: accompanying frontend changes necessary
     trade_control_activity_other = models.CharField(blank=False, null=True, max_length=100)
-    # TODO: This field is only null in the DB. Delete?
+    # TODO: This field is only null in the DB. Delete? NOTE: accompanying frontend changes necessary
     trade_control_product_categories = SeparatedValuesField(
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
@@ -318,7 +317,7 @@ class SiteOnApplication(models.Model):
     application = models.ForeignKey(BaseApplication, related_name="application_sites", on_delete=models.CASCADE)
 
 
-# TODO: This model has no records in the DB. Delete?
+# TODO: This model has no records in the DB. Delete? NOTE: accompanying frontend changes necessary
 class ExternalLocationOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     external_location = models.ForeignKey(
