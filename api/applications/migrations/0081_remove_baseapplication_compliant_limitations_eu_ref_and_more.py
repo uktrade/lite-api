@@ -44,7 +44,7 @@ def reverse_populate_moved_fields(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("applications", "0079_delete_applicationdenialreason"),
+        ("applications", "0080_delete_applicationdenialreason"),
     ]
 
     operations = [
