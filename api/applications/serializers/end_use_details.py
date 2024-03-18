@@ -64,44 +64,6 @@ class StandardEndUseDetailsUpdateSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-class OpenEndUseDetailsUpdateSerializer(serializers.ModelSerializer):
-    military_end_use_controls_ref = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, max_length=225
-    )
-    informed_wmd_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=225)
-    suspected_wmd_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2200)
-    intended_end_use = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2200)
-
-    class Meta:
-        model = BaseApplication
-        fields = (
-            "is_military_end_use_controls",
-            "military_end_use_controls_ref",
-            "is_informed_wmd",
-            "informed_wmd_ref",
-            "is_suspected_wmd",
-            "suspected_wmd_ref",
-            "intended_end_use",
-        )
-
-    def validate(self, data):
-        _validate_linked_fields(
-            data, "military_end_use_controls", strings.Generic.EndUseDetails.Error.INFORMED_TO_APPLY
-        )
-        _validate_linked_fields(data, "informed_wmd", strings.Generic.EndUseDetails.Error.INFORMED_WMD)
-        _validate_linked_fields(data, "suspected_wmd", strings.Generic.EndUseDetails.Error.SUSPECTED_WMD)
-        validate_field(data, "intended_end_use", strings.Generic.EndUseDetails.Error.INTENDED_END_USE)
-
-        return super().validate(data)
-
-    def update(self, instance, validated_data):
-        _update_reference_field(instance, "military_end_use_controls", validated_data)
-        _update_reference_field(instance, "informed_wmd", validated_data)
-        _update_reference_field(instance, "suspected_wmd", validated_data)
-
-        return super().update(instance, validated_data)
-
-
 def _validate_linked_fields(data, linked_field, error):
     linked_boolean_field_name = "is_" + linked_field
     linked_boolean_field = validate_field(data, linked_boolean_field_name, error)
