@@ -5,11 +5,13 @@ class FlaggingRulesRouter:
     class Level(Enum):
         CASE = auto()
         PRODUCT = auto()
+        DESTINATION = auto()
 
     def __init__(self):
         self._rules = {
             self.Level.CASE: {},
             self.Level.PRODUCT: {},
+            self.Level.DESTINATION: {},
         }
 
     def register(self, *, level, rule_pk):
