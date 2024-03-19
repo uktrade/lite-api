@@ -1,6 +1,9 @@
 from rest_framework import viewsets
 
-from django.http import JsonResponse
+from django.http import (
+    HttpResponse,
+    JsonResponse,
+)
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -63,7 +66,18 @@ class DocumentOnOrganisationView(viewsets.ModelViewSet):
                 "document_type": instance.document_type,
             },
         )
-        return JsonResponse({}, status=204)
+
+        # We return a `HttpResponse` with a blank string due to two issues.
+        # 1. This was originally `JsonResponse({}, status=204)` which caused
+        #    HAWK authentication failures due to an empty dict being received
+        #    as a blank string on the receiver and therefore the hash check of
+        #    the content would fail.
+        # 2. Switching this to `JsonResponse("", status=204)` causes an issue
+        #    with the tests trying to JSON parse an unsafe non-dict response.
+        #    The frontend doesn't try to parse this as JSON at any point so we
+        #    can just return a plain `HttpResponse` with an empty body to get
+        #    around both problems.
+        return HttpResponse("", status=204)
 
     def update(self, request, pk, document_on_application_pk):
         instance = self.get_object()
