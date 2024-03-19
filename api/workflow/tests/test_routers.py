@@ -15,7 +15,7 @@ class TestFlaggingRulesRouter(SimpleTestCase):
     def test_get_criteria_function_not_implemented(self, level):
         router = FlaggingRulesRouter()
         with self.assertRaises(NotImplementedError):
-            router.get_criteria_function(level, str(uuid.uuid4()))
+            router.get_criteria_function(level, uuid.uuid4())
 
     @parameterized.expand([l for l in FlaggingRulesRouter.Level])
     def test_get_criteria_function(self, level):
@@ -32,7 +32,7 @@ class TestFlaggingRulesRouter(SimpleTestCase):
     @parameterized.expand([l for l in FlaggingRulesRouter.Level])
     def test_has_criteria_function_not_existing(self, level):
         router = FlaggingRulesRouter()
-        returned = router.has_criteria_function(level, str(uuid.uuid4()))
+        returned = router.has_criteria_function(level, uuid.uuid4())
         self.assertFalse(returned)
 
     @parameterized.expand([l for l in FlaggingRulesRouter.Level])
@@ -52,7 +52,7 @@ class TestRoutingRulesRouter(SimpleTestCase):
     def test_get_criteria_function_not_implemented(self):
         router = RoutingRulesRouter()
         with self.assertRaises(NotImplementedError):
-            router.get_criteria_function(str(uuid.uuid4()))
+            router.get_criteria_function(uuid.uuid4())
 
     def test_get_criteria_function(self):
         router = RoutingRulesRouter()
@@ -67,7 +67,7 @@ class TestRoutingRulesRouter(SimpleTestCase):
 
     def test_has_criteria_function_not_existing(self):
         router = RoutingRulesRouter()
-        returned = router.has_criteria_function(str(uuid.uuid4()))
+        returned = router.has_criteria_function(uuid.uuid4())
         self.assertFalse(returned)
 
     def test_has_criteria_function(self):
