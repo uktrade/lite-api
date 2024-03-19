@@ -16,7 +16,7 @@ class FlaggingRulesRouter:
 
     def register(self, *, level, rule_pk):
         def _register(fn):
-            self._rules[level][rule_pk] = fn
+            self._rules[level][str(rule_pk)] = fn
             return fn
 
         return _register
@@ -28,7 +28,7 @@ class FlaggingRulesRouter:
             raise NotImplementedError(f"criteria_function for rule {rule_pk} does not exist")
 
     def has_criteria_function(self, level, rule_pk):
-        return rule_pk in self._rules[level]
+        return str(rule_pk) in self._rules[level]
 
 
 flagging_rules = FlaggingRulesRouter()
@@ -40,7 +40,7 @@ class RoutingRulesRouter:
 
     def register(self, *, rule_pk):
         def _register(fn):
-            self._rules[rule_pk] = fn
+            self._rules[str(rule_pk)] = fn
             return fn
 
         return _register
@@ -52,7 +52,7 @@ class RoutingRulesRouter:
             raise NotImplementedError(f"criteria_function for rule {rule_pk} does not exist")
 
     def has_criteria_function(self, rule_pk):
-        return rule_pk in self._rules
+        return str(rule_pk) in self._rules
 
 
 routing_rules = RoutingRulesRouter()
