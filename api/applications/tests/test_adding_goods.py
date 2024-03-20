@@ -4,7 +4,6 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from api.applications.models import GoodOnApplication
 from api.audit_trail.models import Audit
 from api.goods.tests.factories import GoodFactory
 from api.staticdata.units.enums import Units
@@ -129,38 +128,6 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         response = self.client.post(url, post_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, data["response"])
-
-    def test_add_a_good_to_open_application_failure(self):
-        """
-        Given a draft open application
-        When I try to add a good to the application
-        Then a 400 BAD REQUEST is returned
-        And no goods have been added
-        """
-        draft = self.create_draft_open_application(self.organisation)
-        pre_test_good_count = GoodOnApplication.objects.all().count()
-        self.create_good_document(
-            self.good,
-            user=self.exporter_user,
-            organisation=self.organisation,
-            name="doc1",
-            s3_key="doc3",
-        )
-
-        data = {
-            "good_id": self.good.id,
-            "quantity": 1200.098896,
-            "unit": Units.NAR,
-            "value": 50000.45,
-        }
-        url = reverse("applications:application_goods", kwargs={"pk": draft.id})
-
-        response = self.client.post(url, data, **self.exporter_headers)
-        audit_qs = Audit.objects.all()
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)
-        self.assertEqual(audit_qs.count(), 0)
 
     def test_add_a_good_to_a_submitted_application_failure(self):
         application = self.create_draft_standard_application(self.organisation)

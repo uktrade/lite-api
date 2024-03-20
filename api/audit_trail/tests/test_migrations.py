@@ -33,7 +33,7 @@ def migrate_status_audit_payloads_for_case(case):
 class TestSimpleAuditStatusMigration(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_draft_open_application(self.organisation)
+        self.case = self.create_draft_standard_application(self.organisation)
         content_type = ContentType.objects.get_for_model(self.case)
 
         self.old_payloads = [{"status": "submitted"}, {"status": "applicant_editing"}, {"status": "resubmitted"}]
@@ -64,7 +64,7 @@ class TestSimpleAuditStatusMigration(DataTestClient):
 class TestMixedAuditStatusMigration(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_draft_open_application(self.organisation)
+        self.case = self.create_draft_standard_application(self.organisation)
         content_type = ContentType.objects.get_for_model(self.case)
 
         self.old_payloads = [

@@ -12,7 +12,6 @@ from api.cases.models import Case, CaseQueue, EcjuQuery
 from api.cases.celery_tasks import (
     update_cases_sla,
     STANDARD_APPLICATION_TARGET_DAYS,
-    OPEN_APPLICATION_TARGET_DAYS,
     SLA_UPDATE_CUTOFF_TIME,
 )
 from api.cases.models import CaseQueue, DepartmentSLA
@@ -42,7 +41,6 @@ class SlaCaseTests(DataTestClient):
         super().setUp()
         self.case_types = {
             CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
-            CaseTypeSubTypeEnum.OPEN: self.create_draft_open_application(self.organisation),
             CaseTypeSubTypeEnum.GOODS: self.create_clc_query("abc", self.organisation),
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
@@ -68,28 +66,6 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
 
-        self.assertEqual(case.sla_remaining_days, target - 1)
-
-    @mock.patch("api.cases.celery_tasks.is_weekend")
-    @mock.patch("api.cases.celery_tasks.is_bank_holiday")
-    def test_sla_update_open_application(
-        self,
-        mock_is_weekend,
-        mock_is_bank_holiday,
-        application_type=CaseTypeSubTypeEnum.OPEN,
-        target=OPEN_APPLICATION_TARGET_DAYS,
-    ):
-        mock_is_weekend.return_value = False
-        mock_is_bank_holiday.return_value = False
-        application = self.case_types[application_type]
-        case = self.submit_application(application)
-        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
-
-        results = run_update_cases_sla_task()
-        case.refresh_from_db()
-
-        self.assertEqual(results, 1)
-        self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
     @parameterized.expand([(CaseTypeSubTypeEnum.GOODS,), (CaseTypeSubTypeEnum.EUA,)])

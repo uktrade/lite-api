@@ -23,7 +23,6 @@ from api.appeals.models import Appeal
 from api.appeals.serializers import AppealSerializer
 from api.applications import constants
 from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
-from api.applications.enums import ContractType
 from api.applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -40,7 +39,7 @@ from api.applications.libraries.application_helpers import (
 from api.applications.libraries.case_status_helpers import submit_application
 from api.applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
-    set_case_flags_on_submitted_standard_or_open_application,
+    set_case_flags_on_submitted_standard_application,
 )
 from api.applications.libraries.get_applications import get_application
 from api.applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
@@ -49,7 +48,6 @@ from api.applications.models import (
     BaseApplication,
     SiteOnApplication,
     GoodOnApplication,
-    CountryOnApplication,
     ExternalLocationOnApplication,
     PartyOnApplication,
     StandardApplication,
@@ -67,7 +65,6 @@ from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.helpers import auto_generate_case_document
 from api.cases.libraries.get_flags import get_flags
 from api.cases.notify import notify_exporter_appeal_acknowledgement
-from api.cases.service import get_destinations
 from api.cases.serializers import ApplicationManageSubStatusSerializer
 from api.cases.celery_tasks import get_application_target_sla
 from api.core.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
@@ -84,7 +81,6 @@ from api.core.permissions import (
 )
 from api.applications.views.helpers.advice import ensure_lu_countersign_complete
 from api.flags.enums import FlagStatuses, SystemFlags
-from api.flags.models import Flag
 from api.goods.serializers import GoodCreateSerializer
 from api.goods.models import FirearmGoodDetails
 from api.goodstype.models import GoodsType
@@ -226,9 +222,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             },
         ).data
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            data["destinations"] = get_destinations(application.id, user_type=request.user.type)
-
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @authorised_to_view_application(ExporterUser)
@@ -361,8 +354,8 @@ class ApplicationSubmission(APIView):
                 application.foi_reason = request.data.get("foi_reason", "")
                 submit_application(application)
 
-                if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
-                    set_case_flags_on_submitted_standard_or_open_application(application)
+                if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+                    set_case_flags_on_submitted_standard_application(application)
 
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
@@ -392,27 +385,11 @@ class ApplicationSubmission(APIView):
         if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
             auto_match_sanctions(application)
 
-        # If the user hasn't visited the optional goods to country mapping page, then no goods to country mappings will
-        # have been saved before this point. So save mappings for all goods to all countries, which is the default
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and GoodsType.objects.filter(application=application, countries__isnull=True).exists()
-        ):
-            countries_on_application = CountryOnApplication.objects.filter(application=application).values_list(
-                "country", flat=True
-            )
-
-            for goods_type in GoodsType.objects.filter(application=application, countries__isnull=True):
-                goods_type.countries.set(countries_on_application)
-
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
         serializer = serializer(application, context={"user_type": request.user.type})
 
         application_data = serializer.data
-
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            application_data["destinations"] = get_destinations(application.id, user_type=request.user.type)
 
         data = {"application": {"reference_code": application.reference_code, **application_data}}
 
@@ -473,13 +450,7 @@ class ApplicationManageStatus(APIView):
 
         data = get_application_view_serializer(application)(application, context={"user_type": request.user.type}).data
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            data["destinations"] = get_destinations(application.id, user_type=request.user.type)
-
-        return JsonResponse(
-            data={"data": data},
-            status=status.HTTP_200_OK,
-        )
+        return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
 
 
 class ApplicationManageSubStatus(UpdateAPIView):
@@ -832,7 +803,6 @@ class ApplicationCopy(APIView):
         relationships = [
             GoodOnApplication,
             SiteOnApplication,
-            CountryOnApplication,
             ExternalLocationOnApplication,
         ]
 
@@ -848,15 +818,6 @@ class ApplicationCopy(APIView):
                 if getattr(result, "created_at", False):
                     result.created_at = now()
                 result.save()
-
-                if relation == CountryOnApplication:
-                    if result.contract_types:
-                        result.flags.set(
-                            [
-                                Flag.objects.get(name=ContractType.get_flag_name(contract_type))
-                                for contract_type in result.contract_types
-                            ]
-                        )
 
     def duplicate_goodstypes_for_new_application(self):
         """

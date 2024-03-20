@@ -61,11 +61,6 @@ urlpatterns = [
         name="goods_countries_decisions",
     ),
     path(
-        "<uuid:pk>/open-licence-decision/",
-        views.OpenLicenceDecision.as_view(),
-        name="open_licence_decision",
-    ),
-    path(
         "<uuid:pk>/ecju-queries/",
         views.ECJUQueries.as_view(),
         name="case_ecju_queries",

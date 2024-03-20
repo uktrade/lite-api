@@ -76,7 +76,6 @@ from api.cases.serializers import (
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
 )
-from api.cases.service import get_destinations
 from api.compliance.helpers import generate_compliance_site_case
 from api.core import constants
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
@@ -171,15 +170,12 @@ class CaseDetail(APIView):
                 "sub_status",
                 "copy_of",
                 "baseapplication",
-                "compliancesitecase",
                 "query",
-                "opengenerallicencecase",
             ],
         )
 
         data = CaseDetailSerializer(case, user=gov_user, team=gov_user.team).data
-        if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            data["data"]["destinations"] = get_destinations(case.id)  # noqa
+
         data["licences"] = get_case_licences(case)
         return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
 
@@ -775,20 +771,6 @@ class GoodsCountriesDecisions(APIView):
 
         return JsonResponse(
             data={"good_country_decisions": list(required_decision_ids)}, status=status.HTTP_201_CREATED
-        )
-
-
-class OpenLicenceDecision(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    def get(self, request, pk):
-        assert_user_has_permission(request.user.govuser, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        return JsonResponse(
-            data={
-                "decision": AdviceType.APPROVE
-                if GoodCountryDecision.objects.filter(case_id=pk, approve=True).exists()
-                else AdviceType.REFUSE
-            }
         )
 
 

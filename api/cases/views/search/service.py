@@ -104,16 +104,6 @@ def populate_destinations_flags(cases: List[Dict]):
         ).annotate(case_id=F("parties__parties_on_application__application_id"))
     )
     flags = flags.union(
-        Flag.objects.filter(countries_on_applications__application_id__in=case_ids).annotate(
-            case_id=F("countries_on_applications__application_id")
-        )
-    )
-    flags = flags.union(
-        Flag.objects.filter(countries__countries_on_application__application_id__in=case_ids).annotate(
-            case_id=F("countries__countries_on_application__application_id")
-        )
-    )
-    flags = flags.union(
         Flag.objects.filter(parties_on_application__application__pk__in=case_ids).annotate(
             case_id=F("parties_on_application__application_id")
         )
