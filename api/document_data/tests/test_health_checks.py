@@ -162,6 +162,15 @@ class TestBackupDocumentDataHealthcheckBackend(APITestCase):
     @patch("api.document_data.health_checks.app")
     def test_backup_document_data_files_created_after_last_backup_ignored(self, mock_app):
         task_id = uuid.uuid4()
+        started_at = timezone.datetime(
+            2024,
+            2,
+            26,
+            1,
+            30,
+            0,
+            tzinfo=timezone.timezone.utc,
+        )
         ended_at = timezone.datetime(
             2024,
             2,
@@ -171,10 +180,12 @@ class TestBackupDocumentDataHealthcheckBackend(APITestCase):
             0,
             tzinfo=timezone.timezone.utc,
         )
-        BackupLog.objects.create(
+        backup_log = BackupLog.objects.create(
             ended_at=ended_at,
             task_id=task_id,
         )
+        backup_log.started_at = started_at
+        backup_log.save()
         DocumentFactory.create(
             created_at=ended_at + timezone.timedelta(hours=1),
             safe=True,
@@ -208,6 +219,43 @@ class TestBackupDocumentDataHealthcheckBackend(APITestCase):
         DocumentData.objects.create(
             last_modified=timezone.now(),
             s3_key=document.s3_key,
+        )
+        mock_remaining_estimate = mock_app.conf.beat_schedule[BACKUP_DOCUMENT_DATA_SCHEDULE_NAME][
+            "schedule"
+        ].remaining_estimate
+        mock_remaining_estimate.return_value = timezone.timedelta(hours=16)
+        self.assertIsNone(self.backend.check_status())
+
+    @patch("api.document_data.health_checks.app")
+    def test_backup_document_data_files_created_during_backup_ignored(self, mock_app):
+        task_id = uuid.uuid4()
+        started_at = timezone.datetime(
+            2024,
+            2,
+            26,
+            1,
+            30,
+            0,
+            tzinfo=timezone.timezone.utc,
+        )
+        ended_at = timezone.datetime(
+            2024,
+            2,
+            26,
+            2,
+            0,
+            0,
+            tzinfo=timezone.timezone.utc,
+        )
+        backup_log = BackupLog.objects.create(
+            ended_at=ended_at,
+            task_id=task_id,
+        )
+        backup_log.started_at = started_at
+        backup_log.save()
+        DocumentFactory.create(
+            created_at=started_at + timezone.timedelta(minutes=5),
+            safe=True,
         )
         mock_remaining_estimate = mock_app.conf.beat_schedule[BACKUP_DOCUMENT_DATA_SCHEDULE_NAME][
             "schedule"
