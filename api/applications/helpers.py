@@ -11,7 +11,6 @@ from api.appeals.constants import APPEAL_DAYS
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.applications.serializers.end_use_details import (
     F680EndUseDetailsUpdateSerializer,
-    OpenEndUseDetailsUpdateSerializer,
     StandardEndUseDetailsUpdateSerializer,
 )
 from api.applications.serializers.standard_application import (
@@ -67,8 +66,6 @@ def get_application_update_serializer(application: BaseApplication):
 def get_application_end_use_details_update_serializer(application: BaseApplication):
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardEndUseDetailsUpdateSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-        return OpenEndUseDetailsUpdateSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
         return F680EndUseDetailsUpdateSerializer
     else:
