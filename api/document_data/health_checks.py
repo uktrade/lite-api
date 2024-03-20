@@ -74,7 +74,7 @@ class BackupDocumentDataHealthCheckBackend(BaseHealthCheckBackend):
         # that are in the main documents.
         backed_up_s3_keys = DocumentData.objects.values_list("s3_key", flat=True)
         not_backed_up = Document.objects.filter(
-            created_at__lte=latest_backup_log.ended_at,
+            created_at__lte=latest_backup_log.started_at,
             safe=True,
         ).exclude(s3_key__in=backed_up_s3_keys)
         if not_backed_up.exists():
