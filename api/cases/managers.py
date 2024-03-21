@@ -493,13 +493,6 @@ class CaseManager(models.Manager):
         except StandardApplication.DoesNotExist:
             pass
 
-        from api.applications.models import OpenApplication
-
-        try:
-            return OpenApplication.objects.get(baseapplication_ptr__case_ptr=case)
-        except OpenApplication.DoesNotExist:
-            pass
-
         raise Exception(f"Application object not found from case: {case}")
 
     def get_query(self, case):

@@ -1,7 +1,4 @@
-import unittest
-import pytest
-
-from api.applications.models import CountryOnApplication, PartyOnApplication
+from api.applications.models import PartyOnApplication
 from api.cases.models import CaseType
 from api.flags.enums import FlagStatuses
 from api.flags.tests.factories import FlagFactory
@@ -89,18 +86,6 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         self.assertIn(case.case_type, parameter_set)
         self.assertIn(flag_2, parameter_set)
         self.assertIn(france, parameter_set)
-
-    def test_parameter_set_returned_for_open_application(self):
-        case = self.create_open_application_case(organisation=self.organisation)
-
-        parameter_set = case.parameter_set()
-
-        self.assertTrue(
-            set([coa.country for coa in CountryOnApplication.objects.filter(application=case.id)]).issubset(
-                parameter_set
-            )
-        )
-        self.assertIn(case.case_type, parameter_set)
 
     def test_end_user_advisory_query_returns_parameter_set(self):
         case = self.create_end_user_advisory_case(organisation=self.organisation, note="a note", reasoning="reasoning")

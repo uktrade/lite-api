@@ -8,7 +8,6 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
-from api.applications.models import CountryOnApplication
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.cases.models import Case
@@ -163,11 +162,6 @@ def get_stream(timestamp):
         for value in qs.values("target_object_id", "verb", "action_object_object_id")
     ]
 
-    # Prefetch relevant information in bulk to be used for streams
-    countries_on_applications = CountryOnApplication.objects.filter(application__id__in=case_ids).values(
-        "application_id", "country__name"
-    )
-
     case_types = Case.objects.filter(id__in=case_ids).select_related("case_type").values("id", "case_type__sub_type")
     case_types = {value["id"]: value["case_type__sub_type"] for value in case_types}
 
@@ -192,9 +186,7 @@ def get_stream(timestamp):
             stream.append(data)
         if audit.id in latest_case_audits:
             # Only create a case record for last seen activity for a given case.
-            countries = [
-                d["country__name"] for d in countries_on_applications if d["application_id"] == audit.target_object_id
-            ]
+            countries = []
             stream.append(case_record_json(audit.target_object_id, audit.created_at, countries))
 
     return {"data": stream, "next_timestamp": int(time.mktime(last_created_at.timetuple())) + 1}

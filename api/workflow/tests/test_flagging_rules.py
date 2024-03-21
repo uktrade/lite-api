@@ -2,13 +2,12 @@ import unittest
 
 from parameterized import parameterized
 
-from api.applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
+from api.applications.models import GoodOnApplication, PartyOnApplication
 from api.applications.tests.factories import PartyOnApplicationFactory
 from api.flags.enums import FlagLevels, FlagStatuses
 from api.flags.models import Flag, FlaggingRule
 from api.goods.enums import GoodStatus
 from api.goods.tests.factories import GoodFactory
-from api.goodstype.models import GoodsType
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -244,42 +243,6 @@ class FlaggingRulesAutomation(DataTestClient):
 
 
 class FlaggingRulesAutomationForEachCaseType(DataTestClient):
-    def test_open_application_automation(self):
-        application = self.create_draft_open_application(self.organisation)
-
-        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
-        self.create_flagging_rule(
-            FlagLevels.CASE, self.team, flag=case_flag, matching_values=[application.case_type.reference]
-        )
-
-        goods_type = GoodsType.objects.filter(application_id=application.id).first()
-        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(
-            FlagLevels.GOOD,
-            self.team,
-            flag=good_flag,
-            matching_values=[goods_type.control_list_entries.first().rating],
-            is_for_verified_goods_only=False,
-        )
-
-        country = CountryOnApplication.objects.filter(application_id=application.id).first().country
-        destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
-        dest_flagging_rule = self.create_flagging_rule(
-            FlagLevels.DESTINATION, self.team, flag=destination_flag, matching_values=[country.id]
-        )
-        apply_flagging_rule_to_all_open_cases(dest_flagging_rule)
-
-        self.submit_application(application)
-        apply_flagging_rules_to_case(application)
-
-        application.refresh_from_db()
-        goods_type.refresh_from_db()
-        country.refresh_from_db()
-
-        self.assertIn(case_flag, application.flags.all())
-        self.assertIn(good_flag, goods_type.flags.all())
-        self.assertIn(destination_flag, country.flags.all())
-
     def test_standard_application(self):
         application = self.create_standard_application_case(self.organisation)
 

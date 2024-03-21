@@ -8,15 +8,10 @@ from django.test import override_settings
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
-from api.cases.models import CaseType
-from api.cases.tests.factories import GoodCountryDecisionFactory
-from api.goodstype.models import GoodsType
+from api.cases.enums import AdviceType, AdviceLevel
 from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum
-from api.licences.models import HMRCIntegrationUsageData, Licence
+from api.licences.models import HMRCIntegrationUsageData
 from api.licences.tests.factories import GoodOnLicenceFactory, StandardLicenceFactory
-from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
-from api.staticdata.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
@@ -30,30 +25,6 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         licence = StandardLicenceFactory(case=standard_application, status=LicenceStatus.ISSUED)
         self._create_good_on_licence(licence, standard_application.goods.first())
-        return licence
-
-    def create_ogl_licence(self):
-        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
-        open_general_licence_case = OpenGeneralLicenceCaseFactory(
-            open_general_licence=open_general_licence,
-            site=self.organisation.primary_site,
-            organisation=self.organisation,
-        )
-        licence = Licence.objects.get(case=open_general_licence_case)
-        return licence
-
-    def create_open_licence(self):
-        open_application = self.create_open_application_case(self.organisation, CaseTypeEnum.EXHIBITION)
-        goods = GoodsType.objects.filter(application=open_application)
-        country = Country.objects.first()
-        for good in goods:
-            GoodCountryDecisionFactory(
-                case=open_application,
-                country=country,
-                goods_type=good,
-                approve=True,
-            )
-        licence = self.create_licence(open_application, status=LicenceStatus.ISSUED)
         return licence
 
     def _create_good_on_licence(self, licence, good_on_application):
@@ -97,41 +68,6 @@ class HMRCIntegrationUsageTests(DataTestClient):
                     "licence_reference": licence.reference_code,
                     "usage": original_usage + usage_data,
                     "quantity": gol_first.quantity,
-                },
-            ).exists()
-        )
-
-    def test_update_usages_accepted_licence_open_application(self):
-        licence = self.create_open_licence()
-        good = GoodsType.objects.filter(application=licence.case).first()
-        original_usage = good.usage
-        usage_data_id = str(uuid.uuid4())
-        usage_data = 10
-        licence_update = {
-            "id": str(licence.id),
-            "action": HMRCIntegrationActionEnum.OPEN,
-            "goods": [{"id": str(good.id), "usage": usage_data}],
-        }
-
-        response = self.client.put(self.url, {"usage_data_id": usage_data_id, "licences": [licence_update]})
-        good.refresh_from_db()
-
-        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
-        self.assertEqual(
-            response.json()["licences"]["accepted"],
-            [licence_update],
-        )
-        self.assertEqual(response.json()["licences"]["rejected"], [])
-        self.assertEqual(good.usage, original_usage + usage_data)
-        self.assertTrue(HMRCIntegrationUsageData.objects.filter(id=usage_data_id, licences=licence).exists())
-        self.assertTrue(
-            Audit.objects.filter(
-                verb=AuditType.LICENCE_UPDATED_PRODUCT_USAGE,
-                payload={
-                    "product_name": good.description,
-                    "licence_reference": licence.reference_code,
-                    "usage": original_usage + usage_data,
-                    "quantity": 0,
                 },
             ).exists()
         )

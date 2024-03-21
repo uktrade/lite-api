@@ -46,15 +46,6 @@ class ReferenceCode(DataTestClient):
         )
         self.assertEqual(standard_application.reference_code, expected_reference)
 
-    def test_open_application_reference_code(self):
-        open_application = self.create_draft_open_application(self.organisation)
-        open_application = self.submit_application(open_application)
-
-        expected_reference = build_expected_reference(
-            CaseTypeEnum.OIEL.reference, is_licence_type=True, export_type=PERMANENT
-        )
-        self.assertEqual(open_application.reference_code, expected_reference)
-
     def test_end_user_advisory_reference_code(self):
         end_user_advisory_query = self.create_end_user_advisory_case("", "", self.organisation)
         expected_reference = build_expected_reference(CaseTypeEnum.EUA.reference)

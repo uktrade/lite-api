@@ -1,5 +1,3 @@
-import pytest
-
 from unittest import mock
 from unittest.mock import ANY
 
@@ -10,13 +8,12 @@ from rest_framework import status
 from django.test import override_settings
 from django.conf import settings
 
-from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
-from api.cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
+from api.cases.enums import AdviceType, CaseTypeSubTypeEnum
+from api.cases.tests.factories import FinalAdviceFactory
 from api.core.constants import GovPermissions
 from api.core.helpers import add_months
 from api.conf.settings import LITE_HMRC_REQUEST_TIMEOUT
 from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action
-from api.licences.helpers import get_approved_goods_types, get_approved_countries
 from api.licences.libraries.hmrc_integration_operations import (
     send_licence,
     HMRCIntegrationException,
@@ -31,7 +28,6 @@ from api.licences.celery_tasks import (
 )
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.staticdata.countries.factories import CountryFactory
-from api.staticdata.countries.models import Country
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -226,36 +222,6 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             {"id": "KC", "name": "Trade Country"},
         )
 
-    @parameterized.expand(
-        [
-            [LicenceStatus.ISSUED],
-            [LicenceStatus.REINSTATED],
-            [LicenceStatus.SUSPENDED],
-            [LicenceStatus.SURRENDERED],
-            [LicenceStatus.REVOKED],
-            [LicenceStatus.CANCELLED],
-        ]
-    )
-    def test_open_application(self, status):
-        action = licence_status_to_hmrc_integration_action.get(status)
-        open_application = self.create_open_application_case(self.organisation)
-        open_application.goods_type.first().countries.set([Country.objects.first()])
-        GoodCountryDecisionFactory(
-            case=open_application,
-            country=Country.objects.first(),
-            goods_type=open_application.goods_type.first(),
-            approve=True,
-        )
-        open_licence = self.create_licence(open_application, status=status)
-        old_licence = None
-        if action == HMRCIntegrationActionEnum.UPDATE:
-            old_licence = self.create_licence(open_application, status=LicenceStatus.CANCELLED)
-            open_application.licences.add(old_licence)
-
-        data = HMRCIntegrationLicenceSerializer(open_licence).data
-
-        self._assert_dto(data, open_licence, old_licence)
-
     def _assert_dto(self, data, licence, old_licence=None):
         if old_licence:
             self.assertEqual(len(data), 10)
@@ -276,13 +242,6 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             self._assert_end_user(data, licence.case.end_user.party)
             self._assert_goods_on_licence(data, licence.goods.all())
             self.assertEqual(data["id"], str(licence.id))
-        elif licence.case.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
-            self._assert_countries(
-                data, licence.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
-            )
-        elif licence.case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            self._assert_countries(data, get_approved_countries(licence.case.baseapplication))
-            self._assert_goods_types(data, get_approved_goods_types(licence.case.baseapplication))
 
     def _assert_organisation(self, data, organisation):
         self.assertEqual(
@@ -573,28 +532,6 @@ class HMRCIntegrationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         send_licence.assert_not_called()
-
-    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
-    @mock.patch("api.core.requests.requests.request")
-    @pytest.mark.skip(reason="Currently we don't support open applications")
-    def test_approve_open_application_licence_success(self, request):
-        request.return_value = MockResponse("", 201)
-        open_application, open_licence = self._create_licence_for_submission(self.create_open_application_case)
-        expected_insert_json = HMRCIntegrationLicenceSerializer(open_licence).data
-        expected_insert_json["action"] = HMRCIntegrationActionEnum.INSERT
-
-        url = reverse("cases:finalise", kwargs={"pk": open_application.id})
-        response = self.client.put(url, data={}, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert request.called
-        request.assert_called_once_with(
-            "POST",
-            f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
-            json={"licence": expected_insert_json},
-            headers=ANY,
-            timeout=LITE_HMRC_REQUEST_TIMEOUT,
-        )
 
     @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
     @mock.patch("api.core.requests.requests.request")

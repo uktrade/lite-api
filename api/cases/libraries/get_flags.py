@@ -17,11 +17,6 @@ def get_goods_flags(case, case_type):
         CaseTypeSubTypeEnum.F680,
     ]:
         return Flag.objects.filter(goods__goods_on_application__application_id=case.id)
-    elif case_type in [
-        CaseTypeSubTypeEnum.OPEN,
-        CaseTypeSubTypeEnum.HMRC,
-    ]:
-        return Flag.objects.filter(goods_type__application_id=case.id)
     elif case_type == CaseTypeSubTypeEnum.GOODS:
         return Flag.objects.filter(goods__good__id=case.id)
 
@@ -31,11 +26,6 @@ def get_goods_flags(case, case_type):
 def get_destination_flags(case, case_type):
     if case_type == CaseTypeSubTypeEnum.EUA:
         return Flag.objects.filter(parties__parties_on_application__application_id=case.id)
-    elif case_type == CaseTypeSubTypeEnum.OPEN:
-        return Flag.objects.filter(countries_on_applications__application_id=case.id) | Flag.objects.filter(
-            countries__countries_on_application__application_id=case.id
-        )
-
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
         return Flag.objects.filter(
             parties__parties_on_application__application_id=case.id,

@@ -1,7 +1,6 @@
 from django.db.models import Q
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView
 
-from api.applications.models import CountryOnApplication
 from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import CaseType
@@ -35,7 +34,6 @@ class Licences(ListCreateAPIView):
         licence_type = self.request.GET.get("licence_type")
         reference = self.request.GET.get("reference")
         clc = self.request.GET.get("clc")
-        country = self.request.GET.get("country")
         end_user = self.request.GET.get("end_user")
         active_only = self.request.GET.get("active_only") == "True"
 
@@ -59,19 +57,6 @@ class Licences(ListCreateAPIView):
                 Q(case__baseapplication__goods__good__control_list_entries__rating=clc)
                 | Q(case__baseapplication__goods_type__control_list_entries__rating=clc)
             ).distinct()
-
-        if country:
-            licences = licences.filter(
-                Q(
-                    case__baseapplication__parties__party__country_id=country,
-                    case__baseapplication__parties__party__type=PartyType.END_USER,
-                )
-                | Q(
-                    case__id__in=CountryOnApplication.objects.filter(country_id=country).values_list(
-                        "application", flat=True
-                    )
-                )
-            )
 
         if end_user:
             licences = licences.filter(

@@ -1,13 +1,7 @@
-import itertools
-
-from elasticsearch_dsl import Index, Q, Search
 import pytest
 
-from django.conf import settings
-
-from api.applications import helpers, models
+from api.applications import helpers
 from api.flags.enums import SystemFlags
-from api.parties.enums import PartyType
 from test_helpers.clients import DataTestClient
 from api.external_data.documents import SanctionDocumentType
 
@@ -148,13 +142,3 @@ class AutoMatchStandardApplicationTests(AbstractAutoMatchTests, DataTestClient):
 
     def get_party(self, application):
         return application.end_user.party
-
-
-class AutoMatchOpenApplicationTests(AbstractAutoMatchTests, DataTestClient):
-    def create_application(self):
-        application = self.create_open_application_case(self.organisation)
-        self.create_party("Ultimate end User", self.organisation, PartyType.ULTIMATE_END_USER, application)
-        return application
-
-    def get_party(self, application):
-        return application.ultimate_end_users[0].party
