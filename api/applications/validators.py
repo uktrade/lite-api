@@ -1,9 +1,29 @@
 from api.applications.enums import ApplicationExportType
+from api.applications.models import SiteOnApplication
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.parties.models import PartyDocument
 from api.parties.enums import PartyType, PartyDocumentType
 
 from lite_content.lite_api import strings
+
+
+def siel_locations_validator(application):
+    error = None
+
+    export_type_choices = [item[0] for item in ApplicationExportType.choices]
+    starting_point_choices = [item[0] for item in application.GOODS_STARTING_POINT_CHOICES]
+    recipient_choices = [item[0] for item in application.GOODS_RECIPIENTS_CHOICES]
+
+    if not (
+        SiteOnApplication.objects.filter(application=application).exists()
+        and application.export_type in export_type_choices
+        and application.goods_starting_point in starting_point_choices
+        and application.goods_recipients in recipient_choices
+        and application.is_shipped_waybill_or_lading is not None
+    ):
+        error = "To submit the application, add a product location"
+
+    return {"location": [error]} if error else None
 
 
 def siel_end_user_validator(application):
@@ -45,6 +65,6 @@ class BaseApplicationValidator:
 
 class StandardApplicationValidator(BaseApplicationValidator):
     config = {
+        "location": siel_locations_validator,
         "end_user": siel_end_user_validator,
-        # more to follow
     }
