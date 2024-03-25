@@ -1,17 +1,31 @@
 from api.applications.enums import ApplicationExportType
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.parties.models import PartyDocument
-from api.parties.enums import PartyType
+from api.parties.enums import PartyType, PartyDocumentType
 
 from lite_content.lite_api import strings
 
 
 def siel_end_user_validator(application):
-    errors = {"end_user": []}
+    error = None
+    if not application.end_user:
+        error = "To submit the application, add an end user"
 
-    # perform validation checks
+    party = application.end_user.party
+    breakpoint()
+    documents_qs = PartyDocument.objects.filter(
+        party=party, type=PartyDocumentType.END_USER_UNDERTAKING_DOCUMENT
+    ).values_list("safe", flat=True)
+    if documents_qs.exists():
+        if None in documents_qs:
+            error = "We're still processing the end user document. Please submit again"
+        elif False in documents_qs:
+            error = "To submit the application, attach a document that does not contain a virus to the end user"
+    else:
+        if not party.end_user_document_available and not party.end_user_document_missing_reason:
+            error = "To submit the application, attach a document to the end user"
 
-    return errors
+    return {"end_user": [error]} if error else None
 
 
 class BaseApplicationValidator:
@@ -34,20 +48,3 @@ class StandardApplicationValidator(BaseApplicationValidator):
         "end_user": siel_end_user_validator,
         # more to follow
     }
-
-
-class ApplicationValidator:
-    def __init__(self, application):
-        self.application = application
-
-    def validate(self):
-        errors = {}
-        if not self.application:
-            raise ValueError("Invalid application")
-
-        if self.application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            errors = StandardApplicationValidator(self.application).validate()
-        else:
-            raise NotImplementedError("Only SIEL applications are supported")
-
-        return errors

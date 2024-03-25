@@ -16,6 +16,7 @@ from api.applications.enums import (
 )
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager
+from api.applications.validators import StandardApplicationValidator
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
@@ -265,6 +266,7 @@ class StandardApplication(BaseApplication):
         (VIA_CONSIGNEE, "To an end-user via a consignee"),
         (VIA_CONSIGNEE_AND_THIRD_PARTIES, "To an end-user via a consignee, with additional third parties"),
     ]
+    validator_class = StandardApplicationValidator
 
     export_type = models.TextField(choices=ApplicationExportType.choices, blank=True, default="")
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
@@ -301,6 +303,10 @@ class StandardApplication(BaseApplication):
     f1686_reference_number = models.CharField(default=None, blank=True, null=True, max_length=100)
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
+
+    def validate(self):
+        validator = self.validator_class(self)
+        return validator.validate()
 
 
 class ApplicationDocument(Document):

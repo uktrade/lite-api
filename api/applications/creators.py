@@ -19,7 +19,6 @@ def _validate_siel_locations(application, errors):
         not SiteOnApplication.objects.filter(application=application).exists()
         and not ExternalLocationOnApplication.objects.filter(application=application).exists()
         and not getattr(application, "have_goods_departed", False)
-        and not getattr(application, "goodstype_category", None) == GoodsTypeCategory.CRYPTOGRAPHIC
     )
 
     new_locations_invalid = (
