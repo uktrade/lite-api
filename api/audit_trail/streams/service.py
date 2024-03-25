@@ -1,6 +1,7 @@
 """
 MVP activity stream. To be extended appropriately as requirements are drawn up.
 """
+
 import time
 from datetime import datetime
 

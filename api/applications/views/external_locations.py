@@ -137,9 +137,11 @@ class ApplicationExternalLocations(APIView):
                 target=application.get_case(),
                 payload={
                     "locations": [
-                        location.external_location.name + " " + location.external_location.country.name
-                        if location.external_location.country
-                        else location.external_location.name
+                        (
+                            location.external_location.name + " " + location.external_location.country.name
+                            if location.external_location.country
+                            else location.external_location.name
+                        )
                         for location in removed_locations
                     ]
                 },
@@ -270,9 +272,11 @@ class ApplicationRemoveExternalLocation(APIView):
                 target=application.get_case(),
                 payload={
                     "locations": [
-                        location.external_location.name + " " + location.external_location.country.name
-                        if location.external_location.country
-                        else location.external_location.name
+                        (
+                            location.external_location.name + " " + location.external_location.country.name
+                            if location.external_location.country
+                            else location.external_location.name
+                        )
                         for location in removed_locations
                     ]
                 },

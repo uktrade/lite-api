@@ -3,7 +3,6 @@
 from django.db import migrations
 
 
-
 def inform_letter_update_military_picklist(apps, schema_editor):
 
     PicklistItem = apps.get_model("picklists", "PicklistItem")

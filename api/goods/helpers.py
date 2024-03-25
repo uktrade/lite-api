@@ -32,9 +32,9 @@ def validate_firearms_act_certificate(validated_data):
 
         date_of_expiry = validated_data.get("section_certificate_date_of_expiry")
         if not date_of_expiry:
-            errors[
-                "section_certificate_date_of_expiry"
-            ] = "Enter the certificate expiry date and include a day, month and year"
+            errors["section_certificate_date_of_expiry"] = (
+                "Enter the certificate expiry date and include a day, month and year"
+            )
 
         # Date of expiry has to be in the future
         if date_of_expiry and date_of_expiry < timezone.now().date():

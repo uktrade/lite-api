@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parties', '0004_auto_20220104_1208'),
+        ("parties", "0004_auto_20220104_1208"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='party',
-            name='document_in_english',
+            model_name="party",
+            name="document_in_english",
             field=models.BooleanField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='party',
-            name='document_on_letterhead',
+            model_name="party",
+            name="document_on_letterhead",
             field=models.BooleanField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='party',
-            name='end_user_document_available',
+            model_name="party",
+            name="end_user_document_available",
             field=models.BooleanField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='party',
-            name='end_user_document_missing_reason',
-            field=models.TextField(blank=True, default=''),
+            model_name="party",
+            name="end_user_document_missing_reason",
+            field=models.TextField(blank=True, default=""),
         ),
     ]

@@ -111,9 +111,7 @@ def construct_coalesced_advice_values(
     pv_grading = (
         break_text.join([PvGrading.to_str(pv_grading) for pv_grading in fields["pv_grading"]])
         if fields["pv_grading"]
-        else list(fields["collated_pv_grading"])[0]
-        if fields["collated_pv_grading"]
-        else None
+        else list(fields["collated_pv_grading"])[0] if fields["collated_pv_grading"] else None
     )
     return Advice(
         text=break_text.join(fields["text"]),

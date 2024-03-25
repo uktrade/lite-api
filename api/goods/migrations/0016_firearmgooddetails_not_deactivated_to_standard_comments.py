@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods', '0015_alter_pvgradingdetails_issuing_authority'),
+        ("goods", "0015_alter_pvgradingdetails_issuing_authority"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='firearmgooddetails',
-            name='not_deactivated_to_standard_comments',
-            field=models.TextField(default=''),
+            model_name="firearmgooddetails",
+            name="not_deactivated_to_standard_comments",
+            field=models.TextField(default=""),
         ),
     ]

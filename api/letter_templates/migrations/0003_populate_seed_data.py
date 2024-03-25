@@ -7,16 +7,13 @@ from api.picklists.enums import PickListStatus, PicklistType
 from api.teams.enums import TeamIdEnum
 
 
-
-
 def populate_static_data(apps, schema_editor):
 
-    # Create the template 
+    # Create the template
     Decision = apps.get_model("decisions", "Decision")
     for name, id in AdviceType.ids.items():
         Decision.objects.get_or_create(id=id, name=name)
-        
-                
+
 
 class Migration(migrations.Migration):
 
