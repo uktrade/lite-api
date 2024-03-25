@@ -1,6 +1,7 @@
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from api.cases.models import Advice, GoodCountryDecision
 from api.applications.models import GoodOnApplication
+from api.flags.models import RemoveFlag
 
 
 def get_required_decision_document_types(case):
@@ -43,5 +44,13 @@ def get_required_decision_document_types(case):
 
 
 def remove_case_flags(case):
-    # Changes here to check db then remove flags
-    pass
+    case_flags = case.flags.all()
+    case_flags_ids = [flag.id for flag in case_flags]
+    matching_remove_flags = RemoveFlag.objects.filter(id__in=case_flags_ids)
+
+    for remove_flag in matching_remove_flags:
+        for flag in case_flags:
+            if flag.id == remove_flag.id:
+                case.flags.remove(flag)
+
+    case.save()
