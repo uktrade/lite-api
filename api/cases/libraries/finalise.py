@@ -40,3 +40,8 @@ def get_required_decision_document_types(case):
             required_decisions.add(AdviceType.REFUSE)
 
     return required_decisions
+
+
+def remove_case_flags(case):
+    # Changes here to check db then remove flags
+    pass
