@@ -1,5 +1,4 @@
 from api.applications.enums import ApplicationExportType
-from api.applications.models import SiteOnApplication
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.parties.models import PartyDocument
 from api.parties.enums import PartyType, PartyDocumentType
@@ -8,6 +7,8 @@ from lite_content.lite_api import strings
 
 
 def siel_locations_validator(application):
+    from api.applications.models import SiteOnApplication
+
     error = None
 
     export_type_choices = [item[0] for item in ApplicationExportType.choices]
@@ -23,7 +24,7 @@ def siel_locations_validator(application):
     ):
         error = "To submit the application, add a product location"
 
-    return {"location": [error]} if error else None
+    return error
 
 
 def siel_end_user_validator(application):
@@ -32,7 +33,6 @@ def siel_end_user_validator(application):
         error = "To submit the application, add an end user"
 
     party = application.end_user.party
-    breakpoint()
     documents_qs = PartyDocument.objects.filter(
         party=party, type=PartyDocumentType.END_USER_UNDERTAKING_DOCUMENT
     ).values_list("safe", flat=True)
@@ -45,7 +45,13 @@ def siel_end_user_validator(application):
         if not party.end_user_document_available and not party.end_user_document_missing_reason:
             error = "To submit the application, attach a document to the end user"
 
-    return {"end_user": [error]} if error else None
+    return error
+
+
+def siel_security_approvals_validator(application):
+    error = "To submit the application, complete the 'Do you have a security approval?' section"
+
+    return error if application.is_mod_security_approved is None else None
 
 
 class BaseApplicationValidator:
@@ -56,9 +62,11 @@ class BaseApplicationValidator:
 
     def validate(self):
         all_errors = {}
-        for _, func in self.config.items():
-            errors = func(self.application)
-            all_errors = {**errors, **all_errors}
+        for entity, func in self.config.items():
+            error = func(self.application)
+            if error:
+                entity_errors = {entity: [error]}
+                all_errors = {**entity_errors, **all_errors}
 
         return all_errors
 
@@ -67,4 +75,5 @@ class StandardApplicationValidator(BaseApplicationValidator):
     config = {
         "location": siel_locations_validator,
         "end_user": siel_end_user_validator,
+        "security_approvals": siel_security_approvals_validator,
     }
