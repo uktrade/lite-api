@@ -33,9 +33,9 @@ class ApplicationsRequiresSerialNumbersListTests(DataTestClient):
         )
         firearm_details = FirearmFactory(
             serial_numbers_available=serial_numbers_available,
-            serial_numbers=[]
-            if serial_numbers_available == FirearmGoodDetails.SerialNumberAvailability.LATER
-            else ["", "", ""],
+            serial_numbers=(
+                [] if serial_numbers_available == FirearmGoodDetails.SerialNumberAvailability.LATER else ["", "", ""]
+            ),
             number_of_items=3,
         )
         GoodOnApplicationFactory(

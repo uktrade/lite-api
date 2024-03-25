@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('external_data', '0017_denial_regime_reg_ref'),
+        ("external_data", "0017_denial_regime_reg_ref"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='denial',
-            name='reason_for_refusal',
-            field=models.TextField(blank=True, default='', null=True, help_text='Reason why the denial was refused'),
+            model_name="denial",
+            name="reason_for_refusal",
+            field=models.TextField(blank=True, default="", null=True, help_text="Reason why the denial was refused"),
         ),
         migrations.AddField(
-            model_name='denial',
-            name='spire_entity_id',
-            field=models.IntegerField(help_text='Entity_id from spire for matching data', null=True),
+            model_name="denial",
+            name="spire_entity_id",
+            field=models.IntegerField(help_text="Entity_id from spire for matching data", null=True),
         ),
     ]

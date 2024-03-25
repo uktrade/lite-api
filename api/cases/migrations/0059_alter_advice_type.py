@@ -6,13 +6,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0058_advice_is_refusal_note'),
+        ("cases", "0058_advice_is_refusal_note"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='advice',
-            name='type',
-            field=models.CharField(choices=[('approve', 'Approve'), ('proviso', 'Proviso'), ('refuse', 'Refuse'), ('no_licence_required', 'No Licence Required'), ('not_applicable', 'Not Applicable'), ('conflicting', 'Conflicting'), ('inform', 'Inform')], max_length=30),
+            model_name="advice",
+            name="type",
+            field=models.CharField(
+                choices=[
+                    ("approve", "Approve"),
+                    ("proviso", "Proviso"),
+                    ("refuse", "Refuse"),
+                    ("no_licence_required", "No Licence Required"),
+                    ("not_applicable", "Not Applicable"),
+                    ("conflicting", "Conflicting"),
+                    ("inform", "Inform"),
+                ],
+                max_length=30,
+            ),
         ),
     ]

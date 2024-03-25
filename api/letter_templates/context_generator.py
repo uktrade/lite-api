@@ -751,16 +751,22 @@ def get_document_context(case, addressee=None):
         "addressee": AddresseeSerializer(addressee).data,
         "organisation": OrganisationSerializer(case.organisation).data,
         "licence": LicenceSerializer(licence).data if licence else None,
-        "end_user": PartySerializer(base_application.end_user.party).data
-        if base_application and base_application.end_user
-        else None,
-        "consignee": PartySerializer(base_application.consignee.party).data
-        if base_application and base_application.consignee
-        else None,
+        "end_user": (
+            PartySerializer(base_application.end_user.party).data
+            if base_application and base_application.end_user
+            else None
+        ),
+        "consignee": (
+            PartySerializer(base_application.consignee.party).data
+            if base_application and base_application.consignee
+            else None
+        ),
         "ultimate_end_users": PartySerializer(ultimate_end_users, many=True).data or [],
-        "third_parties": _get_third_parties_context(base_application.third_parties)
-        if getattr(base_application, "third_parties", "")
-        else [],
+        "third_parties": (
+            _get_third_parties_context(base_application.third_parties)
+            if getattr(base_application, "third_parties", "")
+            else []
+        ),
         "goods": goods,
         "ecju_queries": EcjuQuerySerializer(ecju_queries, many=True).data,
         "notes": CaseNoteSerializer(notes, many=True).data,

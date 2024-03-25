@@ -168,9 +168,9 @@ class Command(BaseCommand):
                     "id": good_on_application.id,
                     "report_summary": good_on_application.report_summary,
                     "suggested_prefix": suggested_prefix.name if suggested_prefix else "",
-                    "suggested_prefix_id": good_on_application.suggested_prefix_id
-                    if good_on_application.suggested_prefix_id
-                    else "",
+                    "suggested_prefix_id": (
+                        good_on_application.suggested_prefix_id if good_on_application.suggested_prefix_id else ""
+                    ),
                     "suggested_subject": suggested_subject.name if suggested_subject else "",
                     "suggested_subject_id": suggested_subject.id if suggested_subject else "",
                     **(
