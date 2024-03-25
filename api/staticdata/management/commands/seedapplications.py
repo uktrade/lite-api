@@ -15,6 +15,7 @@ from api.staticdata.units.enums import Units
 from test_helpers.clients import DataTestClient
 from api.users.models import GovUser
 
+
 # helper functions
 def verify_good(good):
     good.status = GoodStatus.VERIFIED

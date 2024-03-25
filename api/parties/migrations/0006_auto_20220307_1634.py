@@ -6,18 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parties', '0005_auto_20220303_1122'),
+        ("parties", "0005_auto_20220303_1122"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='partydocument',
-            name='description',
-            field=models.TextField(blank=True, default=''),
+            model_name="partydocument",
+            name="description",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name='partydocument',
-            name='type',
-            field=models.TextField(choices=[('supporting_document', 'Supporting document'), ('end_user_undertaking_document', 'End-user undertaking or stockist undertaking document'), ('end_user_english_translation_document', 'English translation of end-user undertaking document'), ('end_user_company_letterhead_document', 'End-user document on company letterhead')], default='supporting_document'),
+            model_name="partydocument",
+            name="type",
+            field=models.TextField(
+                choices=[
+                    ("supporting_document", "Supporting document"),
+                    ("end_user_undertaking_document", "End-user undertaking or stockist undertaking document"),
+                    ("end_user_english_translation_document", "English translation of end-user undertaking document"),
+                    ("end_user_company_letterhead_document", "End-user document on company letterhead"),
+                ],
+                default="supporting_document",
+            ),
         ),
     ]
