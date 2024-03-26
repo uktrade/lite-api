@@ -105,6 +105,7 @@ class OpenGeneralLicenceReissue(APIView):
 
         open_general_licence_case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         open_general_licence_case.save()
+        # Check this since this application is not being used.
 
         audit_trail_service.create(
             actor=request.user,

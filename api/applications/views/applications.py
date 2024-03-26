@@ -7,6 +7,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import now
+from api.cases.libraries.finalise import remove_case_flags
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError, ParseError
 from rest_framework.generics import (
@@ -92,6 +93,7 @@ from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
 from api.organisations.models import Site
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
@@ -415,6 +417,12 @@ class ApplicationManageStatus(APIView):
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
+
+        # Remove needed flags when case is Withdrawn
+        withdrawn_status = CaseStatus.objects.filter(status=CaseStatusEnum.WITHDRAWN).first()
+        if case_status == withdrawn_status:
+            remove_case_flags(application.get_case())
+
         old_status = application.status
 
         serializer = get_application_update_serializer(application)
