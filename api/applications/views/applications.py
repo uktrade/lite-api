@@ -7,7 +7,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import now
-from api.cases.libraries.finalise import remove_case_flags
+from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError, ParseError
 from rest_framework.generics import (
@@ -421,7 +421,8 @@ class ApplicationManageStatus(APIView):
         # Remove needed flags when case is Withdrawn
         withdrawn_status = CaseStatus.objects.filter(status=CaseStatusEnum.WITHDRAWN).first()
         if case_status == withdrawn_status:
-            remove_case_flags(application.get_case())
+            remove_flags_on_finalisation(application.get_case())
+            remove_flags_from_audit_trail(application.get_case())
 
         old_status = application.status
 

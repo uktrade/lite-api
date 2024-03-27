@@ -25,7 +25,7 @@ class Flag(TimestampableModel):
     priority = models.PositiveSmallIntegerField(default=0)
     blocks_finalising = models.BooleanField(default=False)
     removable_by = models.CharField(choices=FlagPermissions.choices, default=FlagPermissions.DEFAULT, max_length=50)
-
+    remove_on_finalised = models.BooleanField(default=False)
     objects = FlagManager()
 
     class Meta:
@@ -91,17 +91,3 @@ class FlaggingRule(TimestampableModel):
             self.excluded_values,
             self.is_for_verified_goods_only,
         )
-
-
-class RemoveFlag(TimestampableModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(unique=True, max_length=100)
-    alias = models.TextField(default=None, null=True, unique=True, help_text="fixed static field for reference")
-    level = models.CharField(choices=FlagLevels.choices, max_length=20)
-    status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
-
-    class Meta:
-        db_table = "remove_flag"
-
-    def natural_key(self):
-        return (self.name,)

@@ -5,7 +5,6 @@ from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from django.contrib.contenttypes.models import ContentType
 
-from api.audit_trail.formatters import remove_flags
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
@@ -30,7 +29,11 @@ from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.helpers import create_system_mention
 from api.cases.libraries.advice import group_advice
-from api.cases.libraries.finalise import get_required_decision_document_types, remove_case_flags
+from api.cases.libraries.finalise import (
+    get_required_decision_document_types,
+    remove_flags_on_finalisation,
+    remove_flags_from_audit_trail,
+)
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
 from api.cases.libraries.get_ecju_queries import get_ecju_query
@@ -977,7 +980,9 @@ class FinaliseView(UpdateAPIView):
         case.save()
 
         logging.info("Case status is now finalised")
-        remove_case_flags(case)
+        remove_flags_on_finalisation(case)
+        remove_flags_from_audit_trail(case)
+
         decisions = required_decisions.copy()
 
         if AdviceType.REFUSE in decisions:
