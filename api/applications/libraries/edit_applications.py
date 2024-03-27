@@ -1,5 +1,4 @@
-from api.applications.enums import GoodsTypeCategory
-from api.applications.models import BaseApplication, StandardApplication, OpenApplication
+from api.applications.models import BaseApplication, StandardApplication
 from datetime import date
 
 from api.audit_trail import service as audit_trail_service
@@ -92,7 +91,6 @@ def save_and_audit_temporary_export_details(request, application, serializer):
         for key, new_temp_export_val in new_temp_export_details.items():
             old_temp_export_val = old_temp_export_details[key]
             if new_temp_export_val != old_temp_export_val:
-
                 if isinstance(new_temp_export_val, date) or isinstance(old_temp_export_val, date):
                     old_temp_export_val = convert_date_to_string(old_temp_export_val) if old_temp_export_val else ""
                     new_temp_export_val = convert_date_to_string(new_temp_export_val)
@@ -147,7 +145,7 @@ def save_and_audit_have_you_been_informed_ref(request, application, serializer):
                 )
 
 
-def set_case_flags_on_submitted_standard_or_open_application(application: BaseApplication):
+def set_case_flags_on_submitted_standard_application(application: BaseApplication):
     case = application.get_case()
 
     # set military end use and suspected wmd flags
@@ -186,31 +184,6 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
             is_adding=ItemCategory.GROUP2_FIREARMS in good_item_categories
             and application.case_type.id in [CaseTypeEnum.SIEL.id, CaseTypeEnum.SITL.id],
         )
-
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-        if application.case_type.id == CaseTypeEnum.OIEL.id:
-            contains_firearm_goods, goodstype_category = OpenApplication.objects.values_list(
-                "contains_firearm_goods", "goodstype_category"
-            ).get(pk=application.pk)
-
-            # set firearms flag for OIEL if their category goods type is military or uk continental shelf
-            _add_or_remove_flag(
-                case=case,
-                flag_id=SystemFlags.FIREARMS_ID,
-                is_adding=contains_firearm_goods
-                and goodstype_category in [GoodsTypeCategory.MILITARY, GoodsTypeCategory.UK_CONTINENTAL_SHELF],
-            )
-
-        if application.case_type.id == CaseTypeEnum.OICL.id:
-            trade_control_activity = OpenApplication.objects.values_list("trade_control_activity", flat=True).get(
-                pk=application.pk
-            )
-
-            _add_or_remove_flag(
-                case=case,
-                flag_id=SystemFlags.MARITIME_ANTI_PIRACY_ID,
-                is_adding=trade_control_activity == TradeControlActivity.MARITIME_ANTI_PIRACY,
-            )
 
 
 def _add_or_remove_flag(case: Case, flag_id: str, is_adding: bool):

@@ -7,7 +7,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from api.applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
+from api.applications.models import GoodOnApplication, StandardApplication
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -42,8 +42,6 @@ from api.parties.models import Party
 
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
-
-from api.staticdata.countries.models import Country
 
 from api.workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
 
@@ -192,16 +190,6 @@ class AssignFlags(APIView):
         if isinstance(obj, Party):
             case = self._get_case_for_destination(obj)
             self._set_case_activity_for_destinations(added_flags, removed_flag_names, case, user, note, destination=obj)
-
-        if isinstance(obj, Country):
-            cases = Case.objects.filter(
-                id__in=CountryOnApplication.objects.filter(country=obj.id).values_list("application", flat=True)
-            )
-
-            for case in cases:
-                self._set_case_activity_for_destinations(
-                    added_flags, removed_flag_names, case, user, note, destination=obj
-                )
 
         obj.flags.set(
             flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags)

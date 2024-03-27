@@ -4,13 +4,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from api.applications.models import (
-    GoodOnApplication,
-    CountryOnApplication,
-    SiteOnApplication,
-)
+from api.applications.models import GoodOnApplication, SiteOnApplication
 from api.cases.enums import CaseTypeEnum
-from api.goodstype.models import GoodsType
 from api.organisations.tests.factories import SiteFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
@@ -121,43 +116,6 @@ class DraftTests(DataTestClient):
             str(standard_application.third_parties.get().party.id),
         )
 
-    def test_view_draft_open_application_as_exporter_success(self):
-        open_application = self.create_draft_open_application(self.organisation)
-
-        url = reverse("applications:application", kwargs={"pk": open_application.id})
-
-        response = self.client.get(url, **self.exporter_headers)
-
-        retrieved_application = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(retrieved_application["name"], open_application.name)
-        self.assertEqual(
-            retrieved_application["case_type"]["reference"]["key"],
-            open_application.case_type.reference,
-        )
-        self.assertEqual(retrieved_application["export_type"]["key"], open_application.export_type)
-        self.assertIsNotNone(retrieved_application["created_at"])
-        self.assertIsNotNone(retrieved_application["updated_at"])
-        self.assertIsNone(retrieved_application["submitted_at"])
-        self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
-        self.assertEqual(
-            retrieved_application["is_military_end_use_controls"], open_application.is_military_end_use_controls
-        )
-        self.assertEqual(retrieved_application["is_informed_wmd"], open_application.is_informed_wmd)
-        self.assertEqual(retrieved_application["is_suspected_wmd"], open_application.is_suspected_wmd)
-        self.assertEqual(retrieved_application["intended_end_use"], open_application.intended_end_use)
-        self.assertIn("is_good_incorporated", retrieved_application["goods_types"][0])
-        self.assertEqual(GoodsType.objects.filter(application__id=open_application.id).count(), 2)
-        self.assertIsNotNone(
-            CountryOnApplication.objects.filter(application__id=open_application.id).count(),
-            1,
-        )
-        self.assertEqual(
-            SiteOnApplication.objects.filter(application__id=open_application.id).count(),
-            1,
-        )
-
     def test_view_nonexisting_draft_failure(self):
         invalid_id = UUID("90D6C724-0339-425A-99D2-9D2B8E864EC6")
 
@@ -188,7 +146,6 @@ class DraftTests(DataTestClient):
     @parameterized.expand(
         [
             (CaseTypeEnum.SICL.id, DataTestClient.create_draft_standard_application),
-            (CaseTypeEnum.OICL.id, DataTestClient.create_draft_open_application),
         ]
     )
     def test_trade_control_application(self, case_type_id, create_function):

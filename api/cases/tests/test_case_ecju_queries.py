@@ -27,15 +27,10 @@ from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.cases.enums import ECJUQueryType
 from api.cases.models import EcjuQuery
-from api.core.exceptions import NotFoundError
-from api.compliance.tests.factories import ComplianceSiteCaseFactory
-from api.licences.enums import LicenceStatus
-from api.licences.tests.factories import StandardLicenceFactory
 from api.picklists.enums import PicklistType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-from api.users.tests.factories import ExporterUserFactory
 from gov_notify.enums import TemplateType
 from api.cases.models import CaseNoteMentions
 
@@ -405,39 +400,6 @@ class ECJUQueriesCreateTest(DataTestClient):
         self.assertFalse(EcjuQuery.objects.exists())
 
 
-class ECJUQueriesComplianceCreateTest(DataTestClient):
-    def setUp(self):
-        super().setUp()
-        self.compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
-        )
-
-        self.licence_1 = StandardLicenceFactory(
-            case=self.create_open_application_case(self.organisation), status=LicenceStatus.ISSUED
-        )
-
-        application = self.create_open_application_case(self.organisation)
-        application.submitted_by = ExporterUserFactory()
-        application.save()
-        self.licence_2 = StandardLicenceFactory(case=application, status=LicenceStatus.ISSUED)
-        self.data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
-
-    @mock.patch("api.cases.views.views.notify.notify_exporter_ecju_query")
-    def test_query_create(self, mock_notify):
-        url = reverse("cases:case_ecju_queries", kwargs={"pk": self.compliance_case.id})
-
-        response = self.client.post(url, self.data, **self.gov_headers)
-        response_data = response.json()
-        ecju_query = EcjuQuery.objects.get()
-
-        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
-        self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
-        self.assertEqual(ecju_query.question, self.data["question"])
-        mock_notify.assert_called_with(self.compliance_case.id)
-
-
 class ECJUQueriesResponseTests(DataTestClient):
     @mock.patch("api.documents.libraries.s3_operations.get_object")
     @mock.patch("api.documents.libraries.av_operations.scan_file_for_viruses")
@@ -721,7 +683,6 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
     @override_settings(GOV_NOTIFY_ENABLED=True)
     @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
     def test_schedule_all_ecju_query_chaser_emails_filters(self, mock_gov_notification):
-
         EcjuQueryFactory(
             question="ECJU Query 14 days",
             case=self.case,
@@ -764,7 +725,6 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
     @freeze_time("2024-02-06 12:00:00")
     @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
     def test_schedule_all_ecju_query_chaser_emails_filters_terminal(self, mock_gov_notification):
-
         self.case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.case.save()
 
@@ -784,7 +744,6 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
     @freeze_time("2024-02-06 12:00:00")
     @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
     def test_schedule_all_ecju_query_chaser_emails_filters_responded(self, mock_gov_notification):
-
         case_2 = self.create_standard_application_case(self.organisation)
 
         ecju_response_query = EcjuQueryFactory(
@@ -805,7 +764,6 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
     @freeze_time("2024-02-06 12:00:00")
     @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
     def test_schedule_all_ecju_query_chaser_emails_filters_is_chaser_email_sent(self, mock_gov_notification):
-
         case_2 = self.create_standard_application_case(self.organisation)
 
         EcjuQueryFactory(
@@ -822,7 +780,6 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
     @freeze_time("2024-02-06 12:00:00")
     @mock.patch("api.cases.notify.send_email")
     def test_schedule_all_ecju_query_chaser_emails_send_mail_params(self, mock_send_email):
-
         self.ecju_query_case_1.chaser_email_sent_on = None
         self.ecju_query_case_1.save()
 
@@ -847,7 +804,6 @@ class ECJUQueriesChaserNotificationTests(DataTestClient):
     @override_settings(GOV_NOTIFY_ENABLED=True)
     @mock.patch("api.core.celery_tasks.NotificationsAPIClient.send_email_notification")
     def test_schedule_all_ecju_query_chaser_emails_callback_marks_sent(self, mock_gov_notification):
-
         self.ecju_query_case_1.chaser_email_sent_on = None
         self.ecju_query_case_1.save()
 
