@@ -11,7 +11,7 @@ from api.applications.models import (
     StandardApplication,
 )
 from api.cases.enums import CaseTypeEnum
-from api.external_data.models import Denial, SanctionMatch
+from api.external_data.models import DenialEntity, SanctionMatch
 from api.staticdata.statuses.models import CaseStatus
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
@@ -121,7 +121,7 @@ class DenialMatchFactory(factory.django.DjangoModelFactory):
     end_use = factory.LazyAttribute(lambda n: faker.sentence())
 
     class Meta:
-        model = Denial
+        model = DenialEntity
 
 
 class DenialMatchOnApplicationFactory(factory.django.DjangoModelFactory):

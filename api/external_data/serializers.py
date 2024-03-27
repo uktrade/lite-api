@@ -11,11 +11,11 @@ from api.external_data.helpers import get_denial_entity_type
 from api.flags.enums import SystemFlags
 
 
-class DenialSerializer(serializers.ModelSerializer):
+class DenialEntitySerializer(serializers.ModelSerializer):
     entity_type = serializers.SerializerMethodField()
 
     class Meta:
-        model = models.Denial
+        model = models.DenialEntity
         fields = (
             "id",
             "created_by",
@@ -78,7 +78,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         valid_serializers = []
         for i, row in enumerate(reader, start=1):
             data = dict(zip(headers, row))
-            serializer = DenialSerializer(
+            serializer = DenialEntitySerializer(
                 data={
                     "data": data,
                     "created_by": self.context["request"].user,
