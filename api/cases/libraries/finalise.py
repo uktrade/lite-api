@@ -53,7 +53,7 @@ def remove_flags_on_finalisation(case):
 
 
 def remove_flags_from_audit_trail(case):
-    flags_to_remove = Flag.objects.filter(remove_on_finalisation=True)
+    flags_to_remove = Flag.objects.filter(remove_on_finalised=True)
     for flag in flags_to_remove:
         audit_logs = Audit.objects.filter(target_object_id=case.id, payload__icontains=flag.name)
         for audit_log in audit_logs:
