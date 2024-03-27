@@ -980,6 +980,8 @@ class FinaliseView(UpdateAPIView):
         case.save()
 
         logging.info("Case status is now finalised")
+
+        # Remove Flags and related Audits
         remove_flags_on_finalisation(case)
         remove_flags_from_audit_trail(case)
 
