@@ -104,10 +104,10 @@ class DenialDocumentType(Document):
         }
 
     class Meta:
-        model = models.Denial
+        model = models.DenialEntity
 
     class Django:
-        model = models.Denial
+        model = models.DenialEntity
 
 
 class SanctionDocumentType(Document):
