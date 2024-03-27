@@ -8,7 +8,7 @@ import api.core.views
 
 
 urlpatterns = [
-    path("healthcheck/", include("health_check.urls")),
+    path("healthcheck/", include("api.dummy_health_check.urls")),
     path("applications/", include("api.applications.urls")),
     path("assessments/", include("api.assessments.urls")),
     path("audit-trail/", include("api.audit_trail.urls")),
