@@ -1,3 +1,5 @@
+from django.db.models import Q
+
 from api.applications.enums import ApplicationExportType, GoodsTypeCategory
 from api.applications.models import (
     ApplicationDocument,
@@ -152,10 +154,9 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
         errors["ultimate_end_user_documents"] = [ultimate_end_user_documents_error]
 
     if is_mandatory:
-        ultimate_end_user_required = (
-            GoodOnApplication.objects.filter(application=draft, is_good_incorporated=True).exists()
-            | GoodOnApplication.objects.filter(application=draft, is_onward_incorporated=True).exists()
-        )
+        ultimate_end_user_required = GoodOnApplication.objects.filter(
+            Q(application=draft), Q(is_good_incorporated=True) | Q(is_onward_incorporated=True)
+        ).exists()
 
         if ultimate_end_user_required:
             if len(draft.ultimate_end_users.values_list()) == 0:
