@@ -688,6 +688,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         destination_country_code="GB",
         good_cles=None,
         good_kwargs=None,
+        is_good_incorporated=True,
+        is_onward_incorporated=False,
     ):
         application = self.create_draft_standard_application(
             organisation, reference_name, safe_document, num_products=0, ultimate_end_users=True
@@ -706,7 +708,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             application=application,
             quantity=17,
             value=18,
-            is_good_incorporated=True,
+            is_good_incorporated=is_good_incorporated,
+            is_onward_incorporated=is_onward_incorporated,
         ).save()
 
         self.create_document_for_party(application.ultimate_end_users.first().party, safe=safe_document)
