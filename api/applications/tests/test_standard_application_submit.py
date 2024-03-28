@@ -3,6 +3,7 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 from uuid import UUID
+from parameterized import parameterized
 
 from api.applications.enums import ApplicationExportType
 from api.applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication, StandardApplication
@@ -190,12 +191,17 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"], {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_INFECTED]})
 
-    def test_submit_draft_with_incorporated_good_and_without_ultimate_end_users_failure(self):
+    @parameterized.expand([(True, False), (False, True), (True, True)])
+    def test_submit_draft_with_incorporated_good_and_without_ultimate_end_users_failure(
+        self, is_good_incorporated, is_onward_incorporated
+    ):
         """
         This should be unsuccessful as an ultimate end user is required when
         there is a part which is to be incorporated into another good
         """
-        draft = self.create_standard_application_with_incorporated_good(self.organisation)
+        draft = self.create_standard_application_with_incorporated_good(
+            self.organisation, is_good_incorporated=is_good_incorporated, is_onward_incorporated=is_onward_incorporated
+        )
         PartyOnApplication.objects.filter(application=draft, party__type=PartyType.ULTIMATE_END_USER).delete()
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
