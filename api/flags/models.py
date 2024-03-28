@@ -25,7 +25,7 @@ class Flag(TimestampableModel):
     priority = models.PositiveSmallIntegerField(default=0)
     blocks_finalising = models.BooleanField(default=False)
     removable_by = models.CharField(choices=FlagPermissions.choices, default=FlagPermissions.DEFAULT, max_length=50)
-
+    remove_on_finalised = models.BooleanField(default=False)
     objects = FlagManager()
 
     class Meta:

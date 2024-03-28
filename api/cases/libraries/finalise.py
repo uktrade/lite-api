@@ -1,6 +1,8 @@
+from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from api.cases.models import Advice, GoodCountryDecision
 from api.applications.models import GoodOnApplication
+from api.flags.models import Flag
 
 
 def get_required_decision_document_types(case):
@@ -40,3 +42,19 @@ def get_required_decision_document_types(case):
             required_decisions.add(AdviceType.REFUSE)
 
     return required_decisions
+
+
+def remove_flags_on_finalisation(case):
+    case_flags = case.flags.all()
+    for flag in case_flags:
+        if flag.remove_on_finalised:
+            case.flags.remove(flag)
+    case.save()
+
+
+def remove_flags_from_audit_trail(case):
+    flags_to_remove = Flag.objects.filter(remove_on_finalised=True)
+    for flag in flags_to_remove:
+        audit_logs = Audit.objects.filter(target_object_id=case.id, payload__icontains=flag.name)
+        for audit_log in audit_logs:
+            audit_log.delete()

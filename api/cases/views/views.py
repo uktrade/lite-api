@@ -29,7 +29,11 @@ from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.helpers import create_system_mention
 from api.cases.libraries.advice import group_advice
-from api.cases.libraries.finalise import get_required_decision_document_types
+from api.cases.libraries.finalise import (
+    get_required_decision_document_types,
+    remove_flags_on_finalisation,
+    remove_flags_from_audit_trail,
+)
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
 from api.cases.libraries.get_ecju_queries import get_ecju_query
@@ -974,7 +978,12 @@ class FinaliseView(UpdateAPIView):
         old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
+
         logging.info("Case status is now finalised")
+
+        # Remove Flags and related Audits
+        remove_flags_on_finalisation(case)
+        remove_flags_from_audit_trail(case)
 
         decisions = required_decisions.copy()
 
