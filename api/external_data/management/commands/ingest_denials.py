@@ -11,9 +11,9 @@ from elasticsearch_dsl import connections
 
 from api.documents.libraries import s3_operations
 from api.external_data import documents
-from api.external_data.serializers import DenialSerializer
+from api.external_data.serializers import DenialEntitySerializer
 
-from api.external_data.models import Denial
+from api.external_data.models import DenialEntity
 
 log = logging.getLogger(__name__)
 
@@ -68,11 +68,11 @@ class Command(BaseCommand):
         if data:
             # Lets delete all denial records except ones that have been matched
             matched_denial_ids = DenialMatchOnApplication.objects.all().values_list("denial_id", flat=True).distinct()
-            Denial.objects.all().exclude(id__in=matched_denial_ids).delete()
+            DenialEntity.objects.all().exclude(id__in=matched_denial_ids).delete()
 
         errors = []
         for i, row in enumerate(data, start=1):
-            serializer = DenialSerializer(
+            serializer = DenialEntitySerializer(
                 data={
                     "data": row,
                     **{field: row.pop(field, None) for field in self.required_headers},

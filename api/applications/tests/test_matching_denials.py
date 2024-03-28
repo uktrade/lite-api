@@ -34,7 +34,7 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
             reverse("external_data:denial-list"), {"csv_file": content.getvalue()}, **self.gov_headers
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(models.Denial.objects.count(), 5)
+        self.assertEqual(models.DenialEntity.objects.count(), 5)
 
     @pytest.mark.xfail(reason="This test is flaky and should be rewritten")
     # Occasionally causes this error:
@@ -42,7 +42,7 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
     def test_adding_denials_to_application(self):
         data = [
             {"application": self.application.id, "denial": denial.id, "category": "exact" if (index % 2) else "partial"}
-            for index, denial in enumerate(models.Denial.objects.all()[:2])
+            for index, denial in enumerate(models.DenialEntity.objects.all()[:2])
         ]
         url = reverse("applications:application_denial_matches", kwargs={"pk": self.application.id})
         response = self.client.post(url, data, **self.gov_headers)
