@@ -7,6 +7,22 @@ from api.flags.models import Flag
 from api.users.models import GovUser
 
 
+class Denial(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
+    created_by = models.ForeignKey(GovUser, related_name="denial_created", on_delete=models.DO_NOTHING, null=True)
+    reference = models.TextField(help_text="The reference assigned by the notifying government")
+    regime_reg_ref = models.TextField(
+        unique=True, blank=False, help_text="The unique reference assigned by the issuing regime"
+    )
+    notifying_government = models.TextField(help_text="The authority that raised the denial", null=True)
+    item_list_codes = models.TextField("The codes of the items being denied", null=True)
+    item_description = models.TextField("The description of the item being denied", null=True)
+    end_use = models.TextField(null=True)
+    is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
+    is_revoked_comment = models.TextField(default="")
+    reason_for_refusal = models.TextField(help_text="Reason why the denial was refused", null=True)
+
+
 class DenialEntity(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     created_by = models.ForeignKey(
