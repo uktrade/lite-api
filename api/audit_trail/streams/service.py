@@ -1,6 +1,7 @@
 """
 MVP activity stream. To be extended appropriately as requirements are drawn up.
 """
+
 from datetime import datetime
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
