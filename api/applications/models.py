@@ -13,6 +13,9 @@ from api.applications.enums import (
     ApplicationExportLicenceOfficialType,
     SecurityClassifiedApprovalsType,
     NSGListType,
+    F680ProductFundingType,
+    F680ClearanceChoices,
+    F680ProductMTCRRatingType,
 )
 from api.appeals.models import Appeal
 from api.applications.exceptions import AmendmentError
@@ -424,7 +427,45 @@ class StandardApplication(BaseApplication, Clonable):
 
 
 class F680Application(BaseApplication):
-    pass
+    is_list_X_company = models.BooleanField(
+        default=None, blank=True, null=True, help_text="indicates whether it is a list X company or site"
+    )
+    is_list_X_company_other_information = models.TextField(default="", blank=True)
+    requires_open_licence = models.BooleanField(
+        default=None, blank=True, null=True, help_text="does this clearance requires an open licence"
+    )
+    open_licence_more_details = models.TextField(default="", blank=True)
+    exceptional_circumstances = models.BooleanField(default=False, blank=True, null=True)
+    cryptography = models.BooleanField(
+        default=None,
+        blank=True,
+        null=True,
+        help_text="indicates whether any of the items designed or modified to use cryptographic techniques",
+    )
+    ew_data = models.BooleanField(default=None, blank=True, null=True)
+    product_funding = models.TextField(
+        choices=F680ProductFundingType.choices,
+        default="",
+        blank=True,
+    )
+    armed_forces_usage = models.BooleanField(default=None, blank=True, null=True)
+    armed_forces_usage_details = models.TextField(default="", blank=True)
+    clearances = ArrayField(
+        models.CharField(choices=F680ClearanceChoices.choices, max_length=255),
+        blank=True,
+        null=True,
+    )
+    is_local_assembly_manufacture = models.BooleanField(default=None, blank=True, null=True)
+    is_local_assembly_manufacture_details = models.TextField(default="", blank=True)
+    product_mtcr_rating_type = models.TextField(
+        choices=F680ProductMTCRRatingType.choices,
+        default="",
+        blank=True,
+    )
+    product_mtcr_rating_type_details = models.TextField(default="", blank=True)
+    foreign_technology_information = models.BooleanField(default=None, blank=True, null=True)
+    foreign_technology_information_details = models.TextField(default="", blank=True)
+    other_information = models.TextField(default="", blank=True)
 
 
 class ApplicationDocument(Document, Clonable):
