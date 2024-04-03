@@ -423,6 +423,10 @@ class StandardApplication(BaseApplication, Clonable):
         return amendment_application
 
 
+class F680Application(BaseApplication):
+    pass
+
+
 class ApplicationDocument(Document, Clonable):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True)
