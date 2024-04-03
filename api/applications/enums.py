@@ -208,3 +208,30 @@ class SecurityClassifiedApprovalsType(models.TextChoices):
 class NSGListType(models.TextChoices):
     TRIGGER_LIST = "TRIGGER_LIST"
     DUAL_USE = "DUAL_USE"
+
+
+class F680ProductFundingType(models.TextChoices):
+    MOD = "MOD", "MOD"
+    PART_MOD = "PART_MOD", "Part MOD"
+    PRIVATE_VENTURE = "PRIVATE_VENTURE", "Private venture"
+
+
+class F680ClearanceChoices(models.TextChoices):
+    MARKET_SURVEY_DISCUSSION_PROMOTION = (
+        "MARKET_SURVEY_DISCUSSION_PROMOTION",
+        "Market Survey/Initial Discussions/Promotion",
+    )
+    DEMO_UK_OVERSEAS_CUSTOMERS = (
+        "DEMO_UK_OVERSEAS_CUSTOMERS",
+        "Demonstration in the United Kingdom to overseas customers",
+    )
+    DEMO_OVERSEAS = "DEMO_OVERSEAS", "Demonstration overseas"
+    TRAINING = "TRAINING", "Training"
+    THROUGH_LIFE_SUPPORT = "THROUGH_LIFE_SUPPORT", "Through Life Support"
+
+
+class F680ProductMTCRRatingType(models.TextChoices):
+    YES_MTCR_CAT1 = "YES_MTCR_CAT1", "Yes - MTCR Cat 1"
+    YES_MTCR_CAT2 = "YES_MTCR_CAT2", "Yes - MTCR Cat 2"
+    NO = "NO", "No"
+    DONT_KNOW = "DONT_KNOW", "Don't know"
