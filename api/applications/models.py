@@ -303,6 +303,10 @@ class StandardApplication(BaseApplication):
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
 
 
+class F680Application(BaseApplication):
+    pass
+
+
 class ApplicationDocument(Document):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True)
