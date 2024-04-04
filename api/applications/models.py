@@ -19,9 +19,9 @@ from api.applications.enums import (
 )
 from api.appeals.models import Appeal
 from api.applications.exceptions import AmendmentError
-from api.applications.managers import BaseApplicationManager
+from api.applications.managers import BaseApplicationManager, StandardApplicationManager, F680ApplicationManager
 from api.applications.libraries.application_helpers import create_submitted_audit
-from api.audit_trail.models import AuditType
+from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case, CaseQueue
@@ -425,6 +425,8 @@ class StandardApplication(BaseApplication, Clonable):
         self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
         return amendment_application
 
+    objects = StandardApplicationManager()
+
 
 class F680Application(BaseApplication):
     is_list_X_company = models.BooleanField(
@@ -466,6 +468,8 @@ class F680Application(BaseApplication):
     foreign_technology_information = models.BooleanField(default=None, blank=True, null=True)
     foreign_technology_information_details = models.TextField(default="", blank=True)
     other_information = models.TextField(default="", blank=True)
+
+    objects = F680ApplicationManager()
 
 
 class ApplicationDocument(Document, Clonable):
