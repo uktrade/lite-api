@@ -17,10 +17,10 @@ from api.staticdata.control_list_entries.helpers import get_clc_child_nodes, get
 from api.workflow.routers import flagging_rules
 
 
-def _apply_python_flagging_rules(level, object):
+def _apply_python_flagging_rules(case_sub_type, level, object):
     flags = []
 
-    for critera_function, flag_id in flagging_rules.get_rules(level):
+    for critera_function, flag_id in flagging_rules.get_rules(case_sub_type, level):
         rule_applies = critera_function(object)
         if rule_applies:
             flags.append(flag_id)
@@ -59,7 +59,7 @@ def apply_case_flagging_rules(case):
     )
 
     flags = list(flags)
-    flags.extend(_apply_python_flagging_rules(FlagLevels.CASE, case))
+    flags.extend(_apply_python_flagging_rules(case.case_type.sub_type, FlagLevels.CASE, case))
 
     if flags:
         case.flags.add(*flags)
@@ -85,10 +85,10 @@ def apply_destination_flagging_rules_for_case(case, flagging_rule: QuerySet = No
         )
 
     for party in parties:
-        apply_destination_rule_on_party(party, flagging_rules)
+        apply_destination_rule_on_party(case, party, flagging_rules)
 
 
-def apply_destination_rule_on_party(party: Party, flagging_rules: QuerySet = None):
+def apply_destination_rule_on_party(case, party: Party, flagging_rules: QuerySet = None):
     # If the flagging rules are specified then these is the only one we expect, else get all active
     flagging_rules = (
         get_active_legacy_flagging_rules_for_level(FlagLevels.DESTINATION) if not flagging_rules else flagging_rules
@@ -98,7 +98,7 @@ def apply_destination_rule_on_party(party: Party, flagging_rules: QuerySet = Non
     flags = flagging_rules.filter(matching_values__overlap=[party.country.id]).values_list("flag_id", flat=True)
 
     flags = list(flags)
-    flags.extend(_apply_python_flagging_rules(FlagLevels.DESTINATION, party))
+    flags.extend(_apply_python_flagging_rules(case.case_type.sub_type, FlagLevels.DESTINATION, party))
 
     if flags:
         party.flags.add(*flags)
@@ -122,10 +122,10 @@ def apply_good_flagging_rules_for_case(case, flagging_rule: QuerySet = None):
         )
 
     for good in goods:
-        apply_goods_rules_for_good(good, flagging_rules)
+        apply_goods_rules_for_good(case, good, flagging_rules)
 
 
-def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
+def apply_goods_rules_for_good(case, good, flagging_rules: QuerySet = None):
     # If the flagging rules are specified then these is the only one we expect, else get all active
     flagging_rules = (
         get_active_legacy_flagging_rules_for_level(FlagLevels.GOOD) if not flagging_rules else flagging_rules
@@ -147,7 +147,7 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
     flags = flagging_rules.values_list("flag_id", flat=True)
 
     flags = list(flags)
-    flags.extend(_apply_python_flagging_rules(FlagLevels.GOOD, good))
+    flags.extend(_apply_python_flagging_rules(case.case_type.sub_type, FlagLevels.GOOD, good))
 
     if flags:
         good.flags.add(*flags)

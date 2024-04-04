@@ -1,23 +1,27 @@
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.flags.enums import FlagLevels
 
 
 class FlaggingRulesRouter:
     def __init__(self):
         self._rules = {
-            FlagLevels.CASE: [],
-            FlagLevels.GOOD: [],
-            FlagLevels.DESTINATION: [],
+            case_sub_type: {
+                FlagLevels.CASE: [],
+                FlagLevels.GOOD: [],
+                FlagLevels.DESTINATION: [],
+            }
+            for case_sub_type, _ in CaseTypeSubTypeEnum.choices
         }
 
-    def register(self, *, level, flag_id):
+    def register(self, *, case_sub_type, level, flag_id):
         def _register(fn):
-            self._rules[level].append((fn, flag_id))
+            self._rules[case_sub_type][level].append((fn, flag_id))
             return fn
 
         return _register
 
-    def get_rules(self, level):
-        return self._rules[level]
+    def get_rules(self, case_sub_type, level):
+        return self._rules[case_sub_type][level]
 
 
 flagging_rules = FlaggingRulesRouter()
