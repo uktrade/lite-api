@@ -14,28 +14,16 @@ from api.queries.goods_query.models import GoodsQuery
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.control_list_entries.helpers import get_clc_child_nodes, get_clc_parent_nodes
-
-from lite_routing.routing_rules_internal.flagging_rules_criteria import (
-    run_flagging_rules_criteria_case,
-    run_flagging_rules_criteria_product,
-    run_flagging_rules_criteria_destination,
-)
+from api.workflow.routers import flagging_rules
 
 
 def _apply_python_flagging_rules(level, object):
     flags = []
 
-    for rule in FlaggingRule.objects.filter(level=level, status=FlagStatuses.ACTIVE, is_python_criteria=True):
-        rule_applies = False
-        if level == FlagLevels.CASE:
-            rule_applies = run_flagging_rules_criteria_case(rule.id, object)
-        elif level == FlagLevels.GOOD:
-            rule_applies = run_flagging_rules_criteria_product(rule.id, object)
-        elif level == FlagLevels.DESTINATION:
-            rule_applies = run_flagging_rules_criteria_destination(rule.id, object)
-
+    for critera_function, flag_id in flagging_rules.get_rules(level):
+        rule_applies = critera_function(object)
         if rule_applies:
-            flags.append(rule.flag_id)
+            flags.append(flag_id)
 
     return flags
 

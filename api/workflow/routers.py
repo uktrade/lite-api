@@ -1,34 +1,23 @@
-from enum import auto, Enum
+from api.flags.enums import FlagLevels
 
 
 class FlaggingRulesRouter:
-    class Level(Enum):
-        CASE = auto()
-        PRODUCT = auto()
-        DESTINATION = auto()
-
     def __init__(self):
         self._rules = {
-            self.Level.CASE: {},
-            self.Level.PRODUCT: {},
-            self.Level.DESTINATION: {},
+            FlagLevels.CASE: [],
+            FlagLevels.GOOD: [],
+            FlagLevels.DESTINATION: [],
         }
 
-    def register(self, *, level, rule_pk):
+    def register(self, *, level, flag_id):
         def _register(fn):
-            self._rules[level][str(rule_pk)] = fn
+            self._rules[level].append((fn, flag_id))
             return fn
 
         return _register
 
-    def get_criteria_function(self, level, rule_pk):
-        try:
-            return self._rules[level][str(rule_pk)]
-        except KeyError:
-            raise NotImplementedError(f"criteria_function for rule {rule_pk} does not exist")
-
-    def has_criteria_function(self, level, rule_pk):
-        return str(rule_pk) in self._rules[level]
+    def get_rules(self, level):
+        return self._rules[level]
 
 
 flagging_rules = FlaggingRulesRouter()
