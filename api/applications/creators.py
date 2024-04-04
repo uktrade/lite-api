@@ -313,8 +313,6 @@ def validate_application_ready_for_submission(application):
     errors = {}
 
     # Perform additional validation and append errors if found
-    enabled_casetypes = [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.F680]
-
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         _validate_standard_licence(application, errors)
     if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
