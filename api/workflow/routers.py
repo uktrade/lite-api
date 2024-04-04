@@ -1,3 +1,6 @@
+from collections import defaultdict
+from operator import itemgetter
+
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.flags.enums import FlagLevels
 
@@ -29,23 +32,21 @@ flagging_rules = FlaggingRulesRouter()
 
 class RoutingRulesRouter:
     def __init__(self):
-        self._rules = {}
+        self._rules = {
+            case_sub_type: defaultdict(lambda: defaultdict(list)) for case_sub_type, _ in CaseTypeSubTypeEnum.choices
+        }
 
-    def register(self, *, rule_pk):
+    def register(self, *, rule_id, case_sub_type, case_status, team, tier, queue):
         def _register(fn):
-            self._rules[str(rule_pk)] = fn
+            self._rules[str(case_sub_type)][str(case_status)][str(team)].append((str(rule_id), tier, fn, str(queue)))
             return fn
 
         return _register
 
-    def get_criteria_function(self, rule_pk):
-        try:
-            return self._rules[str(rule_pk)]
-        except KeyError:
-            raise NotImplementedError(f"criteria_function for rule {rule_pk} does not exist")
-
-    def has_criteria_function(self, rule_pk):
-        return str(rule_pk) in self._rules
+    def get_rules(self, case_sub_type, case_status, team):
+        rules = self._rules[str(case_sub_type)][str(case_status)][str(team)]
+        rules = sorted(rules, key=itemgetter(1))
+        return rules
 
 
 routing_rules = RoutingRulesRouter()
