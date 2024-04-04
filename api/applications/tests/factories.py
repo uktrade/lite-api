@@ -1,5 +1,7 @@
 import factory
 import factory.fuzzy
+
+from django.utils import timezone
 from faker import Faker
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
@@ -13,6 +15,7 @@ from api.applications.models import (
     GoodOnApplicationDocument,
     GoodOnApplicationInternalDocument,
     StandardApplication,
+    F680Application,
 )
 from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from api.cases.models import Advice
@@ -62,6 +65,34 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
         obj = model_class(*args, **kwargs)
         if "status" not in kwargs:
             obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        obj.save()
+        return obj
+
+
+class F680ApplicationFactory(factory.django.DjangoModelFactory):
+    name = "Application Test Name"
+    case_type_id = CaseTypeEnum.F680.id
+    activity = "Trade"
+    usage = "Trade"
+    organisation = factory.SubFactory(OrganisationFactory)
+    is_military_end_use_controls = False
+    is_informed_wmd = False
+    is_suspected_wmd = False
+    is_eu_military = False
+    is_compliant_limitations_eu = None
+    intended_end_use = "this is our intended end use"
+    submitted_by = factory.SubFactory(ExporterUserFactory)
+
+    class Meta:
+        model = F680Application
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        obj.submitted_at = timezone.now()
+        if "status" in kwargs and isinstance(kwargs["status"], CaseStatus):
+            obj.status = kwargs["status"]
         obj.save()
         return obj
 
