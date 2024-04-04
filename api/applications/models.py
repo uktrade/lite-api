@@ -18,7 +18,7 @@ from api.applications.enums import (
     F680ProductMTCRRatingType,
 )
 from api.appeals.models import Appeal
-from api.applications.managers import BaseApplicationManager
+from api.applications.managers import BaseApplicationManager, StandardApplicationManager, F680ApplicationManager
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
@@ -305,6 +305,8 @@ class StandardApplication(BaseApplication):
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
 
+    objects = StandardApplicationManager()
+
 
 class F680Application(BaseApplication):
     is_list_X_company = models.BooleanField(
@@ -346,6 +348,8 @@ class F680Application(BaseApplication):
     foreign_technology_information = models.BooleanField(default=None, blank=True, null=True)
     foreign_technology_information_details = models.TextField(default="", blank=True)
     other_information = models.TextField(default="", blank=True)
+
+    objects = F680ApplicationManager()
 
 
 class ApplicationDocument(Document):
