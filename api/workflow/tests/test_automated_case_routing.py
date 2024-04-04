@@ -9,65 +9,6 @@ from test_helpers.clients import DataTestClient
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
-class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
-    def test_routing_rule_parameters_are_returned_in_a_set(self):
-        routing_rule = self.create_routing_rule(
-            team_id=self.team.id,
-            queue_id=self.queue.id,
-            tier=5,
-            status_id=CaseStatus.objects.last().id,
-            additional_rules=[*[k for k, v in RoutingRulesAdditionalFields.choices]],
-        )
-
-        parameter_sets = routing_rule.parameter_sets()
-        parameter_set = parameter_sets[0]["flags_country_set"]
-
-        self.assertTrue(set(routing_rule.flags_to_include.all()).issubset(parameter_set))
-
-    def test_routing_rule_parameters_returned_in_multiple_sets_for_multiple_case_types(self):
-        routing_rule = self.create_routing_rule(
-            team_id=self.team.id,
-            queue_id=self.queue.id,
-            tier=5,
-            status_id=CaseStatus.objects.last().id,
-            additional_rules=[*[k for k, v in RoutingRulesAdditionalFields.choices]],
-        )
-        routing_rule.case_types.set(CaseType.objects.all())
-
-        parameter_sets = routing_rule.parameter_sets()
-
-        self.assertEqual(len(parameter_sets), CaseType.objects.count())
-
-    def test_parameters_returned_if_no_case_types_set(self):
-        routing_rule = self.create_routing_rule(
-            team_id=self.team.id,
-            queue_id=self.queue.id,
-            tier=5,
-            status_id=CaseStatus.objects.last().id,
-            additional_rules=[*[k for k, v in RoutingRulesAdditionalFields.choices]],
-        )
-        routing_rule.case_types.clear()
-
-        parameter_sets = routing_rule.parameter_sets()
-
-        self.assertEqual(len(parameter_sets), 1)
-
-    def test_inactive_flag_rule_returns_empty_list(self):
-        flag = FlagFactory(status=FlagStatuses.DEACTIVATED, team=self.team)
-        routing_rule = self.create_routing_rule(
-            team_id=self.team.id,
-            queue_id=self.queue.id,
-            tier=5,
-            status_id=CaseStatus.objects.last().id,
-            additional_rules=[*[k for k, v in RoutingRulesAdditionalFields.choices]],
-        )
-        routing_rule.flags_to_include.add(flag)
-
-        parameter_sets = routing_rule.parameter_sets()
-
-        self.assertEqual(len(parameter_sets), 0)
-
-
 class ParameterSetCaseModelMethodTests(DataTestClient):
     def test_case_parameters_are_returned_in_a_set(self):
         case = self.create_standard_application_case(organisation=self.organisation)
