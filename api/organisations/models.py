@@ -35,7 +35,7 @@ class Organisation(TimestampableModel):
     eori_number = models.TextField(default=None, blank=True, null=True)
     sic_number = models.TextField(default=None, blank=True, null=True)
     vat_number = models.TextField(default=None, blank=True, null=True)
-    registration_number = models.TextField(default=None, blank=True, null=True, unique=True)
+    registration_number = models.TextField(default=None, blank=True, null=True)
     phone_number = PhoneNumberField(default="")
     website = models.URLField(blank=True, default="")
     primary_site = models.ForeignKey(
