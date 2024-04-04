@@ -36,8 +36,10 @@ class RoutingRulesRouter:
             case_sub_type: defaultdict(lambda: defaultdict(list)) for case_sub_type, _ in CaseTypeSubTypeEnum.choices
         }
 
-    def register(self, *, rule_id, case_sub_type, case_status, team, tier, queue):
+    def register(self, *, rule_id, case_sub_type, case_status, team, tier, queue, active=True):
         def _register(fn):
+            if not active:
+                return fn
             self._rules[str(case_sub_type)][str(case_status)][str(team)].append((str(rule_id), tier, fn, str(queue)))
             return fn
 
