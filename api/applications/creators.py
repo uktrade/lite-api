@@ -278,6 +278,11 @@ def _validate_standard_licence(draft, errors):
     return errors
 
 
+def _validate_f680(draft, errors):
+    # placeholder as we don't want anything required in the tasklist currently
+    return errors
+
+
 def _validate_route_of_goods(draft, errors):
     if (
         draft.is_shipped_waybill_or_lading is None
@@ -308,8 +313,12 @@ def validate_application_ready_for_submission(application):
     errors = {}
 
     # Perform additional validation and append errors if found
+    enabled_casetypes = [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.F680]
+
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         _validate_standard_licence(application, errors)
+    if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+        _validate_f680(application, errors)
     else:
         errors["unsupported_application"] = ["You can only validate a supported application type"]
 
