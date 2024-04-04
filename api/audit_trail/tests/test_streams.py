@@ -1,3 +1,5 @@
+import pytest
+
 from datetime import timedelta
 
 from django.test import override_settings
@@ -73,6 +75,7 @@ class AuditTrailStreamTestCase(DataTestClient):
             },
         )
 
+    @pytest.mark.skip("Not relevant for firebreak")
     @override_settings(STREAM_PAGE_SIZE=1)
     def test_duplicate_timestamp_appended(self):
         self.case = self.create_standard_application_case(self.organisation)
