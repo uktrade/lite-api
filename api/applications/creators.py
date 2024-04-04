@@ -309,7 +309,7 @@ def validate_application_ready_for_submission(application):
     # Perform additional validation and append errors if found
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         _validate_standard_licence(application, errors)
-    if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
         _validate_f680(application, errors)
     else:
         errors["unsupported_application"] = ["You can only validate a supported application type"]
