@@ -303,6 +303,7 @@ class AdviceType:
     NOT_APPLICABLE = "not_applicable"
     CONFLICTING = "conflicting"
     INFORM = "inform"
+    F680 = "f680"
 
     choices = [
         (APPROVE, "Approve"),
@@ -312,6 +313,7 @@ class AdviceType:
         (NOT_APPLICABLE, "Not Applicable"),
         (CONFLICTING, "Conflicting"),
         (INFORM, "Inform"),
+        (F680, "F680"),
     ]
 
     ids = {
@@ -322,6 +324,7 @@ class AdviceType:
         NOT_APPLICABLE: UUID("00000000-0000-0000-0000-000000000005"),
         CONFLICTING: UUID("00000000-0000-0000-0000-000000000006"),
         INFORM: UUID("00000000-0000-0000-0000-000000000007"),
+        F680: UUID("00000000-0000-0000-0000-000000000008"),
     }
 
     @classmethod
