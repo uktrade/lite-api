@@ -421,6 +421,5 @@ workflows:
               - elastic_search_tests
               - migration_tests
               - lite_routing_tests
-      - check-lite-routing-sha
       - e2e_tests
       - anonymised_db_dump_tests

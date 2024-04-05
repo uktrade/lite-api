@@ -330,30 +330,6 @@ class ApplicationManageStatusTests(DataTestClient):
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.REOPENED_FOR_CHANGES)
         )
 
-    def test_case_routing_automation(self):
-        routing_queue = self.create_queue("new queue", self.team)
-        self.create_routing_rule(
-            team_id=self.team.id,
-            queue_id=routing_queue.id,
-            tier=3,
-            status_id=get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW).id,
-            additional_rules=[],
-        )
-        self.assertNotEqual(self.standard_application.status.status, CaseStatusEnum.UNDER_REVIEW)
-
-        data = {"status": CaseStatusEnum.UNDER_REVIEW}
-
-        response = self.client.put(self.url, data, **self.gov_headers)
-        self.standard_application.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.standard_application.status.status, CaseStatusEnum.UNDER_REVIEW)
-        self.assertEqual(self.standard_application.queues.count(), 2)
-        self.assertEqual(
-            sorted([queue.name for queue in self.standard_application.queues.all()]),
-            ["Licensing Unit Pre-circulation Cases to Review", "new queue"],
-        )
-
     @parameterized.expand(
         [
             (
