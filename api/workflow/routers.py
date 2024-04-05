@@ -38,19 +38,24 @@ class RoutingRulesRouter:
 
     def register(self, *, rule_id, case_sub_type, case_status, team, tier, queue, active=True):
         def _register(fn):
-            if callable(active) and active():
-                return fn
-
-            if not active:
-                return fn
-
-            self._rules[str(case_sub_type)][str(case_status)][str(team)].append((str(rule_id), tier, fn, str(queue)))
+            self._rules[str(case_sub_type)][str(case_status)][str(team)].append(
+                ((str(rule_id), tier, fn, str(queue)), active)
+            )
             return fn
 
         return _register
 
+    def _is_active(self, active):
+        if callable(active):
+            # Useful if we want to set a rule being active based on a callable.
+            # This is required if we want to check settings that can be
+            # dynamically overriden in tests.
+            return active()
+        return active
+
     def get_rules(self, case_sub_type, case_status, team):
         rules = self._rules[str(case_sub_type)][str(case_status)][str(team)]
+        rules = [rule for rule, active in rules if self._is_active(active)]
         rules = sorted(rules, key=itemgetter(1))
         return rules
 
