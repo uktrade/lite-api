@@ -2,11 +2,13 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from api.applications.enums import F680ClearanceChoices
 from api.applications.models import F680Application
 from api.applications.mixins.serializers import PartiesSerializerMixin
 from api.appeals.serializers import AppealSerializer
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
+from api.core.serializers import KeyValueChoiceField
 from api.cases.models import CaseType
 from api.licences.models import Licence
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
@@ -47,6 +49,36 @@ class F680ApplicationCreateSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class F680ApplicationUpdateSerializer(serializers.ModelSerializer):
+    clearances = serializers.ListField(
+        child=KeyValueChoiceField(
+            choices=F680ClearanceChoices.choices,
+        ),
+        allow_null=True,
+        required=False,
+    )
+
+    class Meta:
+        model = F680Application
+        fields = (
+            "name",
+            "exceptional_circumstances",
+            "foreign_technology_information",
+            "foreign_technology_information_details",
+            "is_local_assembly_manufacture",
+            "is_local_assembly_manufacture_details",
+            "product_mtcr_rating_type",
+            "product_mtcr_rating_type_details",
+            "armed_forces_usage",
+            "armed_forces_usage_details",
+            "product_funding",
+            "ew_data",
+            "clearances",
+            "clearance_level",
+            "intended_end_use",
+        )
+
+
 class F680ApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
@@ -57,6 +89,11 @@ class F680ApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     is_amended = serializers.SerializerMethodField()
     appeal = AppealSerializer()
     sub_status = CaseSubStatusSerializer()
+    clearances = serializers.ListField(
+        child=KeyValueChoiceField(
+            choices=F680ClearanceChoices.choices,
+        ),
+    )
 
     class Meta:
         model = F680Application
@@ -86,6 +123,19 @@ class F680ApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 "appeal_deadline",
                 "appeal",
                 "sub_status",
+                "exceptional_circumstances",
+                "foreign_technology_information",
+                "foreign_technology_information_details",
+                "is_local_assembly_manufacture",
+                "is_local_assembly_manufacture_details",
+                "product_funding",
+                "ew_data",
+                "clearances",
+                "clearance_level",
+                "product_mtcr_rating_type",
+                "product_mtcr_rating_type_details",
+                "armed_forces_usage",
+                "armed_forces_usage_details",
             )
         )
 
