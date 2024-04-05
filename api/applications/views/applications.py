@@ -487,7 +487,7 @@ class ApplicationSubStatuses(ListAPIView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.application = get_object_or_404(StandardApplication, pk=self.kwargs["pk"])
+        self.application = get_object_or_404(BaseApplication, pk=self.kwargs["pk"])
 
     def get_queryset(self):
         return self.application.status.sub_statuses.all().order_by("order")
