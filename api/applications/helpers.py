@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
 
+from api.applications.serializers.generic_application import GenericApplicationUpdateSerializer
 from elasticsearch_dsl import Search, Q
 from elasticsearch.exceptions import NotFoundError
 
@@ -58,8 +59,12 @@ def get_application_create_serializer(case_type):
 
 
 def get_application_update_serializer(application: BaseApplication):
-    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        return StandardApplicationUpdateSerializer
+    serializer_dict ={
+        CaseTypeSubTypeEnum.STANDARD: StandardApplicationUpdateSerializer,
+        CaseTypeSubTypeEnum.F680: GenericApplicationUpdateSerializer
+    }
+    if serializer_dict.get(application.case_type.sub_type):
+        return serializer_dict[application.case_type.sub_type]
     else:
         raise BadRequestError(
             {
