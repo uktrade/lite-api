@@ -94,6 +94,7 @@ class F680ApplicationFactory(factory.django.DjangoModelFactory):
         if "status" in kwargs and isinstance(kwargs["status"], CaseStatus):
             obj.status = kwargs["status"]
         obj.save()
+        PartyOnApplicationFactory(application=obj, party__type="end_user")
         return obj
 
 
