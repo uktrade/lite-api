@@ -25,7 +25,6 @@ class AdviceDocumentsTests(DataTestClient):
             AdviceType.APPROVE: {"value": AdviceType.get_text(AdviceType.APPROVE)},
             AdviceType.REFUSE: {"value": AdviceType.get_text(AdviceType.REFUSE)},
             AdviceType.INFORM: {"value": AdviceType.get_text(AdviceType.INFORM)},
-            AdviceType.F680: {"value": AdviceType.get_text(AdviceType.F680)},
         }
 
         response = self.client.get(self.url, **self.gov_headers)
