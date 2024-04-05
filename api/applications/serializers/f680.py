@@ -74,6 +74,7 @@ class F680ApplicationUpdateSerializer(serializers.ModelSerializer):
             "product_funding",
             "ew_data",
             "clearances",
+            "clearance_level",
             "intended_end_use",
         )
 
@@ -130,6 +131,7 @@ class F680ApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 "product_funding",
                 "ew_data",
                 "clearances",
+                "clearance_level",
                 "product_mtcr_rating_type",
                 "product_mtcr_rating_type_details",
                 "armed_forces_usage",
