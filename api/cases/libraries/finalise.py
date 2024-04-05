@@ -39,8 +39,7 @@ def get_required_decision_document_types(case):
         if False in decisions:
             required_decisions.add(AdviceType.REFUSE)
 
-    # Will update at some point when we have the f680 instances working
-    if case.case_type == CaseTypeEnum.F680:
+    if case.case_type.sub_type == CaseTypeEnum.F680.sub_type:
         required_decisions.add(AdviceType.F680)
 
     return required_decisions
