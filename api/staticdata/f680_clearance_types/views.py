@@ -2,7 +2,6 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 
 from api.core.authentication import SharedAuthentication
-from api.staticdata.f680_clearance_types.enums import F680ClearanceTypeEnum
 from api.applications.enums import F680ClearanceChoices
 
 
