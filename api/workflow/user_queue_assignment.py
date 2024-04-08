@@ -53,6 +53,13 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
     # This here allows us to look at each queue removed, and assign a countersigning queue for the work queue as needed
     for queue in queues_without_case_assignments:
         if queue.countersigning_queue_id:
+            # Hack to ensure that we skip MOD countersigning for F680s
+            f680_mod_countersign = (
+                str(queue.countersigning_queue_id) == "432a8587-fc0e-4d34-9b50-92ad6d45bb16"
+                and case.case_type.sub_type == "f680_clearance"
+            )
+            if f680_mod_countersign:
+                continue
             remaining_feeder_queues = case.queues.filter(countersigning_queue_id=queue.countersigning_queue_id)
             if not remaining_feeder_queues:
                 case.queues.add(queue.countersigning_queue_id)
