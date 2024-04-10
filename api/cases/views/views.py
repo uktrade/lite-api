@@ -10,6 +10,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 
+
 from api.applications.models import GoodOnApplication
 from api.users.models import BaseNotification, ExporterUser
 from api.applications.serializers.advice import (
@@ -1263,4 +1264,17 @@ class GoodOnPrecedentList(ListAPIView):
                 "application__queues",
                 "control_list_entries",
             )
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        serializer = self.get_serializer(queryset, many=True)
+        return JsonResponse(
+            {
+                "count": queryset.count(),
+                "total_pages": 1,
+                "results": serializer.data,
+            },
+            status=status.HTTP_200_OK,
         )
