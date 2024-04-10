@@ -12,6 +12,7 @@ def get_next_page_url(request, n):
 
 @api_view(["GET"])
 def streams(request, timestamp):
+    timestamp = float(timestamp)
     stream = get_stream(timestamp)
 
     return JsonResponse(

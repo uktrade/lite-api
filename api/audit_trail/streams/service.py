@@ -1,8 +1,9 @@
 """
 MVP activity stream. To be extended appropriately as requirements are drawn up.
 """
-import time
+
 from datetime import datetime
+import pytz
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -143,7 +144,10 @@ def get_stream(timestamp):
         verb__in=STREAMED_AUDITS,
     ).order_by("created_at")
     if timestamp > 0:
-        audit_qs = audit_qs.filter(created_at__gte=timezone.make_aware(datetime.fromtimestamp(timestamp)))
+        time_zone = pytz.timezone("UTC")
+        aware_datetime = datetime.fromtimestamp((timestamp), tz=time_zone)
+
+        audit_qs = audit_qs.filter(created_at__gt=aware_datetime)
     audit_qs = audit_qs[: settings.STREAM_PAGE_SIZE]
 
     if not audit_qs:
@@ -188,5 +192,4 @@ def get_stream(timestamp):
             # Only create a case record for last seen activity for a given case.
             countries = []
             stream.append(case_record_json(audit.target_object_id, audit.created_at, countries))
-
-    return {"data": stream, "next_timestamp": int(time.mktime(last_created_at.timetuple())) + 1}
+    return {"data": stream, "next_timestamp": str(last_created_at.timestamp())}
