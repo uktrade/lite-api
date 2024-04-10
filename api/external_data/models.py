@@ -29,6 +29,9 @@ class Denial(TimestampableModel):
 
 class DenialEntity(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
+
+    denial = models.ForeignKey(Denial, related_name="denial_entity", on_delete=models.CASCADE, blank=True, null=True)
+
     created_by = models.ForeignKey(
         GovUser, related_name="denialenitity_created", on_delete=models.DO_NOTHING, blank=True, null=True
     )
