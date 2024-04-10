@@ -165,9 +165,11 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
                     target=updated_instance,
                     payload={
                         "key": original_instance.name,
-                        "old": original_instance.site_records_located_at.name
-                        if getattr(original_instance, "site_records_located_at", None)
-                        else "N/A",
+                        "old": (
+                            original_instance.site_records_located_at.name
+                            if getattr(original_instance, "site_records_located_at", None)
+                            else "N/A"
+                        ),
                         "new": updated_instance.site_records_located_at.name,
                     },
                 )

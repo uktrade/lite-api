@@ -148,9 +148,9 @@ class SuggestedSummariesManagementCommand(DataTestClient):
         # for prefixes that are expected to be matched by the management command.
         # will have None as the value (the corresponding entry in the CSV will have a blank value for the prefix).
         report_prefixes: Dict[str, Optional[ReportSummaryPrefix]] = {
-            report_summary: ReportSummaryPrefix.objects.get_or_create(name=suggested_prefix)[0]
-            if suggested_prefix
-            else None
+            report_summary: (
+                ReportSummaryPrefix.objects.get_or_create(name=suggested_prefix)[0] if suggested_prefix else None
+            )
             for report_summary, suggested_prefix, suggested_subject in report_data
             if suggested_subject
         }
