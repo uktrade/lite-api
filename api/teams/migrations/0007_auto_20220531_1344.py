@@ -16,7 +16,7 @@ def populate_dev_team_alias(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('teams', '0006_populate_dev_team_alias_flags'),
+        ("teams", "0006_populate_dev_team_alias_flags"),
     ]
 
     operations = [
