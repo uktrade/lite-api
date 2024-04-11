@@ -57,7 +57,7 @@ Service for handling backend calls in LITE.
     - Run the `make doc-migrate` command which does all of the above in one
   - Option 3:
     - Run `docker-compose up` to start the API's Django server
-    - Run the `make first-run` command which will run the migrations, seedall and populate the databse with test data
+    - Run the `make first-run` command which will run the migrations, seedall and populate the database with test data
 
 - Starting the service for the first time
   - `docker-compose up` - to start the API's Django server
