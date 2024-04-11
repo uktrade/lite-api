@@ -35,6 +35,7 @@ class TestOrganisationCreateUpdateSerializer:
             ("(07777)567921", "+447777567921"),
         ],
     )
+    @pytest.mark.django_db()
     def test_phone_number_validation_success(self, phone, exp_number):
         data = self.non_phone_data
         data["phone_number"] = phone
@@ -54,6 +55,7 @@ class TestOrganisationCreateUpdateSerializer:
             "01234@567921",
         ],
     )
+    @pytest.mark.django_db()
     def test_phone_number_validation_failure(self, phone):
         data = self.non_phone_data
         data["phone_number"] = phone
