@@ -10,6 +10,7 @@ Service for handling backend calls in LITE.
 - Clone the repository:
   - `git clone https://github.com/uktrade/lite-api.git`
   - `cd lite-api`
+- Install [Homebrew](https://brew.sh/)
 
 ### A note on running the service without Docker
 
@@ -116,13 +117,13 @@ We currently use celery for async tasks and scheduling in LITE;
 
 To produce PDF documents you will also need to install WeasyPrint. Do this after installing the python packages in the Pipfile;
 
-> MacOS: https://weasyprint.readthedocs.io/en/stable/install.html#macos
+> MacOS: `brew install weasyprint`
 
 > Linux: https://weasyprint.readthedocs.io/en/stable/install.html#debian-ubuntu
 
 ## Installing endesive for document signing
 
-To digitally sign documents `endesive` requires the OS library `swig` to be installed. To install run `sudo apt-get install swig`
+To digitally sign documents `endesive` requires the OS library `swig` to be installed. To install run `brew install swig`
 
 A `.p12` file is also required. Please see https://uktrade.atlassian.net/wiki/spaces/ILT/pages/1390870733/PDF+Document+Signing
 
@@ -139,6 +140,10 @@ A `.p12` file is also required. Please see https://uktrade.atlassian.net/wiki/sp
 ER diagrams can be viewed in docs/entity-relation-diagrams/.
 
 You'll need to install any dev [graphviz](https://graphviz.org/) dependencies (on ubuntu `sudo apt install libgraphviz-dev`) and then `pygraphviz`.
+  ```
+  brew install graphviz
+  pip install pygraphviz
+  ```
 
 Gegenerate diagrams
 
