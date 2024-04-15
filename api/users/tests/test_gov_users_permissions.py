@@ -1,13 +1,17 @@
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from api.core import constants
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 from api.users.tests.factories import GovUserFactory
+from api.users.models import Permission
+from api.users.tests.factories import RoleFactory
 from test_helpers.clients import DataTestClient
-from api.users.models import GovUser, Permission
 
 
-class SuperUserTests(DataTestClient):
+class GovUserTests(DataTestClient):
     """
     Other related tests in:
         'gov_users/tests/tests_deactivate'
@@ -103,3 +107,23 @@ class SuperUserTests(DataTestClient):
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @parameterized.expand(
+        [
+            ["admin", [CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN], True],
+            ["manager", [CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN], True],
+            ["default", [CaseStatusEnum.WITHDRAWN], False],
+        ]
+    )
+    def test_gov_user_closed_status_permissible_roles(self, role_name, statuses, expected_status):
+        role = RoleFactory(name=role_name, statuses=CaseStatus.objects.filter(status__in=statuses))
+        self.gov_user.role = role
+        self.gov_user.save()
+        url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.pk})
+
+        response = self.client.get(url, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = response.json()
+        permitted_statuses = [item["status"] for item in response["user"]["role"]["statuses"]]
+        assert (CaseStatusEnum.CLOSED in permitted_statuses) == expected_status
