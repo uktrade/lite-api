@@ -6,13 +6,40 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods', '0009_firearmgooddetails_category'),
+        ("goods", "0009_firearmgooddetails_category"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='pvgradingdetails',
-            name='grading',
-            field=models.CharField(blank=True, choices=[('uk_unclassified', 'UK UNCLASSIFIED'), ('uk_official', 'UK OFFICIAL'), ('uk_official_sensitive', 'UK OFFICIAL - SENSITIVE'), ('uk_secret', 'UK SECRET'), ('uk_top_secret', 'UK TOP SECRET'), ('nato_unclassified', 'NATO UNCLASSIFIED'), ('nato_confidential', 'NATO CONFIDENTIAL'), ('nato_restricted', 'NATO RESTRICTED'), ('nato_secret', 'NATO SECRET'), ('occar_unclassified', 'OCCAR UNCLASSIFIED'), ('occar_confidential', 'OCCAR CONFIDENTIAL'), ('occar_restricted', 'OCCAR RESTRICTED'), ('occar_secret', 'OCCAR SECRET'), ('unclassified', 'Unclassified'), ('official', 'Official'), ('official-sensitive', 'Official-sensitive'), ('restricted', 'Restricted'), ('confidential', 'Confidential'), ('secret', 'Secret'), ('top secret', 'Top secret')], default=None, max_length=30, null=True),
+            model_name="pvgradingdetails",
+            name="grading",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("uk_unclassified", "UK UNCLASSIFIED"),
+                    ("uk_official", "UK OFFICIAL"),
+                    ("uk_official_sensitive", "UK OFFICIAL - SENSITIVE"),
+                    ("uk_secret", "UK SECRET"),
+                    ("uk_top_secret", "UK TOP SECRET"),
+                    ("nato_unclassified", "NATO UNCLASSIFIED"),
+                    ("nato_confidential", "NATO CONFIDENTIAL"),
+                    ("nato_restricted", "NATO RESTRICTED"),
+                    ("nato_secret", "NATO SECRET"),
+                    ("occar_unclassified", "OCCAR UNCLASSIFIED"),
+                    ("occar_confidential", "OCCAR CONFIDENTIAL"),
+                    ("occar_restricted", "OCCAR RESTRICTED"),
+                    ("occar_secret", "OCCAR SECRET"),
+                    ("unclassified", "Unclassified"),
+                    ("official", "Official"),
+                    ("official-sensitive", "Official-sensitive"),
+                    ("restricted", "Restricted"),
+                    ("confidential", "Confidential"),
+                    ("secret", "Secret"),
+                    ("top secret", "Top secret"),
+                ],
+                default=None,
+                max_length=30,
+                null=True,
+            ),
         ),
     ]

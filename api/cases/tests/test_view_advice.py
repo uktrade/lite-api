@@ -33,6 +33,8 @@ class ViewCaseAdviceTests(DataTestClient):
         self.assertEqual(data["user"]["last_name"], self.gov_user.last_name)
         self.assertEqual(data["user"]["team"]["name"], self.gov_user.team.name)
         self.assertEqual(data["good"], str(self.good.id))
+        self.assertEqual(data["team"]["id"], str(self.gov_user.team.id))
+        self.assertEqual(data["team"]["name"], str(self.gov_user.team.name))
 
     def test_view_all_advice(self):
         user_advice = UserAdviceFactory(user=self.gov_user, case=self.standard_case, good=self.good)

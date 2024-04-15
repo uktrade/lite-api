@@ -21,9 +21,9 @@ class DenialViewSetTests(DataTestClient):
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.Denial.objects.count(), 4)
+        self.assertEqual(models.DenialEntity.objects.count(), 4)
         self.assertEqual(
-            list(models.Denial.objects.values(*serializers.DenialFromCSVFileSerializer.required_headers, "data")),
+            list(models.DenialEntity.objects.values(*serializers.DenialFromCSVFileSerializer.required_headers, "data")),
             [
                 {
                     "address": "123 fake street",
@@ -134,17 +134,17 @@ class DenialSearchView(DataTestClient):
         ]
     )
     def test_populate_denials(self, page_query):
-        call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
         with open(file_path, "rb") as f:
             content = f.read()
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.Denial.objects.count(), 4)
+        self.assertEqual(models.DenialEntity.objects.count(), 4)
 
         # and one of them is revoked
-        denial = models.Denial.objects.get(name="Jak Example")
+        denial = models.DenialEntity.objects.get(name="Jak Example")
         denial.is_revoked = True
         denial.save()
 
@@ -182,7 +182,7 @@ class DenialSearchView(DataTestClient):
         ]
     )
     def test_denial_search(self, query, quantity):
-        call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
         with open(file_path, "rb") as f:

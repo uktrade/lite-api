@@ -17,7 +17,7 @@ def rename_ogd_advice_name(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('statuses', '0007_add_case_sub_status_records'),
+        ("statuses", "0007_add_case_sub_status_records"),
     ]
 
     operations = [
