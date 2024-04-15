@@ -74,30 +74,29 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
     @transaction.atomic
     def validate_csv_file(self, value):
         csv_file = io.StringIO(value)
-        dialect = csv.Sniffer().sniff(csv_file.read(1024))
-        csv_file.seek(0)
-        reader = csv.reader(csv_file, dialect=dialect)
-        headers = next(reader, None)
+        reader = csv.DictReader(csv_file)
+
+        if reader.fieldnames is None:
+            raise serializers.ValidationError("CSV file is empty or headers are missing")
+
+        # Check if required headers are present
+        if not (set(self.required_headers)).issubset(set(reader.fieldnames)):
+            raise serializers.ValidationError("Missing required headers in CSV file")
+
         errors = []
         valid_serializers = []
         for i, row in enumerate(reader, start=1):
-            data = dict(zip(headers, row))
-            serializer = DenialEntitySerializer(
-                data={
-                    "data": data,
-                    "created_by": self.context["request"].user,
-                    **{field: data.pop(field, None) for field in self.required_headers},
-                }
-            )
-
+            data = {field: row.get(field, None) for field in self.required_headers}
+            serializer = DenialEntitySerializer(data={"data": data, "created_by": self.context["request"].user, **data})
             if serializer.is_valid():
                 valid_serializers.append(serializer)
             else:
-                self.add_bulk_errors(errors=errors, row_number=i + 1, line_errors=serializer.errors)
+                self.add_bulk_errors(errors, i, serializer.errors)
+
         if errors:
             raise serializers.ValidationError(errors)
         else:
-            # only save if no errors
+            # Only save if no errors
             for serializer in valid_serializers:
                 serializer.save()
         return csv_file
