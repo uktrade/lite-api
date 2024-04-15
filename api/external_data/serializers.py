@@ -55,8 +55,10 @@ class DenialEntitySerializer(serializers.ModelSerializer):
 class DenialFromCSVFileSerializer(serializers.Serializer):
 
     csv_file = serializers.CharField()
+
     required_headers = [
         "reference",
+        "regime_reg_ref",
         "name",
         "address",
         "notifying_government",
@@ -65,6 +67,8 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         "item_description",
         "consignee_name",
         "end_use",
+        "reason_for_refusal",
+        "spire_entity_id",
     ]
 
     @transaction.atomic
