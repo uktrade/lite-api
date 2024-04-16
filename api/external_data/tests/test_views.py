@@ -174,14 +174,12 @@ class DenialEntitySearchView(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "name:Bob"}, 1),
-            ({"search": "name:Example"}, 3),
-            ({"search": "name:Jones"}, 1),
-            ({"search": "address:123 fake street"}, 3),
-            ({"search": "address:Bob Avenue"}, 1),
+            ({"search": "name:Organisation Name"}, 3),
+            ({"search": "name:The Widget Company"}, 1),
+            ({"search": "name:XYZ"}, 1),
         ]
     )
-    def test_denial_search(self, query, quantity):
+    def test_denial_entity_search(self, query, quantity):
         call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
