@@ -183,8 +183,6 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good.status == GoodStatus.VERIFIED
         assert [cle.rating for cle in good.control_list_entries.all()] == ["ML1"]
         assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
-        assert good.report_summary_prefix_id == report_summary_prefix.id
-        assert good.report_summary_subject_id == report_summary_subject.id
 
         audit_entry = Audit.objects.order_by("-created_at").get(verb=AuditType.PRODUCT_REVIEWED)
         assert audit_entry.payload == {
@@ -274,8 +272,6 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good.status == GoodStatus.VERIFIED
         assert [cle.rating for cle in good.control_list_entries.all()] == ["ML3", "ML1"]
         assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
-        assert good.report_summary_prefix_id == report_summary_prefix.id
-        assert good.report_summary_subject_id == report_summary_subject.id
 
     @freeze_time("2023-11-03 12:00:00")
     def test_clear_assessments(self):

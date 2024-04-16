@@ -414,7 +414,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "product_description",
             "no_document_comments",
             "comment",
-            "report_summary",
             "item_category",
             "is_military_use",
             "is_component",
@@ -792,9 +791,6 @@ class GoodSerializerInternal(serializers.Serializer):
     control_list_entries = ControlListEntrySerializer(many=True)
     comment = serializers.CharField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
-    report_summary = serializers.CharField(allow_blank=True, required=False)
-    report_summary_prefix = ReportSummaryPrefixSerializer()
-    report_summary_subject = ReportSummarySubjectSerializer()
     flags = GoodsFlagSerializer(many=True)
     documents = serializers.SerializerMethodField()
     is_pv_graded = serializers.CharField()
@@ -954,15 +950,6 @@ class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
             instance.good.status = GoodStatus.VERIFIED
             instance.good.control_list_entries.set(validated_data["control_list_entries"])
             instance.good.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
-
-        instance.good.report_summary = validated_data.get("report_summary", instance.report_summary)
-
-        if validated_data.get("report_summary_prefix", None):
-            prefix_uuid = validated_data["report_summary_prefix"].id
-            instance.good.report_summary_prefix = ReportSummaryPrefix.objects.get(id=prefix_uuid)
-        if validated_data.get("report_summary_subject", None):
-            subject_uuid = validated_data["report_summary_subject"].id
-            instance.good.report_summary_subject = ReportSummarySubject.objects.get(id=subject_uuid)
 
         instance.good.save()
 

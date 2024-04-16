@@ -45,8 +45,6 @@ def get_application(pk, organisation_id=None):
         "goods__regime_entries",
         "goods__regime_entries__subsection",
         "goods__regime_entries__subsection__regime",
-        "goods__good__report_summary_prefix",
-        "goods__good__report_summary_subject",
         "goods__audit_trail",
         "goods__goodonapplicationdocument_set",
         "goods__goodonapplicationdocument_set__user",

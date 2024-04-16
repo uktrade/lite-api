@@ -326,7 +326,6 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
         # One for the response to the query and another for updating the good
         data = {
             "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
             "control_list_entries": ["ML1a"],
             "is_good_controlled": "yes",
         }

@@ -125,21 +125,3 @@ class GoodOnApplicationSerializerTests(DataTestClient):
             GoodOnApplicationSerializer().get_destinations(self.b_good_on_application),
             ["Test Country"],
         )
-
-
-class GoodSerializerInternalTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-
-        self.good = GoodFactory.create(organisation=self.organisation)
-        self.good.report_summary_prefix = ReportSummaryPrefix.objects.first()
-        self.good.report_summary_subject = ReportSummarySubject.objects.first()
-
-    def test_report_summary_present(self):
-        serialized_data = GoodSerializerInternal(self.good).data
-        actual_prefix = serialized_data["report_summary_prefix"]
-        actual_subject = serialized_data["report_summary_subject"]
-        self.assertEqual(actual_prefix["id"], str(self.good.report_summary_prefix.id))
-        self.assertEqual(actual_prefix["name"], self.good.report_summary_prefix.name)
-        self.assertEqual(actual_subject["id"], str(self.good.report_summary_subject.id))
-        self.assertEqual(actual_subject["name"], self.good.report_summary_subject.name)

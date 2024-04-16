@@ -173,5 +173,4 @@ class GoodControlReviewSerializer(serializers.ModelSerializer):
             "control_list_entries",
             "is_good_controlled",
             "comment",
-            "report_summary",
         )

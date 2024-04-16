@@ -153,8 +153,6 @@ class CaseDetail(APIView):
                 "countersign_advice__advice__good",
                 "countersign_advice__advice__good__good",
                 "countersign_advice__advice__good__good__countersigned_by",
-                "countersign_advice__advice__good__report_summary_prefix",
-                "countersign_advice__advice__good__report_summary_subject",
                 "countersign_advice__advice__good__firearm_details",
                 "flags",
                 "queues",

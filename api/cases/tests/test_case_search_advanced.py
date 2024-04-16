@@ -67,7 +67,7 @@ class FilterAndSortTests(DataTestClient):
         if legacy_report_summary:
             report_summary_kwargs["report_summary"] = legacy_report_summary
 
-        good = GoodFactory(organisation=application.organisation, is_good_controlled=True, **report_summary_kwargs)
+        good = GoodFactory(organisation=application.organisation, is_good_controlled=True)
         GoodOnApplicationFactory(application=application, good=good, regime_entries=["T1"], **report_summary_kwargs)
 
     def test_filter_by_exporter_site_name(self):
@@ -501,7 +501,6 @@ class FilterAndSortTests(DataTestClient):
             organisation=application_1.organisation,
             description="Desc 1",
             comment="Comment 1",
-            report_summary="Report Summary 1",
         )
         GoodOnApplicationFactory(application=application_1, good=good_1, is_nca_applicable=True)
         GoodOnApplicationFactory(application=application_2, good=good_1, is_nca_applicable=False)
@@ -521,19 +520,16 @@ class FilterAndSortTests(DataTestClient):
             organisation=application_1.organisation,
             description="Desc 1",
             comment="Comment 1",
-            report_summary="Report Summary 1",
         )
         good_2 = GoodFactory(
             organisation=application_1.organisation,
             description="Desc 2",
             comment="Comment 2",
-            report_summary="Report Summary 2",
         )
         good_3 = GoodFactory(
             organisation=application_1.organisation,
             description="Desc 3",
             comment="Comment 3",
-            report_summary="Report Summary 3",
         )
         GoodOnApplicationFactory(application=application_1, good=good_1, is_trigger_list_guidelines_applicable=True)
         GoodOnApplicationFactory(application=application_1, good=good_2, is_trigger_list_guidelines_applicable=False)
