@@ -56,6 +56,7 @@ class AdviceViewSerializer(serializers.Serializer):
     footnote = serializers.CharField()
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     created_at = serializers.DateTimeField()
+    team = TeamReadOnlySerializer()
 
     good = GoodField()
     goods_type = serializers.UUIDField(source="goods_type_id")
