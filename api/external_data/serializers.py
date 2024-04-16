@@ -1,5 +1,6 @@
 import csv
 import io
+import logging
 
 from django.db import transaction
 
@@ -76,6 +77,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         csv_file = io.StringIO(value)
         reader = csv.DictReader(csv_file)
 
+        # Check headers exist
         if reader.fieldnames is None:
             raise serializers.ValidationError("CSV file is empty or headers are missing")
 
@@ -84,21 +86,36 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
             raise serializers.ValidationError("Missing required headers in CSV file")
 
         errors = []
-        valid_serializers = []
         for i, row in enumerate(reader, start=1):
-            data = {field: row.get(field, None) for field in self.required_headers}
-            serializer = DenialEntitySerializer(data={"data": data, "created_by": self.context["request"].user, **data})
+            data = {
+                **{field: row.get(field, None) for field in self.required_headers},
+                "created_by": self.context["request"].user,
+            }
+            # Create a serializer instance to validate data
+            serializer = DenialEntitySerializer(data=data)
             if serializer.is_valid():
-                valid_serializers.append(serializer)
+                lookup_fields = {
+                    "reference": row.get("reference"),
+                    "regime_reg_ref": row.get("regime_reg_ref"),
+                    "name": row.get("name"),
+                    "address": row.get("address"),
+                }
+                # Try to update an existing record or create a new one
+                obj, created = models.DenialEntity.objects.update_or_create(defaults=serializer.validated_data, **lookup_fields)  # type: ignore
+
+                if created:
+                    logging.info(f"Created new record at row {i}")
+
+                if not created:
+                    logging.info(
+                        f"Updated existing record at row {i} based on reference, regime_reg_ref, name, address"
+                    )
             else:
                 self.add_bulk_errors(errors, i, serializer.errors)
 
         if errors:
             raise serializers.ValidationError(errors)
-        else:
-            # Only save if no errors
-            for serializer in valid_serializers:
-                serializer.save()
+
         return csv_file
 
     @staticmethod
