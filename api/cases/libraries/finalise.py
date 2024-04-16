@@ -1,3 +1,5 @@
+import json
+
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from api.cases.models import Advice, GoodCountryDecision
@@ -55,6 +57,8 @@ def remove_flags_on_finalisation(case):
 def remove_flags_from_audit_trail(case):
     flags_to_remove = Flag.objects.filter(remove_on_finalised=True)
     for flag in flags_to_remove:
-        audit_logs = Audit.objects.filter(target_object_id=case.id, payload__icontains=flag.name)
+        audit_logs = Audit.objects.filter(target_object_id=case.id)
         for audit_log in audit_logs:
-            audit_log.delete()
+            payload_json_string = json.dumps(audit_log.payload)
+            if flag.name in payload_json_string:
+                audit_log.delete()

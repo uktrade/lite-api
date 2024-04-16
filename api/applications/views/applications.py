@@ -419,7 +419,7 @@ class ApplicationManageStatus(APIView):
         data["status"] = str(case_status.pk)
 
         # Remove needed flags when case is Withdrawn
-        withdrawn_status = CaseStatus.objects.filter(status=CaseStatusEnum.WITHDRAWN).first()
+        withdrawn_status = CaseStatus.objects.get(status=CaseStatusEnum.WITHDRAWN)
         if case_status == withdrawn_status:
             remove_flags_on_finalisation(application.get_case())
             remove_flags_from_audit_trail(application.get_case())
