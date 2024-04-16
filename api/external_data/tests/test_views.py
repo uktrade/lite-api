@@ -125,7 +125,7 @@ class DenialViewSetTests(DataTestClient):
         )
 
 
-class DenialEntitySearchView(DataTestClient):
+class DenialSearchViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
@@ -141,7 +141,7 @@ class DenialEntitySearchView(DataTestClient):
             content = f.read()
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.DenialEntity.objects.count(), 3)
+        self.assertEqual(models.DenialEntity.objects.count(), 4)
 
         # Set one of them as revoked
         denial_entity = models.DenialEntity.objects.get(name="Organisation Name")
@@ -196,8 +196,6 @@ class DenialEntitySearchView(DataTestClient):
         response_json = response.json()
         self.assertEqual(len(response_json["results"]), quantity)
 
-
-class DenialSearchViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     def test_search(self):
         Index("sanctions-alias-test").create(ignore=[400])
