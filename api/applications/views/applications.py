@@ -101,6 +101,8 @@ from api.users.models import ExporterUser
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
+from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
+from api.staticdata.statuses.models import CaseStatus
 
 
 class ApplicationList(ListCreateAPIView):
@@ -415,6 +417,13 @@ class ApplicationManageStatus(APIView):
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
+
+        # Remove needed flags when case is Withdrawn
+        withdrawn_status = CaseStatus.objects.get(status=CaseStatusEnum.WITHDRAWN)
+        if case_status == withdrawn_status:
+            remove_flags_on_finalisation(application.get_case())
+            remove_flags_from_audit_trail(application.get_case())
+
         old_status = application.status
 
         serializer = get_application_update_serializer(application)
