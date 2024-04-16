@@ -1,9 +1,8 @@
 import csv
 import io
+
 import logging
-
 from django.db import transaction
-
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
@@ -87,28 +86,50 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 
         errors = []
         for i, row in enumerate(reader, start=1):
-            data = {
-                **{field: row.get(field, None) for field in self.required_headers},
+            denial_entity_data = {
+                **{field: row[field] for field in self.required_headers},
                 "created_by": self.context["request"].user,
             }
             # Create a serializer instance to validate data
-            serializer = DenialEntitySerializer(data=data)
-            if serializer.is_valid():
-                lookup_fields = {
-                    "reference": row.get("reference"),
-                    "regime_reg_ref": row.get("regime_reg_ref"),
-                    "name": row.get("name"),
-                    "address": row.get("address"),
+            serializer = DenialEntitySerializer(data=denial_entity_data)
+            if serializer.is_valid() and isinstance(serializer.validated_data, dict):
+                # Try to update an existing Denial record or create a new one
+                regime_reg_ref = serializer.validated_data["regime_reg_ref"]
+                denial_data = {
+                    "reference": serializer.validated_data["reference"],
+                    "notifying_government": serializer.validated_data["notifying_government"],
+                    "item_list_codes": serializer.validated_data["item_list_codes"],
+                    "item_description": serializer.validated_data["item_description"],
+                    "end_use": serializer.validated_data["end_use"],
+                    "reason_for_refusal": serializer.validated_data["reason_for_refusal"],
                 }
-                # Try to update an existing record or create a new one
-                obj, created = models.DenialEntity.objects.update_or_create(defaults=serializer.validated_data, **lookup_fields)  # type: ignore
+                denial, is_denial_created = models.Denial.objects.update_or_create(
+                    regime_reg_ref=regime_reg_ref, defaults=denial_data
+                )
 
-                if created:
-                    logging.info(f"Created new record at row {i}")
+                if is_denial_created:
+                    logging.info(f"Created new Denial record at row {i}")
+                else:
+                    logging.info(f"Updated existing Denial record at row {i} based on regime_reg_ref")
 
-                if not created:
+                # We assume that a DenialEntity object already exists if we can
+                # match on all of the following fields
+                denial_entity_lookup_fields = {
+                    "reference": serializer.validated_data["reference"],
+                    "regime_reg_ref": regime_reg_ref,
+                    "name": serializer.validated_data["name"],
+                    "address": serializer.validated_data["address"],
+                }
+                # Link the validated DenialEntity data with the Denial
+                denial_entity, is_denial_entity_created = models.DenialEntity.objects.update_or_create(
+                    defaults=serializer.validated_data, denial=denial, **denial_entity_lookup_fields
+                )
+
+                if is_denial_entity_created:
+                    logging.info(f"Created new DenialEntity record at row {i}")
+                else:
                     logging.info(
-                        f"Updated existing record at row {i} based on reference, regime_reg_ref, name, address"
+                        f"Updated existing DenialEntity record at row {i} based on reference, regime_reg_ref, name, address"
                     )
             else:
                 self.add_bulk_errors(errors, i, serializer.errors)
