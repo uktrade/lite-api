@@ -125,7 +125,7 @@ class DenialViewSetTests(DataTestClient):
         )
 
 
-class DenialSearchView(DataTestClient):
+class DenialEntitySearchView(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
@@ -133,7 +133,7 @@ class DenialSearchView(DataTestClient):
             ({"page": 1},),
         ]
     )
-    def test_populate_denials(self, page_query):
+    def test_populate_denial_entity_objects(self, page_query):
         call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
@@ -141,28 +141,28 @@ class DenialSearchView(DataTestClient):
             content = f.read()
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.DenialEntity.objects.count(), 4)
+        self.assertEqual(models.DenialEntity.objects.count(), 3)
 
-        # and one of them is revoked
-        denial = models.DenialEntity.objects.get(name="Jak Example")
-        denial.is_revoked = True
-        denial.save()
+        # Set one of them as revoked
+        denial_entity = models.DenialEntity.objects.get(name="Organisation Name")
+        denial_entity.is_revoked = True
+        denial_entity.save()
 
-        # then only 2 denials will be returned when searching
+        # Then only 2 denial entity objects will be returned when searching
         url = reverse("external_data:denial_search-list")
 
-        response = self.client.get(url, {**page_query, "search": "name:Example"}, **self.gov_headers)
+        response = self.client.get(url, {**page_query, "search": "name:Organisation Name XYZ"}, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
         expected_result = {
-            "address": "123 fake street",
-            "country": "Germany",
-            "item_description": "Foo",
-            "item_list_codes": "ABC123",
-            "name": "Jim Example",
-            "notifying_government": "France",
-            "end_use": "used in car",
-            "reference": "FOO123",
+            "address": "2000 Street Name, City Name 2",
+            "country": "Country Name 2",
+            "item_description": "Large Size Widget",
+            "item_list_codes": "0A00200",
+            "name": "Organisation Name XYZ",
+            "notifying_government": "Country Name 2",
+            "end_use": "Used in other industry",
+            "reference": "DN3000/0000",
         }
 
         for key, value in expected_result.items():
