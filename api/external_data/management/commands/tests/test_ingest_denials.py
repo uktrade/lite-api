@@ -127,12 +127,13 @@ def test_populate_denials_validation_call(mock_json_content, mock_delete_file):
 def test_populate_denials_with_existing_matching_records(mock_get_file, mock_delete_file, json_file_data):
     mock_get_file.return_value = json_file_data
     case = StandardApplicationFactory()
-    denial = DenialMatchFactory()
-    DenialMatchOnApplicationFactory(application=case, category="exact", denial=denial)
+
+    denial_enity = DenialMatchFactory(regime_reg_ref="12", name="Test1 case")
+    DenialMatchOnApplicationFactory(application=case, category="exact", denial=denial_enity)
 
     call_command("ingest_denials", "json_file")
 
-    assert DenialEntity.objects.all().count() == 4
+    assert DenialEntity.objects.all().count() == 3
 
 
 @pytest.mark.django_db
