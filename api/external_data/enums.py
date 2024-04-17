@@ -9,9 +9,3 @@ class DenialMatchCategory:
         (PARTIAL, "Partial"),
         (EXACT, "Exact"),
     ]
-
-
-class DenialEntityType(models.TextChoices):
-    END_USER = "End-user"
-    CONSIGNEE = "Consignee"
-    THIRD_PARTY = "Third-party"
