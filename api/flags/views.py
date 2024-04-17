@@ -168,6 +168,9 @@ class AssignFlags(APIView):
         ignored_flags = flags + [x for x in previously_assigned_deactivated_team_flags]
         removed_flag_names = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
 
+        self.added_flags_id = [str(flag.id) for flag in flags if flag not in previously_assigned_team_flags]
+        self.removed_flags_id = [str(flag.id) for flag in previously_assigned_team_flags if flag not in ignored_flags]
+
         # Add activity item
 
         if isinstance(obj, Case):
@@ -205,6 +208,7 @@ class AssignFlags(APIView):
                 payload={
                     "added_flags": added_flags,
                     "additional_text": note,
+                    "added_flags_id": self.added_flags_id,
                 },
             )
 
@@ -213,7 +217,11 @@ class AssignFlags(APIView):
                 actor=user,
                 verb=AuditType.REMOVE_FLAGS,
                 target=case,
-                payload={"removed_flags": removed_flags, "additional_text": note},
+                payload={
+                    "removed_flags": removed_flags,
+                    "additional_text": note,
+                    "removed_flags_id": self.removed_flags_id,
+                },
             )
 
     def _set_organisation_activity(self, added_flags, removed_flags, organisation, user, note, **kwargs):

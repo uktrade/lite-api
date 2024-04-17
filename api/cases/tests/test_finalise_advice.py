@@ -147,6 +147,7 @@ class ApproveAdviceTests(DataTestClient):
             payload={
                 "added_flags": [self.test_flag.name],
                 "additional_text": "test",
+                "added_flags_id": [str(self.test_flag.id)],
             },
         )
 
