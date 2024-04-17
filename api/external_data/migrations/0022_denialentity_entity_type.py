@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="entity_type",
             field=models.TextField(
                 blank=True,
-                choices=[("END_USER", "End-user"), ("CONSIGNEE", "Consignee"), ("THIRD_PARTY", "Third-party")],
+                choices=[("end_user", "End-user"), ("consignee", "Consignee"), ("third_party", "Third-party")],
                 default="",
                 help_text="Type of entity being denied",
                 null=True,
