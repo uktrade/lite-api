@@ -106,20 +106,20 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 
 class DenialSearchSerializer(DocumentSerializer):
     entity_type = serializers.SerializerMethodField()
+    regime_reg_ref = serializers.ReadOnlyField(source="denial.regime_reg_ref")
+    reference = serializers.ReadOnlyField(source="denial.reference")
+    notifying_government = serializers.ReadOnlyField(source="denial.notifying_government")
+    item_list_codes = serializers.ReadOnlyField(source="denial.item_list_codes")
+    item_description = serializers.ReadOnlyField(source="denial.item_description")
+    end_use = serializers.ReadOnlyField(source="denial.end_use")
 
     class Meta:
-        document = documents.DenialDocumentType
+        document = documents.DenialEnitytDocument
         fields = (
             "id",
             "address",
             "country",
-            "end_use",
-            "item_description",
-            "item_list_codes",
             "name",
-            "notifying_government",
-            "reference",
-            "regime_reg_ref",
         )
 
     def get_entity_type(self, obj):
