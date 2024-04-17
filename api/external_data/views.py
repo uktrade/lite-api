@@ -36,7 +36,7 @@ class SanctionViewSet(viewsets.ModelViewSet):
 
 
 class DenialSearchView(DocumentViewSet):
-    document = documents.DenialDocumentType
+    document = documents.DenialEnitytDocument
     serializer_class = serializers.DenialSearchSerializer
     authentication_classes = (GovAuthentication,)
     pagination_class = MaxPageNumberPagination
@@ -56,7 +56,7 @@ class DenialSearchView(DocumentViewSet):
     ordering = "_score"
 
     def filter_queryset(self, queryset):
-        queryset = queryset.filter("term", is_revoked=False)
+        queryset = queryset.filter("term", denial__is_revoked=False)
         return super().filter_queryset(queryset)
 
 

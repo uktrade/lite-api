@@ -49,7 +49,7 @@ class Command(BaseCommand):
     def rebuild_index(self):
         connection = connections.get_connection()
         connection.indices.delete(index=settings.ELASTICSEARCH_DENIALS_INDEX_ALIAS, ignore=[404])
-        documents.DenialDocumentType.init()
+        documents.DenialEnitytDocument.init()
 
     @staticmethod
     def add_bulk_errors(errors, row_number, line_errors):
