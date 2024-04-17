@@ -12,6 +12,6 @@ class DenialMatchCategory:
 
 
 class DenialEntityType(models.TextChoices):
-    end_user = "end_user", "End-user"
-    consignee = "consignee", "Consignee"
-    third_party = "third_party", "Third-party"
+    end_user = "End-user"
+    consignee = "Consignee"
+    third_party = "Third-party"
