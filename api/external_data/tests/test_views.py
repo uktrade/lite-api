@@ -109,6 +109,17 @@ class DenialViewSetTests(DataTestClient):
             },
         )
 
+    def test_create_error_missing_required_headers(self):
+        url = reverse("external_data:denial-list")
+        # missing the 'reference' header
+        content = """
+        regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,consignee_name,end_use,reason_for_refusal,spire_entity_id
+        AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Example Name,Used in industry,Risk of outcome,123
+        """
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"errors": {"csv_file": ["Missing required headers in CSV file"]}})
+
     @pytest.mark.skip(
         reason="Unique constraint on reference is removed temporarily, enable this test once we reinstate that constraint"
     )

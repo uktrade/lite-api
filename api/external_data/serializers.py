@@ -130,12 +130,8 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         csv_file = io.StringIO(value)
         reader = csv.DictReader(csv_file)
 
-        # Check headers exist
-        if reader.fieldnames is None:
-            raise serializers.ValidationError("CSV file is empty or headers are missing")
-
         # Check if required headers are present
-        if not (set(self.required_headers)).issubset(set(reader.fieldnames)):
+        if not (set(self.required_headers)).issubset(set(reader.fieldnames)):  # type: ignore
             raise serializers.ValidationError("Missing required headers in CSV file")
 
         errors = []
