@@ -1,6 +1,3 @@
-from django.db import models
-
-
 class DenialMatchCategory:
     PARTIAL = "partial"
     EXACT = "exact"
