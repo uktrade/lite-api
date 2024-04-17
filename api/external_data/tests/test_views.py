@@ -189,6 +189,8 @@ class DenialSearchViewTests(DataTestClient):
             ({"search": "name:Organisation Name"}, 3),
             ({"search": "name:The Widget Company"}, 1),
             ({"search": "name:XYZ"}, 1),
+            ({"search": "address:Street Name"}, 3),
+            ({"search": "address:Example"}, 1),
         ]
     )
     def test_denial_entity_search(self, query, quantity):
