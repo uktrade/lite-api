@@ -72,11 +72,6 @@ postcode_normalizer = analysis.normalizer(
     filter=["lowercase", "asciifolding"],
 )
 
-
-class Denial(InnerDoc):
-    regime_reg_ref = fields.KeywordField()
-
-
 class DenialEnitytDocument(Document):
     id = fields.KeywordField()
     name = fields.TextField()
@@ -96,12 +91,6 @@ class DenialEnitytDocument(Document):
         properties={
             "regime_reg_ref": fields.TextField(
                 attr="regime_reg_ref",
-                fields={
-                    "raw": fields.KeywordField(),
-                },
-            ),
-            "notifying_government": fields.TextField(
-                attr="notifying_government",
                 fields={
                     "raw": fields.KeywordField(),
                 },

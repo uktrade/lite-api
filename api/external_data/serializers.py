@@ -13,6 +13,15 @@ from api.flags.enums import SystemFlags
 
 class DenialEntitySerializer(serializers.ModelSerializer):
     entity_type = serializers.SerializerMethodField()
+    regime_reg_ref = serializers.CharField(source="denial.regime_reg_ref")
+    reference = serializers.CharField(source="denial.reference")
+    item_list_codes = serializers.CharField(source="denial.item_list_codes")
+    notifying_government = serializers.CharField(source="denial.notifying_government")
+    item_description = serializers.CharField(source="denial.item_description")
+    end_use = serializers.CharField(source="denial.end_use")
+    is_revoked = serializers.BooleanField(source="denial.is_revoked")
+    is_revoked_comment = serializers.CharField(source="denial.is_revoked_comment")
+    reason_for_refusal = serializers.CharField(source="denial.reason_for_refusal")
 
     class Meta:
         model = models.DenialEntity
@@ -47,6 +56,15 @@ class DenialEntitySerializer(serializers.ModelSerializer):
         if validated_data.get("is_revoked") and not validated_data.get("is_revoked_comment"):
             raise serializers.ValidationError({"is_revoked_comment": "This field is required"})
         return validated_data
+
+    def update(self, instance, validated_data):
+        # This is required because the flattened columns are required to support the older denial screen
+        # Serialisers don't support dotted fileds so we need to override. is_revoked and is_revoked_comments
+        # are the only updates we support so this is ok.
+        instance.denial.is_revoked = validated_data["denial"]["is_revoked"]
+        instance.denial.is_revoked_comment = validated_data["denial"]["is_revoked_comment"]
+        instance.denial.save()
+        return instance
 
     def get_entity_type(self, obj):
         return get_denial_entity_type(obj.data)

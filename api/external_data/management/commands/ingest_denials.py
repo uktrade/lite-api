@@ -36,7 +36,6 @@ class Command(BaseCommand):
         "country",
         "item_list_codes",
         "item_description",
-        "consignee_name",
         "end_use",
         "reason_for_refusal",
         "spire_entity_id",
