@@ -340,6 +340,7 @@ if LITE_API_ENABLE_ES:
     ELASTICSEARCH_DSL = {
         "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
     }
+    ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = "django_elasticsearch_dsl.signals.CelerySignalProcessor"
 
     ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
 
