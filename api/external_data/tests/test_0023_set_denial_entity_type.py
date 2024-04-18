@@ -15,8 +15,7 @@ test_data = [
         "item_description": "desc a",
         "end_use": "use 1",
         "reason_for_refusal": "a",
-        "entity_type": {"end_user_flag": True, "consignee_flag": False},
-        "other_role": False,
+        "entity_type": {"end_user_flag": True, "consignee_flag": False, "other_role": False},
     },
     {
         "reference": "DN2010\/0057",
@@ -29,8 +28,7 @@ test_data = [
         "item_description": "desc a",
         "end_use": "use 1",
         "reason_for_refusal": "a",
-        "entity_type": {"end_user_flag": False, "consignee_flag": True},
-        "other_role": False,
+        "entity_type": {"end_user_flag": False, "consignee_flag": True, "other_role": False},
     },
     {
         "reference": "DN2010\/0057",
@@ -43,8 +41,7 @@ test_data = [
         "item_description": "desc a",
         "end_use": "use 1",
         "reason_for_refusal": "a",
-        "entity_type": {"end_user_flag": False, "consignee_flag": False},
-        "other_role": True,
+        "entity_type": {"end_user_flag": False, "consignee_flag": False, "other_role": True},
     },
     {
         "reference": "DN2010\/0057",
@@ -57,8 +54,7 @@ test_data = [
         "item_description": "desc a",
         "end_use": "use 1",
         "reason_for_refusal": "a",
-        "entity_type": {"end_user_flag": False, "consignee_flag": False},
-        "other_role": False,
+        "entity_type": {"end_user_flag": False, "consignee_flag": False, "other_role": False},
     },
     {
         "reference": "DN2010\/0057",
