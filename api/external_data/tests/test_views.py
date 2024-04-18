@@ -11,6 +11,16 @@ from django.urls import reverse
 from api.external_data import documents, models, serializers
 from test_helpers.clients import DataTestClient
 
+denial_data_fields = [
+    "reference",
+    "regime_reg_ref",
+    "notifying_government",
+    "item_list_codes",
+    "item_description",
+    "end_use",
+    "reason_for_refusal",
+]
+
 
 class DenialViewSetTests(DataTestClient):
     def test_create_success(self):
@@ -119,6 +129,93 @@ class DenialViewSetTests(DataTestClient):
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {"errors": {"csv_file": ["Missing required headers in CSV file"]}})
+
+    def test_update_success(self):
+        url = reverse("external_data:denial-list")
+        content = """
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,consignee_name,end_use,reason_for_refusal,spire_entity_id
+        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Example Name,Used in industry,Risk of outcome,123
+        """
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(models.Denial.objects.count(), 1)
+        self.assertEqual(models.DenialEntity.objects.count(), 1)
+        self.assertEqual(
+            list(models.Denial.objects.values(*denial_data_fields)),
+            [
+                {
+                    "reference": "DN2000/0000",
+                    "regime_reg_ref": "AB-CD-EF-000",
+                    "notifying_government": "Country Name",
+                    "item_list_codes": "0A00100",
+                    "item_description": "Medium Size Widget",
+                    "end_use": "Used in industry",
+                    "reason_for_refusal": "Risk of outcome",
+                },
+            ],
+        )
+        self.assertEqual(
+            list(models.DenialEntity.objects.values(*serializers.DenialFromCSVFileSerializer.required_headers, "data")),
+            [
+                {
+                    "reference": "DN2000/0000",
+                    "regime_reg_ref": "AB-CD-EF-000",
+                    "name": "Organisation Name",
+                    "address": "1000 Street Name, City Name",
+                    "notifying_government": "Country Name",
+                    "country": "Country Name",
+                    "item_list_codes": "0A00100",
+                    "item_description": "Medium Size Widget",
+                    "consignee_name": "Example Name",
+                    "end_use": "Used in industry",
+                    "reason_for_refusal": "Risk of outcome",
+                    "spire_entity_id": 123,
+                    "data": {},
+                },
+            ],
+        )
+        updated_content = """
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,consignee_name,end_use,reason_for_refusal,spire_entity_id
+        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name 2,Country Name 2,0A00200,Medium Size Widget 2,Example Name 2,Used in industry 2,Risk of outcome 2,124
+        """
+        response = self.client.post(url, {"csv_file": updated_content}, **self.gov_headers)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(models.Denial.objects.count(), 1)
+        self.assertEqual(models.DenialEntity.objects.count(), 1)
+        self.assertEqual(
+            list(models.Denial.objects.values(*denial_data_fields)),
+            [
+                {
+                    "reference": "DN2000/0000",
+                    "regime_reg_ref": "AB-CD-EF-000",
+                    "notifying_government": "Country Name 2",
+                    "item_list_codes": "0A00200",
+                    "item_description": "Medium Size Widget 2",
+                    "end_use": "Used in industry 2",
+                    "reason_for_refusal": "Risk of outcome 2",
+                },
+            ],
+        )
+        self.assertEqual(
+            list(models.DenialEntity.objects.values(*serializers.DenialFromCSVFileSerializer.required_headers, "data")),
+            [
+                {
+                    "reference": "DN2000/0000",
+                    "regime_reg_ref": "AB-CD-EF-000",
+                    "name": "Organisation Name",
+                    "address": "1000 Street Name, City Name",
+                    "notifying_government": "Country Name 2",
+                    "country": "Country Name 2",
+                    "item_list_codes": "0A00200",
+                    "item_description": "Medium Size Widget 2",
+                    "consignee_name": "Example Name 2",
+                    "end_use": "Used in industry 2",
+                    "reason_for_refusal": "Risk of outcome 2",
+                    "spire_entity_id": 124,
+                    "data": {},
+                },
+            ],
+        )
 
     @pytest.mark.skip(
         reason="Unique constraint on reference is removed temporarily, enable this test once we reinstate that constraint"
