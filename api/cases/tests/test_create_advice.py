@@ -1,6 +1,5 @@
 import pytest
 
-from django.test import override_settings
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -697,6 +696,41 @@ class CreateCaseAdviceTests(DataTestClient):
         criteria_additional_text = AuditSerializer(criteria_audit_obj).data["additional_text"]
         assert criteria_audit_text == " added refusal criteria."
         assert criteria_additional_text == "WMD, 1."
+
+    @parameterized.expand(
+        [
+            AdviceType.APPROVE,
+            AdviceType.PROVISO,
+            AdviceType.REFUSE,
+            AdviceType.NO_LICENCE_REQUIRED,
+            AdviceType.NOT_APPLICABLE,
+        ]
+    )
+    def test_create_advice_sets_team_when_not_specified(self, advice_type):
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": advice_type,
+            "end_user": str(self.application.end_user.party.id),
+        }
+
+        if advice_type == AdviceType.PROVISO:
+            data["proviso"] = "I am easy to proviso"
+
+        if advice_type == AdviceType.REFUSE:
+            data["denial_reasons"] = ["1a", "1b", "1c"]
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(Advice.objects.get())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
+
+        advice = Advice.objects.get()
+        self.assertEqual(
+            advice.team,
+            self.gov_user.team,
+        )
 
 
 class CountersignAdviceTests(DataTestClient):

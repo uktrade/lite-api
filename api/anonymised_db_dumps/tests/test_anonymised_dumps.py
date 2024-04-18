@@ -29,8 +29,8 @@ from api.addresses.models import Address
 from api.staticdata.countries.models import Country
 from api.queries.end_user_advisories.tests.factories import EndUserAdvisoryQueryFactory
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
-from api.external_data.tests.factories import DenialFactory
-from api.external_data.models import Denial
+from api.external_data.tests.factories import DenialEntityFactory
+from api.external_data.models import DenialEntity
 from api.parties.tests.factories import PartyFactory
 from api.parties.models import Party
 from api.users.tests.factories import BaseUserFactory, RoleFactory, GovUserFactory
@@ -127,7 +127,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.end_user_advisory_query = EndUserAdvisoryQueryFactory(
             contact_name="EUA name", contact_telephone="+4499919250102", contact_email="email@example.net"
         )
-        cls.denial = DenialFactory(
+        cls.denial_entity = DenialEntityFactory(
             name="denial name",
             address="denial address",
             consignee_name="denial consignee name",
@@ -405,7 +405,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.organisation.delete()
         cls.address.delete()
         cls.end_user_advisory_query.delete()
-        cls.denial.delete()
+        cls.denial_entity.delete()
         cls.party.delete()
         cls.base_user.delete()
         cls.appeal.delete()
@@ -443,10 +443,10 @@ class TestAnonymiseDumps(TransactionTestCase):
         assert self.address.city != updated_address.city
 
     def test_external_data_denial_anonymised(self):
-        updated_denial = Denial.objects.get(id=self.denial.id)
-        assert self.denial.name != updated_denial.name
-        assert self.denial.address != updated_denial.address
-        assert self.denial.consignee_name != updated_denial.consignee_name
+        updated_denial_entity = DenialEntity.objects.get(id=self.denial_entity.id)
+        assert self.denial_entity.name != updated_denial_entity.name
+        assert self.denial_entity.address != updated_denial_entity.address
+        assert self.denial_entity.consignee_name != updated_denial_entity.consignee_name
 
     def test_organisation_anonymised(self):
         updated_organisation = Organisation.objects.get(id=self.organisation.id)

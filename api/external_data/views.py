@@ -14,13 +14,13 @@ from api.external_data import documents, models, serializers
 
 
 class DenialViewSet(viewsets.ModelViewSet):
-    queryset = models.Denial.objects.all()
+    queryset = models.DenialEntity.objects.all()
     authentication_classes = (GovAuthentication,)
 
     def get_serializer_class(self):
         if self.action == "create":
             return serializers.DenialFromCSVFileSerializer
-        return serializers.DenialSerializer
+        return serializers.DenialEntitySerializer
 
     def perform_create(self, serializer):
         pass
