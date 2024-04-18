@@ -885,6 +885,8 @@ def _get_goods_context(application, final_advice, licence=None):
     # Ensure that for each proviso final advice record, we add a record to the goods
     #  context
     for advice in final_advice:
+        # Ignore final advice records where we have no associated good on application
+        # - either our mapping value is missing or is an empty list so skip it.
         if not good_ids_to_goods_on_application.get(advice.good_id):
             continue
         # Grab the next GoodOnApplication for this Good.id - this ensures that
