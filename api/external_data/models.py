@@ -5,7 +5,7 @@ from django.db import models
 from api.common.models import TimestampableModel
 from api.flags.models import Flag
 from api.users.models import GovUser
-from api.parties.enums import PartyType
+from api.external_data.enums import DenialEntityType
 
 
 class Denial(TimestampableModel):
@@ -61,7 +61,7 @@ class DenialEntity(TimestampableModel):
     )
     spire_entity_id = models.IntegerField(help_text="Entity_id from spire for matching data", null=True)
     entity_type = models.TextField(
-        choices=PartyType.choices, help_text="Type of entity being denied", blank=True, default="", null=True
+        choices=DenialEntityType.choices, help_text="Type of entity being denied", blank=True, default="", null=True
     )
 
 
