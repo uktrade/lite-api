@@ -2,7 +2,6 @@ from unittest import mock
 from django.urls import reverse
 from api.audit_trail.enums import AuditType
 from api.flags.models import Flag
-from django.contrib.auth.models import User
 from api.users.enums import UserType
 from api.users.models import BaseUser
 from rest_framework import status
