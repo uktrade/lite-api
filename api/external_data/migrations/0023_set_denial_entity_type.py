@@ -18,7 +18,7 @@ def get_denial_entity_type(data):
         and data.get("other_role", False) is True
     ):
         entity_type = "Third-party"
-        return entity_type
+    return entity_type
 
 
 def set_denial_entity_type(apps):
