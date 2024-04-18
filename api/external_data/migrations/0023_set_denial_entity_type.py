@@ -21,7 +21,7 @@ def get_denial_entity_type(data):
     return entity_type
 
 
-def set_denial_entity_type(apps):
+def set_denial_entity_type(apps, schema_editor):
 
     DenialEntity = apps.get_model("external_data", "DenialEntity")
 
