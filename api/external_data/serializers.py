@@ -134,6 +134,11 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         if not (set(self.required_headers)).issubset(set(reader.fieldnames)):  # type: ignore
             raise serializers.ValidationError("Missing required headers in CSV file")
 
+        logging_counts = {"denial": {"created": 0, "updated": 0}, "denial_entity": {"created": 0, "updated": 0}}
+        logging_regime_reg_ref_values = {
+            "denial": {"created": [], "updated": []},
+            "denial_entity": {"created": [], "updated": []},
+        }
         errors = []
         for i, row in enumerate(reader, start=1):
             denial_entity_data = {
@@ -158,9 +163,11 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
                 )
 
                 if is_denial_created:
-                    logging.info(f"Created new Denial record at row {i}")
+                    logging_counts["denial"]["created"] += 1
+                    logging_regime_reg_ref_values["denial"]["created"].append(denial.regime_reg_ref)
                 else:
-                    logging.info(f"Updated existing Denial record at row {i} based on regime_reg_ref")
+                    logging_counts["denial"]["updated"] += 1
+                    logging_regime_reg_ref_values["denial"]["updated"].append(denial.regime_reg_ref)
 
                 # We assume that a DenialEntity object already exists if we can
                 # match on all of the following fields
@@ -176,16 +183,42 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
                 )
 
                 if is_denial_entity_created:
-                    logging.info(f"Created new DenialEntity record at row {i}")
+                    logging_counts["denial_entity"]["created"] += 1
+                    logging_regime_reg_ref_values["denial_entity"]["created"].append(denial_entity.regime_reg_ref)
                 else:
-                    logging.info(
-                        f"Updated existing DenialEntity record at row {i} based on reference, regime_reg_ref, name, address"
-                    )
+                    logging_counts["denial_entity"]["updated"] += 1
+                    logging_regime_reg_ref_values["denial_entity"]["updated"].append(denial_entity.regime_reg_ref)
             else:
                 self.add_bulk_errors(errors, i, serializer.errors)
 
         if errors:
             raise serializers.ValidationError(errors)
+
+        if logging_counts["denial"]["created"]:
+            logging.info(
+                "Created %s Denial records with regime_reg_ref values:\n%s",
+                logging_counts["denial"]["created"],
+                "\n".join(logging_regime_reg_ref_values["denial"]["created"]),
+            )
+        if logging_counts["denial"]["updated"]:
+            logging.info(
+                "Updated %s Denial records with regime_reg_ref values:\n%s",
+                logging_counts["denial"]["updated"],
+                "\n".join(logging_regime_reg_ref_values["denial"]["updated"]),
+            )
+
+        if logging_counts["denial_entity"]["created"]:
+            logging.info(
+                "Created %s DenialEntity records with regime_reg_ref values:\n%s",
+                logging_counts["denial_entity"]["created"],
+                "\n".join(logging_regime_reg_ref_values["denial_entity"]["created"]),
+            )
+        if logging_counts["denial_entity"]["updated"]:
+            logging.info(
+                "Updated %s DenialEntity records with regime_reg_ref values:\n%s",
+                logging_counts["denial_entity"]["updated"],
+                "\n".join(logging_regime_reg_ref_values["denial_entity"]["updated"]),
+            )
 
         return csv_file
 
