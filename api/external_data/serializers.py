@@ -44,15 +44,8 @@ class DenialEntitySerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         validated_data = super().validate(data)
-        if validated_data.get("is_revoked"):
-            if not validated_data.get("is_revoked_comment"):
-                raise serializers.ValidationError({"is_revoked_comment": "This field is required"})
-        else:
-            # TODO: this uses DenialFromCSVFileOldSerializer instead of
-            # DenialFromCSVFileSerializer which is for backwards compatibility,
-            # this should be updated once lite-routing test data has been updated
-            if not (set(DenialFromCSVFileOldSerializer.required_headers)).issubset(set(validated_data.keys())):
-                raise serializers.ValidationError("Missing required fields in data")
+        if validated_data.get("is_revoked") and not validated_data.get("is_revoked_comment"):
+            raise serializers.ValidationError({"is_revoked_comment": "This field is required"})
         return validated_data
 
     def get_entity_type(self, obj):
