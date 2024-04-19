@@ -2,32 +2,59 @@
 
 from django.db import migrations
 
+# from django.db import transaction
+# import logging
+
+
+# log = logging.getLogger(__name__)
+
 
 def get_denial_entity_type(data):
     entity_type = ""
-    for key in ["end_user_flag", "consignee_flag", "other_role"]:
-        if data.get(key) and isinstance(data[key], str):
-            data[key] = data[key].lower() == "true"
-    if data.get("end_user_flag", False) is True:
+
+    normalised_entity_type_dict = {keys.lower() and str(values.lower()): values for keys, values in dict(data).items()}
+
+    if normalised_entity_type_dict.get("end_user_flag", "false") == "true":
         entity_type = "End-user"
-    elif data.get("end_user_flag", False) is False and data.get("consignee_flag", False) is True:
+    elif (
+        normalised_entity_type_dict.get("end_user_flag", "false") == "false"
+        and normalised_entity_type_dict.get("consignee_flag", "false") == "true"
+    ):
         entity_type = "Consignee"
     elif (
-        data.get("end_user_flag", False) is False
-        and data.get("consignee_flag", False) is False
-        and data.get("other_role", False) is True
+        normalised_entity_type_dict.get("end_user_flag", "false") == "false"
+        and normalised_entity_type_dict.get("consignee_flag", "false") == "false"
+        and isinstance(normalised_entity_type_dict["other_role"], str)
     ):
         entity_type = "Third-party"
+
     return entity_type
 
 
 def set_denial_entity_type(apps, schema_editor):
 
     DenialEntity = apps.get_model("external_data", "DenialEntity")
-
     for denial_entity in DenialEntity.objects.all():
-        denial_entity.entity_type = get_denial_entity_type(denial_entity.entity_type)
+        denial_entity.entity_type = get_denial_entity_type(denial_entity.data)
         denial_entity.save()
+    # entity_type_attribute_errors = []
+
+    # with transaction.atomic():
+    #     sid = transaction.savepoint()
+    #     for denial_entity in DenialEntity.objects.all():
+    #         try:
+    #             denial_entity.entity_type = get_denial_entity_type(denial_entity.entity_type)
+    #             denial_entity.save()
+    #         except AttributeError as e:
+    #             entity_type_attribute_errors.append(denial_entity.entity_type)
+    #     if entity_type_attribute_errors:
+    #         log.info(
+    #             "There are the following denials entity_type_errors in the database rolling back this migration: -> %s",
+    #                 entity_type_attribute_errors,
+    #         )
+    #         transaction.savepoint_rollback(sid)
+    #     else:
+    #         transaction.savepoint_commit(sid)
 
 
 class Migration(migrations.Migration):
