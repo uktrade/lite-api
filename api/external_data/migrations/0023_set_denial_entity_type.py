@@ -12,9 +12,9 @@ from django.db import migrations
 def get_denial_entity_type(data):
     entity_type = ""
 
-    normalised_entity_type_dict = {keys.lower() and str(values.lower()): values for keys, values in dict(data).items()}
+    normalised_entity_type_dict = {keys.lower(): values.lower() for keys, values in data.items()}
 
-    if normalised_entity_type_dict.get("end_user_flag", "false") == "true":
+    if normalised_entity_type_dict.get("end_user_flag") == "true":
         entity_type = "End-user"
     elif (
         normalised_entity_type_dict.get("end_user_flag", "false") == "false"
