@@ -28,6 +28,7 @@ from api.organisations.serializers import (
     OrganisationCreateUpdateSerializer,
     OrganisationListSerializer,
     OrganisationStatusUpdateSerializer,
+    OrganisationRegistrationNumberSerializer,
 )
 from api.organisations import notify
 from api.audit_trail import service as audit_trail_service
@@ -267,4 +268,15 @@ class OrganisationStatusView(generics.UpdateAPIView):
 
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ValidateRegistrationNumber(generics.RetrieveAPIView):
+    # authentication_classes = (SharedAuthentication,)
+    serializer_class = OrganisationRegistrationNumberSerializer
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
