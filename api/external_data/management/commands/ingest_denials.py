@@ -15,6 +15,8 @@ from api.external_data import documents
 
 from api.external_data.models import DenialEntity
 
+from api.external_data.helpers import get_denial_entity_type
+
 log = logging.getLogger(__name__)
 
 
@@ -42,9 +44,9 @@ class Command(BaseCommand):
         "spire_entity_id",
     ]
 
-    def add_arguments(self, parser):
-        parser.add_argument("input_json", type=str, help="Path to the input JSON file")
-        parser.add_argument("--rebuild", default=False, action="store_true")
+    # def add_arguments(self, parser):
+    #     parser.add_argument("input_json", type=str, help="Path to the input JSON file")
+    #     parser.add_argument("--rebuild", default=False, action="store_true")
 
     def rebuild_index(self):
         connection = connections.get_connection()
@@ -57,13 +59,61 @@ class Command(BaseCommand):
             errors.append(f"[Row {row_number}] {key}: {','.join(values)}")
 
     def handle(self, *args, **options):
-        if options["rebuild"]:
-            self.rebuild_index()
-        self.load_denials(options["input_json"])
+        # if options["rebuild"]:
+        #     self.rebuild_index()
+        self.load_denials()
 
     @transaction.atomic
-    def load_denials(self, filename):
-        data = get_json_content_and_delete(filename)
+    def load_denials(self):
+        # data = get_json_content_and_delete(filename)
+        # get test data
+        data = [
+            {
+                "reference": "DN3001\/1234",
+                "regime_reg_ref": "NB-GB-12-123",
+                "name": "Government of India",
+                "address": "Chhatrapati Shivaji Terminus",
+                "notifying_government": "United Kingdom",
+                "country": "United Kingdom",
+                "item_list_codes": "1.2.3",
+                "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
+                "end_use": "Replacement of an existing entertainment system",
+                "END_USER_FLAG": "true",
+                "CONSIGNEE_FLAG": "false",
+                "OTHER_ROLE": "",
+                "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
+            },
+            {
+                "reference": "DN3001\/1234",
+                "regime_reg_ref": "NB-GB-12-123",
+                "name": "Government of India",
+                "address": "Chhatrapati Shivaji Terminus",
+                "notifying_government": "United Kingdom",
+                "country": "United Kingdom",
+                "item_list_codes": "1.2.3",
+                "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
+                "end_use": "Replacement of an existing entertainment system",
+                "END_USER_FLAG": "false",
+                "CONSIGNEE_FLAG": "true",
+                "OTHER_ROLE": "",
+                "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
+            },
+            {
+                "reference": "DN3001\/1234",
+                "regime_reg_ref": "NB-GB-12-123",
+                "name": "Government of India",
+                "address": "Chhatrapati Shivaji Terminus",
+                "notifying_government": "United Kingdom",
+                "country": "United Kingdom",
+                "item_list_codes": "1.2.3",
+                "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
+                "end_use": "Replacement of an existing entertainment system",
+                "END_USER_FLAG": "false",
+                "CONSIGNEE_FLAG": "false",
+                "OTHER_ROLE": "words about role",
+                "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
+            },
+        ]
         errors = []
         if data:
             # Lets delete all denial records except ones that have been matched
@@ -91,6 +141,7 @@ class Command(BaseCommand):
                     "Saved row number -> %s",
                     i,
                 )
+
             else:
                 self.add_bulk_errors(errors=errors, row_number=i + 1, line_errors=serializer.errors)
 
