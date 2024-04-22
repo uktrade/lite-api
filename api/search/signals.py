@@ -3,6 +3,9 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from django_elasticsearch_dsl.signals import CelerySignalProcessor
+from django_elasticsearch_dsl.registries import registry
+
 from api.applications.models import BaseApplication, GoodOnApplication
 from api.goods.models import Good
 from api.search.celery_tasks import update_search_index
@@ -59,3 +62,11 @@ def update_search_documents(sender, **kwargs):
     if to_update:
         to_update = [(model_name, str(pk)) for model_name, pk in to_update]
         update_search_index.delay(to_update)
+
+
+class ElasticsearchDSLSignalProcessor(CelerySignalProcessor):
+
+    def handle_save(self, sender, instance, **kwargs):
+        model_registered = instance.__class__ in registry._models
+        if model_registered:
+            super().handle_save(sender, instance, **kwargs)
