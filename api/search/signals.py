@@ -67,6 +67,12 @@ def update_search_documents(sender, **kwargs):
 class ElasticsearchDSLSignalProcessor(CelerySignalProcessor):
 
     def handle_save(self, sender, instance, **kwargs):
+        """
+        Custom save handler which firstly checks with the registry whether the
+        current model is recorded in elasticsearch.  This avoids queueing unnecessary
+        celery tasks.
+        """
         model_registered = instance.__class__ in registry._models
-        if model_registered:
-            super().handle_save(sender, instance, **kwargs)
+        if not model_registered:
+            return
+        super().handle_save(sender, instance, **kwargs)

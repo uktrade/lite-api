@@ -3,7 +3,9 @@ import json
 from unittest.mock import patch
 
 from django.test import override_settings
+from django_elasticsearch_dsl.signals import CelerySignalProcessor
 
+from api.audit_trail.tests.factories import AuditFactory
 from api.goods.tests.factories import GoodFactory
 from api.parties.models import PartyType
 from test_helpers.clients import DataTestClient
@@ -68,6 +70,21 @@ class UpdateApplicationDocumentTest(DataTestClient):
 
     @override_settings(LITE_API_ENABLE_ES=False)
     @patch("api.search.celery_tasks.registry")
-    def test_standard_application_with_elasticsearch_disabled(self, mock_registry):
+    def test_standard_application_with_es_disabled(self, mock_registry):
         self.create_standard_application_case(self.organisation)
         mock_registry.update.assert_not_called()
+
+
+class ESDSLSignalProcessorTest(DataTestClient):
+
+    @override_settings(LITE_API_ENABLE_ES=True)
+    @patch.object(CelerySignalProcessor, "handle_save")
+    def test_handle_save_registered_model(self, mock_handle_save):
+        application = self.create_standard_application_case(self.organisation)
+        mock_handle_save.called == True
+
+    @override_settings(LITE_API_ENABLE_ES=True)
+    @patch.object(CelerySignalProcessor, "handle_save")
+    def test_handle_save_non_registered_model(self, mock_handle_save):
+        audit = AuditFactory()
+        assert mock_handle_save.called == False
