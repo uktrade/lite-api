@@ -10,8 +10,8 @@ from django.db import migrations
 
 
 def get_denial_entity_type(data):
-    entity_type = ""
 
+    entity_type = ""
     normalised_entity_type_dict = {keys.lower(): values.lower() for keys, values in data.items()}
 
     if normalised_entity_type_dict.get("end_user_flag") == "true":
@@ -37,24 +37,6 @@ def set_denial_entity_type(apps, schema_editor):
     for denial_entity in DenialEntity.objects.all():
         denial_entity.entity_type = get_denial_entity_type(denial_entity.data)
         denial_entity.save()
-    # entity_type_attribute_errors = []
-
-    # with transaction.atomic():
-    #     sid = transaction.savepoint()
-    #     for denial_entity in DenialEntity.objects.all():
-    #         try:
-    #             denial_entity.entity_type = get_denial_entity_type(denial_entity.entity_type)
-    #             denial_entity.save()
-    #         except AttributeError as e:
-    #             entity_type_attribute_errors.append(denial_entity.entity_type)
-    #     if entity_type_attribute_errors:
-    #         log.info(
-    #             "There are the following denials entity_type_errors in the database rolling back this migration: -> %s",
-    #                 entity_type_attribute_errors,
-    #         )
-    #         transaction.savepoint_rollback(sid)
-    #     else:
-    #         transaction.savepoint_commit(sid)
 
 
 class Migration(migrations.Migration):
