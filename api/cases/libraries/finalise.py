@@ -45,16 +45,12 @@ def get_required_decision_document_types(case):
 
 
 def remove_flags_on_finalisation(case):
-    case_flags = case.flags.all()
-    for flag in case_flags:
-        if flag.remove_on_finalised:
-            case.flags.remove(flag)
-    case.save()
+    flags_to_remove = Flag.objects.filter(remove_on_finalised=True)
+    case.flags.remove(*flags_to_remove)
 
 
 def remove_flags_from_audit_trail(case):
-    flags_to_remove_ids = list(Flag.objects.filter(remove_on_finalised=True).values_list("id", flat=True))
-    flags_to_remove_ids = [str(flag_id) for flag_id in flags_to_remove_ids]  # Convert UUIDs to strings
+    flags_to_remove_ids = [str(flag.id) for flag in Flag.objects.filter(remove_on_finalised=True)]
     audit_logs = Audit.objects.filter(target_object_id=case.id)
 
     for flag_id in flags_to_remove_ids:

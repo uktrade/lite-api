@@ -57,7 +57,7 @@ class TestCommand(DataTestClient):
         self.assertEqual(self.case.flags.count(), 2)
         self.assertEqual(audit_queryset.count(), 2)
 
-        call_command("removes_flags")
+        call_command("removes_flags_and_audits_from_cases")
 
         audit_queryset = Audit.objects.filter(target_object_id=self.case.id)
 
@@ -79,7 +79,7 @@ class TestCommand(DataTestClient):
         self.assertEqual(self.case.flags.count(), 2)
         self.assertEqual(audit_queryset.count(), 2)
 
-        call_command("removes_flags")
+        call_command("removes_flags_and_audits_from_cases")
 
         audit_queryset = Audit.objects.filter(target_object_id=self.case.id)
 

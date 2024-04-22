@@ -417,13 +417,6 @@ class ApplicationManageStatus(APIView):
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
-
-        # Remove needed flags when case is Withdrawn
-        withdrawn_status = CaseStatus.objects.get(status=CaseStatusEnum.WITHDRAWN)
-        if case_status == withdrawn_status:
-            remove_flags_on_finalisation(application.get_case())
-            remove_flags_from_audit_trail(application.get_case())
-
         old_status = application.status
 
         serializer = get_application_update_serializer(application)
@@ -458,6 +451,12 @@ class ApplicationManageStatus(APIView):
                 notify_exporter_case_opened_for_editing(application)
 
         data = get_application_view_serializer(application)(application, context={"user_type": request.user.type}).data
+
+        # Remove needed flags when case is Withdrawn
+        withdrawn_status = CaseStatus.objects.get(status=CaseStatusEnum.WITHDRAWN)
+        if case_status == withdrawn_status:
+            remove_flags_on_finalisation(application.get_case())
+            remove_flags_from_audit_trail(application.get_case())
 
         return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
 
