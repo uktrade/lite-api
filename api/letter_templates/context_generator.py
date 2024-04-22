@@ -885,11 +885,14 @@ def _get_goods_context(application, final_advice, licence=None):
     # Ensure that for each proviso final advice record, we add a record to the goods
     #  context
     for advice in final_advice:
-        if advice.good_id in good_ids_to_goods_on_application:
-            # Grab the next GoodOnApplication for this Good.id - this ensures that
-            #  each GoodOnApplication is present once on the end licence
-            good_on_application = good_ids_to_goods_on_application[advice.good_id].pop(0)
-            goods_context[advice.type].append(_get_good_on_application_context_with_advice(good_on_application, advice))
+        # Ignore final advice records where we have no associated good on application
+        # - either our mapping value is missing or is an empty list so skip it.
+        if not good_ids_to_goods_on_application.get(advice.good_id):
+            continue
+        # Grab the next GoodOnApplication for this Good.id - this ensures that
+        #  each GoodOnApplication is present once on the end licence
+        good_on_application = good_ids_to_goods_on_application[advice.good_id].pop(0)
+        goods_context[advice.type].append(_get_good_on_application_context_with_advice(good_on_application, advice))
 
     # Because we append goods that are approved with proviso to the approved goods below
     # we need to make sure only to keep approved goods that are not in proviso goods
