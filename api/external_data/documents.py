@@ -1,7 +1,8 @@
 from django.conf import settings
 from django_elasticsearch_dsl import Document, fields
+
 from django_elasticsearch_dsl.registries import registry
-from elasticsearch_dsl import analysis, InnerDoc
+from elasticsearch_dsl import analysis
 from api.external_data import models
 from api.search.application.documents import lowercase_normalizer
 
@@ -72,9 +73,26 @@ postcode_normalizer = analysis.normalizer(
     filter=["lowercase", "asciifolding"],
 )
 
+ngram_analyzer = analysis.analyzer(
+    "ngram_completion", tokenizer="whitespace", filter=["lowercase", "asciifolding", ngram_filter]
+)
+
+whitespace_analyzer = analysis.analyzer(
+    "whitespace_analyzer", tokenizer="whitespace", filter=["lowercase", "asciifolding"]
+)
+
 class DenialEnitytDocument(Document):
+    # purposefully not DED field - this is just for collecting other field values for wilcard search
+    wildcard = fields.Text(
+        analyzer=ngram_analyzer,
+        search_analyzer=whitespace_analyzer,
+        store=True,
+    )
+    # purposefully not DED field - this is just for collecting other field values for grouping purposes in ES
+    context = fields.Keyword()
+
     id = fields.KeywordField()
-    name = fields.TextField()
+    name = fields.TextField(copy_to="wildcard")
     address = fields.TextField(
         analyzer=address_analyzer_no_ngram,
     )
@@ -82,6 +100,7 @@ class DenialEnitytDocument(Document):
         fields={
             "raw": fields.KeywordField(normalizer=lowercase_normalizer),
         },
+        copy_to="wildcard",
     )
     data = DataField()
     is_revoked = fields.BooleanField()

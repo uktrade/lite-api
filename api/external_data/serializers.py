@@ -130,17 +130,41 @@ class DenialSearchSerializer(DocumentSerializer):
     item_description = serializers.ReadOnlyField(source="denial.item_description")
     end_use = serializers.ReadOnlyField(source="denial.end_use")
 
+    highlight = serializers.SerializerMethodField()
+    score = serializers.SerializerMethodField()
+    index = serializers.SerializerMethodField()
+    inner_hits = serializers.SerializerMethodField()
+
     class Meta:
         document = documents.DenialEnitytDocument
         fields = (
             "id",
             "address",
             "country",
+            "highlight",
             "name",
         )
 
     def get_entity_type(self, obj):
         return get_denial_entity_type(obj.data.to_dict())
+    
+
+    def get_score(self, obj):
+        if hasattr(obj.meta, "score"):
+            return obj.meta.score
+
+    def get_highlight(self, obj):
+        if hasattr(obj.meta, "highlight"):
+            return obj.meta.highlight.to_dict()
+        return {}
+
+    def get_index(self, obj):
+        return obj.meta.index
+    
+    def get_inner_hits(self, obj):
+        if hasattr(obj.meta, "inner_hits"):
+            inner_hits = obj.meta.inner_hits.related.to_dict()
+        return {"hits": []}
 
 
 class SanctionMatchSerializer(serializers.ModelSerializer):

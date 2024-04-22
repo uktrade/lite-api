@@ -53,6 +53,9 @@ class DenialSearchView(DocumentViewSet):
             "field": "country.raw",
         }
     }
+    
+    highlight_fields = {"name": {"enabled": True, "options": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}}}
+
     ordering = "_score"
 
     def filter_queryset(self, queryset):
