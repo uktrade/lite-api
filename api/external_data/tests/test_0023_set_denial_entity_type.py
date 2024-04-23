@@ -17,7 +17,7 @@ test_data = [
         "reason_for_refusal": "Risk of outcome",
         "spire_entity_id": 123,
         "data": {"END_USER_FLAG": "true", "CONSIGNEE_FLAG": "false", "OTHER_ROLE": ""},
-        "entity_type": "",
+        "entity_type": None,
     },
     {
         "reference": "DN2000/0010",
@@ -33,7 +33,7 @@ test_data = [
         "reason_for_refusal": "Risk of outcome 3",
         "spire_entity_id": 125,
         "data": {"END_USER_FLAG": "false", "CONSIGNEE_FLAG": "true", "OTHER_ROLE": ""},
-        "entity_type": "",
+        "entity_type": None,
     },
     {
         "reference": "DN2000/0000",
@@ -49,7 +49,7 @@ test_data = [
         "reason_for_refusal": "Risk of outcome",
         "spire_entity_id": 123,
         "data": {"END_USER_FLAG": "true", "CONSIGNEE_FLAG": "true", "OTHER_ROLE": ""},
-        "entity_type": "",
+        "entity_type": None,
     },
     {
         "reference": "DN3000/0000",
@@ -65,7 +65,7 @@ test_data = [
         "reason_for_refusal": "Risk of outcome 2",
         "spire_entity_id": 124,
         "data": {"END_USER_FLAG": "false", "CONSIGNEE_FLAG": "false", "OTHER_ROLE": "other"},
-        "entity_type": "",
+        "entity_type": None,
     },
 ]
 

@@ -8,7 +8,10 @@ def get_denial_entity_type(data):
     entity_type = ""
     normalised_entity_type_dict = {keys.lower(): values.lower() for keys, values in data.items()}
 
-    if normalised_entity_type_dict.get("end_user_flag") == "true":
+    if (
+        normalised_entity_type_dict.get("end_user_flag") == "true"
+        and normalised_entity_type_dict.get("consignee_flag", "false") == "false"
+    ):
         entity_type = "End-user"
     elif (
         normalised_entity_type_dict.get("end_user_flag", "false") == "false"
@@ -33,10 +36,12 @@ def get_denial_entity_type(data):
 def set_denial_entity_type(apps, schema_editor):
 
     DenialEntity = apps.get_model("external_data", "DenialEntity")
-    for denial_entity in DenialEntity.objects.filter(entity_type__isnull=True):
+    filtered_denial_entities_queryset = DenialEntity.objects.filter(entity_type__isnull=True)
+
+    for denial_entity in filtered_denial_entities_queryset:
         denial_entity_type = get_denial_entity_type(denial_entity.data)
         if denial_entity_type in ["End-user", "Consignee", "Third-party"]:
-            denial_entity.update(entity_type=denial_entity_type)
+            denial_entity.save(denial_entity_type)
 
 
 class Migration(migrations.Migration):
