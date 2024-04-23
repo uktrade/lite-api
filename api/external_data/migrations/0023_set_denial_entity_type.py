@@ -11,7 +11,7 @@ def get_denial_entity_type(data):
 
     is_end_user_flag = normalised_entity_type_dict.get("end_user_flag", "false") == "true"
     is_consignee_flag = normalised_entity_type_dict.get("consignee_flag", "false") == "true"
-    third_party_string_has_value = isinstance(normalised_entity_type_dict["other_role"], str)
+    is_other_role = len(normalised_entity_type_dict.get("other_role", "")) > 0
 
     if is_end_user_flag and is_consignee_flag:
         entity_type = DenialEntityType.END_USER
@@ -19,7 +19,7 @@ def get_denial_entity_type(data):
         entity_type = DenialEntityType.CONSIGNEE
     elif is_end_user_flag and not is_consignee_flag:
         entity_type = DenialEntityType.END_USER
-    elif is_end_user_flag == False and is_consignee_flag == False and third_party_string_has_value == True:
+    elif is_end_user_flag == False and is_consignee_flag == False and is_other_role == True:
         entity_type = DenialEntityType.THIRD_PARTY
 
     return entity_type

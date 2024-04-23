@@ -1,6 +1,7 @@
 import pytest
 
 from django_test_migrations.contrib.unittest_case import MigratorTestCase
+from api.external_data.enums import DenialEntityType
 
 test_data = [
     {
@@ -84,6 +85,6 @@ class TestDenialEntityTypeSet(MigratorTestCase):
         DenialEntity = self.new_state.apps.get_model("external_data", "DenialEntity")
 
         assert DenialEntity.objects.all().count() == 4
-        assert DenialEntity.objects.filter(entity_type="end_user").count() == 2
-        assert DenialEntity.objects.filter(entity_type="consignee").count() == 1
-        assert DenialEntity.objects.filter(entity_type="third_party").count() == 1
+        assert DenialEntity.objects.filter(entity_type=DenialEntityType.END_USER).count() == 2
+        assert DenialEntity.objects.filter(entity_type=DenialEntityType.CONSIGNEE).count() == 1
+        assert DenialEntity.objects.filter(entity_type=DenialEntityType.THIRD_PARTY).count() == 1
