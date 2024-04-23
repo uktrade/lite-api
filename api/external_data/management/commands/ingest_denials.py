@@ -42,6 +42,9 @@ class Command(BaseCommand):
         "end_use",
         "reason_for_refusal",
         "spire_entity_id",
+        "END_USER_FLAG",
+        "CONSIGNEE_FLAG",
+        "OTHER_ROLE",
     ]
 
     # def add_arguments(self, parser):
