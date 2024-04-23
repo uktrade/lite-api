@@ -19,7 +19,7 @@ def get_denial_entity_type(data):
         entity_type = DenialEntityType.CONSIGNEE
     elif is_end_user_flag and not is_consignee_flag:
         entity_type = DenialEntityType.END_USER
-    elif is_end_user_flag == False and is_consignee_flag == False and is_other_role == True:
+    elif not is_end_user_flag and not is_consignee_flag and is_other_role:
         entity_type = DenialEntityType.THIRD_PARTY
 
     return entity_type
