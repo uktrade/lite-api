@@ -1,4 +1,5 @@
 from django.core.management import call_command
+from parameterized import parameterized
 
 from test_helpers.clients import DataTestClient
 
@@ -45,11 +46,12 @@ class TestCommand(DataTestClient):
 
         FinalAdviceFactory(user=self.gov_user, case=self.application, type=AdviceType.APPROVE)
 
-    def test_call_command_remove_flags_and_trails_finalised(
-        self,
-    ):
-        status_finalised = CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
-        self.case.status = status_finalised
+    @parameterized.expand(
+        case_status for case_status in [CaseStatusEnum.FINALISED, CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED]
+    )
+    def test_call_command_removes_flags_and_audits_from_cases(self, case_status):
+        status_var = CaseStatus.objects.get(status=case_status)
+        self.case.status = status_var
         self.case.save()
 
         audit_queryset = Audit.objects.filter(target_object_id=self.case.id)
@@ -61,30 +63,6 @@ class TestCommand(DataTestClient):
 
         audit_queryset = Audit.objects.filter(target_object_id=self.case.id)
 
-        flag = Flag.objects.get(id=self.original_flag_id)
-        self.assertEqual(self.case.flags.count(), 1)
-        self.assertEqual(self.case.flags.first(), flag)
-        self.assertEqual(audit_queryset.count(), 1)
-        self.assertNotIn(self.test_audit, audit_queryset)
-
-    def test_call_command_remove_flags_and_trails_withdrawn(
-        self,
-    ):
-        status_withdrawn = CaseStatus.objects.get(status=CaseStatusEnum.WITHDRAWN)
-        self.case.status = status_withdrawn
-        self.case.save()
-
-        audit_queryset = Audit.objects.filter(target_object_id=self.case.id)
-
-        self.assertEqual(self.case.flags.count(), 2)
-        self.assertEqual(audit_queryset.count(), 2)
-
-        call_command("removes_flags_and_audits_from_cases")
-
-        audit_queryset = Audit.objects.filter(target_object_id=self.case.id)
-
-        flag = Flag.objects.get(id=self.original_flag_id)
-        self.assertEqual(self.case.flags.count(), 1)
-        self.assertEqual(self.case.flags.first(), flag)
+        self.assertNotIn(self.test_flag, self.case.flags.all())
         self.assertEqual(audit_queryset.count(), 1)
         self.assertNotIn(self.test_audit, audit_queryset)

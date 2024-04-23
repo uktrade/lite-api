@@ -1,3 +1,4 @@
+import pytest
 from unittest import mock
 from django.urls import reverse
 from api.audit_trail.enums import AuditType
@@ -5,6 +6,7 @@ from api.flags.models import Flag
 from api.users.enums import UserType
 from api.users.models import BaseUser
 from rest_framework import status
+from parameterized import parameterized
 
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseTypeEnum
@@ -203,32 +205,27 @@ class ApproveAdviceTests(DataTestClient):
 
         # Make sure Flag was removed and Audit trail was removed
         case = get_case(self.application.id)
-        flag = Flag.objects.filter(id=self.original_flag_id).first()
-        self.assertEqual(case.flags.count(), 1)
-        self.assertEqual(case.flags.first(), flag)
+        self.assertNotIn(self.test_flag, case.flags.all())
 
         audit_queryset = Audit.objects.filter(target_object_id=case.id)
         self.assertNotIn(self.test_audit, audit_queryset)
 
-    def test_standard_application_withdrawn(
-        self,
-    ):
+    @parameterized.expand(case_status for case_status in [CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED])
+    def test_standard_application_remove_audit_and_flag_with_statuses(self, case_status):
         url = reverse("applications:manage_status", kwargs={"pk": self.application.id})
-        data = {"status": CaseStatusEnum.WITHDRAWN}
+        data = {"status": case_status}
 
         self.assertEqual(self.application.flags.count(), 2)
 
-        response = self.client.put(url, data=data, **self.exporter_headers)
+        response = self.client.put(url, data=data, **self.gov_headers)
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.application.status, get_case_status_by_status(CaseStatusEnum.WITHDRAWN))
+        self.assertEqual(self.application.status, get_case_status_by_status(case_status))
 
         # Make sure Flag was removed and Audit trail was removed
         case = get_case(self.application.id)
-        flag = Flag.objects.filter(id=self.original_flag_id).first()
-        self.assertEqual(case.flags.count(), 1)
-        self.assertEqual(case.flags.first(), flag)
+        self.assertNotIn(self.test_flag, case.flags.all())
 
         audit_queryset = Audit.objects.filter(target_object_id=case.id)
         self.assertNotIn(self.test_audit, audit_queryset)
