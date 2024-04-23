@@ -9,6 +9,7 @@ from rest_framework import serializers
 from api.external_data import documents, models
 from api.external_data.helpers import get_denial_entity_type
 from api.flags.enums import SystemFlags
+from api.external_data.models import DenialEntity
 
 
 class DenialEntitySerializer(serializers.ModelSerializer):
@@ -50,6 +51,12 @@ class DenialEntitySerializer(serializers.ModelSerializer):
 
     def get_entity_type(self, obj):
         return get_denial_entity_type(obj.data)
+
+    # def save(self, validated_data):
+    #     denial_entity = DenialEntity.objects.create(**validated_data)
+    #     denial_entity.entity_type = self.get_entity_type(denial_entity.data)
+    #     denial_entity.save()
+    #     return denial_entity
 
 
 # TODO: this is for backwards compatibility and should be removed

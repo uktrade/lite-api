@@ -42,9 +42,6 @@ class Command(BaseCommand):
         "end_use",
         "reason_for_refusal",
         "spire_entity_id",
-        "END_USER_FLAG",
-        "CONSIGNEE_FLAG",
-        "OTHER_ROLE",
     ]
 
     # def add_arguments(self, parser):
@@ -81,9 +78,9 @@ class Command(BaseCommand):
                 "item_list_codes": "1.2.3",
                 "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
                 "end_use": "Replacement of an existing entertainment system",
-                "END_USER_FLAG": "true",
-                "CONSIGNEE_FLAG": "false",
-                "OTHER_ROLE": "",
+                "end_user_flag": "true",
+                "consignee_flag": "false",
+                "other_role": "",
                 "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
             },
             {
@@ -96,9 +93,9 @@ class Command(BaseCommand):
                 "item_list_codes": "1.2.3",
                 "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
                 "end_use": "Replacement of an existing entertainment system",
-                "END_USER_FLAG": "false",
-                "CONSIGNEE_FLAG": "true",
-                "OTHER_ROLE": "",
+                "end_user_flag": "false",
+                "consignee_flag": "true",
+                "other_role": "",
                 "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
             },
             {
@@ -111,9 +108,9 @@ class Command(BaseCommand):
                 "item_list_codes": "1.2.3",
                 "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
                 "end_use": "Replacement of an existing entertainment system",
-                "END_USER_FLAG": "false",
-                "CONSIGNEE_FLAG": "false",
-                "OTHER_ROLE": "words about role",
+                "end_user_flag": "false",
+                "consignee_flag": "false",
+                "other_role": "words about role",
                 "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
             },
         ]
@@ -139,11 +136,16 @@ class Command(BaseCommand):
                 }
             )
             if serializer.is_valid():
+                denial_entity = serializer.instance
+                denial_entity.entity_type = get_denial_entity_type(row.data)
                 serializer.save()
                 log.info(
                     "Saved row number -> %s",
                     i,
                 )
+            # denial_entity = serializer.instance
+            # denial_entity = serializer.instance
+            # denial_entity.entity_type = get_denial_entity_type(row.data)
 
             else:
                 self.add_bulk_errors(errors=errors, row_number=i + 1, line_errors=serializer.errors)
