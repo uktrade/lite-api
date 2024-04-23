@@ -32,8 +32,10 @@ def set_denial_entity_type(apps, schema_editor):
     for denial_entity in DenialEntity.objects.filter(entity_type__isnull=True):
 
         denial_entity_type = get_denial_entity_type(denial_entity.data)
+
         if denial_entity_type in ["end_user", "consignee", "third_party"]:
-            denial_entity.save(denial_entity_type)
+            denial_entity.entity_type = denial_entity_type
+            denial_entity.save()
 
 
 class Migration(migrations.Migration):
