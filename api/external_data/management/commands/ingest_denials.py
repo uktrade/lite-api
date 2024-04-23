@@ -15,7 +15,7 @@ from api.external_data import documents
 
 from api.external_data.models import DenialEntity
 
-from api.external_data.helpers import get_denial_entity_type
+from api.external_data.helpers import get_denial_entity_type_db_representation
 
 log = logging.getLogger(__name__)
 
@@ -136,8 +136,8 @@ class Command(BaseCommand):
                 }
             )
             if serializer.is_valid():
-                denial_entity = serializer.instance
-                denial_entity.entity_type = get_denial_entity_type(row.data)
+                # denial_entity = serializer.instance
+                # denial_entity.entity_type = get_denial_entity_type_db_representation(row.data)
                 serializer.save()
                 log.info(
                     "Saved row number -> %s",

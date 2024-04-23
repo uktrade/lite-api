@@ -7,7 +7,7 @@ from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
 from api.external_data import documents, models
-from api.external_data.helpers import get_denial_entity_type
+from api.external_data.helpers import get_denial_entity_type, get_denial_entity_type_db_representation
 from api.flags.enums import SystemFlags
 from api.external_data.models import DenialEntity
 
@@ -18,7 +18,9 @@ class EntityTypeSerializerField(serializers.Field):
         return get_denial_entity_type(obj.data)
 
     def to_internal_value(self, data):
-        return self  # this needs to return the entity type db representation
+        return (
+            data + "test"
+        )  # get_denial_entity_type_db_representation(data)  # this needs to return the entity type db representation
 
 
 class DenialEntitySerializer(serializers.ModelSerializer):
