@@ -36,6 +36,22 @@ test_data = [
         "entity_type": "",
     },
     {
+        "reference": "DN2000/0000",
+        "regime_reg_ref": "AB-CD-EF-000",
+        "name": "Organisation Name",
+        "address": "1000 Street Name, City Name",
+        "notifying_government": "Country Name",
+        "country": "Country Name",
+        "item_list_codes": "0A00100",
+        "item_description": "Medium Size Widget",
+        "consignee_name": "Example Name",
+        "end_use": "Used in industry",
+        "reason_for_refusal": "Risk of outcome",
+        "spire_entity_id": 123,
+        "data": {"END_USER_FLAG": "true", "CONSIGNEE_FLAG": "true", "OTHER_ROLE": ""},
+        "entity_type": "",
+    },
+    {
         "reference": "DN3000/0000",
         "regime_reg_ref": "AB-CD-EF-100",
         "name": "Organisation Name XYZ",
@@ -68,6 +84,6 @@ class TestDenialEntityTypeSet(MigratorTestCase):
         DenialEntity = self.new_state.apps.get_model("external_data", "DenialEntity")
 
         assert DenialEntity.objects.all().count() == 4
-        assert DenialEntity.objects.filter(entity_type="End-user").count() == 1
+        assert DenialEntity.objects.filter(entity_type="End-user").count() == 2
         assert DenialEntity.objects.filter(entity_type="Consignee").count() == 1
         assert DenialEntity.objects.filter(entity_type="Third-party").count() == 1

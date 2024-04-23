@@ -16,6 +16,11 @@ def get_denial_entity_type(data):
     ):
         entity_type = "Consignee"
     elif (
+        normalised_entity_type_dict.get("end_user_flag", "false") == "true"
+        and normalised_entity_type_dict.get("consignee_flag", "false") == "true"
+    ):
+        entity_type = "End-user"
+    elif (
         normalised_entity_type_dict.get("end_user_flag", "false") == "false"
         and normalised_entity_type_dict.get("consignee_flag", "false") == "false"
         and isinstance(normalised_entity_type_dict["other_role"], str)
