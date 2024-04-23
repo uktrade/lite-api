@@ -12,8 +12,17 @@ from api.flags.enums import SystemFlags
 from api.external_data.models import DenialEntity
 
 
+class EntityTypeSerializerField(serializers.Field):
+
+    def to_representation(self, obj):
+        return get_denial_entity_type(obj.data)
+
+    def to_internal_value(self, data):
+        return self  # this needs to return the entity type db representation
+
+
 class DenialEntitySerializer(serializers.ModelSerializer):
-    entity_type = serializers.SerializerMethodField()
+    entity_type = EntityTypeSerializerField()
 
     class Meta:
         model = models.DenialEntity
@@ -48,15 +57,6 @@ class DenialEntitySerializer(serializers.ModelSerializer):
         if validated_data.get("is_revoked") and not validated_data.get("is_revoked_comment"):
             raise serializers.ValidationError({"is_revoked_comment": "This field is required"})
         return validated_data
-
-    def get_entity_type(self, obj):
-        return get_denial_entity_type(obj.data)
-
-    # def save(self, validated_data):
-    #     denial_entity = DenialEntity.objects.create(**validated_data)
-    #     denial_entity.entity_type = self.get_entity_type(denial_entity.data)
-    #     denial_entity.save()
-    #     return denial_entity
 
 
 # TODO: this is for backwards compatibility and should be removed
