@@ -18,9 +18,7 @@ class EntityTypeSerializerField(serializers.Field):
         return get_denial_entity_type(obj.data)
 
     def to_internal_value(self, data):
-        return (
-            data + "test"
-        )  # get_denial_entity_type_db_representation(data)  # this needs to return the entity type db representation
+        return get_denial_entity_type_db_representation(data)
 
 
 class DenialEntitySerializer(serializers.ModelSerializer):
