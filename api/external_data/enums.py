@@ -13,4 +13,4 @@ class DenialEntityType:
     END_USER = "end_user"
     THIRD_PARTY = "third_party"
 
-    choices = ((CONSIGNEE, "consignee"), (END_USER, "end_user"), (THIRD_PARTY, "third_party"))
+    choices = ((CONSIGNEE, "Consignee"), (END_USER, "End-user"), (THIRD_PARTY, "Third party"))
