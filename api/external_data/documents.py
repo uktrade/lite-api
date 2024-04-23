@@ -1,7 +1,7 @@
 from django.conf import settings
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
-from elasticsearch_dsl import analysis, InnerDoc
+from elasticsearch_dsl import analysis
 from api.external_data import models
 from api.search.application.documents import lowercase_normalizer
 
@@ -72,7 +72,8 @@ postcode_normalizer = analysis.normalizer(
     filter=["lowercase", "asciifolding"],
 )
 
-class DenialEnitytDocument(Document):
+
+class DenialEntityDocument(Document):
     id = fields.KeywordField()
     name = fields.TextField()
     address = fields.TextField(
@@ -84,7 +85,7 @@ class DenialEnitytDocument(Document):
         },
     )
     data = DataField()
-    is_revoked = fields.BooleanField()
+    is_revoked = fields.BooleanField(attr="denial.is_revoked")
 
     denial = fields.ObjectField(
         attr="denial",
@@ -125,7 +126,6 @@ class DenialEnitytDocument(Document):
                     "raw": fields.KeywordField(),
                 },
             ),
-            "is_revoked": fields.BooleanField(),
         },
     )
 
@@ -142,6 +142,11 @@ class DenialEnitytDocument(Document):
 
     class Django:
         model = models.DenialEntity
+        related_models = [models.Denial]
+
+    def get_instances_from_related(self, related_instance):
+        if isinstance(related_instance, models.Denial):
+            return related_instance.denial_entity.all()
 
 
 class SanctionDocumentType(Document):
@@ -176,4 +181,4 @@ class SanctionDocumentType(Document):
 
 
 if settings.LITE_API_ENABLE_ES:
-    registry.register_document(DenialEnitytDocument)
+    registry.register_document(DenialEntityDocument)
