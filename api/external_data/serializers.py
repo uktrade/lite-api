@@ -126,6 +126,10 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
                 denial_entity, is_denial_entity_created = models.DenialEntity.objects.update_or_create(
                     defaults=serializer.validated_data, denial=denial, **denial_entity_lookup_fields
                 )
+                # Store any extra columns in csv not already captured in data dict
+                denial_entity.data = {field: row[field] for field in row if field not in self.required_headers}
+                denial_entity.entity_type = get_denial_entity_type(denial_entity.data)
+                denial_entity.save()
 
                 if is_denial_entity_created:
                     logging_counts["denial_entity"]["created"] += 1

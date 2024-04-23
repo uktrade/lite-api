@@ -1,6 +1,6 @@
 def get_denial_entity_type(data):
     entity_type = ""
-    for key in ["end_user_flag", "consignee_flag", "other_role"]:
+    for key in ["end_user_flag", "consignee_flag"]:
         if data.get(key) and isinstance(data[key], str):
             data[key] = data[key].lower() == "true"
     if data.get("end_user_flag", False) is True:
@@ -10,7 +10,7 @@ def get_denial_entity_type(data):
     elif (
         data.get("end_user_flag", False) is False
         and data.get("consignee_flag", False) is False
-        and data.get("other_role", False) is True
+        and isinstance(data.get("other_role", None), str)
     ):
         entity_type = "Third-party"
 
