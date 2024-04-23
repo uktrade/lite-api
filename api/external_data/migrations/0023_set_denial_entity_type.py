@@ -9,26 +9,17 @@ def get_denial_entity_type(data):
     entity_type = ""
     normalised_entity_type_dict = {keys.lower(): values.lower() for keys, values in data.items()}
 
-    if (
-        normalised_entity_type_dict.get("end_user_flag") == "true"
-        and normalised_entity_type_dict.get("consignee_flag", "false") == "false"
-    ):
+    is_end_user_flag = normalised_entity_type_dict.get("end_user_flag", "false") == "true"
+    is_consignee_flag = normalised_entity_type_dict.get("consignee_flag", "false") == "true"
+    third_party_string_has_value = isinstance(normalised_entity_type_dict["other_role"], str)
+
+    if is_end_user_flag and is_consignee_flag:
         entity_type = DenialEntityType.END_USER
-    elif (
-        normalised_entity_type_dict.get("end_user_flag", "false") == "false"
-        and normalised_entity_type_dict.get("consignee_flag", "false") == "true"
-    ):
+    elif not is_end_user_flag and is_consignee_flag:
         entity_type = DenialEntityType.CONSIGNEE
-    elif (
-        normalised_entity_type_dict.get("end_user_flag", "false") == "true"
-        and normalised_entity_type_dict.get("consignee_flag", "false") == "true"
-    ):
+    elif is_end_user_flag and not is_consignee_flag:
         entity_type = DenialEntityType.END_USER
-    elif (
-        normalised_entity_type_dict.get("end_user_flag", "false") == "false"
-        and normalised_entity_type_dict.get("consignee_flag", "false") == "false"
-        and isinstance(normalised_entity_type_dict["other_role"], str)
-    ):
+    elif is_end_user_flag == False and is_consignee_flag == False and third_party_string_has_value == True:
         entity_type = DenialEntityType.THIRD_PARTY
 
     return entity_type
@@ -41,7 +32,7 @@ def set_denial_entity_type(apps, schema_editor):
     for denial_entity in DenialEntity.objects.filter(entity_type__isnull=True):
 
         denial_entity_type = get_denial_entity_type(denial_entity.data)
-        if denial_entity_type in ["End-user", "Consignee", "Third-party"]:
+        if denial_entity_type in ["end_user", "consignee", "third_party"]:
             denial_entity.save(denial_entity_type)
 
 

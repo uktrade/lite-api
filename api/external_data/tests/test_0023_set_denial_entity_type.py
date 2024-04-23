@@ -84,6 +84,6 @@ class TestDenialEntityTypeSet(MigratorTestCase):
         DenialEntity = self.new_state.apps.get_model("external_data", "DenialEntity")
 
         assert DenialEntity.objects.all().count() == 4
-        assert DenialEntity.objects.filter(entity_type="End-user").count() == 2
-        assert DenialEntity.objects.filter(entity_type="Consignee").count() == 1
-        assert DenialEntity.objects.filter(entity_type="Third-party").count() == 1
+        assert DenialEntity.objects.filter(entity_type="end-user").count() == 2
+        assert DenialEntity.objects.filter(entity_type="consignee").count() == 1
+        assert DenialEntity.objects.filter(entity_type="third_party").count() == 1
