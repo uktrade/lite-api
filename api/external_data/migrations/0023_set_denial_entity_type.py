@@ -29,8 +29,9 @@ def set_denial_entity_type(apps, schema_editor):
 
     DenialEntity = apps.get_model("external_data", "DenialEntity")
     for denial_entity in DenialEntity.objects.filter(entity_type__isnull=True):
-        denial_entity.entity_type = get_denial_entity_type(denial_entity.data)
-        denial_entity.save()
+        denial_entity_type = get_denial_entity_type(denial_entity.data)
+        if denial_entity_type in ["End-user", "Consignee", "Third-party"]:
+            denial_entity.update(entity_type=denial_entity_type)
 
 
 class Migration(migrations.Migration):
