@@ -15,8 +15,8 @@ test_data = [
 @pytest.mark.django_db()
 class TestDenialDataMigration(MigratorTestCase):
 
-    migrate_from = ("external_data", "0021_denialentity_denial_id")
-    migrate_to = ("external_data", "0023_denials_data_migration")
+    migrate_from = ("external_data", "0023_set_denial_entity_type")
+    migrate_to = ("external_data", "0024_denials_data_migration")
 
 
     def prepare(self):
