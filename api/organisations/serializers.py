@@ -502,10 +502,6 @@ class OrganisationRegistrationNumberSerializer(serializers.Serializer):
     registration_number = serializers.CharField()
 
     def validate_registration_number(self, value):
-        # Skip uniqueness check if the registration number is not provided
-        if not value:
-            return value
-
         # Check for uniqueness only when creating a new Organisation
         if not self.instance:
             if Organisation.objects.filter(registration_number=value).exists():

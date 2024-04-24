@@ -77,3 +77,9 @@ class TestOrganisationRegistrationNumberSerializer:
         subj = OrganisationRegistrationNumberSerializer(data=data)
         assert subj.is_valid()
         assert subj._validated_data["registration_number"] == expected
+
+    def test_registration_number_validation_fail(self):
+        data = {"registration_number": ""}
+
+        subj = OrganisationRegistrationNumberSerializer(data=data)
+        assert subj.is_valid() is False
