@@ -73,6 +73,7 @@ class ElasticsearchDSLSignalProcessor(CelerySignalProcessor):
         celery tasks.
         """
         model_registered = instance.__class__ in registry._models
-        if not model_registered:
+        model_related_to_registered = len(list(registry._get_related_doc(instance))) > 0
+        if not (model_registered or model_related_to_registered):
             return
         super().handle_save(sender, instance, **kwargs)
