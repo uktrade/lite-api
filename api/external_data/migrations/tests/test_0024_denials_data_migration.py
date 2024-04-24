@@ -31,9 +31,9 @@ class TestDenialDataMigration(MigratorTestCase):
         DenialEntity = self.new_state.apps.get_model("external_data", "DenialEntity")
         Denial = self.new_state.apps.get_model("external_data", "Denial")
 
-        assert DenialEntity.objects.all().count() == 4
-        assert Denial.objects.all().count() == 2
-        assert Denial.objects.get(regime_reg_ref='reg.123.1234').denial_entity.count() == 3
+        self.assertEqual(DenialEntity.objects.all().count(), 4)
+        self.assertEqual(Denial.objects.all().count(), 2)
+        self.assertEqual(Denial.objects.get(regime_reg_ref='reg.123.1234').denial_entity.count(), 3)
 
 
 @pytest.mark.django_db()
@@ -55,5 +55,5 @@ class TestDenialDataDuplicatesMigration(MigratorTestCase):
     def test_0024_denials_data_migration_duplicates(self):
         DenialEntity = self.new_state.apps.get_model("external_data", "DenialEntity")
         Denial = self.new_state.apps.get_model("external_data", "Denial")
-        assert DenialEntity.objects.all().count() == 5
-        assert Denial.objects.all().count() == 0
+        self.assertEqual(DenialEntity.objects.all().count(),5)
+        self.assertEqual(Denial.objects.all().count() == 0)
