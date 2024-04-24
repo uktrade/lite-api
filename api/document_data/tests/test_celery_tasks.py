@@ -45,7 +45,7 @@ class TestBackupDocumentData(DataTestClient):
             "thisisakey",
         )
         self.assertEqual(
-            document_data.data.tobytes(),
+            document_data.data,
             b"test",
         )
         s3_object = self.get_object_from_default_bucket("thisisakey")
@@ -92,7 +92,7 @@ class TestBackupDocumentData(DataTestClient):
             "thisisakey",
         )
         self.assertEqual(
-            document_data.data.tobytes(),
+            document_data.data,
             b"new contents",
         )
         s3_object = self.get_object_from_default_bucket("thisisakey")
@@ -139,7 +139,7 @@ class TestBackupDocumentData(DataTestClient):
             "thisisakey",
         )
         self.assertEqual(
-            document_data.data.tobytes(),
+            document_data.data,
             b"test",
         )
         self.assertEqual(
