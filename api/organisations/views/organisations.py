@@ -275,7 +275,7 @@ class ValidateRegistrationNumber(generics.RetrieveAPIView):
     # authentication_classes = (SharedAuthentication,)
     serializer_class = OrganisationRegistrationNumberSerializer
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)

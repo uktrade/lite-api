@@ -950,3 +950,25 @@ class UpdateOrganisationDraftTests(DataTestClient):
         response = self.client.put(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"], {"vat_number": ["Standard UK VAT numbers are 9 digits long"]})
+
+
+class ValidateRegistrationNumberTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.organisation = OrganisationFactory()
+        self.url = reverse("organisations:registration_number")
+
+    def test_validate_registration_number_success(self):
+        data = {"registration_number": "123456789"}
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), data)
+
+    def test_validate_registration_number_fail(self):
+        self.organisation.refresh_from_db()
+        data = {"registration_number": self.organisation.registration_number}
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json(), {"errors": {"registration_number": ["This registration number is already in use."]}}
+        )

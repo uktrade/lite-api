@@ -1,7 +1,7 @@
 import pytest
 from rest_framework import serializers
 
-from api.organisations.serializers import OrganisationCreateUpdateSerializer
+from api.organisations.serializers import OrganisationCreateUpdateSerializer, OrganisationRegistrationNumberSerializer
 
 
 class SimpleOrganisationCreateUpdateSerializer(OrganisationCreateUpdateSerializer):
@@ -63,3 +63,17 @@ class TestOrganisationCreateUpdateSerializer:
         subj = SimpleOrganisationCreateUpdateSerializer(data=data)
 
         assert not subj.is_valid()
+
+
+class TestOrganisationRegistrationNumberSerializer:
+    @pytest.mark.parametrize(
+        "reg_number, expected",
+        [("12345678", "12345678"), ("GB123456", "GB123456")],
+    )
+    @pytest.mark.django_db()
+    def test_registration_number_validation_success(self, reg_number, expected):
+        data = {"registration_number": reg_number}
+
+        subj = OrganisationRegistrationNumberSerializer(data=data)
+        assert subj.is_valid()
+        assert subj._validated_data["registration_number"] == expected
