@@ -19,12 +19,7 @@ class DenialViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == "create":
-            # TODO: this is for backwards compatibility and should be removed
-            # once the lite-routing test data has been updated
-            if bool("regime_reg_ref" not in str(self.request.data["csv_file"])):  # type: ignore
-                return serializers.DenialFromCSVFileOldSerializer
-            else:
-                return serializers.DenialFromCSVFileSerializer
+            return serializers.DenialFromCSVFileSerializer
         return serializers.DenialEntitySerializer
 
     def perform_create(self, serializer):
