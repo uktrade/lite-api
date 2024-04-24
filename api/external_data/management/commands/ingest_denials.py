@@ -135,6 +135,7 @@ class Command(BaseCommand):
                     **{field: row.pop(field, None) for field in self.required_headers},
                 }
             )
+
             if serializer.is_valid():
                 # denial_entity = serializer.instance
                 # denial_entity.entity_type = get_denial_entity_type_db_representation(row.data)
