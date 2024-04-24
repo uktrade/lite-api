@@ -55,5 +55,5 @@ class TestDenialDataDuplicatesMigration(MigratorTestCase):
     def test_0024_denials_data_migration_duplicates(self):
         DenialEntity = self.new_state.apps.get_model("external_data", "DenialEntity")
         Denial = self.new_state.apps.get_model("external_data", "Denial")
-        self.assertEqual(DenialEntity.objects.all().count(),5)
-        self.assertEqual(Denial.objects.all().count() == 0)
+        self.assertEqual(DenialEntity.objects.all().count(), 5)
+        self.assertEqual(Denial.objects.all().count(), 0)
