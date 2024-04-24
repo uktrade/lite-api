@@ -52,60 +52,6 @@ class DenialEntitySerializer(serializers.ModelSerializer):
         return get_denial_entity_type(obj.data)
 
 
-# TODO: this is for backwards compatibility and should be removed
-# once the lite-routing test data has been updated
-class DenialFromCSVFileOldSerializer(serializers.Serializer):
-
-    csv_file = serializers.CharField()
-    required_headers = [
-        "reference",
-        "name",
-        "address",
-        "notifying_government",
-        "country",
-        "item_list_codes",
-        "item_description",
-        "consignee_name",
-        "end_use",
-    ]
-
-    @transaction.atomic
-    def validate_csv_file(self, value):
-        csv_file = io.StringIO(value)
-        dialect = csv.Sniffer().sniff(csv_file.read(1024))
-        csv_file.seek(0)
-        reader = csv.reader(csv_file, dialect=dialect)
-        headers = next(reader, None)
-        errors = []
-        valid_serializers = []
-        for i, row in enumerate(reader, start=1):
-            data = dict(zip(headers, row))
-            serializer = DenialEntitySerializer(
-                data={
-                    "data": data,
-                    "created_by": self.context["request"].user,
-                    **{field: data.pop(field, None) for field in self.required_headers},
-                }
-            )
-
-            if serializer.is_valid():
-                valid_serializers.append(serializer)
-            else:
-                self.add_bulk_errors(errors=errors, row_number=i + 1, line_errors=serializer.errors)
-        if errors:
-            raise serializers.ValidationError(errors)
-        else:
-            # only save if no errors
-            for serializer in valid_serializers:
-                serializer.save()
-        return csv_file
-
-    @staticmethod
-    def add_bulk_errors(errors, row_number, line_errors):
-        for key, values in line_errors.items():
-            errors.append(f"[Row {row_number}] {key}: {','.join(values)}")
-
-
 class DenialFromCSVFileSerializer(serializers.Serializer):
 
     csv_file = serializers.CharField()
