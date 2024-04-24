@@ -1,7 +1,6 @@
 import pytest
 
-from datetime import timedelta
-
+from datetime import timedelta, datetime
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -80,7 +79,7 @@ class AuditTrailStreamTestCase(DataTestClient):
     def test_duplicate_timestamp_appended(self):
         self.case = self.create_standard_application_case(self.organisation)
 
-        now = timezone.now()
+        now = datetime.now(timezone.utc)
         Audit.objects.create(
             created_at=now - timedelta(days=1),
             actor=self.user,

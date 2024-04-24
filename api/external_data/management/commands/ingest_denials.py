@@ -5,13 +5,13 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from api.applications.models import DenialMatchOnApplication
+from api.external_data.serializers import DenialEntitySerializer
 from rest_framework import serializers
 
 from elasticsearch_dsl import connections
 
 from api.documents.libraries import s3_operations
 from api.external_data import documents
-from api.external_data.serializers import DenialEntitySerializer
 
 from api.external_data.models import DenialEntity
 
@@ -63,15 +63,22 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def load_denials(self, filename):
-
         data = get_json_content_and_delete(filename)
+        errors = []
         if data:
             # Lets delete all denial records except ones that have been matched
             matched_denial_ids = DenialMatchOnApplication.objects.all().values_list("denial_id", flat=True).distinct()
             DenialEntity.objects.all().exclude(id__in=matched_denial_ids).delete()
 
-        errors = []
         for i, row in enumerate(data, start=1):
+            # This is required so we don't reload the same denial entity and load duplicates
+            has_fields = bool(row.get("regime_reg_ref") and row.get("name"))
+            if has_fields:
+                exists = DenialMatchOnApplication.objects.filter(
+                    denial__regime_reg_ref=row["regime_reg_ref"], denial__name=row["name"]
+                ).exists()
+                if exists:
+                    continue
             serializer = DenialEntitySerializer(
                 data={
                     "data": row,

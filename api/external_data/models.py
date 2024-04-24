@@ -5,6 +5,7 @@ from django.db import models
 from api.common.models import TimestampableModel
 from api.flags.models import Flag
 from api.users.models import GovUser
+from api.external_data.enums import DenialEntityType
 
 
 class Denial(TimestampableModel):
@@ -29,6 +30,9 @@ class Denial(TimestampableModel):
 
 class DenialEntity(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
+
+    denial = models.ForeignKey(Denial, related_name="denial_entity", on_delete=models.CASCADE, blank=True, null=True)
+
     created_by = models.ForeignKey(
         GovUser, related_name="denialenitity_created", on_delete=models.DO_NOTHING, blank=True, null=True
     )
@@ -56,6 +60,9 @@ class DenialEntity(TimestampableModel):
         help_text="Reason why the denial was refused", blank=True, default="", null=True
     )
     spire_entity_id = models.IntegerField(help_text="Entity_id from spire for matching data", null=True)
+    entity_type = models.TextField(
+        choices=DenialEntityType.choices, help_text="Type of entity being denied", blank=True, default="", null=True
+    )
 
 
 class SanctionMatch(TimestampableModel):

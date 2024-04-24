@@ -541,6 +541,11 @@ class Advice(TimestampableModel):
         except Advice.DoesNotExist:
             pass
 
+        has_no_team_set = self.team is None
+        has_user = self.user is not None
+        if has_no_team_set and has_user:
+            self.team = self.user.team
+
         super(Advice, self).save(*args, **kwargs)
 
         # We retain the denial reasons from the previous object because we're effectively really doing an edit here by

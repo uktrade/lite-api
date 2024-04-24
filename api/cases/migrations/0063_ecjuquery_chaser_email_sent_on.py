@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0062_alter_ecjuquery_response'),
+        ("cases", "0062_alter_ecjuquery_response"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='ecjuquery',
-            name='chaser_email_sent_on',
+            model_name="ecjuquery",
+            name="chaser_email_sent_on",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

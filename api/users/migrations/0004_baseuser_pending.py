@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0003_default_govuser_queue'),
+        ("users", "0003_default_govuser_queue"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='baseuser',
-            name='pending',
+            model_name="baseuser",
+            name="pending",
             field=models.BooleanField(default=True),
         ),
     ]
