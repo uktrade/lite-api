@@ -62,7 +62,7 @@ class Command(BaseCommand):
         self.load_denials(options["input_json"])
 
     @transaction.atomic
-    def load_denials(self, filename):
+    def load_denials(self):
         # data = get_json_content_and_delete(filename)
         data = [
             {
