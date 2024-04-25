@@ -14,7 +14,7 @@ from api.documents.libraries import s3_operations
 from api.external_data import documents
 
 from api.external_data.models import DenialEntity
-from api.external_data.enums import DenialEntityType
+from api.external_data.helpers import get_denial_entity_type_value
 
 log = logging.getLogger(__name__)
 
@@ -24,28 +24,6 @@ def get_json_content_and_delete(filename):
     # Let's delete the file
     s3_operations.delete_file(document_id=filename, s3_key=filename)
     return json.load(json_file["Body"])
-
-
-def get_denial_entity_type_value(data):
-
-    if isinstance(data, dict):
-        entity_type = ""
-        normalised_entity_type_dict = {keys.lower(): values.lower() for keys, values in data.items()}
-
-        is_end_user_flag = normalised_entity_type_dict.get("end_user_flag", "false") == "true"
-        is_consignee_flag = normalised_entity_type_dict.get("consignee_flag", "false") == "true"
-        is_other_role = len(normalised_entity_type_dict.get("other_role", "")) > 0
-
-        if is_end_user_flag and is_consignee_flag:
-            entity_type = DenialEntityType.END_USER
-        elif not is_end_user_flag and is_consignee_flag:
-            entity_type = DenialEntityType.CONSIGNEE
-        elif is_end_user_flag and not is_consignee_flag:
-            entity_type = DenialEntityType.END_USER
-        elif not is_end_user_flag and not is_consignee_flag and is_other_role:
-            entity_type = DenialEntityType.THIRD_PARTY
-
-        return entity_type
 
 
 class Command(BaseCommand):
@@ -85,55 +63,55 @@ class Command(BaseCommand):
         self.load_denials(options["input_json"])
 
     @transaction.atomic
-    def load_denials(self):
-        # data = get_json_content_and_delete(filename)
-        data = [
-            {
-                "reference": "DN3001\/1234",
-                "regime_reg_ref": "NB-GB-12-123",
-                "name": "Government of India",
-                "address": "Chhatrapati Shivaji Terminus",
-                "notifying_government": "United Kingdom",
-                "country": "United Kingdom",
-                "item_list_codes": "1.2.3",
-                "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
-                "end_use": "Replacement of an existing entertainment system",
-                "END_USER_FLAG": "true",
-                "CONSIGNEE_FLAG": "false",
-                "OTHER_ROLE": "",
-                "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
-            },
-            {
-                "reference": "DN3001\/1234",
-                "regime_reg_ref": "NB-GB-12-123",
-                "name": "Government of India",
-                "address": "Chhatrapati Shivaji Terminus",
-                "notifying_government": "United Kingdom",
-                "country": "United Kingdom",
-                "item_list_codes": "1.2.3",
-                "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
-                "end_use": "Replacement of an existing entertainment system",
-                "END_USER_FLAG": "false",
-                "CONSIGNEE_FLAG": "true",
-                "OTHER_ROLE": "",
-                "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
-            },
-            {
-                "reference": "DN3001\/1234",
-                "regime_reg_ref": "NB-GB-12-123",
-                "name": "Government of India",
-                "address": "Chhatrapati Shivaji Terminus",
-                "notifying_government": "United Kingdom",
-                "country": "United Kingdom",
-                "item_list_codes": "1.2.3",
-                "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
-                "end_use": "Replacement of an existing entertainment system",
-                "END_USER_FLAG": "false",
-                "CONSIGNEE_FLAG": "false",
-                "OTHER_ROLE": "words about role",
-                "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
-            },
-        ]
+    def load_denials(self, filename):
+        data = get_json_content_and_delete(filename)
+        # data = [
+        #     {
+        #         "reference": "DN3001\/1234",
+        #         "regime_reg_ref": "NB-GB-12-123",
+        #         "name": "Government of India",
+        #         "address": "Chhatrapati Shivaji Terminus",
+        #         "notifying_government": "United Kingdom",
+        #         "country": "United Kingdom",
+        #         "item_list_codes": "1.2.3",
+        #         "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
+        #         "end_use": "Replacement of an existing entertainment system",
+        #         "END_USER_FLAG": "true",
+        #         "CONSIGNEE_FLAG": "false",
+        #         "OTHER_ROLE": "",
+        #         "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
+        #     },
+        #     {
+        #         "reference": "DN3001\/1234",
+        #         "regime_reg_ref": "NB-GB-12-123",
+        #         "name": "Government of India",
+        #         "address": "Chhatrapati Shivaji Terminus",
+        #         "notifying_government": "United Kingdom",
+        #         "country": "United Kingdom",
+        #         "item_list_codes": "1.2.3",
+        #         "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
+        #         "end_use": "Replacement of an existing entertainment system",
+        #         "END_USER_FLAG": "false",
+        #         "CONSIGNEE_FLAG": "true",
+        #         "OTHER_ROLE": "",
+        #         "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
+        #     },
+        #     {
+        #         "reference": "DN3001\/1234",
+        #         "regime_reg_ref": "NB-GB-12-123",
+        #         "name": "Government of India",
+        #         "address": "Chhatrapati Shivaji Terminus",
+        #         "notifying_government": "United Kingdom",
+        #         "country": "United Kingdom",
+        #         "item_list_codes": "1.2.3",
+        #         "item_description": "Radiation protected 4K TV built to withstand 1e6 RADs without operational degradation",
+        #         "end_use": "Replacement of an existing entertainment system",
+        #         "END_USER_FLAG": "false",
+        #         "CONSIGNEE_FLAG": "false",
+        #         "OTHER_ROLE": "words about role",
+        #         "reason_for_refusal": "Chhatrapati Shivaji Terminus is a railway station",
+        #     },
+        # ]
         errors = []
         if data:
             # Lets delete all denial records except ones that have been matched
@@ -156,7 +134,7 @@ class Command(BaseCommand):
                 }
             )
 
-            serializer.initial_data["entity_type"] = "gjhfjghjj"
+            serializer.initial_data["entity_type"] = ""
 
             if serializer.is_valid():
                 serializer.validated_data["entity_type"] = get_denial_entity_type_value(row)
