@@ -24,6 +24,11 @@ from api.applications.serializers.f680 import (
     F680ApplicationUpdateSerializer,
     F680ApplicationViewSerializer,
 )
+from api.applications.serializers.open_application import (
+    OpenApplicationCreateSerializer,
+    OpenApplicationUpdateSerializer,
+    OpenApplicationViewSerializer,
+)
 from api.applications.serializers.good import GoodOnStandardLicenceSerializer
 from api.cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType, AdviceLevel
 from api.core.exceptions import BadRequestError
@@ -39,6 +44,8 @@ logger = logging.getLogger(__name__)
 def get_application_view_serializer(application: BaseApplication):
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationViewSerializer
+    if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+        return OpenApplicationViewSerializer
     if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
         return F680ApplicationViewSerializer
     else:
@@ -55,6 +62,8 @@ def get_application_create_serializer(case_type):
 
     if sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationCreateSerializer
+    elif sub_type == CaseTypeSubTypeEnum.OPEN:
+        return OpenApplicationCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.F680:
         return F680ApplicationCreateSerializer
     else:
@@ -64,6 +73,8 @@ def get_application_create_serializer(case_type):
 def get_application_update_serializer(application: BaseApplication):
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationUpdateSerializer
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+        return OpenApplicationUpdateSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
         return F680ApplicationUpdateSerializer
     else:

@@ -16,6 +16,7 @@ from api.applications.enums import (
     F680ProductFundingType,
     F680ClearanceChoices,
     F680ProductMTCRRatingType,
+    GoodsTypeCategory,
 )
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager, StandardApplicationManager, F680ApplicationManager
@@ -350,6 +351,14 @@ class F680Application(BaseApplication):
     other_information = models.TextField(default="", blank=True)
 
     objects = F680ApplicationManager()
+
+
+class OpenApplication(BaseApplication):
+    goods_category = models.TextField(
+        choices=GoodsTypeCategory.choices,
+        default="",
+        blank=True,
+    )
 
 
 class ApplicationDocument(Document):
