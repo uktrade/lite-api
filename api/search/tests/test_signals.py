@@ -7,6 +7,7 @@ from django_elasticsearch_dsl.signals import CelerySignalProcessor
 
 from api.audit_trail.tests.factories import AuditFactory
 from api.goods.tests.factories import GoodFactory
+from api.search.application.documents import ApplicationDocumentType
 from api.parties.models import PartyType
 from test_helpers.clients import DataTestClient
 
@@ -19,12 +20,12 @@ class UpdateApplicationDocumentTest(DataTestClient):
         mock_registry_update.assert_any_call(application.baseapplication)
 
     @override_settings(LITE_API_ENABLE_ES=True)
-    @patch("django_elasticsearch_dsl.registries.registry.update")
-    def test_case_assignment(self, mock_registry_update):
-        assignment = self.create_case_assignment(
-            self.queue, self.create_standard_application_case(self.organisation), self.gov_user
-        )
-        mock_registry_update.assert_any_call(assignment.case.baseapplication)
+    @patch.object(ApplicationDocumentType, "update")
+    def test_case_assignment(self, mock_document_update):
+        application = self.create_standard_application_case(self.organisation)
+        mock_document_update.reset_mock()
+        assignment = self.create_case_assignment(self.queue, application, self.gov_user)
+        mock_document_update.assert_any_call(assignment.case.baseapplication)
 
     @override_settings(LITE_API_ENABLE_ES=True)
     @patch("django_elasticsearch_dsl.registries.registry.update")

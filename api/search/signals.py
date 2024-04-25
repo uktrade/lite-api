@@ -32,9 +32,6 @@ def update_search_documents(sender, **kwargs):
     """
     to_update = []
 
-    if issubclass(sender, BaseApplication):
-        to_update.append((application_document_model, instance.baseapplication.pk))
-
     if issubclass(sender, GoodOnApplication):
         to_update.append((product_document_model, instance.pk))
 
@@ -43,9 +40,7 @@ def update_search_documents(sender, **kwargs):
             to_update.append((product_document_model, good_on_application.pk))
 
     try:
-        if app_label == "cases" and model_name == "caseassignment":
-            to_update.append((application_document_model, instance.case.baseapplication.pk))
-        elif app_label == "cases" and model_name == "case":
+        if app_label == "cases" and model_name == "case":
             to_update.append((application_document_model, instance.baseapplication.pk))
         elif app_label == "goods" and model_name == "good":
             for good in instance.goods_on_application.all():
