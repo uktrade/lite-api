@@ -12,7 +12,7 @@ from api.flags.enums import SystemFlags
 from api.external_data.enums import DenialEntityType
 
 
-def get_denial_entity_type_rep(data):
+def get_denial_entity_type_value(data):
 
     if isinstance(data, dict):
         entity_type = ""
@@ -39,11 +39,12 @@ class EntityTypeSerializerField(serializers.Field):
         return get_denial_entity_type(obj.data)
 
     def to_internal_value(self, data):
-        return get_denial_entity_type_rep(data)
+        return data
 
 
 class DenialEntitySerializer(serializers.ModelSerializer):
-    entity_type = serializers.SerializerMethodField()
+
+    entity_type = EntityTypeSerializerField()
 
     class Meta:
         model = models.DenialEntity
@@ -78,9 +79,6 @@ class DenialEntitySerializer(serializers.ModelSerializer):
         if validated_data.get("is_revoked") and not validated_data.get("is_revoked_comment"):
             raise serializers.ValidationError({"is_revoked_comment": "This field is required"})
         return validated_data
-
-    def get_entity_type(self, obj):
-        return get_denial_entity_type(obj.data)
 
 
 class DenialFromCSVFileSerializer(serializers.Serializer):
