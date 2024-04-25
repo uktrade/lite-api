@@ -2,8 +2,8 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from api.applications.models import F680Application, StandardApplication, BaseApplication
+from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsTypeCategory
+from api.applications.models import BaseApplication, F680Application, OpenApplication, StandardApplication
 from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
@@ -157,3 +157,18 @@ class DraftTests(DataTestClient):
         self.assertEqual(F680Application.objects.count(), 1)
         f680_application = F680Application.objects.first()
         self.assertEqual(response["id"], str(f680_application.id))
+
+    def test_create_draft_open_crypto_application_successful(self):
+        data = {
+            "name": "Open application with Crypto goods",
+            "application_type": CaseTypeReferenceEnum.OIEL,
+            "goods_category": GoodsTypeCategory.CRYPTOGRAPHIC,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = response.json()
+        self.assertEqual(OpenApplication.objects.count(), 1)
+        crypto_open_application = OpenApplication.objects.first()
+        self.assertEqual(response["id"], str(crypto_open_application.id))
