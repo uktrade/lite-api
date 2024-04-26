@@ -1,4 +1,4 @@
-from api.applications.models import BaseApplication, StandardApplication, F680Application
+from api.applications.models import BaseApplication, F680Application, OpenApplication, StandardApplication
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.exceptions import NotFoundError
 
@@ -24,6 +24,7 @@ def _get_application_type(pk):
 def _get_application_model_class(application_type):
     model_classes = {
         CaseTypeSubTypeEnum.STANDARD: StandardApplication,
+        CaseTypeSubTypeEnum.OPEN: OpenApplication,
         CaseTypeSubTypeEnum.F680: F680Application,
     }
     try:

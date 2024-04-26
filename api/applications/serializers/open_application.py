@@ -1,10 +1,10 @@
-from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from api.applications.enums import GoodsTypeCategory
 from api.applications.models import OpenApplication
 from api.applications.mixins.serializers import PartiesSerializerMixin
-
+from api.core.serializers import KeyValueChoiceField
 from api.organisations.models import Organisation
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -40,7 +40,8 @@ class OpenApplicationUpdateSerializer(serializers.ModelSerializer):
 
 
 class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
+    goods_category = KeyValueChoiceField(choices=GoodsTypeCategory.choices)
 
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationViewSerializer.Meta.fields
+        fields = GenericApplicationViewSerializer.Meta.fields + ("goods_category",)

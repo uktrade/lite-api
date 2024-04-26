@@ -19,7 +19,7 @@ from api.applications.enums import (
     GoodsTypeCategory,
 )
 from api.appeals.models import Appeal
-from api.applications.managers import BaseApplicationManager, StandardApplicationManager, F680ApplicationManager
+from api.applications.managers import BaseApplicationManager, F680ApplicationManager, OpenApplicationManager, StandardApplicationManager
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
@@ -359,6 +359,7 @@ class OpenApplication(BaseApplication):
         default="",
         blank=True,
     )
+    objects = OpenApplicationManager()
 
 
 class ApplicationDocument(Document):
