@@ -382,8 +382,6 @@ class OpenApplication(BaseApplication):
     )
     objects = OpenApplicationManager()
 
-    objects = OpenApplicationManager()
-
     def post_submit(self):
         post_submit_actions = {
             GoodsTypeCategory.CRYPTOGRAPHIC: self._create_canned_crypto_products,
