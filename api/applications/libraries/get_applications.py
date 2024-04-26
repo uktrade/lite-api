@@ -26,6 +26,7 @@ def _get_application_model_class(application_type):
         CaseTypeSubTypeEnum.STANDARD: StandardApplication,
         CaseTypeSubTypeEnum.OPEN: OpenApplication,
         CaseTypeSubTypeEnum.F680: F680Application,
+        CaseTypeSubTypeEnum.OPEN: OpenApplication,
     }
     try:
         return model_classes[application_type]
