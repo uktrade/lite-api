@@ -13,6 +13,7 @@ from api.external_data.models import DenialEntity
 from rest_framework.exceptions import ValidationError
 import json
 import io
+from api.external_data.enums import DenialEntityType
 
 
 @pytest.fixture
@@ -35,6 +36,7 @@ def json_file_data():
                         "consignee_flag": "true",
                         "reason_for_refusal": "reason a",
                         "spire_entity_id": 1234,
+                        "data": {"END_USER_FLAG": "true", "CONSIGNEE_FLAG": "false", "OTHER_ROLE": ""},
                     },
                     {
                         "reference": "DN001\/0002",
@@ -50,6 +52,7 @@ def json_file_data():
                         "consignee_flag": "true",
                         "reason_for_refusal": "reason b",
                         "spire_entity_id": 1235,
+                        "data": {"END_USER_FLAG": "false", "CONSIGNEE_FLAG": "true", "OTHER_ROLE": ""},
                     },
                     {
                         "reference": "DN001\/0001",
@@ -64,6 +67,7 @@ def json_file_data():
                         "consignee_flag": "false",
                         "reason_for_refusal": "reason c",
                         "spire_entity_id": 1236,
+                        "data": {"END_USER_FLAG": "true", "CONSIGNEE_FLAG": "true", "OTHER_ROLE": ""},
                     },
                 ]
             )
@@ -146,3 +150,17 @@ def test_populate_denials_with_no_data_in_file(mock_get_file, mock_delete_file):
     call_command("ingest_denials", "json_file")
 
     assert DenialEntity.objects.all().count() == 1
+
+
+@pytest.mark.django_db
+@mock.patch.object(ingest_denials.s3_operations, "delete_file")
+@mock.patch.object(ingest_denials.s3_operations, "get_object")
+def test_entity_type_value(mock_get_file, json_file_data):
+    mock_get_file.return_value = json_file_data
+
+    call_command("ingest_denials", "json_file")
+
+    assert DenialEntity.objects.all().count() == 3
+    assert DenialEntity.objects.filter(entity_type=DenialEntityType.END_USER).count() == 1
+    assert DenialEntity.objects.filter(entity_type=DenialEntityType.CONSIGNEE).count() == 1
+    assert DenialEntity.objects.filter(entity_type=DenialEntityType.THIRD_PARTY).count() == 1
