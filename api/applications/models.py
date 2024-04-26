@@ -19,9 +19,15 @@ from api.applications.enums import (
     GoodsTypeCategory,
 )
 from api.appeals.models import Appeal
-from api.applications.managers import BaseApplicationManager, StandardApplicationManager, F680ApplicationManager
+from api.applications.managers import (
+    BaseApplicationManager,
+    StandardApplicationManager,
+    F680ApplicationManager,
+    OpenApplicationManager,
+)
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
+from api.cases.celery_tasks import get_application_target_sla
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.common.models import TimestampableModel
@@ -39,6 +45,7 @@ from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.regimes.models import RegimeEntry
+from api.staticdata.regimes.enums import RegimeSubsectionsEnum
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
@@ -251,6 +258,20 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
+    def submit(self):
+        self.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        self.submitted_at = timezone.now()
+        self.sla_remaining_days = get_application_target_sla(self.case_type.sub_type)
+        self.sla_days = 0
+        self.save()
+        self.post_submit()
+
+    def post_submit(self):
+        """
+        Hook that is called after application submission.
+        """
+        return
+
 
 # Licence Applications
 class StandardApplication(BaseApplication):
@@ -359,6 +380,96 @@ class OpenApplication(BaseApplication):
         default="",
         blank=True,
     )
+
+    objects = OpenApplicationManager()
+
+    def post_submit(self):
+        post_submit_actions = {
+            GoodsTypeCategory.CRYPTOGRAPHIC: self._create_canned_crypto_products,
+        }
+        try:
+            post_submit_actions[self.goods_category]()
+        except KeyError:
+            return
+
+    def _create_canned_crypto_hardware(self):
+        crypto_hardware_good, _ = Good.objects.get_or_create(
+            name="Information security hardware as specified in entry 5A002 of Annex 1 to the Regulation",
+            organisation=self.organisation,
+            is_good_controlled=True,
+            report_summary_subject=ReportSummarySubject.objects.get(name="information security equipment"),
+            comment="Good automatically created by lite system for crypto OIELs",
+        )
+        control_list_entries = ControlListEntry.objects.filter(
+            rating__in=["5A002a1", "5A002a2", "5A002a3", "5A002a4", "5A002b", "5A002c", "5A002d", "5A002e"]
+        )
+        for cle in control_list_entries:
+            crypto_hardware_good.control_list_entries.add(cle)
+        crypto_hardware_goa = GoodOnApplication.objects.create(
+            application=self,
+            good=crypto_hardware_good,
+            report_summary_subject=ReportSummarySubject.objects.get(name="information security equipment"),
+            assessment_date=timezone.now(),
+        )
+        for cle in control_list_entries:
+            crypto_hardware_goa.control_list_entries.add(cle)
+        crypto_hardware_goa.regime_entries.add(
+            RegimeEntry.objects.get(subsection__id=RegimeSubsectionsEnum.WASSENAAR_ARRANGEMENT)
+        )
+
+    def _create_canned_crypto_software(self):
+        crypto_software_good, _ = Good.objects.get_or_create(
+            name="Information security software as specified in entry 5D002 of Annex 1 to the Regulation",
+            organisation=self.organisation,
+            is_good_controlled=True,
+            report_summary_subject=ReportSummarySubject.objects.get(name="information security software"),
+            comment="Good automatically created by lite system for crypto OIELs",
+        )
+        control_list_entries = ControlListEntry.objects.filter(rating__in=["5D002a1", "5D002b", "5D002c1"])
+        for cle in control_list_entries:
+            crypto_software_good.control_list_entries.add(cle)
+        crypto_software_goa = GoodOnApplication.objects.create(
+            application=self,
+            good=crypto_software_good,
+            report_summary_subject=ReportSummarySubject.objects.get(name="information security software"),
+            assessment_date=timezone.now(),
+        )
+        for cle in control_list_entries:
+            crypto_software_goa.control_list_entries.add(cle)
+        crypto_software_goa.regime_entries.add(
+            RegimeEntry.objects.get(subsection__id=RegimeSubsectionsEnum.WASSENAAR_ARRANGEMENT)
+        )
+
+    def _create_canned_crypto_technology(self):
+        crypto_technology_good, _ = Good.objects.get_or_create(
+            name="Technology as specified in entry 5E002 of Annex 1 to the Regulation",
+            organisation=self.organisation,
+            is_good_controlled=True,
+            report_summary_prefix=ReportSummaryPrefix.objects.get(name="technology for"),
+            report_summary_subject=ReportSummarySubject.objects.get(name="information security software"),
+            comment="Good automatically created by lite system for crypto OIELs",
+        )
+        # TODO: add more control list entries when we get full requirements..
+        control_list_entries = ControlListEntry.objects.filter(rating__in=["5E002"])
+        for cle in control_list_entries:
+            crypto_technology_good.control_list_entries.add(cle)
+        crypto_technology_goa = GoodOnApplication.objects.create(
+            application=self,
+            good=crypto_technology_good,
+            report_summary_prefix=ReportSummaryPrefix.objects.get(name="technology for"),
+            report_summary_subject=ReportSummarySubject.objects.get(name="information security software"),
+            assessment_date=timezone.now(),
+        )
+        for cle in control_list_entries:
+            crypto_technology_goa.control_list_entries.add(cle)
+        crypto_technology_goa.regime_entries.add(
+            RegimeEntry.objects.get(subsection__id=RegimeSubsectionsEnum.WASSENAAR_ARRANGEMENT)
+        )
+
+    def _create_canned_crypto_products(self):
+        self._create_canned_crypto_hardware()
+        self._create_canned_crypto_software()
+        self._create_canned_crypto_technology()
 
 
 class ApplicationDocument(Document):

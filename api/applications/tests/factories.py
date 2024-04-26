@@ -3,7 +3,7 @@ import factory
 from django.utils import timezone
 from faker import Faker
 
-from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
+from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsTypeCategory
 from api.applications.models import (
     PartyOnApplication,
     DenialMatchOnApplication,
@@ -11,6 +11,7 @@ from api.applications.models import (
     GoodOnApplication,
     StandardApplication,
     F680Application,
+    OpenApplication,
 )
 from api.cases.enums import CaseTypeEnum
 from api.external_data.models import DenialEntity, SanctionMatch
@@ -86,6 +87,32 @@ class F680ApplicationFactory(factory.django.DjangoModelFactory):
         if "status" in kwargs and isinstance(kwargs["status"], CaseStatus):
             obj.status = kwargs["status"]
         obj.save()
+        PartyOnApplicationFactory(application=obj, party__type="end_user")
+        return obj
+
+
+class CryptoOIELFactory(factory.django.DjangoModelFactory):
+    name = "Application Test Name"
+    case_type_id = CaseTypeEnum.OIEL.id
+    goods_category = GoodsTypeCategory.CRYPTOGRAPHIC
+    activity = "Trade"
+    usage = "Trade"
+    organisation = factory.SubFactory(OrganisationFactory)
+    is_military_end_use_controls = False
+    is_informed_wmd = False
+    is_suspected_wmd = False
+    is_eu_military = False
+    is_compliant_limitations_eu = None
+    intended_end_use = "this is our intended end use"
+    submitted_by = factory.SubFactory(ExporterUserFactory)
+
+    class Meta:
+        model = OpenApplication
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.submit()
         PartyOnApplicationFactory(application=obj, party__type="end_user")
         return obj
 

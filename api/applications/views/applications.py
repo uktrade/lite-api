@@ -36,7 +36,6 @@ from api.applications.libraries.application_helpers import (
     create_submitted_audit,
     check_user_can_set_status,
 )
-from api.applications.libraries.case_status_helpers import submit_application
 from api.applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
     set_case_flags_on_submitted_standard_application,
@@ -330,7 +329,7 @@ class ApplicationSubmission(APIView):
         ):
             application.submitted_by = request.user.exporteruser
             create_submitted_audit(request, application, old_status)
-            submit_application(application)
+            application.submit()
             if request.data.get("submit_hmrc"):
                 auto_generate_case_document(
                     "application_form",
@@ -355,7 +354,7 @@ class ApplicationSubmission(APIView):
                 application.submitted_by = request.user.exporteruser
                 application.agreed_to_foi = request.data.get("agreed_to_foi")
                 application.foi_reason = request.data.get("foi_reason", "")
-                submit_application(application)
+                application.submit()
 
                 if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
                     set_case_flags_on_submitted_standard_application(application)
