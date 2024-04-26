@@ -78,7 +78,7 @@ def json_file_data():
                         "end_use": "computing",
                         "end_user_flag": "true",
                         "consignee_flag": "true",
-                        "other_role": "Other Role",
+                        "other_role": "",
                         "reason_for_refusal": "reason d",
                         "spire_entity_id": 1237,
                     },
