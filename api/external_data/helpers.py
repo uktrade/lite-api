@@ -24,7 +24,6 @@ def get_denial_entity_type_value(data):
 
     if isinstance(data, dict):
         entity_type = ""
-        # normalised_entity_type_dict = {keys.lower(): values.lower() for keys, values in data.items()}
 
         is_end_user_flag = data.get("end_user_flag", "false") == "true"
         is_consignee_flag = data.get("consignee_flag", "false") == "true"
