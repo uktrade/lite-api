@@ -419,7 +419,7 @@ class OpenApplication(BaseApplication):
 
     def _create_canned_crypto_software(self):
         crypto_software_good, _ = Good.objects.get_or_create(
-            name="Information security hardware as specified in entry 5D002 of Annex 1 to the Regulation",
+            name="Information security software as specified in entry 5D002 of Annex 1 to the Regulation",
             organisation=self.organisation,
             is_good_controlled=True,
             report_summary_subject=ReportSummarySubject.objects.get(name="information security software"),
