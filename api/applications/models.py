@@ -22,6 +22,7 @@ from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager, StandardApplicationManager, F680ApplicationManager
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
+from api.cases.celery_tasks import get_application_target_sla
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.common.models import TimestampableModel
@@ -250,6 +251,13 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_status(CaseStatusEnum.UNDER_APPEAL)
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
+
+    def submit(self):
+        self.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        self.submitted_at = timezone.now()
+        self.sla_remaining_days = get_application_target_sla(self.case_type.sub_type)
+        self.sla_days = 0
+        self.save()
 
 
 # Licence Applications
