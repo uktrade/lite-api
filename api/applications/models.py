@@ -380,7 +380,6 @@ class OpenApplication(BaseApplication):
         default="",
         blank=True,
     )
-
     objects = OpenApplicationManager()
 
     def post_submit(self):

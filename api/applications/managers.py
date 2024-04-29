@@ -80,7 +80,7 @@ class StandardApplicationManager(BaseApplicationManager):
         return obj
 
 
-class F680ApplicationManager(BaseApplicationManager):
+class OpenApplicationManager(BaseApplicationManager):
     def get_application(self, pk, **kwargs):
         qs = (
             self.get_queryset()
@@ -143,7 +143,7 @@ class F680ApplicationManager(BaseApplicationManager):
         return obj
 
 
-class OpenApplicationManager(BaseApplicationManager):
+class F680ApplicationManager(BaseApplicationManager):
     def get_application(self, pk, **kwargs):
         qs = (
             self.get_queryset()
