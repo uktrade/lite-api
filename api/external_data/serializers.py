@@ -11,6 +11,14 @@ from api.external_data.helpers import get_denial_entity_type
 from api.flags.enums import SystemFlags
 
 
+class EntityTypeSerializerField(serializers.Field):
+    def to_representation(self, obj):
+        return get_denial_entity_type(obj.data)
+
+    def to_internal_value(self, data):
+        return data
+
+
 class DenialSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Denial
@@ -35,7 +43,8 @@ class DenialSerializer(serializers.ModelSerializer):
 
 
 class DenialEntitySerializer(serializers.ModelSerializer):
-    entity_type = serializers.SerializerMethodField()
+
+    entity_type = EntityTypeSerializerField()
     regime_reg_ref = serializers.CharField(source="denial.regime_reg_ref", required=False)
     reference = serializers.CharField(source="denial.reference", required=False)
     item_list_codes = serializers.CharField(source="denial.item_list_codes", required=False)
@@ -95,9 +104,6 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             instance.denial.is_revoked_comment = ""
             instance.denial.save()
         return instance
-
-    def get_entity_type(self, obj):
-        return get_denial_entity_type(obj.data)
 
 
 class DenialFromCSVFileSerializer(serializers.Serializer):

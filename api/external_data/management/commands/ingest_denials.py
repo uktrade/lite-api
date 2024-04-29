@@ -14,6 +14,7 @@ from api.documents.libraries import s3_operations
 from api.external_data import documents
 
 from api.external_data.models import DenialEntity
+from api.external_data.helpers import get_denial_entity_type_value
 
 log = logging.getLogger(__name__)
 
