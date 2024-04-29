@@ -43,7 +43,7 @@ from api.parties.models import Party
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
 
-from api.workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
+from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_rules_to_case
 
 from lite_content.lite_api import strings
 

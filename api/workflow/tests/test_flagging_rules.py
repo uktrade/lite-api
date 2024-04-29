@@ -13,7 +13,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.models import Team
 from test_helpers.clients import DataTestClient
-from api.workflow.flagging_rules_automation import (
+from lite_routing.routing_rules_internal.flagging_engine import (
     apply_flagging_rules_to_case,
     apply_case_flagging_rules,
     apply_goods_rules_for_good,
@@ -191,7 +191,7 @@ class FlaggingRulesAutomation(DataTestClient):
         case.refresh_from_db()
         self.assertNotIn(flag, case.flags.all())
 
-    @unittest.mock.patch("api.workflow.flagging_rules_automation.run_flagging_rules_criteria_case")
+    @unittest.mock.patch("lite_routing.routing_rules_internal.flagging_engine.run_flagging_rules_criteria_case")
     def test_python_criteria_satisfied_calls_case_criteria_function(self, mocked_criteria_function):
         mocked_criteria_function.return_value = True
         rule = FlaggingRule.objects.create(
@@ -208,7 +208,7 @@ class FlaggingRulesAutomation(DataTestClient):
         assert mocked_criteria_function.called
         self.assertIn(rule.flag, case.flags.all())
 
-    @unittest.mock.patch("api.workflow.flagging_rules_automation.run_flagging_rules_criteria_product")
+    @unittest.mock.patch("lite_routing.routing_rules_internal.flagging_engine.run_flagging_rules_criteria_product")
     def test_python_criteria_satisfied_calls_product_criteria_function(self, mocked_criteria_function):
         mocked_criteria_function.return_value = True
         rule = FlaggingRule.objects.create(
@@ -224,7 +224,7 @@ class FlaggingRulesAutomation(DataTestClient):
         assert mocked_criteria_function.called
         self.assertIn(rule.flag, good.flags.all())
 
-    @unittest.mock.patch("api.workflow.flagging_rules_automation.run_flagging_rules_criteria_destination")
+    @unittest.mock.patch("lite_routing.routing_rules_internal.flagging_engine.run_flagging_rules_criteria_destination")
     def test_python_criteria_satisfied_calls_destination_criteria_function(self, mocked_criteria_function):
         mocked_criteria_function.return_value = True
         rule = FlaggingRule.objects.create(
