@@ -42,7 +42,6 @@ from api.applications.libraries.edit_applications import (
 )
 from api.applications.libraries.get_applications import get_application
 from api.applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
-from api.applications.libraries.licence import get_default_duration
 from api.applications.models import (
     BaseApplication,
     SiteOnApplication,
@@ -587,7 +586,7 @@ class ApplicationFinaliseView(APIView):
                 active_licence = Licence.objects.get_active_licence(application)
                 default_licence_duration = active_licence.duration
             except Licence.DoesNotExist:
-                default_licence_duration = get_default_duration(application)
+                default_licence_duration = application.get_default_licence_duration()
 
             licence_data["duration"] = licence_data.get("duration", default_licence_duration)
 
@@ -651,7 +650,7 @@ class ApplicationDurationView(APIView):
         """
         application = get_application(pk)
 
-        duration = get_default_duration(application)
+        duration = application.get_default_licence_duration()
 
         return JsonResponse(data={"licence_duration": duration}, status=status.HTTP_200_OK)
 
