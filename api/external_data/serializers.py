@@ -19,7 +19,8 @@ class EntityTypeSerializerField(serializers.Field):
             return "Consignee"
         elif obj.entity_type == models.DenialEntityType.THIRD_PARTY:
             return "Third-party"
-        return ""
+        else:
+            return ""
 
     def to_internal_value(self, data):
         return data
