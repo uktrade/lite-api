@@ -36,7 +36,7 @@ class SanctionViewSet(viewsets.ModelViewSet):
 
 
 class DenialSearchView(DocumentViewSet):
-    document = documents.DenialDocumentType
+    document = documents.DenialEntityDocument
     serializer_class = serializers.DenialSearchSerializer
     authentication_classes = (GovAuthentication,)
     pagination_class = MaxPageNumberPagination
