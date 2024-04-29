@@ -1,3 +1,6 @@
+from api.external_data.models import DenialEntityType
+
+
 def get_denial_entity_type(data):
     entity_type = ""
     for key in ["end_user_flag", "consignee_flag", "other_role"]:
@@ -15,3 +18,24 @@ def get_denial_entity_type(data):
         entity_type = "Third-party"
 
     return entity_type
+
+
+def get_denial_entity_type_value(data):
+
+    if isinstance(data, dict):
+        entity_type = ""
+
+        is_end_user_flag = data.get("end_user_flag", "false") == "true"
+        is_consignee_flag = data.get("consignee_flag", "false") == "true"
+        is_other_role = len(data.get("other_role", "")) > 0
+
+        if is_end_user_flag and is_consignee_flag:
+            entity_type = DenialEntityType.END_USER
+        elif not is_end_user_flag and is_consignee_flag:
+            entity_type = DenialEntityType.CONSIGNEE
+        elif is_end_user_flag and not is_consignee_flag:
+            entity_type = DenialEntityType.END_USER
+        elif not is_end_user_flag and not is_consignee_flag and is_other_role:
+            entity_type = DenialEntityType.THIRD_PARTY
+
+        return entity_type
