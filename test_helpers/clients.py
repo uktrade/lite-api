@@ -87,7 +87,7 @@ from test_helpers import colours
 from api.users.enums import SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
-from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_rules_to_case
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
 from api.workflow.routing_rules.models import RoutingRule
 

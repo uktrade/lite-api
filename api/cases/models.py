@@ -195,7 +195,7 @@ class Case(TimestampableModel):
         creates audit entries and also runs flagging and automation rules
         """
         from api.audit_trail import service as audit_trail_service
-        from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+        from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_rules_to_case
         from api.licences.helpers import update_licence_status
         from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 

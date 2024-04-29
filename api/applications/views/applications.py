@@ -98,8 +98,8 @@ from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 from api.staticdata.statuses.models import CaseSubStatus
 from api.users.libraries.notifications import get_case_notifications
 from api.users.models import ExporterUser
-from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
+from lite_routing.routing_rules_internal.flagging_engine import apply_flagging_rules_to_case
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
 
