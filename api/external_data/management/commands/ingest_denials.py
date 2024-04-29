@@ -87,12 +87,14 @@ class Command(BaseCommand):
             denial_entity_data["data"] = row
             denial_serializer = DenialSerializer(data=denial_data)
             denial_entity_serializer = DenialEntitySerializer(data=denial_entity_data)
+            denial_entity_serializer.initial_data["entity_type"] = ""
 
             is_valid_denial = denial_serializer.is_valid()
             is_valid_entity_denial = denial_entity_serializer.is_valid()
 
             if is_valid_denial and is_valid_entity_denial:
                 denial = denial_serializer.save()
+                denial_entity_serializer.validated_data["entity_type"] = get_denial_entity_type_value(row)
                 denial_entity = denial_entity_serializer.save()
                 denial_entity.denial = denial
                 denial_entity.save()
@@ -106,7 +108,6 @@ class Command(BaseCommand):
                     row_number=i + 1,
                     line_errors={**denial_serializer.errors, **denial_entity_serializer.errors},
                 )
-
         if errors:
             log.exception(
                 "Error loading denials -> %s",
