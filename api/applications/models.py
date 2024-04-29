@@ -11,6 +11,7 @@ from separatedvaluesfield.models import SeparatedValuesField
 from api.applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
+    DefaultDuration,
     SecurityClassifiedApprovalsType,
     NSGListType,
     F680ProductFundingType,
@@ -272,6 +273,14 @@ class BaseApplication(ApplicationPartyMixin, Case):
         """
         return
 
+    def get_default_licence_duration(self):
+        """
+        Get the default licence duration as an integer of months.  Raises NotImplementedError because this should be defined on BaseApplication children.
+        """
+        raise NotImplementedError(
+            f"Application model {self.__class__.__name__} does not override the get_default_licence_duration() method"
+        )
+
 
 # Licence Applications
 class StandardApplication(BaseApplication):
@@ -329,6 +338,11 @@ class StandardApplication(BaseApplication):
 
     objects = StandardApplicationManager()
 
+    def get_default_licence_duration(self):
+        if self.export_type == ApplicationExportType.TEMPORARY:
+            return DefaultDuration.TEMPORARY.value
+        return DefaultDuration.PERMANENT_STANDARD.value
+
 
 class F680Application(BaseApplication):
     is_list_X_company = models.BooleanField(
@@ -373,6 +387,9 @@ class F680Application(BaseApplication):
 
     objects = F680ApplicationManager()
 
+    def get_default_licence_duration(self):
+        return DefaultDuration.TEMPORARY.value
+
 
 class OpenApplication(BaseApplication):
     goods_category = models.TextField(
@@ -391,6 +408,9 @@ class OpenApplication(BaseApplication):
             post_submit_actions[self.goods_category]()
         except KeyError:
             return
+
+    def get_default_licence_duration(self):
+        return DefaultDuration.PERMANENT_OPEN.value
 
     def _create_canned_crypto_hardware(self):
         crypto_hardware_good, _ = Good.objects.get_or_create(
