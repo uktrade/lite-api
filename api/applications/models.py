@@ -428,6 +428,7 @@ class OpenApplication(BaseApplication):
         crypto_hardware_goa = GoodOnApplication.objects.create(
             application=self,
             good=crypto_hardware_good,
+            is_good_controlled=True,
             report_summary_subject=ReportSummarySubject.objects.get(name="information security equipment"),
             assessment_date=timezone.now(),
         )
@@ -451,6 +452,7 @@ class OpenApplication(BaseApplication):
         crypto_software_goa = GoodOnApplication.objects.create(
             application=self,
             good=crypto_software_good,
+            is_good_controlled=True,
             report_summary_subject=ReportSummarySubject.objects.get(name="information security software"),
             assessment_date=timezone.now(),
         )
@@ -476,6 +478,7 @@ class OpenApplication(BaseApplication):
         crypto_technology_goa = GoodOnApplication.objects.create(
             application=self,
             good=crypto_technology_good,
+            is_good_controlled=True,
             report_summary_prefix=ReportSummaryPrefix.objects.get(name="technology for"),
             report_summary_subject=ReportSummarySubject.objects.get(name="information security software"),
             assessment_date=timezone.now(),
