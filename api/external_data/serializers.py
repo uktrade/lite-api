@@ -13,7 +13,13 @@ from api.flags.enums import SystemFlags
 
 class EntityTypeSerializerField(serializers.Field):
     def to_representation(self, obj):
-        return get_denial_entity_type(obj.data)
+        if obj.entity_type == models.DenialEntityType.END_USER:
+            return "End-user"
+        elif obj.entity_type == models.DenialEntityType.CONSIGNEE:
+            return "Consignee"
+        elif obj.entity_type == models.DenialEntityType.THIRD_PARTY:
+            return "Third-party"
+        return ""
 
     def to_internal_value(self, data):
         return data
