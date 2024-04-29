@@ -79,6 +79,32 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
         self.assertEqual(response["is_revoked"], True)
         self.assertEqual(response["is_revoked_comment"], "This denial is no longer active")
 
+    def test_revoke_denial_active_success(self):
+        response = self.client.get(reverse("external_data:denial-list"), **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 4)
+
+        denials = response.json()["results"]
+
+        # pick one and revoke it
+        self.assertEqual(denials[0]["is_revoked"], False)
+        denialentity = models.DenialEntity.objects.get(pk=denials[0]["id"])
+        denialentity.denial.is_revoked = True
+        denialentity.denial.save()
+
+        response = self.client.patch(
+            reverse("external_data:denial-detail", kwargs={"pk": denials[0]["id"]}),
+            {
+                "is_revoked": False,
+            },
+            **self.gov_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(response["is_revoked"], False)
+        self.assertEqual(response["is_revoked_comment"], "")
+
     def test_view_denial_notifications_on_the_application(self):
         data = []
         for index in range(10):

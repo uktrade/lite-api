@@ -81,16 +81,16 @@ def test_populate_denials(mock_json_content, mock_delete_file, json_file_data):
     call_command("ingest_denials", "json_file", rebuild=True)
     assert DenialEntity.objects.all().count() == 3
     denial_record = DenialEntity.objects.all()[0]
-    assert denial_record.reference == "DN001\/0003"
+    assert denial_record.denial.reference == "DN001\/0003"
     assert denial_record.name == "Test1 case"
     assert denial_record.address == "somewhere\nmid\nlatter\nCairo"
-    assert denial_record.notifying_government == "United Kingdom"
+    assert denial_record.denial.notifying_government == "United Kingdom"
     assert denial_record.country == "United States"
-    assert denial_record.item_list_codes == "123456"
-    assert denial_record.item_description == "phone"
-    assert denial_record.end_use == "locating phone"
-    assert denial_record.regime_reg_ref == "12"
-    assert denial_record.reason_for_refusal == "reason a"
+    assert denial_record.denial.item_list_codes == "123456"
+    assert denial_record.denial.item_description == "phone"
+    assert denial_record.denial.end_use == "locating phone"
+    assert denial_record.denial.regime_reg_ref == "12"
+    assert denial_record.denial.reason_for_refusal == "reason a"
     assert denial_record.spire_entity_id == 1234
 
     mock_delete_file.assert_called_with(document_id="json_file", s3_key="json_file")
