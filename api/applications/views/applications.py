@@ -273,7 +273,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             save_and_audit_have_you_been_informed_ref(request, application, serializer)
             serializer.save()
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.F680, CaseTypeSubTypeEnum.OPEN]:
             serializer.save()
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
