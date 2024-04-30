@@ -1,5 +1,5 @@
-from api.cases.enums import AdviceType, CaseTypeEnum, CaseTypeSubTypeEnum, AdviceLevel
-from api.cases.models import Advice, GoodCountryDecision
+from api.cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
+from api.cases.models import Advice
 from api.applications.models import GoodOnApplication
 
 

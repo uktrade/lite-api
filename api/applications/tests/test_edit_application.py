@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.libraries.case_status_helpers import get_case_statuses
+from api.applications.tests.factories import CryptoOIELFactory
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -159,3 +160,38 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         audit = Audit.objects.get(verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE)
         self.assertEqual(audit.payload, {"old_ref_number": "no reference"})
+
+
+class EditCryptoOpenApplicationTests(DataTestClient):
+    def test_edit_unsubmitted_crypto_application_name_success(self):
+        application = CryptoOIELFactory(organisation=self.organisation)
+
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        response = self.client.put(url, {"name": "Crypto OIEL"}, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.name, "Crypto OIEL")
+
+    def test_crypto_application_edit_additional_info(self):
+        application = CryptoOIELFactory(organisation=self.organisation)
+
+        url = reverse("applications:application", kwargs={"pk": application.id})
+        data = {
+            "nature_of_products": "Cryptographic products",
+            "siels_issued_last_year": True,
+            "number_of_siels_last_year": 5,
+            "destination_countries": "Australia, Japan",
+            "purely_commercial": True,
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.nature_of_products, "Cryptographic products")
+        self.assertTrue(application.siels_issued_last_year)
+        self.assertEqual(application.number_of_siels_last_year, "5")
+        self.assertEqual(application.destination_countries, "Australia, Japan")
+        self.assertTrue(application.purely_commercial)

@@ -397,6 +397,12 @@ class OpenApplication(BaseApplication):
         default="",
         blank=True,
     )
+    nature_of_products = models.TextField(default="", blank=True)
+    siels_issued_last_year = models.BooleanField(default=None, blank=True, null=True)
+    number_of_siels_last_year = models.CharField(default="", blank=True, max_length=5)
+    destination_countries = models.TextField(default="", blank=True)
+    purely_commercial = models.BooleanField(default=None, blank=True, null=True)
+
     objects = OpenApplicationManager()
 
     def post_submit(self):

@@ -44,7 +44,14 @@ class OpenApplicationCreateSerializer(serializers.ModelSerializer):
 class OpenApplicationUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = OpenApplication
-        fields = ("name",)
+        fields = (
+            "name",
+            "nature_of_products",
+            "siels_issued_last_year",
+            "number_of_siels_last_year",
+            "destination_countries",
+            "purely_commercial",
+        )
 
 
 class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -85,6 +92,11 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 "appeal",
                 "sub_status",
                 "goods_category",
+                "nature_of_products",
+                "siels_issued_last_year",
+                "number_of_siels_last_year",
+                "destination_countries",
+                "purely_commercial",
             )
         )
 
