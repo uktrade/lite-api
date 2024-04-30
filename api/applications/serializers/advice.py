@@ -65,6 +65,7 @@ class AdviceViewSerializer(serializers.Serializer):
     ultimate_end_user = serializers.UUIDField(source="ultimate_end_user_id")
     consignee = serializers.UUIDField(source="consignee_id")
     third_party = serializers.UUIDField(source="third_party_id")
+    open_destination = serializers.UUIDField(source="open_destination_id")
     countersigned_by = PrimaryKeyRelatedSerializerField(
         queryset=GovUser.objects.all(), serializer=GovUserListSerializer
     )
@@ -124,6 +125,9 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
     )
     third_party = serializers.PrimaryKeyRelatedField(
         queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
+    )
+    open_destination = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.OPEN_DESTINATION), required=False
     )
     collated_pv_grading = serializers.CharField(default=None, allow_blank=True, allow_null=True, max_length=120)
 

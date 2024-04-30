@@ -473,6 +473,9 @@ class Advice(TimestampableModel):
     )
     consignee = models.ForeignKey("parties.Party", on_delete=models.CASCADE, related_name="consignee", null=True)
     third_party = models.ForeignKey("parties.Party", on_delete=models.CASCADE, related_name="third_party", null=True)
+    open_destination = models.ForeignKey(
+        "parties.Party", on_delete=models.CASCADE, related_name="open_destination", null=True
+    )
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
