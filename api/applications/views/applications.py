@@ -23,6 +23,7 @@ from api.appeals.models import Appeal
 from api.appeals.serializers import AppealSerializer
 from api.applications import constants
 from api.applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
+from api.applications.enums import GoodsTypeCategory
 from api.applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -272,7 +273,14 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             save_and_audit_have_you_been_informed_ref(request, application, serializer)
             serializer.save()
 
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.F680, CaseTypeSubTypeEnum.OPEN]:
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+            serializer.save()
+
+        if (
+            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
+            and hasattr(application, "goods_category")
+            and application.goods_category == GoodsTypeCategory.CRYPTOGRAPHIC
+        ):
             serializer.save()
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
