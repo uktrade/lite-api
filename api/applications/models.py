@@ -44,6 +44,7 @@ from api.parties.enums import PartyType
 from api.parties.models import Party
 from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
+from api.staticdata.countries.models import Country
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.regimes.enums import RegimeSubsectionsEnum
@@ -175,6 +176,10 @@ class ApplicationPartyMixin:
         Standard and HMRC Query applications
         """
         return self.active_parties.filter(party__type=PartyType.THIRD_PARTY)
+
+    @property
+    def open_destinations(self):
+        return self.active_parties.filter(party__type=PartyType.OPEN_DESTINATION)
 
 
 class BaseApplication(ApplicationPartyMixin, Case):
@@ -401,7 +406,7 @@ class OpenApplication(BaseApplication):
 
     def post_submit(self):
         post_submit_actions = {
-            GoodsTypeCategory.CRYPTOGRAPHIC: self._create_canned_crypto_products,
+            GoodsTypeCategory.CRYPTOGRAPHIC: self._create_canned_crypto_entities,
         }
         try:
             post_submit_actions[self.goods_category]()
@@ -488,10 +493,26 @@ class OpenApplication(BaseApplication):
             RegimeEntry.objects.get(subsection__id=RegimeSubsectionsEnum.WASSENAAR_ARRANGEMENT)
         )
 
-    def _create_canned_crypto_products(self):
+    def _create_canned_crypto_parties(self):
+        # TODO: Be more exhaustive here..
+        allowed_crypto_destinations = [
+            ("IS", "Iceland"),
+        ]
+        for country_code, name in allowed_crypto_destinations:
+            party, _ = Party.objects.get_or_create(
+                name=f"Permitted Cryptography OIEL destination; {name}",
+                country=Country.objects.get(id=country_code),
+                organisation=self.organisation,
+                address="",
+                type=PartyType.OPEN_DESTINATION,
+            )
+            PartyOnApplication.objects.create(application=self, party=party)
+
+    def _create_canned_crypto_entities(self):
         self._create_canned_crypto_hardware()
         self._create_canned_crypto_software()
         self._create_canned_crypto_technology()
+        self._create_canned_crypto_parties()
 
 
 class ApplicationDocument(Document):
