@@ -1,4 +1,4 @@
-from api.applications.models import BaseApplication, StandardApplication, F680Application, OpenApplication
+from api.applications.models import BaseApplication, F680Application, OpenApplication, StandardApplication
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.exceptions import NotFoundError
 

@@ -2,8 +2,10 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from api.applications.enums import GoodsTypeCategory
 from api.applications.models import OpenApplication
 from api.applications.mixins.serializers import PartiesSerializerMixin
+from api.core.serializers import KeyValueChoiceField
 
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -53,13 +55,6 @@ class OpenApplicationUpdateSerializer(serializers.ModelSerializer):
 
 
 class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
-
-    class Meta:
-        model = OpenApplication
-        fields = GenericApplicationViewSerializer.Meta.fields
-
-
-class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
@@ -67,6 +62,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     sanction_matches = serializers.SerializerMethodField()
     is_amended = serializers.SerializerMethodField()
     sub_status = CaseSubStatusSerializer()
+    goods_category = KeyValueChoiceField(choices=GoodsTypeCategory.choices)
 
     class Meta:
         model = OpenApplication
@@ -95,6 +91,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 "appeal_deadline",
                 "appeal",
                 "sub_status",
+                "goods_category",
                 "nature_of_products",
                 "siels_issued_last_year",
                 "number_of_siels_last_year",

@@ -8,7 +8,6 @@ from rest_framework import status
 
 from api.applications.enums import LicenceDuration
 from api.applications.views.helpers.advice import CounterSignatureIncompleteError
-from api.applications.libraries.licence import get_default_duration
 from api.applications.tests.factories import GoodOnApplicationFactory
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
@@ -113,7 +112,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_default_duration_no_permission_finalise_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
-        data = {"action": AdviceType.APPROVE, "duration": get_default_duration(self.standard_application)}
+        data = {"action": AdviceType.APPROVE, "duration": self.standard_application.get_default_licence_duration()}
         data.update(self.post_date)
 
         response = self.client.put(self.url, data=data, **self.gov_headers)
@@ -132,7 +131,7 @@ class FinaliseApplicationTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["duration"], get_default_duration(self.standard_application))
+        self.assertEqual(response_data["duration"], self.standard_application.get_default_licence_duration())
         self.assertTrue(Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).exists())
 
     def test_no_permissions_finalise_failure(self):
@@ -683,7 +682,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
         self.date = timezone.now()
         self.data = {
             "action": AdviceType.APPROVE,
-            "duration": get_default_duration(self.standard_application),
+            "duration": self.standard_application.get_default_licence_duration(),
             "year": self.date.year,
             "month": self.date.month,
             "day": self.date.day,
