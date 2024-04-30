@@ -8,11 +8,12 @@ from api.applications.models import DenialMatchOnApplication
 from api.external_data.serializers import DenialEntitySerializer, DenialSerializer
 from rest_framework import serializers
 
+
 from elasticsearch_dsl import connections
 
 from api.documents.libraries import s3_operations
 from api.external_data import documents
-
+from api.external_data.helpers import get_denial_entity_enum
 from api.external_data.models import DenialEntity
 
 log = logging.getLogger(__name__)
@@ -81,9 +82,11 @@ class Command(BaseCommand):
                 ).exists()
                 if exists:
                     continue
+
             denial_entity_data = {field: row.pop(field, None) for field in self.required_headers_denial_entity}
             denial_data = {field: row.pop(field, None) for field in self.required_headers_denial}
             denial_entity_data["data"] = row
+            denial_entity_data["entity_type"] = get_denial_entity_enum(denial_entity_data["data"])
             denial_serializer = DenialSerializer(data=denial_data)
             denial_entity_serializer = DenialEntitySerializer(data=denial_entity_data)
 

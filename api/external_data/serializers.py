@@ -35,7 +35,6 @@ class DenialSerializer(serializers.ModelSerializer):
 
 
 class DenialEntitySerializer(serializers.ModelSerializer):
-    entity_type = serializers.SerializerMethodField()
     regime_reg_ref = serializers.CharField(source="denial.regime_reg_ref", required=False)
     reference = serializers.CharField(source="denial.reference", required=False)
     item_list_codes = serializers.CharField(source="denial.item_list_codes", required=False)
@@ -96,9 +95,6 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             instance.denial.save()
         return instance
 
-    def get_entity_type(self, obj):
-        return get_denial_entity_type(obj.data)
-
 
 class DenialFromCSVFileSerializer(serializers.Serializer):
 
@@ -109,6 +105,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         "address",
         "country",
         "spire_entity_id",
+        "entity_type",
     ]
 
     required_headers_denial = [
@@ -178,6 +175,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
                 denial_entity_lookup_fields = {
                     "name": serializer.validated_data["name"],
                     "address": serializer.validated_data["address"],
+                    "entity_type": serializer.validated_data["entity_type"],
                 }
                 # Link the validated DenialEntity data with the Denial
 
@@ -186,10 +184,6 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
                 denial_entity, is_denial_entity_created = models.DenialEntity.objects.update_or_create(
                     defaults=serializer.validated_data, denial=denial, **denial_entity_lookup_fields
                 )
-                # Store any extra columns in csv not already captured in data dict
-                denial_entity.data = {field: row[field] for field in row if field not in self.required_headers}
-                denial_entity.entity_type = get_denial_entity_type(denial_entity.data)
-                denial_entity.save()
 
                 if is_denial_entity_created:
                     logging_counts["denial_entity"]["created"] += 1

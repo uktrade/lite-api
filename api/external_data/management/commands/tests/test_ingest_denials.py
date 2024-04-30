@@ -46,7 +46,7 @@ def json_file_data():
                         "item_list_codes": "12345\/2009",
                         "item_description": "testing machine",
                         "end_use": "For teaching purposes",
-                        "end_user_flag": "true",
+                        "end_user_flag": "false",
                         "consignee_flag": "true",
                         "reason_for_refusal": "reason b",
                         "spire_entity_id": 1235,
@@ -65,6 +65,21 @@ def json_file_data():
                         "reason_for_refusal": "reason c",
                         "spire_entity_id": 1236,
                     },
+                    {
+                        "reference": "DN001\/0000",
+                        "regime_reg_ref": "12345",
+                        "name": "Test4 case",
+                        "address": "antartica",
+                        "notifying_government": "United States",
+                        "country": "Italy",
+                        "item_description": "lazer",
+                        "end_use": "testing",
+                        "end_user_flag": "false",
+                        "consignee_flag": "false",
+                        "other_role": "my role",
+                        "reason_for_refusal": "reason c",
+                        "spire_entity_id": 1236,
+                    },
                 ]
             )
         )
@@ -79,7 +94,7 @@ def test_populate_denials(mock_json_content, mock_delete_file, json_file_data):
     mock_json_content.return_value = json_file_data
 
     call_command("ingest_denials", "json_file", rebuild=True)
-    assert DenialEntity.objects.all().count() == 3
+    assert DenialEntity.objects.all().count() == 4
     denial_record = DenialEntity.objects.all()[0]
     assert denial_record.denial.reference == "DN001\/0003"
     assert denial_record.name == "Test1 case"
@@ -133,7 +148,7 @@ def test_populate_denials_with_existing_matching_records(mock_get_file, mock_del
 
     call_command("ingest_denials", "json_file")
 
-    assert DenialEntity.objects.all().count() == 3
+    assert DenialEntity.objects.all().count() == 4
 
 
 @pytest.mark.django_db
