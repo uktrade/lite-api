@@ -36,7 +36,7 @@ class DenialViewSetTests(DataTestClient):
         self.assertEqual(
             list(
                 models.DenialEntity.objects.values(
-                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity, "data"
+                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity
                 )
             ),
             [
@@ -45,28 +45,28 @@ class DenialViewSetTests(DataTestClient):
                     "address": "1000 Street Name, City Name",
                     "country": "Country Name",
                     "spire_entity_id": 123,
-                    "data": {},
+                    "entity_type": "end_user",
                 },
                 {
                     "name": "Organisation Name 3",
                     "address": "2001 Street Name, City Name 3",
                     "country": "Country Name 3",
                     "spire_entity_id": 125,
-                    "data": {},
+                    "entity_type": "consignee",
                 },
                 {
                     "name": "The Widget Company",
                     "address": "2 Example Road, Example City",
                     "country": "Country Name X",
                     "spire_entity_id": 126,
-                    "data": {},
+                    "entity_type": "end_user",
                 },
                 {
                     "name": "Organisation Name XYZ",
                     "address": "2000 Street Name, City Name 2",
                     "country": "Country Name 2",
                     "spire_entity_id": 124,
-                    "data": {},
+                    "entity_type": "third_party",
                 },
             ],
         )
@@ -122,11 +122,62 @@ class DenialViewSetTests(DataTestClient):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {"errors": {"csv_file": ["Missing required headers in CSV file"]}})
 
+    def test_create_and_set_entity_type(self):
+        url = reverse("external_data:denial-list")
+        content = """
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123,end_user
+        DN2000/0010,AB-CD-EF-300,Organisation Name 3,"2001 Street Name, City Name 3",Country Name 3,Country Name 3,0A00201,Unspecified Size Widget,Used in other industry,Risk of outcome 3,125,consignee
+        DN2010/0001,AB-XY-EF-900,The Widget Company,"2 Example Road, Example City",Example Country,Country Name X,"catch all",Extra Large Size Widget,Used in unknown industry,Risk of outcome 4,126,third_party
+        DN3000/0000,AB-CD-EF-100,Organisation Name XYZ,"2000 Street Name, City Name 2",Country Name 2,Country Name 2,0A00200,Large Size Widget,Used in other industry,Risk of outcome 2,124,end_user
+        """
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(models.DenialEntity.objects.count(), 4)
+        self.assertEqual(
+            list(
+                models.DenialEntity.objects.values(
+                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity
+                )
+            ),
+            [
+                {
+                    "name": "Organisation Name",
+                    "address": "1000 Street Name, City Name",
+                    "country": "Country Name",
+                    "spire_entity_id": 123,
+                    "entity_type": "end_user",
+                },
+                {
+                    "name": "Organisation Name 3",
+                    "address": "2001 Street Name, City Name 3",
+                    "country": "Country Name 3",
+                    "spire_entity_id": 125,
+                    "entity_type": "consignee",
+                },
+                {
+                    "name": "The Widget Company",
+                    "address": "2 Example Road, Example City",
+                    "country": "Country Name X",
+                    "spire_entity_id": 126,
+                    "entity_type": "third_party",
+                },
+                {
+                    "name": "Organisation Name XYZ",
+                    "address": "2000 Street Name, City Name 2",
+                    "country": "Country Name 2",
+                    "spire_entity_id": 124,
+                    "entity_type": "end_user",
+                },
+            ],
+        )
+
     def test_update_success(self):
         url = reverse("external_data:denial-list")
         content = """
-        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id
-        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123,end_user
         """
 
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
@@ -151,7 +202,7 @@ class DenialViewSetTests(DataTestClient):
         self.assertEqual(
             list(
                 models.DenialEntity.objects.values(
-                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity, "data"
+                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity
                 )
             ),
             [
@@ -160,13 +211,13 @@ class DenialViewSetTests(DataTestClient):
                     "address": "1000 Street Name, City Name",
                     "country": "Country Name",
                     "spire_entity_id": 123,
-                    "data": {},
+                    "entity_type": "end_user",
                 },
             ],
         )
         updated_content = """
-        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id
-        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name 2,Country Name 2,0A00200,Medium Size Widget 2, Used in industry 2,Risk of outcome 2,124
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name 2,Country Name 2,0A00200,Medium Size Widget 2, Used in industry 2,Risk of outcome 2,124,end_user
         """
         response = self.client.post(url, {"csv_file": updated_content}, **self.gov_headers)
         self.assertEqual(response.status_code, 201)
@@ -189,7 +240,7 @@ class DenialViewSetTests(DataTestClient):
         self.assertEqual(
             list(
                 models.DenialEntity.objects.values(
-                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity, "data"
+                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity
                 )
             ),
             [
@@ -198,15 +249,15 @@ class DenialViewSetTests(DataTestClient):
                     "address": "1000 Street Name, City Name",
                     "country": "Country Name 2",
                     "spire_entity_id": 124,
-                    "data": {},
+                    "entity_type": "end_user",
                 }
             ],
         )
 
     def test_create_error_serializer_errors(self):
         url = reverse("external_data:denial-list")
-        content = """reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id
-        ,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123
+        content = """reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        ,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123,end_user
         """
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, 400)
