@@ -7,7 +7,7 @@ from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
 from api.external_data import documents, models
-from api.external_data.helpers import get_denial_entity_type
+from api.external_data.helpers import get_denial_entity_type_from_db
 from api.flags.enums import SystemFlags
 
 
@@ -250,7 +250,7 @@ class DenialSearchSerializer(DocumentSerializer):
         )
 
     def get_entity_type(self, obj):
-        return get_denial_entity_type(obj.data.to_dict())
+        return get_denial_entity_type_from_db(obj.entity_type)
 
 
 class SanctionMatchSerializer(serializers.ModelSerializer):

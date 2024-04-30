@@ -1,6 +1,17 @@
 from api.external_data.enums import DenialEntityType
 
 
+def get_denial_entity_type_from_db(entity_type):
+    if entity_type == DenialEntityType.END_USER:
+        return "End-user"
+    elif entity_type == DenialEntityType.CONSIGNEE:
+        return "Consignee"
+    elif entity_type == DenialEntityType.THIRD_PARTY:
+        return "Third-party"
+    else:
+        return ""
+
+
 def get_denial_entity_type(data):
     entity_type = ""
     for key in ["end_user_flag", "consignee_flag"]:
