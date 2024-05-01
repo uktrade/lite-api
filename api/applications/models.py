@@ -19,6 +19,7 @@ from api.applications.enums import (
     F680ProductMTCRRatingType,
     GoodsTypeCategory,
 )
+from api.applications.constants import CryptoOIEL as CryptoOIELConstants
 from api.appeals.models import Appeal
 from api.applications.managers import (
     BaseApplicationManager,
@@ -500,14 +501,12 @@ class OpenApplication(BaseApplication):
         )
 
     def _create_canned_crypto_parties(self):
-        # TODO: Be more exhaustive here..
-        allowed_crypto_destinations = [
-            ("IS", "Iceland"),
-        ]
-        for country_code, name in allowed_crypto_destinations:
+        excluded_crypto_destinations = [entry[1] for entry in CryptoOIELConstants.EXCLUDED_COUNTRIES]
+        all_crypto_destinations = Country.objects.all().exclude(id__in=excluded_crypto_destinations)
+        for country in all_crypto_destinations:
             party, _ = Party.objects.get_or_create(
-                name=f"Permitted Cryptography OIEL destination; {name}",
-                country=Country.objects.get(id=country_code),
+                name=f"Permitted Cryptography OIEL destination; {country.name}",
+                country=country,
                 organisation=self.organisation,
                 address="",
                 type=PartyType.OPEN_DESTINATION,
