@@ -59,3 +59,8 @@ def schedule_licence_details_to_lite_hmrc(licence_id, action):
     logger.info("Scheduling task to %s licence %s details in lite-hmrc", action, licence.reference_code)
 
     send_licence_details_to_lite_hmrc.delay(licence_id, action)
+
+
+def schedule_sending_open_licence(licence_id, action):
+
+    send_licence_details_to_lite_hmrc.delay(licence_id, action)
