@@ -25,6 +25,7 @@ class AdviceDataWorkspaceTests(DataTestClient):
             "updated_at",
             "text",
             "note",
+            "open_destination",
             "level",
             "footnote",
             "footnote_required",

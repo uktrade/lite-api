@@ -24,6 +24,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
     ultimate_end_users = serializers.SerializerMethodField(required=False)
     third_parties = serializers.SerializerMethodField(required=False)
     consignee = serializers.SerializerMethodField(required=False)
+    open_destinations = serializers.SerializerMethodField(required=False)
     inactive_parties = serializers.SerializerMethodField(required=False)
 
     class Meta:
@@ -33,6 +34,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
             "third_parties",
             "consignee",
             "inactive_parties",
+            "open_destinations",
         )
 
     __cache = None
@@ -83,6 +85,9 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
     def get_consignee(self, instance):
         data = self.__parties(instance, PartyType.CONSIGNEE)
         return data[0] if data else None
+
+    def get_open_destinations(self, instance):
+        return self.__parties(instance, PartyType.OPEN_DESTINATION)
 
     def get_inactive_parties(self, instance):
         return self.__parties(instance, PartyType.INACTIVE_PARTIES)

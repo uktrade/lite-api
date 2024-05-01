@@ -385,7 +385,6 @@ class ApplicationSubmission(APIView):
 
         if application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
         ]:
             if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):

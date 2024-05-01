@@ -4,6 +4,7 @@ class PartyType:
     ULTIMATE_END_USER = "ultimate_end_user"
     THIRD_PARTY = "third_party"
     ADDITIONAL_CONTACT = "additional_contact"
+    OPEN_DESTINATION = "open_destination"
 
     INACTIVE_PARTIES = "inactive_parties"
 
@@ -13,6 +14,7 @@ class PartyType:
         (ULTIMATE_END_USER, "Ultimate end-user"),
         (THIRD_PARTY, "Third party"),
         (ADDITIONAL_CONTACT, "Additional contact"),
+        (OPEN_DESTINATION, "Open destination"),
     ]
 
     @classmethod

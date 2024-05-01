@@ -345,6 +345,7 @@ jobs:
             TEMPORARY_BRANCH_NAME+=$(cat /proc/sys/kernel/random/uuid)
             git clone git@github.com:uktrade/lite-frontend.git
             cd lite-frontend
+            git checkout crypto-oiels-advice
             git config user.email $GIT_EMAIL
             git config user.name "LITE CI"
             git checkout -b $TEMPORARY_BRANCH_NAME
