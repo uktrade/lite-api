@@ -272,7 +272,7 @@ class OrganisationStatusView(generics.UpdateAPIView):
 
 
 class ValidateRegistrationNumber(generics.RetrieveAPIView):
-    # authentication_classes = (SharedAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     serializer_class = OrganisationRegistrationNumberSerializer
 
     def post(self, request, *args, **kwargs):

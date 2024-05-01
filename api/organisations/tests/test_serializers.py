@@ -1,6 +1,7 @@
 import pytest
 from rest_framework import serializers
-
+from parameterized import parameterized
+from test_helpers.clients import DataTestClient
 from api.organisations.serializers import OrganisationCreateUpdateSerializer, OrganisationRegistrationNumberSerializer
 
 
@@ -9,7 +10,7 @@ class SimpleOrganisationCreateUpdateSerializer(OrganisationCreateUpdateSerialize
     site = serializers.CharField(required=False)
 
 
-class TestOrganisationCreateUpdateSerializer:
+class TestOrganisationCreateUpdateSerializer(DataTestClient):
     non_phone_data = {
         "name": "Bob",
         "eori_number": "XI808372974736884",
@@ -21,8 +22,7 @@ class TestOrganisationCreateUpdateSerializer:
         "phone_number": "",
     }
 
-    @pytest.mark.parametrize(
-        "phone,exp_number",
+    @parameterized.expand(
         [
             ("+44 1234 567921", "+441234567921"),
             ("+44-1234-567921", "+441234567921"),
@@ -33,53 +33,48 @@ class TestOrganisationCreateUpdateSerializer:
             ("(01234) - 567921", "+441234567921"),
             ("01234567921", "+441234567921"),
             ("(07777)567921", "+447777567921"),
-        ],
+        ]
     )
-    @pytest.mark.django_db()
     def test_phone_number_validation_success(self, phone, exp_number):
         data = self.non_phone_data
         data["phone_number"] = phone
 
         subj = SimpleOrganisationCreateUpdateSerializer(data=data)
 
-        assert subj.is_valid()
-        assert subj._validated_data["phone_number"] == exp_number
+        self.assertTrue(subj.is_valid())
+        self.assertEqual(subj._validated_data["phone_number"], exp_number)
 
-    @pytest.mark.parametrize(
-        "phone",
+    @parameterized.expand(
         [
-            "9234 567921",
-            "(9234) 567921",
-            "67921",
-            "banana",
-            "01234@567921",
+            ("9234 567921"),
+            ("(9234) 567921"),
+            ("67921"),
+            ("banana"),
+            ("01234@567921"),
         ],
     )
-    @pytest.mark.django_db()
     def test_phone_number_validation_failure(self, phone):
         data = self.non_phone_data
         data["phone_number"] = phone
 
         subj = SimpleOrganisationCreateUpdateSerializer(data=data)
 
-        assert not subj.is_valid()
+        self.assertFalse(subj.is_valid())
 
 
-class TestOrganisationRegistrationNumberSerializer:
-    @pytest.mark.parametrize(
-        "reg_number, expected",
+class TestOrganisationRegistrationNumberSerializer(DataTestClient):
+    @parameterized.expand(
         [("12345678", "12345678"), ("GB123456", "GB123456")],
     )
-    @pytest.mark.django_db()
     def test_registration_number_validation_success(self, reg_number, expected):
         data = {"registration_number": reg_number}
 
         subj = OrganisationRegistrationNumberSerializer(data=data)
-        assert subj.is_valid()
-        assert subj._validated_data["registration_number"] == expected
+        self.assertTrue(subj.is_valid())
+        self.assertEqual(subj._validated_data["registration_number"], expected)
 
     def test_registration_number_validation_fail(self):
         data = {"registration_number": ""}
 
         subj = OrganisationRegistrationNumberSerializer(data=data)
-        assert subj.is_valid() is False
+        self.assertFalse(subj.is_valid())
