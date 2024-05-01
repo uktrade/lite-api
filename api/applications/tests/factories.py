@@ -113,7 +113,6 @@ class CryptoOIELFactory(factory.django.DjangoModelFactory):
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
         obj.submit()
-        PartyOnApplicationFactory(application=obj, party__type="end_user")
         return obj
 
 
