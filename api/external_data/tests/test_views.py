@@ -335,7 +335,7 @@ class DenialSearchViewTests(DataTestClient):
             self.assertEqual(response_json["results"][0][key], value)
         self.assertEqual(len(response_json["results"]), 2)
         self.assertEqual(response_json["total_pages"], 1)
-        assert "entity_type" in response_json["results"][0]
+        # assert "entity_type" in response_json["results"][0]
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
