@@ -38,35 +38,26 @@ def denials_data_migration(apps, schema_editor):
     )
     total_null_regime_reg_ref.delete()
 
-    with transaction.atomic():
-        sid = transaction.savepoint()
-        denials_to_create = []
-        denials_to_update = []
-        for denial_entity in DenialEntity.objects.all():
-            denial_entity_dict = {
-                key: value for (key, value) in model_to_dict(denial_entity).items() if key in required_fields
-            }
+    denials_to_create = []
+    denials_entitiy_to_update = []
+    denials_dict_map = {}
+    for denial_entity in DenialEntity.objects.all():
+        denial_entity_dict = {
+            key: value for (key, value) in model_to_dict(denial_entity).items() if key in required_fields
+        }
+        denials_dict_map[denial_entity_dict["regime_reg_ref"]] = denial_entity_dict
+    
+    for denials_dict_map_item in denials_dict_map.values():
+        denial = Denial(**denials_dict_map_item)
+        denials_to_create.append(denial)
 
-            try:
-                denial = Denial.objects.get(**denial_entity_dict)
-            except Denial.DoesNotExist:
-                denial = Denial(**denial_entity_dict)
-                denials_to_create.append(denial)
+    Denial.objects.bulk_create(denials_to_create)
 
-            denial_entity.denial = denial
-            denials_to_update.append(denial_entity)
-
-        try:
-            Denial.objects.bulk_create(denials_to_create)
-        except IntegrityError:
-            log.exception("There were errors creating denial objects")
-            transaction.savepoint_rollback(sid)
-            return
-
-        DenialEntity.objects.bulk_update(denials_to_update, ["denial"])
-
-        transaction.savepoint_commit(sid)
-
+    for denial_entity in DenialEntity.objects.all():
+        denial_entity.denial = Denial.objects.get(regime_reg_ref=denial_entity.regime_reg_ref)
+        denials_entitiy_to_update.append(denial_entity)
+    
+    DenialEntity.objects.bulk_update(denials_entitiy_to_update, ["denial"])
 
 class Migration(migrations.Migration):
     dependencies = [
