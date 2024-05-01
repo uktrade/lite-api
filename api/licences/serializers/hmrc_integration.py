@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
+from api.applications.constants import CryptoOIEL
 from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action, HMRCIntegrationActionEnum
-from api.licences.helpers import get_approved_goods_types, get_approved_countries
+from api.licences.helpers import get_approved_goods_types
 from api.licences.models import Licence
+from api.staticdata.countries.models import Country
 
 
 class HMRCIntegrationCountrySerializer(serializers.Serializer):
@@ -91,13 +93,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         if not (hasattr(self.instance.case, "baseapplication") and self.instance.case.baseapplication.end_user):
             self.fields.pop("end_user")
 
-        if (
-            hasattr(self.instance.case, "baseapplication")
-            and not (
-                hasattr(self.instance.case.baseapplication, "openapplication")
-                and self.instance.case.baseapplication.openapplication.application_countries.exists()
-            )
-            and not hasattr(self.instance.case, "opengenerallicencecase")
+        if hasattr(self.instance.case, "baseapplication") and not (
+            hasattr(self.instance.case.baseapplication, "openapplication")
         ):
             self.fields.pop("countries")
 
@@ -117,15 +114,12 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         )
 
     def get_countries(self, instance):
+        countries = []
         if hasattr(instance.case, "baseapplication") and hasattr(instance.case.baseapplication, "openapplication"):
-            countries = get_approved_countries(instance.case.baseapplication)
-        else:
-            countries = instance.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
+            excluded_crypto_destinations = [entry[1] for entry in CryptoOIEL.EXCLUDED_COUNTRIES]
+            countries = Country.objects.filter(id__in=excluded_crypto_destinations)
 
-        return HMRCIntegrationCountrySerializer(
-            countries,
-            many=True,
-        ).data
+        return HMRCIntegrationCountrySerializer(countries, many=True).data
 
     def get_goods(self, instance):
         if instance.goods.exists():

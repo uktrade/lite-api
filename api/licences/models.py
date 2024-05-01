@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from api.applications.models import GoodOnApplication
+from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.core.helpers import add_months
@@ -94,9 +95,14 @@ class Licence(TimestampableModel):
             self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
-        from api.licences.celery_tasks import schedule_licence_details_to_lite_hmrc
+        from api.licences.celery_tasks import schedule_licence_details_to_lite_hmrc, schedule_sending_open_licence
 
-        schedule_licence_details_to_lite_hmrc(str(self.id), licence_status_to_hmrc_integration_action.get(self.status))
+        if self.case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            schedule_licence_details_to_lite_hmrc(
+                str(self.id), licence_status_to_hmrc_integration_action.get(self.status)
+            )
+        elif self.case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            schedule_sending_open_licence(str(self.id), licence_status_to_hmrc_integration_action.get(self.status))
 
 
 class GoodOnLicence(TimestampableModel):
