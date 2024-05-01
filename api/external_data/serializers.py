@@ -8,7 +8,6 @@ from rest_framework import serializers
 
 from api.external_data import documents, models
 
-# from api.external_data.helpers import get_denial_entity_type_from_db
 from api.flags.enums import SystemFlags
 
 
