@@ -2,10 +2,10 @@
 
 from django.db import migrations
 from api.external_data.enums import DenialEntityType
-
+from django.conf import settings
 
 def get_denial_entity_type(data):
-
+    
     if isinstance(data, dict):
         entity_type = ""
         normalised_entity_type_dict = {keys.lower(): values.lower() for keys, values in data.items()}
@@ -27,7 +27,7 @@ def get_denial_entity_type(data):
 
 
 def set_denial_entity_type(apps, schema_editor):
-
+    settings.ELASTICSEARCH_DSL_AUTOSYNC = False
     DenialEntity = apps.get_model("external_data", "DenialEntity")
 
     for denial_entity in DenialEntity.objects.filter(entity_type__isnull=True):
@@ -38,6 +38,7 @@ def set_denial_entity_type(apps, schema_editor):
             denial_entity.entity_type = denial_entity_type
             denial_entity.save()
 
+    settings.ELASTICSEARCH_DSL_AUTOSYNC = True
 
 class Migration(migrations.Migration):
 
