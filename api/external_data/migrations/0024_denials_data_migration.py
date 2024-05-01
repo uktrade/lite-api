@@ -6,7 +6,7 @@ from django.forms.models import model_to_dict
 from django.db.models import Q
 from django.db import IntegrityError
 from django.db import transaction
-
+from django.conf import settings
 log = logging.getLogger(__name__)
 
 required_fields = [
@@ -22,6 +22,8 @@ required_fields = [
 ]
 
 def denials_data_migration(apps, schema_editor):
+    settings.ELASTICSEARCH_DSL_AUTOSYNC = False
+
     DenialEntity = apps.get_model("external_data", "DenialEntity")
     Denial = apps.get_model("external_data", "Denial")
 
@@ -54,8 +56,10 @@ def denials_data_migration(apps, schema_editor):
             )
             transaction.savepoint_rollback(sid)
         else:
-            transaction.savepoint_commit(sid)   
-
+            transaction.savepoint_commit(sid)
+     
+    settings.ELASTICSEARCH_DSL_AUTOSYNC = True
+    
 class Migration(migrations.Migration):
     dependencies = [
         ("external_data", "0023_set_denial_entity_type"),
