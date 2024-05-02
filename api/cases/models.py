@@ -521,6 +521,7 @@ class Advice(TimestampableModel):
                     country=self.country,
                     end_user=self.end_user,
                     ultimate_end_user=self.ultimate_end_user,
+                    open_destination=self.open_destination,
                     consignee=self.consignee,
                     third_party=self.third_party,
                 )
@@ -536,6 +537,7 @@ class Advice(TimestampableModel):
                     country=self.country,
                     end_user=self.end_user,
                     ultimate_end_user=self.ultimate_end_user,
+                    open_destination=self.open_destination,
                     consignee=self.consignee,
                     third_party=self.third_party,
                 )
