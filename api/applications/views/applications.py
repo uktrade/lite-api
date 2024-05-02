@@ -101,6 +101,7 @@ from api.users.models import ExporterUser
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
+from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
 
 
 class ApplicationList(ListCreateAPIView):
@@ -449,6 +450,11 @@ class ApplicationManageStatus(APIView):
                 notify_exporter_case_opened_for_editing(application)
 
         data = get_application_view_serializer(application)(application, context={"user_type": request.user.type}).data
+
+        # Remove needed flags when case is Withdrawn/Closed
+        if case_status.status in [CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED]:
+            remove_flags_on_finalisation(application.get_case())
+            remove_flags_from_audit_trail(application.get_case())
 
         return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
 

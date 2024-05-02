@@ -5,14 +5,15 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from api.applications.models import DenialMatchOnApplication
-from api.external_data.serializers import DenialEntitySerializer
+from api.external_data.serializers import DenialEntitySerializer, DenialSerializer
 from rest_framework import serializers
+
 
 from elasticsearch_dsl import connections
 
 from api.documents.libraries import s3_operations
 from api.external_data import documents
-
+from api.external_data.helpers import get_denial_entity_enum
 from api.external_data.models import DenialEntity
 
 log = logging.getLogger(__name__)
@@ -27,19 +28,21 @@ def get_json_content_and_delete(filename):
 
 class Command(BaseCommand):
 
-    required_headers = [
-        "reference",
-        "regime_reg_ref",
+    required_headers_denial_entity = [
         "name",
         "address",
-        "notifying_government",
         "country",
+        "spire_entity_id",
+    ]
+
+    required_headers_denial = [
+        "reference",
+        "regime_reg_ref",
+        "notifying_government",
         "item_list_codes",
         "item_description",
-        "consignee_name",
         "end_use",
         "reason_for_refusal",
-        "spire_entity_id",
     ]
 
     def add_arguments(self, parser):
@@ -49,7 +52,7 @@ class Command(BaseCommand):
     def rebuild_index(self):
         connection = connections.get_connection()
         connection.indices.delete(index=settings.ELASTICSEARCH_DENIALS_INDEX_ALIAS, ignore=[404])
-        documents.DenialDocumentType.init()
+        documents.DenialEntityDocument.init()
 
     @staticmethod
     def add_bulk_errors(errors, row_number, line_errors):
@@ -79,20 +82,32 @@ class Command(BaseCommand):
                 ).exists()
                 if exists:
                     continue
-            serializer = DenialEntitySerializer(
-                data={
-                    "data": row,
-                    **{field: row.pop(field, None) for field in self.required_headers},
-                }
-            )
-            if serializer.is_valid():
-                serializer.save()
+
+            denial_entity_data = {field: row.pop(field, None) for field in self.required_headers_denial_entity}
+            denial_data = {field: row.pop(field, None) for field in self.required_headers_denial}
+            denial_entity_data["data"] = row
+            denial_entity_data["entity_type"] = get_denial_entity_enum(denial_entity_data["data"])
+            denial_serializer = DenialSerializer(data=denial_data)
+            denial_entity_serializer = DenialEntitySerializer(data=denial_entity_data)
+
+            is_valid_denial = denial_serializer.is_valid()
+            is_valid_entity_denial = denial_entity_serializer.is_valid()
+
+            if is_valid_denial and is_valid_entity_denial:
+                denial = denial_serializer.save()
+                denial_entity = denial_entity_serializer.save()
+                denial_entity.denial = denial
+                denial_entity.save()
                 log.info(
                     "Saved row number -> %s",
                     i,
                 )
             else:
-                self.add_bulk_errors(errors=errors, row_number=i + 1, line_errors=serializer.errors)
+                self.add_bulk_errors(
+                    errors=errors,
+                    row_number=i + 1,
+                    line_errors={**denial_serializer.errors, **denial_entity_serializer.errors},
+                )
 
         if errors:
             log.exception(
