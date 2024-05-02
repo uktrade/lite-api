@@ -232,7 +232,6 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 
 
 class DenialSearchSerializer(DocumentSerializer):
-    entity_type = serializers.ReadOnlyField(source="denial.entity_type")
     regime_reg_ref = serializers.ReadOnlyField(source="denial.regime_reg_ref")
     reference = serializers.ReadOnlyField(source="denial.reference")
     notifying_government = serializers.ReadOnlyField(source="denial.notifying_government")
@@ -247,6 +246,7 @@ class DenialSearchSerializer(DocumentSerializer):
             "address",
             "country",
             "name",
+            "entity_type",
         )
 
 
