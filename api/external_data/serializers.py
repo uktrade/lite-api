@@ -9,6 +9,7 @@ from rest_framework import serializers
 from api.external_data import documents, models
 
 from api.flags.enums import SystemFlags
+from api.core.serializers import KeyValueChoiceField
 
 
 class DenialSerializer(serializers.ModelSerializer):
@@ -232,6 +233,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 
 
 class DenialSearchSerializer(DocumentSerializer):
+    entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.ReadOnlyField(source="denial.regime_reg_ref")
     reference = serializers.ReadOnlyField(source="denial.reference")
     notifying_government = serializers.ReadOnlyField(source="denial.notifying_government")
@@ -246,7 +248,6 @@ class DenialSearchSerializer(DocumentSerializer):
             "address",
             "country",
             "name",
-            "entity_type",
         )
 
 
