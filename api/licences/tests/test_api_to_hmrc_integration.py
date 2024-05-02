@@ -8,6 +8,7 @@ from rest_framework import status
 from django.test import override_settings
 from django.conf import settings
 
+from api.applications.tests.factories import CryptoOIELFactory
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum
 from api.cases.tests.factories import FinalAdviceFactory
 from api.core.constants import GovPermissions
@@ -21,10 +22,11 @@ from api.licences.libraries.hmrc_integration_operations import (
 )
 from api.licences.models import Licence, GoodOnLicence
 from api.licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
-from api.licences.tests.factories import StandardLicenceFactory
+from api.licences.tests.factories import CryptoOpenLicenceFactory, StandardLicenceFactory
 from api.licences.celery_tasks import (
     send_licence_details_to_lite_hmrc,
     schedule_licence_details_to_lite_hmrc,
+    schedule_sending_open_licence,
 )
 from api.licences.tests.factories import GoodOnLicenceFactory
 from api.staticdata.countries.factories import CountryFactory
@@ -642,3 +644,34 @@ class HMRCIntegrationTests(DataTestClient):
         self.create_generated_case_document(application, template, advice_type=AdviceType.APPROVE, licence=licence)
 
         return application, licence
+
+
+class HMRCIntegrationTasksTestsCryptoApplication(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        draft = CryptoOIELFactory(organisation=self.organisation)
+        self.crypto_application = self.submit_application(draft, self.exporter_user)
+        good = self.crypto_application.goods.first().good
+        FinalAdviceFactory(user=self.gov_user, case=self.crypto_application, good=good)
+        status = LicenceStatus.ISSUED
+        self.crypto_licence = CryptoOpenLicenceFactory(case=self.crypto_application, status=status)
+
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
+    @mock.patch("api.core.requests.requests.request")
+    def test_send_crypto_licence_to_hmrc_integration_success(self, mock_request):
+        mock_request.return_value = MockResponse("", 201)
+        self.assertIsNone(self.crypto_licence.hmrc_integration_sent_at)
+
+        schedule_sending_open_licence(str(self.crypto_licence.id), HMRCIntegrationActionEnum.INSERT)
+
+        self.crypto_licence.refresh_from_db()
+        self.assertIsNotNone(self.crypto_licence.hmrc_integration_sent_at)
+
+        expected_data = {"licence": HMRCIntegrationLicenceSerializer(self.crypto_licence).data}
+        mock_request.assert_called_once_with(
+            "POST",
+            f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            json=expected_data,
+            headers={"content-type": "application/json"},
+            timeout=LITE_HMRC_REQUEST_TIMEOUT,
+        )
