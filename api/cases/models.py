@@ -528,6 +528,7 @@ class Advice(TimestampableModel):
                     case=self.case,
                     good=self.good,
                     user=self.user,
+                    team=self.user.team,
                     level=AdviceLevel.USER,
                     goods_type=self.goods_type,
                     country=self.country,

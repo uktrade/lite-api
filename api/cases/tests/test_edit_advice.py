@@ -48,6 +48,28 @@ class EditCaseAdviceTests(DataTestClient):
         # Assert that there's only one piece of advice
         self.assertEqual(Advice.objects.count(), 1)
 
+    def test_edit_standard_case_advice_same_user_on_different_teams_saves_for_each_team(self):
+        """
+        Tests that a gov user can create two pieces of advice on the same
+        case item (be that a good or destination) as long as they change team
+        """
+        data = {
+            "type": AdviceType.APPROVE,
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "country": "GB",
+            "level": AdviceLevel.USER,
+        }
+
+        self.client.post(self.url, **self.gov_headers, data=[data])
+
+        self.gov_user.team = Team.objects.exclude(pk=self.gov_user.team.pk).first()
+        self.gov_user.save()
+        self.assertIsNotNone(self.gov_user.team)
+        self.client.post(self.url, **self.gov_headers, data=[data])
+
+        self.assertEqual(Advice.objects.count(), 2)
+
     def test_edit_standard_case_advice_updates_denial_reasons(self):
         data = {
             "type": AdviceType.REFUSE,
