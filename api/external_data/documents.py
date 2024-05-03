@@ -126,6 +126,18 @@ class DenialEntityDocument(Document):
                     "raw": fields.KeywordField(),
                 },
             ),
+            "is_revoked": fields.BooleanField(
+                attr="is_revoked",
+                fields={
+                    "raw": fields.KeywordField(),
+                },
+            ),
+            "is_revoked_comment": fields.TextField(
+                attr="is_revoked_comment",
+                fields={
+                    "raw": fields.KeywordField(),
+                },
+            ),
         },
     )
 
