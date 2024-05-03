@@ -18,3 +18,20 @@ class ReportSummarySubject(models.Model):
 
     def __repr__(self):
         return self.name
+
+
+class ReportSummary(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    prefix = models.ForeignKey(
+        ReportSummaryPrefix, blank=True, null=True, related_name="prefix", on_delete=models.DO_NOTHING
+    )
+    subject = models.ForeignKey(
+        ReportSummarySubject, blank=True, null=True, related_name="subject", on_delete=models.DO_NOTHING
+    )
+
+    def __repr__(self):
+        report_summary = self.subject.name
+        if self.prefix:
+            report_summary = f"{self.prefix.name} {self.subject.name}"
+
+        return report_summary
