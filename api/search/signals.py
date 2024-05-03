@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django_elasticsearch_dsl.signals import CelerySignalProcessor
 from django_elasticsearch_dsl.registries import registry
 
-from api.applications.models import BaseApplication, GoodOnApplication
+from api.applications.models import GoodOnApplication
 from api.goods.models import Good
 from api.search.celery_tasks import update_search_index
 
