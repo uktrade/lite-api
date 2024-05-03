@@ -76,7 +76,7 @@ class ESDSLSignalProcessorTest(DataTestClient):
     @patch.object(CelerySignalProcessor, "handle_save")
     def test_handle_save_registered_model(self, mock_handle_save):
         application = self.create_standard_application_case(self.organisation)
-        mock_handle_save.called == True
+        assert mock_handle_save.called == True
 
     @override_settings(LITE_API_ENABLE_ES=True)
     @patch.object(CelerySignalProcessor, "handle_save")
@@ -90,4 +90,4 @@ class ESDSLSignalProcessorTest(DataTestClient):
         application = self.create_standard_application_case(self.organisation)
         mock_handle_save.reset_mock()
         assignment = self.create_case_assignment(self.queue, application, self.gov_user)
-        mock_handle_save.called == True
+        assert mock_handle_save.called == True
