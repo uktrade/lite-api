@@ -25,9 +25,10 @@ class ReportSummary(models.Model):
     prefix = models.ForeignKey(
         ReportSummaryPrefix, blank=True, null=True, related_name="prefix", on_delete=models.DO_NOTHING
     )
-    subject = models.ForeignKey(
-        ReportSummarySubject, blank=True, null=True, related_name="subject", on_delete=models.DO_NOTHING
-    )
+    subject = models.ForeignKey(ReportSummarySubject, related_name="subject", on_delete=models.DO_NOTHING)
+
+    class Meta:
+        unique_together = [["prefix", "subject"]]
 
     def __repr__(self):
         report_summary = self.subject.name
