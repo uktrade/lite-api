@@ -36,6 +36,7 @@ class DenialSerializer(serializers.ModelSerializer):
 
 
 class DenialEntitySerializer(serializers.ModelSerializer):
+    entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.CharField(source="denial.regime_reg_ref", required=False)
     reference = serializers.CharField(source="denial.reference", required=False)
     item_list_codes = serializers.CharField(source="denial.item_list_codes", required=False)
@@ -63,10 +64,11 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "data",
             "is_revoked",
             "is_revoked_comment",
-            "entity_type",
             "reason_for_refusal",
             "spire_entity_id",
+            "entity_type",
         )
+
         extra_kwargs = {
             "is_revoked": {"required": False},
             "is_revoked_comment": {"required": False},
