@@ -116,6 +116,8 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         "item_description",
         "end_use",
         "reason_for_refusal",
+        "is_revoked",
+        "is_revoked_comment",
     ]
 
     @transaction.atomic
@@ -239,6 +241,8 @@ class DenialSearchSerializer(DocumentSerializer):
     item_list_codes = serializers.ReadOnlyField(source="denial.item_list_codes")
     item_description = serializers.ReadOnlyField(source="denial.item_description")
     end_use = serializers.ReadOnlyField(source="denial.end_use")
+    is_revoked = serializers.ReadOnlyField(source="denial.is_revoked")
+    is_revoked_comment = serializers.ReadOnlyField(source="denial.is_revoked_comment")
 
     class Meta:
         document = documents.DenialEntityDocument
