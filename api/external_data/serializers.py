@@ -44,6 +44,7 @@ class DenialEntitySerializer(serializers.ModelSerializer):
     is_revoked = serializers.BooleanField(source="denial.is_revoked", required=False)
     is_revoked_comment = serializers.CharField(source="denial.is_revoked_comment", required=False)
     reason_for_refusal = serializers.CharField(source="denial.reason_for_refusal", required=False)
+    party_type = serializers.CharField(source="entity_type", required=False)
 
     class Meta:
         model = models.DenialEntity
@@ -65,6 +66,7 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "entity_type",
             "reason_for_refusal",
             "spire_entity_id",
+            "party_type",
         )
         extra_kwargs = {
             "is_revoked": {"required": False},
@@ -105,7 +107,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         "address",
         "country",
         "spire_entity_id",
-        "entity_type",
+        "party_type",
     ]
 
     required_headers_denial = [
