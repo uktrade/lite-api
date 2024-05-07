@@ -335,12 +335,13 @@ class DenialSearchViewTests(DataTestClient):
         response = self.client.get(url, {**page_query, "search": "name:Organisation Name XYZ"}, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
+
         expected_result = {
             "address": "2000 Street Name, City Name 2",
             "country": "Country Name 2",
             "item_description": "Large Size Widget",
             "item_list_codes": "0A00200",
-            "name": "Organisation Name XYZ",
+            "name": "<mark>Organisation</mark> <mark>Name</mark> <mark>XYZ</mark>",
             "notifying_government": "Country Name 2",
             "end_use": "Used in other industry",
             "reference": "DN3000/0000",
