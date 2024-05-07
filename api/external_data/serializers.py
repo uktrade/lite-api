@@ -10,7 +10,7 @@ from api.external_data import documents, models
 
 from api.flags.enums import SystemFlags
 from api.core.serializers import KeyValueChoiceField
-from api.external_data.utils import get_denial_entity_type
+from api.external_data.helpers import get_denial_entity_type
 from django.utils.html import escape
 
 
