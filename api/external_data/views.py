@@ -45,6 +45,7 @@ class DenialSearchView(DocumentViewSet):
         filter_backends.SearchFilterBackend,
         filter_backends.SourceBackend,
         filter_backends.FilteringFilterBackend,
+        filter_backends.HighlightBackend,
     ]
     search_fields = ["name", "address"]
     filter_fields = {
@@ -54,6 +55,22 @@ class DenialSearchView(DocumentViewSet):
         }
     }
     ordering = "_score"
+    highlight_fields = {
+        "name": {
+            "enabled": True,
+            "options": {
+                "pre_tags": ["<mark>"],
+                "post_tags": ["</mark>"],
+            },
+        },
+        "address": {
+            "enabled": True,
+            "options": {
+                "pre_tags": ["<mark>"],
+                "post_tags": ["</mark>"],
+            },
+        },
+    }
 
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False)
