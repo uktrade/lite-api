@@ -8,10 +8,12 @@ from api.applications.models import GoodOnApplication
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.libraries.get_case import get_case
-from api.core.serializers import GoodControlReviewSerializer
+from api.core.exceptions import NotFoundError
+from api.core.serializers import GoodControlReviewSerializer, PrimaryKeyRelatedSerializerField
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
-from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.report_summaries.models import ReportSummary, ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.report_summaries.serializers import ReportSummarySerializer
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
 
@@ -43,6 +45,24 @@ class AssessmentUpdateListSerializer(serializers.ListSerializer):
         return data
 
 
+class ReportSummaryField(PrimaryKeyRelatedSerializerField):
+
+    def __init__(self, **kwargs):
+        super().__init__(
+            queryset=ReportSummary.objects.all(),
+            many=kwargs.get("many"),
+            serializer=ReportSummarySerializer,
+            error_messages={},
+            **kwargs,
+        )
+
+    def to_internal_value(self, data):
+        try:
+            return ReportSummary.objects.get(prefix=data["prefix"], subject=data["subject"])
+        except NotFoundError:
+            raise serializers.ValidationError("Report summary with given prefix and subject is not found")
+
+
 class AssessmentSerializer(GoodControlReviewSerializer):
 
     id = serializers.UUIDField()
@@ -57,6 +77,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
     report_summary_subject = PrimaryKeyRelatedField(
         required=False, allow_null=True, queryset=ReportSummarySubject.objects.all()
     )
+    report_summaries = ReportSummaryField(required=False, allow_null=True, many=True)
 
     class Meta:
         model = GoodOnApplication
@@ -69,6 +90,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
             "regime_entries",
             "report_summary_prefix",
             "report_summary_subject",
+            "report_summaries",
             "is_ncsc_military_information_security",
         )
         list_serializer_class = AssessmentUpdateListSerializer
