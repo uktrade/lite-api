@@ -9,6 +9,7 @@ from rest_framework import serializers
 from api.external_data import documents, models
 from api.external_data.helpers import get_denial_entity_type
 from api.flags.enums import SystemFlags
+from django.utils.html import escape
 
 
 class DenialSerializer(serializers.ModelSerializer):
@@ -135,11 +136,11 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         errors = []
         for i, row in enumerate(reader, start=1):
             denial_entity_data = {
-                **{field: row[field] for field in self.required_headers_denial_entity},
+                **{field: escape(row[field]) for field in self.required_headers_denial_entity},
                 "created_by": self.context["request"].user,
             }
 
-            denial_data = {**{field: row[field].strip() for field in self.required_headers_denial}}
+            denial_data = {**{field: escape(row[field].strip()) for field in self.required_headers_denial}}
 
             # Create a serializer instance to validate data
             serializer = DenialEntitySerializer(data=denial_entity_data)
