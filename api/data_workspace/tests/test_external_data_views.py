@@ -16,8 +16,9 @@ class DataWorkspaceExternalDataViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         actual_keys = response.json()["actions"]["GET"].keys()
         actual_keys = list(actual_keys)
-        # entity_type is not a model field but only added in serializer hence remove it
+        # entity_type and party are not model fields but only added in serializer hence remove them
         actual_keys.remove("entity_type")
+        actual_keys.remove("party_type")
         actual_keys = dict.fromkeys(actual_keys).keys()
         expected_keys = {
             "id",
