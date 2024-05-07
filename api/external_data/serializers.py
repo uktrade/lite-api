@@ -10,6 +10,7 @@ from api.external_data import documents, models
 
 from api.flags.enums import SystemFlags
 from api.core.serializers import KeyValueChoiceField
+from api.external_data.utils import get_denial_entity_type
 from django.utils.html import escape
 
 
@@ -267,6 +268,7 @@ class DenialSearchSerializer(DocumentSerializer):
         if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("address"):
             return obj.meta.highlight.to_dict().get("address")[0]
         return obj.address
+
 
 class SanctionMatchSerializer(serializers.ModelSerializer):
     MATCH_NAME_MAPPING = {
