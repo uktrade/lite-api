@@ -309,7 +309,7 @@ class DenialViewSetTests(DataTestClient):
     def test_create_sanitise_csv(self):
         url = reverse("external_data:denial-list")
         content = """
-        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,party_type
         DN2000/0000,AB-CD-EF-000,Organisation Name,"<script>bad xss script</script>",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123,end_user
         """
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)

@@ -70,6 +70,7 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "reason_for_refusal",
             "spire_entity_id",
             "party_type",
+            "entity_type",
         )
 
         extra_kwargs = {
