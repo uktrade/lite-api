@@ -31,8 +31,8 @@ class DenialViewSetTests(DataTestClient):
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.DenialEntity.objects.count(), 4)
-        self.assertEqual(models.Denial.objects.count(), 4)
+        self.assertEqual(models.DenialEntity.objects.count(), 5)
+        self.assertEqual(models.Denial.objects.count(), 5)
         self.assertEqual(
             list(
                 models.DenialEntity.objects.values(
@@ -65,6 +65,13 @@ class DenialViewSetTests(DataTestClient):
                     "name": "Organisation Name XYZ",
                     "address": "2000 Street Name, City Name 2",
                     "country": "Country Name 2",
+                    "spire_entity_id": 124,
+                    "entity_type": "third_party",
+                },
+                {
+                    "name": "UK Issued",
+                    "address": "2000 main road, some place",
+                    "country": "Country Name 3",
                     "spire_entity_id": 124,
                     "entity_type": "third_party",
                 },
@@ -105,6 +112,15 @@ class DenialViewSetTests(DataTestClient):
                     "regime_reg_ref": "AB-CD-EF-100",
                     "notifying_government": "Country Name 2",
                     "item_list_codes": "0A00200",
+                    "item_description": "Large Size Widget",
+                    "end_use": "Used in other industry",
+                    "reason_for_refusal": "Risk of outcome 2",
+                },
+                {
+                    "reference": "DN4000/0000",
+                    "regime_reg_ref": "AB-CD-EF-200",
+                    "notifying_government": "United Kingdom",
+                    "item_list_codes": "0A00300",
                     "item_description": "Large Size Widget",
                     "end_use": "Used in other industry",
                     "reason_for_refusal": "Risk of outcome 2",
@@ -322,7 +338,7 @@ class DenialSearchViewTests(DataTestClient):
             content = f.read()
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.DenialEntity.objects.count(), 4)
+        self.assertEqual(models.DenialEntity.objects.count(), 5)
 
         # Set one of them as revoked
         denial_entity = models.DenialEntity.objects.get(name="Organisation Name")
@@ -361,6 +377,7 @@ class DenialSearchViewTests(DataTestClient):
             ({"search": "name:XYZ"}, 1),
             ({"search": "address:Street Name"}, 3),
             ({"search": "address:Example"}, 1),
+            ({"search": "name:UK Issued"}, 0),
         ]
     )
     def test_denial_entity_search(self, query, quantity):
