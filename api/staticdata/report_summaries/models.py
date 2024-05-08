@@ -27,12 +27,15 @@ class ReportSummary(models.Model):
     )
     subject = models.ForeignKey(ReportSummarySubject, related_name="subject", on_delete=models.PROTECT)
 
+    @property
+    def name(self):
+        if self.prefix:
+            return f"{self.prefix.name} {self.subject.name}"
+
+        return self.subject.name
+
     class Meta:
         unique_together = [["prefix", "subject"]]
 
     def __repr__(self):
-        report_summary = self.subject.name
-        if self.prefix:
-            report_summary = f"{self.prefix.name} {self.subject.name}"
-
-        return report_summary
+        return self.name
