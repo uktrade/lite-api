@@ -9,6 +9,7 @@ from rest_framework import serializers
 from api.external_data import documents, models
 from api.external_data.helpers import get_denial_entity_type
 from api.flags.enums import SystemFlags
+from django.utils.html import escape
 
 
 class DenialSerializer(serializers.ModelSerializer):
@@ -137,11 +138,11 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         errors = []
         for i, row in enumerate(reader, start=1):
             denial_entity_data = {
-                **{field: row[field] for field in self.required_headers_denial_entity},
+                **{field: escape(row[field]) for field in self.required_headers_denial_entity},
                 "created_by": self.context["request"].user,
             }
 
-            denial_data = {**{field: row[field].strip() for field in self.required_headers_denial}}
+            denial_data = {**{field: escape(row[field].strip()) for field in self.required_headers_denial}}
 
             # Create a serializer instance to validate data
             serializer = DenialEntitySerializer(data=denial_entity_data)
@@ -241,6 +242,8 @@ class DenialSearchSerializer(DocumentSerializer):
     item_list_codes = serializers.ReadOnlyField(source="denial.item_list_codes")
     item_description = serializers.ReadOnlyField(source="denial.item_description")
     end_use = serializers.ReadOnlyField(source="denial.end_use")
+    name = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
 
     class Meta:
         document = documents.DenialEntityDocument
@@ -253,6 +256,16 @@ class DenialSearchSerializer(DocumentSerializer):
 
     def get_entity_type(self, obj):
         return get_denial_entity_type(obj.data.to_dict())
+
+    def get_name(self, obj):
+        if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("name"):
+            return obj.meta.highlight.to_dict().get("name")[0]
+        return obj.name
+
+    def get_address(self, obj):
+        if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("address"):
+            return obj.meta.highlight.to_dict().get("address")[0]
+        return obj.address
 
 
 class SanctionMatchSerializer(serializers.ModelSerializer):
