@@ -65,6 +65,9 @@ class ReportSummaryField(PrimaryKeyRelatedSerializerField):
         )
 
     def to_internal_value(self, data):
+        if data["subject"] is None:
+            raise serializers.ValidationError("You must include a report summary if this item is controlled.")
+
         try:
             return ReportSummary.objects.get(prefix=data["prefix"], subject=data["subject"])
         except NotFoundError:
@@ -109,17 +112,16 @@ class AssessmentSerializer(GoodControlReviewSerializer):
             data["report_summary"] = None
             data["report_summary_prefix"] = None
             data["report_summary_subject"] = None
-        elif (
-            data.get("report_summary") is not None
-            and data.get("report_summary_subject") is None
-            and data.get("report_summary_prefix") is None
-        ):
+        elif is_legacy_line_item(data):
             # Legacy GoodOnApplications only have a report_summary populated, not the subject/prefix
             # - Once report_summary is removed, remove this check
             logger.info(
                 "GoodOnApplication %s is legacy format: has report_summary but no report_summary_subject or report_summary_prefix",
                 data.get("id"),
             )
+        elif "report_summaries" in data:
+            data["report_summary"] = ", ".join(rs.name for rs in data["report_summaries"])
+
         elif "report_summary_subject" in data:
             if data["report_summary_subject"] is None:
                 raise serializers.ValidationError({"report_summary_subject": strings.Picklists.REQUIRED_REPORT_SUMMARY})

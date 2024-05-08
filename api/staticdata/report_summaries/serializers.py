@@ -19,6 +19,7 @@ class ReportSummarySubjectSerializer(serializers.ModelSerializer):
             "name",
         )
 
+
 class ReportSummarySerializer(serializers.Serializer):
     id = serializers.UUIDField()
     prefix = ReportSummaryPrefixSerializer()

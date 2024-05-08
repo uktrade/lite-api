@@ -12,7 +12,7 @@ from api.goods.tests.factories import GoodFactory
 from api.applications.models import GoodOnApplication
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
-from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.report_summaries.models import ReportSummary, ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.statuses.models import CaseStatus
 
 from lite_content.lite_api import strings
@@ -60,7 +60,7 @@ class MakeAssessmentsViewTests(DataTestClient):
             }
         ]
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
-        expected_response_data = {"errors": [{"report_summary_subject": [strings.Picklists.REQUIRED_REPORT_SUMMARY]}]}
+        expected_response_data = {"errors": [{"report_summaries": [strings.Picklists.REQUIRED_REPORT_SUMMARY]}]}
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertDictEqual(response.json(), expected_response_data)
