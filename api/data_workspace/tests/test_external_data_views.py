@@ -30,7 +30,6 @@ class DataWorkspaceExternalDataViewTests(DataTestClient):
             "country",
             "item_list_codes",
             "item_description",
-            "consignee_name",
             "end_use",
             "data",
             "is_revoked",
