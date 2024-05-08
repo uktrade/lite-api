@@ -85,6 +85,8 @@ class DenialEntityDocument(Document):
         },
     )
     data = DataField()
+    entity_type = fields.TextField()
+
     is_revoked = fields.BooleanField(attr="denial.is_revoked")
 
     denial = fields.ObjectField(
