@@ -22,6 +22,14 @@ from lite_content.lite_api import strings
 logger = logging.getLogger(__name__)
 
 
+def is_legacy_line_item(data):
+    return (
+        data.get("report_summary") is not None
+        and data.get("report_summary_subject") is None
+        and data.get("report_summary_prefix") is None
+    )
+
+
 class AssessmentUpdateListSerializer(serializers.ListSerializer):
     def update(self, instances, validated_data):
         instances_by_id = {str(instance.id): instance for instance in instances}
