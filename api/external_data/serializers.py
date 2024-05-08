@@ -7,8 +7,10 @@ from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
 from api.external_data import documents, models
-from api.external_data.helpers import get_denial_entity_type
+
 from api.flags.enums import SystemFlags
+from api.core.serializers import KeyValueChoiceField
+from api.external_data.helpers import get_denial_entity_type
 from django.utils.html import escape
 
 
@@ -36,6 +38,7 @@ class DenialSerializer(serializers.ModelSerializer):
 
 
 class DenialEntitySerializer(serializers.ModelSerializer):
+    entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.CharField(source="denial.regime_reg_ref", required=False)
     reference = serializers.CharField(source="denial.reference", required=False)
     item_list_codes = serializers.CharField(source="denial.item_list_codes", required=False)
@@ -64,11 +67,11 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "data",
             "is_revoked",
             "is_revoked_comment",
-            "entity_type",
             "reason_for_refusal",
             "spire_entity_id",
             "party_type",
         )
+
         extra_kwargs = {
             "is_revoked": {"required": False},
             "is_revoked_comment": {"required": False},
@@ -235,7 +238,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 
 
 class DenialSearchSerializer(DocumentSerializer):
-    entity_type = serializers.SerializerMethodField()
+    entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.ReadOnlyField(source="denial.regime_reg_ref")
     reference = serializers.ReadOnlyField(source="denial.reference")
     notifying_government = serializers.ReadOnlyField(source="denial.notifying_government")
