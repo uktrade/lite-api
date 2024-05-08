@@ -35,7 +35,7 @@ from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.regimes.models import RegimeEntry
-from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
+from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -419,6 +419,7 @@ class GoodOnApplication(AbstractGoodOnApplication):
         null=True,
         related_name="subject_good_on_application",
     )
+    report_summaries = models.ManyToManyField(ReportSummary, related_name="goods_on_application")
 
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)

@@ -104,6 +104,14 @@ class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
         for regime in regime_entries:
             self.regime_entries.add(get_regime_entry(regime))
 
+    @factory.post_generation
+    def report_summaries(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        report_summaries = extracted or []
+        self.report_summaries.set(report_summaries)
+
     class Meta:
         model = GoodOnApplication
 
