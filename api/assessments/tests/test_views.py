@@ -1,4 +1,3 @@
-from parameterized import parameterized
 from django.urls import reverse
 from freezegun import freeze_time
 
@@ -12,7 +11,7 @@ from api.goods.tests.factories import GoodFactory
 from api.applications.models import GoodOnApplication
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
-from api.staticdata.report_summaries.models import ReportSummary, ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.statuses.models import CaseStatus
 
 from lite_content.lite_api import strings
@@ -90,6 +89,7 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application.report_summary == "some legacy summary"
         assert good_on_application.report_summary_prefix is None
         assert good_on_application.report_summary_subject is None
+        assert good_on_application.report_summaries.count() == 0
 
     def test_report_subject(self):
         report_summary_subject = ReportSummarySubject.objects.first()
@@ -116,6 +116,10 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application.report_summary == report_summary_subject.name
         assert good_on_application.report_summary_prefix is None
         assert good_on_application.report_summary_subject == report_summary_subject
+        assert good_on_application.report_summaries.count() == 1
+        rs = good_on_application.report_summaries.first()
+        assert rs.prefix is None
+        assert rs.subject == report_summary_subject
 
     def test_report_subject_and_prefix(self):
         report_summary_subject = ReportSummarySubject.objects.first()
@@ -143,6 +147,10 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
         assert good_on_application.report_summary_prefix == report_summary_prefix
         assert good_on_application.report_summary_subject == report_summary_subject
+        assert good_on_application.report_summaries.count() == 1
+        rs = good_on_application.report_summaries.first()
+        assert rs.prefix == report_summary_prefix
+        assert rs.subject == report_summary_subject
 
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_single_record(self):
@@ -178,6 +186,10 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
         assert good_on_application.assessed_by == self.gov_user
         assert good_on_application.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
+        assert good_on_application.report_summaries.count() == 1
+        rs = good_on_application.report_summaries.first()
+        assert rs.prefix == report_summary_prefix
+        assert rs.subject == report_summary_subject
 
         good = good_on_application.good
         assert good.status == GoodStatus.VERIFIED
@@ -222,6 +234,7 @@ class MakeAssessmentsViewTests(DataTestClient):
         ]
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert good_on_application.report_summaries.count() == 1
 
         data[0]["is_good_controlled"] = False
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
@@ -230,6 +243,7 @@ class MakeAssessmentsViewTests(DataTestClient):
 
         assert good_on_application.report_summary_prefix_id is None
         assert good_on_application.report_summary_subject_id is None
+        assert good_on_application.report_summaries.count() == 0
 
     @freeze_time("2023-11-03 12:00:00")
     def test_valid_data_updates_single_record_on_already_verified_good(self):
@@ -263,6 +277,10 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert all_regime_entries == [regime_entry.id]
         assert good_on_application.report_summary_prefix_id == report_summary_prefix.id
         assert good_on_application.report_summary_subject_id == report_summary_subject.id
+        assert good_on_application.report_summaries.count() == 1
+        rs = good_on_application.report_summaries.first()
+        assert rs.prefix == report_summary_prefix
+        assert rs.subject == report_summary_subject
         assert good_on_application.is_good_controlled == True
         assert good_on_application.comment == "some comment"
         assert good_on_application.is_ncsc_military_information_security == True
@@ -305,6 +323,7 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert all_regime_entries == []
         assert good_on_application.report_summary_prefix_id == None
         assert good_on_application.report_summary_subject_id == None
+        assert good_on_application.report_summaries.count() == 0
         assert good_on_application.is_good_controlled == None
         assert good_on_application.comment == None
         assert good_on_application.is_ncsc_military_information_security == None
@@ -359,6 +378,10 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert all_regime_entries == [regime_entry.id]
         assert good_on_application.report_summary_prefix_id == report_summary_prefix.id
         assert good_on_application.report_summary_subject_id == report_summary_subject.id
+        assert good_on_application.report_summaries.count() == 1
+        rs = good_on_application.report_summaries.first()
+        assert rs.prefix == report_summary_prefix
+        assert rs.subject == report_summary_subject
         assert good_on_application.is_good_controlled == True
         assert good_on_application.comment == "some comment"
         assert good_on_application.is_ncsc_military_information_security == True
@@ -371,6 +394,7 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert all_cles == ["ML2"]
         assert good_on_application_2.report_summary_prefix_id == None
         assert good_on_application_2.report_summary_subject_id == None
+        assert good_on_application_2.report_summaries.count() == 0
         assert good_on_application_2.is_good_controlled == True
         assert good_on_application_2.comment == "some comment"
         assert good_on_application_2.is_ncsc_military_information_security == True
@@ -383,6 +407,7 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert all_cles == []
         assert good_on_application_3.report_summary_prefix_id == None
         assert good_on_application_3.report_summary_subject_id == None
+        assert good_on_application_3.report_summaries.count() == 0
         assert good_on_application_3.is_good_controlled == False
         assert good_on_application_3.comment == "some comment"
         assert good_on_application_3.is_ncsc_military_information_security == True
