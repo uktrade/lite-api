@@ -25,14 +25,15 @@ class MakeAssessmentsViewTests(DataTestClient):
         self.application = self.create_draft_standard_application(organisation=self.organisation)
         self.case = self.submit_application(self.application)
         self.good = GoodFactory(organisation=self.organisation)
+        self.good2 = GoodFactory(organisation=self.organisation)
         self.good_on_application = GoodOnApplication.objects.create(
             good=self.good, application=self.application, quantity=10, value=500
         )
         self.good_on_application_2 = GoodOnApplication.objects.create(
-            good=self.good, application=self.application, quantity=10, value=500
+            good=self.good2, application=self.application, quantity=10, value=500
         )
         self.good_on_application_3 = GoodOnApplication.objects.create(
-            good=self.good, application=self.application, quantity=10, value=500
+            good=self.good2, application=self.application, quantity=10, value=500
         )
         self.assessment_url = reverse("assessments:make_assessments", kwargs={"case_pk": self.case.id})
 
@@ -525,6 +526,7 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application1.report_summary_subject_id == None
         assert good_on_application1.comment == "multiple ARS with prefixes and subjects"
         assert good_on_application1.report_summary == ", ".join(rs.name for rs in report_summaries)
+        assert good_on_application1.good.report_summary == ", ".join(rs.name for rs in report_summaries)
         assert good_on_application1.assessed_by == self.gov_user
         assert good_on_application1.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
 
@@ -565,11 +567,11 @@ class MakeAssessmentsViewTests(DataTestClient):
                 "is_good_controlled": True,
                 "report_summaries": [
                     {
-                        "subject": str(report_summary.subject.id),
+                        "subject": str(report_summary.subject_id),
                     },
                     {
                         # invalid subject id
-                        "subject": str(report_summary.prefix.id),
+                        "subject": str(report_summary.prefix_id),
                     },
                 ],
                 "comment": "some comment",

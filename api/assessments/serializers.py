@@ -8,7 +8,6 @@ from api.applications.models import GoodOnApplication
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.libraries.get_case import get_case
-from api.core.exceptions import NotFoundError
 from api.core.serializers import GoodControlReviewSerializer, PrimaryKeyRelatedSerializerField
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
