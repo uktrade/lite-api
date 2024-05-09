@@ -1,3 +1,5 @@
+import random
+
 from django.urls import reverse
 from freezegun import freeze_time
 
@@ -11,7 +13,7 @@ from api.goods.tests.factories import GoodFactory
 from api.applications.models import GoodOnApplication
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
-from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.report_summaries.models import ReportSummary, ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.statuses.models import CaseStatus
 
 from lite_content.lite_api import strings
@@ -463,3 +465,93 @@ class MakeAssessmentsViewTests(DataTestClient):
                 f"Multiple updates to a single GoodOnApplication id found. Duplicated ids; {self.good_on_application.id}"
             ]
         }
+
+    @freeze_time("2023-11-03 12:00:00")
+    def test_data_with_multiple_report_summary_updates(self):
+        good_on_application1 = self.good_on_application
+        good_on_application2 = self.good_on_application_2
+        good_on_application3 = self.good_on_application_3
+        regime_entry = RegimeEntry.objects.first()
+        all_report_summaries = ReportSummary.objects.all()
+        report_summaries = [random.choice(all_report_summaries) for i in range(5)]
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        report_summary_subject = ReportSummarySubject.objects.first()
+        data = [
+            {
+                "id": good_on_application1.id,
+                "is_good_controlled": True,
+                "control_list_entries": ["ML1"],
+                "report_summaries": [
+                    {
+                        "prefix": str(rs.prefix_id),
+                        "subject": str(rs.subject_id),
+                    }
+                    for rs in report_summaries
+                ],
+                "regime_entries": [regime_entry.id],
+                "comment": "multiple ARS with prefixes and subjects",
+            },
+            {
+                "id": good_on_application2.id,
+                "is_good_controlled": True,
+                "control_list_entries": ["ML2"],
+                "report_summaries": [
+                    {
+                        "subject": str(rs.subject_id),
+                    }
+                    for rs in report_summaries
+                ],
+                "comment": "multiple ARS with only subjects",
+            },
+            {
+                "id": good_on_application3.id,
+                "is_good_controlled": False,
+                "report_summaries": [],
+                "control_list_entries": [],
+                "comment": "no licence required",
+            },
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        good_on_application1.refresh_from_db()
+        all_cles = [cle.rating for cle in good_on_application1.control_list_entries.all()]
+        assert all_cles == ["ML1"]
+        all_regime_entries = [regime_entry.id for regime_entry in good_on_application1.regime_entries.all()]
+        assert all_regime_entries == [regime_entry.id]
+        assert good_on_application1.is_good_controlled == True
+        assert sorted(rs.name for rs in good_on_application1.report_summaries.all()) == sorted(
+            rs.name for rs in report_summaries
+        )
+        assert good_on_application1.report_summary_prefix_id == None
+        assert good_on_application1.report_summary_subject_id == None
+        assert good_on_application1.comment == "multiple ARS with prefixes and subjects"
+        assert good_on_application1.report_summary == ", ".join(rs.name for rs in report_summaries)
+        assert good_on_application1.assessed_by == self.gov_user
+        assert good_on_application1.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
+
+        good_on_application2.refresh_from_db()
+        all_cles = [cle.rating for cle in good_on_application2.control_list_entries.all()]
+        assert all_cles == ["ML2"]
+        assert good_on_application2.is_good_controlled == True
+        assert sorted(rs.name for rs in good_on_application2.report_summaries.all()) == sorted(
+            rs.subject.name for rs in report_summaries
+        )
+        assert good_on_application2.report_summary_prefix_id == None
+        assert good_on_application2.report_summary_subject_id == None
+        assert good_on_application2.comment == "multiple ARS with only subjects"
+        assert good_on_application2.report_summary == ", ".join(rs.subject.name for rs in report_summaries)
+        assert good_on_application2.assessed_by == self.gov_user
+        assert good_on_application2.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
+
+        good_on_application3.refresh_from_db()
+        all_cles = [cle.rating for cle in good_on_application3.control_list_entries.all()]
+        assert all_cles == []
+        assert good_on_application3.is_good_controlled == False
+        assert good_on_application3.report_summaries.count() == 0
+        assert good_on_application3.report_summary_prefix_id == None
+        assert good_on_application3.report_summary_subject_id == None
+        assert good_on_application3.comment == "no licence required"
+        assert good_on_application3.report_summary == None
+        assert good_on_application3.assessed_by == self.gov_user
+        assert good_on_application3.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"

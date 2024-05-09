@@ -69,7 +69,7 @@ class ReportSummaryField(PrimaryKeyRelatedSerializerField):
             raise serializers.ValidationError("You must include a report summary if this item is controlled.")
 
         try:
-            return ReportSummary.objects.get(prefix=data["prefix"], subject=data["subject"])
+            return ReportSummary.objects.get(prefix=data.get("prefix"), subject=data["subject"])
         except NotFoundError:
             raise serializers.ValidationError("Report summary with given prefix and subject is not found")
 

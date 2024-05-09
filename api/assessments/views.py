@@ -52,12 +52,13 @@ class MakeAssessmentsView(generics.UpdateAPIView):
                 continue
 
             if line_item["is_good_controlled"] is True:
-                report_summaries = [
-                    {
-                        "prefix": line_item["report_summary_prefix"],
-                        "subject": line_item["report_summary_subject"],
-                    },
-                ]
+                if not report_summaries:
+                    report_summaries = [
+                        {
+                            "prefix": line_item["report_summary_prefix"],
+                            "subject": line_item["report_summary_subject"],
+                        },
+                    ]
 
             payload.append({**line_item, "report_summaries": report_summaries})
 
