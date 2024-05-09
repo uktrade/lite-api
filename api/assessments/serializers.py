@@ -70,8 +70,8 @@ class ReportSummaryField(PrimaryKeyRelatedSerializerField):
 
         try:
             return ReportSummary.objects.get(prefix=data.get("prefix"), subject=data["subject"])
-        except NotFoundError:
-            raise serializers.ValidationError("Report summary with given prefix and subject is not found")
+        except ReportSummary.DoesNotExist:
+            raise serializers.ValidationError("Report summary with given prefix and subject does not exist")
 
 
 class AssessmentSerializer(GoodControlReviewSerializer):

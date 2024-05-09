@@ -474,8 +474,6 @@ class MakeAssessmentsViewTests(DataTestClient):
         regime_entry = RegimeEntry.objects.first()
         all_report_summaries = ReportSummary.objects.all()
         report_summaries = [random.choice(all_report_summaries) for i in range(5)]
-        report_summary_prefix = ReportSummaryPrefix.objects.first()
-        report_summary_subject = ReportSummarySubject.objects.first()
         data = [
             {
                 "id": good_on_application1.id,
@@ -555,3 +553,32 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application3.report_summary == None
         assert good_on_application3.assessed_by == self.gov_user
         assert good_on_application3.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
+
+    def test_invalid_report_subject_raises_error(self):
+        regime_entry = RegimeEntry.objects.first()
+        report_summary = ReportSummary.objects.last()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [regime_entry.id],
+                "is_good_controlled": True,
+                "report_summaries": [
+                    {
+                        "subject": str(report_summary.subject.id),
+                    },
+                    {
+                        # invalid subject id
+                        "subject": str(report_summary.prefix.id),
+                    },
+                ],
+                "comment": "some comment",
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        expected_response_data = {
+            "errors": [{"report_summaries": ["Report summary with given prefix and subject does not exist"]}]
+        }
+        self.assertDictEqual(response.json(), expected_response_data)
