@@ -256,9 +256,6 @@ class DenialSearchSerializer(DocumentSerializer):
             "notifying_government",
         )
 
-    def get_entity_type(self, obj):
-        return get_denial_entity_type(obj.data.to_dict())
-
     def get_name(self, obj):
         if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("name"):
             return obj.meta.highlight.to_dict().get("name")[0]
