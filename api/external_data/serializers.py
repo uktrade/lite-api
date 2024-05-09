@@ -245,6 +245,7 @@ class DenialSearchSerializer(DocumentSerializer):
     end_use = serializers.ReadOnlyField(source="denial.end_use")
     name = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
+    country = serializers.SerializerMethodField()
 
     class Meta:
         document = documents.DenialEntityDocument
