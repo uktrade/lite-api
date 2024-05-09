@@ -70,6 +70,13 @@ class DenialSearchView(DocumentViewSet):
                 "post_tags": ["</mark>"],
             },
         },
+        "country": {
+            "enabled": True,
+            "options": {
+                "pre_tags": ["<mark>"],
+                "post_tags": ["</mark>"],
+            },
+        },
     }
 
     def filter_queryset(self, queryset):
