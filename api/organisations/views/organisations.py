@@ -6,10 +6,11 @@ from rest_framework.views import APIView
 from api.applications.models import BaseApplication
 from api.audit_trail.enums import AuditType
 from api.core.authentication import (
-    SharedAuthentication,
-    OrganisationAuthentication,
-    GovAuthentication,
     ExporterDraftOrganisationAuthentication,
+    GovAuthentication,
+    HawkOnlyAuthentication,
+    OrganisationAuthentication,
+    SharedAuthentication,
 )
 from api.core.constants import GovPermissions
 from api.core.helpers import str_to_bool
@@ -272,7 +273,7 @@ class OrganisationStatusView(generics.UpdateAPIView):
 
 
 class ValidateRegistrationNumber(generics.RetrieveAPIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (HawkOnlyAuthentication,)
     serializer_class = OrganisationRegistrationNumberSerializer
 
     def post(self, request, *args, **kwargs):
