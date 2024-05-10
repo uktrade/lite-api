@@ -16,8 +16,6 @@ from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummarySubject, ReportSummaryPrefix
 from api.staticdata.statuses.models import CaseStatus
 
-from lite_content.lite_api import strings
-
 
 class MakeAssessmentsViewTests(DataTestClient):
     def setUp(self):
@@ -62,7 +60,9 @@ class MakeAssessmentsViewTests(DataTestClient):
             }
         ]
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
-        expected_response_data = {"errors": [{"report_summaries": [strings.Picklists.REQUIRED_REPORT_SUMMARY]}]}
+        expected_response_data = {
+            "errors": [{"report_summaries": ["You must include a report summary if this item is controlled."]}]
+        }
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertDictEqual(response.json(), expected_response_data)
@@ -496,6 +496,7 @@ class MakeAssessmentsViewTests(DataTestClient):
                 "control_list_entries": ["ML2"],
                 "report_summaries": [
                     {
+                        "prefix": "",
                         "subject": str(rs.subject_id),
                     }
                     for rs in report_summaries

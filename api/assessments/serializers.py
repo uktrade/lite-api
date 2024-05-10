@@ -64,11 +64,20 @@ class ReportSummaryField(PrimaryKeyRelatedSerializerField):
         )
 
     def to_internal_value(self, data):
-        if data["subject"] is None:
+        prefix = data.get("prefix", None)
+        subject = data.get("subject", None)
+
+        if not subject:
             raise serializers.ValidationError("You must include a report summary if this item is controlled.")
 
         try:
-            return ReportSummary.objects.get(prefix=data.get("prefix"), subject=data["subject"])
+            if prefix:
+                return ReportSummary.objects.get(prefix=prefix, subject=subject)
+            else:
+                # prefix can either be missing or an empty string which is not a valid UUID
+                # so use None in the query in this case
+                return ReportSummary.objects.get(prefix=None, subject=subject)
+
         except ReportSummary.DoesNotExist:
             raise serializers.ValidationError("Report summary with given prefix and subject does not exist")
 
