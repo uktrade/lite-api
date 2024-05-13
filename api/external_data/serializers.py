@@ -20,7 +20,6 @@ class DenialSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "created_by_user",
-            "reference",
             "regime_reg_ref",
             "notifying_government",
             "item_list_codes",
@@ -40,7 +39,6 @@ class DenialSerializer(serializers.ModelSerializer):
 class DenialEntitySerializer(serializers.ModelSerializer):
     entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.CharField(source="denial.regime_reg_ref", required=False)
-    reference = serializers.CharField(source="denial.reference", required=False)
     item_list_codes = serializers.CharField(source="denial.item_list_codes", required=False)
     notifying_government = serializers.CharField(source="denial.notifying_government", required=False)
     item_description = serializers.CharField(source="denial.item_description", required=False)
@@ -56,7 +54,6 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "created_by",
             "name",
             "address",
-            "reference",
             "regime_reg_ref",
             "notifying_government",
             "country",
@@ -67,7 +64,6 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "is_revoked",
             "is_revoked_comment",
             "reason_for_refusal",
-            "spire_entity_id",
             "entity_type",
         )
 
@@ -109,12 +105,10 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         "name",
         "address",
         "country",
-        "spire_entity_id",
         "entity_type",
     ]
 
     required_headers_denial = [
-        "reference",
         "regime_reg_ref",
         "notifying_government",
         "item_list_codes",
