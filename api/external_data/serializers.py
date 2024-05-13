@@ -15,6 +15,8 @@ from django.utils.html import escape
 
 
 class DenialSerializer(serializers.ModelSerializer):
+    reference = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = models.Denial
         fields = (
@@ -47,7 +49,7 @@ class DenialEntitySerializer(serializers.ModelSerializer):
     is_revoked = serializers.BooleanField(source="denial.is_revoked", required=False)
     is_revoked_comment = serializers.CharField(source="denial.is_revoked_comment", required=False)
     reason_for_refusal = serializers.CharField(source="denial.reason_for_refusal", required=False)
-    reference = serializers.CharField(source="denial.reference", required=False)
+    reference = serializers.CharField(source="denial.reference", required=False, allow_blank=True)
 
     class Meta:
         model = models.DenialEntity
@@ -101,7 +103,6 @@ class DenialEntitySerializer(serializers.ModelSerializer):
 
 
 class DenialFromCSVFileSerializer(serializers.Serializer):
-
     csv_file = serializers.CharField()
 
     required_headers_denial_entity = [
