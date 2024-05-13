@@ -46,6 +46,7 @@ class DenialEntitySerializer(serializers.ModelSerializer):
     is_revoked = serializers.BooleanField(source="denial.is_revoked", required=False)
     is_revoked_comment = serializers.CharField(source="denial.is_revoked_comment", required=False)
     reason_for_refusal = serializers.CharField(source="denial.reason_for_refusal", required=False)
+    reference = serializers.CharField(source="denial.reference", required=False)
 
     class Meta:
         model = models.DenialEntity
@@ -65,6 +66,7 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "is_revoked_comment",
             "reason_for_refusal",
             "entity_type",
+            "reference",
         )
 
         extra_kwargs = {
