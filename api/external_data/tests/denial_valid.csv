@@ -1,6 +1,6 @@
-reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
-DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123,end_user
-DN2000/0010,AB-CD-EF-300,Organisation Name 3,"2001 Street Name, City Name 3",Country Name 3,Country Name 3,0A00201,Unspecified Size Widget,Used in other industry,Risk of outcome 3,125,consignee
-DN2010/0001,AB-XY-EF-900,The Widget Company,"2 Example Road, Example City",Example Country,Country Name X,"catch all",Extra Large Size Widget,Used in unknown industry,Risk of outcome 4,126,end_user
-DN3000/0000,AB-CD-EF-100,Organisation Name XYZ,"2000 Street Name, City Name 2",Country Name 2,Country Name 2,0A00200,Large Size Widget,Used in other industry,Risk of outcome 2,124,third_party
-DN4000/0000,AB-CD-EF-200,UK Issued,"2000 main road, some place",United Kingdom,Country Name 3,0A00300,Large Size Widget,Used in other industry,Risk of outcome 2,124,third_party
+reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,entity_type
+DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,end_user
+DN2000/0010,AB-CD-EF-300,Organisation Name 3,"2001 Street Name, City Name 3",Country Name 3,Country Name 3,0A00201,Unspecified Size Widget,Used in other industry,Risk of outcome 3,consignee
+,AB-XY-EF-900,The Widget Company,"2 Example Road, Example City",Example Country,Country Name X,"catch all",Extra Large Size Widget,Used in unknown industry,Risk of outcome 4,end_user
+DN3000/0000,AB-CD-EF-100,Organisation Name XYZ,"2000 Street Name, City Name 2",Country Name 2,Country Name 2,0A00200,Large Size Widget,Used in other industry,Risk of outcome 2,third_party
+DN4000/0000,AB-CD-EF-200,UK Issued,"2000 main road, some place",United Kingdom,Country Name 3,0A00300,Large Size Widget,Used in other industry,Risk of outcome 2,third_party
