@@ -91,6 +91,7 @@ def test_populate_denials(mock_json_content, mock_delete_file, json_file_data):
     mock_json_content.return_value = json_file_data
 
     call_command("ingest_denials", "json_file", rebuild=True)
+    assert DenialEntity.objects.all().count() == 4
     denial_record = DenialEntity.objects.all()[0]
     assert denial_record.denial.reference == "DN001\/0003"
     assert denial_record.name == "Test1 case"
