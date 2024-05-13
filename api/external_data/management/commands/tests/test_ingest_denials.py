@@ -83,7 +83,7 @@ def json_file_data():
     }
 
 
-# @pytest.mark.elasticsearch
+@pytest.mark.elasticsearch
 @pytest.mark.django_db
 @mock.patch.object(ingest_denials.s3_operations, "delete_file")
 @mock.patch.object(ingest_denials.s3_operations, "get_object")
