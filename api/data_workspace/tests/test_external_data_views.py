@@ -35,6 +35,5 @@ class DataWorkspaceExternalDataViewTests(DataTestClient):
             "is_revoked",
             "is_revoked_comment",
             "reason_for_refusal",
-            "spire_entity_id",
         }
         self.assertEqual(expected_keys, actual_keys)
