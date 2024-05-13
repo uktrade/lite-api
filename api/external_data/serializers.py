@@ -28,6 +28,7 @@ class DenialSerializer(serializers.ModelSerializer):
             "is_revoked",
             "is_revoked_comment",
             "reason_for_refusal",
+            "reference",
         )
         extra_kwargs = {
             "is_revoked": {"required": False},
@@ -111,6 +112,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
     ]
 
     required_headers_denial = [
+        "reference",
         "regime_reg_ref",
         "notifying_government",
         "item_list_codes",

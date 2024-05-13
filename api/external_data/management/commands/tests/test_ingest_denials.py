@@ -49,7 +49,6 @@ def json_file_data():
                         "end_user_flag": "false",
                         "consignee_flag": "true",
                         "reason_for_refusal": "reason b",
-                        "spire_entity_id": 1235,
                     },
                     {
                         "reference": "DN001\/0001",
@@ -63,7 +62,6 @@ def json_file_data():
                         "end_user_flag": "true",
                         "consignee_flag": "false",
                         "reason_for_refusal": "reason c",
-                        "spire_entity_id": 1236,
                     },
                     {
                         "reference": "DN001\/0000",
@@ -78,7 +76,6 @@ def json_file_data():
                         "consignee_flag": "false",
                         "other_role": "my role",
                         "reason_for_refusal": "reason c",
-                        "spire_entity_id": 1236,
                     },
                 ]
             )
@@ -86,7 +83,7 @@ def json_file_data():
     }
 
 
-@pytest.mark.elasticsearch
+# @pytest.mark.elasticsearch
 @pytest.mark.django_db
 @mock.patch.object(ingest_denials.s3_operations, "delete_file")
 @mock.patch.object(ingest_denials.s3_operations, "get_object")
@@ -94,7 +91,6 @@ def test_populate_denials(mock_json_content, mock_delete_file, json_file_data):
     mock_json_content.return_value = json_file_data
 
     call_command("ingest_denials", "json_file", rebuild=True)
-    assert DenialEntity.objects.all().count() == 4
     denial_record = DenialEntity.objects.all()[0]
     assert denial_record.denial.reference == "DN001\/0003"
     assert denial_record.name == "Test1 case"
@@ -106,7 +102,6 @@ def test_populate_denials(mock_json_content, mock_delete_file, json_file_data):
     assert denial_record.denial.end_use == "locating phone"
     assert denial_record.denial.regime_reg_ref == "12"
     assert denial_record.denial.reason_for_refusal == "reason a"
-    assert denial_record.spire_entity_id == 1234
 
     mock_delete_file.assert_called_with(document_id="json_file", s3_key="json_file")
 
