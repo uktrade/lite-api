@@ -96,6 +96,11 @@ class Static:
     seeded = False
 
 
+# Instantiating this once so that we have a single instance across all tests allowing us to use things like .unique
+# and we can guarantee that we will always have unique values even if we use things like `setUpClass`.
+faker = Faker()
+
+
 class DataTestClient(APITestCase, URLPatternsTestCase):
     """
     Test client which creates seeds the database with system data and sets up an initial organisation and user
@@ -103,7 +108,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
-    faker = Faker()
+    faker = faker  # Assigning this to the class as `self.faker` is expected in tests
 
     @classmethod
     def setUpClass(cls):
@@ -208,7 +213,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
         base_user = BaseUser(
-            first_name=first_name, last_name=last_name, email=self.faker.email(), pending=False, type=UserType.EXPORTER
+            first_name=first_name,
+            last_name=last_name,
+            email=self.faker.unique.email(),
+            pending=False,
+            type=UserType.EXPORTER,
         )
         base_user.save()
         exporter_user = ExporterUser(baseuser_ptr=base_user)
