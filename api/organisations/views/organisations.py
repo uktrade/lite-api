@@ -6,10 +6,11 @@ from rest_framework.views import APIView
 from api.applications.models import BaseApplication
 from api.audit_trail.enums import AuditType
 from api.core.authentication import (
-    SharedAuthentication,
-    OrganisationAuthentication,
-    GovAuthentication,
     ExporterDraftOrganisationAuthentication,
+    GovAuthentication,
+    HawkOnlyAuthentication,
+    OrganisationAuthentication,
+    SharedAuthentication,
 )
 from api.core.constants import GovPermissions
 from api.core.helpers import str_to_bool
@@ -28,6 +29,7 @@ from api.organisations.serializers import (
     OrganisationCreateUpdateSerializer,
     OrganisationListSerializer,
     OrganisationStatusUpdateSerializer,
+    OrganisationRegistrationNumberSerializer,
 )
 from api.organisations import notify
 from api.audit_trail import service as audit_trail_service
@@ -267,4 +269,15 @@ class OrganisationStatusView(generics.UpdateAPIView):
 
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ValidateRegistrationNumber(generics.RetrieveAPIView):
+    authentication_classes = (HawkOnlyAuthentication,)
+    serializer_class = OrganisationRegistrationNumberSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

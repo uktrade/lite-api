@@ -44,4 +44,5 @@ urlpatterns = [
         documents.DocumentOnOrganisationStreamView.as_view(),
         name="document_stream",
     ),
+    path("registration_number/", organisations.ValidateRegistrationNumber.as_view(), name="registration_number"),
 ]

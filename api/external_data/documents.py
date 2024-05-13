@@ -85,8 +85,10 @@ class DenialEntityDocument(Document):
         },
     )
     data = DataField()
-    is_revoked = fields.BooleanField(attr="denial.is_revoked")
+    entity_type = fields.TextField()
 
+    is_revoked = fields.BooleanField(attr="denial.is_revoked")
+    notifying_government = fields.KeywordField(attr="denial.notifying_government")
     denial = fields.ObjectField(
         attr="denial",
         properties={
@@ -98,12 +100,6 @@ class DenialEntityDocument(Document):
             ),
             "reference": fields.TextField(
                 attr="reference",
-                fields={
-                    "raw": fields.KeywordField(),
-                },
-            ),
-            "notifying_government": fields.TextField(
-                attr="notifying_government",
                 fields={
                     "raw": fields.KeywordField(),
                 },
