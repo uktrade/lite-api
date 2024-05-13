@@ -280,6 +280,18 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
 
         return value
 
+    def validate_registration_number(self, value):
+        # Skip uniqueness check if the registration number is not provided
+        if not value:
+            return value
+
+        # Check for uniqueness only when creating a new Organisation
+        if not self.instance:
+            if Organisation.objects.filter(registration_number=value).exists():
+                raise serializers.ValidationError("This registration number is already in use.")
+
+        return value
+
     @transaction.atomic
     def create(self, validated_data):
         if self.context["validate_only"]:
@@ -484,3 +496,15 @@ class DocumentOnOrganisationSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation["expiry_date"] = instance.expiry_date.strftime("%d %B %Y")
         return representation
+
+
+class OrganisationRegistrationNumberSerializer(serializers.Serializer):
+    registration_number = serializers.CharField()
+
+    def validate_registration_number(self, value):
+        # Check for uniqueness only when creating a new Organisation
+        if not self.instance:
+            if Organisation.objects.filter(registration_number=value).exists():
+                raise serializers.ValidationError("This registration number is already in use.")
+
+        return value
