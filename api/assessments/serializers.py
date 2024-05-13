@@ -8,11 +8,10 @@ from api.applications.models import GoodOnApplication
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.libraries.get_case import get_case
-from api.core.serializers import GoodControlReviewSerializer, PrimaryKeyRelatedSerializerField
+from api.core.serializers import GoodControlReviewSerializer
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummarySubject, ReportSummaryPrefix
-from api.staticdata.report_summaries.serializers import ReportSummarySerializer
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
 
@@ -52,16 +51,8 @@ class AssessmentUpdateListSerializer(serializers.ListSerializer):
         return data
 
 
-class ReportSummaryField(PrimaryKeyRelatedSerializerField):
-
-    def __init__(self, **kwargs):
-        super().__init__(
-            queryset=ReportSummary.objects.all(),
-            many=kwargs.get("many"),
-            serializer=ReportSummarySerializer,
-            error_messages={},
-            **kwargs,
-        )
+class ReportSummaryField(PrimaryKeyRelatedField):
+    queryset = ReportSummary.objects.all()
 
     def to_internal_value(self, data):
         prefix = data.get("prefix", None)
