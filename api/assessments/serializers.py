@@ -8,16 +8,25 @@ from api.applications.models import GoodOnApplication
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.libraries.get_case import get_case
-from api.core.serializers import GoodControlReviewSerializer
+from api.core.serializers import GoodControlReviewSerializer, PrimaryKeyRelatedSerializerField
 from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
-from api.staticdata.report_summaries.models import ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.report_summaries.models import ReportSummary, ReportSummarySubject, ReportSummaryPrefix
+from api.staticdata.report_summaries.serializers import ReportSummarySerializer
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 from lite_content.lite_api import strings
 
 logger = logging.getLogger(__name__)
+
+
+def is_legacy_line_item(data):
+    return (
+        data.get("report_summary") is not None
+        and data.get("report_summary_subject") is None
+        and data.get("report_summary_prefix") is None
+    )
 
 
 class AssessmentUpdateListSerializer(serializers.ListSerializer):
@@ -43,6 +52,36 @@ class AssessmentUpdateListSerializer(serializers.ListSerializer):
         return data
 
 
+class ReportSummaryField(PrimaryKeyRelatedSerializerField):
+
+    def __init__(self, **kwargs):
+        super().__init__(
+            queryset=ReportSummary.objects.all(),
+            many=kwargs.get("many"),
+            serializer=ReportSummarySerializer,
+            error_messages={},
+            **kwargs,
+        )
+
+    def to_internal_value(self, data):
+        prefix = data.get("prefix", None)
+        subject = data.get("subject", None)
+
+        if not subject:
+            raise serializers.ValidationError("You must include a report summary if this item is controlled.")
+
+        try:
+            if prefix:
+                return ReportSummary.objects.get(prefix=prefix, subject=subject)
+            else:
+                # prefix can either be missing or an empty string which is not a valid UUID
+                # so use None in the query in this case
+                return ReportSummary.objects.get(prefix=None, subject=subject)
+
+        except ReportSummary.DoesNotExist:
+            raise serializers.ValidationError("Report summary with given prefix and subject does not exist")
+
+
 class AssessmentSerializer(GoodControlReviewSerializer):
 
     id = serializers.UUIDField()
@@ -57,6 +96,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
     report_summary_subject = PrimaryKeyRelatedField(
         required=False, allow_null=True, queryset=ReportSummarySubject.objects.all()
     )
+    report_summaries = ReportSummaryField(required=False, allow_null=True, many=True)
 
     class Meta:
         model = GoodOnApplication
@@ -69,6 +109,7 @@ class AssessmentSerializer(GoodControlReviewSerializer):
             "regime_entries",
             "report_summary_prefix",
             "report_summary_subject",
+            "report_summaries",
             "is_ncsc_military_information_security",
         )
         list_serializer_class = AssessmentUpdateListSerializer
@@ -79,17 +120,16 @@ class AssessmentSerializer(GoodControlReviewSerializer):
             data["report_summary"] = None
             data["report_summary_prefix"] = None
             data["report_summary_subject"] = None
-        elif (
-            data.get("report_summary") is not None
-            and data.get("report_summary_subject") is None
-            and data.get("report_summary_prefix") is None
-        ):
+        elif is_legacy_line_item(data):
             # Legacy GoodOnApplications only have a report_summary populated, not the subject/prefix
             # - Once report_summary is removed, remove this check
             logger.info(
                 "GoodOnApplication %s is legacy format: has report_summary but no report_summary_subject or report_summary_prefix",
                 data.get("id"),
             )
+        elif "report_summaries" in data:
+            data["report_summary"] = ", ".join(rs.name for rs in data["report_summaries"])
+
         elif "report_summary_subject" in data:
             if data["report_summary_subject"] is None:
                 raise serializers.ValidationError({"report_summary_subject": strings.Picklists.REQUIRED_REPORT_SUMMARY})

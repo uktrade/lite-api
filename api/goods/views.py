@@ -1,7 +1,7 @@
 import logging
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse
@@ -55,7 +55,6 @@ from api.applications.serializers.good import (
     GoodOnApplicationInternalDocumentViewSerializer,
 )
 
-from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 from lite_content.lite_api import strings
 from api.organisations.models import OrganisationDocumentType
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -63,38 +62,6 @@ from api.queries.goods_query.models import GoodsQuery
 from api.users.models import ExporterNotification
 
 good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
-
-GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX = "Select a valid report summary prefix"
-GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT = "Select a valid report summary subject"
-
-
-def get_new_report_summary_data(request):
-    data = request.data
-    summary = data.get("report_summary")
-    rs_subject, rs_prefix = None, None
-
-    subject_id = data.get("report_summary_subject")
-    if subject_id:
-        try:
-            rs_subject = ReportSummarySubject.objects.get(id=subject_id)
-        except ReportSummarySubject.DoesNotExist:
-            raise ValidationError(GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT)
-        summary = rs_subject.name
-
-    prefix_id = data.get("report_summary_prefix")
-    if prefix_id:
-        try:
-            rs_prefix = ReportSummaryPrefix.objects.get(id=prefix_id)
-        except ReportSummaryPrefix.DoesNotExist:
-            raise ValidationError(GOOD_ON_APP_BAD_REPORT_SUMMARY_PREFIX)
-
-    if rs_subject is None and rs_prefix is not None:
-        raise ValidationError(GOOD_ON_APP_BAD_REPORT_SUMMARY_SUBJECT)
-
-    if rs_subject is not None and rs_prefix is not None:
-        summary = f"{rs_prefix.name} {rs_subject.name}"
-
-    return summary
 
 
 class GoodList(ListCreateAPIView):
