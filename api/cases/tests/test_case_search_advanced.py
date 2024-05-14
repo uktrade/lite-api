@@ -221,8 +221,8 @@ class FilterAndSortTests(DataTestClient):
         ]
     )
     def test_filter_by_report_summary(self, search_term, expected_results):
-        self.add_application_with_report_summary("accessories for", "laser optical components")
         self.add_application_with_report_summary("technology for", "air defence systems")
+        self.add_application_with_report_summary("accessories for", "laser optical components")
         self.add_application_with_report_summary("components for", "tanks")
         self.add_application_with_report_summary(None, None, "accessories for banana bombs")
 
