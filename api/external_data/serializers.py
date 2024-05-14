@@ -7,8 +7,11 @@ from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
 from api.external_data import documents, models
-from api.external_data.helpers import get_denial_entity_type
+
 from api.flags.enums import SystemFlags
+from api.core.serializers import KeyValueChoiceField
+from api.external_data.helpers import get_denial_entity_type
+from django.utils.html import escape
 
 
 class DenialSerializer(serializers.ModelSerializer):
@@ -35,6 +38,7 @@ class DenialSerializer(serializers.ModelSerializer):
 
 
 class DenialEntitySerializer(serializers.ModelSerializer):
+    entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.CharField(source="denial.regime_reg_ref", required=False)
     reference = serializers.CharField(source="denial.reference", required=False)
     item_list_codes = serializers.CharField(source="denial.item_list_codes", required=False)
@@ -62,10 +66,11 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "data",
             "is_revoked",
             "is_revoked_comment",
-            "entity_type",
             "reason_for_refusal",
             "spire_entity_id",
+            "entity_type",
         )
+
         extra_kwargs = {
             "is_revoked": {"required": False},
             "is_revoked_comment": {"required": False},
@@ -135,11 +140,11 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         errors = []
         for i, row in enumerate(reader, start=1):
             denial_entity_data = {
-                **{field: row[field] for field in self.required_headers_denial_entity},
+                **{field: escape(row[field]) for field in self.required_headers_denial_entity},
                 "created_by": self.context["request"].user,
             }
 
-            denial_data = {**{field: row[field].strip() for field in self.required_headers_denial}}
+            denial_data = {**{field: escape(row[field].strip()) for field in self.required_headers_denial}}
 
             # Create a serializer instance to validate data
             serializer = DenialEntitySerializer(data=denial_entity_data)
@@ -232,13 +237,14 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 
 
 class DenialSearchSerializer(DocumentSerializer):
-    entity_type = serializers.SerializerMethodField()
+    entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.ReadOnlyField(source="denial.regime_reg_ref")
     reference = serializers.ReadOnlyField(source="denial.reference")
-    notifying_government = serializers.ReadOnlyField(source="denial.notifying_government")
     item_list_codes = serializers.ReadOnlyField(source="denial.item_list_codes")
     item_description = serializers.ReadOnlyField(source="denial.item_description")
     end_use = serializers.ReadOnlyField(source="denial.end_use")
+    name = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
 
     class Meta:
         document = documents.DenialEntityDocument
@@ -247,10 +253,21 @@ class DenialSearchSerializer(DocumentSerializer):
             "address",
             "country",
             "name",
+            "notifying_government",
         )
 
     def get_entity_type(self, obj):
         return get_denial_entity_type(obj.data.to_dict())
+
+    def get_name(self, obj):
+        if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("name"):
+            return obj.meta.highlight.to_dict().get("name")[0]
+        return obj.name
+
+    def get_address(self, obj):
+        if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("address"):
+            return obj.meta.highlight.to_dict().get("address")[0]
+        return obj.address
 
 
 class SanctionMatchSerializer(serializers.ModelSerializer):
