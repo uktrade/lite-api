@@ -19,7 +19,7 @@ address_analyzer = analysis.analyzer(
 
 part_number_analyzer = analysis.analyzer(
     "part_number_analyzer",
-    tokenizer=analysis.tokenizer("part_number_path_hierarchy", "path_hierarchy", delimiter="-"),
+    tokenizer=analysis.tokenizer("part_number_path_hierarchy", "path_hierarchy"),
     filter=["lowercase", "trim"],
 )
 
