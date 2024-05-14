@@ -42,6 +42,8 @@ class MakeAssessmentsView(generics.UpdateAPIView):
         return line_numbers
 
     def populate_report_summaries(self, assessment_data):
+        # TODO: Remove this method once FE is updated
+
         payload = []
 
         for line_item in assessment_data:

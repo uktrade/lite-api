@@ -385,9 +385,9 @@ class MakeAssessmentsViewTests(DataTestClient):
         rs = good_on_application.report_summaries.first()
         assert rs.prefix == report_summary_prefix
         assert rs.subject == report_summary_subject
-        assert good_on_application.is_good_controlled == True
+        assert good_on_application.is_good_controlled is True
         assert good_on_application.comment == "some comment"
-        assert good_on_application.is_ncsc_military_information_security == True
+        assert good_on_application.is_ncsc_military_information_security is True
         assert good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
         assert good_on_application.assessed_by == self.gov_user
         assert good_on_application.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
@@ -395,12 +395,12 @@ class MakeAssessmentsViewTests(DataTestClient):
         good_on_application_2.refresh_from_db()
         all_cles = [cle.rating for cle in good_on_application_2.control_list_entries.all()]
         assert all_cles == ["ML2"]
-        assert good_on_application_2.report_summary_prefix_id == None
-        assert good_on_application_2.report_summary_subject_id == None
+        assert good_on_application_2.report_summary_prefix_id is None
+        assert good_on_application_2.report_summary_subject_id is None
         assert good_on_application_2.report_summaries.count() == 0
-        assert good_on_application_2.is_good_controlled == True
+        assert good_on_application_2.is_good_controlled is True
         assert good_on_application_2.comment == "some comment"
-        assert good_on_application_2.is_ncsc_military_information_security == True
+        assert good_on_application_2.is_ncsc_military_information_security is True
         assert good_on_application_2.report_summary == f"some report summary string"
         assert good_on_application_2.assessed_by == self.gov_user
         assert good_on_application_2.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
@@ -408,13 +408,13 @@ class MakeAssessmentsViewTests(DataTestClient):
         good_on_application_3.refresh_from_db()
         all_cles = [cle.rating for cle in good_on_application_3.control_list_entries.all()]
         assert all_cles == []
-        assert good_on_application_3.report_summary_prefix_id == None
-        assert good_on_application_3.report_summary_subject_id == None
+        assert good_on_application_3.report_summary_prefix_id is None
+        assert good_on_application_3.report_summary_subject_id is None
         assert good_on_application_3.report_summaries.count() == 0
-        assert good_on_application_3.is_good_controlled == False
+        assert good_on_application_3.is_good_controlled is False
         assert good_on_application_3.comment == "some comment"
-        assert good_on_application_3.is_ncsc_military_information_security == True
-        assert good_on_application_3.report_summary == None
+        assert good_on_application_3.is_ncsc_military_information_security is True
+        assert good_on_application_3.report_summary is None
         assert good_on_application_3.assessed_by == self.gov_user
         assert good_on_application_3.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
 
@@ -519,12 +519,12 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert all_cles == ["ML1"]
         all_regime_entries = [regime_entry.id for regime_entry in good_on_application1.regime_entries.all()]
         assert all_regime_entries == [regime_entry.id]
-        assert good_on_application1.is_good_controlled == True
+        assert good_on_application1.is_good_controlled is True
         assert sorted(rs.name for rs in good_on_application1.report_summaries.all()) == sorted(
             rs.name for rs in report_summaries
         )
-        assert good_on_application1.report_summary_prefix_id == None
-        assert good_on_application1.report_summary_subject_id == None
+        assert good_on_application1.report_summary_prefix_id is None
+        assert good_on_application1.report_summary_subject_id is None
         assert good_on_application1.comment == "multiple ARS with prefixes and subjects"
         assert good_on_application1.report_summary == ", ".join(rs.name for rs in report_summaries)
         assert good_on_application1.good.report_summary == ", ".join(rs.name for rs in report_summaries)
@@ -534,12 +534,12 @@ class MakeAssessmentsViewTests(DataTestClient):
         good_on_application2.refresh_from_db()
         all_cles = [cle.rating for cle in good_on_application2.control_list_entries.all()]
         assert all_cles == ["ML2"]
-        assert good_on_application2.is_good_controlled == True
+        assert good_on_application2.is_good_controlled is True
         assert sorted(rs.name for rs in good_on_application2.report_summaries.all()) == sorted(
             rs.subject.name for rs in report_summaries
         )
-        assert good_on_application2.report_summary_prefix_id == None
-        assert good_on_application2.report_summary_subject_id == None
+        assert good_on_application2.report_summary_prefix_id is None
+        assert good_on_application2.report_summary_subject_id is None
         assert good_on_application2.comment == "multiple ARS with only subjects"
         assert good_on_application2.report_summary == ", ".join(rs.subject.name for rs in report_summaries)
         assert good_on_application2.assessed_by == self.gov_user
@@ -548,12 +548,12 @@ class MakeAssessmentsViewTests(DataTestClient):
         good_on_application3.refresh_from_db()
         all_cles = [cle.rating for cle in good_on_application3.control_list_entries.all()]
         assert all_cles == []
-        assert good_on_application3.is_good_controlled == False
+        assert good_on_application3.is_good_controlled is False
         assert good_on_application3.report_summaries.count() == 0
-        assert good_on_application3.report_summary_prefix_id == None
-        assert good_on_application3.report_summary_subject_id == None
+        assert good_on_application3.report_summary_prefix_id is None
+        assert good_on_application3.report_summary_subject_id is None
         assert good_on_application3.comment == "no licence required"
-        assert good_on_application3.report_summary == None
+        assert good_on_application3.report_summary is None
         assert good_on_application3.assessed_by == self.gov_user
         assert good_on_application3.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
 
