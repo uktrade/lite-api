@@ -2,7 +2,6 @@
 import logging
 from django.db import migrations
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,15 +22,17 @@ def back_populate_multiple_ars(apps, schema_editor):
         report_summaries__isnull=True,
     ).values_list("id", "report_summary_prefix_id", "report_summary_subject_id")
 
+    all_report_summaries = ReportSummary.objects.values_list("id", "prefix", "subject")
+    all_report_summary_cache = {f"{prefix}-{subject}": f"{id}" for id, prefix, subject in all_report_summaries}
+
     errors = []
     valid_report_summaries = []
     for goodonapplication_id, prefix_id, subject_id in queryset_values:
-        try:
-            rs = ReportSummary.objects.get(prefix_id=prefix_id, subject_id=subject_id)
-            valid_report_summaries.append((goodonapplication_id, rs.id))
-        except ReportSummary.ObjectDoesNotExist:
-            # this is unlikely as prefix, subject on GoodOnApplication are linked from a predefined
-            # set of objects and the same are used to create ReportSummary objects.
+        report_summary_key = f"{prefix_id}-{subject_id}"
+        report_summary_id = all_report_summary_cache.get(report_summary_key, None)
+        if report_summary_id:
+            valid_report_summaries.append((goodonapplication_id, report_summary_id))
+        else:
             errors.append({"prefix": prefix_id, "subject": subject_id})
 
     if errors:
