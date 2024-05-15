@@ -356,7 +356,7 @@ class DenialSearchViewTests(DataTestClient):
             "address": "2000 Street Name, City Name 2",
             "country": "Country Name 2",
             "item_description": "Large Size Widget",
-            "item_list_codes": "0A00200",
+            "item_list_codes": "<mark>0A00200</mark>",
             "name": "<mark>Organisation</mark> <mark>Name</mark> <mark>XYZ</mark>",
             "notifying_government": "Country Name 2",
             "end_use": "Used in other industry",
@@ -378,6 +378,7 @@ class DenialSearchViewTests(DataTestClient):
             ({"search": "address:Street Name"}, 3),
             ({"search": "address:Example"}, 1),
             ({"search": "name:UK Issued"}, 0),
+            ({"search": "item_list_codes:catch all"}, 1),
         ]
     )
     def test_denial_entity_search(self, query, quantity):
