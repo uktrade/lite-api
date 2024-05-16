@@ -1,40 +1,25 @@
-import csv
-import io
 import pytest
+import os
 
+from django.conf import settings
 from django.urls import reverse
-from faker import Faker
 from rest_framework import status
 
 from api.applications.tests.factories import DenialMatchFactory
-from api.external_data import models, serializers
+from api.external_data import models
 from test_helpers.clients import DataTestClient
 
 
 class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.faker = Faker()
         self.application = self.create_standard_application_case(self.organisation)
-        denials = [
-            {name: self.faker.word() for name in serializers.DenialFromCSVFileSerializer.required_headers}
-            for _ in range(5)
-        ]
-
-        content = io.StringIO()
-        writer = csv.DictWriter(
-            content,
-            fieldnames=[*serializers.DenialFromCSVFileSerializer.required_headers, "field_n"],
-            delimiter=",",
-            quoting=csv.QUOTE_MINIMAL,
-        )
-        writer.writeheader()
-        writer.writerows(denials)
-        response = self.client.post(
-            reverse("external_data:denial-list"), {"csv_file": content.getvalue()}, **self.gov_headers
-        )
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            content = f.read()
+        response = self.client.post(reverse("external_data:denial-list"), {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(models.Denial.objects.count(), 5)
+        self.assertEqual(models.DenialEntity.objects.count(), 5)
 
     @pytest.mark.xfail(reason="This test is flaky and should be rewritten")
     # Occasionally causes this error:
@@ -42,7 +27,7 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
     def test_adding_denials_to_application(self):
         data = [
             {"application": self.application.id, "denial": denial.id, "category": "exact" if (index % 2) else "partial"}
-            for index, denial in enumerate(models.Denial.objects.all()[:2])
+            for index, denial in enumerate(models.DenialEntity.objects.all()[:2])
         ]
         url = reverse("applications:application_denial_matches", kwargs={"pk": self.application.id})
         response = self.client.post(url, data, **self.gov_headers)
@@ -93,6 +78,32 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
         response = response.json()
         self.assertEqual(response["is_revoked"], True)
         self.assertEqual(response["is_revoked_comment"], "This denial is no longer active")
+
+    def test_revoke_denial_active_success(self):
+        response = self.client.get(reverse("external_data:denial-list"), **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 5)
+
+        denials = response.json()["results"]
+
+        # pick one and revoke it
+        self.assertEqual(denials[0]["is_revoked"], False)
+        denialentity = models.DenialEntity.objects.get(pk=denials[0]["id"])
+        denialentity.denial.is_revoked = True
+        denialentity.denial.save()
+
+        response = self.client.patch(
+            reverse("external_data:denial-detail", kwargs={"pk": denials[0]["id"]}),
+            {
+                "is_revoked": False,
+            },
+            **self.gov_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(response["is_revoked"], False)
+        self.assertEqual(response["is_revoked_comment"], "")
 
     def test_view_denial_notifications_on_the_application(self):
         data = []

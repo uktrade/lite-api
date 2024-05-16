@@ -492,6 +492,43 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
 
+    def test_generate_context_with_advice_on_goods_some_missing(self):
+        """
+        This tests the scenario where advice had been given on for two
+        GoodOnApplications referring to the same Good.  After application editing,
+        only one GoodOnApplication remains despite both advice records still being present.
+        """
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        good = case.goods.first().good
+        another_good_on_application = GoodOnApplicationFactory(
+            application=case,
+            good=good,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+        )
+        final_advice = FinalAdviceFactory(
+            user=self.gov_user,
+            case=case,
+            type=AdviceType.REFUSE,
+            good=good,
+        )
+        FinalAdviceFactory(
+            user=self.gov_user,
+            case=case,
+            type=AdviceType.REFUSE,
+            good=good,
+        )
+
+        case.goods.first().delete()  # Remove the first good from the application
+
+        context = get_document_context(case)
+        render_to_string(template_name="letter_templates/case_context_test.html", context=context)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_officer_name"], case.get_case_officer_name())
+        self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
+
     def test_generate_context_with_proviso_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         good = case.goods.first()

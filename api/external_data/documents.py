@@ -2,7 +2,6 @@ from django.conf import settings
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 from elasticsearch_dsl import analysis
-
 from api.external_data import models
 from api.search.application.documents import lowercase_normalizer
 
@@ -74,26 +73,57 @@ postcode_normalizer = analysis.normalizer(
 )
 
 
-class DenialDocumentType(Document):
+class DenialEntityDocument(Document):
     id = fields.KeywordField()
     name = fields.TextField()
     address = fields.TextField(
         analyzer=address_analyzer_no_ngram,
     )
-    reference = fields.KeywordField()
-    regime_reg_ref = fields.KeywordField()
-    notifying_government = fields.TextField()
     country = fields.TextField(
         fields={
             "raw": fields.KeywordField(normalizer=lowercase_normalizer),
         },
     )
-    item_list_codes = fields.TextField()
-    item_description = fields.TextField()
-    consignee_name = fields.TextField()
-    end_use = fields.TextField()
     data = DataField()
-    is_revoked = fields.BooleanField()
+    entity_type = fields.TextField()
+
+    is_revoked = fields.BooleanField(attr="denial.is_revoked")
+    notifying_government = fields.KeywordField(attr="denial.notifying_government")
+    denial = fields.ObjectField(
+        attr="denial",
+        properties={
+            "regime_reg_ref": fields.TextField(
+                attr="regime_reg_ref",
+                fields={
+                    "raw": fields.KeywordField(),
+                },
+            ),
+            "reference": fields.TextField(
+                attr="reference",
+                fields={
+                    "raw": fields.KeywordField(),
+                },
+            ),
+            "item_list_codes": fields.TextField(
+                attr="item_list_codes",
+                fields={
+                    "raw": fields.KeywordField(),
+                },
+            ),
+            "item_description": fields.TextField(
+                attr="item_description",
+                fields={
+                    "raw": fields.KeywordField(),
+                },
+            ),
+            "end_use": fields.TextField(
+                attr="end_use",
+                fields={
+                    "raw": fields.KeywordField(),
+                },
+            ),
+        },
+    )
 
     class Index:
         name = settings.ELASTICSEARCH_DENIALS_INDEX_ALIAS
@@ -104,10 +134,15 @@ class DenialDocumentType(Document):
         }
 
     class Meta:
-        model = models.Denial
+        model = models.DenialEntity
 
     class Django:
-        model = models.Denial
+        model = models.DenialEntity
+        related_models = [models.Denial]
+
+    def get_instances_from_related(self, related_instance):
+        if isinstance(related_instance, models.Denial):
+            return related_instance.denial_entity.all()
 
 
 class SanctionDocumentType(Document):
@@ -142,4 +177,4 @@ class SanctionDocumentType(Document):
 
 
 if settings.LITE_API_ENABLE_ES:
-    registry.register_document(DenialDocumentType)
+    registry.register_document(DenialEntityDocument)

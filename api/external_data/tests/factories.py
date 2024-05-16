@@ -1,8 +1,8 @@
 import factory
 
-from api.external_data.models import Denial
+from api.external_data.models import DenialEntity
 
 
-class DenialFactory(factory.django.DjangoModelFactory):
+class DenialEntityFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Denial
+        model = DenialEntity

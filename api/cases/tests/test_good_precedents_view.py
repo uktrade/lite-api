@@ -135,8 +135,9 @@ class GoodPrecedentsListViewTests(DataTestClient):
                     "destinations": expected_destinations,
                     "wassenaar": True,
                     "submitted_at": application.submitted_at.astimezone(timezone("UTC")).strftime(
-                        "%Y-%m-%dT%H:%M:%S.%fZ"
-                    ),
+                        "%Y-%m-%dT%H:%M:%S.%f"
+                    )[:-3]
+                    + "Z",
                     "goods_starting_point": "",
                     "regime_entries": [
                         {

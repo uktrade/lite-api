@@ -14,13 +14,13 @@ from api.external_data import documents, models, serializers
 
 
 class DenialViewSet(viewsets.ModelViewSet):
-    queryset = models.Denial.objects.all()
+    queryset = models.DenialEntity.objects.all()
     authentication_classes = (GovAuthentication,)
 
     def get_serializer_class(self):
         if self.action == "create":
             return serializers.DenialFromCSVFileSerializer
-        return serializers.DenialSerializer
+        return serializers.DenialEntitySerializer
 
     def perform_create(self, serializer):
         pass
@@ -36,7 +36,7 @@ class SanctionViewSet(viewsets.ModelViewSet):
 
 
 class DenialSearchView(DocumentViewSet):
-    document = documents.DenialDocumentType
+    document = documents.DenialEntityDocument
     serializer_class = serializers.DenialSearchSerializer
     authentication_classes = (GovAuthentication,)
     pagination_class = MaxPageNumberPagination
@@ -45,6 +45,7 @@ class DenialSearchView(DocumentViewSet):
         filter_backends.SearchFilterBackend,
         filter_backends.SourceBackend,
         filter_backends.FilteringFilterBackend,
+        filter_backends.HighlightBackend,
     ]
     search_fields = ["name", "address"]
     filter_fields = {
@@ -54,9 +55,25 @@ class DenialSearchView(DocumentViewSet):
         }
     }
     ordering = "_score"
+    highlight_fields = {
+        "name": {
+            "enabled": True,
+            "options": {
+                "pre_tags": ["<mark>"],
+                "post_tags": ["</mark>"],
+            },
+        },
+        "address": {
+            "enabled": True,
+            "options": {
+                "pre_tags": ["<mark>"],
+                "post_tags": ["</mark>"],
+            },
+        },
+    }
 
     def filter_queryset(self, queryset):
-        queryset = queryset.filter("term", is_revoked=False)
+        queryset = queryset.filter("term", is_revoked=False).exclude("term", notifying_government="United Kingdom")
         return super().filter_queryset(queryset)
 
 

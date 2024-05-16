@@ -10,6 +10,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 
+
 from api.applications.models import GoodOnApplication
 from api.users.models import BaseNotification, ExporterUser
 from api.applications.serializers.advice import (
@@ -29,7 +30,11 @@ from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.helpers import create_system_mention
 from api.cases.libraries.advice import group_advice
-from api.cases.libraries.finalise import get_required_decision_document_types
+from api.cases.libraries.finalise import (
+    get_required_decision_document_types,
+    remove_flags_on_finalisation,
+    remove_flags_from_audit_trail,
+)
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
 from api.cases.libraries.get_ecju_queries import get_ecju_query
@@ -976,6 +981,10 @@ class FinaliseView(UpdateAPIView):
         case.save()
         logging.info("Case status is now finalised")
 
+        # Remove Flags and related Audits when Finalising
+        remove_flags_on_finalisation(case)
+        remove_flags_from_audit_trail(case)
+
         decisions = required_decisions.copy()
 
         if AdviceType.REFUSE in decisions:
@@ -1263,4 +1272,17 @@ class GoodOnPrecedentList(ListAPIView):
                 "application__queues",
                 "control_list_entries",
             )
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        serializer = self.get_serializer(queryset, many=True)
+        return JsonResponse(
+            {
+                "count": queryset.count(),
+                "total_pages": 1,
+                "results": serializer.data,
+            },
+            status=status.HTTP_200_OK,
         )

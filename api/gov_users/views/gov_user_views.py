@@ -182,9 +182,11 @@ class Notifications(APIView):
 
     def get(self, request):
         notifications = {
-            "organisations": Organisation.objects.filter(status=OrganisationStatus.IN_REVIEW).count()
-            if request.user.govuser.has_permission(GovPermissions.MANAGE_ORGANISATIONS)
-            else 0
+            "organisations": (
+                Organisation.objects.filter(status=OrganisationStatus.IN_REVIEW).count()
+                if request.user.govuser.has_permission(GovPermissions.MANAGE_ORGANISATIONS)
+                else 0
+            )
         }
         return JsonResponse(
             {"notifications": notifications, "has_notifications": any(value for value in notifications.values())}

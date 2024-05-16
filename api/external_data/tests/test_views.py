@@ -11,6 +11,16 @@ from django.urls import reverse
 from api.external_data import documents, models, serializers
 from test_helpers.clients import DataTestClient
 
+denial_data_fields = [
+    "reference",
+    "regime_reg_ref",
+    "notifying_government",
+    "item_list_codes",
+    "item_description",
+    "end_use",
+    "reason_for_refusal",
+]
+
 
 class DenialViewSetTests(DataTestClient):
     def test_create_success(self):
@@ -21,62 +31,104 @@ class DenialViewSetTests(DataTestClient):
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.Denial.objects.count(), 4)
+        self.assertEqual(models.DenialEntity.objects.count(), 5)
+        self.assertEqual(models.Denial.objects.count(), 5)
         self.assertEqual(
-            list(models.Denial.objects.values(*serializers.DenialFromCSVFileSerializer.required_headers, "data")),
+            list(
+                models.DenialEntity.objects.values(
+                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity
+                )
+            ),
             [
                 {
-                    "address": "123 fake street",
-                    "consignee_name": "Fred Food",
-                    "data": {"end_user_flag": "true", "consignee_flag": "true", "other_role": "false"},
-                    "country": "Germany",
-                    "item_description": "Foo",
-                    "item_list_codes": "ABC123",
-                    "name": "Jim Example",
-                    "notifying_government": "France",
-                    "end_use": "used in car",
-                    "reference": "FOO123",
+                    "name": "Organisation Name",
+                    "address": "1000 Street Name, City Name",
+                    "country": "Country Name",
+                    "spire_entity_id": 123,
+                    "entity_type": "end_user",
                 },
                 {
-                    "address": "123 fake street",
-                    "consignee_name": "Fred Food",
-                    "data": {"end_user_flag": "false", "consignee_flag": "true", "other_role": "false"},
-                    "country": "Germany",
-                    "item_description": "Foo",
-                    "item_list_codes": "ABC123",
-                    "name": "Jak Example",
-                    "notifying_government": "France",
-                    "end_use": "used in car",
-                    "reference": "BAR123",
+                    "name": "Organisation Name 3",
+                    "address": "2001 Street Name, City Name 3",
+                    "country": "Country Name 3",
+                    "spire_entity_id": 125,
+                    "entity_type": "consignee",
                 },
                 {
-                    "address": "123 fake street",
-                    "consignee_name": "Fred Food",
-                    "data": {"end_user_flag": "false", "consignee_flag": "false", "other_role": "true"},
-                    "country": "Germany",
-                    "item_description": "Foo",
-                    "item_list_codes": "ABC123",
-                    "name": "Bob Example",
-                    "notifying_government": "France",
-                    "end_use": "used in car",
-                    "reference": "BAG124",
+                    "name": "The Widget Company",
+                    "address": "2 Example Road, Example City",
+                    "country": "Country Name X",
+                    "spire_entity_id": 126,
+                    "entity_type": "end_user",
                 },
                 {
-                    "address": "Bob Avenue",
-                    "consignee_name": "Fred Food",
-                    "data": {"end_user_flag": "false", "consignee_flag": "false", "other_role": "true"},
-                    "country": "Germany",
-                    "item_description": "Foo",
-                    "item_list_codes": "ABC123",
-                    "name": "James Jones",
-                    "notifying_government": "France",
-                    "end_use": "used in car",
-                    "reference": "BAT123",
+                    "name": "Organisation Name XYZ",
+                    "address": "2000 Street Name, City Name 2",
+                    "country": "Country Name 2",
+                    "spire_entity_id": 124,
+                    "entity_type": "third_party",
+                },
+                {
+                    "name": "UK Issued",
+                    "address": "2000 main road, some place",
+                    "country": "Country Name 3",
+                    "spire_entity_id": 124,
+                    "entity_type": "third_party",
+                },
+            ],
+        )
+        self.assertEqual(
+            list(models.Denial.objects.values(*serializers.DenialFromCSVFileSerializer.required_headers_denial)),
+            [
+                {
+                    "reference": "DN2000/0000",
+                    "regime_reg_ref": "AB-CD-EF-000",
+                    "notifying_government": "Country Name",
+                    "item_list_codes": "0A00100",
+                    "item_description": "Medium Size Widget",
+                    "end_use": "Used in industry",
+                    "reason_for_refusal": "Risk of outcome",
+                },
+                {
+                    "reference": "DN2000/0010",
+                    "regime_reg_ref": "AB-CD-EF-300",
+                    "notifying_government": "Country Name 3",
+                    "item_list_codes": "0A00201",
+                    "item_description": "Unspecified Size Widget",
+                    "end_use": "Used in other industry",
+                    "reason_for_refusal": "Risk of outcome 3",
+                },
+                {
+                    "reference": "DN2010/0001",
+                    "regime_reg_ref": "AB-XY-EF-900",
+                    "notifying_government": "Example Country",
+                    "item_list_codes": "catch all",
+                    "item_description": "Extra Large Size Widget",
+                    "end_use": "Used in unknown industry",
+                    "reason_for_refusal": "Risk of outcome 4",
+                },
+                {
+                    "reference": "DN3000/0000",
+                    "regime_reg_ref": "AB-CD-EF-100",
+                    "notifying_government": "Country Name 2",
+                    "item_list_codes": "0A00200",
+                    "item_description": "Large Size Widget",
+                    "end_use": "Used in other industry",
+                    "reason_for_refusal": "Risk of outcome 2",
+                },
+                {
+                    "reference": "DN4000/0000",
+                    "regime_reg_ref": "AB-CD-EF-200",
+                    "notifying_government": "United Kingdom",
+                    "item_list_codes": "0A00300",
+                    "item_description": "Large Size Widget",
+                    "end_use": "Used in other industry",
+                    "reason_for_refusal": "Risk of outcome 2",
                 },
             ],
         )
 
-    def test_create_validation_error(self):
+    def test_create_error_missing_required_headers(self):
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_invalid.csv")
         with open(file_path, "rb") as f:
@@ -84,18 +136,148 @@ class DenialViewSetTests(DataTestClient):
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"errors": {"csv_file": ["Missing required headers in CSV file"]}})
+
+    def test_create_and_set_entity_type(self):
+        url = reverse("external_data:denial-list")
+        content = """
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123,end_user
+        DN2000/0010,AB-CD-EF-300,Organisation Name 3,"2001 Street Name, City Name 3",Country Name 3,Country Name 3,0A00201,Unspecified Size Widget,Used in other industry,Risk of outcome 3,125,consignee
+        DN2010/0001,AB-XY-EF-900,The Widget Company,"2 Example Road, Example City",Example Country,Country Name X,"catch all",Extra Large Size Widget,Used in unknown industry,Risk of outcome 4,126,third_party
+        DN3000/0000,AB-CD-EF-100,Organisation Name XYZ,"2000 Street Name, City Name 2",Country Name 2,Country Name 2,0A00200,Large Size Widget,Used in other industry,Risk of outcome 2,124,end_user
+        """
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(models.DenialEntity.objects.count(), 4)
         self.assertEqual(
-            response.json(),
-            {
-                "errors": {
-                    "csv_file": [
-                        "[Row 2] reference: This field may not be null.",
-                        "[Row 3] reference: This field may not be null.",
-                        "[Row 4] reference: This field may not be null.",
-                    ]
-                }
-            },
+            list(
+                models.DenialEntity.objects.values(
+                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity
+                )
+            ),
+            [
+                {
+                    "name": "Organisation Name",
+                    "address": "1000 Street Name, City Name",
+                    "country": "Country Name",
+                    "spire_entity_id": 123,
+                    "entity_type": "end_user",
+                },
+                {
+                    "name": "Organisation Name 3",
+                    "address": "2001 Street Name, City Name 3",
+                    "country": "Country Name 3",
+                    "spire_entity_id": 125,
+                    "entity_type": "consignee",
+                },
+                {
+                    "name": "The Widget Company",
+                    "address": "2 Example Road, Example City",
+                    "country": "Country Name X",
+                    "spire_entity_id": 126,
+                    "entity_type": "third_party",
+                },
+                {
+                    "name": "Organisation Name XYZ",
+                    "address": "2000 Street Name, City Name 2",
+                    "country": "Country Name 2",
+                    "spire_entity_id": 124,
+                    "entity_type": "end_user",
+                },
+            ],
         )
+
+    def test_update_success(self):
+        url = reverse("external_data:denial-list")
+        content = """
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123,end_user
+        """
+
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(models.Denial.objects.count(), 1)
+        self.assertEqual(models.DenialEntity.objects.count(), 1)
+
+        self.assertEqual(
+            list(models.Denial.objects.values(*denial_data_fields)),
+            [
+                {
+                    "reference": "DN2000/0000",
+                    "regime_reg_ref": "AB-CD-EF-000",
+                    "notifying_government": "Country Name",
+                    "item_list_codes": "0A00100",
+                    "item_description": "Medium Size Widget",
+                    "end_use": "Used in industry",
+                    "reason_for_refusal": "Risk of outcome",
+                },
+            ],
+        )
+        self.assertEqual(
+            list(
+                models.DenialEntity.objects.values(
+                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity
+                )
+            ),
+            [
+                {
+                    "name": "Organisation Name",
+                    "address": "1000 Street Name, City Name",
+                    "country": "Country Name",
+                    "spire_entity_id": 123,
+                    "entity_type": "end_user",
+                },
+            ],
+        )
+        updated_content = """
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        DN2000/0000,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name 2,Country Name 2,0A00200,Medium Size Widget 2, Used in industry 2,Risk of outcome 2,124,end_user
+        """
+        response = self.client.post(url, {"csv_file": updated_content}, **self.gov_headers)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(models.Denial.objects.count(), 1)
+        self.assertEqual(models.DenialEntity.objects.count(), 1)
+        self.assertEqual(
+            list(models.Denial.objects.values(*denial_data_fields)),
+            [
+                {
+                    "reference": "DN2000/0000",
+                    "regime_reg_ref": "AB-CD-EF-000",
+                    "notifying_government": "Country Name 2",
+                    "item_list_codes": "0A00200",
+                    "item_description": "Medium Size Widget 2",
+                    "end_use": "Used in industry 2",
+                    "reason_for_refusal": "Risk of outcome 2",
+                }
+            ],
+        )
+        self.assertEqual(
+            list(
+                models.DenialEntity.objects.values(
+                    *serializers.DenialFromCSVFileSerializer.required_headers_denial_entity
+                )
+            ),
+            [
+                {
+                    "name": "Organisation Name",
+                    "address": "1000 Street Name, City Name",
+                    "country": "Country Name 2",
+                    "spire_entity_id": 124,
+                    "entity_type": "end_user",
+                }
+            ],
+        )
+
+    def test_create_error_serializer_errors(self):
+        url = reverse("external_data:denial-list")
+        content = """reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        ,AB-CD-EF-000,Organisation Name,"1000 Street Name, City Name",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123,end_user
+        """
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"errors": {"csv_file": ["[Row 1] reference: This field may not be blank."]}})
 
     @pytest.mark.skip(
         reason="Unique constraint on reference is removed temporarily, enable this test once we reinstate that constraint"
@@ -124,8 +306,23 @@ class DenialViewSetTests(DataTestClient):
             },
         )
 
+    def test_create_sanitise_csv(self):
+        url = reverse("external_data:denial-list")
+        content = """
+        reference,regime_reg_ref,name,address,notifying_government,country,item_list_codes,item_description,end_use,reason_for_refusal,spire_entity_id,entity_type
+        DN2000/0000,AB-CD-EF-000,Organisation Name,"<script>bad xss script</script>",Country Name,Country Name,0A00100,Medium Size Widget,Used in industry,Risk of outcome,123,end_user
+        """
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
-class DenialSearchView(DataTestClient):
+        self.assertEqual(
+            list(models.DenialEntity.objects.values("address")),
+            [{"address": "&lt;script&gt;bad xss script&lt;/script&gt;"}],
+        )
+
+        self.assertEqual(response.status_code, 201)
+
+
+class DenialSearchViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
@@ -133,36 +330,37 @@ class DenialSearchView(DataTestClient):
             ({"page": 1},),
         ]
     )
-    def test_populate_denials(self, page_query):
-        call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
+    def test_populate_denial_entity_objects(self, page_query):
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
         with open(file_path, "rb") as f:
             content = f.read()
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.Denial.objects.count(), 4)
+        self.assertEqual(models.DenialEntity.objects.count(), 5)
 
-        # and one of them is revoked
-        denial = models.Denial.objects.get(name="Jak Example")
-        denial.is_revoked = True
-        denial.save()
-
-        # then only 2 denials will be returned when searching
+        # Set one of them as revoked
+        denial_entity = models.DenialEntity.objects.get(name="Organisation Name")
+        denial_entity.denial.is_revoked = True
+        denial_entity.denial.save()
+        # This needs to be fixed we need to rebuild index if child value is updated.
+        # Then only 2 denial entity objects will be returned when searching
         url = reverse("external_data:denial_search-list")
 
-        response = self.client.get(url, {**page_query, "search": "name:Example"}, **self.gov_headers)
+        response = self.client.get(url, {**page_query, "search": "name:Organisation Name XYZ"}, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
+
         expected_result = {
-            "address": "123 fake street",
-            "country": "Germany",
-            "item_description": "Foo",
-            "item_list_codes": "ABC123",
-            "name": "Jim Example",
-            "notifying_government": "France",
-            "end_use": "used in car",
-            "reference": "FOO123",
+            "address": "2000 Street Name, City Name 2",
+            "country": "Country Name 2",
+            "item_description": "Large Size Widget",
+            "item_list_codes": "0A00200",
+            "name": "<mark>Organisation</mark> <mark>Name</mark> <mark>XYZ</mark>",
+            "notifying_government": "Country Name 2",
+            "end_use": "Used in other industry",
+            "reference": "DN3000/0000",
         }
 
         for key, value in expected_result.items():
@@ -174,15 +372,16 @@ class DenialSearchView(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "name:Bob"}, 1),
-            ({"search": "name:Example"}, 3),
-            ({"search": "name:Jones"}, 1),
-            ({"search": "address:123 fake street"}, 3),
-            ({"search": "address:Bob Avenue"}, 1),
+            ({"search": "name:Organisation Name"}, 3),
+            ({"search": "name:The Widget Company"}, 1),
+            ({"search": "name:XYZ"}, 1),
+            ({"search": "address:Street Name"}, 3),
+            ({"search": "address:Example"}, 1),
+            ({"search": "name:UK Issued"}, 0),
         ]
     )
-    def test_denial_search(self, query, quantity):
-        call_command("search_index", models=["external_data.denial"], action="rebuild", force=True)
+    def test_denial_entity_search(self, query, quantity):
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
         with open(file_path, "rb") as f:
@@ -198,8 +397,6 @@ class DenialSearchView(DataTestClient):
         response_json = response.json()
         self.assertEqual(len(response_json["results"]), quantity)
 
-
-class DenialSearchViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     def test_search(self):
         Index("sanctions-alias-test").create(ignore=[400])

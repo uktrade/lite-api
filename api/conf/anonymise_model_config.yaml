@@ -28,7 +28,7 @@ strategy:
     postcode: faker.postcode
     city: faker.city
     address: faker.address
-  external_data_denial:
+  external_data_denialentity:
     name: faker.name
     address: faker.address
     consignee_name: faker.name

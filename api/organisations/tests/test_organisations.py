@@ -1,4 +1,3 @@
-import re
 import pytest
 
 from unittest import mock
@@ -341,6 +340,37 @@ class CreateOrganisationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Audit.objects.count(), 0)
+
+    def test_create_organisation_unique_company_failure(self):
+        data = {
+            "name": "Lemonworld Co",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": "GB123456789000",
+            "sic_number": "01110",
+            "vat_number": "GB123456789",
+            "registration_number": "12345678",
+            "phone_number": "+441234567895",
+            "website": "",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "city": "St Albans",
+                },
+            },
+            "user": {"email": "trinity@bsg.com"},
+        }
+
+        response_1 = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response_1.status_code, status.HTTP_201_CREATED)
+
+        response_2 = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response_2.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_2.json(), {"errors": {"registration_number": ["This registration number is already in use."]}}
+        )
 
     @parameterized.expand([["GB123456789"], [""]])
     def test_create_organisation_as_a_private_individual(self, vat_number):
@@ -920,3 +950,27 @@ class UpdateOrganisationDraftTests(DataTestClient):
         response = self.client.put(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"], {"vat_number": ["Standard UK VAT numbers are 9 digits long"]})
+
+
+class ValidateRegistrationNumberTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.organisation = OrganisationFactory()
+        UserOrganisationRelationshipFactory(organisation=self.organisation, user=self.exporter_user)
+        self.exporter_headers["HTTP_ORGANISATION_ID"] = str(self.organisation.id)
+        self.url = reverse("organisations:registration_number")
+
+    def test_validate_registration_number_success(self):
+        data = {"registration_number": "123456789"}
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), data)
+
+    def test_validate_registration_number_fail(self):
+        self.organisation.refresh_from_db()
+        data = {"registration_number": self.organisation.registration_number}
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json(), {"errors": {"registration_number": ["This registration number is already in use."]}}
+        )

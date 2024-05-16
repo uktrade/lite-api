@@ -1,3 +1,5 @@
+from django.db.models import Q
+
 from api.applications.enums import ApplicationExportType, GoodsTypeCategory
 from api.applications.models import (
     ApplicationDocument,
@@ -140,7 +142,7 @@ def _validate_security_approvals(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_ultimate_end_users(draft, errors, is_mandatory, open_application=False):
+def _validate_ultimate_end_users(draft, errors, is_mandatory):
     """
     Checks all ultimate end users have documents if is_mandatory is True.
     Also checks that at least one ultimate_end_user is present if there is an incorporated good
@@ -151,20 +153,14 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory, open_application=F
         errors["ultimate_end_user_documents"] = [ultimate_end_user_documents_error]
 
     if is_mandatory:
-        if open_application:
-            ultimate_end_user_required = True in [
-                goodstype.is_good_incorporated for goodstype in list(draft.goods_type.all())
-            ]
-        else:
-            ultimate_end_user_required = GoodOnApplication.objects.filter(
-                application=draft, is_good_incorporated=True
-            ).exists()
+        ultimate_end_user_required = GoodOnApplication.objects.filter(
+            Q(application=draft), Q(is_good_incorporated=True) | Q(is_onward_incorporated=True)
+        ).exists()
 
         if ultimate_end_user_required:
             if len(draft.ultimate_end_users.values_list()) == 0:
                 errors["ultimate_end_users"] = ["To submit the application, add an ultimate end-user"]
-            # goods_types are used in open applications and we don't have end_users in them currently.
-            elif not open_application:
+            else:
                 # We make sure that an ultimate end user is not also the end user
                 for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                     if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.party.id):

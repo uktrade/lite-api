@@ -11,7 +11,7 @@ from api.applications.models import (
     StandardApplication,
 )
 from api.cases.enums import CaseTypeEnum
-from api.external_data.models import Denial, SanctionMatch
+from api.external_data.models import DenialEntity, SanctionMatch
 from api.staticdata.statuses.models import CaseStatus
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
@@ -104,6 +104,14 @@ class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
         for regime in regime_entries:
             self.regime_entries.add(get_regime_entry(regime))
 
+    @factory.post_generation
+    def report_summaries(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        report_summaries = extracted or []
+        self.report_summaries.set(report_summaries)
+
     class Meta:
         model = GoodOnApplication
 
@@ -121,7 +129,7 @@ class DenialMatchFactory(factory.django.DjangoModelFactory):
     end_use = factory.LazyAttribute(lambda n: faker.sentence())
 
     class Meta:
-        model = Denial
+        model = DenialEntity
 
 
 class DenialMatchOnApplicationFactory(factory.django.DjangoModelFactory):

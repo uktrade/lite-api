@@ -23,7 +23,7 @@ from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case
 from api.common.models import TimestampableModel
 from api.documents.models import Document
-from api.external_data.models import Denial
+from api.external_data.models import DenialEntity
 from api.external_data import enums as denial_enums
 from api.flags.models import Flag
 from api.goods.enums import ItemType, PvGrading
@@ -36,7 +36,7 @@ from api.queues.models import Queue
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.regimes.models import RegimeEntry
-from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
+from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -425,6 +425,7 @@ class GoodOnApplication(AbstractGoodOnApplication):
         null=True,
         related_name="subject_good_on_application",
     )
+    report_summaries = models.ManyToManyField(ReportSummary, related_name="goods_on_application")
 
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
@@ -555,5 +556,5 @@ class PartyOnApplication(TimestampableModel):
 class DenialMatchOnApplication(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="denial_matches")
-    denial = models.ForeignKey(Denial, related_name="denial_matches_on_application", on_delete=models.CASCADE)
+    denial = models.ForeignKey(DenialEntity, related_name="denial_matches_on_application", on_delete=models.CASCADE)
     category = models.TextField(choices=denial_enums.DenialMatchCategory.choices)

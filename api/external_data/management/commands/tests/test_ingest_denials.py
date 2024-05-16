@@ -9,7 +9,7 @@ from unittest import mock
 from django.core.management import call_command
 
 from api.external_data.management.commands import ingest_denials
-from api.external_data.models import Denial
+from api.external_data.models import DenialEntity
 from rest_framework.exceptions import ValidationError
 import json
 import io
@@ -46,7 +46,7 @@ def json_file_data():
                         "item_list_codes": "12345\/2009",
                         "item_description": "testing machine",
                         "end_use": "For teaching purposes",
-                        "end_user_flag": "true",
+                        "end_user_flag": "false",
                         "consignee_flag": "true",
                         "reason_for_refusal": "reason b",
                         "spire_entity_id": 1235,
@@ -65,6 +65,21 @@ def json_file_data():
                         "reason_for_refusal": "reason c",
                         "spire_entity_id": 1236,
                     },
+                    {
+                        "reference": "DN001\/0000",
+                        "regime_reg_ref": "12345",
+                        "name": "Test4 case",
+                        "address": "antartica",
+                        "notifying_government": "United States",
+                        "country": "Italy",
+                        "item_description": "lazer",
+                        "end_use": "testing",
+                        "end_user_flag": "false",
+                        "consignee_flag": "false",
+                        "other_role": "my role",
+                        "reason_for_refusal": "reason c",
+                        "spire_entity_id": 1236,
+                    },
                 ]
             )
         )
@@ -79,18 +94,18 @@ def test_populate_denials(mock_json_content, mock_delete_file, json_file_data):
     mock_json_content.return_value = json_file_data
 
     call_command("ingest_denials", "json_file", rebuild=True)
-    assert Denial.objects.all().count() == 3
-    denial_record = Denial.objects.all()[0]
-    assert denial_record.reference == "DN001\/0003"
+    assert DenialEntity.objects.all().count() == 4
+    denial_record = DenialEntity.objects.all()[0]
+    assert denial_record.denial.reference == "DN001\/0003"
     assert denial_record.name == "Test1 case"
     assert denial_record.address == "somewhere\nmid\nlatter\nCairo"
-    assert denial_record.notifying_government == "United Kingdom"
+    assert denial_record.denial.notifying_government == "United Kingdom"
     assert denial_record.country == "United States"
-    assert denial_record.item_list_codes == "123456"
-    assert denial_record.item_description == "phone"
-    assert denial_record.end_use == "locating phone"
-    assert denial_record.regime_reg_ref == "12"
-    assert denial_record.reason_for_refusal == "reason a"
+    assert denial_record.denial.item_list_codes == "123456"
+    assert denial_record.denial.item_description == "phone"
+    assert denial_record.denial.end_use == "locating phone"
+    assert denial_record.denial.regime_reg_ref == "12"
+    assert denial_record.denial.reason_for_refusal == "reason a"
     assert denial_record.spire_entity_id == 1234
 
     mock_delete_file.assert_called_with(document_id="json_file", s3_key="json_file")
@@ -116,7 +131,7 @@ def test_populate_denials_validation_call(mock_json_content, mock_delete_file):
     with pytest.raises(ValidationError):
         call_command("ingest_denials", "json_file")
 
-    assert not Denial.objects.all().exists()
+    assert not DenialEntity.objects.all().exists()
 
     mock_delete_file.assert_called_with(document_id="json_file", s3_key="json_file")
 
@@ -127,12 +142,13 @@ def test_populate_denials_validation_call(mock_json_content, mock_delete_file):
 def test_populate_denials_with_existing_matching_records(mock_get_file, mock_delete_file, json_file_data):
     mock_get_file.return_value = json_file_data
     case = StandardApplicationFactory()
-    denial = DenialMatchFactory()
-    DenialMatchOnApplicationFactory(application=case, category="exact", denial=denial)
+
+    denial_enity = DenialMatchFactory(regime_reg_ref="12", name="Test1 case")
+    DenialMatchOnApplicationFactory(application=case, category="exact", denial=denial_enity)
 
     call_command("ingest_denials", "json_file")
 
-    assert Denial.objects.all().count() == 4
+    assert DenialEntity.objects.all().count() == 4
 
 
 @pytest.mark.django_db
@@ -144,4 +160,4 @@ def test_populate_denials_with_no_data_in_file(mock_get_file, mock_delete_file):
 
     call_command("ingest_denials", "json_file")
 
-    assert Denial.objects.all().count() == 1
+    assert DenialEntity.objects.all().count() == 1

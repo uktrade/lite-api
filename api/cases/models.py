@@ -528,6 +528,7 @@ class Advice(TimestampableModel):
                     case=self.case,
                     good=self.good,
                     user=self.user,
+                    team=self.user.team,
                     level=AdviceLevel.USER,
                     goods_type=self.goods_type,
                     country=self.country,
@@ -540,6 +541,11 @@ class Advice(TimestampableModel):
                 old_advice.delete()
         except Advice.DoesNotExist:
             pass
+
+        has_no_team_set = self.team is None
+        has_user = self.user is not None
+        if has_no_team_set and has_user:
+            self.team = self.user.team
 
         super(Advice, self).save(*args, **kwargs)
 

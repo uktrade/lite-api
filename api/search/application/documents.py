@@ -7,6 +7,7 @@ from elasticsearch_dsl.field import Text
 from django.db.models import Prefetch
 
 from api.applications import models
+from api.cases.models import CaseAssignment
 
 
 address_analyzer = analysis.analyzer(
@@ -257,6 +258,11 @@ class ApplicationDocumentType(Document):
 
     class Django:
         model = models.BaseApplication
+        related_models = [CaseAssignment]
+
+    def get_instances_from_related(self, related_instance):
+        if isinstance(related_instance, CaseAssignment):
+            return related_instance.case.baseapplication
 
     def get_queryset(self):
         return super().get_queryset().exclude(status__status="draft")

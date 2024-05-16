@@ -96,6 +96,11 @@ class Static:
     seeded = False
 
 
+# Instantiating this once so that we have a single instance across all tests allowing us to use things like .unique
+# and we can guarantee that we will always have unique values even if we use things like `setUpClass`.
+faker = Faker()
+
+
 class DataTestClient(APITestCase, URLPatternsTestCase):
     """
     Test client which creates seeds the database with system data and sets up an initial organisation and user
@@ -103,7 +108,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
-    faker = Faker()
+    faker = faker  # Assigning this to the class as `self.faker` is expected in tests
 
     @classmethod
     def setUpClass(cls):
@@ -208,7 +213,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
         base_user = BaseUser(
-            first_name=first_name, last_name=last_name, email=self.faker.email(), pending=False, type=UserType.EXPORTER
+            first_name=first_name,
+            last_name=last_name,
+            email=self.faker.unique.email(),
+            pending=False,
+            type=UserType.EXPORTER,
         )
         base_user.save()
         exporter_user = ExporterUser(baseuser_ptr=base_user)
@@ -688,6 +697,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         destination_country_code="GB",
         good_cles=None,
         good_kwargs=None,
+        is_good_incorporated=True,
+        is_onward_incorporated=False,
     ):
         application = self.create_draft_standard_application(
             organisation, reference_name, safe_document, num_products=0, ultimate_end_users=True
@@ -706,7 +717,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             application=application,
             quantity=17,
             value=18,
-            is_good_incorporated=True,
+            is_good_incorporated=is_good_incorporated,
+            is_onward_incorporated=is_onward_incorporated,
         ).save()
 
         self.create_document_for_party(application.ultimate_end_users.first().party, safe=safe_document)
