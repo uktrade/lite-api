@@ -267,9 +267,7 @@ class DenialSearchSerializer(DocumentSerializer):
         return obj.address
 
     def get_country(self, obj):
-        if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("country"):
-            return obj.meta.highlight.to_dict().get("country")[0]
-        return obj.country
+        return f"<mark>{obj.country}</mark>"
 
 
 class SanctionMatchSerializer(serializers.ModelSerializer):
