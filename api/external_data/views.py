@@ -73,9 +73,7 @@ class DenialSearchView(DocumentViewSet):
     }
 
     def filter_queryset(self, queryset):
-        # country = self.request.query_params.get("country", None)
         queryset = queryset.filter("term", is_revoked=False).exclude("term", notifying_government="United Kingdom")
-        # .update(country=f"<mark>{country}</mark>")
         return super().filter_queryset(queryset)
 
 
