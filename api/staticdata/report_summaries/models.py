@@ -23,16 +23,19 @@ class ReportSummarySubject(models.Model):
 class ReportSummary(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     prefix = models.ForeignKey(
-        ReportSummaryPrefix, blank=True, null=True, related_name="prefix", on_delete=models.DO_NOTHING
+        ReportSummaryPrefix, blank=True, null=True, related_name="prefix", on_delete=models.PROTECT
     )
-    subject = models.ForeignKey(ReportSummarySubject, related_name="subject", on_delete=models.DO_NOTHING)
+    subject = models.ForeignKey(ReportSummarySubject, related_name="subject", on_delete=models.PROTECT)
 
     class Meta:
         unique_together = [["prefix", "subject"]]
 
-    def __repr__(self):
-        report_summary = self.subject.name
+    @property
+    def name(self):
         if self.prefix:
-            report_summary = f"{self.prefix.name} {self.subject.name}"
+            return f"{self.prefix.name} {self.subject.name}"
 
-        return report_summary
+        return self.subject.name
+
+    def __repr__(self):
+        return self.name

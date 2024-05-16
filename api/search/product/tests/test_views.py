@@ -108,17 +108,20 @@ class ProductSearchTests(BaseProductSearchTests):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "ABC"}, 1, "ABC-123"),
-            ({"search": "H2SO4"}, 1, "H2SO4"),
+            ({"search": "ABC"}, 0),
+            ({"search": "ABC-123"}, 1),
+            ({"search": "IMG-1300"}, 1),
+            ({"search": "867-"}, 0),
+            ({"search": "867-5309"}, 1),
+            ({"search": "H2SO4"}, 1),
         ]
     )
-    def test_product_search_by_part_number(self, query, expected_count, expected_part_number):
+    def test_product_search_by_part_number(self, query, expected_count):
         response = self.client.get(self.product_search_url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
         response = response.json()
         self.assertEqual(response["count"], expected_count)
-        self.assertIn(expected_part_number, [item["part_number"] for item in response["results"]])
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
