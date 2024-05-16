@@ -354,11 +354,11 @@ class DenialSearchViewTests(DataTestClient):
 
         expected_result = {
             "address": "2000 Street Name, City Name 2",
-            "country": "Country Name 2",
+            "country": "<mark>Country Name 2</mark>",
             "item_description": "Large Size Widget",
             "item_list_codes": "0A00200",
             "name": "<mark>Organisation</mark> <mark>Name</mark> <mark>XYZ</mark>",
-            "notifying_government": "<mark>Country Name 2</mark>",
+            "notifying_government": "Country Name 2",
             "end_use": "Used in other industry",
             "reference": "DN3000/0000",
         }
