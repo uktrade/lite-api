@@ -256,6 +256,9 @@ class DenialSearchSerializer(DocumentSerializer):
             "item_list_codes",
         )
 
+    def get_entity_type(self, obj):
+        return get_denial_entity_type(obj.data.to_dict())
+
     def get_name(self, obj):
         return self.get_highlighted_field(obj, "name")
 
