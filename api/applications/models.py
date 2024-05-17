@@ -248,6 +248,9 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
+    def validate(self):
+        raise NotImplementedError("Validator to validate application attributes is not implemented")
+
 
 # Licence Applications
 class StandardApplication(BaseApplication):

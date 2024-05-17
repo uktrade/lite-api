@@ -3,7 +3,6 @@ from django.db.models import Q
 from api.applications.enums import ApplicationExportType
 from api.goods.models import GoodDocument
 from api.parties.models import PartyDocument
-from api.parties.enums import PartyDocumentType
 
 
 def siel_locations_validator(application):
