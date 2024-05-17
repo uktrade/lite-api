@@ -3,10 +3,7 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from django_elasticsearch_dsl.signals import CelerySignalProcessor
-from django_elasticsearch_dsl.registries import registry
-
-from api.applications.models import GoodOnApplication
+from api.applications.models import BaseApplication, GoodOnApplication
 from api.goods.models import Good
 from api.search.celery_tasks import update_search_index
 
@@ -32,6 +29,9 @@ def update_search_documents(sender, **kwargs):
     """
     to_update = []
 
+    if issubclass(sender, BaseApplication):
+        to_update.append((application_document_model, instance.baseapplication.pk))
+
     if issubclass(sender, GoodOnApplication):
         to_update.append((product_document_model, instance.pk))
 
@@ -40,7 +40,9 @@ def update_search_documents(sender, **kwargs):
             to_update.append((product_document_model, good_on_application.pk))
 
     try:
-        if app_label == "cases" and model_name == "case":
+        if app_label == "cases" and model_name == "caseassignment":
+            to_update.append((application_document_model, instance.case.baseapplication.pk))
+        elif app_label == "cases" and model_name == "case":
             to_update.append((application_document_model, instance.baseapplication.pk))
         elif app_label == "goods" and model_name == "good":
             for good in instance.goods_on_application.all():
@@ -57,18 +59,3 @@ def update_search_documents(sender, **kwargs):
     if to_update:
         to_update = [(model_name, str(pk)) for model_name, pk in to_update]
         update_search_index.delay(to_update)
-
-
-class ElasticsearchDSLSignalProcessor(CelerySignalProcessor):
-
-    def handle_save(self, sender, instance, **kwargs):
-        """
-        Custom save handler which firstly checks with the registry whether the
-        current model is recorded in elasticsearch.  This avoids queueing unnecessary
-        celery tasks.
-        """
-        model_registered = instance.__class__ in registry._models
-        model_related_to_registered = len(list(registry._get_related_doc(instance))) > 0
-        if not (model_registered or model_related_to_registered):
-            return
-        super().handle_save(sender, instance, **kwargs)
