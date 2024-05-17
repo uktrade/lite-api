@@ -112,6 +112,7 @@ class StandardApplicationTests(DataTestClient):
         PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
         party = Party.objects.get(id=self.draft.end_user.party_id)
         party.end_user_document_available = False
+        party.end_user_document_missing_reason = "not applicable"
         party.save()
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})

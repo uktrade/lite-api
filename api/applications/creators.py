@@ -256,23 +256,6 @@ def _validate_goods(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_standard_licence(draft, errors):
-    """Checks that a standard licence has all party types & goods"""
-
-    errors = _validate_siel_locations(draft, errors)
-    errors = _validate_end_user(draft, errors, is_mandatory=True)
-    errors = _validate_security_approvals(draft, errors, is_mandatory=True)
-    errors = _validate_consignee(draft, errors, is_mandatory=True)
-    errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_goods(draft, errors, is_mandatory=True)
-    errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
-    errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
-    errors = _validate_route_of_goods(draft, errors)
-    errors = _validate_temporary_export_details(draft, errors)
-
-    return errors
-
-
 def _validate_route_of_goods(draft, errors):
     if (
         draft.is_shipped_waybill_or_lading is None
@@ -302,12 +285,7 @@ def _validate_additional_documents(draft, errors):
 def validate_application_ready_for_submission(application):
     errors = {}
 
-    # Perform additional validation and append errors if found
-    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        _validate_standard_licence(application, errors)
-    else:
-        errors["unsupported_application"] = ["You can only validate a supported application type"]
-
+    errors = application.validate()
     errors = _validate_additional_documents(application, errors)
 
     return errors

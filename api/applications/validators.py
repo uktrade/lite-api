@@ -9,33 +9,32 @@ from api.parties.enums import PartyDocumentType
 def siel_locations_validator(application):
     from api.applications.models import SiteOnApplication
 
-    error = None
-
     export_type_choices = [item[0] for item in ApplicationExportType.choices]
     starting_point_choices = [item[0] for item in application.GOODS_STARTING_POINT_CHOICES]
     recipient_choices = [item[0] for item in application.GOODS_RECIPIENTS_CHOICES]
 
-    if not (
-        SiteOnApplication.objects.filter(application=application).exists()
-        and application.export_type in export_type_choices
-        and application.goods_starting_point in starting_point_choices
-        and application.goods_recipients in recipient_choices
-        and application.is_shipped_waybill_or_lading is not None
+    if (
+        not SiteOnApplication.objects.filter(application=application).exists()
+        and application.export_type not in export_type_choices
+        and application.goods_starting_point not in starting_point_choices
+        and application.goods_recipients not in recipient_choices
+        and application.is_shipped_waybill_or_lading is None
     ):
-        error = "To submit the application, add a product location"
+        return "To submit the application, add a product location"
 
-    return error
+    return None
 
 
 def siel_end_user_validator(application):
     error = None
+    if application.export_type == ApplicationExportType.TEMPORARY:
+        return None
+
     if not application.end_user:
-        error = "To submit the application, add an end user"
+        return "To submit the application, add an end user"
 
     party = application.end_user.party
-    documents_qs = PartyDocument.objects.filter(
-        party=party, type=PartyDocumentType.END_USER_UNDERTAKING_DOCUMENT
-    ).values_list("safe", flat=True)
+    documents_qs = PartyDocument.objects.filter(party=party).values_list("safe", flat=True)
     if documents_qs.exists():
         if None in documents_qs:
             error = "We're still processing the end user document. Please submit again"
@@ -86,12 +85,14 @@ def siel_third_parties_validator(application):
             if None in documents_qs:
                 return "We're still processing the third party document. Please submit again"
             elif False in documents_qs:
-                return "To submit the application, attach a document that does not contain a virus to the end user"
+                return "To submit the application, attach a document that does not contain a virus to the third party"
 
 
 def siel_ultimate_end_users_validator(application):
     """If ultimate end users are required and they added any documents check if they are all valid"""
     error = None
+    if not application.end_user:
+        return "To submit the application, add an end user"
 
     ultimate_end_user_required = application.goods.filter(
         Q(is_good_incorporated=True) | Q(is_onward_incorporated=True)

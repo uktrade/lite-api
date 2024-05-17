@@ -44,6 +44,8 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     is_shipped_waybill_or_lading = True
     non_waybill_or_lading_route_details = None
     is_mod_security_approved = False
+    goods_starting_point = StandardApplication.GB
+    goods_recipients = StandardApplication.DIRECT_TO_END_USER
     submitted_by = factory.SubFactory(ExporterUserFactory)
 
     class Meta:
