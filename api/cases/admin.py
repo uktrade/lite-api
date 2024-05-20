@@ -66,7 +66,6 @@ class AdviceAdmin(admin.ModelAdmin):
         "team",
         "level",
         "good",
-        "country",
     )
     list_filter = (
         "type",

@@ -11,6 +11,7 @@ from django.utils import timezone
 from api.users.enums import UserType
 
 from rest_framework.exceptions import ValidationError
+from polymorphic.models import PolymorphicModel
 from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
 
@@ -442,13 +443,7 @@ class CaseDocument(Document):
     visible_to_exporter = models.BooleanField(blank=False, null=False)
 
 
-class Advice(TimestampableModel):
-    """
-    Advice for goods and destinations on cases
-    """
-
-    ENTITY_FIELDS = ["good", "goods_type", "country", "end_user", "consignee", "ultimate_end_user", "third_party"]
-
+class BaseAdvice(TimestampableModel, PolymorphicModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="advice", on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.PROTECT)
@@ -463,10 +458,21 @@ class Advice(TimestampableModel):
     footnote = models.TextField(blank=True, null=True, default=None)
     footnote_required = models.BooleanField(null=True, blank=True, default=None)
 
+
+class OpenAdvice(BaseAdvice):
+    open_destinations = models.ManyToManyField("applications.OpenDestination", related_name="open_advice")
+    good_on_applications = models.ManyToManyField("applications.GoodOnApplication", related_name="open_advice")
+
+
+class Advice(BaseAdvice):
+    """
+    Advice for goods and destinations on cases
+    """
+
+    ENTITY_FIELDS = ["good", "end_user", "consignee", "ultimate_end_user", "third_party"]
+
     # Optional goods/destinations
     good = models.ForeignKey("goods.Good", related_name="advice", on_delete=models.CASCADE, null=True)
-    goods_type = models.ForeignKey("goodstype.GoodsType", related_name="advice", on_delete=models.CASCADE, null=True)
-    country = models.ForeignKey("countries.Country", related_name="advice", on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey("parties.Party", on_delete=models.CASCADE, null=True)
     ultimate_end_user = models.ForeignKey(
         "parties.Party", on_delete=models.CASCADE, related_name="ultimate_end_user", null=True
@@ -517,8 +523,6 @@ class Advice(TimestampableModel):
                     team=self.team,
                     level=AdviceLevel.TEAM,
                     good=self.good,
-                    goods_type=self.goods_type,
-                    country=self.country,
                     end_user=self.end_user,
                     ultimate_end_user=self.ultimate_end_user,
                     open_destination=self.open_destination,
@@ -533,8 +537,6 @@ class Advice(TimestampableModel):
                     good=self.good,
                     user=self.user,
                     level=AdviceLevel.USER,
-                    goods_type=self.goods_type,
-                    country=self.country,
                     end_user=self.end_user,
                     ultimate_end_user=self.ultimate_end_user,
                     open_destination=self.open_destination,

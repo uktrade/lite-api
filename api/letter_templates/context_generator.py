@@ -943,7 +943,7 @@ def _get_entities_refused_at_the_final_advice_level(case_pk):
         case_id=case_pk,
         level=AdviceLevel.FINAL,
         type=AdviceType.REFUSE,
-    ).prefetch_related("goods_type", "goods_type__control_list_entries", "country")
+    )
 
     refused_final_advice_countries = []
     refused_final_advice_goods_types = []

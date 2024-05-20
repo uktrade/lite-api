@@ -59,8 +59,6 @@ class AdviceViewSerializer(serializers.Serializer):
     team = TeamReadOnlySerializer()
 
     good = GoodField()
-    goods_type = serializers.UUIDField(source="goods_type_id")
-    country = serializers.UUIDField(source="country_id")
     end_user = serializers.UUIDField(source="end_user_id")
     ultimate_end_user = serializers.UUIDField(source="ultimate_end_user_id")
     consignee = serializers.UUIDField(source="consignee_id")
