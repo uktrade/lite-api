@@ -54,6 +54,7 @@ ALLOWED_CIDR_NETS = ["10.0.0.0/8"]
 
 # Application definition
 INSTALLED_APPS = [
+    "polymorphic",
     "api.addresses",
     "api.applications",
     "api.audit_trail",
