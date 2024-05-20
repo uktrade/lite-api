@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.applications.enums import GoodsTypeCategory
-from api.applications.models import OpenApplication
+from api.applications.models import OpenApplication, OpenDestination
 from api.applications.mixins.serializers import PartiesSerializerMixin
 from api.core.serializers import KeyValueChoiceField
 
@@ -12,6 +12,7 @@ from api.audit_trail.models import Audit
 from api.licences.models import Licence
 from api.licences.serializers.view_licence import CaseLicenceViewSerializer
 from api.organisations.models import Organisation
+from api.staticdata.countries.serializers import CountrySerializer
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
@@ -54,6 +55,17 @@ class OpenApplicationUpdateSerializer(serializers.ModelSerializer):
         )
 
 
+class OpenDestinationSerializer(serializers.ModelSerializer):
+    country = CountrySerializer()
+
+    class Meta:
+        model = OpenDestination
+        fields = (
+            "country",
+            "destination_permitted",
+        )
+
+
 class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
@@ -63,6 +75,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     is_amended = serializers.SerializerMethodField()
     sub_status = CaseSubStatusSerializer()
     goods_category = KeyValueChoiceField(choices=GoodsTypeCategory.choices)
+    open_destinations = OpenDestinationSerializer(many=True, source="all_open_destinations")
 
     class Meta:
         model = OpenApplication
@@ -97,6 +110,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 "number_of_siels_last_year",
                 "destination_countries",
                 "purely_commercial",
+                "open_destinations",
             )
         )
 

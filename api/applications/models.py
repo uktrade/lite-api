@@ -408,6 +408,7 @@ class OpenApplication(BaseApplication):
     number_of_siels_last_year = models.CharField(default="", blank=True, max_length=5)
     destination_countries = models.TextField(default="", blank=True)
     purely_commercial = models.BooleanField(default=None, blank=True, null=True)
+    open_destinations = models.ManyToManyField(Country, through="OpenDestination")
 
     objects = OpenApplicationManager()
 
@@ -500,24 +501,29 @@ class OpenApplication(BaseApplication):
             RegimeEntry.objects.get(subsection__id=RegimeSubsectionsEnum.WASSENAAR_ARRANGEMENT)
         )
 
-    def _create_canned_crypto_parties(self):
+    def _create_canned_crypto_destinations(self):
         excluded_crypto_destinations = [entry[1] for entry in CryptoOIELConstants.EXCLUDED_COUNTRIES]
-        all_crypto_destinations = Country.objects.all().exclude(id__in=excluded_crypto_destinations)
-        for country in all_crypto_destinations:
-            party, _ = Party.objects.get_or_create(
-                name=f"Permitted Cryptography OIEL destination; {country.name}",
-                country=country,
-                organisation=self.organisation,
-                address="",
-                type=PartyType.OPEN_DESTINATION,
-            )
-            PartyOnApplication.objects.create(application=self, party=party)
+        all_prohibited_crypto_destinations = Country.objects.filter(id__in=excluded_crypto_destinations)
+        for country in all_prohibited_crypto_destinations:
+            destination = OpenDestination(application=self, country=country, destination_permitted="prohibited")
+            destination.save()
 
     def _create_canned_crypto_entities(self):
         self._create_canned_crypto_hardware()
         self._create_canned_crypto_software()
         self._create_canned_crypto_technology()
-        self._create_canned_crypto_parties()
+        self._create_canned_crypto_destinations()
+
+
+class OpenDestination(models.Model):
+    DESTINATION_PERMITTED_CHOICES = [
+        ("allowed", "Allowed"),
+        ("prohibited", "Prohibited"),
+    ]
+
+    application = models.ForeignKey(OpenApplication, related_name="all_open_destinations", on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    destination_permitted = models.TextField(choices=DESTINATION_PERMITTED_CHOICES)
 
 
 class ApplicationDocument(Document):
