@@ -236,6 +236,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 
 
 class DenialSearchSerializer(DocumentSerializer):
+
     entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.ReadOnlyField(source="denial.regime_reg_ref")
     reference = serializers.ReadOnlyField(source="denial.reference")
@@ -266,6 +267,25 @@ class DenialSearchSerializer(DocumentSerializer):
     def get_address(self, obj):
         if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("address"):
             return obj.meta.highlight.to_dict().get("address")[0]
+        stopwords = [
+            "avenue",
+            "boulevard",
+            "Box",
+            "court",
+            "drive",
+            "lane",
+            "loop",
+            "po",
+            "pob",
+            "road",
+            "route",
+            "street",
+            "way",
+            "suite",
+        ]
+        for stopword in stopwords:
+            if stopword in obj.address:
+                obj.address = obj.address.replace(f"<mark>{stopword}</mark>", stopword)
         return obj.address
 
 
