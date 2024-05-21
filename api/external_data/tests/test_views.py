@@ -364,7 +364,7 @@ class DenialSearchViewTests(DataTestClient):
     @parameterized.expand(
         [
             ("name:Organisation Name XYZ", {"name": "<mark>Organisation</mark> <mark>Name</mark> <mark>XYZ</mark>"}),
-            ("item_list_codes:0A00200", {"item_list_codes": "<mark>0A00200</mark>"}),
+            ("denial_cle:0A00200", {"denial_cle": "<mark>0A00200</mark>"}),
             ("address:2000", {"address": "<mark>2000</mark> Street Name, City Name 2"}),
         ]
     )
@@ -396,7 +396,7 @@ class DenialSearchViewTests(DataTestClient):
             ({"search": "address:Street Name"}, 3),
             ({"search": "address:Example"}, 1),
             ({"search": "name:UK Issued"}, 0),
-            ({"search": "item_list_codes:catch all"}, 1),
+            ({"search": "denial_cle:catch all"}, 1),
         ]
     )
     def test_denial_entity_search(self, query, quantity):
