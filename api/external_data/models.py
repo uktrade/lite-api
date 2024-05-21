@@ -49,6 +49,7 @@ class DenialEntity(TimestampableModel):
     )
     country = models.TextField(blank=True, default="", null=True)
     item_list_codes = models.TextField("The codes of the items being denied", blank=True, default="", null=True)
+    denial_cle = models.TextField("Control list entry for denial", null=True, blank=True, default="")
     item_description = models.TextField("The description of the item being denied", blank=True, default="", null=True)
     consignee_name = models.TextField(blank=True, default="", null=True)
     end_use = models.TextField(blank=True, default="", null=True)
