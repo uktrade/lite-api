@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
 from api.applications.libraries.get_applications import get_application
+from api.applications.application_manifest import get_manifest
 from api.applications.serializers.advice import AdviceCreateSerializer, AdviceUpdateSerializer
 from api.applications.views.helpers.advice import (
     mark_lu_rejected_countersignatures_as_invalid,
@@ -89,7 +90,10 @@ def post_advice(request, case, level, team=False):
         request.user.govuser.has_permission(GovPermissions.MAINTAIN_FOOTNOTES) and level != AdviceLevel.FINAL
     )
 
-    serializer = AdviceCreateSerializer(data=data, many=True, context={"footnote_permission": footnote_permission})
+    application = get_application(case)
+    manifest = get_manifest(application)
+    serializer_cls = manifest.serializers["advice_create"]
+    serializer = serializer_cls(data=data, many=True, context={"footnote_permission": footnote_permission})
 
     if serializer.is_valid() and not refusal_error:
         serializer.save()
@@ -126,7 +130,6 @@ def post_advice(request, case, level, team=False):
             audit_lu_countersigning(AuditType.LU_ADVICE, advice_type, data, case, request)
             # Refused applications do not need to go through LU countersign - so remove the countersign flags now
             if advice_type == AdviceType.REFUSE:
-                application = get_application(case.id)
                 remove_countersign_process_flags(application, case)
                 audit_refusal_criteria(AuditType.CREATE_REFUSAL_CRITERIA, advice_type, data[0], case, request)
 

@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import BaseApplication, StandardApplication
+from api.applications.application_manifest import get_manifest
 from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 
@@ -275,7 +276,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     audit_notification = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    advice = AdviceViewSerializer(many=True)
     countersign_advice = CountersignDecisionAdviceViewSerializer(many=True)
     data = serializers.SerializerMethodField()
     latest_activity = serializers.SerializerMethodField()
@@ -308,10 +308,15 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "latest_activity",
         )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, instance, **kwargs):
+
+        application = get_application(instance)
+        manifest = get_manifest(application)
+        advice_serializer_cls = manifest.serializers["advice_view"]
+        self.fields["advice"] = advice_serializer_cls(many=True)
         self.team = kwargs.pop("team", None)
         self.user = kwargs.pop("user", None)
-        super().__init__(*args, **kwargs)
+        super().__init__(instance, **kwargs)
 
     def get_data(self, instance):
         from api.licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer

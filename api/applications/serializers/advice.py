@@ -7,7 +7,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from api.cases.enums import AdviceType
-from api.cases.models import Advice, Case, CountersignAdvice
+from api.cases.models import Advice, Case, CountersignAdvice, OpenAdvice
+from api.applications.models import OpenDestination
 from api.core.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from api.flags.enums import FlagStatuses
 from api.goods.models import Good
@@ -45,6 +46,11 @@ class GoodField(serializers.Field):
                 return None
 
 
+class OpenDestinationField(serializers.PrimaryKeyRelatedField):
+    def to_representation(self, instance):
+        return str(instance.country.id)
+
+
 class AdviceViewSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     text = serializers.CharField()
@@ -76,6 +82,21 @@ class AdviceViewSerializer(serializers.Serializer):
     is_refusal_note = serializers.BooleanField()
 
 
+class OpenAdviceViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    text = serializers.CharField()
+    note = serializers.CharField()
+    type = KeyValueChoiceField(choices=AdviceType.choices)
+    level = serializers.CharField()
+    footnote = serializers.CharField()
+    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
+    created_at = serializers.DateTimeField()
+    team = TeamReadOnlySerializer()
+    is_refusal_note = serializers.BooleanField()
+    good_on_applications = serializers.PrimaryKeyRelatedField(queryset=GoodOnApplication.objects.all(), many=True)
+    open_destinations = OpenDestinationField(queryset=Country.objects.all(), many=True)
+
+
 class AdviceSearchViewSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     type = KeyValueChoiceField(choices=AdviceType.choices)
@@ -88,15 +109,13 @@ class AdviceSearchViewSerializer(serializers.Serializer):
     )
 
 
-class AdviceCreateSerializer(serializers.ModelSerializer):
+class BaseAdviceCreateSerializer(serializers.ModelSerializer):
     text = serializers.CharField(required=True, error_messages={"blank": strings.Advice.TEXT})
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     type = KeyValueChoiceField(
         choices=AdviceType.choices, required=True, error_messages={"required": strings.Advice.TYPE}
     )
     level = serializers.CharField()
-    proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
     footnote = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, error_messages={"blank": strings.Advice.FOOTNOTE}
     )
@@ -108,6 +127,11 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedSerializerField(
         queryset=Team.objects.all(), required=False, serializer=TeamReadOnlySerializer
     )
+
+
+class AdviceCreateSerializer(BaseAdviceCreateSerializer):
+    proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
 
     good = GoodField(required=False)
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
@@ -191,6 +215,48 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
             for i in range(0, len(self.initial_data)):
                 self.initial_data[i]["footnote"] = None
                 self.initial_data[i]["footnote_required"] = None
+
+
+class OpenAdviceCreateSerializer(BaseAdviceCreateSerializer):
+
+    good_on_applications = serializers.PrimaryKeyRelatedField(queryset=GoodOnApplication.objects.all(), many=True)
+    countries = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), many=True)
+
+    def __init__(self, *args, **kwargs):
+        self.fields["open_destinations"].required = False
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = OpenAdvice
+        fields = [
+            "case",
+            "text",
+            "note",
+            "type",
+            "level",
+            "footnote",
+            "footnote_required",
+            "user",
+            "team",
+            "good_on_applications",
+            "open_destinations",
+            "countries",
+        ]
+
+    def to_representation(self, instance):
+        return OpenAdviceViewSerializer(instance).data
+
+    def create(self, validated_data):
+        application_id = validated_data["case"].id
+        open_destinations = list(
+            OpenDestination.objects.filter(
+                application_id=application_id,
+                country__in=validated_data["countries"],
+            )
+        )
+        del validated_data["countries"]
+        validated_data["open_destinations"] = open_destinations
+        return super().create(validated_data)
 
 
 class AdviceUpdateListSerializer(serializers.ListSerializer):
