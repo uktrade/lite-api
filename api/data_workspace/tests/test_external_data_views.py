@@ -28,7 +28,7 @@ class DataWorkspaceExternalDataViewTests(DataTestClient):
             "reference",
             "notifying_government",
             "country",
-            "item_list_codes",
+            "denial_cle",
             "item_description",
             "end_use",
             "data",

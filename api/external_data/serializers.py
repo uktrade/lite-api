@@ -116,7 +116,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         "reference",
         "regime_reg_ref",
         "notifying_government",
-        "item_list_codes",
+        "denial_cle",
         "item_description",
         "end_use",
         "reason_for_refusal",
