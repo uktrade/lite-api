@@ -104,8 +104,8 @@ class DenialEntityDocument(Document):
                     "raw": fields.KeywordField(),
                 },
             ),
-            "item_list_codes": fields.TextField(
-                attr="item_list_codes",
+            "denial_cle": fields.TextField(
+                attr="denial_cle",
                 fields={
                     "raw": fields.KeywordField(),
                 },
