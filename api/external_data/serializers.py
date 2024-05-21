@@ -243,7 +243,7 @@ class DenialSearchSerializer(DocumentSerializer):
     end_use = serializers.ReadOnlyField(source="denial.end_use")
     name = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
-    item_list_codes = serializers.SerializerMethodField()
+    denial_cle = serializers.SerializerMethodField()
 
     class Meta:
         document = documents.DenialEntityDocument
@@ -253,7 +253,7 @@ class DenialSearchSerializer(DocumentSerializer):
             "country",
             "name",
             "notifying_government",
-            "item_list_codes",
+            "denial_cle",
         )
 
     def get_entity_type(self, obj):
@@ -265,8 +265,8 @@ class DenialSearchSerializer(DocumentSerializer):
     def get_address(self, obj):
         return self.get_highlighted_field(obj, "address")
 
-    def get_item_list_codes(self, obj):
-        return self.get_highlighted_field(obj, "item_list_codes")
+    def get_denial_cle(self, obj):
+        return self.get_highlighted_field(obj, "denial_cle")
 
     def get_highlighted_field(self, obj, field_name):
         if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get(field_name):
