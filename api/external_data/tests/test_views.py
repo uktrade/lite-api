@@ -363,12 +363,40 @@ class DenialSearchViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
+            ("name:Organisation Name XYZ", {"name": "<mark>Organisation</mark> <mark>Name</mark> <mark>XYZ</mark>"}),
+            ("item_list_codes:0A00200", {"item_list_codes": "<mark>0A00200</mark>"}),
+            ("address:2000", {"address": "<mark>2000</mark> Street Name, City Name 2"}),
+        ]
+    )
+    def test_search_highlighting(self, search_query, expected_result):
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
+        url = reverse("external_data:denial-list")
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            content = f.read()
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        self.assertEqual(response.status_code, 201)
+
+        url = reverse("external_data:denial_search-list")
+
+        response = self.client.get(url, {"search": search_query}, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+        response_json = response.json()
+
+        key, value = list(expected_result.items())[0]
+
+        self.assertEqual(response_json["results"][0][key], value)
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
             ({"search": "name:Organisation Name"}, 3),
             ({"search": "name:The Widget Company"}, 1),
             ({"search": "name:XYZ"}, 1),
             ({"search": "address:Street Name"}, 3),
             ({"search": "address:Example"}, 1),
             ({"search": "name:UK Issued"}, 0),
+            ({"search": "item_list_codes:catch all"}, 1),
         ]
     )
     def test_denial_entity_search(self, query, quantity):
