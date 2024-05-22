@@ -473,8 +473,8 @@ class MakeAssessmentsViewTests(DataTestClient):
         good_on_application2 = self.good_on_application_2
         good_on_application3 = self.good_on_application_3
         regime_entry = RegimeEntry.objects.first()
-        all_report_summaries = ReportSummary.objects.all()
-        report_summaries = [random.choice(all_report_summaries) for i in range(5)]
+        all_report_summaries = ReportSummary.objects.filter(prefix__isnull=False)
+        report_summaries = random.sample(list(all_report_summaries), 5)
         data = [
             {
                 "id": good_on_application1.id,
