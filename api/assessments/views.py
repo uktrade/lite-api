@@ -6,16 +6,11 @@ from rest_framework import generics, serializers
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication, StandardApplication
-from api.assessments.serializers import AssessmentSerializer
+from api.assessments.serializers import AssessmentSerializer, is_legacy_line_item
 from api.core.authentication import GovAuthentication
 
 
 class MakeAssessmentsView(generics.UpdateAPIView):
-    """
-    This view supersedes the old one for assessing GoodOnApplication objects;
-    https://github.com/uktrade/lite-api/blob/98cfcc025f488bca0de9008378ca3423c64aa3c9/api/goods/views.py#L107
-    In the future, this old endpoint will be removed leaving just this new endpoint.
-    """
 
     serializer_class = AssessmentSerializer
     authentication_classes = (GovAuthentication,)
@@ -46,15 +41,41 @@ class MakeAssessmentsView(generics.UpdateAPIView):
 
         return line_numbers
 
+    def populate_report_summaries(self, assessment_data):
+        # TODO: Remove this method once FE is updated
+
+        payload = []
+
+        for line_item in assessment_data:
+            report_summaries = line_item.get("report_summaries", [])
+
+            if is_legacy_line_item(data=line_item):
+                payload.append({**line_item})
+                continue
+
+            if line_item["is_good_controlled"] is True:
+                if not report_summaries:
+                    report_summaries = [
+                        {
+                            "prefix": line_item["report_summary_prefix"],
+                            "subject": line_item["report_summary_subject"],
+                        },
+                    ]
+
+            payload.append({**line_item, "report_summaries": report_summaries})
+
+        return payload
+
     def perform_update(self, serializer, user, line_numbers):
         serializer.save(user=user, line_numbers=line_numbers)
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
-        ids = validate_ids(request.data)
+        data = self.populate_report_summaries(request.data.copy())
+        ids = validate_ids(data)
         instances = self.get_queryset(ids)
         line_numbers = self.get_application_line_numbers(instances)
-        serializer = self.get_serializer(instances, data=request.data, partial=False, many=True)
+        serializer = self.get_serializer(instances, data=data, partial=False, many=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer, user=request.user.govuser, line_numbers=line_numbers)
 
