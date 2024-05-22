@@ -62,7 +62,7 @@ address_analyzer = analysis.analyzer(
 address_analyzer_no_ngram = analysis.analyzer(
     "address_analyzer",
     tokenizer="whitespace",
-    filter=["lowercase", "asciifolding", "trim", address_stop_words_filter],
+    filter=["lowercase", "asciifolding", "trim"],
 )
 
 postcode_normalizer = analysis.normalizer(
