@@ -340,7 +340,6 @@ if LITE_API_ENABLE_ES:
     ELASTICSEARCH_DSL = {
         "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
     }
-    ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = "api.search.signals.ElasticsearchDSLSignalProcessor"
 
     ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
 
