@@ -13,7 +13,7 @@ from django.db.models.fields import IntegerField
 from api.core.authentication import GovAuthentication
 from api.search.product.documents import ProductDocumentType
 from api.search.product import serializers
-from api.search.product import filter_backends as custom_filter_backends
+from api.core.search import filter_backends as custom_filter_backends
 
 from collections import OrderedDict
 

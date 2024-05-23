@@ -37,6 +37,7 @@ class QueryStringQueryBackend(BaseSearchQueryBackend):
         In the view-set fields shall be defined in a very simple way. The
         only accepted argument would be boost (per field) for now.
         """
+
         if hasattr(view, "query_string_search_fields"):
             view_search_fields = copy.copy(
                 getattr(view, "query_string_search_fields"),

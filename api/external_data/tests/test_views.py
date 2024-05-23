@@ -1,5 +1,6 @@
 import os
 
+from django.forms import ValidationError
 from elasticsearch_dsl import Index
 from parameterized import parameterized
 import pytest
@@ -339,7 +340,7 @@ class DenialSearchViewTests(DataTestClient):
         # Then only 2 denial entity objects will be returned when searching
         url = reverse("external_data:denial_search-list")
 
-        response = self.client.get(url, {**page_query, "search": "name:Organisation Name XYZ"}, **self.gov_headers)
+        response = self.client.get(url, {**page_query, "search": "name:(Organisation Name XYZ)"}, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
 
@@ -390,6 +391,7 @@ class DenialSearchViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
+<<<<<<< HEAD
             ({"search": "name:Organisation Name"}, 3),
             ({"search": "name:The Widget Company"}, 1),
             ({"search": "name:XYZ"}, 1),
@@ -397,9 +399,20 @@ class DenialSearchViewTests(DataTestClient):
             ({"search": "address:Example"}, 1),
             ({"search": "name:UK Issued"}, 0),
             ({"search": "denial_cle:catch all"}, 1),
+=======
+            ({"search": "name:Organisation Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
+            ({"search": "name:The Widget Company"}, ["AB-XY-EF-900"]),
+            ({"search": "name:XYZ"}, ["AB-CD-EF-100"]),
+            ({"search": "address:Street Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
+            ({"search": "address:Example"}, ["AB-XY-EF-900"]),
+            ({"search": "name:UK Issued"}, []),
+            ({"search": "item_list_codes:catch all"}, ["AB-XY-EF-900"]),
+            ({"search": "name:(Widget) OR address:(2001)"}, ["AB-CD-EF-300", "AB-XY-EF-900"]),
+            ({"search": "name:(Organisation) AND address:(2000)"}, ["AB-CD-EF-100"]),
+>>>>>>> 76174110 (refactor)
         ]
     )
-    def test_denial_entity_search(self, query, quantity):
+    def test_denial_entity_search(self, query, expected_items):
         call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
@@ -414,7 +427,23 @@ class DenialSearchViewTests(DataTestClient):
         response = self.client.get(url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
-        self.assertEqual(len(response_json["results"]), quantity)
+        regime_reg_ref_results = [r["regime_reg_ref"] for r in response_json["results"]]
+        self.assertEqual(regime_reg_ref_results, expected_items)
+
+    def test_denial_entity_search_invalid_query(self):
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
+        url = reverse("external_data:denial-list")
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            content = f.read()
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 201)
+
+        url = reverse("external_data:denial_search-list")
+        query = {"search": "ejfhke&**&*7&&^*(£)"}
+        with self.assertRaises(ValidationError):
+            self.client.get(url, query, **self.gov_headers)
 
     @pytest.mark.elasticsearch
     def test_search(self):

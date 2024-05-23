@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
-from api.search.product import filter_backends as custom_filter_backends
+from api.core.search import filter_backends as custom_filter_backends
 
 from django.conf import settings
 
@@ -50,7 +50,11 @@ class DenialSearchView(DocumentViewSet):
         filter_backends.HighlightBackend,
     ]
 
+<<<<<<< HEAD
     search_fields = ["name", "address", "denial_cle"]
+=======
+    search_fields = ["name", "address" "item_list_codes"]
+>>>>>>> 76174110 (refactor)
 
     filter_fields = {
         "country": {
@@ -58,6 +62,13 @@ class DenialSearchView(DocumentViewSet):
             "field": "country.raw",
         }
     }
+
+    query_string_search_fields = {
+        "name": None,
+        "address": None,
+        "item_list_codes": None,
+    }
+
     ordering = "_score"
     highlight_fields = {
         "name": {
@@ -85,8 +96,9 @@ class DenialSearchView(DocumentViewSet):
 
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False).exclude("term", notifying_government="United Kingdom")
+        qs = super().filter_queryset(queryset)
+        print(qs.to_dict())
         return super().filter_queryset(queryset)
-
 
     def validate_search_terms(self):
         query_params = self.request.GET.copy()
@@ -104,13 +116,6 @@ class DenialSearchView(DocumentViewSet):
 
         response = self.document._index.validate_query(body=query)
         return response["valid"]
-
-    def get(self, request):
-        search = Search(index=settings.ELASTICSEARCH_DENIALS_INDEX_ALIAS)
-        query_params = request.GET.copy()
-        search_term = query_params.get("search")
-        results = search.query("search_term", search_term).execute()
-        return Response(results)
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
