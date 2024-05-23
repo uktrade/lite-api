@@ -91,6 +91,7 @@ class DenialEntityDocument(Document):
     notifying_government = fields.KeywordField(attr="denial.notifying_government")
     item_list_codes = fields.TextField(attr="denial.item_list_codes")
     item_description = fields.TextField(attr="denial.item_description")
+    denial_cle = fields.TextField(attr="denial.denial_cle")
     denial = fields.ObjectField(
         attr="denial",
         properties={

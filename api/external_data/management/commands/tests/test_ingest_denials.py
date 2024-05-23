@@ -28,7 +28,7 @@ def json_file_data():
                         "address": "somewhere\nmid\nlatter\nCairo",
                         "notifying_government": "United Kingdom",
                         "country": "United States",
-                        "item_list_codes": "123456",
+                        "denial_cle": "123456",
                         "item_description": "phone",
                         "end_use": "locating phone",
                         "end_user_flag": "true",
@@ -43,7 +43,7 @@ def json_file_data():
                         "address": "no address given",
                         "notifying_government": "Germany",
                         "country": "France",
-                        "item_list_codes": "12345\/2009",
+                        "denial_cle": "12345\/2009",
                         "item_description": "testing machine",
                         "end_use": "For teaching purposes",
                         "end_user_flag": "false",
@@ -98,7 +98,7 @@ def test_populate_denials(mock_json_content, mock_delete_file, json_file_data):
     assert denial_record.address == "somewhere\nmid\nlatter\nCairo"
     assert denial_record.denial.notifying_government == "United Kingdom"
     assert denial_record.country == "United States"
-    assert denial_record.denial.item_list_codes == "123456"
+    assert denial_record.denial.denial_cle == "123456"
     assert denial_record.denial.item_description == "phone"
     assert denial_record.denial.end_use == "locating phone"
     assert denial_record.denial.regime_reg_ref == "12"
