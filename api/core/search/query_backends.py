@@ -32,7 +32,7 @@ class QueryStringQueryBackend(BaseSearchQueryBackend):
         Note, that multiple searches are not supported (would not raise
         an exception, but would simply take only the first):
 
-            /search/products/?search=sniper AND rifles&search=short AND gun
+            /search/my_items/?search=item1 AND item2 &search=item3 AND item4
 
         In the view-set fields shall be defined in a very simple way. The
         only accepted argument would be boost (per field) for now.

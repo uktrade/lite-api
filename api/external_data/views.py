@@ -50,11 +50,7 @@ class DenialSearchView(DocumentViewSet):
         filter_backends.HighlightBackend,
     ]
 
-<<<<<<< HEAD
-    search_fields = ["name", "address", "denial_cle"]
-=======
     search_fields = ["name", "address" "item_list_codes"]
->>>>>>> 76174110 (refactor)
 
     filter_fields = {
         "country": {
@@ -96,8 +92,6 @@ class DenialSearchView(DocumentViewSet):
 
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False).exclude("term", notifying_government="United Kingdom")
-        qs = super().filter_queryset(queryset)
-        print(qs.to_dict())
         return super().filter_queryset(queryset)
 
     def validate_search_terms(self):

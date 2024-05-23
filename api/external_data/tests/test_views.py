@@ -391,25 +391,15 @@ class DenialSearchViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-<<<<<<< HEAD
-            ({"search": "name:Organisation Name"}, 3),
-            ({"search": "name:The Widget Company"}, 1),
-            ({"search": "name:XYZ"}, 1),
-            ({"search": "address:Street Name"}, 3),
-            ({"search": "address:Example"}, 1),
-            ({"search": "name:UK Issued"}, 0),
-            ({"search": "denial_cle:catch all"}, 1),
-=======
             ({"search": "name:Organisation Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
             ({"search": "name:The Widget Company"}, ["AB-XY-EF-900"]),
             ({"search": "name:XYZ"}, ["AB-CD-EF-100"]),
             ({"search": "address:Street Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
             ({"search": "address:Example"}, ["AB-XY-EF-900"]),
             ({"search": "name:UK Issued"}, []),
-            ({"search": "item_list_codes:catch all"}, ["AB-XY-EF-900"]),
+            ({"search": "denial_cle:catch all"}, ["AB-XY-EF-900"]),
             ({"search": "name:(Widget) OR address:(2001)"}, ["AB-CD-EF-300", "AB-XY-EF-900"]),
             ({"search": "name:(Organisation) AND address:(2000)"}, ["AB-CD-EF-100"]),
->>>>>>> 76174110 (refactor)
         ]
     )
     def test_denial_entity_search(self, query, expected_items):
