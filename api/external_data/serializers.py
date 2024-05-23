@@ -245,7 +245,6 @@ class DenialSearchSerializer(DocumentSerializer):
     item_description = serializers.SerializerMethodField()
     denial_cle = serializers.SerializerMethodField()
 
-
     class Meta:
         document = documents.DenialEntityDocument
         fields = (
@@ -256,7 +255,6 @@ class DenialSearchSerializer(DocumentSerializer):
             "notifying_government",
             "item_description",
             "denial_cle",
-
         )
 
     def get_entity_type(self, obj):
