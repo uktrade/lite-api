@@ -48,7 +48,7 @@ class DenialSearchView(DocumentViewSet):
         filter_backends.HighlightBackend,
     ]
 
-    search_fields = ["name", "address", "denial_cle", , "item_description"]
+    search_fields = ["name", "address", "denial_cle", "item_description"]
 
     filter_fields = {
         "country": {
