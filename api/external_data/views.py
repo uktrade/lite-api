@@ -1,4 +1,3 @@
-from django.forms import ValidationError
 from elasticsearch_dsl import Search
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -12,6 +11,7 @@ from django.conf import settings
 
 from api.core.authentication import GovAuthentication
 from api.conf.pagination import MaxPageNumberPagination
+from api.core.search.validators import QueryStringValidationMixin
 from api.external_data import documents, models, serializers
 
 
@@ -37,7 +37,7 @@ class SanctionViewSet(viewsets.ModelViewSet):
         pass
 
 
-class DenialSearchView(DocumentViewSet):
+class DenialSearchView(QueryStringValidationMixin, DocumentViewSet):
     document = documents.DenialEntityDocument
     serializer_class = serializers.DenialSearchSerializer
     authentication_classes = (GovAuthentication,)
@@ -50,7 +50,7 @@ class DenialSearchView(DocumentViewSet):
         filter_backends.HighlightBackend,
     ]
 
-    search_fields = ["name", "address" "item_list_codes"]
+    search_fields = ["name", "address", "denial_cle"]
 
     filter_fields = {
         "country": {
@@ -62,7 +62,7 @@ class DenialSearchView(DocumentViewSet):
     query_string_search_fields = {
         "name": None,
         "address": None,
-        "item_list_codes": None,
+        "denial_cle": None,
     }
 
     ordering = "_score"
@@ -93,28 +93,6 @@ class DenialSearchView(DocumentViewSet):
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False).exclude("term", notifying_government="United Kingdom")
         return super().filter_queryset(queryset)
-
-    def validate_search_terms(self):
-        query_params = self.request.GET.copy()
-        search_term = query_params.get("search")
-
-        # create a query with the given query params
-        query = {
-            "query": {
-                "query_string": {
-                    "fields": ["*"],
-                    "query": f"{search_term}",
-                }
-            }
-        }
-
-        response = self.document._index.validate_query(body=query)
-        return response["valid"]
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        if not self.validate_search_terms():
-            raise ValidationError({"search": "Invalid search string"})
 
 
 class SanctionSearchView(APIView):

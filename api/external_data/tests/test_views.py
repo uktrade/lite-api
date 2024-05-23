@@ -1,6 +1,5 @@
 import os
 
-from django.forms import ValidationError
 from elasticsearch_dsl import Index
 from parameterized import parameterized
 import pytest
@@ -8,6 +7,7 @@ import pytest
 from django.core.management import call_command
 from django.conf import settings
 from django.urls import reverse
+from rest_framework import status
 
 from api.external_data import documents, models, serializers
 from test_helpers.clients import DataTestClient
@@ -432,8 +432,12 @@ class DenialSearchViewTests(DataTestClient):
 
         url = reverse("external_data:denial_search-list")
         query = {"search": "ejfhke&**&*7&&^*(£)"}
-        with self.assertRaises(ValidationError):
-            self.client.get(url, query, **self.gov_headers)
+        response = self.client.get(url, query, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = response.json()
+        self.assertEqual(response["errors"]["search"], "Invalid search string")
 
     @pytest.mark.elasticsearch
     def test_search(self):

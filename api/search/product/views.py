@@ -4,13 +4,13 @@ from elasticsearch_dsl.query import Query
 
 from rest_framework.response import Response
 from rest_framework.generics import RetrieveAPIView
-from rest_framework.exceptions import ValidationError
 
 from django.conf import settings
 from django.db.models import Case, When
 from django.db.models.fields import IntegerField
 
 from api.core.authentication import GovAuthentication
+from api.core.search.validators import QueryStringValidationMixin
 from api.search.product.documents import ProductDocumentType
 from api.search.product import serializers
 from api.core.search import filter_backends as custom_filter_backends
@@ -22,7 +22,7 @@ class MatchBoolPrefix(Query):
     name = "match_bool_prefix"
 
 
-class ProductDocumentView(DocumentViewSet):
+class ProductDocumentView(QueryStringValidationMixin, DocumentViewSet):
     document = ProductDocumentType
     serializer_class = serializers.ProductDocumentSerializer
     authentication_classes = (GovAuthentication,)
@@ -92,31 +92,6 @@ class ProductDocumentView(DocumentViewSet):
         if self.request.GET.get("database") in settings.ELASTICSEARCH_PRODUCT_INDEXES:
             return settings.ELASTICSEARCH_PRODUCT_INDEXES[self.request.GET["database"]]
         return list(settings.ELASTICSEARCH_PRODUCT_INDEXES.values())
-
-    def validate_search_terms(self):
-        query_params = self.request.GET.copy()
-        search_term = query_params.get("search")
-
-        # Validation is only required if we are using QueryStringSearchFilterBackend
-        if custom_filter_backends.QueryStringSearchFilterBackend not in self.filter_backends:
-            return True
-
-        # create a query with the given query params
-        query = {
-            "query": {
-                "query_string": {
-                    "fields": ["*"],
-                    "query": f"{search_term}",
-                }
-            }
-        }
-        response = self.document._index.validate_query(body=query)
-        return response["valid"]
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        if not self.validate_search_terms():
-            raise ValidationError({"search": "Invalid search string"})
 
     def get_queryset(self):
         self.search._index = self.get_search_indexes()
