@@ -18,7 +18,7 @@ class Denial(TimestampableModel):
     notifying_government = models.TextField(
         help_text="The authority that raised the denial", null=True, blank=True, default=""
     )
-    item_list_codes = models.TextField("The codes of the items being denied", null=True, blank=True, default="")
+    denial_cle = models.TextField("The codes of the items being denied", null=True, blank=True, default="")
     item_description = models.TextField("The description of the item being denied", null=True, blank=True, default="")
     end_use = models.TextField(null=True, blank=True, default="")
     is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
@@ -48,7 +48,7 @@ class DenialEntity(TimestampableModel):
         help_text="The authority that raised the denial", blank=True, default="", null=True
     )
     country = models.TextField(blank=True, default="", null=True)
-    item_list_codes = models.TextField("The codes of the items being denied", blank=True, default="", null=True)
+    denial_cle = models.TextField("The codes of the items being denied", blank=True, default="", null=True)
     item_description = models.TextField("The description of the item being denied", blank=True, default="", null=True)
     consignee_name = models.TextField(blank=True, default="", null=True)
     end_use = models.TextField(blank=True, default="", null=True)
