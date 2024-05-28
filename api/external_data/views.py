@@ -50,7 +50,7 @@ class DenialSearchView(QueryStringValidationMixin, DocumentViewSet):
         filter_backends.HighlightBackend,
     ]
 
-    search_fields = ["name", "address", "denial_cle"]
+    search_fields = ["name", "address", "denial_cle", "item_description"]
 
     filter_fields = {
         "country": {
@@ -82,6 +82,13 @@ class DenialSearchView(QueryStringValidationMixin, DocumentViewSet):
             },
         },
         "denial_cle": {
+            "enabled": True,
+            "options": {
+                "pre_tags": ["<mark>"],
+                "post_tags": ["</mark>"],
+            },
+        },
+        "item_description": {
             "enabled": True,
             "options": {
                 "pre_tags": ["<mark>"],
