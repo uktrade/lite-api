@@ -63,10 +63,10 @@ class BackupDocumentDataHealthCheckBackend(BaseHealthCheckBackend):
         # If the date is in the past then it means the task that should have
         # run previously hasn't for some reason.
         backup_schedule = app.conf.beat_schedule[BACKUP_DOCUMENT_DATA_SCHEDULE_NAME]["schedule"]
-        next_run_delta = backup_schedule.remaining_estimate(latest_backup_log.ended_at)
-        now = timezone.now()
+        next_run_delta = backup_schedule.remaining_estimate(timezone.localtime(latest_backup_log.ended_at))
+        now = timezone.localtime()
         next_run = now + next_run_delta
-        if next_run < timezone.now():
+        if next_run < now:
             raise BackupDocumentDataHealthCheckException("Backup not run today")
 
         # If we manage to get here we know that the task was run recently and

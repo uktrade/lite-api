@@ -1,4 +1,5 @@
 import celery
+import datetime
 import uuid
 
 from unittest.mock import patch
@@ -262,3 +263,44 @@ class TestBackupDocumentDataHealthcheckBackend(APITestCase):
         ].remaining_estimate
         mock_remaining_estimate.return_value = timezone.timedelta(hours=16)
         self.assertIsNone(self.backend.check_status())
+
+    @parameterized.expand(
+        [
+            ("2024-05-22 01:49:00", -1),
+            ("2024-05-22 02:55:00", -1),
+            ("2024-05-22 14:35:00", -1),
+        ]
+    )
+    def test_bst_handled_correctly(self, check_status_time, tz_offset):
+        task_id = uuid.uuid4()
+
+        # We run the cron task at 2am but celery/django correctly handles our
+        # timezone changes so that this shifts to 1am in UTC when we are in BST
+        # We need to make sure that the healthcheck takes this into account
+        started_at = timezone.datetime(
+            2024,
+            5,
+            22,
+            1,
+            0,
+            0,
+            tzinfo=timezone.timezone.utc,
+        )
+        ended_at = timezone.datetime(
+            2024,
+            5,
+            22,
+            1,
+            50,
+            52,
+            tzinfo=timezone.timezone.utc,
+        )
+        backup_log = BackupLog.objects.create(
+            ended_at=ended_at,
+            task_id=task_id,
+        )
+        backup_log.started_at = started_at
+        backup_log.save()
+
+        with freeze_time(check_status_time, tz_offset=tz_offset):
+            self.assertIsNone(self.backend.check_status())
