@@ -5,11 +5,13 @@ from rest_framework.views import APIView
 
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
+from api.core.search import filter_backends as custom_filter_backends
 
 from django.conf import settings
 
 from api.core.authentication import GovAuthentication
 from api.conf.pagination import MaxPageNumberPagination
+from api.core.search.validators import QueryStringValidationMixin
 from api.external_data import documents, models, serializers
 
 
@@ -35,16 +37,16 @@ class SanctionViewSet(viewsets.ModelViewSet):
         pass
 
 
-class DenialSearchView(DocumentViewSet):
+class DenialSearchView(QueryStringValidationMixin, DocumentViewSet):
     document = documents.DenialEntityDocument
     serializer_class = serializers.DenialSearchSerializer
     authentication_classes = (GovAuthentication,)
     pagination_class = MaxPageNumberPagination
     lookup_field = "id"
     filter_backends = [
-        filter_backends.SearchFilterBackend,
         filter_backends.SourceBackend,
         filter_backends.FilteringFilterBackend,
+        custom_filter_backends.QueryStringSearchFilterBackend,
         filter_backends.HighlightBackend,
     ]
 
@@ -56,6 +58,13 @@ class DenialSearchView(DocumentViewSet):
             "field": "country.raw",
         }
     }
+
+    query_string_search_fields = {
+        "name": None,
+        "address": None,
+        "denial_cle": None,
+    }
+
     ordering = "_score"
     highlight_fields = {
         "name": {
