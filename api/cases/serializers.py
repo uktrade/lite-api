@@ -281,6 +281,8 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     latest_activity = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     next_review_date = serializers.SerializerMethodField()
+    amendment_of = serializers.SerializerMethodField()
+    superseded_by = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -306,6 +308,8 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "data",
             "next_review_date",
             "latest_activity",
+            "amendment_of",
+            "superseded_by",
         )
 
     def __init__(self, *args, **kwargs):
@@ -352,6 +356,19 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
     def get_assigned_users(self, instance):
         return instance.get_assigned_users()
+
+    def get_amendment_of(self, instance):
+        # TODO: Make me a serializer..
+        if not instance.amendment_of:
+            return None
+        return {"id": str(instance.amendment_of.id), "reference_code": instance.amendment_of.reference_code}
+
+    def get_superseded_by(self, instance):
+        # TODO: Make me a serializer..
+        amendment = instance.amendment.first()
+        if not amendment:
+            return None
+        return {"id": str(amendment.id), "reference_code": amendment.reference_code}
 
     def get_has_advice(self, instance):
         has_advice = {"user": False, "my_user": False, "team": False, "my_team": False, "final": False}
