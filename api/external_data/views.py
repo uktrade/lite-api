@@ -47,7 +47,7 @@ class DenialSearchView(DocumentViewSet):
         filter_backends.FilteringFilterBackend,
         filter_backends.HighlightBackend,
     ]
-    search_fields = ["name", "address"]
+    search_fields = ["name", "address", "denial_cle"]
     filter_fields = {
         "country": {
             "enabled": True,
@@ -64,6 +64,13 @@ class DenialSearchView(DocumentViewSet):
             },
         },
         "address": {
+            "enabled": True,
+            "options": {
+                "pre_tags": ["<mark>"],
+                "post_tags": ["</mark>"],
+            },
+        },
+        "denial_cle": {
             "enabled": True,
             "options": {
                 "pre_tags": ["<mark>"],

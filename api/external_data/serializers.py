@@ -24,7 +24,7 @@ class DenialSerializer(serializers.ModelSerializer):
             "created_by_user",
             "regime_reg_ref",
             "notifying_government",
-            "item_list_codes",
+            "denial_cle",
             "item_description",
             "end_use",
             "is_revoked",
@@ -42,7 +42,7 @@ class DenialSerializer(serializers.ModelSerializer):
 class DenialEntitySerializer(serializers.ModelSerializer):
     entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.CharField(source="denial.regime_reg_ref", required=False)
-    item_list_codes = serializers.CharField(source="denial.item_list_codes", required=False)
+    denial_cle = serializers.CharField(source="denial.denial_cle", required=False)
     notifying_government = serializers.CharField(source="denial.notifying_government", required=False)
     item_description = serializers.CharField(source="denial.item_description", required=False)
     end_use = serializers.CharField(source="denial.end_use", required=False)
@@ -61,7 +61,7 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "regime_reg_ref",
             "notifying_government",
             "country",
-            "item_list_codes",
+            "denial_cle",
             "item_description",
             "end_use",
             "data",
@@ -116,7 +116,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
         "reference",
         "regime_reg_ref",
         "notifying_government",
-        "item_list_codes",
+        "denial_cle",
         "item_description",
         "end_use",
         "reason_for_refusal",
@@ -239,11 +239,11 @@ class DenialSearchSerializer(DocumentSerializer):
     entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
     regime_reg_ref = serializers.ReadOnlyField(source="denial.regime_reg_ref")
     reference = serializers.ReadOnlyField(source="denial.reference")
-    item_list_codes = serializers.ReadOnlyField(source="denial.item_list_codes")
     item_description = serializers.ReadOnlyField(source="denial.item_description")
     end_use = serializers.ReadOnlyField(source="denial.end_use")
     name = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
+    denial_cle = serializers.SerializerMethodField()
 
     class Meta:
         document = documents.DenialEntityDocument
@@ -253,20 +253,25 @@ class DenialSearchSerializer(DocumentSerializer):
             "country",
             "name",
             "notifying_government",
+            "denial_cle",
         )
 
     def get_entity_type(self, obj):
         return get_denial_entity_type(obj.data.to_dict())
 
     def get_name(self, obj):
-        if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("name"):
-            return obj.meta.highlight.to_dict().get("name")[0]
-        return obj.name
+        return self.get_highlighted_field(obj, "name")
 
     def get_address(self, obj):
-        if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get("address"):
-            return obj.meta.highlight.to_dict().get("address")[0]
-        return obj.address
+        return self.get_highlighted_field(obj, "address")
+
+    def get_denial_cle(self, obj):
+        return self.get_highlighted_field(obj, "denial_cle")
+
+    def get_highlighted_field(self, obj, field_name):
+        if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get(field_name):
+            return obj.meta.highlight.to_dict().get(field_name)[0]
+        return getattr(obj, field_name)
 
 
 class SanctionMatchSerializer(serializers.ModelSerializer):
