@@ -3,6 +3,7 @@ import uuid
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.forms import model_to_dict
 from django.utils import timezone
 from django.utils.functional import cached_property
 from rest_framework.exceptions import APIException
@@ -301,6 +302,26 @@ class StandardApplication(BaseApplication):
     f1686_reference_number = models.CharField(default=None, blank=True, null=True, max_length=100)
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
+
+    def clone(self):
+        exclude = [
+            "id",
+            "reference_code",
+            "status",
+            "baseapplication_ptr",
+            "case_ptr",
+            "submitted_by",
+            "queues",
+            "flags",
+            "additional_contacts",
+        ]
+        kwargs = model_to_dict(self, exclude=exclude)
+        kwargs["name"] = f"{self.name} copy"
+        kwargs["status_id"] = str(get_case_status_by_status(CaseStatusEnum.DRAFT).id)
+        kwargs["case_type_id"] = str(kwargs.pop("case_type"))
+        kwargs["organisation_id"] = str(kwargs.pop("organisation"))
+
+        return StandardApplication.objects.create(**kwargs)
 
 
 class ApplicationDocument(Document):
