@@ -332,7 +332,24 @@ class StandardApplication(BaseApplication):
             organisation=self.organisation,
             case_type=self.case_type,
             name=f"{self.name} - Amendment 1",
+            activity=self.activity,
+            usage=self.usage,
+            clearance_level=self.clearance_level,
+            is_military_end_use_controls=self.is_military_end_use_controls,
+            military_end_use_controls_ref=self.military_end_use_controls_ref,
+            is_informed_wmd=self.is_informed_wmd,
+            informed_wmd_ref=self.informed_wmd_ref,
+            is_suspected_wmd=self.is_suspected_wmd,
+            suspected_wmd_ref=self.suspected_wmd_ref,
+            is_eu_military=self.is_eu_military,
+            is_compliant_limitations_eu=self.is_compliant_limitations_eu,
+            compliant_limitations_eu_ref=self.compliant_limitations_eu_ref,
+            intended_end_use=self.intended_end_use,
+            agreed_to_foi=self.agreed_to_foi,
+            foi_reason=self.foi_reason,
+            amendment_of=self,
         )
+        # TODO: Remove the case from all queues and set the status as some sort of terminal status..
         return amendment
 
 
