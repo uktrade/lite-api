@@ -331,7 +331,7 @@ class StandardApplication(BaseApplication):
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
             organisation=self.organisation,
             case_type=self.case_type,
-            name=f"{self.name} - Amendment 1",
+            name=f"{self.name} - Amendment",
             activity=self.activity,
             usage=self.usage,
             clearance_level=self.clearance_level,
