@@ -306,7 +306,34 @@ class StandardApplication(BaseApplication):
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
 
     def create_amendment(self, amendment_data, user):
-        raise Exception(f"Amendment of {self.id} by {user} with data {amendment_data}")
+        amendment = StandardApplication.objects.create(
+            export_type=self.export_type,
+            reference_number_on_information_form=self.reference_number_on_information_form,
+            have_you_been_informed=self.have_you_been_informed,
+            is_shipped_waybill_or_lading=self.is_shipped_waybill_or_lading,
+            non_waybill_or_lading_route_details=self.non_waybill_or_lading_route_details,
+            temp_export_details=self.temp_export_details,
+            is_temp_direct_control=self.is_temp_direct_control,
+            temp_direct_control_details=self.temp_direct_control_details,
+            proposed_return_date=self.proposed_return_date,
+            trade_control_activity=self.trade_control_activity,
+            trade_control_activity_other=self.trade_control_activity_other,
+            trade_control_product_categories=self.trade_control_product_categories,
+            goods_recipients=self.goods_recipients,
+            goods_starting_point=self.goods_starting_point,
+            is_mod_security_approved=self.is_mod_security_approved,
+            security_approvals=self.security_approvals,
+            f680_reference_number=self.f680_reference_number,
+            f1686_contracting_authority=self.f1686_contracting_authority,
+            f1686_reference_number=self.f1686_reference_number,
+            f1686_approval_date=self.f1686_approval_date,
+            other_security_approval_details=self.other_security_approval_details,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            organisation=self.organisation,
+            case_type=self.case_type,
+            name=f"{self.name} - Amendment 1",
+        )
+        return amendment
 
 
 class ApplicationDocument(Document):

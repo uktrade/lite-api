@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, JsonResponse
 from rest_framework.generics import CreateAPIView
 from rest_framework import serializers
+from rest_framework import status
 
 from api.core.authentication import ExporterAuthentication
 from api.core.permissions import IsExporterInOrganisation
@@ -21,7 +22,7 @@ class CreateApplicationAmendment(CreateAPIView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.copied_application = None
+        self.amendment_application = None
 
         try:
             self.application = get_application(pk=self.kwargs["pk"])
@@ -33,7 +34,7 @@ class CreateApplicationAmendment(CreateAPIView):
         return self.application.organisation
 
     def perform_create(self, serializer):
-        self.copied_application = self.application.create_amendment(
+        self.amendment_application = self.application.create_amendment(
             serializer.data,
             self.request.user.exporteruser,
         )
@@ -42,7 +43,7 @@ class CreateApplicationAmendment(CreateAPIView):
         super().create(request, *args, **kwargs)
         return JsonResponse(
             {
-                "id": self.copied_application.id,
+                "id": str(self.amendment_application.id),
             },
             status=status.HTTP_201_CREATED,
         )
