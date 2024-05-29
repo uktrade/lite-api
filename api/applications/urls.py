@@ -13,6 +13,7 @@ from api.applications.views import (
     end_use_details,
     temporary_export_details,
     denials,
+    amendments,
 )
 
 app_name = "applications"
@@ -137,5 +138,10 @@ urlpatterns = [
         "<uuid:pk>/appeals/<uuid:appeal_pk>/",
         applications.ApplicationAppeal.as_view(),
         name="appeal",
+    ),
+    path(
+        "<uuid:pk>/amendment/",
+        amendments.CreateApplicationAmendment.as_view(),
+        name="amendment",
     ),
 ]

@@ -247,6 +247,9 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
+    def create_amendment(self, amendment_data, user):
+        raise NotImplementedError()
+
 
 # Licence Applications
 class StandardApplication(BaseApplication):
@@ -301,6 +304,9 @@ class StandardApplication(BaseApplication):
     f1686_reference_number = models.CharField(default=None, blank=True, null=True, max_length=100)
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
+
+    def create_amendment(self, amendment_data, user):
+        raise Exception(f"Amendment of {self.id} by {user} with data {amendment_data}")
 
 
 class ApplicationDocument(Document):
