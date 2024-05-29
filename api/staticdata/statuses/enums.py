@@ -36,6 +36,7 @@ class CaseStatusEnum:
     OGD_CONSOLIDATION = "ogd_consolidation"
     FINAL_REVIEW_COUNTERSIGN = "final_review_countersign"
     FINAL_REVIEW_SECOND_COUNTERSIGN = "final_review_second_countersign"
+    SUPERSEDED_BY_AMENDMENT = "superseded_by_amendment"
 
     _system_status = [DRAFT]
 
@@ -61,7 +62,16 @@ class CaseStatusEnum:
 
     _major_editable_statuses = [APPLICANT_EDITING, DRAFT]
 
-    _terminal_statuses = [CLOSED, DEREGISTERED, FINALISED, REGISTERED, REVOKED, SURRENDERED, WITHDRAWN]
+    _terminal_statuses = [
+        CLOSED,
+        DEREGISTERED,
+        FINALISED,
+        REGISTERED,
+        REVOKED,
+        SURRENDERED,
+        WITHDRAWN,
+        SUPERSEDED_BY_AMENDMENT,
+    ]
 
     goods_query_statuses = [CLC, PV]
 
@@ -113,6 +123,7 @@ class CaseStatusEnum:
         (WITHDRAWN, "Withdrawn"),
         (OGD_ADVICE, "OGD Advice"),
         (OGD_CONSOLIDATION, "OGD Consolidation"),
+        (SUPERSEDED_BY_AMENDMENT, "Superseded by amendment"),
     ]
 
     priority = {
@@ -149,6 +160,7 @@ class CaseStatusEnum:
         SUSPENDED: 31,
         SURRENDERED: 32,
         DEREGISTERED: 33,
+        SUPERSEDED_BY_AMENDMENT: 34,
     }
 
     @classmethod
@@ -262,6 +274,7 @@ class CaseStatusIdEnum:
     OGD_CONSOLIDATION = UUID("00000000-0000-0000-0000-000000000031")
     FINAL_REVIEW_COUNTERSIGN = UUID("00000000-0000-0000-0000-000000000032")
     FINAL_REVIEW_SECOND_COUNTERSIGN = UUID("00000000-0000-0000-0000-000000000033")
+    SUPERSEDED_BY_AMENDMENT = UUID("00000000-0000-0000-0000-000000000034")
 
 
 class CaseSubStatusIdEnum:

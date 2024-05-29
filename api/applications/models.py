@@ -19,7 +19,7 @@ from api.applications.managers import BaseApplicationManager
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import Case
+from api.cases.models import Case, CaseQueue
 from api.common.models import TimestampableModel
 from api.documents.models import Document
 from api.external_data.models import DenialEntity
@@ -435,7 +435,10 @@ class StandardApplication(BaseApplication):
                 deleted_at=poa.deleted_at,
             )
 
-        # TODO: Remove the case from all queues and set the status as some sort of terminal status..
+        CaseQueue.objects.filter(case=self.case_ptr).delete()
+        self.status = get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT)
+        self.save()
+
         return amendment
 
 
