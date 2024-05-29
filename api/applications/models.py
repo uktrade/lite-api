@@ -349,6 +349,92 @@ class StandardApplication(BaseApplication):
             foi_reason=self.foi_reason,
             amendment_of=self,
         )
+
+        # TODO: Consider deferring copy operations to individual models instead?
+        application_documents = ApplicationDocument.objects.filter(application=self.baseapplication)
+        for doc in application_documents:
+            ApplicationDocument.objects.create(
+                application=amendment.baseapplication,
+                description=doc.description,
+                document_type=doc.document_type,
+                name=doc.name,
+                s3_key=doc.s3_key,
+                size=doc.size,
+                virus_scanned_at=doc.virus_scanned_at,
+                save=doc.safe,
+            )
+
+        sites_on_application = SiteOnApplication.objects.filter(application=self.baseapplication)
+        for soa in sites_on_application:
+            SiteOnApplication.objects.create(
+                application=amendment.baseapplication,
+                site=soa.site,
+            )
+
+        external_locations_on_application = ExternalLocationOnApplication.objects.filter(
+            application=self.baseapplication
+        )
+        for eloa in external_locations_on_application:
+            ExternalLocationOnApplication.objects.create(
+                external_location=eloa.external_location,
+                application=amendment.baseapplication,
+            )
+
+        goa_mapping = {}
+        good_on_applications = GoodOnApplication.objects.filter(application=self.baseapplication)
+        for goa in good_on_applications:
+            amendment_goa = GoodOnApplication.objects.create(
+                application=amendment.baseapplication,
+                good=goa.good,
+                value=goa.value,
+                quantity=goa.quantity,
+                unit=goa.unit,
+                firearm_details=goa.firearm_details,  # TODO: check if this is sensible..
+                is_onward_exported=goa.is_onward_exported,
+                is_onward_altered_processed=goa.is_onward_altered_processed,
+                is_onward_altered_processed_comments=goa.is_onward_altered_processed_comments,
+                is_onward_incorporated=goa.is_onward_incorporated,
+                is_onward_incorporated_comments=goa.is_onward_incorporated_comments,
+            )
+            goa_mapping[goa.id] = amendment_goa.id
+
+        good_on_application_documents = GoodOnApplicationDocument.objects.filter(application=self.baseapplication)
+        for goad in good_on_application_documents:
+            GoodOnApplicationDocument.objects.create(
+                application=amendment.baseapplication,
+                good=goad.good,
+                user=goad.user,
+                document_type=goad.document_type,
+                good_on_application_id=goa_mapping[goad.good_on_application_id],
+                name=goad.name,
+                s3_key=goad.s3_key,
+                size=goad.size,
+                virus_scanned_at=goad.virus_scanned_at,
+                safe=goad.safe,
+            )
+
+        good_on_application_internal_documents = GoodOnApplicationInternalDocument.objects.filter(
+            good_on_application__application=self.baseapplication
+        )
+        for internal_goa_doc in good_on_application_internal_documents:
+            GoodOnApplicationInternalDocument.objects.create(
+                document_title=internal_goa_doc.document_title,
+                good_on_application_id=goa_mapping[internal_goa_doc.good_on_application_id],
+                name=internal_goa_doc.name,
+                s3_key=internal_goa_doc.s3_key,
+                size=internal_goa_doc.size,
+                virus_scanned_at=internal_goa_doc.virus_scanned_at,
+                safe=internal_goa_doc.safe,
+            )
+
+        parties_on_application = PartyOnApplication.objects.filter(application=self.baseapplication)
+        for poa in parties_on_application:
+            PartyOnApplication.objects.create(
+                application=amendment.baseapplication,
+                party=poa.party,
+                deleted_at=poa.deleted_at,
+            )
+
         # TODO: Remove the case from all queues and set the status as some sort of terminal status..
         return amendment
 
