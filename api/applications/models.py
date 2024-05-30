@@ -303,7 +303,7 @@ class StandardApplication(BaseApplication):
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
 
-    def clone(self):
+    def clone(self, entities):
         exclude = [
             "id",
             "reference_code",
@@ -324,11 +324,13 @@ class StandardApplication(BaseApplication):
 
         cloned_application = StandardApplication.objects.create(**kwargs)
 
-        for good_on_application in self.goods.all():
-            good_on_application.clone(cloned_application.id)
+        if "products" in entities:
+            for good_on_application in self.goods.all():
+                good_on_application.clone(cloned_application.id)
 
-        for party_on_application in self.parties.all():
-            party_on_application.clone(cloned_application.id)
+        if "parties" in entities:
+            for party_on_application in self.parties.all():
+                party_on_application.clone(cloned_application.id)
 
         return cloned_application
 

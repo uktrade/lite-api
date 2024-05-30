@@ -4,8 +4,6 @@ from rest_framework import generics
 from rest_framework import status
 
 from api.applications.models import StandardApplication
-from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.core.authentication import ExporterAuthentication
 
 
@@ -22,6 +20,7 @@ class CreateApplicationCloneView(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        cloned_application = application.clone()
+        data = request.data
+        cloned_application = application.clone(data.get("entities", []))
 
         return JsonResponse(data={"id": cloned_application.id}, status=status.HTTP_201_CREATED)
