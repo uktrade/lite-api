@@ -392,7 +392,7 @@ class DenialSearchViewTests(DataTestClient):
     @parameterized.expand(
         [
             ({"search": "name:Organisation Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
-            ({"search": "name:The Widget Company"}, ["AB-XY-EF-900"]),
+            ({"search": "name:(The Widget Company)"}, ["AB-XY-EF-900"]),
             ({"search": "name:XYZ"}, ["AB-CD-EF-100"]),
             ({"search": "address:Street Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
             ({"search": "address:Example"}, ["AB-XY-EF-900"]),
