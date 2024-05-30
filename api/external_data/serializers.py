@@ -255,6 +255,7 @@ class DenialSearchSerializer(DocumentSerializer):
             "notifying_government",
             "item_description",
             "denial_cle",
+            "regime_reg_ref",
         )
 
     def get_entity_type(self, obj):
