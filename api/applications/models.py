@@ -320,6 +320,7 @@ class StandardApplication(BaseApplication):
         kwargs["status_id"] = str(get_case_status_by_status(CaseStatusEnum.DRAFT).id)
         kwargs["case_type_id"] = str(kwargs.pop("case_type"))
         kwargs["organisation_id"] = str(kwargs.pop("organisation"))
+        kwargs["copy_of_id"] = str(self.id)
 
         cloned_application = StandardApplication.objects.create(**kwargs)
 

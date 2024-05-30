@@ -20,7 +20,7 @@ class CreateApplicationCopyTests(DataTestClient):
             GoodOnApplicationFactory(
                 application=application,
                 good=GoodFactory(organisation=self.organisation),
-                firearm_details=FirearmFactory()
+                firearm_details=FirearmFactory(),
             )
             for _ in range(2)
         ]
@@ -31,6 +31,7 @@ class CreateApplicationCopyTests(DataTestClient):
 
         response = response.json()
         cloned_application = StandardApplication.objects.get(id=response["id"])
-        self.assertNotEqual(application.id, cloned_application.id)
+        self.assertNotEqual(cloned_application.id, application.id)
+        self.assertEqual(cloned_application.copy_of.id, application.id)
         self.assertEqual(cloned_application.name, f"{application.name} copy")
         self.assertEqual(application.goods.count(), cloned_application.goods.count())

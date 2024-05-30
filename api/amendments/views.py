@@ -9,7 +9,7 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 from api.core.authentication import ExporterAuthentication
 
 
-class CreateApplicationCopyView(generics.CreateAPIView):
+class CreateApplicationCloneView(generics.CreateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
@@ -22,6 +22,6 @@ class CreateApplicationCopyView(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        copied_application = application.clone()
+        cloned_application = application.clone()
 
-        return JsonResponse(data={"id": copied_application.id}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={"id": cloned_application.id}, status=status.HTTP_201_CREATED)
