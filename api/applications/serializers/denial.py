@@ -9,18 +9,18 @@ from api.external_data.serializers import DenialEntitySerializer
 
 class DenialMatchOnApplicationViewSerializer(serializers.ModelSerializer):
     category = ChoiceField(choices=DenialMatchCategory.choices)
-    denial = DenialEntitySerializer(read_only=True)
+    denial_entity = DenialEntitySerializer(read_only=True)
 
     class Meta:
         model = DenialMatchOnApplication
-        fields = ("id", "application", "denial", "category")
+        fields = ("id", "application", "denial_entity", "category")
 
 
 class DenialMatchOnApplicationCreateSerializer(serializers.ModelSerializer):
     application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     category = ChoiceField(choices=DenialMatchCategory.choices)
-    denial = serializers.PrimaryKeyRelatedField(queryset=DenialEntity.objects.all())
+    denial_entity = serializers.PrimaryKeyRelatedField(queryset=DenialEntity.objects.all())
 
     class Meta:
         model = DenialMatchOnApplication
-        fields = ("id", "application", "denial", "category")
+        fields = ("id", "application", "denial_entity", "category")

@@ -11,7 +11,7 @@ from api.applications.models import (
     StandardApplication,
 )
 from api.cases.enums import CaseTypeEnum
-from api.external_data.models import DenialEntity, SanctionMatch
+from api.external_data.models import Denial, DenialEntity, SanctionMatch
 from api.staticdata.statuses.models import CaseStatus
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
@@ -116,26 +116,38 @@ class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
         model = GoodOnApplication
 
 
-class DenialMatchFactory(factory.django.DjangoModelFactory):
-    created_by = factory.SubFactory(GovUserFactory)
+class DenialFactory(factory.django.DjangoModelFactory):
+    created_by_user = factory.SubFactory(GovUserFactory)
     reference = factory.LazyAttribute(lambda n: faker.uuid4())
-    name = factory.LazyAttribute(lambda n: faker.name())
-    address = factory.LazyAttribute(lambda n: faker.address())
+    regime_reg_ref = factory.LazyAttribute(lambda n: faker.lexify(text="ABN/OREF-???????????"))
     notifying_government = factory.LazyAttribute(lambda n: faker.country())
-    country = factory.LazyAttribute(lambda n: faker.country())
     denial_cle = factory.LazyAttribute(lambda n: faker.word())
     item_description = factory.LazyAttribute(lambda n: faker.sentence())
-    consignee_name = factory.LazyAttribute(lambda n: faker.name())
     end_use = factory.LazyAttribute(lambda n: faker.sentence())
+
+    class Meta:
+        model = Denial
+
+
+class DenialEntityFactory(factory.django.DjangoModelFactory):
+    created_by = factory.SubFactory(GovUserFactory)
+    name = factory.LazyAttribute(lambda n: faker.name())
+    address = factory.LazyAttribute(lambda n: faker.address())
+    country = factory.LazyAttribute(lambda n: faker.country())
+    denial = factory.SubFactory(DenialFactory)
 
     class Meta:
         model = DenialEntity
 
 
+# This is to maintain backward compatiablity for routing_tests will remove once refactoring is done
+DenialMatchFactory = DenialEntityFactory
+
+
 class DenialMatchOnApplicationFactory(factory.django.DjangoModelFactory):
     category = factory.Iterator(["partial", "exact"])
     application = factory.SubFactory(StandardApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
-    denial = factory.SubFactory(DenialMatchFactory)
+    denial_entity = factory.SubFactory(DenialEntityFactory)
 
     class Meta:
         model = DenialMatchOnApplication

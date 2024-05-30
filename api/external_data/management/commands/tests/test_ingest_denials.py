@@ -1,5 +1,6 @@
 from api.applications.tests.factories import (
-    DenialMatchFactory,
+    DenialEntityFactory,
+    DenialFactory,
     DenialMatchOnApplicationFactory,
     StandardApplicationFactory,
 )
@@ -139,8 +140,8 @@ def test_populate_denials_with_existing_matching_records(mock_get_file, mock_del
     mock_get_file.return_value = json_file_data
     case = StandardApplicationFactory()
 
-    denial_enity = DenialMatchFactory(regime_reg_ref="12", name="Test1 case")
-    DenialMatchOnApplicationFactory(application=case, category="exact", denial=denial_enity)
+    denial_enity = DenialEntityFactory(denial=DenialFactory(regime_reg_ref="12"), name="Test1 case")
+    DenialMatchOnApplicationFactory(application=case, category="exact", denial_entity=denial_enity)
 
     call_command("ingest_denials", "json_file")
 
@@ -152,7 +153,7 @@ def test_populate_denials_with_existing_matching_records(mock_get_file, mock_del
 @mock.patch.object(ingest_denials.s3_operations, "get_object")
 def test_populate_denials_with_no_data_in_file(mock_get_file, mock_delete_file):
     mock_get_file.return_value = {"Body": io.StringIO(json.dumps([]))}
-    DenialMatchFactory()
+    DenialEntityFactory()
 
     call_command("ingest_denials", "json_file")
 

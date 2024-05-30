@@ -217,10 +217,10 @@ class DenialMatchOnApplicationSummarySerializer(serializers.Serializer):
     record.
     """
 
-    name = serializers.CharField(source="denial.name")
-    reference = serializers.CharField(source="denial.reference")
+    name = serializers.CharField(source="denial_entity.name")
+    reference = serializers.CharField(source="denial_entity.denial.reference")
     category = serializers.CharField()
-    address = serializers.CharField(source="denial.address")
+    address = serializers.CharField(source="denial_entity.address")
 
 
 class ECJUQuerySummarySerializer(serializers.Serializer):

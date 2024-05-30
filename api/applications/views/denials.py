@@ -18,7 +18,9 @@ class ApplicationDenialMatchesOnApplication(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        denial_matches = DenialMatchOnApplication.objects.filter(application_id=pk, denial__is_revoked=False)
+        denial_matches = DenialMatchOnApplication.objects.filter(
+            application_id=pk, denial_entity__denial__is_revoked=False
+        )
         denial_matches_data = denial.DenialMatchOnApplicationViewSerializer(denial_matches, many=True).data
         return JsonResponse(data={"denial_matches": denial_matches_data})
 
