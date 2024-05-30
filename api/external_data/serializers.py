@@ -237,13 +237,13 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
 
 class DenialSearchSerializer(DocumentSerializer):
     entity_type = KeyValueChoiceField(choices=models.DenialEntityType.choices, required=False)
-    regime_reg_ref = serializers.ReadOnlyField(source="denial.regime_reg_ref")
     reference = serializers.ReadOnlyField(source="denial.reference")
     end_use = serializers.ReadOnlyField(source="denial.end_use")
     name = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
     item_description = serializers.SerializerMethodField()
     denial_cle = serializers.SerializerMethodField()
+    regime_reg_ref = serializers.SerializerMethodField()
 
     class Meta:
         document = documents.DenialEntityDocument
@@ -271,6 +271,9 @@ class DenialSearchSerializer(DocumentSerializer):
 
     def get_item_description(self, obj):
         return self.get_highlighted_field(obj, "item_description")
+
+    def get_regime_reg_ref(self, obj):
+        return self.get_highlighted_field(obj, "regime_reg_ref")
 
     def get_highlighted_field(self, obj, field_name):
         if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get(field_name):
