@@ -1,4 +1,4 @@
-from django.forms import model_to_dict
+from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import generics
 from rest_framework import status
@@ -12,6 +12,7 @@ from api.core.authentication import ExporterAuthentication
 class CreateApplicationCopyView(generics.CreateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
+    @transaction.atomic
     def post(self, request, case_pk):
         try:
             application = StandardApplication.objects.get(id=case_pk)

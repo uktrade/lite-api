@@ -321,7 +321,12 @@ class StandardApplication(BaseApplication):
         kwargs["case_type_id"] = str(kwargs.pop("case_type"))
         kwargs["organisation_id"] = str(kwargs.pop("organisation"))
 
-        return StandardApplication.objects.create(**kwargs)
+        cloned_application = StandardApplication.objects.create(**kwargs)
+
+        for good_on_application in self.goods.all():
+            good_on_application.clone(cloned_application.id)
+
+        return cloned_application
 
 
 class ApplicationDocument(Document):
@@ -500,6 +505,26 @@ class GoodOnApplication(AbstractGoodOnApplication):
         if self.is_good_controlled is None:
             return self.good.control_list_entries
         return self.control_list_entries
+
+    def clone(self, application_id):
+        exclude = [
+            "id",
+            "application",
+            "control_list_entries",
+            "regime_entries",
+            "report_summaries",
+            "report_summary_prefix",
+            "report_summary_subject",
+            "assessed_by",
+            "assessment_date",
+        ]
+        kwargs = model_to_dict(self, exclude=exclude)
+        kwargs["application_id"] = str(application_id)
+        kwargs["good_id"] = str(kwargs.pop("good"))
+        if kwargs.get("firearm_details"):
+            kwargs["firearm_details_id"] = str(kwargs.pop("firearm_details"))
+
+        return GoodOnApplication.objects.create(**kwargs)
 
 
 class GoodOnApplicationDocument(Document):

@@ -1,8 +1,10 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from api.applications.models import StandardApplication
-from api.applications.tests.factories import StandardApplicationFactory
+from api.applications.models import GoodOnApplication, StandardApplication
+from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
+from api.goods.models import Good
+from api.goods.tests.factories import FirearmFactory, GoodFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -14,6 +16,21 @@ class CreateApplicationCopyTests(DataTestClient):
         application = StandardApplicationFactory(
             organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         )
+        goods_on_application = [
+            GoodOnApplicationFactory(
+                application=application,
+                good=GoodFactory(organisation=self.organisation),
+                firearm_details=FirearmFactory()
+            )
+            for _ in range(2)
+        ]
+
         url = reverse("amendments:create_application_copy", kwargs={"case_pk": str(application.id)})
         response = self.client.post(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = response.json()
+        cloned_application = StandardApplication.objects.get(id=response["id"])
+        self.assertNotEqual(application.id, cloned_application.id)
+        self.assertEqual(cloned_application.name, f"{application.name} copy")
+        self.assertEqual(application.goods.count(), cloned_application.goods.count())
