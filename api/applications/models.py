@@ -327,6 +327,9 @@ class StandardApplication(BaseApplication):
         for good_on_application in self.goods.all():
             good_on_application.clone(cloned_application.id)
 
+        for party_on_application in self.parties.all():
+            party_on_application.clone(cloned_application.id)
+
         return cloned_application
 
 
@@ -592,6 +595,14 @@ class PartyOnApplication(TimestampableModel):
         else:
             self.deleted_at = timezone.now()
             self.save()
+
+    def clone(self, application_id):
+        exclude = ["id", "application", "flags"]
+        kwargs = model_to_dict(self, exclude=exclude)
+        kwargs["application_id"] = str(application_id)
+        kwargs["party_id"] = str(kwargs.pop("party"))
+
+        return PartyOnApplication.objects.create(**kwargs)
 
 
 class DenialMatchOnApplication(TimestampableModel):
