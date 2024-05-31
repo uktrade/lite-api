@@ -244,6 +244,7 @@ class DenialSearchSerializer(DocumentSerializer):
     address = serializers.SerializerMethodField()
     item_description = serializers.SerializerMethodField()
     denial_cle = serializers.SerializerMethodField()
+    search_score = serializers.SerializerMethodField()
 
     class Meta:
         document = documents.DenialEntityDocument
@@ -271,6 +272,9 @@ class DenialSearchSerializer(DocumentSerializer):
 
     def get_item_description(self, obj):
         return self.get_highlighted_field(obj, "item_description")
+
+    def get_search_score(self, obj):
+        return obj.meta.search_score
 
     def get_highlighted_field(self, obj, field_name):
         if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get(field_name):
