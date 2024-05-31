@@ -5,6 +5,7 @@ from rest_framework import status
 from uuid import UUID
 from parameterized import parameterized
 
+from api.applications import constants
 from api.applications.enums import ApplicationExportType
 from api.applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication, StandardApplication
 from api.audit_trail.enums import AuditType
@@ -177,9 +178,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"], {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING]}
-        )
+        self.assertEqual(response.json()["errors"], {"goods": [constants.Standard.GOODS_DOCUMENT_PROCESSING]})
 
     def test_submit_standard_application_with_infected_goods_documents_failure(self):
         self.create_good_document(
@@ -243,7 +242,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=strings.Applications.Standard.END_USER_DOCUMENT_PROCESSING,
+            text=constants.Standard.END_USER_DOCUMENT_PROCESSING,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -267,7 +266,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.json()["errors"],
-            {"supporting-documents": [strings.Applications.Standard.ADDITIONAL_DOCUMENTS_PROCESSING]},
+            {"supporting-documents": [constants.Standard.ADDITIONAL_DOCUMENTS_PROCESSING]},
         )
 
     def test_submit_standard_application_with_infected_additional_documents_failure(self):
