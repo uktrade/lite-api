@@ -1,5 +1,6 @@
 from django.db.models import Q
 
+from api.applications import constants
 from api.applications.enums import ApplicationExportType, GoodsTypeCategory
 from api.applications.models import (
     ApplicationDocument,
@@ -66,7 +67,7 @@ def check_party_document(party, is_mandatory):
             return None
 
     if None in documents_qs:
-        return getattr(strings.Applications.Standard, f"{party.type.upper()}_DOCUMENT_PROCESSING")
+        return getattr(constants.Standard, f"{party.type.upper()}_DOCUMENT_PROCESSING")
     elif False in documents_qs:
         return getattr(strings.Applications.Standard, f"{party.type.upper()}_DOCUMENT_INFECTED")
 
@@ -248,7 +249,7 @@ def _validate_goods(draft, errors, is_mandatory):
         goods = goods_on_application.values_list("good", flat=True)
         document_errors = _get_document_errors(
             GoodDocument.objects.filter(good__in=goods),
-            processing_error=strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING,
+            processing_error=constants.Standard.GOODS_DOCUMENT_PROCESSING,
             virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
         )
         if document_errors:
@@ -290,7 +291,7 @@ def _validate_additional_documents(draft, errors):
     if documents:
         document_errors = _get_document_errors(
             documents,
-            processing_error=strings.Applications.Standard.ADDITIONAL_DOCUMENTS_PROCESSING,
+            processing_error=constants.Standard.ADDITIONAL_DOCUMENTS_PROCESSING,
             virus_error=strings.Applications.Standard.ADDITIONAL_DOCUMENTS_INFECTED,
         )
 
