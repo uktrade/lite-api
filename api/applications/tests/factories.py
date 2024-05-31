@@ -153,6 +153,16 @@ class DenialMatchOnApplicationFactory(factory.django.DjangoModelFactory):
         model = DenialMatchOnApplication
 
 
+class DenialExactMatchOnApplicationFactory(DenialMatchOnApplicationFactory):
+    category = "exact"
+    application = factory.SubFactory(StandardApplicationFactory)
+
+
+class DenialPartialMatchOnApplicationFactory(DenialMatchOnApplicationFactory):
+    category = "partial"
+    application = factory.SubFactory(StandardApplicationFactory)
+
+
 class SanctionMatchFactory(factory.django.DjangoModelFactory):
     party_on_application = factory.SubFactory(PartyOnApplicationFactory)
     elasticsearch_reference = factory.LazyAttribute(lambda n: faker.word())
