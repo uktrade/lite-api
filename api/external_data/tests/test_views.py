@@ -391,13 +391,13 @@ class DenialSearchViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "name:Organisation Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
+            ({"search": "name:(Organisation Name)"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
             ({"search": "name:(The Widget Company)"}, ["AB-XY-EF-900"]),
-            ({"search": "name:XYZ"}, ["AB-CD-EF-100"]),
-            ({"search": "address:Street Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
-            ({"search": "address:Example"}, ["AB-XY-EF-900"]),
-            ({"search": "name:UK Issued"}, []),
-            ({"search": "denial_cle:catch all"}, ["AB-XY-EF-900"]),
+            ({"search": "name:(XYZ)"}, ["AB-CD-EF-100"]),
+            ({"search": "address:(Street Name)"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
+            ({"search": "address:(Example)"}, ["AB-XY-EF-900"]),
+            ({"search": "name:(UK Issued)"}, []),
+            ({"search": "denial_cle:(catch all)"}, ["AB-XY-EF-900"]),
             ({"search": "name:(Widget) OR address:(2001)"}, ["AB-CD-EF-300", "AB-XY-EF-900"]),
             ({"search": "name:(Organisation) AND address:(2000)"}, ["AB-CD-EF-100"]),
         ]
