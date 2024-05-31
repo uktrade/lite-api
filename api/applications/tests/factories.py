@@ -140,10 +140,6 @@ class DenialEntityFactory(factory.django.DjangoModelFactory):
         model = DenialEntity
 
 
-# This is to maintain backward compatiablity for routing_tests will remove once refactoring is done
-DenialMatchFactory = DenialEntityFactory
-
-
 class DenialMatchOnApplicationFactory(factory.django.DjangoModelFactory):
     category = factory.Iterator(["partial", "exact"])
     application = factory.SubFactory(StandardApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
