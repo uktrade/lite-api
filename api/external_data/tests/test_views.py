@@ -439,6 +439,24 @@ class DenialSearchViewTests(DataTestClient):
         response = response.json()
         self.assertEqual(response["errors"]["search"], "Invalid search string")
 
+    def test_elasticsearch_score(self):
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
+        url = reverse("external_data:denial-list")
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            content = f.read()
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 201)
+
+        url = reverse("external_data:denial_search-list")
+
+        response = self.client.get(url, {"search": "name:(Organisation Name XYZ)"}, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+        response_json = response.json()
+
+        self.assertEqual(response_json["results"][0]["_score"], 1.0)
+
     @pytest.mark.elasticsearch
     def test_search(self):
         Index("sanctions-alias-test").create(ignore=[400])
