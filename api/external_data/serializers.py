@@ -274,7 +274,7 @@ class DenialSearchSerializer(DocumentSerializer):
         return self.get_highlighted_field(obj, "item_description")
 
     def get_search_score(self, obj):
-        return obj.meta.score
+        return round(obj.meta.score, 2)
 
     def get_highlighted_field(self, obj, field_name):
         if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get(field_name):
