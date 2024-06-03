@@ -417,9 +417,32 @@ class DenialSearchViewTests(DataTestClient):
         response = self.client.get(url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
-        self.assertEqual(response_json["results"][0]["search_score"], 1.0)
         regime_reg_ref_results = [r["regime_reg_ref"] for r in response_json["results"]]
         self.assertEqual(regime_reg_ref_results, expected_items)
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "name:(Organisation Name)"}, [1.19, 1.01, 1.01]),
+            ({"search": "name:(The Widget Company)"}, [3.91]),
+            ({"search": "name:(XYZ)"}, [1.3]),
+            ({"search": "address:(Street Name)"}, [0.58, 0.53, 0.53]),
+        ]
+    )
+    def test_denial_entity_search_scores(self, query, expected_items):
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
+        url = reverse("external_data:denial-list")
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            content = f.read()
+
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        url = reverse("external_data:denial_search-list")
+
+        response = self.client.get(url, query, **self.gov_headers)
+        response_json = response.json()
+        search_score_results = [r["search_score"] for r in response_json["results"]]
+        self.assertEqual(search_score_results, expected_items)
 
     def test_denial_entity_search_invalid_query(self):
         call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
