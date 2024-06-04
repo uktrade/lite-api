@@ -205,7 +205,7 @@ def populate_good_details(case_map):
 def populate_denials(case_map):
     doas = (
         DenialMatchOnApplication.objects.select_related(
-            "denial",
+            "denial_entity",
         )
         .prefetch_related()
         .filter(application__in=list(case_map.keys()))

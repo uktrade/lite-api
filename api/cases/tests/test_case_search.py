@@ -9,7 +9,7 @@ from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
 from api.applications.tests.factories import (
     DenialMatchOnApplicationFactory,
-    DenialMatchFactory,
+    DenialEntityFactory,
     GoodOnApplicationFactory,
     StandardApplicationFactory,
     SanctionMatchFactory,
@@ -662,9 +662,9 @@ class FilterAndSortTests(DataTestClient):
 
     def test_get_cases_filter_exclude_denial_matches_denial_match_excluded(self):
         application = self.application_cases[0]
-        denial = DenialMatchFactory()
+        denial_entity = DenialEntityFactory()
         denial_on_application = DenialMatchOnApplicationFactory(
-            application=application, category="exact", denial=denial
+            application=application, category="exact", denial_entity=denial_entity
         )
         case = Case.objects.get(id=application.id)
         url = f'{reverse("cases:search")}?exclude_denial_matches=True&case_reference={case.reference_code}'
@@ -1018,9 +1018,9 @@ class SearchAPITest(DataTestClient):
         self.queue.save()
         self.assignment = CaseAssignment(user=self.gov_user, case=self.case, queue=self.queue)
         self.assignment.save()
-        self.denial = DenialMatchFactory()
+        self.denial_entity = DenialEntityFactory()
         self.denial_on_application = DenialMatchOnApplicationFactory(
-            application=self.application, category="exact", denial=self.denial
+            application=self.application, category="exact", denial_entity=self.denial_entity
         )
         prefix = ReportSummaryPrefixFactory()
         subject = ReportSummarySubjectFactory()
@@ -1090,10 +1090,10 @@ class SearchAPITest(DataTestClient):
             case_api_result["denials"],
             [
                 {
-                    "name": self.denial.name,
-                    "reference": self.denial.reference,
+                    "name": self.denial_entity.name,
+                    "reference": self.denial_entity.denial.reference,
                     "category": self.denial_on_application.category,
-                    "address": self.denial.address,
+                    "address": self.denial_entity.address,
                 }
             ],
         )

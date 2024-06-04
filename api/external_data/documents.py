@@ -84,7 +84,6 @@ class DenialEntityDocument(Document):
             "raw": fields.KeywordField(normalizer=lowercase_normalizer),
         },
     )
-    data = DataField()
     entity_type = fields.TextField()
 
     is_revoked = fields.BooleanField(attr="denial.is_revoked")

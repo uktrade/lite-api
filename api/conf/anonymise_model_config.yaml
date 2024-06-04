@@ -31,7 +31,6 @@ strategy:
   external_data_denialentity:
     name: faker.name
     address: faker.address
-    consignee_name: faker.name
   organisation:
     name: faker.company_name
     phone_number: faker.phone_number

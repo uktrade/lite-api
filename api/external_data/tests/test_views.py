@@ -3,11 +3,11 @@ import os
 from elasticsearch_dsl import Index
 from parameterized import parameterized
 import pytest
+from rest_framework import status
 
 from django.core.management import call_command
 from django.conf import settings
 from django.urls import reverse
-from rest_framework import status
 
 from api.external_data import documents, models, serializers
 from test_helpers.clients import DataTestClient
@@ -433,7 +433,6 @@ class DenialSearchViewTests(DataTestClient):
         url = reverse("external_data:denial_search-list")
         query = {"search": "ejfhke&**&*7&&^*(£)"}
         response = self.client.get(url, query, **self.gov_headers)
-
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = response.json()
