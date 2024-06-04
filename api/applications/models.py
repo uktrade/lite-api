@@ -559,5 +559,7 @@ class PartyOnApplication(TimestampableModel):
 class DenialMatchOnApplication(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="denial_matches")
-    denial = models.ForeignKey(DenialEntity, related_name="denial_matches_on_application", on_delete=models.CASCADE)
+    denial_entity = models.ForeignKey(
+        DenialEntity, related_name="denial_matches_on_application", on_delete=models.CASCADE
+    )
     category = models.TextField(choices=denial_enums.DenialMatchCategory.choices)

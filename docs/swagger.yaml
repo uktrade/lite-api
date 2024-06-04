@@ -8900,7 +8900,7 @@ components:
           description: The authority that raised the denial
         final_destination:
           type: string
-        item_list_codes:
+        denial_cle:
           type: string
         item_description:
           type: string
@@ -8922,7 +8922,7 @@ components:
       - reference
       - notifying_government
       - final_destination
-      - item_list_codes
+      - denial_cle
       - item_description
       - consignee_name
       - end_use
