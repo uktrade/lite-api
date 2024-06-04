@@ -227,7 +227,7 @@ class CaseQuerySet(models.QuerySet):
         return self
 
     def exclude_denial_matches(self):
-        return self.exclude(baseapplication__denial_matches__denial__is_revoked=False)
+        return self.exclude(baseapplication__denial_matches__denial_entity__denial__is_revoked=False)
 
     def exclude_sanction_matches(self):
         return self.exclude(baseapplication__parties__sanction_matches__is_revoked=False)

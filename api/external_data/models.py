@@ -30,9 +30,7 @@ class Denial(TimestampableModel):
 
 class DenialEntity(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
-
-    denial = models.ForeignKey(Denial, related_name="denial_entity", on_delete=models.CASCADE, blank=True, null=True)
-
+    denial = models.ForeignKey(Denial, related_name="denial_entity", on_delete=models.CASCADE)
     created_by = models.ForeignKey(
         GovUser, related_name="denialenitity_created", on_delete=models.DO_NOTHING, blank=True, null=True
     )
@@ -42,24 +40,7 @@ class DenialEntity(TimestampableModel):
     address = models.TextField(
         help_text="The address of the individual/organization being denied", blank=True, default="", null=True
     )
-    reference = models.TextField(help_text="The reference assigned by the notifying government")
-    regime_reg_ref = models.TextField(blank=True, default="", null=True)
-    notifying_government = models.TextField(
-        help_text="The authority that raised the denial", blank=True, default="", null=True
-    )
     country = models.TextField(blank=True, default="", null=True)
-    denial_cle = models.TextField("The codes of the items being denied", blank=True, default="", null=True)
-    item_description = models.TextField("The description of the item being denied", blank=True, default="", null=True)
-    consignee_name = models.TextField(blank=True, default="", null=True)
-    end_use = models.TextField(blank=True, default="", null=True)
-
-    data = models.JSONField(default=dict)
-    is_revoked = models.BooleanField(default=False, help_text="If true do not include in search results")
-    is_revoked_comment = models.TextField(default="")
-    reason_for_refusal = models.TextField(
-        help_text="Reason why the denial was refused", blank=True, default="", null=True
-    )
-    spire_entity_id = models.IntegerField(help_text="Entity_id from spire for matching data", null=True)
     entity_type = models.TextField(
         choices=DenialEntityType.choices, help_text="Type of entity being denied", blank=True, default="", null=True
     )
