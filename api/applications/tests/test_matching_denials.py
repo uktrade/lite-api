@@ -129,3 +129,29 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
         # remove one match
         response = self.client.delete(url, {"objects": [denial_matches[0]["id"]]}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_view_denial_notifications_on_the_application_backward_compatible(self):
+        data = []
+        for index in range(10):
+            denial_entity = DenialEntityFactory()
+            data.append(
+                {
+                    "application": self.application.id,
+                    "denial": denial_entity.id,
+                    "category": "exact" if (index % 2) else "partial",
+                }
+            )
+
+        url = reverse("applications:application_denial_matches", kwargs={"pk": self.application.id})
+        response = self.client.post(url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(url, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        denial_matches = response.json()["denial_matches"]
+        self.assertEqual(len(denial_matches), 10)
+        self.assertEqual(denial_matches[0]["denial"], denial_matches[0]["denial_entity"])
+
+        # remove one match
+        response = self.client.delete(url, {"objects": [denial_matches[0]["id"]]}, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

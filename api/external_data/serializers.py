@@ -179,36 +179,34 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
                 denial_entity_data.update({"denial": denial.id})
                 denial_entity_serializer = DenialEntitySerializer(data=denial_entity_data)
 
-                if denial_entity_serializer.is_valid() and isinstance(denial_entity_serializer.validated_data, dict):
-                    # Now lets proceed with denial entity object
+                denial_entity_serializer.is_valid(raise_exception=True)
+                # Now lets proceed with denial entity object
 
-                    # We assume that a DenialEntity object already exists if we can
-                    # match on all of the following fields
-                    denial_entity_lookup_fields = {
-                        "name": denial_entity_serializer.validated_data["name"],
-                        "address": denial_entity_serializer.validated_data["address"],
-                        "entity_type": denial_entity_serializer.validated_data["entity_type"],
-                    }
-                    # Link the validated DenialEntity data with the Denial
+                # We assume that a DenialEntity object already exists if we can
+                # match on all of the following fields
+                denial_entity_lookup_fields = {
+                    "name": denial_entity_serializer.validated_data["name"],
+                    "address": denial_entity_serializer.validated_data["address"],
+                    "entity_type": denial_entity_serializer.validated_data["entity_type"],
+                }
+                # Link the validated DenialEntity data with the Denial
 
-                    denial_entity_created_data = denial_entity_serializer.validated_data
-                    denial_entity_created_data["denial"] = denial
-                    denial_entity, is_denial_entity_created = models.DenialEntity.objects.update_or_create(
-                        defaults=denial_entity_serializer.validated_data, denial=denial, **denial_entity_lookup_fields
+                denial_entity_created_data = denial_entity_serializer.validated_data
+                denial_entity_created_data["denial"] = denial
+                denial_entity, is_denial_entity_created = models.DenialEntity.objects.update_or_create(
+                    defaults=denial_entity_serializer.validated_data, denial=denial, **denial_entity_lookup_fields
+                )
+
+                if is_denial_entity_created:
+                    logging_counts["denial_entity"]["created"] += 1
+                    logging_regime_reg_ref_values["denial_entity"]["created"].append(
+                        denial_entity.denial.regime_reg_ref
                     )
-
-                    if is_denial_entity_created:
-                        logging_counts["denial_entity"]["created"] += 1
-                        logging_regime_reg_ref_values["denial_entity"]["created"].append(
-                            denial_entity.denial.regime_reg_ref
-                        )
-                    else:
-                        logging_counts["denial_entity"]["updated"] += 1
-                        logging_regime_reg_ref_values["denial_entity"]["updated"].append(
-                            denial_entity.denial.regime_reg_ref
-                        )
                 else:
-                    self.add_bulk_errors(errors, i, {**denial_entity_serializer.errors})
+                    logging_counts["denial_entity"]["updated"] += 1
+                    logging_regime_reg_ref_values["denial_entity"]["updated"].append(
+                        denial_entity.denial.regime_reg_ref
+                    )
             else:
                 self.add_bulk_errors(errors, i, {**denial_serializer.errors})
 

@@ -35,7 +35,6 @@ def json_file_data():
                         "end_user_flag": "true",
                         "consignee_flag": "true",
                         "reason_for_refusal": "reason a",
-                        "spire_entity_id": 1234,
                     },
                     {
                         "reference": "DN001\/0002",

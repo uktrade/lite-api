@@ -90,6 +90,7 @@ class Command(BaseCommand):
             denial_data = {field: row.pop(field, None) for field in self.required_headers_denial}
             denial_entity_data["data"] = row
             denial_entity_data["entity_type"] = get_denial_entity_enum(denial_entity_data["data"])
+
             denial_serializer = DenialSerializer(data=denial_data)
 
             if denial_serializer.is_valid():
@@ -101,19 +102,13 @@ class Command(BaseCommand):
                 )
                 denial_entity_data.update({"denial": denial.id})
                 denial_entity_serializer = DenialEntitySerializer(data=denial_entity_data)
-                if denial_entity_serializer.is_valid():
-                    # Denial is Save link the denial entity
-                    denial_entity_serializer.save()
-                    log.info(
-                        "Saved Denial Entity for row number -> %s",
-                        i,
-                    )
-                else:
-                    self.add_bulk_errors(
-                        errors=errors,
-                        row_number=i + 1,
-                        line_errors={**denial_entity_serializer.errors},
-                    )
+                denial_entity_serializer.is_valid(raise_exception=True)
+                # Denial is Save link the denial entity
+                denial_entity_serializer.save()
+                log.info(
+                    "Saved Denial Entity for row number -> %s",
+                    i,
+                )
 
             else:
                 self.add_bulk_errors(
