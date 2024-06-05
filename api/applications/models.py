@@ -19,7 +19,7 @@ from api.applications.managers import BaseApplicationManager
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import Case
+from api.cases.models import Case, CaseQueue
 from api.common.models import TimestampableModel
 from api.core.model_mixins import Clonable
 from api.documents.models import Document
@@ -248,6 +248,9 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
+    def create_amendment(self):
+        raise NotImplementedError()
+
 
 # Licence     Applications
 class StandardApplication(BaseApplication, Clonable):
@@ -357,6 +360,15 @@ class StandardApplication(BaseApplication, Clonable):
             party_on_application.clone(application=cloned_application)
 
         return cloned_application
+
+    def create_amendment(self):
+        amendment_application = self.clone(amendment_of=self)
+        # TODO: Do we need a log on the audit trail?
+        # Remove case from all queues and set status to superseded
+        CaseQueue.objects.filter(case=self.case_ptr).delete()
+        self.status = get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT)
+        self.save()
+        return amendment_application
 
 
 class ApplicationDocument(Document, Clonable):

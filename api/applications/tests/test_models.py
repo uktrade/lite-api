@@ -1,5 +1,6 @@
 from django.forms import model_to_dict
 from django.utils import timezone
+from freezegun import freeze_time
 
 from test_helpers.clients import DataTestClient
 
@@ -14,6 +15,7 @@ from api.applications.models import (
     GoodOnApplicationInternalDocument,
     PartyOnApplication,
     SiteOnApplication,
+    StandardApplication,
 )
 from api.applications.tests.factories import (
     ApplicationDocumentFactory,
@@ -35,6 +37,23 @@ from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 
 
 class TestStandardApplication(DataTestClient):
+
+    def test_create_amendment(self):
+        original_application = StandardApplicationFactory(
+            status=CaseStatus.objects.get(status="ogd_advice"),
+        )
+        original_application.queues.add(Queue.objects.first())
+        original_application.save()
+
+        amendment_application = original_application.create_amendment()
+        # Ensure the amendment application has been saved to the DB - by retrieving it directly
+        amendment_application = StandardApplication.objects.get(id=amendment_application.id)
+        # It's unnecessary to be exhaustive in testing clone functionality as that is done below
+        assert amendment_application.status.status == "draft"
+        assert amendment_application.amendment_of == original_application.case_ptr
+        original_application.refresh_from_db()
+        assert original_application.status.status == "superseded_by_amendment"
+        assert original_application.queues.all().count() == 0
 
     def test_clone(self):
         original_application = StandardApplicationFactory(
