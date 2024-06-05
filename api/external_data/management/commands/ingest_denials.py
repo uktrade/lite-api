@@ -68,17 +68,20 @@ class Command(BaseCommand):
     def load_denials(self, filename):
         data = get_json_content_and_delete(filename)
         errors = []
+
         if data:
             # Lets delete all denial records except ones that have been matched
-            matched_denial_ids = DenialMatchOnApplication.objects.all().values_list("denial_id", flat=True).distinct()
-            DenialEntity.objects.all().exclude(id__in=matched_denial_ids).delete()
+            matched_entity_denial_ids = (
+                DenialMatchOnApplication.objects.all().values_list("denial_entity_id", flat=True).distinct()
+            )
+            DenialEntity.objects.all().exclude(id__in=matched_entity_denial_ids).delete()
 
         for i, row in enumerate(data, start=1):
             # This is required so we don't reload the same denial entity and load duplicates
             has_fields = bool(row.get("regime_reg_ref") and row.get("name"))
             if has_fields:
                 exists = DenialMatchOnApplication.objects.filter(
-                    denial__regime_reg_ref=row["regime_reg_ref"], denial__name=row["name"]
+                    denial_entity__denial__regime_reg_ref=row["regime_reg_ref"], denial_entity__name=row["name"]
                 ).exists()
                 if exists:
                     continue
@@ -87,26 +90,31 @@ class Command(BaseCommand):
             denial_data = {field: row.pop(field, None) for field in self.required_headers_denial}
             denial_entity_data["data"] = row
             denial_entity_data["entity_type"] = get_denial_entity_enum(denial_entity_data["data"])
+
             denial_serializer = DenialSerializer(data=denial_data)
-            denial_entity_serializer = DenialEntitySerializer(data=denial_entity_data)
 
-            is_valid_denial = denial_serializer.is_valid()
-            is_valid_entity_denial = denial_entity_serializer.is_valid()
-
-            if is_valid_denial and is_valid_entity_denial:
+            if denial_serializer.is_valid():
+                # Lets first save the denial
                 denial = denial_serializer.save()
-                denial_entity = denial_entity_serializer.save()
-                denial_entity.denial = denial
-                denial_entity.save()
                 log.info(
-                    "Saved row number -> %s",
+                    "Saved Denial for row number -> %s",
                     i,
                 )
+                denial_entity_data.update({"denial": denial.id})
+                denial_entity_serializer = DenialEntitySerializer(data=denial_entity_data)
+                denial_entity_serializer.is_valid(raise_exception=True)
+                # Denial is Save link the denial entity
+                denial_entity_serializer.save()
+                log.info(
+                    "Saved Denial Entity for row number -> %s",
+                    i,
+                )
+
             else:
                 self.add_bulk_errors(
                     errors=errors,
                     row_number=i + 1,
-                    line_errors={**denial_serializer.errors, **denial_entity_serializer.errors},
+                    line_errors={**denial_serializer.errors},
                 )
 
         if errors:

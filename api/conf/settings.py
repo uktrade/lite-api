@@ -126,7 +126,7 @@ INSTALLED_APPS = [
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
 
-if "MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS":
+if MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS:
     INSTALLED_APPS += [
         "mock_virus_scan",
     ]
@@ -473,7 +473,7 @@ SANCTION_LIST_SOURCES = env.json(
     {
         "un_sanctions_file": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
         "office_financial_sanctions_file": "https://ofsistorage.blob.core.windows.net/publishlive/2022format/ConList.xml",
-        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/media/65ca02639c5b7f0012951caf/UK_Sanctions_List.xml",
+        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/media/65ca02639c5b7f0012951caf/UK_Sanctions_List.xml",  # /PS-IGNORE
     },
 )
 LITE_INTERNAL_NOTIFICATION_EMAILS = env.json("LITE_INTERNAL_NOTIFICATION_EMAILS", {})
