@@ -190,7 +190,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         },
     )
     phone_number = PhoneNumberField(required=True, allow_blank=True, region="GB")
-    website = serializers.URLField(allow_blank=True)
+    website = serializers.CharField(allow_blank=True)
 
     user = ExporterUserCreateUpdateSerializer(write_only=True)
     site = SiteCreateUpdateSerializer(write_only=True)

@@ -37,7 +37,7 @@ class Organisation(TimestampableModel):
     vat_number = models.TextField(default=None, blank=True, null=True)
     registration_number = models.TextField(default=None, blank=True, null=True)
     phone_number = PhoneNumberField(default="")
-    website = models.URLField(blank=True, default="")
+    website = models.TextField(blank=True, default="")
     primary_site = models.ForeignKey(
         "Site",
         related_name="organisation_primary_site",
