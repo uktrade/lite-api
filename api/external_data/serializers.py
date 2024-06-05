@@ -64,12 +64,12 @@ class DenialEntitySerializer(serializers.ModelSerializer):
             "denial_cle",
             "item_description",
             "end_use",
-            "data",
             "is_revoked",
             "is_revoked_comment",
             "reason_for_refusal",
             "entity_type",
             "reference",
+            "denial",
         )
 
         extra_kwargs = {
@@ -79,10 +79,11 @@ class DenialEntitySerializer(serializers.ModelSerializer):
         }
 
     def validate(self, data):
+        # Currently a denial can be a new value being updated or an existing denial object being revoked from the UI
         validated_data = super().validate(data)
-        if validated_data.get("denial", {}).get("is_revoked") and not validated_data.get("denial", {}).get(
-            "is_revoked_comment"
-        ):
+        denial = validated_data.get("denial")
+        is_dict_update = isinstance(denial, dict)
+        if is_dict_update and denial.get("is_revoked") and not denial.get("is_revoked_comment"):
             raise serializers.ValidationError({"is_revoked_comment": "This field is required"})
         return validated_data
 
@@ -90,15 +91,16 @@ class DenialEntitySerializer(serializers.ModelSerializer):
         # This is required because the flattened columns are required to support the older denial screen
         # Serialisers don't support dotted fileds so we need to override. is_revoked and is_revoked_comments
         # are the only updates we support so this is ok.
-
-        if validated_data.get("denial", {}).get("is_revoked"):
-            instance.denial.is_revoked = validated_data["denial"]["is_revoked"]
-            instance.denial.is_revoked_comment = validated_data["denial"]["is_revoked_comment"]
-            instance.denial.save()
-        elif validated_data.get("denial", {}).get("is_revoked") is False:
-            instance.denial.is_revoked = validated_data["denial"]["is_revoked"]
-            instance.denial.is_revoked_comment = ""
-            instance.denial.save()
+        denial = validated_data.get("denial")
+        if isinstance(denial, dict):
+            if denial.get("is_revoked"):
+                instance.denial.is_revoked = denial["is_revoked"]
+                instance.denial.is_revoked_comment = validated_data["denial"]["is_revoked_comment"]
+                instance.denial.save()
+            elif denial.get("is_revoked") is False:
+                instance.denial.is_revoked = denial["is_revoked"]
+                instance.denial.is_revoked_comment = ""
+                instance.denial.save()
         return instance
 
 
@@ -146,7 +148,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
             denial_data = {**{field: escape(row[field].strip()) for field in self.required_headers_denial}}
 
             # Create a serializer instance to validate data
-            serializer = DenialEntitySerializer(data=denial_entity_data)
+
             denial_serializer = DenialSerializer(data=denial_data)
             is_valid_denial_data = denial_serializer.is_valid()
 
@@ -160,7 +162,7 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
                 ):
                     is_valid_denial_data = True
 
-            if serializer.is_valid() and isinstance(serializer.validated_data, dict) and is_valid_denial_data:
+            if is_valid_denial_data:
                 # Try to update an existing Denial record or create a new one
                 regime_reg_ref = denial_serializer.data["regime_reg_ref"]
                 denial, is_denial_created = models.Denial.objects.update_or_create(
@@ -174,29 +176,39 @@ class DenialFromCSVFileSerializer(serializers.Serializer):
                     logging_counts["denial"]["updated"] += 1
                     logging_regime_reg_ref_values["denial"]["updated"].append(denial.regime_reg_ref)
 
+                denial_entity_data.update({"denial": denial.id})
+                denial_entity_serializer = DenialEntitySerializer(data=denial_entity_data)
+
+                denial_entity_serializer.is_valid(raise_exception=True)
+                # Now lets proceed with denial entity object
+
                 # We assume that a DenialEntity object already exists if we can
                 # match on all of the following fields
                 denial_entity_lookup_fields = {
-                    "name": serializer.validated_data["name"],
-                    "address": serializer.validated_data["address"],
-                    "entity_type": serializer.validated_data["entity_type"],
+                    "name": denial_entity_serializer.validated_data["name"],
+                    "address": denial_entity_serializer.validated_data["address"],
+                    "entity_type": denial_entity_serializer.validated_data["entity_type"],
                 }
                 # Link the validated DenialEntity data with the Denial
 
-                denial_entity_created_data = serializer.validated_data
+                denial_entity_created_data = denial_entity_serializer.validated_data
                 denial_entity_created_data["denial"] = denial
                 denial_entity, is_denial_entity_created = models.DenialEntity.objects.update_or_create(
-                    defaults=serializer.validated_data, denial=denial, **denial_entity_lookup_fields
+                    defaults=denial_entity_serializer.validated_data, denial=denial, **denial_entity_lookup_fields
                 )
 
                 if is_denial_entity_created:
                     logging_counts["denial_entity"]["created"] += 1
-                    logging_regime_reg_ref_values["denial_entity"]["created"].append(denial_entity.regime_reg_ref)
+                    logging_regime_reg_ref_values["denial_entity"]["created"].append(
+                        denial_entity.denial.regime_reg_ref
+                    )
                 else:
                     logging_counts["denial_entity"]["updated"] += 1
-                    logging_regime_reg_ref_values["denial_entity"]["updated"].append(denial_entity.regime_reg_ref)
+                    logging_regime_reg_ref_values["denial_entity"]["updated"].append(
+                        denial_entity.denial.regime_reg_ref
+                    )
             else:
-                self.add_bulk_errors(errors, i, {**serializer.errors, **denial_serializer.errors})
+                self.add_bulk_errors(errors, i, {**denial_serializer.errors})
 
         if errors:
             raise serializers.ValidationError(errors)
@@ -244,6 +256,8 @@ class DenialSearchSerializer(DocumentSerializer):
     item_description = serializers.SerializerMethodField()
     denial_cle = serializers.SerializerMethodField()
     regime_reg_ref = serializers.SerializerMethodField()
+    search_score = serializers.SerializerMethodField()
+
 
     class Meta:
         document = documents.DenialEntityDocument
@@ -275,6 +289,9 @@ class DenialSearchSerializer(DocumentSerializer):
 
     def get_regime_reg_ref(self, obj):
         return self.get_highlighted_field(obj, "regime_reg_ref")
+    def get_search_score(self, obj):
+        return round(obj.meta.score, 2)
+
 
     def get_highlighted_field(self, obj, field_name):
         if hasattr(obj.meta, "highlight") and obj.meta.highlight.to_dict().get(field_name):

@@ -55,13 +55,13 @@ address_stop_words_filter = analysis.token_filter(
 
 address_analyzer = analysis.analyzer(
     "address_analyzer",
-    tokenizer="whitespace",
+    tokenizer="standard",
     filter=["lowercase", "asciifolding", "trim", address_stop_words_filter, ngram_filter],
 )
 
 address_analyzer_no_ngram = analysis.analyzer(
     "address_analyzer",
-    tokenizer="whitespace",
+    tokenizer="standard",
     filter=["lowercase", "asciifolding", "trim", address_stop_words_filter],
 )
 
@@ -84,7 +84,6 @@ class DenialEntityDocument(Document):
             "raw": fields.KeywordField(normalizer=lowercase_normalizer),
         },
     )
-    data = DataField()
     entity_type = fields.TextField()
 
     is_revoked = fields.BooleanField(attr="denial.is_revoked")

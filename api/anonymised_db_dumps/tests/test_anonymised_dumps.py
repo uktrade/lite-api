@@ -10,7 +10,12 @@ from django.test import TransactionTestCase
 
 from api.appeals.tests.factories import AppealFactory
 from api.appeals.models import Appeal
-from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
+from api.applications.tests.factories import (
+    DenialEntityFactory,
+    DenialFactory,
+    GoodOnApplicationFactory,
+    StandardApplicationFactory,
+)
 from api.applications.models import GoodOnApplication, StandardApplication
 from api.audit_trail.tests.factories import AuditFactory
 from api.audit_trail.models import Audit
@@ -29,7 +34,6 @@ from api.addresses.models import Address
 from api.staticdata.countries.models import Country
 from api.queries.end_user_advisories.tests.factories import EndUserAdvisoryQueryFactory
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
-from api.external_data.tests.factories import DenialEntityFactory
 from api.external_data.models import DenialEntity
 from api.parties.tests.factories import PartyFactory
 from api.parties.models import Party
@@ -130,7 +134,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.denial_entity = DenialEntityFactory(
             name="denial name",
             address="denial address",
-            consignee_name="denial consignee name",
+            denial=DenialFactory(),
         )
         cls.party = PartyFactory(
             name="party name",
@@ -446,7 +450,6 @@ class TestAnonymiseDumps(TransactionTestCase):
         updated_denial_entity = DenialEntity.objects.get(id=self.denial_entity.id)
         assert self.denial_entity.name != updated_denial_entity.name
         assert self.denial_entity.address != updated_denial_entity.address
-        assert self.denial_entity.consignee_name != updated_denial_entity.consignee_name
 
     def test_organisation_anonymised(self):
         updated_organisation = Organisation.objects.get(id=self.organisation.id)
