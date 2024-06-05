@@ -1,4 +1,3 @@
-from copy import deepcopy
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -26,20 +25,11 @@ class ApplicationDenialMatchesOnApplication(APIView):
         return JsonResponse(data={"denial_matches": denial_matches_data})
 
     def post(self, request, pk):
-        data = deepcopy(request.data)
 
-        # This is for backward compatablity to be remove once FE has been updated.
-        for denial_match_item in data:
-            if denial_match_item.get("denial"):
-                denial_match_item["denial_entity"] = denial_match_item.pop("denial")
-        serializer = denial.DenialMatchOnApplicationCreateSerializer(data=data, many=True)
+        serializer = denial.DenialMatchOnApplicationCreateSerializer(data=request.data, many=True)
         if serializer.is_valid():
             serializer.save()
-            return_data = serializer.data
-            # This is for backward compatablity to be remove once FE has been updated.
-            for return_item in return_data:
-                return_item.update({"denial": return_item["denial_entity"]})
-            return JsonResponse(data={"denial_matches": return_data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"denial_matches": serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
