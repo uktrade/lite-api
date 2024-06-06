@@ -10,15 +10,9 @@ from api.core.search import filter_backends as custom_filter_backends
 from django.conf import settings
 
 from api.core.authentication import GovAuthentication
-from api.conf.pagination import MaxPageNumberPagination
+from api.conf.pagination import MaxFiftyPageSizePaginator
 from api.core.search.validators import QueryStringValidationMixin
 from api.external_data import documents, models, serializers
-
-
-class DenialListPaginator(MaxPageNumberPagination):
-    page_size = 50
-    page_size_query_param = "page_size"
-    max_page_size = 50
 
 
 class DenialViewSet(viewsets.ModelViewSet):
@@ -47,7 +41,7 @@ class DenialSearchView(QueryStringValidationMixin, DocumentViewSet):
     document = documents.DenialEntityDocument
     serializer_class = serializers.DenialSearchSerializer
     authentication_classes = (GovAuthentication,)
-    pagination_class = DenialListPaginator
+    pagination_class = MaxFiftyPageSizePaginator
     lookup_field = "id"
     filter_backends = [
         filter_backends.SourceBackend,
