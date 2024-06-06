@@ -50,7 +50,7 @@ class DenialSearchView(QueryStringValidationMixin, DocumentViewSet):
         filter_backends.HighlightBackend,
     ]
 
-    search_fields = ["name", "address", "denial_cle", "item_description"]
+    search_fields = ["name", "address", "denial_cle", "item_description", "regime_reg_ref"]
 
     filter_fields = {
         "country": {
@@ -63,39 +63,22 @@ class DenialSearchView(QueryStringValidationMixin, DocumentViewSet):
         "name": None,
         "address": None,
         "denial_cle": None,
+        "item_description": None,
+        "regime_reg_ref": None,
     }
 
     ordering = "_score"
-    highlight_fields = {
-        "name": {
+
+    highlight_fields = {}
+
+    for field in search_fields:
+        highlight_fields[field] = {
             "enabled": True,
             "options": {
                 "pre_tags": ["<mark>"],
                 "post_tags": ["</mark>"],
             },
-        },
-        "address": {
-            "enabled": True,
-            "options": {
-                "pre_tags": ["<mark>"],
-                "post_tags": ["</mark>"],
-            },
-        },
-        "denial_cle": {
-            "enabled": True,
-            "options": {
-                "pre_tags": ["<mark>"],
-                "post_tags": ["</mark>"],
-            },
-        },
-        "item_description": {
-            "enabled": True,
-            "options": {
-                "pre_tags": ["<mark>"],
-                "post_tags": ["</mark>"],
-            },
-        },
-    }
+        }
 
     def filter_queryset(self, queryset):
         queryset = queryset.filter("term", is_revoked=False).exclude("term", notifying_government="United Kingdom")

@@ -3,11 +3,11 @@ import os
 from elasticsearch_dsl import Index
 from parameterized import parameterized
 import pytest
+from rest_framework import status
 
 from django.core.management import call_command
 from django.conf import settings
 from django.urls import reverse
-from rest_framework import status
 
 from api.external_data import documents, models, serializers
 from test_helpers.clients import DataTestClient
@@ -391,13 +391,13 @@ class DenialSearchViewTests(DataTestClient):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "name:Organisation Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
-            ({"search": "name:The Widget Company"}, ["AB-XY-EF-900"]),
-            ({"search": "name:XYZ"}, ["AB-CD-EF-100"]),
-            ({"search": "address:Street Name"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
-            ({"search": "address:Example"}, ["AB-XY-EF-900"]),
-            ({"search": "name:UK Issued"}, []),
-            ({"search": "denial_cle:catch all"}, ["AB-XY-EF-900"]),
+            ({"search": "name:(Organisation Name)"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
+            ({"search": "name:(The Widget Company)"}, ["AB-XY-EF-900"]),
+            ({"search": "name:(XYZ)"}, ["AB-CD-EF-100"]),
+            ({"search": "address:(Street Name)"}, ["AB-CD-EF-000", "AB-CD-EF-300", "AB-CD-EF-100"]),
+            ({"search": "address:(Example)"}, ["AB-XY-EF-900"]),
+            ({"search": "name:(UK Issued)"}, []),
+            ({"search": "denial_cle:(catch all)"}, ["AB-XY-EF-900"]),
             ({"search": "name:(Widget) OR address:(2001)"}, ["AB-CD-EF-300", "AB-XY-EF-900"]),
             ({"search": "name:(Organisation) AND address:(2000)"}, ["AB-CD-EF-100"]),
         ]
@@ -420,6 +420,31 @@ class DenialSearchViewTests(DataTestClient):
         regime_reg_ref_results = [r["regime_reg_ref"] for r in response_json["results"]]
         self.assertEqual(regime_reg_ref_results, expected_items)
 
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            ({"search": "name:(Organisation Name)"}, True),
+            ({"search": "name:(The Widget Company)"}, True),
+            ({"search": "name:(dfgklmdsgm)"}, False),
+            ({"search": "address:(Street Name)"}, True),
+        ]
+    )
+    def test_denial_entity_search_scores(self, query, expected_items):
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
+        url = reverse("external_data:denial-list")
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            content = f.read()
+
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+        url = reverse("external_data:denial_search-list")
+
+        response = self.client.get(url, query, **self.gov_headers)
+        response_json = response.json()
+        search_score_results = [r["search_score"] for r in response_json["results"]]
+
+        self.assertEqual(expected_items, any(isinstance(item, float) for item in search_score_results))
+
     def test_denial_entity_search_invalid_query(self):
         call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
@@ -433,7 +458,6 @@ class DenialSearchViewTests(DataTestClient):
         url = reverse("external_data:denial_search-list")
         query = {"search": "ejfhke&**&*7&&^*(£)"}
         response = self.client.get(url, query, **self.gov_headers)
-
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = response.json()
