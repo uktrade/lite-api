@@ -159,6 +159,12 @@ class Case(TimestampableModel):
                 payload={"sub_status": None, "status": CaseStatusEnum.get_text(self.status.status)},
             )
 
+    @property
+    def superseded_by(self):
+        if not self.amendment.exists():
+            return None
+        return self.amendment.first()
+
     def get_case(self):
         """
         For any child models, this method allows easy access to the parent Case.
