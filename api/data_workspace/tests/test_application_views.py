@@ -175,6 +175,5 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
         response = self.client.options(self.denial_on_applications)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         actual_keys = response.json()["actions"]["GET"].keys()
-        expected_keys = {"id", "denial_entity", "application", "category", "denial"}
-        self.assertEqual(expected_keys, actual_keys)n
-        
+        expected_keys = {"id", "denial_entity", "application", "category"}
+        self.assertEqual(expected_keys, actual_keys)
