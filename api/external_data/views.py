@@ -15,6 +15,12 @@ from api.core.search.validators import QueryStringValidationMixin
 from api.external_data import documents, models, serializers
 
 
+class DenialListPaginator(MaxPageNumberPagination):
+    page_size = 50
+    page_size_query_param = "page_size"
+    max_page_size = 50
+
+
 class DenialViewSet(viewsets.ModelViewSet):
     queryset = models.DenialEntity.objects.all()
     authentication_classes = (GovAuthentication,)
@@ -41,8 +47,7 @@ class DenialSearchView(QueryStringValidationMixin, DocumentViewSet):
     document = documents.DenialEntityDocument
     serializer_class = serializers.DenialSearchSerializer
     authentication_classes = (GovAuthentication,)
-    pagination_class = MaxPageNumberPagination
-    pagination_class.page_size = 50
+    pagination_class = DenialListPaginator
     lookup_field = "id"
     filter_backends = [
         filter_backends.SourceBackend,
