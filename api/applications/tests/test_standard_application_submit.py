@@ -7,6 +7,7 @@ from parameterized import parameterized
 
 from api.applications.enums import ApplicationExportType
 from api.applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication, StandardApplication
+from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.enums import CaseTypeEnum, CaseDocumentState
@@ -18,6 +19,7 @@ from api.goods.tests.factories import FirearmFactory, GoodFactory
 from lite_content.lite_api import strings
 from api.parties.enums import PartyType
 from api.parties.models import Party, PartyDocument
+from api.parties.tests.factories import PartyDocumentFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
@@ -95,45 +97,45 @@ class StandardApplicationTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_submit_standard_application_without_end_user_failure(self):
-        self.draft.delete_party(PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER))
-
-        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
-
-        response = self.client.put(url, **self.exporter_headers)
-
-        self.assertContains(
-            response,
-            text=strings.Applications.Standard.NO_END_USER_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-
     def test_submit_standard_application_without_end_user_document_success(self):
-        PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
-        party = Party.objects.get(id=self.draft.end_user.party_id)
+        application = DraftStandardApplicationFactory(organisation=self.organisation)
+        party = Party.objects.get(id=application.end_user.party_id)
         party.end_user_document_available = False
         party.end_user_document_missing_reason = "not applicable"
         party.save()
 
-        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": application.id})
 
         response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_submit_standard_application_without_consignee_failure(self):
-        self.draft.delete_party(self.draft.consignee)
-        self.draft.goods_recipients = StandardApplication.VIA_CONSIGNEE
-        self.draft.save()
+    def test_submit_without_end_user_document_missing_reason_fail(self):
+        application = DraftStandardApplicationFactory(organisation=self.organisation)
 
-        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": application.id})
 
         response = self.client.put(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = response.json()["errors"]
+        self.assertEqual(errors["end_user"][0], "To submit the application, attach a document to the end user")
 
-        self.assertContains(
-            response,
-            text=strings.Applications.Standard.NO_CONSIGNEE_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
+    @parameterized.expand(
+        [
+            (PartyType.END_USER, ["To submit the application, add an end user"]),
+            (PartyType.CONSIGNEE, ["To submit the application, add a consignee"]),
+        ]
+    )
+    def test_submit_standard_application_without_party_failure(self, party_type, expected_errors):
+        application = DraftStandardApplicationFactory(organisation=self.organisation)
+        application.parties.filter(party__type=party_type).delete()
+
+        url = reverse("applications:application_submit", kwargs={"pk": application.id})
+
+        response = self.client.put(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        errors = response.json()["errors"]
+        self.assertEqual(errors[party_type], expected_errors)
 
     def test_submit_standard_application_direct_end_user_without_consignee_success(self):
         self.draft.delete_party(self.draft.consignee)
@@ -147,16 +149,16 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_submit_standard_application_without_consignee_document_success(self):
-        # Consignee document is optional
-        PartyDocument.objects.filter(party=self.draft.consignee.party).delete()
-        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        application = DraftStandardApplicationFactory(organisation=self.organisation)
+        party_on_application = application.parties.filter(party__type=PartyType.END_USER).first()
+
+        # only Consignee document is optional
+        PartyDocumentFactory(party=party_on_application.party, safe=True)
+
+        url = reverse("applications:application_submit", kwargs={"pk": application.id})
 
         response = self.client.put(url, **self.exporter_headers)
-
-        self.assertNotContains(
-            response,
-            text=strings.Applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_submit_standard_application_without_good_failure(self):
         GoodOnApplication.objects.get(application=self.draft).delete()
@@ -227,6 +229,16 @@ class StandardApplicationTests(DataTestClient):
             text="To submit the application, attach a document to the ultimate end-users",
         )
 
+    def test_submit_draft_without_third_parties_success(self):
+        application = DraftStandardApplicationFactory(organisation=self.organisation)
+        party_on_application = application.parties.filter(party__type=PartyType.END_USER).first()
+        PartyDocumentFactory(party=party_on_application.party, safe=True)
+
+        url = reverse("applications:application_submit", kwargs={"pk": application.id})
+
+        response = self.client.put(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_submit_draft_without_third_party_documents_success(self):
         third_party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.THIRD_PARTY).party
         PartyDocument.objects.filter(party=third_party).delete()
@@ -236,29 +248,65 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_status_code_post_with_untested_document_failure(self):
-        draft = self.create_draft_standard_application(self.organisation, safe_document=None)
-        url = reverse("applications:application_submit", kwargs={"pk": draft.id})
+    @parameterized.expand(
+        [
+            (
+                StandardApplication.DIRECT_TO_END_USER,
+                PartyType.END_USER,
+                PartyType.END_USER,
+                None,
+                ["We're still processing the end user document. Please submit again"],
+            ),
+            (
+                StandardApplication.DIRECT_TO_END_USER,
+                PartyType.END_USER,
+                PartyType.END_USER,
+                False,
+                ["To submit the application, attach a document that does not contain a virus to the end user"],
+            ),
+            (
+                StandardApplication.VIA_CONSIGNEE,
+                PartyType.CONSIGNEE,
+                PartyType.CONSIGNEE,
+                None,
+                ["We're still processing the consignee document. Please submit again"],
+            ),
+            (
+                StandardApplication.VIA_CONSIGNEE,
+                PartyType.CONSIGNEE,
+                PartyType.CONSIGNEE,
+                False,
+                ["To submit the application, attach a document that does not contain a virus to the consignee"],
+            ),
+            (
+                StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES,
+                PartyType.THIRD_PARTY,
+                "third_parties_documents",
+                None,
+                ["We're still processing the third party document. Please submit again"],
+            ),
+            (
+                StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES,
+                PartyType.THIRD_PARTY,
+                "third_parties_documents",
+                False,
+                ["To submit the application, attach a document that does not contain a virus to the third party"],
+            ),
+        ]
+    )
+    def test_application_with_infected_party_document_failure(
+        self, recipients, party_type, field_name, safe_document, expected_errors
+    ):
+        application = DraftStandardApplicationFactory(organisation=self.organisation, goods_recipients=recipients)
+        party_on_application = application.parties.filter(party__type=party_type).first()
+        PartyDocumentFactory(party=party_on_application.party, safe=safe_document)
+        url = reverse("applications:application_submit", kwargs={"pk": application.id})
 
         response = self.client.put(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = response.json()["errors"]
 
-        self.assertContains(
-            response,
-            text=strings.Applications.Standard.END_USER_DOCUMENT_PROCESSING,
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-
-    def test_status_code_post_with_infected_document_failure(self):
-        draft = self.create_draft_standard_application(self.organisation, safe_document=False)
-        url = reverse("applications:application_submit", kwargs={"pk": draft.id})
-
-        response = self.client.put(url, **self.exporter_headers)
-
-        self.assertContains(
-            response,
-            text=strings.Applications.Standard.END_USER_DOCUMENT_INFECTED,
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
+        self.assertEqual(errors[field_name], expected_errors)
 
     def test_submit_standard_application_with_unprocessed_additional_documents_failure(self):
         self.create_application_document(self.draft, safe=None)

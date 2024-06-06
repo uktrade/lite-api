@@ -15,7 +15,7 @@ from api.external_data.models import Denial, DenialEntity, SanctionMatch
 from api.staticdata.statuses.models import CaseStatus
 from api.goods.tests.factories import GoodFactory
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
-from api.parties.tests.factories import PartyFactory
+from api.parties.tests.factories import ConsigneeFactory, EndUserFactory, PartyFactory, ThirdPartyFactory
 from api.users.tests.factories import ExporterUserFactory, GovUserFactory
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.regimes.helpers import get_regime_entry
@@ -171,3 +171,29 @@ class SanctionMatchFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = SanctionMatch
+
+
+class DraftStandardApplicationFactory(StandardApplicationFactory):
+    goods_starting_point = StandardApplication.GB
+    goods_recipients = StandardApplication.VIA_CONSIGNEE
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
+        obj.save()
+
+        GoodOnApplicationFactory(application=obj, good=GoodFactory(organisation=obj.organisation))
+
+        PartyOnApplicationFactory(application=obj, party=EndUserFactory(organisation=obj.organisation))
+
+        if kwargs["goods_recipients"] in [
+            StandardApplication.VIA_CONSIGNEE,
+            StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES,
+        ]:
+            PartyOnApplicationFactory(application=obj, party=ConsigneeFactory(organisation=obj.organisation))
+
+        if kwargs["goods_recipients"] == StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES:
+            PartyOnApplicationFactory(application=obj, party=ThirdPartyFactory(organisation=obj.organisation))
+
+        return obj

@@ -65,7 +65,7 @@ def siel_consignee_validator(application):
         if None in documents_qs:
             error = "We're still processing the consignee document. Please submit again"
         elif False in documents_qs:
-            error = "To submit the application, attach a document that does not contain a virus to the end user"
+            error = "To submit the application, attach a document that does not contain a virus to the consignee"
 
     return error
 
@@ -99,11 +99,6 @@ def siel_ultimate_end_users_validator(application):
 
     if ultimate_end_user_required and application.ultimate_end_users.count() == 0:
         error = "To submit the application, add an ultimate end-user"
-    else:
-        end_user_id = application.end_user.party.id
-        # We make sure that an ultimate end user is not also the end user
-        if end_user_id in list(application.ultimate_end_users.values_list("id", flat=True)):
-            error = "To submit the application, an ultimate end-user cannot be the same as the end user"
 
     return error
 
