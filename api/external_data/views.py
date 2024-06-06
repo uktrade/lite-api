@@ -42,6 +42,7 @@ class DenialSearchView(QueryStringValidationMixin, DocumentViewSet):
     serializer_class = serializers.DenialSearchSerializer
     authentication_classes = (GovAuthentication,)
     pagination_class = MaxPageNumberPagination
+    pagination_class.page_size = 50
     lookup_field = "id"
     filter_backends = [
         filter_backends.SourceBackend,
