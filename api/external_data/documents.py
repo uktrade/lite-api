@@ -52,15 +52,23 @@ address_stop_words_filter = analysis.token_filter(
     ],
     ignore_case=True,
 )
+special_chars_filter = analysis.char_filter(
+    "remove_special_chars",
+    type="pattern_replace",
+    pattern="[^a-zA-Z0-9 ]",
+    replacement=" ",
+)
 
 address_analyzer = analysis.analyzer(
     "address_analyzer",
+    char_filter=[special_chars_filter],
     tokenizer="standard",
     filter=["lowercase", "asciifolding", "trim", address_stop_words_filter, ngram_filter],
 )
 
 address_analyzer_no_ngram = analysis.analyzer(
     "address_analyzer",
+    char_filter=[special_chars_filter],
     tokenizer="standard",
     filter=["lowercase", "asciifolding", "trim", address_stop_words_filter],
 )
