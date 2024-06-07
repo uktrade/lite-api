@@ -255,6 +255,7 @@ class DenialSearchSerializer(DocumentSerializer):
     address = serializers.SerializerMethodField()
     item_description = serializers.SerializerMethodField()
     denial_cle = serializers.SerializerMethodField()
+    search_score = serializers.SerializerMethodField()
     regime_reg_ref = serializers.SerializerMethodField()
     search_score = serializers.SerializerMethodField()
 
@@ -285,6 +286,9 @@ class DenialSearchSerializer(DocumentSerializer):
 
     def get_item_description(self, obj):
         return self.get_highlighted_field(obj, "item_description")
+
+    def get_search_score(self, obj):
+        return round(obj.meta.score, 2)
 
     def get_regime_reg_ref(self, obj):
         return self.get_highlighted_field(obj, "regime_reg_ref")
