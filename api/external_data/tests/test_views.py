@@ -464,6 +464,39 @@ class DenialSearchViewTests(DataTestClient):
         self.assertEqual(response["errors"]["search"], "Invalid search string")
 
     @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            (
+                {"search": "address:(Street Name)"},
+                [
+                    "1000 Street <mark>Name</mark>, City <mark>Name</mark>",
+                    "2001 Street <mark>Name</mark>, City <mark>Name</mark> 3",
+                    "2000 Street <mark>Name</mark>, City <mark>Name</mark> 2",
+                ],
+            ),
+            ({"search": "address:(Example)"}, ["2 <mark>Example</mark> Road, <mark>Example</mark> City"]),
+            ({"search": "address:(road,)"}, []),
+        ]
+    )
+    def test_denial_search_tokenizer(self, query, expected_items):
+        call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
+        url = reverse("external_data:denial-list")
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            content = f.read()
+        response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, 201)
+
+        url = reverse("external_data:denial_search-list")
+
+        response = self.client.get(url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+        response_json = response.json()
+        search_results = [r["address"] for r in response_json["results"]]
+        self.assertEqual(search_results, expected_items)
+
+    @pytest.mark.elasticsearch
     def test_search(self):
         Index("sanctions-alias-test").create(ignore=[400])
 
