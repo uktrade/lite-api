@@ -481,7 +481,7 @@ class DenialSearchViewTests(DataTestClient):
             ({"search": "address:(road,)"}, []),
         ]
     )
-    def test_denial_search_tokenizer_ignores_commas(self, query, expected_items):
+    def test_denial_search_with_chars(self, query, expected_items):
         call_command("search_index", models=["external_data.denialentity"], action="rebuild", force=True)
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
