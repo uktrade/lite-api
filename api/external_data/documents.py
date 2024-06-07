@@ -52,6 +52,7 @@ address_stop_words_filter = analysis.token_filter(
     ],
     ignore_case=True,
 )
+
 special_chars_filter = analysis.char_filter(
     "special_chars_filter",
     type="pattern_replace",
