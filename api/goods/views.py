@@ -15,6 +15,7 @@ from api.applications.models import (
     GoodOnApplicationInternalDocument,
 )
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
+from api.conf.pagination import MaxFiftyPageSizePaginator
 from api.core.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from api.core.exceptions import BadRequestError
 from api.core.helpers import str_to_bool
@@ -23,7 +24,6 @@ from api.core.views import DocumentStreamAPIView
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
 from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
-from api.goods.goods_paginator import GoodListPaginator
 from api.goods.helpers import (
     FIREARMS_CORE_TYPES,
     check_if_firearm_details_edited_on_unsupported_good,
@@ -67,7 +67,7 @@ good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT
 class GoodList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GoodListSerializer
-    pagination_class = GoodListPaginator
+    pagination_class = MaxFiftyPageSizePaginator
 
     def get_serializer_context(self):
         return {

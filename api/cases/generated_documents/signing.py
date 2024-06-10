@@ -49,6 +49,10 @@ def _get_signature_text(date):
 
 
 def _add_blank_page(pdf_bytes: bytes):
+
+    original_pdf_buffer = BytesIO(pdf_bytes)
+    original_pdf_info = PyPDF2.PdfFileReader(original_pdf_buffer).getDocumentInfo()
+
     # Write a blank page
     pdf = PyPDF2.PdfFileReader(BytesIO(pdf_bytes))
     out_pdf = PyPDF2.PdfFileWriter()
@@ -56,6 +60,11 @@ def _add_blank_page(pdf_bytes: bytes):
     out_pdf.addBlankPage()
     num_pages = out_pdf.getNumPages()
 
+    out_pdf.addMetadata(
+        {
+            "/Title": original_pdf_info.title if original_pdf_info.title else "",
+        }
+    )
     # Convert back into bytes
     output_buffer = BytesIO()
     out_pdf.write(output_buffer)
