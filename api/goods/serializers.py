@@ -428,6 +428,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "security_feature_details",
             "has_declared_at_customs",
             "design_details",
+            "is_archived",
         )
 
     def __init__(self, *args, **kwargs):
@@ -593,6 +594,8 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                 instance.firearm_details = GoodCreateSerializer._update_firearm_details(
                     firearm_details=firearm_details, instance=instance.firearm_details
                 )
+
+        instance.is_archived = validated_data.get("is_archived")
 
         instance.save()
         return instance
