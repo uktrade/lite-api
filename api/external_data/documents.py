@@ -59,9 +59,13 @@ address_analyzer = analysis.analyzer(
     filter=["lowercase", "asciifolding", "trim", address_stop_words_filter, ngram_filter],
 )
 
+# Previously the tokenizer was whitespace, but this was changed to standard
+# as the whitespace tokenizer was splitting on hyphens and including commas in the tokens
+# standard tokenizer will remove these characters
+
 address_analyzer_no_ngram = analysis.analyzer(
     "address_analyzer",
-    tokenizer="whitespace",
+    tokenizer="standard",
     filter=["lowercase", "asciifolding", "trim", address_stop_words_filter],
 )
 
