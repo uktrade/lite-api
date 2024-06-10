@@ -180,6 +180,7 @@ class Good(TimestampableModel):
     )
     has_declared_at_customs = models.BooleanField(default=None, blank=True, null=True)
     design_details = models.TextField(default="", blank=True, null=True, help_text="what design details provided")
+    is_archived = models.BooleanField(default=None, blank=True, null=True)
 
     class Meta:
         db_table = "good"
