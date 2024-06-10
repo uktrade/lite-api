@@ -1,3 +1,4 @@
+import reversion
 import uuid
 
 from django.contrib.postgres.fields import ArrayField
@@ -115,6 +116,7 @@ class GoodControlListEntry(models.Model):
         db_table = "good_control_list_entries"
 
 
+@reversion.register()
 class Good(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
