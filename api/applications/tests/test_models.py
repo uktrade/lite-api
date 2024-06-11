@@ -181,7 +181,11 @@ class TestStandardApplication(DataTestClient):
             "trade_control_activity_other": "some other activity",
             "trade_control_product_categories": ["some categories"],
             "usage": "Trade",
-        }
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust StandardApplication.clone_* attributes accordingly.
+        """
         # Defer testing of related models' cloning to more specific unit tests
         assert ApplicationDocument.objects.filter(application=cloned_application).count() == 1
         assert SiteOnApplication.objects.filter(application=cloned_application).count() == 1
@@ -218,7 +222,11 @@ class TestApplicationDocument(DataTestClient):
             "safe": original_application_document.safe,
             "size": original_application_document.size,
             "virus_scanned_at": original_application_document.virus_scanned_at,
-        }
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust ApplicationDocument.clone_* attributes accordingly.
+        """
 
 
 class TestSiteOnApplication(DataTestClient):
@@ -231,7 +239,11 @@ class TestSiteOnApplication(DataTestClient):
         assert model_to_dict(cloned_site_on_application) == {
             "application": new_application.id,
             "site": original_site_on_application.site.id,
-        }
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust SiteOnApplication.clone_* attributes accordingly.
+        """
 
 
 class TestExternalLocationOnApplication(DataTestClient):
@@ -247,7 +259,11 @@ class TestExternalLocationOnApplication(DataTestClient):
         assert model_to_dict(cloned_external_location_on_application) == {
             "application": new_application.id,
             "external_location": original_external_location_on_application.external_location_id,
-        }
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust ExternalLocationOnApplication.clone_* attributes accordingly.
+        """
 
 
 class TestGoodOnApplication(DataTestClient):
@@ -339,7 +355,11 @@ class TestGoodOnApplication(DataTestClient):
             "report_summary_subject": None,
             "unit": "MIM",
             "value": 200,
-        }
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust GoodOnApplication.clone_* attributes accordingly.
+        """
         # Defer checking of related models' clone() methods to specific unit tests
         assert (
             GoodOnApplicationInternalDocument.objects.filter(good_on_application=cloned_good_on_application).count()
@@ -379,7 +399,11 @@ class TestGoodOnApplicationDocument(DataTestClient):
             "size": 100,
             "user": original_good_on_application_document.user_id,
             "virus_scanned_at": original_good_on_application_document.virus_scanned_at,
-        }
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust GoodOnApplicationDocument.clone_* attributes accordingly.
+        """
 
 
 class TestGoodOnApplicationInternalDocument(DataTestClient):
@@ -406,7 +430,12 @@ class TestGoodOnApplicationInternalDocument(DataTestClient):
             "safe": True,
             "size": 100,
             "virus_scanned_at": original_good_on_application_internal_document.virus_scanned_at,
-        }
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust GoodOnApplicationInternalDocument.clone_*
+        attributes accordingly.
+        """
 
 
 class TestPartyOnApplication(DataTestClient):
@@ -427,4 +456,9 @@ class TestPartyOnApplication(DataTestClient):
             "deleted_at": original_party_on_application.deleted_at,
             "flags": [],
             "party": original_party_on_application.party_id,
-        }
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust PartyOnApplication.clone_*
+        attributes accordingly.
+        """

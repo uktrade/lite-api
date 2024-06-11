@@ -163,4 +163,8 @@ class TestFirearmGoodDetails(DataTestClient):
             "serial_numbers_available": "available",
             "type": "ammunition",
             "year_of_manufacture": 2019,
-        }
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust FirearmDetails.clone_* attributes accordingly.
+        """
