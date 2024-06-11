@@ -2,7 +2,7 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.functional import cached_property
 from rest_framework.exceptions import APIException
@@ -361,6 +361,7 @@ class StandardApplication(BaseApplication, Clonable):
 
         return cloned_application
 
+    @transaction.atomic
     def create_amendment(self):
         amendment_application = self.clone(amendment_of=self)
         # TODO: Do we need a log on the audit trail?

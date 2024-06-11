@@ -1,8 +1,10 @@
+from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
+from api.applications import models as application_models
 from api.applications.models import StandardApplication
-from api.applications.tests.factories import StandardApplicationFactory
+from api.applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
 from api.organisations.tests.factories import OrganisationFactory
 
 from test_helpers.clients import DataTestClient
@@ -13,6 +15,7 @@ class TestCreateApplicationAmendment(DataTestClient):
     def setUp(self):
         super().setUp()
         self.application = StandardApplicationFactory(organisation=self.organisation)
+        self.good_on_application = GoodOnApplicationFactory(application=self.application)
         self.url = reverse(
             "applications:create_amendment",
             kwargs={
@@ -29,6 +32,14 @@ class TestCreateApplicationAmendment(DataTestClient):
         self.assertEqual(amendment_application.amendment_of_id, self.application.id)
         self.application.refresh_from_db()
         self.assertEqual(self.application.status.status, "superseded_by_amendment")
+
+    @mock.patch.object(application_models.GoodOnApplication, "clone")
+    def test_create_amendment_partial_failure(self, mocked_good_on_application_clone):
+        self.assertEqual(list(StandardApplication.objects.all()), [self.application])
+        mocked_good_on_application_clone.side_effect = Exception
+        with self.assertRaises(Exception):
+            response = self.client.post(self.url, **self.exporter_headers)
+        self.assertEqual(list(StandardApplication.objects.all()), [self.application])
 
     def test_create_amendment_exporter_wrong_organisation(self):
         self.application.organisation = OrganisationFactory()
