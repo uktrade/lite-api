@@ -339,17 +339,14 @@ class StandardApplication(BaseApplication, Clonable):
     def clone(self, exclusions=None, **overrides):
         cloned_application = super().clone(exclusions=exclusions, **overrides)
 
-        application_documents = ApplicationDocument.objects.filter(application=self)
-        for application_document in application_documents:
-            application_document.clone(application=cloned_application)
+        # TODO: Figure out whether it is desirable to clone ApplicationDocument records
+        # application_documents = ApplicationDocument.objects.filter(application=self)
+        # for application_document in application_documents:
+        #    application_document.clone(application=cloned_application)
 
         site_on_applications = SiteOnApplication.objects.filter(application=self)
         for site_on_application in site_on_applications:
             site_on_application.clone(application=cloned_application)
-
-        external_location_on_applications = ExternalLocationOnApplication.objects.filter(application=self)
-        for external_location_on_application in external_location_on_applications:
-            external_location_on_application.clone(application=cloned_application)
 
         good_on_applications = GoodOnApplication.objects.filter(application=self)
         for good_on_application in good_on_applications:

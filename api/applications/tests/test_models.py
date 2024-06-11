@@ -8,7 +8,6 @@ from api.appeals.tests.factories import AppealFactory
 from api.cases.models import CaseType, Queue
 from api.flags.models import Flag
 from api.applications.models import (
-    ApplicationDocument,
     ExternalLocationOnApplication,
     GoodOnApplication,
     GoodOnApplicationDocument,
@@ -113,11 +112,7 @@ class TestStandardApplication(DataTestClient):
         original_application.flags.add(Flag.objects.first())
         original_application.queues.add(Queue.objects.first())
         original_application.save()
-        original_application_document = ApplicationDocumentFactory(application=original_application)
         original_site_on_application = SiteOnApplicationFactory(application=original_application)
-        original_external_location_on_application = ExternalLocationOnApplicationFactory(
-            application=original_application
-        )
         original_good_on_application = GoodOnApplicationFactory(application=original_application)
         original_party_on_application = PartyOnApplicationFactory(application=original_application)
         cloned_application = original_application.clone()
@@ -187,9 +182,7 @@ class TestStandardApplication(DataTestClient):
         cloned by default or not and adjust StandardApplication.clone_* attributes accordingly.
         """
         # Defer testing of related models' cloning to more specific unit tests
-        assert ApplicationDocument.objects.filter(application=cloned_application).count() == 1
         assert SiteOnApplication.objects.filter(application=cloned_application).count() == 1
-        assert ExternalLocationOnApplication.objects.filter(application=cloned_application).count() == 1
         assert GoodOnApplication.objects.filter(application=cloned_application).count() == 1
         assert PartyOnApplication.objects.filter(application=cloned_application).count() == 1
 
