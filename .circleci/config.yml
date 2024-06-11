@@ -1,4 +1,4 @@
-version: 2.2
+version: 2.1
 
 common_env_vars: &common_env_vars
   ELASTICSEARCH_HOST: http://localhost:9200
