@@ -260,10 +260,60 @@ jobs:
       - upload_code_coverage:
           alias: lite_routing_tests
 
+  lite_routing_tests_pg13:
+    docker:
+      - <<: *image_python
+      - <<: *image_pg13
+      - <<: *image_elasticsearch
+      - <<: *image_redis
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    parallelism: 5
+    steps:
+      - setup
+      - run:
+          name: Run lite_routing tests onn Postgres 13
+          command: |
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k "not migration" --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing
+      - upload_code_coverage:
+          alias: lite_routing_tests
+
   lite_routing_bdd_tests:
     docker:
       - <<: *image_python_node
       - <<: *image_postgres
+      - <<: *image_elasticsearch
+      - <<: *image_redis
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    parallelism: 5
+    steps:
+      - setup
+      - run:
+          name: Install cucumber reporter package
+          command: npm install multiple-cucumber-html-reporter
+      - run:
+          name: Create report directories
+          command: |
+            mkdir cucumber_results
+      - run:
+          name: Run lite_routing tests
+          command: pipenv run pytest --circleci-parallelize --gherkin-terminal-reporter -vv lite_routing/routing_rules_internal/tests/bdd --cucumberjson=cucumber_results/cuc.json
+      - run:
+          name: Generate html cucumber report
+          command: node generate_cucumber_report.js
+          when: always
+      - store_artifacts:
+          path: cucumber_html
+
+  lite_routing_bdd_tests_pg13:
+    docker:
+      - <<: *image_python_node
+      - <<: *image_pg13
       - <<: *image_elasticsearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -303,6 +353,24 @@ jobs:
       - setup
       - run:
           name: Run elasticsearch tests
+          command: |
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
+      - upload_code_coverage:
+          alias: elastic_search_tests
+
+  elastic_search_tests_pg13:
+    docker:
+      - <<: *image_python
+      - <<: *image_pg13
+      - <<: *image_elasticsearch
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    steps:
+      - setup
+      - run:
+          name: Run elasticsearch tests on Postgres 13
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
       - upload_code_coverage:
@@ -488,8 +556,11 @@ workflows:
       - seeding_tests
       - seeding_tests_pg13
       - lite_routing_tests
+      - lite_routing_tests_pg13
       - lite_routing_bdd_tests
+      - lite_routing_bdd_tests_pg13
       - elastic_search_tests
+      - elastic_search_tests_pg13
       - migration_tests
       - migration_tests_pg13
       - check_migrations
