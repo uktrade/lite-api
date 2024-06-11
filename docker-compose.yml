@@ -19,9 +19,9 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=lite-api-pg13
     expose:
-      - 5532
+      - 5432
     ports:
-      - 5562:5532
+      - 5562:5432
     networks:
       - lite
 
