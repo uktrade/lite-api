@@ -359,7 +359,6 @@ if LITE_API_ENABLE_ES:
 
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
-GOOD_OVERVIEW_PUT_DELETION_LOGGER = "good_overview_put_deletion_logger"
 
 
 LOGGING = {
@@ -377,7 +376,6 @@ LOGGING = {
     "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
     "loggers": {
         DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
-        GOOD_OVERVIEW_PUT_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
     },
 }
 
