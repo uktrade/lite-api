@@ -486,11 +486,14 @@ workflows:
       - linting
       - tests
       - seeding_tests
+      - seeding_tests_pg13
       - lite_routing_tests
       - lite_routing_bdd_tests
       - elastic_search_tests
       - migration_tests
+      - migration_tests_pg13
       - check_migrations
+      - check_migrations_pg13
       - check_coverage:
           requires:
               - tests
@@ -501,3 +504,4 @@ workflows:
       - check-lite-routing-sha
       - e2e_tests
       - anonymised_db_dump_tests
+      - anonymised_db_dump_tests_pg13
