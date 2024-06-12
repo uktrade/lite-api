@@ -200,6 +200,8 @@ class ProductSearchTests(BaseProductSearchTests):
 
     @pytest.mark.elasticsearch
     def test_product_search_by_applicant(self):
+        # This is required else we appear to have previous test which impact this one
+        call_command("search_index", models=["applications.GoodOnApplication"], action="rebuild", force=True)
         query_params = {"search": f"{self.organisation.name}"}
         expected_count = Good.objects.filter(organisation=self.organisation).count()
         response = self.client.get(self.product_search_url, query_params, **self.gov_headers)
