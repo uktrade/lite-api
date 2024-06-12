@@ -53,6 +53,7 @@ services:
       - .:/app
     env_file: .env
     links:
+      - db
       - redis
     depends_on:
       - api
