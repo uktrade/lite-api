@@ -528,7 +528,7 @@ class TestGeneratedTemplatePDF(DataTestClient):
             ("nlr", "No licence required letter"),
             ("refusal", "Refusal letter"),
             ("siel", "Standard individual export licence"),
-            ("inform_letter", ""),
+            ("inform_letter", "Inform letter"),
         ],
     )
     def test_pdf_titles(self, temp, title):
