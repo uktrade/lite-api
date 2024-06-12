@@ -13,18 +13,6 @@ services:
     networks:
       - lite
 
-  pg13_db:
-    image: "postgres:13"
-    environment:
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=lite-api-pg13
-    expose:
-      - 5432
-    ports:
-      - 5562:5432
-    networks:
-      - lite
-
   api:
     container_name: api
     platform: linux/amd64
@@ -37,7 +25,6 @@ services:
       - 8100:8100
     links:
       - db
-      - pg13_db
     expose:
       - 8100
     command: pipenv run python manage.py runserver 0.0.0.0:${PORT:-8100}
@@ -53,7 +40,6 @@ services:
     env_file: .env
     links:
       - db
-      - pg13_db
       - redis
     depends_on:
       - api
@@ -67,7 +53,6 @@ services:
       - .:/app
     env_file: .env
     links:
-      - pg13_db
       - redis
     depends_on:
       - api
