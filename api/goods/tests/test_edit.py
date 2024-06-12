@@ -585,8 +585,8 @@ class GoodsEditDraftGoodTests(DataTestClient):
             good.refresh_from_db()
             self.assertEqual(good.is_archived, is_archived)
 
-            # most recent first
-            versions = Version.objects.get_for_object(good).order_by("-revision__date_created")
+            # returns most recent first
+            versions = Version.objects.get_for_object(good)
             self.assertEqual(versions.count(), version_count)
             self.assertEqual(versions.first().field_dict["is_archived"], is_archived)
             # Ensure user is recorded in each revision

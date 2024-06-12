@@ -1,5 +1,8 @@
+from itertools import zip_longest
+
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
+from reversion.models import Version
 
 from api.core.helpers import str_to_bool
 from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
@@ -847,6 +850,21 @@ class TinyGoodDetailsSerializer(serializers.ModelSerializer):
         )
 
 
+class GoodArchiveHistorySerializer(serializers.Serializer):
+    is_archived = serializers.SerializerMethodField()
+    actioned_on = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+
+    def get_is_archived(self, instance):
+        return instance.field_dict["is_archived"]
+
+    def get_actioned_on(self, instance):
+        return instance.revision.date_created
+
+    def get_user(self, instance):
+        return ExporterUserSimpleSerializer(instance.revision.user).data
+
+
 class GoodSerializerExporter(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
@@ -884,6 +902,7 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     query = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
+    archive_history = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super(GoodSerializerExporterFullDetail, self).__init__(*args, **kwargs)
@@ -916,6 +935,24 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     def get_case_officer(self, instance):
         if self.goods_query:
             return GovUserSimpleSerializer(self.goods_query.case_officer).data
+
+    def get_archive_history(self, instance):
+        # get older revisions first as we need to record the first instance a field is changed,
+        # in subsequent revisions other fields might have changed and this field remained the same.
+        versions = [
+            v
+            for v in Version.objects.get_for_object(instance).order_by("revision__date_created")
+            if v.field_dict["is_archived"] is not None
+        ]
+
+        version_history = []
+        for current, next in zip_longest(versions, versions[1:], fillvalue=None):
+            current_status = current.field_dict["is_archived"]
+            next_status = next.field_dict["is_archived"] if next else None
+            if current_status != next_status:
+                version_history.append(current)
+
+        return GoodArchiveHistorySerializer(reversed(version_history), many=True).data
 
 
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
