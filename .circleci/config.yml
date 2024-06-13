@@ -19,7 +19,7 @@ image_postgres: &image_postgres
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: password
 
-image_pg13: &image_pg13
+image_postgres13: &image_postgres13
   image: circleci/postgres:13
   environment:
     POSTGRES_USER: postgres
@@ -128,10 +128,10 @@ jobs:
       - upload_code_coverage:
           alias: tests
 
-  tests_pg13:
+  tests_postgres13:
     docker:
       - <<: *image_python
-      - <<: *image_pg13
+      - <<: *image_postgres13
       - <<: *image_elasticsearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -146,7 +146,7 @@ jobs:
           command: |
             pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
       - upload_code_coverage:
-          alias: tests_pg13
+          alias: tests_postgres13
 
   seeding_tests:
     docker:
@@ -166,10 +166,10 @@ jobs:
       - upload_code_coverage:
           alias: seeding_tests
 
-  seeding_tests_pg13:
+  seeding_tests_postgres13:
     docker:
       - <<: *image_python
-      - <<: *image_pg13
+      - <<: *image_postgres13
       - <<: *image_elasticsearch
     working_directory: ~/lite-api
     environment:
@@ -182,7 +182,7 @@ jobs:
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
       - upload_code_coverage:
-          alias: seeding_tests_pg13
+          alias: seeding_tests_postgres13
 
   anonymised_db_dump_tests:
     docker:
@@ -203,10 +203,10 @@ jobs:
       - upload_code_coverage:
           alias: anonymised_db_dumps
 
-  anonymised_db_dump_tests_pg13:
+  anonymised_db_dump_tests_postgres13:
     docker:
       - <<: *image_python
-      - <<: *image_pg13
+      - <<: *image_postgres13
       - <<: *image_elasticsearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -220,7 +220,7 @@ jobs:
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc api/anonymised_db_dumps
       - upload_code_coverage:
-          alias: anonymised_db_dumps_pg13
+          alias: anonymised_db_dumps_postgres13
 
   migration_tests:
     docker:
@@ -241,10 +241,10 @@ jobs:
       - upload_code_coverage:
           alias: migration_tests
 
-  migration_tests_pg13:
+  migration_tests_postgres13:
     docker:
       - <<: *image_python
-      - <<: *image_pg13
+      - <<: *image_postgres13
       - <<: *image_elasticsearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -258,7 +258,7 @@ jobs:
           command: |
             pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k migration
       - upload_code_coverage:
-          alias: migration_tests_pg13
+          alias: migration_tests_postgres13
 
   lite_routing_tests:
     docker:
@@ -280,10 +280,10 @@ jobs:
       - upload_code_coverage:
           alias: lite_routing_tests
 
-  lite_routing_tests_pg13:
+  lite_routing_tests_postgres13:
     docker:
       - <<: *image_python
-      - <<: *image_pg13
+      - <<: *image_postgres13
       - <<: *image_elasticsearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -298,7 +298,7 @@ jobs:
           command: |
             pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k "not migration" --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing
       - upload_code_coverage:
-          alias: lite_routing_tests_pg13
+          alias: lite_routing_tests_postgres13
 
   lite_routing_bdd_tests:
     docker:
@@ -330,10 +330,10 @@ jobs:
       - store_artifacts:
           path: cucumber_html
 
-  lite_routing_bdd_tests_pg13:
+  lite_routing_bdd_tests_postgres13:
     docker:
       - <<: *image_python_node
-      - <<: *image_pg13
+      - <<: *image_postgres13
       - <<: *image_elasticsearch
       - <<: *image_redis
     working_directory: ~/lite-api
@@ -378,10 +378,10 @@ jobs:
       - upload_code_coverage:
           alias: elastic_search_tests
 
-  elastic_search_tests_pg13:
+  elastic_search_tests_postgres13:
     docker:
       - <<: *image_python
-      - <<: *image_pg13
+      - <<: *image_postgres13
       - <<: *image_elasticsearch
     working_directory: ~/lite-api
     environment:
@@ -394,7 +394,7 @@ jobs:
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
       - upload_code_coverage:
-          alias: elastic_search_tests_pg13
+          alias: elastic_search_tests_postgres13
 
   check_migrations:
     docker:
@@ -411,10 +411,10 @@ jobs:
           name: Check migrations are made
           command: pipenv run ./manage.py makemigrations --check
 
-  check_migrations_pg13:
+  check_migrations_postgres13:
     docker:
       - <<: *image_python
-      - <<: *image_pg13
+      - <<: *image_postgres13
       - <<: *image_elasticsearch
     working_directory: ~/lite-api
     environment:
@@ -574,17 +574,17 @@ workflows:
       - linting
       - tests
       - seeding_tests
-      - seeding_tests_pg13
+      - seeding_tests_postgres13
       - lite_routing_tests
-      - lite_routing_tests_pg13
+      - lite_routing_tests_postgres13
       - lite_routing_bdd_tests
-      - lite_routing_bdd_tests_pg13
+      - lite_routing_bdd_tests_postgres13
       - elastic_search_tests
-      - elastic_search_tests_pg13
+      - elastic_search_tests_postgres13
       - migration_tests
-      - migration_tests_pg13
+      - migration_tests_postgres13
       - check_migrations
-      - check_migrations_pg13
+      - check_migrations_postgres13
       - check_coverage:
           requires:
               - tests
@@ -595,4 +595,4 @@ workflows:
       - check-lite-routing-sha
       - e2e_tests
       - anonymised_db_dump_tests
-      - anonymised_db_dump_tests_pg13
+      - anonymised_db_dump_tests_postgres13
