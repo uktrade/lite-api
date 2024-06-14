@@ -1,6 +1,5 @@
 from django.db.models import Q
 
-from api.applications import constants
 from api.applications.enums import ApplicationExportType, GoodsTypeCategory
 from api.applications.models import (
     ApplicationDocument,
