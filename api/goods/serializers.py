@@ -1,8 +1,5 @@
-from itertools import zip_longest
-
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-from reversion.models import Version
 
 from api.core.helpers import str_to_bool
 from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
@@ -937,22 +934,9 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
             return GovUserSimpleSerializer(self.goods_query.case_officer).data
 
     def get_archive_history(self, instance):
-        # get older revisions first as we need to record the first instance a field is changed,
-        # in subsequent revisions other fields might have changed and this field remained the same.
-        versions = [
-            v
-            for v in Version.objects.get_for_object(instance).order_by("revision__date_created")
-            if v.field_dict["is_archived"] is not None
-        ]
+        version_history = instance.get_history("is_archived")
 
-        version_history = []
-        for current, next in zip_longest(versions, versions[1:], fillvalue=None):
-            current_status = current.field_dict["is_archived"]
-            next_status = next.field_dict["is_archived"] if next else None
-            if current_status != next_status:
-                version_history.append(current)
-
-        return GoodArchiveHistorySerializer(reversed(version_history), many=True).data
+        return GoodArchiveHistorySerializer(version_history, many=True).data
 
 
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):

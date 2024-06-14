@@ -163,6 +163,7 @@ class GoodSerializerExporterFullDetailTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         good.refresh_from_db()
+
         good_details = GoodSerializerExporterFullDetail(good).data
         archive_history = good_details["archive_history"]
         self.assertEqual(len(archive_history), 1)

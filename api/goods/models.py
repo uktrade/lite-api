@@ -1,11 +1,14 @@
 import reversion
 import uuid
 
+from itertools import zip_longest
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from reversion.models import Version
 
 from api.common.models import TimestampableModel
-from api.core.model_mixins import Clonable
+from api.core.model_mixins import Clonable, Trackable
 from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import (
@@ -123,7 +126,7 @@ class GoodControlListEntry(models.Model):
 
 
 @reversion.register()
-class Good(TimestampableModel):
+class Good(TimestampableModel, Trackable):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField(max_length=280)
@@ -201,6 +204,24 @@ class Good(TimestampableModel):
         return self.goods_on_application.filter(
             control_list_entries__isnull=False,
         )
+
+    def get_history(self, field):
+        # get older revisions first as we need to record the first instance a field is changed,
+        # in subsequent revisions other fields might have changed and this field remained the same.
+        versions = [
+            v
+            for v in Version.objects.get_for_object(self).order_by("revision__date_created")
+            if v.field_dict[field] is not None
+        ]
+
+        version_history = []
+        for current, next in zip_longest(versions, versions[1:], fillvalue=None):
+            current_status = current.field_dict[field]
+            next_status = next.field_dict[field] if next else None
+            if current_status != next_status:
+                version_history.append(current)
+
+        return reversed(version_history)
 
 
 class GoodDocument(Document):
