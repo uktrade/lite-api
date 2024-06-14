@@ -1,3 +1,5 @@
+import reversion
+
 from django.forms import model_to_dict
 
 
@@ -31,3 +33,20 @@ class Clonable:
             **all_overrides,
         }
         return self.__class__.objects.create(**create_kwargs)
+
+
+class Trackable:
+    """
+    Mixin to be used by models that are registered with reversion.
+    Provides helper methods that help handling various version of the model
+    eg to retrieve history of a particular field value changes.
+    """
+
+    def get_history(self, field):
+        if not reversion.is_registered(self):
+            raise ValueError(f"Model {self._meta.model} not registered with reversion to retrieve history")
+
+        if not hasattr(self, field):
+            raise ValueError(f"Model {self._meta.model} doesn't have the field {field}")
+
+        raise NotImplementedError()
