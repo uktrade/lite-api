@@ -67,7 +67,9 @@ def check_party_document(party, is_mandatory):
             return None
 
     if None in documents_qs:
-        return getattr(constants.Standard, f"{party.type.upper()}_DOCUMENT_PROCESSING")
+        return build_document_processing_error_message(
+            get_document_type_description_from_party_type(party_type=party.type)
+        )
     elif False in documents_qs:
         return getattr(strings.Applications.Standard, f"{party.type.upper()}_DOCUMENT_INFECTED")
 
@@ -249,7 +251,7 @@ def _validate_goods(draft, errors, is_mandatory):
         goods = goods_on_application.values_list("good", flat=True)
         document_errors = _get_document_errors(
             GoodDocument.objects.filter(good__in=goods),
-            processing_error=constants.Standard.GOODS_DOCUMENT_PROCESSING,
+            processing_error=build_document_processing_error_message("a good"),
             virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
         )
         if document_errors:
@@ -291,7 +293,7 @@ def _validate_additional_documents(draft, errors):
     if documents:
         document_errors = _get_document_errors(
             documents,
-            processing_error=constants.Standard.ADDITIONAL_DOCUMENTS_PROCESSING,
+            processing_error=build_document_processing_error_message("an additional"),
             virus_error=strings.Applications.Standard.ADDITIONAL_DOCUMENTS_INFECTED,
         )
 
@@ -313,3 +315,17 @@ def validate_application_ready_for_submission(application):
     errors = _validate_additional_documents(application, errors)
 
     return errors
+
+
+def build_document_processing_error_message(document_type_description):
+    return f"We are still processing {document_type_description} document. Try submitting again in a few minutes."
+
+
+def get_document_type_description_from_party_type(party_type):
+    document_type_description = {
+        PartyType.CONSIGNEE: "a consignee",
+        PartyType.END_USER: "an end-user",
+        PartyType.THIRD_PARTY: "a third party",
+        PartyType.ULTIMATE_END_USER: "an ultimate end-user",
+    }
+    return document_type_description[party_type]
