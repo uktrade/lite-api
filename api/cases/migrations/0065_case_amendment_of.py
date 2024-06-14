@@ -17,6 +17,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 default=None,
                 null=True,
+                blank=True,
                 on_delete=django.db.models.deletion.DO_NOTHING,
                 related_name="amendment",
                 to="cases.case",

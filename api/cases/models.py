@@ -114,7 +114,7 @@ class Case(TimestampableModel):
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
     copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
     amendment_of = models.ForeignKey(
-        "self", default=None, null=True, on_delete=models.DO_NOTHING, related_name="amendment"
+        "self", default=None, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="amendment"
     )
     last_closed_at = models.DateTimeField(null=True)
 
