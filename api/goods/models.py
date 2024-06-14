@@ -5,6 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from api.common.models import TimestampableModel
+from api.core.model_mixins import Clonable
 from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import (
@@ -39,7 +40,7 @@ class PvGradingDetails(models.Model):
     date_of_issue = models.DateField(blank=True, null=True)
 
 
-class FirearmGoodDetails(models.Model):
+class FirearmGoodDetails(models.Model, Clonable):
     class SerialNumberAvailability(models.TextChoices):
         AVAILABLE = "AVAILABLE", "Yes, I can add serial numbers now"
         LATER = "LATER", "Yes, I can add serial numbers later"
@@ -94,6 +95,11 @@ class FirearmGoodDetails(models.Model):
     not_deactivated_to_standard_comments = models.TextField(default="")
     deactivation_standard = models.TextField(default="")
     deactivation_standard_other = models.TextField(default="")
+
+    clone_exclusions = [
+        "pk",
+        "id",
+    ]
 
     @property
     def has_serial_numbers(self):

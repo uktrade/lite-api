@@ -8,6 +8,7 @@ from api.documents.tests.factories import DocumentFactory
 from api.organisations import models
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.tests.providers import OrganisationProvider
+from api.staticdata.countries.models import Country
 
 factory.Faker.add_provider(OrganisationProvider)
 
@@ -62,3 +63,13 @@ class DocumentOnOrganisationFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.DocumentOnOrganisation
+
+
+class ExternalLocationFactory(factory.django.DjangoModelFactory):
+    name = factory.Faker("word")
+    address = factory.Faker("sentence")
+    country = factory.Iterator(Country.objects.all())
+    organisation = factory.SubFactory(OrganisationFactory)
+
+    class Meta:
+        model = models.ExternalLocation

@@ -1,6 +1,3 @@
-import logging
-
-from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, Count
@@ -23,7 +20,7 @@ from api.core.filters import ParentFilter
 from api.core.views import DocumentStreamAPIView
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
-from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
+from api.goods.enums import GoodStatus, ItemCategory
 from api.goods.helpers import (
     FIREARMS_CORE_TYPES,
     check_if_firearm_details_edited_on_unsupported_good,
@@ -60,8 +57,6 @@ from api.organisations.models import OrganisationDocumentType
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.queries.goods_query.models import GoodsQuery
 from api.users.models import ExporterNotification
-
-good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
 
 
 class GoodList(ListCreateAPIView):
@@ -331,14 +326,6 @@ class GoodOverview(APIView):
             )
 
         data = request.data.copy()
-
-        if data.get("is_good_controlled") is None or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED:
-            good_overview_put_deletion_logger.warning(
-                "Code removed: we would have just deleted GoodOnApplication for good id: %s sending data: %s",
-                good.id,
-                data,
-            )
-
         data["organisation"] = get_request_user_organisation_id(request)
 
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
