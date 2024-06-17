@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
-from api.cases.helpers import remove_next_review_date
 from api.cases.libraries.get_case import get_case
 from api.cases.models import CaseAssignment
 from api.core.authentication import GovAuthentication
@@ -50,7 +49,6 @@ class AssignedQueues(APIView):
             case = get_case(pk)
 
             if assignments:
-                remove_next_review_date(case, request, pk)
                 queues = [assignment.queue for assignment in assignments]
                 queue_names = [queue.name for queue in queues]
                 assignments.delete()
