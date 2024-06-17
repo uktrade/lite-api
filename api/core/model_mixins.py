@@ -1,5 +1,3 @@
-import reversion
-
 from django.forms import model_to_dict
 
 
@@ -43,10 +41,4 @@ class Trackable:
     """
 
     def get_history(self, field):
-        if not reversion.is_registered(self):
-            raise ValueError(f"Model {self._meta.model} not registered with reversion to retrieve history")
-
-        if not hasattr(self, field):
-            raise ValueError(f"Model {self._meta.model} doesn't have the field {field}")
-
         raise NotImplementedError()

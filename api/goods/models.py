@@ -206,6 +206,9 @@ class Good(TimestampableModel, Trackable):
         )
 
     def get_history(self, field):
+        if not hasattr(self, field):
+            raise ValueError(f"Model {self._meta.model} doesn't have the field {field}")
+
         # get older revisions first as we need to record the first instance a field is changed,
         # in subsequent revisions other fields might have changed and this field remained the same.
         versions = [

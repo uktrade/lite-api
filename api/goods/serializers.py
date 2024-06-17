@@ -899,6 +899,7 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     query = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
+    is_archived = serializers.BooleanField()
     archive_history = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
