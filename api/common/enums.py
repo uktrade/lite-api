@@ -12,7 +12,9 @@ class StrValueEnumMeta(EnumMeta):
         """
         Override class dict to replace enum `autostr` value with lowercase key.
         """
-        newclassdict = _EnumDict()
+        named_dict = _EnumDict()
+        named_dict._cls_name = "cls"
+        newclassdict = named_dict
         for k, v in oldclassdict.items():
             if isinstance(v, autostr):
                 v = k.lower()
