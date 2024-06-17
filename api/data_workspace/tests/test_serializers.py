@@ -7,9 +7,12 @@ from api.data_workspace.serializers import (
     AuditUpdatedCaseStatusSerializer,
     AuditUpdatedLicenceStatusSerializer,
     LicenceWithoutGoodsSerializer,
+    OrganisationsSerializer,
+    SiteSerializer,
 )
 from api.cases.tests.factories import EcjuQueryFactory, CaseAssignmentFactory
 from api.licences.tests.factories import StandardLicenceFactory
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 
 
 def test_EcjuQuerySerializer(db):
@@ -65,3 +68,37 @@ def test_LicenceWithoutGoodsSerializer(db):
     }
     assert set(serialized.data) == expected_fields
     assert serialized.data["goods"] == []
+
+def test_OrganisationsSerializer(db):
+    organisation = OrganisationFactory()
+    serialized = OrganisationsSerializer(organisation)
+    expected_fields = {
+        "id",
+        "name",
+        "type",
+        "status",
+        "eori_number",
+        "sic_number",
+        "vat_number",
+        "phone_number",
+        "website",
+        "primary_site",
+        "flags",
+    }
+    assert set(serialized.data) == expected_fields
+
+
+def test_SiteSerializer(db):
+    site = SiteFactory()
+    serialized = SiteSerializer(site)
+    expected_fields = {
+        "id",
+        "name",
+        "organisation",
+        "users",
+        "address",
+        "site_records_located_at",
+        "is_used_on_application",
+    }
+    assert set(serialized.data) == expected_fields
+
