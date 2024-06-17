@@ -72,8 +72,6 @@ django = "~=4.2.10"
 django-queryable-properties = "~=1.9.1"
 database-sanitizer = ">=1.1.0"
 psycopg = "~=3.1.18"
-django-enumfields2 = "~=3.0.2"
-enum34 = {version="*", markers="python_version<'3.4'"}
 
 [requires]
 python_version = "3.9"
