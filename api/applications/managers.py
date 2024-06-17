@@ -12,3 +12,7 @@ class BaseApplicationManager(InheritanceManager):
     def submitted(self, organisation):
         draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
         return self.get_queryset().filter(organisation=organisation).exclude(status=draft).order_by("-submitted_at")
+
+    def finalised(self, organisation):
+        finalised = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        return self.get_queryset().filter(status=finalised, organisation=organisation).order_by("-updated_at")

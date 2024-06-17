@@ -119,8 +119,12 @@ class ApplicationList(ListCreateAPIView):
 
         organisation = get_request_user_organisation(self.request)
 
+        finalised = optional_str_to_bool(self.request.GET.get("finalised"))
+
         if submitted is None:
             applications = BaseApplication.objects.filter(organisation=organisation)
+        elif submitted and finalised:
+            applications = BaseApplication.objects.finalised(organisation)
         elif submitted:
             applications = BaseApplication.objects.submitted(organisation)
         else:
