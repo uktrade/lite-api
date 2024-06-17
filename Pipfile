@@ -74,5 +74,5 @@ database-sanitizer = ">=1.1.0"
 psycopg = "~=3.1.18"
 
 [requires]
-python_version = "3.8"
-python_full_version = "3.8.18"
+python_version = "3.9"
+python_full_version = "3.9.18"
