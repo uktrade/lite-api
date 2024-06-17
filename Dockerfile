@@ -15,8 +15,8 @@ RUN apt-get install -y postgresql-client-12
 ENV HOME /root
 ENV PYENV_ROOT $HOME/.pyenv
 ENV PATH $PYENV_ROOT/bin:$PATH
-RUN pyenv install -v 3.8.18
-RUN pyenv global 3.8.18
+RUN pyenv install -v 3.9.18
+RUN pyenv global 3.9.18
 RUN pip3 install pipenv
 ADD Pipfile* /app/
 RUN pipenv install --dev --deploy
