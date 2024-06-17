@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from api.goods import models
 from api.goods.enums import ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
+from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
 from api.staticdata.control_list_entries.models import ControlListEntry
 
@@ -40,7 +41,7 @@ class GoodFactory(factory.django.DjangoModelFactory):
     description = factory.Faker("word")
     is_good_controlled = False
     part_number = factory.Faker("ean13")
-    organisation = None
+    organisation = factory.SubFactory(OrganisationFactory)
     item_category = ItemCategory.GROUP2_FIREARMS
     firearm_details = factory.SubFactory(FirearmFactory)
     pv_grading_details = factory.SubFactory(PvGradingDetailsFactory)

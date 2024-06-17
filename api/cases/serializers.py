@@ -281,6 +281,8 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     latest_activity = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     next_review_date = serializers.SerializerMethodField()
+    amendment_of = CaseDetailBasicSerializer()
+    superseded_by = CaseDetailBasicSerializer()
 
     class Meta:
         model = Case
@@ -306,6 +308,8 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "data",
             "next_review_date",
             "latest_activity",
+            "amendment_of",
+            "superseded_by",
         )
 
     def __init__(self, *args, **kwargs):
