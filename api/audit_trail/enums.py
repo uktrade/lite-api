@@ -142,6 +142,7 @@ class AuditType(LiteEnum):
     CREATE_REFUSAL_CRITERIA = autostr()
     EXPORTER_APPEALED_REFUSAL = autostr()
     EXPORTER_CREATED_AMENDMENT = autostr()
+    EXPORTER_SUBMITTED_AMENDMENT = autostr()
 
     def human_readable(self):
         """

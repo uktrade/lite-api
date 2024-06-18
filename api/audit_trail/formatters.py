@@ -341,3 +341,7 @@ def create_lu_meeting_note(advice_type, **payload):
 
 def create_refusal_criteria(**payload):
     return " added refusal criteria."
+
+
+def exporter_submitted_amendment(**payload):
+    return f"created a new case for the edited application at {payload['amendment']['reference_code']}."
