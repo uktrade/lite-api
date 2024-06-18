@@ -120,13 +120,14 @@ class ApplicationList(ListCreateAPIView):
         organisation = get_request_user_organisation(self.request)
 
         finalised = optional_str_to_bool(self.request.GET.get("finalised"))
+        sort = self.request.GET.get("sort", "-updated_at")
 
         if submitted is None:
             applications = BaseApplication.objects.filter(organisation=organisation)
         elif submitted and finalised:
-            applications = BaseApplication.objects.finalised(organisation)
+            applications = BaseApplication.objects.finalised(organisation, sort)
         elif submitted:
-            applications = BaseApplication.objects.submitted(organisation)
+            applications = BaseApplication.objects.submitted(organisation, sort)
         else:
             applications = BaseApplication.objects.drafts(organisation)
 
