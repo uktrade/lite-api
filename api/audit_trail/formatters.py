@@ -176,6 +176,8 @@ def upload_party_document(**payload):
 def get_updated_status(**payload):
     status = payload.get("status", "").lower()
     if status == CaseStatusEnum.SUBMITTED:
+        if payload.get("amendment_of"):
+            return f"submitted a 'major edit' to case {payload['amendment_of']['reference_code']}."
         return "applied for a licence."
     if status == CaseStatusEnum.RESUBMITTED:
         return "reapplied for a licence."

@@ -16,6 +16,7 @@ from api.applications.enums import (
 )
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager
+from api.applications.libraries.application_helpers import create_submitted_audit
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
@@ -199,6 +200,12 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
     class Meta:
         ordering = ["created_at"]
+
+    def on_submit(self):
+        additional_payload = {}
+        if self.amendment_of:
+            additional_payload["amendment_of"] = {"reference_code": self.amendment_of.reference_code}
+        create_submitted_audit(self.submitted_by, application, old_status, additional_payload)
 
     def add_to_queue(self, queue):
         case = self.get_case()

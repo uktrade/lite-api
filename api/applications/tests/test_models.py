@@ -34,6 +34,48 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.users.models import ExporterUser
+
+
+class TestBaseApplication(DataTestClient):
+
+    def test_on_submit_new_application(self):
+        draft_status = CaseStatus.objects.get(status="draft")
+        submitted_by = ExporterUser.objects.first()
+        # Use StandardApplication as BaseApplication is an abstract model
+        application = StandardApplicationFactory(
+            status=draft_status,
+            submitted_by=submitted_by,
+        )
+        application.on_submit(draft_status.status)
+        submitted_audit_entry = Audit.objects.first()
+        assert submitted_audit_entry.verb == "updated_status"
+        assert submitted_audit_entry.payload == {"status": {"new": "submitted", "old": "draft"}}
+        assert submitted_audit_entry.actor == submitted_by
+
+    def test_on_submit_amendment_application(self):
+        draft_status = CaseStatus.objects.get(status="draft")
+        submitted_by = ExporterUser.objects.first()
+        # Use StandardApplication as BaseApplication is an abstract model
+        original_application = StandardApplicationFactory()
+        amendment_application = StandardApplicationFactory(
+            status=draft_status,
+            submitted_by=submitted_by,
+            amendment_of=original_application.case_ptr,
+        )
+        amendment_application.on_submit(draft_status.status)
+        audit_entries = Audit.objects.all()
+        submitted_audit_entry = audit_entries[0]
+        assert submitted_audit_entry.verb == "updated_status"
+        assert submitted_audit_entry.payload == {
+            "status": {"new": "submitted", "old": "draft"},
+            "amendment_of": {"reference_code": original_application.reference_code},
+        }
+        assert submitted_audit_entry.actor == submitted_by
+        amendment_audit_entry = audit_entries[1]
+        assert amendment_audit_entry.verb == "exporter_submitted_amendment"
+        assert amendment_audit_entry.target == original_application.case_ptr
+        assert amendment_audit_entry.payload == {"amendment": {"reference_code": amendment_application.reference_code}}
 
 
 class TestStandardApplication(DataTestClient):

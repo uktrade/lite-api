@@ -68,9 +68,31 @@ def can_status_be_set_by_gov_user(user: GovUser, original_status: str, new_statu
     return True
 
 
-def create_submitted_audit(request: Request, application, old_status: str) -> None:
+def create_submitted_audit(user, application, old_status: str, additional_payload=None) -> None:
+    if not _additional_payload:
+        additional_payload = {}
+
+    payload = {
+        "status": {
+            "new": CaseStatusEnum.RESUBMITTED if old_status != CaseStatusEnum.DRAFT else CaseStatusEnum.SUBMITTED,
+            "old": old_status,
+        },
+        **additional_payload,
+    }
+
     audit_trail_service.create(
-        actor=request.user,
+        actor=user,
+        verb=AuditType.UPDATED_STATUS,
+        target=application.get_case(),
+        payload=payload,
+        ignore_case_status=True,
+        send_notification=False,
+    )
+
+
+def create_amendment_submitted_audit(user, application, old_status: str) -> None:
+    audit_trail_service.create(
+        actor=user,
         verb=AuditType.UPDATED_STATUS,
         target=application.get_case(),
         payload={
