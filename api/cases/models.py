@@ -45,6 +45,7 @@ from api.staticdata.statuses.models import (
     CaseSubStatus,
 )
 from api.teams.models import Team, Department
+from api.users.enums import SystemUser
 from api.users.models import (
     BaseUser,
     ExporterUser,
@@ -198,24 +199,12 @@ class Case(TimestampableModel):
         Sets the status for the case, runs validation on various parameters,
         creates audit entries and also runs flagging and automation rules
         """
-        from api.cases.helpers import can_set_status
         from api.audit_trail import service as audit_trail_service
-        from api.applications.libraries.application_helpers import can_status_be_set_by_gov_user
         from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
         from api.licences.helpers import update_licence_status
         from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
         old_status = self.status.status
-
-        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-        if status.status == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-
-        if not can_set_status(self, status.status):
-            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
-
-        if not can_status_be_set_by_gov_user(user.govuser, old_status, status.status, is_mod=False):
-            raise ValidationError({"status": ["Status cannot be set by user"]})
 
         self.status = status
         self.save()

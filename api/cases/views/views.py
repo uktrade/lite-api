@@ -18,6 +18,7 @@ from api.applications.serializers.advice import (
     CountryWithFlagsSerializer,
     CountersignDecisionAdviceSerializer,
 )
+from api.applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases import notify
@@ -28,7 +29,7 @@ from api.cases.enums import (
 )
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
-from api.cases.helpers import create_system_mention
+from api.cases.helpers import create_system_mention, can_set_status
 from api.cases.libraries.advice import group_advice
 from api.cases.libraries.finalise import (
     get_required_decision_document_types,
@@ -186,9 +187,19 @@ class CaseDetail(APIView):
         Change case status
         """
         case = get_case(pk)
-        case.change_status(
-            request.user, get_case_status_by_status(request.data.get("status")), request.data.get("note")
-        )
+        new_status = get_case_status_by_status(request.data.get("status"))
+
+        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
+        if new_status.status == CaseStatusEnum.FINALISED:
+            assert_user_has_permission(user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+
+        if not can_set_status(case, new_status.status):
+            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
+
+        if not can_status_be_set_by_gov_user(request.user.govuser, case.status.status, new_status.status, is_mod=False):
+            raise ValidationError({"status": ["Status cannot be set by user"]})
+
+        case.change_status(request.user, new_status, request.data.get("note"))
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 

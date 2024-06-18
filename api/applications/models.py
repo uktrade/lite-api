@@ -42,7 +42,8 @@ from api.staticdata.statuses.libraries.case_status_validate import is_case_statu
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
-from api.users.models import ExporterUser, GovUser
+from api.users.enums import SystemUser
+from api.users.models import ExporterUser, GovUser, BaseUser
 from lite_content.lite_api.strings import PartyErrors
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
@@ -361,11 +362,9 @@ class StandardApplication(BaseApplication, Clonable):
     @transaction.atomic
     def create_amendment(self):
         amendment_application = self.clone(amendment_of=self)
-        # TODO: Do we need a log on the audit trail?
-        # Remove case from all queues and set status to superseded
         CaseQueue.objects.filter(case=self.case_ptr).delete()
-        self.status = get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT)
-        self.save()
+        system_user = BaseUser.objects.get(id=SystemUser.id)
+        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT))
         return amendment_application
 
 

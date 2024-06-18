@@ -5,6 +5,7 @@ from freezegun import freeze_time
 from test_helpers.clients import DataTestClient
 
 from api.appeals.tests.factories import AppealFactory
+from api.audit_trail.models import Audit
 from api.cases.models import CaseType, Queue
 from api.flags.models import Flag
 from api.applications.models import (
@@ -53,6 +54,9 @@ class TestStandardApplication(DataTestClient):
         original_application.refresh_from_db()
         assert original_application.status.status == "superseded_by_amendment"
         assert original_application.queues.all().count() == 0
+        audit_entry = Audit.objects.first()
+        assert audit_entry.payload == {"status": {"new": "Superseded by amendment", "old": "ogd_advice"}}
+        assert audit_entry.verb == "updated_status"
 
     def test_clone(self):
         original_application = StandardApplicationFactory(
