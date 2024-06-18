@@ -1,7 +1,12 @@
+from itertools import zip_longest
+
+from django.utils.http import urlencode
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
+from reversion.models import Version
 
+from api.goods.enums import ItemCategory
 from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
@@ -119,3 +124,44 @@ class GoodViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), count)
+
+    @parameterized.expand(
+        [
+            # with the status changes in creation order
+            ((),),
+            ((True, False, True),),
+            ((True, False, False, True, False),),
+            ((True, False, False, True, True, True, False),),
+        ]
+    )
+    def test_view_good_archive_history(self, good_archive_status):
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP1_COMPONENTS)
+        edit_url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+
+        # Create sample version history
+        for is_archived in good_archive_status:
+            response = self.client.put(edit_url, {"is_archived": is_archived}, **self.exporter_headers)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # ensure correct number of revisions are created
+        self.assertEqual(Version.objects.get_for_object(good).count(), len(good_archive_status))
+
+        # determine expected statuses which should not include duplicates
+        expected_archive_statuses = []
+        for current, next in zip_longest(good_archive_status, good_archive_status[1:], fillvalue=None):
+            if current != next:
+                expected_archive_statuses.append(current)
+
+        # reverse to get the most recent first
+        expected_archive_statuses = list(reversed(expected_archive_statuses))
+
+        url = reverse("goods:good", kwargs={"pk": good.id})
+        url = f"{url}?{urlencode({'full_detail': True})}"
+
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        archive_history = response["good"]["archive_history"]
+        actual_archive_statuses = [item["is_archived"] for item in archive_history]
+
+        self.assertEqual(actual_archive_statuses, expected_archive_statuses)
