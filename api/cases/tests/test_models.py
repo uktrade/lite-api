@@ -20,6 +20,13 @@ class CaseTests(DataTestClient):
     def test_set_sub_status_invalid(self):
         self.assertRaises(BadSubStatus, self.case.set_sub_status, CaseSubStatusIdEnum.FINALISED__APPROVED)
 
+    def test_superseded_by_amendment_exists(self):
+        amendment = self.case.create_amendment()
+        assert self.case.superseded_by == amendment.case_ptr
+
+    def test_superseded_by_no_amendment_exists(self):
+        assert self.case.superseded_by == None
+
     @parameterized.expand(
         [
             ("finalised", CaseSubStatusIdEnum.FINALISED__APPROVED),

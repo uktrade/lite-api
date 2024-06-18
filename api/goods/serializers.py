@@ -428,6 +428,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "security_feature_details",
             "has_declared_at_customs",
             "design_details",
+            "is_archived",
         )
 
     def __init__(self, *args, **kwargs):
@@ -593,6 +594,8 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                 instance.firearm_details = GoodCreateSerializer._update_firearm_details(
                     firearm_details=firearm_details, instance=instance.firearm_details
                 )
+
+        instance.is_archived = validated_data.get("is_archived")
 
         instance.save()
         return instance
@@ -844,6 +847,21 @@ class TinyGoodDetailsSerializer(serializers.ModelSerializer):
         )
 
 
+class GoodArchiveHistorySerializer(serializers.Serializer):
+    is_archived = serializers.SerializerMethodField()
+    actioned_on = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+
+    def get_is_archived(self, instance):
+        return instance.field_dict["is_archived"]
+
+    def get_actioned_on(self, instance):
+        return instance.revision.date_created
+
+    def get_user(self, instance):
+        return ExporterUserSimpleSerializer(instance.revision.user).data
+
+
 class GoodSerializerExporter(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
@@ -881,6 +899,8 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     query = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
+    is_archived = serializers.BooleanField()
+    archive_history = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super(GoodSerializerExporterFullDetail, self).__init__(*args, **kwargs)
@@ -913,6 +933,11 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     def get_case_officer(self, instance):
         if self.goods_query:
             return GovUserSimpleSerializer(self.goods_query.case_officer).data
+
+    def get_archive_history(self, instance):
+        version_history = instance.get_history("is_archived")
+
+        return GoodArchiveHistorySerializer(version_history, many=True).data
 
 
 class ControlGoodOnApplicationSerializer(GoodControlReviewSerializer):
