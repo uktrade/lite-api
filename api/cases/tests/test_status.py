@@ -62,6 +62,8 @@ class ChangeStatusTests(DataTestClient):
         self.assertEqual(self.case.status.status, case_status)
         self.assertEqual(licence.status, licence_status)
 
+    # TODO: More tests covering different paths for status change view
+
 
 class EndUserAdvisoryUpdate(DataTestClient):
     def setUp(self):

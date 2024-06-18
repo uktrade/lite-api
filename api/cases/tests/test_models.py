@@ -8,6 +8,7 @@ from api.cases.models import Case, BadSubStatus
 from api.cases.tests.factories import CaseFactory
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.users.models import ExporterUser
 from test_helpers.clients import DataTestClient
 
 
@@ -21,7 +22,8 @@ class CaseTests(DataTestClient):
         self.assertRaises(BadSubStatus, self.case.set_sub_status, CaseSubStatusIdEnum.FINALISED__APPROVED)
 
     def test_superseded_by_amendment_exists(self):
-        amendment = self.case.create_amendment()
+        exporter_user = ExporterUser.objects.first()
+        amendment = self.case.create_amendment(exporter_user)
         assert self.case.superseded_by == amendment.case_ptr
 
     def test_superseded_by_no_amendment_exists(self):

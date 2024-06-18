@@ -21,6 +21,7 @@ from api.parties.enums import PartyType
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.users.models import ExporterUser
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
 
@@ -44,7 +45,8 @@ class CaseGetTests(DataTestClient):
 
     def test_case_endpoint_responds_ok_for_amendment(self):
         superseded_case = self.submit_application(self.standard_application)
-        amendment = superseded_case.create_amendment()
+        exporter_user = ExporterUser.objects.first()
+        amendment = superseded_case.create_amendment(exporter_user)
         amendment = self.submit_application(amendment)
 
         url = reverse("cases:case", kwargs={"pk": superseded_case.id})

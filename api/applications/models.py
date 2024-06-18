@@ -249,7 +249,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
-    def create_amendment(self):
+    def create_amendment(self, user):
         raise NotImplementedError()
 
 
@@ -360,9 +360,15 @@ class StandardApplication(BaseApplication, Clonable):
         return cloned_application
 
     @transaction.atomic
-    def create_amendment(self):
+    def create_amendment(self, user):
         amendment_application = self.clone(amendment_of=self)
         CaseQueue.objects.filter(case=self.case_ptr).delete()
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.EXPORTER_CREATED_AMENDMENT,
+            target=self.get_case(),
+            payload={},
+        )
         system_user = BaseUser.objects.get(id=SystemUser.id)
         self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT))
         return amendment_application

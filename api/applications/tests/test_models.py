@@ -45,7 +45,8 @@ class TestStandardApplication(DataTestClient):
         original_application.queues.add(Queue.objects.first())
         original_application.save()
 
-        amendment_application = original_application.create_amendment()
+        exporter_user = ExporterUser.objects.first()
+        amendment_application = original_application.create_amendment(exporter_user)
         # Ensure the amendment application has been saved to the DB - by retrieving it directly
         amendment_application = StandardApplication.objects.get(id=amendment_application.id)
         # It's unnecessary to be exhaustive in testing clone functionality as that is done below
@@ -54,9 +55,14 @@ class TestStandardApplication(DataTestClient):
         original_application.refresh_from_db()
         assert original_application.status.status == "superseded_by_amendment"
         assert original_application.queues.all().count() == 0
-        audit_entry = Audit.objects.first()
-        assert audit_entry.payload == {"status": {"new": "Superseded by amendment", "old": "ogd_advice"}}
-        assert audit_entry.verb == "updated_status"
+        audit_entries = Audit.objects.all()
+        amendment_audit_entry = audit_entries[1]
+        assert amendment_audit_entry.payload == {}
+        assert amendment_audit_entry.verb == "exporter_created_amendment"
+        assert amendment_audit_entry.actor == exporter_user
+        status_change_audit_entry = audit_entries[0]
+        assert status_change_audit_entry.payload == {"status": {"new": "Superseded by amendment", "old": "ogd_advice"}}
+        assert status_change_audit_entry.verb == "updated_status"
 
     def test_clone(self):
         original_application = StandardApplicationFactory(
