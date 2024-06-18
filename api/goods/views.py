@@ -320,11 +320,6 @@ class GoodOverview(APIView):
         if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
 
-        if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
         data = request.data.copy()
         data["organisation"] = get_request_user_organisation_id(request)
 
