@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from reversion.models import Version
 
-from api.goods.enums import ItemCategory
+from api.goods.enums import GoodStatus, ItemCategory
 from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
@@ -136,7 +136,7 @@ class GoodViewTests(DataTestClient):
     )
     def test_view_good_archive_history(self, good_archive_status):
         good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP1_COMPONENTS)
-        edit_url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        edit_url = reverse("goods:good", kwargs={"pk": str(good.id)})
 
         # Create sample version history
         for is_archived in good_archive_status:
@@ -165,3 +165,22 @@ class GoodViewTests(DataTestClient):
         actual_archive_statuses = [item["is_archived"] for item in archive_history]
 
         self.assertEqual(actual_archive_statuses, expected_archive_statuses)
+
+    def test_goods_list_excludes_archived_goods(self):
+        all_goods = [GoodFactory(organisation=self.organisation, status=GoodStatus.SUBMITTED) for _ in range(5)]
+
+        goods_list_url = reverse("goods:goods")
+        response = self.client.get(goods_list_url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(response["count"], 5)
+
+        good = all_goods[-1]
+        edit_url = reverse("goods:good", kwargs={"pk": str(good.id)})
+        response = self.client.put(edit_url, {"is_archived": True}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.get(goods_list_url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(response["count"], 4)

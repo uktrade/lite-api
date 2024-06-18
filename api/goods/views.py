@@ -83,7 +83,7 @@ class GoodList(ListCreateAPIView):
             name__icontains=name,
             description__icontains=description,
             part_number__icontains=part_number,
-        )
+        ).exclude(is_archived=True)
 
         if control_list_entry:
             queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
