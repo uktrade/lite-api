@@ -23,7 +23,8 @@ class OrganisationsDataWorkspaceTests(DataTestClient):
         results = response.json()["results"]
         self.assertGreater(len(results), 0)
         self.assertEqual(set(results[0].keys()), expected_fields)
-   def test_site(self):
+
+    def test_site(self):
         url = reverse("data_workspace:dw-site-response")
         expected_fields = {
              "id",
