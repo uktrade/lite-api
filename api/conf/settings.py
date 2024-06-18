@@ -122,6 +122,7 @@ INSTALLED_APPS = [
     "api.document_data",
     "api.survey",
     "django_db_anonymiser.db_anonymiser",
+    "reversion",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
@@ -139,6 +140,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "reversion.middleware.RevisionMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
