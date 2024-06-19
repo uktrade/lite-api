@@ -574,3 +574,13 @@ class FormattersTest(DataTestClient):
     def test_create_lu_meeting_note(self, advice_status, expected_text):
         result = formatters.create_lu_meeting_note(advice_status)
         assert result == expected_text
+
+    def test_exporter_submitted_amendment(self):
+        payload = {"amendment": {"reference_code": "some-ref"}}
+        result = formatters.exporter_submitted_amendment(**payload)
+        assert result == "created a new case for the edited application at some-ref."
+
+    def test_amendment_created(self):
+        payload = {"superseded_case": {"reference_code": "some-ref"}}
+        result = formatters.amendment_created(**payload)
+        assert result == "created the case to supersede some-ref."

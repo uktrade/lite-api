@@ -62,6 +62,25 @@ class ChangeStatusTests(DataTestClient):
         self.assertEqual(self.case.status.status, case_status)
         self.assertEqual(licence.status, licence_status)
 
+    def test_change_status_no_user_permission(self):
+        data = {"status": CaseStatusEnum.FINALISED}
+        response = self.client.patch(self.url, data=data, **self.gov_headers)
+
+        self.case.refresh_from_db()
+
+        # This should be a 401, but legacy...
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.case.status.status, "submitted")
+
+    def test_change_status_new_status_not_allowed(self):
+        data = {"status": CaseStatusEnum.APPLICANT_EDITING}
+        response = self.client.patch(self.url, data=data, **self.gov_headers)
+
+        self.case.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(self.case.status.status, "submitted")
+
     # TODO: More tests covering different paths for status change view
 
 
