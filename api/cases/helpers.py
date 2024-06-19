@@ -2,8 +2,6 @@ from datetime import timedelta
 
 from api.audit_trail.enums import AuditType
 from api.common.dates import is_bank_holiday, is_weekend
-from api.cases.enums import CaseTypeReferenceEnum
-from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import BaseUser, GovUser, GovNotification
 from api.users.enums import SystemUser
 
