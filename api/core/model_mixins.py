@@ -31,3 +31,14 @@ class Clonable:
             **all_overrides,
         }
         return self.__class__.objects.create(**create_kwargs)
+
+
+class Trackable:
+    """
+    Mixin to be used by models that are registered with reversion.
+    Provides helper methods that help handling various version of the model
+    eg to retrieve history of a particular field value changes.
+    """
+
+    def get_history(self, field):
+        raise NotImplementedError()
