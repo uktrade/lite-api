@@ -1,16 +1,23 @@
 from uuid import UUID
 
 from django.urls import reverse
+from api.cases.tests.factories import FinalAdviceFactory
+from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
+from api.staticdata.decisions.models import Decision
+from api.staticdata.statuses.models import CaseStatus
 from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication, SiteOnApplication
-from api.cases.enums import CaseTypeEnum
+from api.cases.enums import AdviceType, CaseTypeEnum
 from api.organisations.tests.factories import SiteFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 from api.users.libraries.get_user import get_user_organisation_relationship
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.core.constants import GovPermissions
 
 
 class DraftTests(DataTestClient):
@@ -203,3 +210,52 @@ class DraftTests(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["applications"], True)
+
+    def test_view_finalised_applications(self):
+        url = reverse("applications:applications") + "?submitted=true"
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 0)
+
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        application = self.create_draft_standard_application(self.organisation)
+
+        self.submit_application(application)
+        url = reverse("applications:applications")
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 1)
+
+        application_finalised = self.create_standard_application_case(self.organisation)
+        FinalAdviceFactory(user=self.gov_user, case=application_finalised, type=AdviceType.APPROVE)
+        template = self.create_letter_template(
+            name="Template",
+            case_types=[CaseTypeEnum.SIEL.id],
+            decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
+        )
+
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
+        licence = StandardLicenceFactory(case=application_finalised, status=LicenceStatus.DRAFT)
+        self.create_generated_case_document(
+            application_finalised, template, advice_type=AdviceType.APPROVE, licence=licence
+        )
+
+        finalised_url = reverse("cases:finalise", kwargs={"pk": application_finalised.id})
+        response = self.client.put(finalised_url, data={}, **self.gov_headers)
+        application_finalised.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(application_finalised.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
+
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 2)
+
+        url = reverse("applications:applications") + "?submitted=true&finalised=true"
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(
+            response.json()["results"][0]["status"]["value"],
+            "Finalised",
+        )
