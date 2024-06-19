@@ -5,10 +5,11 @@ from django.urls import path, include
 from django.conf import settings
 
 import api.core.views
-
+from api.healthcheck.views import HealthCheckPingdomView
 
 urlpatterns = [
     path("healthcheck/", include("health_check.urls")),
+    path("pingdom/ping.xml", HealthCheckPingdomView.as_view(), name="healthcheck-pingdom"),
     path("applications/", include("api.applications.urls")),
     path("assessments/", include("api.assessments.urls")),
     path("audit-trail/", include("api.audit_trail.urls")),
