@@ -474,6 +474,9 @@ jobs:
           name: Bandit
           command: |
             pipenv run bandit -r .
+      - run:
+          name: Ruff
+          command: pipenv run pre-commit run ruff --from-ref origin/HEAD --to-ref HEAD
 
   check-lite-routing-sha:
     docker:
