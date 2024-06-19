@@ -98,7 +98,13 @@ class TestStandardApplication(DataTestClient):
         assert original_application.status.status == "superseded_by_amendment"
         assert original_application.queues.all().count() == 0
         audit_entries = Audit.objects.all()
-        amendment_audit_entry = audit_entries[1]
+        supersede_audit_entry = audit_entries[1]
+        assert supersede_audit_entry.payload == {
+            "superseded_case": {"reference_code": original_application.reference_code}
+        }
+        assert supersede_audit_entry.verb == "amendment_created"
+        assert supersede_audit_entry.target == amendment_application.case_ptr
+        amendment_audit_entry = audit_entries[2]
         assert amendment_audit_entry.payload == {}
         assert amendment_audit_entry.verb == "exporter_created_amendment"
         assert amendment_audit_entry.actor == exporter_user

@@ -384,6 +384,12 @@ class StandardApplication(BaseApplication, Clonable):
             target=self.get_case(),
             payload={},
         )
+        audit_entry = audit_trail_service.create_system_user_audit(
+            verb=AuditType.AMENDMENT_CREATED,
+            target=amendment_application.case_ptr,
+            payload={"superseded_case": {"reference_code": self.reference_code}},
+            ignore_case_status=True,
+        )
         system_user = BaseUser.objects.get(id=SystemUser.id)
         self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT))
         return amendment_application

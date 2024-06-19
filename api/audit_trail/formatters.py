@@ -345,3 +345,7 @@ def create_refusal_criteria(**payload):
 
 def exporter_submitted_amendment(**payload):
     return f"created a new case for the edited application at {payload['amendment']['reference_code']}."
+
+
+def amendment_created(**payload):
+    return f"created the case to supersede {payload['superseded_case']['reference_code']}."
