@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 
 from rest_framework import status
-from rest_framework.request import Request
 from rest_framework.exceptions import PermissionDenied
 
 from api.audit_trail import service as audit_trail_service

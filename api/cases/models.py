@@ -10,7 +10,6 @@ from django.db.models import Q
 from django.utils import timezone
 from api.users.enums import UserType
 
-from rest_framework.exceptions import ValidationError
 from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
 
@@ -29,8 +28,6 @@ from api.cases.helpers import working_days_in_range
 from api.cases.libraries.reference_code import generate_reference_code
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from api.common.models import TimestampableModel
-from api.core.constants import GovPermissions
-from api.core.permissions import assert_user_has_permission
 from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import PvGrading
@@ -45,7 +42,6 @@ from api.staticdata.statuses.models import (
     CaseSubStatus,
 )
 from api.teams.models import Team, Department
-from api.users.enums import SystemUser
 from api.users.models import (
     BaseUser,
     ExporterUser,
@@ -53,7 +49,6 @@ from api.users.models import (
     UserOrganisationRelationship,
     ExporterNotification,
 )
-from lite_content.lite_api import strings
 
 denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
 

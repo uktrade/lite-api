@@ -6,7 +6,7 @@ from django.http.response import JsonResponse, HttpResponse
 from django.contrib.contenttypes.models import ContentType
 
 from rest_framework import status
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 
@@ -191,7 +191,7 @@ class CaseDetail(APIView):
 
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         if new_status.status == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+            assert_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         if not can_set_status(case, new_status.status):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
