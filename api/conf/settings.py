@@ -383,7 +383,9 @@ LOGGING = {
         DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
     },
 }
-if additional_logger_config := env.json("ADDITIONAL_LOGGER_CONFIG", default=None):
+
+additional_logger_config = env.json("ADDITIONAL_LOGGER_CONFIG", default=None)
+if additional_logger_config:
     LOGGING["loggers"] = additional_logger_config
 
 # Sentry
