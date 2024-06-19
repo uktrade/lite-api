@@ -73,6 +73,7 @@ django-queryable-properties = "~=1.9.1"
 database-sanitizer = ">=1.1.0"
 django-reversion = ">=5.0.12"
 psycopg = "~=3.1.18"
+django-log-formatter-asim = "~=0.0.5"
 
 [requires]
 python_version = "3.9"
