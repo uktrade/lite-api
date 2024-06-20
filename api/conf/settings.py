@@ -362,46 +362,47 @@ if LITE_API_ENABLE_ES:
 
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
-
-LOGGING_ROOT_HANDLER = "asim"
+LOGGING_ROOT_HANDLER = "stdout"
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {"asim_formatter": {"()": ASIMFormatter}},
-    "handlers": {
-        "asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"},
-        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
-    },
+    "handlers": {"sentry": {"level": logging.ERROR, "class": "sentry_sdk.integrations.logging.EventHandler"}},
     "root": {"handlers": [LOGGING_ROOT_HANDLER], "level": env("LOG_LEVEL").upper()},
     "loggers": {
-        DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
+        DENIAL_REASONS_DELETION_LOGGER: {
+            "handlers": ["sentry"],
+            "level": logging.WARNING,
+        },
     },
 }
 
 ENVIRONMENT = env.str("ENV", "")
 
-LOGGING = {"version": 1, "disable_existing_loggers": False}
-
 if ENVIRONMENT == "local":
+    LOGGING_ROOT_HANDLER = "stdout"
     LOGGING["formatters"] = {
         "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
     }
-    LOGGING["handlers"] = {
-        "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
-    }
-    LOGGING_ROOT_HANDLER = "stdout"
+    LOGGING["handlers"]["stdout"] = {"class": "logging.StreamHandler", "formatter": "simple"}
+
 
 elif VCAP_SERVICES:
+    LOGGING_ROOT_HANDLER = "ecs"
     LOGGING["formatters"] = {
         "ecs_formatter": {"()": ECSFormatter},
     }
-    LOGGING["handlers"] = {
-        "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
-        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
-    }
-    LOGGING_ROOT_HANDLER = "ecs"
+    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
 
+
+else:
+    LOGGING_ROOT_HANDLER = "asim"
+    LOGGING["formatters"] = {
+        "asim_formatter": {
+            "()": ASIMFormatter,
+        },
+    }
+    LOGGING["handlers"]["asim"] = {"class": "logging.StreamHandler", "formatter": "asim_formatter"}
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
