@@ -362,18 +362,15 @@ if LITE_API_ENABLE_ES:
 
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
-LOGGING_ROOT_HANDLER = "stdout"
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"sentry": {"level": logging.ERROR, "class": "sentry_sdk.integrations.logging.EventHandler"}},
-    "root": {"handlers": [LOGGING_ROOT_HANDLER], "level": env("LOG_LEVEL").upper()},
+    "handlers": {
+        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
+    },
     "loggers": {
-        DENIAL_REASONS_DELETION_LOGGER: {
-            "handlers": ["sentry"],
-            "level": logging.WARNING,
-        },
+        DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
     },
 }
 
@@ -384,16 +381,22 @@ if ENVIRONMENT == "local":
     LOGGING["formatters"] = {
         "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
     }
-    LOGGING["handlers"]["stdout"] = {"class": "logging.StreamHandler", "formatter": "simple"}
-
+    LOGGING["handlers"] = {
+        "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
+        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
+    }
+    LOGGING["root"] = {"handlers": [LOGGING_ROOT_HANDLER], "level": env("LOG_LEVEL").upper()}
 
 elif VCAP_SERVICES:
     LOGGING_ROOT_HANDLER = "ecs"
     LOGGING["formatters"] = {
         "ecs_formatter": {"()": ECSFormatter},
     }
-    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
-
+    LOGGING["handlers"] = {
+        "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
+        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
+    }
+    LOGGING["root"] = {"handlers": [LOGGING_ROOT_HANDLER], "level": env("LOG_LEVEL").upper()}
 
 else:
     LOGGING_ROOT_HANDLER = "asim"
@@ -402,7 +405,11 @@ else:
             "()": ASIMFormatter,
         },
     }
-    LOGGING["handlers"]["asim"] = {"class": "logging.StreamHandler", "formatter": "asim_formatter"}
+    LOGGING["handlers"] = {
+        "asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"},
+        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
+    }
+    LOGGING["root"] = {"handlers": [LOGGING_ROOT_HANDLER], "level": env("LOG_LEVEL").upper()}
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
