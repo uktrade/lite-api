@@ -363,27 +363,46 @@ if LITE_API_ENABLE_ES:
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
 
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {
-        "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
-        "ecs_formatter": {"()": ECSFormatter},
-        "asim_formatter": {"()": ASIMFormatter},
-    },
-    "handlers": {
-        "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
-        "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
-        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
-        "asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"},
-    },
-    "root": {"handlers": ["stdout", "ecs", "asim"], "level": env("LOG_LEVEL").upper()},
     "loggers": {
         DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
     },
 }
 
+ENVIRONMENT = env.str("ENV", "")
+
+LOGGING = {"version": 1, "disable_existing_loggers": False}
+
+if ENVIRONMENT == "local":
+    LOGGING["formatters"] = {
+        "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
+    }
+    LOGGING["handlers"] = {
+        "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
+    }
+    LOGGING["root"] = {"handlers": ["stdout"], "level": env.str("LOG_LEVEL", "info").upper()}
+
+elif VCAP_SERVICES:
+    LOGGING["formatters"] = {
+        "ecs_formatter": {"()": ECSFormatter},
+    }
+    LOGGING["handlers"] = {
+        "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
+    }
+    LOGGING["root"] = {"handlers": ["ecs"], "level": env.str("LOG_LEVEL", "info").upper()}
+
+else:
+    LOGGING["formatters"] = {
+        "asim_formatter": {
+            "()": ASIMFormatter,
+        },
+    }
+    LOGGING["handlers"] = {
+        "asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"},
+    }
+    LOGGING["root"] = {"handlers": ["asim"], "level": env.str("LOG_LEVEL", "info").upper()}
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
