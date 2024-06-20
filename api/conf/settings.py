@@ -369,7 +369,10 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {"asim_formatter": {"()": ASIMFormatter}},
-    "handlers": {"asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"}},
+    "handlers": {
+        "asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"},
+        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
+    },
     "root": {"handlers": [LOGGING_ROOT_HANDLER], "level": env("LOG_LEVEL").upper()},
     "loggers": {
         DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
@@ -395,6 +398,7 @@ elif VCAP_SERVICES:
     }
     LOGGING["handlers"] = {
         "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
+        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
     }
     LOGGING_ROOT_HANDLER = "ecs"
 
