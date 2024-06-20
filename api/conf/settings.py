@@ -9,6 +9,7 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from django_log_formatter_ecs import ECSFormatter
 from django_log_formatter_asim import ASIMFormatter
+from dbt_copilot_python.utility import is_copilot
 
 from django.urls import reverse_lazy
 
@@ -383,14 +384,7 @@ if ENVIRONMENT == "local":
     LOGGING["handlers"]["stdout"] = {"class": "logging.StreamHandler", "formatter": "simple"}
     LOGGING["root"] = {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}
 
-elif VCAP_SERVICES:
-    LOGGING["formatters"] = {
-        "ecs_formatter": {"()": ECSFormatter},
-    }
-    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
-    LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
-
-else:
+if is_copilot():
     LOGGING["formatters"] = {
         "asim_formatter": {
             "()": ASIMFormatter,
@@ -398,6 +392,12 @@ else:
     }
     LOGGING["handlers"]["asim"] = {"class": "logging.StreamHandler", "formatter": "asim_formatter"}
     LOGGING["root"] = {"handlers": ["asim"], "level": env("LOG_LEVEL").upper()}
+else:
+    LOGGING["formatters"] = {
+        "ecs_formatter": {"()": ECSFormatter},
+    }
+    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
+    LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
