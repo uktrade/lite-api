@@ -384,14 +384,14 @@ if ENVIRONMENT == "local":
     LOGGING["handlers"]["stdout"] = {"class": "logging.StreamHandler", "formatter": "simple"}
     LOGGING["root"] = {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}
 
-elif not is_copilot():
+elif VCAP_SERVICES:
     LOGGING["formatters"] = {
         "ecs_formatter": {"()": ECSFormatter},
     }
     LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
     LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
 
-else:
+elif is_copilot():
     LOGGING["formatters"] = {
         "asim_formatter": {
             "()": ASIMFormatter,
