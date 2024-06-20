@@ -385,14 +385,6 @@ if ENVIRONMENT == "local":
     LOGGING["handlers"]["stdout"] = {"class": "logging.StreamHandler", "formatter": "simple"}
     LOGGING["root"] = {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}
 
-
-elif VCAP_SERVICES:
-    LOGGING["formatters"] = {
-        "ecs_formatter": {"()": ECSFormatter},
-    }
-    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
-    LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
-
 elif is_copilot():
     LOGGING["formatters"] = {
         "asim_formatter": {
@@ -401,6 +393,13 @@ elif is_copilot():
     }
     LOGGING["handlers"]["asim"] = {"class": "logging.StreamHandler", "formatter": "asim_formatter"}
     LOGGING["root"] = {"handlers": ["asim"], "level": env("LOG_LEVEL").upper()}
+
+else:
+    LOGGING["formatters"] = {
+        "ecs_formatter": {"()": ECSFormatter},
+    }
+    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
+    LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
 
 
 # Sentry
