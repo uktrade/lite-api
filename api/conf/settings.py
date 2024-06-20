@@ -377,39 +377,27 @@ LOGGING = {
 ENVIRONMENT = env.str("ENV", "")
 
 if ENVIRONMENT == "local":
-    LOGGING_ROOT_HANDLER = "stdout"
     LOGGING["formatters"] = {
         "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
     }
-    LOGGING["handlers"] = {
-        "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
-        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
-    }
-    LOGGING["root"] = {"handlers": [LOGGING_ROOT_HANDLER], "level": env("LOG_LEVEL").upper()}
+    LOGGING["handlers"]["stdout"] = {"class": "logging.StreamHandler", "formatter": "simple"}
+    LOGGING["root"] = {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}
 
 elif VCAP_SERVICES:
-    LOGGING_ROOT_HANDLER = "ecs"
     LOGGING["formatters"] = {
         "ecs_formatter": {"()": ECSFormatter},
     }
-    LOGGING["handlers"] = {
-        "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
-        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
-    }
-    LOGGING["root"] = {"handlers": [LOGGING_ROOT_HANDLER], "level": env("LOG_LEVEL").upper()}
+    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
+    LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
 
 else:
-    LOGGING_ROOT_HANDLER = "asim"
     LOGGING["formatters"] = {
         "asim_formatter": {
             "()": ASIMFormatter,
         },
     }
-    LOGGING["handlers"] = {
-        "asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"},
-        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
-    }
-    LOGGING["root"] = {"handlers": [LOGGING_ROOT_HANDLER], "level": env("LOG_LEVEL").upper()}
+    LOGGING["handlers"]["asim"] = {"class": "logging.StreamHandler", "formatter": "asim_formatter"}
+    LOGGING["root"] = {"handlers": ["asim"], "level": env("LOG_LEVEL").upper()}
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
