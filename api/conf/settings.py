@@ -384,7 +384,14 @@ if ENVIRONMENT == "local":
     LOGGING["handlers"]["stdout"] = {"class": "logging.StreamHandler", "formatter": "simple"}
     LOGGING["root"] = {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}
 
-if is_copilot():
+elif not is_copilot():
+    LOGGING["formatters"] = {
+        "ecs_formatter": {"()": ECSFormatter},
+    }
+    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
+    LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
+
+else:
     LOGGING["formatters"] = {
         "asim_formatter": {
             "()": ASIMFormatter,
@@ -392,12 +399,7 @@ if is_copilot():
     }
     LOGGING["handlers"]["asim"] = {"class": "logging.StreamHandler", "formatter": "asim_formatter"}
     LOGGING["root"] = {"handlers": ["asim"], "level": env("LOG_LEVEL").upper()}
-else:
-    LOGGING["formatters"] = {
-        "ecs_formatter": {"()": ECSFormatter},
-    }
-    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
-    LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
+
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
