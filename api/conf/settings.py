@@ -9,7 +9,6 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from django_log_formatter_ecs import ECSFormatter
 from django_log_formatter_asim import ASIMFormatter
-from dbt_copilot_python.utility import is_copilot
 
 from django.urls import reverse_lazy
 
@@ -391,7 +390,7 @@ elif VCAP_SERVICES:
     LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
     LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
 
-elif is_copilot():
+else:
     LOGGING["formatters"] = {
         "asim_formatter": {
             "()": ASIMFormatter,
