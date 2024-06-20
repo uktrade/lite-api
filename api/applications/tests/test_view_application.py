@@ -1,5 +1,7 @@
 from uuid import UUID
+import datetime
 
+from django.utils import timezone
 from django.urls import reverse
 from api.cases.tests.factories import FinalAdviceFactory
 from api.licences.enums import LicenceStatus
@@ -16,7 +18,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 from api.users.libraries.get_user import get_user_organisation_relationship
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.core.constants import GovPermissions
 
 
@@ -221,7 +222,7 @@ class DraftTests(DataTestClient):
         application = self.create_draft_standard_application(self.organisation)
 
         self.submit_application(application)
-        url = reverse("applications:applications")
+        url = reverse("applications:applications") + "?sort=submitted_at"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 1)
@@ -242,6 +243,9 @@ class DraftTests(DataTestClient):
 
         finalised_url = reverse("cases:finalise", kwargs={"pk": application_finalised.id})
         response = self.client.put(finalised_url, data={}, **self.gov_headers)
+
+        application.submitted_at = timezone.make_aware(datetime.datetime(2020, 6, 20, 12, 0))
+        application.save()
         application_finalised.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -250,6 +254,28 @@ class DraftTests(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 2)
+
+        data = response.json()
+        submitted_dates = [
+            datetime.datetime.fromisoformat(item["submitted_at"].rstrip("Z").replace("Z", "+00:00"))
+            for item in data["results"]
+        ]
+        assert all(
+            submitted_dates[i] <= submitted_dates[i + 1] for i in range(len(submitted_dates) - 1)
+        ), "Dates are not in ascending order."
+
+        url = reverse("applications:applications") + "?sort=-updated_at"
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        updated_dates = [
+            datetime.datetime.fromisoformat(item["updated_at"].rstrip("Z").replace("Z", "+00:00"))
+            for item in data["results"]
+        ]
+        assert all(
+            updated_dates[i] >= updated_dates[i + 1] for i in range(len(updated_dates) - 1)
+        ), "Dates are not in descending order."
 
         url = reverse("applications:applications") + "?submitted=true&finalised=true"
         response = self.client.get(url, **self.exporter_headers)

@@ -113,20 +113,19 @@ class ApplicationList(ListCreateAPIView):
         Filter applications on submitted
         """
         try:
-            submitted = optional_str_to_bool(self.request.GET.get("submitted"))
+            submitted_tab = optional_str_to_bool(self.request.GET.get("submitted"))
         except ValueError:
             return BaseApplication.objects.none()
 
         organisation = get_request_user_organisation(self.request)
+        finalised_tab = optional_str_to_bool(self.request.GET.get("finalised"))
+        sort = self.request.GET.get("sort", "submitted_at")
 
-        finalised = optional_str_to_bool(self.request.GET.get("finalised"))
-        sort = self.request.GET.get("sort", "-updated_at")
-
-        if submitted is None:
+        if submitted_tab is None:
             applications = BaseApplication.objects.filter(organisation=organisation)
-        elif submitted and finalised:
+        elif finalised_tab:
             applications = BaseApplication.objects.finalised(organisation, sort)
-        elif submitted:
+        elif submitted_tab:
             applications = BaseApplication.objects.submitted(organisation, sort)
         else:
             applications = BaseApplication.objects.drafts(organisation)
