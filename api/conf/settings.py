@@ -384,9 +384,6 @@ LOGGING = {
     },
 }
 
-additional_logger_config = env.json("ADDITIONAL_LOGGER_CONFIG", default=None)
-if additional_logger_config:
-    LOGGING["loggers"] = additional_logger_config
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
