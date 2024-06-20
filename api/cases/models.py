@@ -113,6 +113,9 @@ class Case(TimestampableModel):
     )
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
     copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
+    amendment_of = models.ForeignKey(
+        "self", default=None, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="amendment"
+    )
     last_closed_at = models.DateTimeField(null=True)
 
     sla_days = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
@@ -155,6 +158,12 @@ class Case(TimestampableModel):
                 target=case,
                 payload={"sub_status": None, "status": CaseStatusEnum.get_text(self.status.status)},
             )
+
+    @property
+    def superseded_by(self):
+        if not self.amendment.exists():
+            return None
+        return self.amendment.first()
 
     def get_case(self):
         """

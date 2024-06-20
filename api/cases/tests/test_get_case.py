@@ -37,6 +37,51 @@ class CaseGetTests(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # TODO: These tests need to assert that the *whole response* is as expected
+        response_json = response.json()
+        self.assertEqual(response_json["case"]["amendment_of"], None)
+        self.assertEqual(response_json["case"]["superseded_by"], None)
+
+    def test_case_endpoint_responds_ok_for_amendment(self):
+        superseded_case = self.submit_application(self.standard_application)
+        amendment = superseded_case.create_amendment()
+        amendment = self.submit_application(amendment)
+
+        url = reverse("cases:case", kwargs={"pk": superseded_case.id})
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_json = response.json()
+        # TODO: These tests need to assert that the *whole response* is as expected
+        self.assertEqual(response_json["case"]["amendment_of"], None)
+        self.assertEqual(
+            response_json["case"]["superseded_by"],
+            {
+                "id": str(amendment.id),
+                "organisation": {
+                    "id": str(amendment.organisation_id),
+                    "name": amendment.organisation.name,
+                },
+                "reference_code": amendment.reference_code,
+            },
+        )
+
+        url = reverse("cases:case", kwargs={"pk": amendment.id})
+        response = self.client.get(url, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_json = response.json()
+        self.assertEqual(
+            response_json["case"]["amendment_of"],
+            {
+                "id": str(superseded_case.id),
+                "organisation": {
+                    "id": str(superseded_case.organisation_id),
+                    "name": superseded_case.organisation.name,
+                },
+                "reference_code": superseded_case.reference_code,
+            },
+        )
+        self.assertEqual(response_json["case"]["superseded_by"], None)
 
     def test_case_basic_details_endpoint_responds_ok(self):
         case = self.submit_application(self.standard_application)
