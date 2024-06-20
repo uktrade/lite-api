@@ -74,6 +74,7 @@ database-sanitizer = ">=1.1.0"
 django-reversion = ">=5.0.12"
 psycopg = "~=3.1.18"
 django-log-formatter-asim = "~=0.0.5"
+dbt-copilot-python = "~=0.2.1"
 
 [requires]
 python_version = "3.9"
