@@ -390,7 +390,7 @@ class StandardApplication(BaseApplication, Clonable):
             ignore_case_status=True,
         )
         system_user = BaseUser.objects.get(id=SystemUser.id)
-        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT))
+        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
         return amendment_application
 
 
