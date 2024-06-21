@@ -7,6 +7,10 @@ from urllib.parse import urlencode
 from environ import Env
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+
+from dbt_copilot_python.network import setup_allowed_hosts
+from dbt_copilot_python.utility import is_copilot
+
 from django_log_formatter_ecs import ECSFormatter
 from django_log_formatter_asim import ASIMFormatter
 from dbt_copilot_python.utility import is_copilot
@@ -156,7 +160,7 @@ ROOT_URLCONF = "api.conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR + "/templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "debug": DEBUG,
@@ -541,3 +545,8 @@ else:
 
 DB_ANONYMISER_CONFIG_LOCATION = Path(BASE_DIR) / "conf" / "anonymise_model_config.yaml"
 DB_ANONYMISER_DUMP_FILE_NAME = env.str("DB_ANONYMISER_DUMP_FILE_NAME", "anonymised.sql")
+
+
+# DBT Platform Spectic config
+if is_copilot:
+    ALLOWED_HOSTS = setup_allowed_hosts(ALLOWED_HOSTS)
