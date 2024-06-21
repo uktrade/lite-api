@@ -24,7 +24,7 @@ from api.core.constants import GovPermissions
 class DraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.url = reverse("applications:applications") + "?submitted=false"
+        self.url = reverse("applications:applications") + "?sort_by=-created_at&selected_filter=draft_applications"
 
     def test_view_draft_standard_application_list_as_exporter_success(self):
         """
@@ -213,7 +213,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.json()["applications"], True)
 
     def test_view_finalised_applications(self):
-        url = reverse("applications:applications") + "?submitted=true"
+        url = reverse("applications:applications")
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 0)
@@ -222,7 +222,7 @@ class DraftTests(DataTestClient):
         application = self.create_draft_standard_application(self.organisation)
 
         self.submit_application(application)
-        url = reverse("applications:applications") + "?sort=submitted_at"
+        url = reverse("applications:applications") + "?sort_by=submitted_at"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 1)
@@ -264,7 +264,7 @@ class DraftTests(DataTestClient):
             submitted_dates[i] <= submitted_dates[i + 1] for i in range(len(submitted_dates) - 1)
         ), "Dates are not in ascending order."
 
-        url = reverse("applications:applications") + "?sort=-updated_at"
+        url = reverse("applications:applications") + "?sort_by=-updated_at"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -277,7 +277,7 @@ class DraftTests(DataTestClient):
             updated_dates[i] >= updated_dates[i + 1] for i in range(len(updated_dates) - 1)
         ), "Dates are not in descending order."
 
-        url = reverse("applications:applications") + "?submitted=true&finalised=true"
+        url = reverse("applications:applications") + "?selected_filter=finalised_applications"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 1)

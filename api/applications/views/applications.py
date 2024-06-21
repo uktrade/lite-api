@@ -31,7 +31,6 @@ from api.applications.helpers import (
     auto_match_sanctions,
 )
 from api.applications.libraries.application_helpers import (
-    optional_str_to_bool,
     can_status_be_set_by_gov_user,
     create_submitted_audit,
     check_user_can_set_status,
@@ -112,23 +111,17 @@ class ApplicationList(ListCreateAPIView):
         """
         Filter applications on submitted
         """
-        try:
-            submitted_tab = optional_str_to_bool(self.request.GET.get("submitted"))
-        except ValueError:
-            return BaseApplication.objects.none()
-
         organisation = get_request_user_organisation(self.request)
-        finalised_tab = optional_str_to_bool(self.request.GET.get("finalised"))
-        sort = self.request.GET.get("sort", "submitted_at")
 
-        if submitted_tab is None:
-            applications = BaseApplication.objects.filter(organisation=organisation)
-        elif finalised_tab:
-            applications = BaseApplication.objects.finalised(organisation, sort)
-        elif submitted_tab:
-            applications = BaseApplication.objects.submitted(organisation, sort)
+        selected_filter = self.request.GET.get("selected_filter", "submitted_applications")
+        sort_by = self.request.GET.get("sort_by", "-submitted_at")
+
+        if selected_filter == "submitted_applications":
+            applications = BaseApplication.objects.submitted(organisation, sort_by)
+        elif selected_filter == "finalised_applications":
+            applications = BaseApplication.objects.finalised(organisation, sort_by)
         else:
-            applications = BaseApplication.objects.drafts(organisation)
+            applications = BaseApplication.objects.drafts(organisation, sort_by)
 
         users_sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
         disallowed_applications = SiteOnApplication.objects.exclude(site__id__in=users_sites).values_list(

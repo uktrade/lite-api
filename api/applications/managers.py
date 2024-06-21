@@ -5,14 +5,14 @@ from api.staticdata.statuses.libraries.get_case_status import get_case_status_by
 
 
 class BaseApplicationManager(InheritanceManager):
-    def drafts(self, organisation):
+    def drafts(self, organisation, sort_by):
         draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
-        return self.get_queryset().filter(status=draft, organisation=organisation).order_by("-created_at")
+        return self.get_queryset().filter(status=draft, organisation=organisation).order_by(sort_by)
 
-    def submitted(self, organisation, sort):
+    def submitted(self, organisation, sort_by):
         draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
-        return self.get_queryset().filter(organisation=organisation).exclude(status=draft).order_by(sort)
+        return self.get_queryset().filter(organisation=organisation).exclude(status=draft).order_by(sort_by)
 
-    def finalised(self, organisation, sort):
+    def finalised(self, organisation, sort_by):
         finalised = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        return self.get_queryset().filter(status=finalised, organisation=organisation).order_by(sort)
+        return self.get_queryset().filter(status=finalised, organisation=organisation).order_by(sort_by)
