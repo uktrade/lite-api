@@ -1,10 +1,10 @@
-import uuid
 from datetime import date, timedelta
 
 from django.utils.timezone import now
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
+from reversion.models import Version
 
 from api.goods.enums import (
     GoodPvGraded,
@@ -569,6 +569,29 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         good = Good.objects.get()
         self.assertEqual(good.design_details, "design details")
+
+    def test_edit_archive_status(self):
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP1_COMPONENTS)
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+
+        for version_count, is_archived in enumerate([True, False], start=1):
+            request_data = {"is_archived": is_archived}
+
+            response = self.client.put(url, request_data, **self.exporter_headers)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response = response.json()
+            self.assertEqual(response["good"]["is_archived"], is_archived)
+
+            good.refresh_from_db()
+            self.assertEqual(good.is_archived, is_archived)
+
+            # returns most recent first
+            versions = Version.objects.get_for_object(good)
+            self.assertEqual(versions.count(), version_count)
+            self.assertEqual(versions.first().field_dict["is_archived"], is_archived)
+            # Ensure user is recorded in each revision
+            for version in versions:
+                self.assertEqual(version.revision.user, self.exporter_user.baseuser_ptr)
 
 
 class GoodsAttachingTests(DataTestClient):

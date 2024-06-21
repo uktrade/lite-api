@@ -71,8 +71,9 @@ django-silk = "~=5.0.3"
 django = "~=4.2.10"
 django-queryable-properties = "~=1.9.1"
 database-sanitizer = ">=1.1.0"
+django-reversion = ">=5.0.12"
 psycopg = "~=3.1.18"
 
 [requires]
-python_version = "3.8"
-python_full_version = "3.8.18"
+python_version = "3.9"
+python_full_version = "3.9.18"
