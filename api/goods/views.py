@@ -4,7 +4,7 @@ from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework.views import APIView
 
 from api.applications.models import (
@@ -83,7 +83,7 @@ class GoodList(ListCreateAPIView):
             name__icontains=name,
             description__icontains=description,
             part_number__icontains=part_number,
-        )
+        ).exclude(is_archived=True)
 
         if control_list_entry:
             queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
@@ -166,6 +166,32 @@ class GoodList(ListCreateAPIView):
         serializer = GoodCreateSerializer(data=data)
 
         return create_or_update_good(serializer, data, is_created=True)
+
+
+class ArchivedGoodList(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = GoodListSerializer
+    pagination_class = MaxFiftyPageSizePaginator
+
+    def get_queryset(self):
+        name = self.request.GET.get("name", "")
+        part_number = self.request.GET.get("part_number", "")
+        control_list_entry = self.request.GET.get("control_list_entry")
+        organisation = get_request_user_organisation_id(self.request)
+
+        queryset = Good.objects.filter(
+            organisation_id=organisation,
+            name__icontains=name,
+            part_number__icontains=part_number,
+            is_archived=True,
+        )
+
+        if control_list_entry:
+            queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
+
+        queryset = queryset.prefetch_related("control_list_entries")
+
+        return queryset.order_by("-updated_at")
 
 
 class GoodDocumentAvailabilityCheck(APIView):
@@ -319,11 +345,6 @@ class GoodOverview(APIView):
 
         if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
-
-        if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
-            )
 
         data = request.data.copy()
         data["organisation"] = get_request_user_organisation_id(request)
