@@ -9,7 +9,6 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 from dbt_copilot_python.network import setup_allowed_hosts
-from dbt_copilot_python.utility import is_copilot
 
 from django_log_formatter_ecs import ECSFormatter
 from django_log_formatter_asim import ASIMFormatter
