@@ -371,6 +371,7 @@ LOGGING = {
     "handlers": {
         "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
     },
+    "root": {"handlers": ["sentry"], "level": env("LOG_LEVEL").upper()},
     "loggers": {
         DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
     },
@@ -379,27 +380,20 @@ LOGGING = {
 ENVIRONMENT = env.str("ENV", "")
 
 if ENVIRONMENT == "local":
-    LOGGING["formatters"] = {
-        "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
-    }
-    LOGGING["handlers"]["stdout"] = {"class": "logging.StreamHandler", "formatter": "simple"}
-    LOGGING["root"] = {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}
+    LOGGING.update({"formatters": {"simple": {"format": "{asctime} {levelname} {message}", "style": "{"}}})
+    LOGGING["handlers"].update({"stdout": {"class": "logging.StreamHandler", "formatter": "simple"}})
+    LOGGING.update({"root": {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}})
+
 
 elif not is_copilot():
-    LOGGING["formatters"] = {
-        "ecs_formatter": {"()": ECSFormatter},
-    }
-    LOGGING["handlers"]["ecs"] = {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}
-    LOGGING["root"] = {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}
+    LOGGING.update({"formatters": {"ecs_formatter": {"()": ECSFormatter}}})
+    LOGGING["handlers"].update({"ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}})
+    LOGGING.update({"root": {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}})
 
 else:
-    LOGGING["formatters"] = {
-        "asim_formatter": {
-            "()": ASIMFormatter,
-        },
-    }
-    LOGGING["handlers"]["asim"] = {"class": "logging.StreamHandler", "formatter": "asim_formatter"}
-    LOGGING["root"] = {"handlers": ["asim"], "level": env("LOG_LEVEL").upper()}
+    LOGGING.update({"formatters": {"asim_formatter": {"()": ASIMFormatter}}})
+    LOGGING["handlers"].update({"asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"}})
+    LOGGING.update({"root": {"handlers": ["asim"], "level": env("LOG_LEVEL").upper()}})
 
 
 # Sentry
