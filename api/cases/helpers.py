@@ -35,22 +35,6 @@ def get_updated_case_ids(user: GovUser):
     return GovNotification.objects.filter(user_id=user.pk, case__id__in=cases).values_list("case__id", flat=True)
 
 
-def remove_next_review_date(case, request, pk):
-    """
-    Clears the next review date for that team if there are no other team members assigned to the case
-    """
-    from api.cases.models import CaseAssignment
-
-    if case.case_review_date.exists():
-        other_assigned_users = (
-            CaseAssignment.objects.filter(case__id=pk, queue__team_id=request.user.team_id)
-            .exclude(user=request.user)
-            .exists()
-        )
-        if not other_assigned_users:
-            case.case_review_date.filter(case__id=pk, team_id=request.user.team_id).delete()
-
-
 def can_set_status(case, status):
     """
     Returns true or false depending on different case conditions

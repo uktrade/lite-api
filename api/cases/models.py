@@ -28,7 +28,7 @@ from api.cases.enums import (
 from api.cases.helpers import working_days_in_range
 from api.cases.libraries.reference_code import generate_reference_code
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
-from api.common.models import TimestampableModel, CreatedAt
+from api.common.models import TimestampableModel
 from api.core.constants import GovPermissions
 from api.core.permissions import assert_user_has_permission
 from api.documents.models import Document
@@ -696,13 +696,3 @@ class EnforcementCheckID(models.Model):
     id = models.AutoField(primary_key=True)
     entity_id = models.UUIDField(unique=True)
     entity_type = models.CharField(choices=EnforcementXMLEntityTypes.choices, max_length=20)
-
-
-class CaseReviewDate(CreatedAt):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    next_review_date = models.DateField(default=None, null=True)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    case = models.ForeignKey(Case, related_name="case_review_date", on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = [["case", "team"]]

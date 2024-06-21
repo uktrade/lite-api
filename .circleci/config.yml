@@ -8,10 +8,10 @@ common_env_vars: &common_env_vars
   AV_SERVICE_PASSWORD: AV_SERVICE_PASSWORD
 
 image_python: &image_python
-  image: cimg/python:3.8.18
+  image: cimg/python:3.9.18
 
 image_python_node: &image_python_node
-  image: cimg/python:3.8.18-node
+  image: cimg/python:3.9.18-node
 
 image_postgres: &image_postgres
   image: circleci/postgres:12
@@ -47,7 +47,7 @@ image_opensearch: &image_opensearch
 
 image_redis: &image_redis
   image: circleci/redis:3.2-alpine
-  
+
 parameters:
   lite_routing_branch_name:
     type: string
@@ -464,6 +464,10 @@ jobs:
       - <<: *image_python
     steps:
       - setup
+      - run: pipenv install pre-commit
+      - restore_cache:
+          keys:
+            - pre-commit-cache-{{ checksum ".pre-commit-config.yaml" }}
       - run:
           name: Prospector
           command: pipenv run prospector -W pylint -W pep257 -W mccabe
@@ -474,6 +478,13 @@ jobs:
           name: Bandit
           command: |
             pipenv run bandit -r .
+      - run:
+          name: Ruff
+          command: pipenv run pre-commit run ruff --from-ref origin/HEAD --to-ref HEAD
+      - save_cache:
+          key: pre-commit-cache-{{ checksum ".pre-commit-config.yaml" }}
+          paths:
+            - ~/.cache/pre-commit
 
   check-lite-routing-sha:
     docker:
@@ -506,7 +517,7 @@ jobs:
 
   e2e_tests:
     docker:
-      - image: cimg/python:3.8.18
+      - image: cimg/python:3.9.18
     steps:
       - run:
           name: Add known hosts
