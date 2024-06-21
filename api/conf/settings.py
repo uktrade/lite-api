@@ -371,7 +371,6 @@ LOGGING = {
     "handlers": {
         "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
     },
-    "root": {"handlers": ["sentry"], "level": env("LOG_LEVEL").upper()},
     "loggers": {
         DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
     },
