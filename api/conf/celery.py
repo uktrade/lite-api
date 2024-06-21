@@ -2,6 +2,8 @@ import os
 
 from celery import Celery
 from celery.schedules import crontab
+from dbt_copilot_python.celery_health_check import healthcheck
+from dbt_copilot_python.utility import is_copilot
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.conf.settings")
@@ -40,3 +42,6 @@ app.conf.beat_schedule = {
         "schedule": crontab(hour="8, 16", minute=0),
     },
 }
+
+if is_copilot:
+    celery_app = healthcheck.setup(app)

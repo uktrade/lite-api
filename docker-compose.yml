@@ -46,6 +46,12 @@ services:
     command: pipenv run watchmedo auto-restart -d . -R -p '*.py' -- celery -A api.conf worker -l info
     networks:
       - lite
+    healthcheck:
+      test: [ "CMD-SHELL", "python -m dbt_copilot_python.celery_health_check.healthcheck" ]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
 
   celery-scheduler:
     build: .
