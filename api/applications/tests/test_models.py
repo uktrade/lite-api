@@ -1,6 +1,5 @@
 from django.forms import model_to_dict
 from django.utils import timezone
-from freezegun import freeze_time
 
 from test_helpers.clients import DataTestClient
 
@@ -9,7 +8,6 @@ from api.audit_trail.models import Audit
 from api.cases.models import CaseType, Queue
 from api.flags.models import Flag
 from api.applications.models import (
-    ExternalLocationOnApplication,
     GoodOnApplication,
     GoodOnApplicationDocument,
     GoodOnApplicationInternalDocument,
@@ -31,7 +29,6 @@ from api.users.models import GovUser, ExporterUser
 from api.goods.tests.factories import FirearmFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
 from api.users.models import ExporterUser

@@ -4,7 +4,7 @@ from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from parameterized import parameterized
 
-from api.cases.models import Case, BadSubStatus
+from api.cases.models import BadSubStatus
 from api.cases.tests.factories import CaseFactory
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
