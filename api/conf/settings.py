@@ -12,6 +12,9 @@ from dbt_copilot_python.network import setup_allowed_hosts
 from dbt_copilot_python.utility import is_copilot
 
 from django_log_formatter_ecs import ECSFormatter
+from django_log_formatter_asim import ASIMFormatter
+
+
 from django.urls import reverse_lazy
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -362,27 +365,37 @@ if LITE_API_ENABLE_ES:
         "django_elasticsearch_dsl_drf",
     ]
 
+ENV = env("ENV")
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
-
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {
-        "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
-        "ecs_formatter": {"()": ECSFormatter},
-    },
     "handlers": {
-        "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
-        "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
         "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
     },
-    "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
     "loggers": {
         DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
     },
 }
+
+if ENV == "local":
+    LOGGING.update({"formatters": {"simple": {"format": "{asctime} {levelname} {message}", "style": "{"}}})
+    LOGGING["handlers"].update({"stdout": {"class": "logging.StreamHandler", "formatter": "simple"}})
+    LOGGING.update({"root": {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}})
+
+
+elif not is_copilot():
+    LOGGING.update({"formatters": {"ecs_formatter": {"()": ECSFormatter}}})
+    LOGGING["handlers"].update({"ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}})
+    LOGGING.update({"root": {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}})
+
+else:
+    LOGGING.update({"formatters": {"asim_formatter": {"()": ASIMFormatter}}})
+    LOGGING["handlers"].update({"asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"}})
+    LOGGING.update({"root": {"handlers": ["asim"], "level": env("LOG_LEVEL").upper()}})
+
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
@@ -419,8 +432,6 @@ STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")
 GOV_NOTIFY_ENABLED = env("GOV_NOTIFY_ENABLED")
 
 GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
-
-ENV = env("ENV")
 
 # If EXPORTER_BASE_URL is not in env vars, build the base_url using the environment
 EXPORTER_BASE_URL = env("EXPORTER_BASE_URL") or f"https://exporter.lite.service.{ENV}.uktrade.digital"
