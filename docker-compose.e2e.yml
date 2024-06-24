@@ -6,7 +6,7 @@ services:
       - .env
     depends_on:
       - db
-      - elasticsearch
+      - opensearch
       - redis
     build:
       context: .
@@ -33,7 +33,7 @@ services:
     depends_on:
       - api
       - db
-      - elasticsearch
+      - opensearch
       - redis
     entrypoint: dockerize -wait tcp://db:5432 -wait tcp://api:8100
     command: celery -A api.conf worker -l info
@@ -49,7 +49,7 @@ services:
     depends_on:
       - api
       - db
-      - elasticsearch
+      - opensearch
       - redis
     entrypoint: dockerize -wait tcp://db:5432 -wait tcp://api:8100
     command: celery -A api.conf beat
@@ -64,15 +64,17 @@ services:
     ports:
       - 5462:5432
 
-  # Elasticsearch Docker Images: https://www.docker.elastic.co/
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
-    container_name: elasticsearch
+  # opensearch Docker Images: https://hub.docker.com/r/opensearchproject/opensearch
+  opensearch:
+    image: opensearchproject/opensearch:2.14.0
+    container_name: opensearch
     environment:
-      - xpack.security.enabled=false
-      - xpack.ml.enabled=false
+      - cluster.name=cluster-001
+      - node.name=node-001
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms128m -Xmx1g
+      - bootstrap.memory_lock=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true # Prevents execution of bundled demo script which installs demo certificates and security configurations to OpenSearch
+      - DISABLE_SECURITY_PLUGIN=true # Disables security plugin
     ulimits:
       memlock:
         soft: -1
@@ -83,7 +85,7 @@ services:
     cap_add:
       - IPC_LOCK
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - opensearch-data:/usr/share/opensearch/data
     ports:
       - 9200:9200
       - 9300:9300
@@ -97,5 +99,5 @@ services:
       - 6379:6379
 
 volumes:
-  elasticsearch-data:
+  opensearch-data:
     driver: local

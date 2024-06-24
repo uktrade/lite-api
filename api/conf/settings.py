@@ -7,8 +7,11 @@ from urllib.parse import urlencode
 from environ import Env
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
-from django_log_formatter_ecs import ECSFormatter
 
+from dbt_copilot_python.network import setup_allowed_hosts
+from dbt_copilot_python.utility import is_copilot
+
+from django_log_formatter_ecs import ECSFormatter
 from django.urls import reverse_lazy
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -122,6 +125,7 @@ INSTALLED_APPS = [
     "api.document_data",
     "api.survey",
     "django_db_anonymiser.db_anonymiser",
+    "reversion",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
@@ -139,6 +143,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "reversion.middleware.RevisionMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -151,7 +156,7 @@ ROOT_URLCONF = "api.conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR + "/templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "debug": DEBUG,
@@ -359,7 +364,6 @@ if LITE_API_ENABLE_ES:
 
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
-GOOD_OVERVIEW_PUT_DELETION_LOGGER = "good_overview_put_deletion_logger"
 
 
 LOGGING = {
@@ -377,7 +381,6 @@ LOGGING = {
     "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
     "loggers": {
         DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
-        GOOD_OVERVIEW_PUT_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
     },
 }
 
@@ -527,3 +530,8 @@ else:
 
 DB_ANONYMISER_CONFIG_LOCATION = Path(BASE_DIR) / "conf" / "anonymise_model_config.yaml"
 DB_ANONYMISER_DUMP_FILE_NAME = env.str("DB_ANONYMISER_DUMP_FILE_NAME", "anonymised.sql")
+
+
+# DBT Platform Spectic config
+if is_copilot:
+    ALLOWED_HOSTS = setup_allowed_hosts(ALLOWED_HOSTS)

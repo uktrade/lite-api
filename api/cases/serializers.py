@@ -1,6 +1,4 @@
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
-from django.utils import timezone
 from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
@@ -31,7 +29,6 @@ from api.cases.models import (
     Advice,
     GoodCountryDecision,
     CaseType,
-    CaseReviewDate,
 )
 from api.cases.service import retrieve_latest_activity
 from api.compliance.models import ComplianceSiteCase, ComplianceVisitCase
@@ -50,7 +47,6 @@ from api.queues.models import Queue
 from api.queues.serializers import QueueListSerializer
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.teams.models import Team
 from api.teams.serializers import TeamSerializer
 from api.users.enums import UserStatuses
 from api.users.models import BaseUser, GovUser, GovNotification, ExporterUser
@@ -127,7 +123,6 @@ class CaseListSerializer(serializers.Serializer):
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    next_review_date = serializers.DateField()
     has_open_queries = serializers.BooleanField()
     case_officer = serializers.SerializerMethodField()
     intended_end_use = serializers.SerializerMethodField()
@@ -280,7 +275,8 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     data = serializers.SerializerMethodField()
     latest_activity = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    next_review_date = serializers.SerializerMethodField()
+    amendment_of = CaseDetailBasicSerializer()
+    superseded_by = CaseDetailBasicSerializer()
 
     class Meta:
         model = Case
@@ -304,8 +300,9 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "sla_days",
             "sla_remaining_days",
             "data",
-            "next_review_date",
             "latest_activity",
+            "amendment_of",
+            "superseded_by",
         )
 
     def __init__(self, *args, **kwargs):
@@ -392,12 +389,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
-
-    def get_next_review_date(self, instance):
-        try:
-            return instance.case_review_date.get(case_id=instance.id, team_id=self.team.id).next_review_date
-        except CaseReviewDate.DoesNotExist:
-            pass
 
 
 class CaseNoteMentionsListSerializer(serializers.ListSerializer):
@@ -754,31 +745,6 @@ class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = ("case_officer",)
-
-
-class ReviewDateUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for setting and editing the next review date of a case.
-    """
-
-    team = serializers.PrimaryKeyRelatedField(required=True, queryset=Team.objects.all())
-    case = serializers.PrimaryKeyRelatedField(required=True, queryset=Case.objects.all())
-    next_review_date = serializers.DateField(
-        required=False,
-        allow_null=True,
-        error_messages={"invalid": strings.Cases.NextReviewDate.Errors.INVALID_DATE_FORMAT},
-    )
-
-    class Meta:
-        model = CaseReviewDate
-        fields = ("next_review_date", "team", "case")
-
-    def validate_next_review_date(self, value):
-        if value:
-            today = timezone.now().date()
-            if value < today:
-                raise ValidationError(strings.Cases.NextReviewDate.Errors.DATE_IN_PAST)
-        return value
 
 
 class ApplicationManageSubStatusSerializer(serializers.ModelSerializer):

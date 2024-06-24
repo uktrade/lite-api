@@ -40,7 +40,7 @@ def _validate_additional_documents(draft, errors):
     if documents:
         document_errors = _get_document_errors(
             documents,
-            processing_error=strings.Applications.Standard.ADDITIONAL_DOCUMENTS_PROCESSING,
+            processing_error=build_document_processing_error_message("an additional"),
             virus_error=strings.Applications.Standard.ADDITIONAL_DOCUMENTS_INFECTED,
         )
 
@@ -57,3 +57,17 @@ def validate_application_ready_for_submission(application):
     errors = _validate_additional_documents(application, errors)
 
     return errors
+
+
+def build_document_processing_error_message(document_type_description):
+    return f"We are still processing {document_type_description} document. Try submitting again in a few minutes."
+
+
+def get_document_type_description_from_party_type(party_type):
+    document_type_description = {
+        PartyType.CONSIGNEE: "a consignee",
+        PartyType.END_USER: "an end-user",
+        PartyType.THIRD_PARTY: "a third party",
+        PartyType.ULTIMATE_END_USER: "an ultimate end-user",
+    }
+    return document_type_description[party_type]
