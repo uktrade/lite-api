@@ -357,10 +357,10 @@ class ApplicationSubmission(APIView):
 
                 if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
                     set_case_flags_on_submitted_standard_application(application)
+                application.on_submit(old_status)
 
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
-                create_submitted_audit(request, application, old_status)
                 auto_generate_case_document(
                     "application_form",
                     application,

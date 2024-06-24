@@ -16,6 +16,7 @@ from api.applications.enums import (
 )
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager
+from api.applications.libraries.application_helpers import create_submitted_audit
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
@@ -42,7 +43,8 @@ from api.staticdata.statuses.libraries.case_status_validate import is_case_statu
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
-from api.users.models import ExporterUser, GovUser
+from api.users.enums import SystemUser
+from api.users.models import ExporterUser, GovUser, BaseUser
 from lite_content.lite_api.strings import PartyErrors
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
@@ -199,6 +201,20 @@ class BaseApplication(ApplicationPartyMixin, Case):
     class Meta:
         ordering = ["created_at"]
 
+    def on_submit(self, old_status):
+        additional_payload = {}
+        if self.amendment_of:
+            # Add an audit entry to the case that was superseded by this amendment
+            audit_trail_service.create_system_user_audit(
+                verb=AuditType.EXPORTER_SUBMITTED_AMENDMENT,
+                target=self.amendment_of,
+                payload={
+                    "amendment": {"reference_code": self.reference_code},
+                },
+            )
+            additional_payload["amendment_of"] = {"reference_code": self.amendment_of.reference_code}
+        create_submitted_audit(self.submitted_by, self, old_status, additional_payload)
+
     def add_to_queue(self, queue):
         case = self.get_case()
 
@@ -248,7 +264,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
-    def create_amendment(self):
+    def create_amendment(self, user):
         raise NotImplementedError()
 
 
@@ -359,13 +375,23 @@ class StandardApplication(BaseApplication, Clonable):
         return cloned_application
 
     @transaction.atomic
-    def create_amendment(self):
+    def create_amendment(self, user):
         amendment_application = self.clone(amendment_of=self)
-        # TODO: Do we need a log on the audit trail?
-        # Remove case from all queues and set status to superseded
         CaseQueue.objects.filter(case=self.case_ptr).delete()
-        self.status = get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT)
-        self.save()
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.EXPORTER_CREATED_AMENDMENT,
+            target=self.get_case(),
+            payload={},
+        )
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.AMENDMENT_CREATED,
+            target=amendment_application.case_ptr,
+            payload={"superseded_case": {"reference_code": self.reference_code}},
+            ignore_case_status=True,
+        )
+        system_user = BaseUser.objects.get(id=SystemUser.id)
+        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT))
         return amendment_application
 
 

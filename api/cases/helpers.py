@@ -2,8 +2,6 @@ from datetime import timedelta
 
 from api.audit_trail.enums import AuditType
 from api.common.dates import is_bank_holiday, is_weekend
-from api.cases.enums import CaseTypeReferenceEnum
-from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import BaseUser, GovUser, GovNotification
 from api.users.enums import SystemUser
 
@@ -33,35 +31,6 @@ def get_updated_case_ids(user: GovUser):
     cases = assigned_to_user_case_ids.union(assigned_as_case_officer_case_ids)
 
     return GovNotification.objects.filter(user_id=user.pk, case__id__in=cases).values_list("case__id", flat=True)
-
-
-def can_set_status(case, status):
-    """
-    Returns true or false depending on different case conditions
-    """
-    from api.compliance.models import ComplianceVisitCase
-    from api.compliance.helpers import compliance_visit_case_complete
-
-    reference_type = case.case_type.reference
-
-    if reference_type == CaseTypeReferenceEnum.COMP_SITE and status not in CaseStatusEnum.compliance_site_statuses:
-        return False
-    elif reference_type == CaseTypeReferenceEnum.COMP_VISIT and status not in CaseStatusEnum.compliance_visit_statuses:
-        return False
-
-    if case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT and CaseStatusEnum.is_terminal(status):
-        comp_case = ComplianceVisitCase.objects.get(id=case.id)
-        if not compliance_visit_case_complete(comp_case):
-            return False
-
-    if reference_type == CaseTypeReferenceEnum.CRE and status not in [
-        CaseStatusEnum.CLOSED,
-        CaseStatusEnum.SUBMITTED,
-        CaseStatusEnum.RESUBMITTED,
-    ]:
-        return False
-
-    return True
 
 
 def working_days_in_range(start_date, end_date):

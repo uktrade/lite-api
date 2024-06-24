@@ -1,14 +1,13 @@
 from django.forms import model_to_dict
 from django.utils import timezone
-from freezegun import freeze_time
 
 from test_helpers.clients import DataTestClient
 
 from api.appeals.tests.factories import AppealFactory
+from api.audit_trail.models import Audit
 from api.cases.models import CaseType, Queue
 from api.flags.models import Flag
 from api.applications.models import (
-    ExternalLocationOnApplication,
     GoodOnApplication,
     GoodOnApplicationDocument,
     GoodOnApplicationInternalDocument,
@@ -30,9 +29,50 @@ from api.users.models import GovUser, ExporterUser
 from api.goods.tests.factories import FirearmFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.users.models import ExporterUser
+
+
+class TestBaseApplication(DataTestClient):
+
+    def test_on_submit_new_application(self):
+        draft_status = CaseStatus.objects.get(status="draft")
+        submitted_by = ExporterUser.objects.first()
+        # Use StandardApplication as BaseApplication is an abstract model
+        application = StandardApplicationFactory(
+            status=draft_status,
+            submitted_by=submitted_by,
+        )
+        application.on_submit(draft_status.status)
+        submitted_audit_entry = Audit.objects.first()
+        assert submitted_audit_entry.verb == "updated_status"
+        assert submitted_audit_entry.payload == {"status": {"new": "submitted", "old": "draft"}}
+        assert submitted_audit_entry.actor == submitted_by
+
+    def test_on_submit_amendment_application(self):
+        draft_status = CaseStatus.objects.get(status="draft")
+        submitted_by = ExporterUser.objects.first()
+        # Use StandardApplication as BaseApplication is an abstract model
+        original_application = StandardApplicationFactory()
+        amendment_application = StandardApplicationFactory(
+            status=draft_status,
+            submitted_by=submitted_by,
+            amendment_of=original_application.case_ptr,
+        )
+        amendment_application.on_submit(draft_status.status)
+        audit_entries = Audit.objects.all()
+        submitted_audit_entry = audit_entries[0]
+        assert submitted_audit_entry.verb == "updated_status"
+        assert submitted_audit_entry.payload == {
+            "status": {"new": "submitted", "old": "draft"},
+            "amendment_of": {"reference_code": original_application.reference_code},
+        }
+        assert submitted_audit_entry.actor == submitted_by
+        amendment_audit_entry = audit_entries[1]
+        assert amendment_audit_entry.verb == "exporter_submitted_amendment"
+        assert amendment_audit_entry.target == original_application.case_ptr
+        assert amendment_audit_entry.payload == {"amendment": {"reference_code": amendment_application.reference_code}}
 
 
 class TestStandardApplication(DataTestClient):
@@ -44,7 +84,8 @@ class TestStandardApplication(DataTestClient):
         original_application.queues.add(Queue.objects.first())
         original_application.save()
 
-        amendment_application = original_application.create_amendment()
+        exporter_user = ExporterUser.objects.first()
+        amendment_application = original_application.create_amendment(exporter_user)
         # Ensure the amendment application has been saved to the DB - by retrieving it directly
         amendment_application = StandardApplication.objects.get(id=amendment_application.id)
         # It's unnecessary to be exhaustive in testing clone functionality as that is done below
@@ -53,6 +94,20 @@ class TestStandardApplication(DataTestClient):
         original_application.refresh_from_db()
         assert original_application.status.status == "superseded_by_amendment"
         assert original_application.queues.all().count() == 0
+        audit_entries = Audit.objects.all()
+        supersede_audit_entry = audit_entries[1]
+        assert supersede_audit_entry.payload == {
+            "superseded_case": {"reference_code": original_application.reference_code}
+        }
+        assert supersede_audit_entry.verb == "amendment_created"
+        assert supersede_audit_entry.target == amendment_application.case_ptr
+        amendment_audit_entry = audit_entries[2]
+        assert amendment_audit_entry.payload == {}
+        assert amendment_audit_entry.verb == "exporter_created_amendment"
+        assert amendment_audit_entry.actor == exporter_user
+        status_change_audit_entry = audit_entries[0]
+        assert status_change_audit_entry.payload == {"status": {"new": "Superseded by amendment", "old": "ogd_advice"}}
+        assert status_change_audit_entry.verb == "updated_status"
 
     def test_clone(self):
         original_application = StandardApplicationFactory(

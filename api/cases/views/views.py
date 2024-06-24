@@ -6,7 +6,7 @@ from django.http.response import JsonResponse, HttpResponse
 from django.contrib.contenttypes.models import ContentType
 
 from rest_framework import status
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 
@@ -18,6 +18,7 @@ from api.applications.serializers.advice import (
     CountryWithFlagsSerializer,
     CountersignDecisionAdviceSerializer,
 )
+from api.applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases import notify
@@ -186,9 +187,12 @@ class CaseDetail(APIView):
         Change case status
         """
         case = get_case(pk)
-        case.change_status(
-            request.user, get_case_status_by_status(request.data.get("status")), request.data.get("note")
-        )
+        new_status = get_case_status_by_status(request.data.get("status"))
+
+        if not can_status_be_set_by_gov_user(request.user.govuser, case.status.status, new_status.status, is_mod=False):
+            raise ValidationError({"status": ["Status cannot be set by user"]})
+
+        case.change_status(request.user, new_status, request.data.get("note"))
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
