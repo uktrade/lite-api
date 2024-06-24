@@ -13,7 +13,6 @@ from dbt_copilot_python.utility import is_copilot
 
 from django_log_formatter_ecs import ECSFormatter
 from django_log_formatter_asim import ASIMFormatter
-from dbt_copilot_python.utility import is_copilot
 
 
 from django.urls import reverse_lazy
