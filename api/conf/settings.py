@@ -365,6 +365,7 @@ if LITE_API_ENABLE_ES:
         "django_elasticsearch_dsl_drf",
     ]
 
+ENV = env("ENV")
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
 
@@ -379,7 +380,7 @@ LOGGING = {
     },
 }
 
-if env.str("ENV") == "local":
+if ENV == "local":
     LOGGING.update({"formatters": {"simple": {"format": "{asctime} {levelname} {message}", "style": "{"}}})
     LOGGING["handlers"].update({"stdout": {"class": "logging.StreamHandler", "formatter": "simple"}})
     LOGGING.update({"root": {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}})
@@ -432,7 +433,6 @@ GOV_NOTIFY_ENABLED = env("GOV_NOTIFY_ENABLED")
 
 GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
 
-ENV = env("ENV")
 # If EXPORTER_BASE_URL is not in env vars, build the base_url using the environment
 EXPORTER_BASE_URL = env("EXPORTER_BASE_URL") or f"https://exporter.lite.service.{ENV}.uktrade.digital"
 
