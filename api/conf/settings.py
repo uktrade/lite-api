@@ -9,6 +9,7 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 from dbt_copilot_python.network import setup_allowed_hosts
+from dbt_copilot_python.utility import is_copilot
 
 from django_log_formatter_ecs import ECSFormatter
 from django_log_formatter_asim import ASIMFormatter
@@ -379,9 +380,7 @@ LOGGING = {
     },
 }
 
-ENV = env.str("ENV", "")
-
-if ENV == "local":
+if env.str("ENV") == "local":
     LOGGING.update({"formatters": {"simple": {"format": "{asctime} {levelname} {message}", "style": "{"}}})
     LOGGING["handlers"].update({"stdout": {"class": "logging.StreamHandler", "formatter": "simple"}})
     LOGGING.update({"root": {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}})
@@ -434,6 +433,7 @@ GOV_NOTIFY_ENABLED = env("GOV_NOTIFY_ENABLED")
 
 GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
 
+ENV = env("ENV")
 # If EXPORTER_BASE_URL is not in env vars, build the base_url using the environment
 EXPORTER_BASE_URL = env("EXPORTER_BASE_URL") or f"https://exporter.lite.service.{ENV}.uktrade.digital"
 
