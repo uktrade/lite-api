@@ -141,6 +141,9 @@ class AuditType(LiteEnum):
     LU_CREATE_MEETING_NOTE = autostr()
     CREATE_REFUSAL_CRITERIA = autostr()
     EXPORTER_APPEALED_REFUSAL = autostr()
+    EXPORTER_CREATED_AMENDMENT = autostr()
+    EXPORTER_SUBMITTED_AMENDMENT = autostr()
+    AMENDMENT_CREATED = autostr()
 
     def human_readable(self):
         """
