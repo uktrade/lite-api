@@ -6,7 +6,8 @@ services:
       - .env
     depends_on:
       - db
-      - opensearch
+      - postgres13_db
+      - elasticsearch
       - redis
     build:
       context: .
@@ -29,15 +30,17 @@ services:
     env_file: .env
     links:
       - db
+      - postgres13_db
       - redis
     depends_on:
       - api
       - db
-      - opensearch
+      - postgres13_db
+      - elasticsearch
       - redis
     entrypoint: dockerize -wait tcp://db:5432 -wait tcp://api:8100
     command: celery -A api.conf worker -l info
-    
+
   celery-scheduler:
     build: .
     volumes:
@@ -45,17 +48,20 @@ services:
     env_file: .env
     links:
       - db
+      - postgres13_db
       - redis
     depends_on:
       - api
       - db
-      - opensearch
+      - postgres13_db
+      - elasticsearch
       - redis
     entrypoint: dockerize -wait tcp://db:5432 -wait tcp://api:8100
     command: celery -A api.conf beat
-    
+
   db:
-    image: gcr.io/sre-docker-registry/lite-db:latest
+
+    image: postgres:12
     environment:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=lite-api
@@ -64,17 +70,25 @@ services:
     ports:
       - 5462:5432
 
-  # opensearch Docker Images: https://hub.docker.com/r/opensearchproject/opensearch
-  opensearch:
-    image: opensearchproject/opensearch:2.14.0
-    container_name: opensearch
+  postgres13_db:
+    image: postgres:13
     environment:
-      - cluster.name=cluster-001
-      - node.name=node-001
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=lite-api
+    expose:
+      - 5432
+    ports:
+      - 5463:5432
+
+  # Elasticsearch Docker Images: https://www.docker.elastic.co/
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+    container_name: elasticsearch
+    environment:
+      - xpack.security.enabled=false
+      - xpack.ml.enabled=false
       - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - DISABLE_INSTALL_DEMO_CONFIG=true # Prevents execution of bundled demo script which installs demo certificates and security configurations to OpenSearch
-      - DISABLE_SECURITY_PLUGIN=true # Disables security plugin
+      - ES_JAVA_OPTS=-Xms128m -Xmx1g
     ulimits:
       memlock:
         soft: -1
@@ -85,7 +99,7 @@ services:
     cap_add:
       - IPC_LOCK
     volumes:
-      - opensearch-data:/usr/share/opensearch/data
+      - elasticsearch-data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
       - 9300:9300
@@ -99,5 +113,5 @@ services:
       - 6379:6379
 
 volumes:
-  opensearch-data:
+  elasticsearch-data:
     driver: local
