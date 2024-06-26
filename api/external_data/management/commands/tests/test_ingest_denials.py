@@ -1,5 +1,6 @@
 from api.applications.tests.factories import (
-    DenialMatchFactory,
+    DenialEntityFactory,
+    DenialFactory,
     DenialMatchOnApplicationFactory,
     StandardApplicationFactory,
 )
@@ -28,13 +29,12 @@ def json_file_data():
                         "address": "somewhere\nmid\nlatter\nCairo",
                         "notifying_government": "United Kingdom",
                         "country": "United States",
-                        "item_list_codes": "123456",
+                        "denial_cle": "123456",
                         "item_description": "phone",
                         "end_use": "locating phone",
                         "end_user_flag": "true",
                         "consignee_flag": "true",
                         "reason_for_refusal": "reason a",
-                        "spire_entity_id": 1234,
                     },
                     {
                         "reference": "DN001\/0002",
@@ -43,7 +43,7 @@ def json_file_data():
                         "address": "no address given",
                         "notifying_government": "Germany",
                         "country": "France",
-                        "item_list_codes": "12345\/2009",
+                        "denial_cle": "12345\/2009",
                         "item_description": "testing machine",
                         "end_use": "For teaching purposes",
                         "end_user_flag": "false",
@@ -98,7 +98,7 @@ def test_populate_denials(mock_json_content, mock_delete_file, json_file_data):
     assert denial_record.address == "somewhere\nmid\nlatter\nCairo"
     assert denial_record.denial.notifying_government == "United Kingdom"
     assert denial_record.country == "United States"
-    assert denial_record.denial.item_list_codes == "123456"
+    assert denial_record.denial.denial_cle == "123456"
     assert denial_record.denial.item_description == "phone"
     assert denial_record.denial.end_use == "locating phone"
     assert denial_record.denial.regime_reg_ref == "12"
@@ -139,8 +139,8 @@ def test_populate_denials_with_existing_matching_records(mock_get_file, mock_del
     mock_get_file.return_value = json_file_data
     case = StandardApplicationFactory()
 
-    denial_enity = DenialMatchFactory(regime_reg_ref="12", name="Test1 case")
-    DenialMatchOnApplicationFactory(application=case, category="exact", denial=denial_enity)
+    denial_enity = DenialEntityFactory(denial=DenialFactory(regime_reg_ref="12"), name="Test1 case")
+    DenialMatchOnApplicationFactory(application=case, category="exact", denial_entity=denial_enity)
 
     call_command("ingest_denials", "json_file")
 
@@ -152,7 +152,7 @@ def test_populate_denials_with_existing_matching_records(mock_get_file, mock_del
 @mock.patch.object(ingest_denials.s3_operations, "get_object")
 def test_populate_denials_with_no_data_in_file(mock_get_file, mock_delete_file):
     mock_get_file.return_value = {"Body": io.StringIO(json.dumps([]))}
-    DenialMatchFactory()
+    DenialEntityFactory()
 
     call_command("ingest_denials", "json_file")
 

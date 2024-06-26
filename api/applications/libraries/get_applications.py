@@ -53,7 +53,7 @@ def get_application(pk, organisation_id=None):
         "goods__good_on_application_internal_documents",
         "goods__good_on_application_internal_documents__document",
         "denial_matches",
-        "denial_matches__denial",
+        "denial_matches__denial_entity",
         "application_sites",
         "application_sites__site",
         "application_sites__site__address",

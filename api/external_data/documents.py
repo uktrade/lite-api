@@ -59,9 +59,13 @@ address_analyzer = analysis.analyzer(
     filter=["lowercase", "asciifolding", "trim", address_stop_words_filter, ngram_filter],
 )
 
+# Previously the tokenizer was whitespace, but this was changed to standard
+# as the whitespace tokenizer was splitting on hyphens and including commas in the tokens
+# standard tokenizer will remove these characters
+
 address_analyzer_no_ngram = analysis.analyzer(
     "address_analyzer",
-    tokenizer="whitespace",
+    tokenizer="standard",
     filter=["lowercase", "asciifolding", "trim", address_stop_words_filter],
 )
 
@@ -84,34 +88,18 @@ class DenialEntityDocument(Document):
             "raw": fields.KeywordField(normalizer=lowercase_normalizer),
         },
     )
-    data = DataField()
     entity_type = fields.TextField()
 
     is_revoked = fields.BooleanField(attr="denial.is_revoked")
     notifying_government = fields.KeywordField(attr="denial.notifying_government")
+    item_description = fields.TextField(attr="denial.item_description")
+    denial_cle = fields.TextField(attr="denial.denial_cle")
+    regime_reg_ref = fields.TextField(attr="denial.regime_reg_ref")
     denial = fields.ObjectField(
         attr="denial",
         properties={
-            "regime_reg_ref": fields.TextField(
-                attr="regime_reg_ref",
-                fields={
-                    "raw": fields.KeywordField(),
-                },
-            ),
             "reference": fields.TextField(
                 attr="reference",
-                fields={
-                    "raw": fields.KeywordField(),
-                },
-            ),
-            "item_list_codes": fields.TextField(
-                attr="item_list_codes",
-                fields={
-                    "raw": fields.KeywordField(),
-                },
-            ),
-            "item_description": fields.TextField(
-                attr="item_description",
                 fields={
                     "raw": fields.KeywordField(),
                 },

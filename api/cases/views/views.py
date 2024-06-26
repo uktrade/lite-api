@@ -6,7 +6,7 @@ from django.http.response import JsonResponse, HttpResponse
 from django.contrib.contenttypes.models import ContentType
 
 from rest_framework import status
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 
@@ -18,6 +18,7 @@ from api.applications.serializers.advice import (
     CountryWithFlagsSerializer,
     CountersignDecisionAdviceSerializer,
 )
+from api.applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases import notify
@@ -58,7 +59,6 @@ from api.cases.models import (
     Advice,
     GoodCountryDecision,
     CaseAssignment,
-    CaseReviewDate,
 )
 from api.cases.models import CountersignAdvice
 from api.cases.notify import (
@@ -75,7 +75,6 @@ from api.cases.serializers import (
     EcjuQueryGovSerializer,
     AdviceViewSerializer,
     CaseOfficerUpdateSerializer,
-    ReviewDateUpdateSerializer,
     EcjuQueryExporterViewSerializer,
     EcjuQueryUserResponseSerializer,
     EcjuQueryDocumentCreateSerializer,
@@ -86,7 +85,6 @@ from api.core import constants
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from api.core.constants import GovPermissions
 from api.core.exceptions import NotFoundError
-from api.core.helpers import convert_date_to_string
 from api.core.permissions import assert_user_has_permission
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.libraries.s3_operations import document_download_stream
@@ -189,9 +187,12 @@ class CaseDetail(APIView):
         Change case status
         """
         case = get_case(pk)
-        case.change_status(
-            request.user, get_case_status_by_status(request.data.get("status")), request.data.get("note")
-        )
+        new_status = get_case_status_by_status(request.data.get("status"))
+
+        if not can_status_be_set_by_gov_user(request.user.govuser, case.status.status, new_status.status, is_mod=False):
+            raise ValidationError({"status": ["Status cannot be set by user"]})
+
+        case.change_status(request.user, new_status, request.data.get("note"))
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
@@ -1066,61 +1067,6 @@ class CaseApplicant(APIView):
             {"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email},
             status=status.HTTP_200_OK,
         )
-
-
-class NextReviewDate(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    @transaction.atomic
-    def put(self, request, pk):
-        """
-        Sets a next review date for a case
-        """
-        case = get_case(pk)
-        next_review_date = request.data.get("next_review_date")
-
-        current_review_date = CaseReviewDate.objects.filter(case_id=case.id, team_id=request.user.govuser.team.id)
-        data = {"next_review_date": next_review_date, "case": case.id, "team": request.user.govuser.team.id}
-
-        if current_review_date.exists():
-            current_review_date = current_review_date.get()
-            old_next_review_date = current_review_date.next_review_date
-            serializer = ReviewDateUpdateSerializer(instance=current_review_date, data=data)
-        else:
-            old_next_review_date = None
-            serializer = ReviewDateUpdateSerializer(data=data)
-
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-
-            team = request.user.govuser.team.name
-            if old_next_review_date is None and next_review_date:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.ADDED_NEXT_REVIEW_DATE,
-                    target=case,
-                    payload={"next_review_date": convert_date_to_string(next_review_date), "team_name": team},
-                )
-            elif old_next_review_date and next_review_date and str(old_next_review_date) != next_review_date:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.EDITED_NEXT_REVIEW_DATE,
-                    target=case,
-                    payload={
-                        "new_date": convert_date_to_string(next_review_date),
-                        "old_date": convert_date_to_string(old_next_review_date),
-                        "team_name": team,
-                    },
-                )
-            elif old_next_review_date and next_review_date is None:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.REMOVED_NEXT_REVIEW_DATE,
-                    target=case,
-                    payload={"team_name": team},
-                )
-
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class CountersignAdviceView(APIView):

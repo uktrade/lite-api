@@ -91,8 +91,3 @@ class EnforcementCheckIDAdmin(admin.ModelAdmin):
         "entity_type",
     )
     list_filter = ("entity_type",)
-
-
-@admin.register(models.CaseReviewDate)
-class CaseReviewDateAdmin(admin.ModelAdmin):
-    list_display = ("id",)

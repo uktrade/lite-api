@@ -5,7 +5,7 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
-from api.applications.tests.factories import DenialMatchFactory
+from api.applications.tests.factories import DenialEntityFactory
 from api.external_data import models
 from test_helpers.clients import DataTestClient
 
@@ -108,11 +108,11 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
     def test_view_denial_notifications_on_the_application(self):
         data = []
         for index in range(10):
-            denial = DenialMatchFactory()
+            denial_entity = DenialEntityFactory()
             data.append(
                 {
                     "application": self.application.id,
-                    "denial": denial.id,
+                    "denial_entity": denial_entity.id,
                     "category": "exact" if (index % 2) else "partial",
                 }
             )

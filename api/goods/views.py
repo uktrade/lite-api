@@ -1,13 +1,10 @@
-import logging
-
-from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework.views import APIView
 
 from api.applications.models import (
@@ -15,6 +12,7 @@ from api.applications.models import (
     GoodOnApplicationInternalDocument,
 )
 from api.cases.libraries.delete_notifications import delete_exporter_notifications
+from api.conf.pagination import MaxFiftyPageSizePaginator
 from api.core.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from api.core.exceptions import BadRequestError
 from api.core.helpers import str_to_bool
@@ -22,8 +20,7 @@ from api.core.filters import ParentFilter
 from api.core.views import DocumentStreamAPIView
 from api.documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from api.documents.models import Document
-from api.goods.enums import GoodStatus, GoodPvGraded, ItemCategory
-from api.goods.goods_paginator import GoodListPaginator
+from api.goods.enums import GoodStatus, ItemCategory
 from api.goods.helpers import (
     FIREARMS_CORE_TYPES,
     check_if_firearm_details_edited_on_unsupported_good,
@@ -61,13 +58,11 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.queries.goods_query.models import GoodsQuery
 from api.users.models import ExporterNotification
 
-good_overview_put_deletion_logger = logging.getLogger(settings.GOOD_OVERVIEW_PUT_DELETION_LOGGER)
-
 
 class GoodList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GoodListSerializer
-    pagination_class = GoodListPaginator
+    pagination_class = MaxFiftyPageSizePaginator
 
     def get_serializer_context(self):
         return {
@@ -88,7 +83,7 @@ class GoodList(ListCreateAPIView):
             name__icontains=name,
             description__icontains=description,
             part_number__icontains=part_number,
-        )
+        ).exclude(is_archived=True)
 
         if control_list_entry:
             queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
@@ -171,6 +166,32 @@ class GoodList(ListCreateAPIView):
         serializer = GoodCreateSerializer(data=data)
 
         return create_or_update_good(serializer, data, is_created=True)
+
+
+class ArchivedGoodList(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = GoodListSerializer
+    pagination_class = MaxFiftyPageSizePaginator
+
+    def get_queryset(self):
+        name = self.request.GET.get("name", "")
+        part_number = self.request.GET.get("part_number", "")
+        control_list_entry = self.request.GET.get("control_list_entry")
+        organisation = get_request_user_organisation_id(self.request)
+
+        queryset = Good.objects.filter(
+            organisation_id=organisation,
+            name__icontains=name,
+            part_number__icontains=part_number,
+            is_archived=True,
+        )
+
+        if control_list_entry:
+            queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
+
+        queryset = queryset.prefetch_related("control_list_entries")
+
+        return queryset.order_by("-updated_at")
 
 
 class GoodDocumentAvailabilityCheck(APIView):
@@ -325,20 +346,7 @@ class GoodOverview(APIView):
         if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
 
-        if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
         data = request.data.copy()
-
-        if data.get("is_good_controlled") is None or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED:
-            good_overview_put_deletion_logger.warning(
-                "Code removed: we would have just deleted GoodOnApplication for good id: %s sending data: %s",
-                good.id,
-                data,
-            )
-
         data["organisation"] = get_request_user_organisation_id(request)
 
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)

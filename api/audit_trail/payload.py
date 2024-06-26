@@ -159,4 +159,7 @@ audit_type_format = {
     AuditType.LU_CREATE_MEETING_NOTE: formatters.create_lu_meeting_note,
     AuditType.CREATE_REFUSAL_CRITERIA: formatters.create_refusal_criteria,
     AuditType.EXPORTER_APPEALED_REFUSAL: " appealed refusal",
+    AuditType.EXPORTER_CREATED_AMENDMENT: " opened the application for a 'major edit'",
+    AuditType.EXPORTER_SUBMITTED_AMENDMENT: formatters.exporter_submitted_amendment,
+    AuditType.AMENDMENT_CREATED: formatters.amendment_created,
 }

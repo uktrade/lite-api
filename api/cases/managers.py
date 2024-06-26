@@ -227,7 +227,7 @@ class CaseQuerySet(models.QuerySet):
         return self
 
     def exclude_denial_matches(self):
-        return self.exclude(baseapplication__denial_matches__denial__is_revoked=False)
+        return self.exclude(baseapplication__denial_matches__denial_entity__denial__is_revoked=False)
 
     def exclude_sanction_matches(self):
         return self.exclude(baseapplication__parties__sanction_matches__is_revoked=False)
@@ -328,19 +328,10 @@ class CaseManager(models.Manager):
 
         if not include_hidden and user:
             EcjuQuery = apps.get_model("cases", "ecjuquery")
-            CaseReviewDate = apps.get_model("cases", "casereviewdate")
-
             case_qs = case_qs.exclude(
                 id__in=EcjuQuery.objects.filter(raised_by_user__team_id=user.team.id, is_query_closed=False)
                 .values("case_id")
                 .distinct()
-            )
-
-            # We hide cases that have a next review date that is set in the future (for your team)
-            case_qs = case_qs.exclude(
-                id__in=CaseReviewDate.objects.filter(
-                    team_id=user.team.id, next_review_date__gt=timezone.localtime().date()
-                ).values("case_id")
             )
 
         if queue_id and user:

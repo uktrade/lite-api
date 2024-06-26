@@ -4,17 +4,22 @@ from faker import Faker
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.models import (
+    ApplicationDocument,
+    ExternalLocationOnApplication,
     PartyOnApplication,
     DenialMatchOnApplication,
     SiteOnApplication,
     GoodOnApplication,
+    GoodOnApplicationDocument,
+    GoodOnApplicationInternalDocument,
     StandardApplication,
 )
 from api.cases.enums import CaseTypeEnum
-from api.external_data.models import DenialEntity, SanctionMatch
+from api.external_data.models import Denial, DenialEntity, SanctionMatch
+from api.documents.tests.factories import DocumentFactory
 from api.staticdata.statuses.models import CaseStatus
 from api.goods.tests.factories import GoodFactory
-from api.organisations.tests.factories import OrganisationFactory, SiteFactory
+from api.organisations.tests.factories import OrganisationFactory, SiteFactory, ExternalLocationFactory
 from api.parties.tests.factories import PartyFactory
 from api.users.tests.factories import ExporterUserFactory, GovUserFactory
 from api.staticdata.control_list_entries.helpers import get_control_list_entry
@@ -79,8 +84,8 @@ class SiteOnApplicationFactory(factory.django.DjangoModelFactory):
 
 
 class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
-    application = factory.SubFactory(StandardApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
-    good = factory.SubFactory(GoodFactory, organisation=factory.SelfAttribute("..organisation"))
+    application = factory.SubFactory(StandardApplicationFactory)
+    good = factory.SubFactory(GoodFactory)
     is_good_controlled = None
 
     @factory.post_generation
@@ -116,17 +121,46 @@ class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
         model = GoodOnApplication
 
 
-class DenialMatchFactory(factory.django.DjangoModelFactory):
-    created_by = factory.SubFactory(GovUserFactory)
+class GoodOnApplicationDocumentFactory(DocumentFactory):
+    application = factory.SubFactory(StandardApplicationFactory)
+    good = factory.SubFactory(GoodFactory)
+    user = factory.SubFactory(ExporterUserFactory)
+    good_on_application = factory.SubFactory(
+        GoodOnApplicationFactory,
+        application=factory.SelfAttribute("..application"),
+        good=factory.SelfAttribute("..good"),
+    )
+
+    class Meta:
+        model = GoodOnApplicationDocument
+
+
+class GoodOnApplicationInternalDocumentFactory(DocumentFactory):
+    good_on_application = factory.SubFactory(GoodOnApplicationFactory)
+
+    class Meta:
+        model = GoodOnApplicationInternalDocument
+
+
+class DenialFactory(factory.django.DjangoModelFactory):
+    created_by_user = factory.SubFactory(GovUserFactory)
     reference = factory.LazyAttribute(lambda n: faker.uuid4())
+    regime_reg_ref = factory.LazyAttribute(lambda n: faker.lexify(text="ABN/OREF-???????????"))
+    notifying_government = factory.LazyAttribute(lambda n: faker.country())
+    denial_cle = factory.LazyAttribute(lambda n: faker.word())
+    item_description = factory.LazyAttribute(lambda n: faker.sentence())
+    end_use = factory.LazyAttribute(lambda n: faker.sentence())
+
+    class Meta:
+        model = Denial
+
+
+class DenialEntityFactory(factory.django.DjangoModelFactory):
+    created_by = factory.SubFactory(GovUserFactory)
     name = factory.LazyAttribute(lambda n: faker.name())
     address = factory.LazyAttribute(lambda n: faker.address())
-    notifying_government = factory.LazyAttribute(lambda n: faker.country())
     country = factory.LazyAttribute(lambda n: faker.country())
-    item_list_codes = factory.LazyAttribute(lambda n: faker.word())
-    item_description = factory.LazyAttribute(lambda n: faker.sentence())
-    consignee_name = factory.LazyAttribute(lambda n: faker.name())
-    end_use = factory.LazyAttribute(lambda n: faker.sentence())
+    denial = factory.SubFactory(DenialFactory)
 
     class Meta:
         model = DenialEntity
@@ -135,10 +169,35 @@ class DenialMatchFactory(factory.django.DjangoModelFactory):
 class DenialMatchOnApplicationFactory(factory.django.DjangoModelFactory):
     category = factory.Iterator(["partial", "exact"])
     application = factory.SubFactory(StandardApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
-    denial = factory.SubFactory(DenialMatchFactory)
+    denial_entity = factory.SubFactory(DenialEntityFactory)
 
     class Meta:
         model = DenialMatchOnApplication
+
+
+class ApplicationDocumentFactory(DocumentFactory):
+    application = factory.SubFactory(StandardApplicationFactory)
+
+    class Meta:
+        model = ApplicationDocument
+
+
+class DenialExactMatchOnApplicationFactory(DenialMatchOnApplicationFactory):
+    category = "exact"
+    application = factory.SubFactory(StandardApplicationFactory)
+
+
+class DenialPartialMatchOnApplicationFactory(DenialMatchOnApplicationFactory):
+    category = "partial"
+    application = factory.SubFactory(StandardApplicationFactory)
+
+
+class ExternalLocationOnApplicationFactory(factory.django.DjangoModelFactory):
+    application = factory.SubFactory(StandardApplicationFactory)
+    external_location = factory.SubFactory(ExternalLocationFactory)
+
+    class Meta:
+        model = ExternalLocationOnApplication
 
 
 class SanctionMatchFactory(factory.django.DjangoModelFactory):

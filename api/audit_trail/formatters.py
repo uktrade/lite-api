@@ -176,6 +176,8 @@ def upload_party_document(**payload):
 def get_updated_status(**payload):
     status = payload.get("status", "").lower()
     if status == CaseStatusEnum.SUBMITTED:
+        if payload.get("amendment_of"):
+            return f"submitted a 'major edit' to case {payload['amendment_of']['reference_code']}."
         return "applied for a licence."
     if status == CaseStatusEnum.RESUBMITTED:
         return "reapplied for a licence."
@@ -339,3 +341,11 @@ def create_lu_meeting_note(advice_type, **payload):
 
 def create_refusal_criteria(**payload):
     return " added refusal criteria."
+
+
+def exporter_submitted_amendment(**payload):
+    return f"created a new case for the edited application at {payload['amendment']['reference_code']}."
+
+
+def amendment_created(**payload):
+    return f"created the case to supersede {payload['superseded_case']['reference_code']}."

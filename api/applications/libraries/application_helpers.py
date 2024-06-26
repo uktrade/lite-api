@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 
 from rest_framework import status
-from rest_framework.request import Request
 from rest_framework.exceptions import PermissionDenied
 
 from api.audit_trail import service as audit_trail_service
@@ -68,17 +67,23 @@ def can_status_be_set_by_gov_user(user: GovUser, original_status: str, new_statu
     return True
 
 
-def create_submitted_audit(request: Request, application, old_status: str) -> None:
+def create_submitted_audit(user, application, old_status: str, additional_payload=None) -> None:
+    if not additional_payload:
+        additional_payload = {}
+
+    payload = {
+        "status": {
+            "new": CaseStatusEnum.RESUBMITTED if old_status != CaseStatusEnum.DRAFT else CaseStatusEnum.SUBMITTED,
+            "old": old_status,
+        },
+        **additional_payload,
+    }
+
     audit_trail_service.create(
-        actor=request.user,
+        actor=user,
         verb=AuditType.UPDATED_STATUS,
         target=application.get_case(),
-        payload={
-            "status": {
-                "new": CaseStatusEnum.RESUBMITTED if old_status != CaseStatusEnum.DRAFT else CaseStatusEnum.SUBMITTED,
-                "old": old_status,
-            }
-        },
+        payload=payload,
         ignore_case_status=True,
         send_notification=False,
     )

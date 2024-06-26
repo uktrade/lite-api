@@ -18,6 +18,7 @@ from api.cases.enums import CaseTypeEnum, AdviceType
 from api.cases.generated_documents.helpers import html_to_pdf
 from api.letter_templates.helpers import generate_preview, DocumentPreviewError
 from api.cases.generated_documents.models import GeneratedCaseDocument
+from api.cases.generated_documents.signing import sign_pdf
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import StandardLicenceFactory
 from api.staticdata.decisions.models import Decision
@@ -527,13 +528,18 @@ class TestGeneratedTemplatePDF(DataTestClient):
             ("nlr", "No licence required letter"),
             ("refusal", "Refusal letter"),
             ("siel", "Standard individual export licence"),
-            ("inform_letter", ""),
+            ("inform_letter", "Inform letter"),
         ],
     )
     def test_pdf_titles(self, temp, title):
+        # Make sure this setting is True
+        settings.DOCUMENT_SIGNING_ENABLED = True
+
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         html = generate_preview(layout=temp, case=case, text="")
         pdf = html_to_pdf(html, temp, None)
+        pdf = sign_pdf(pdf)
+
         with io.BytesIO(pdf) as open_pdf_file:
             reader = PdfFileReader(open_pdf_file)
             meta = reader.getDocumentInfo()

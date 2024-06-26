@@ -7,7 +7,16 @@ from urllib.parse import urlencode
 from environ import Env
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+
+from dbt_copilot_python.network import setup_allowed_hosts
+from dbt_copilot_python.database import database_url_from_env
+from dbt_copilot_python.utility import is_copilot
+
+import dj_database_url
+
 from django_log_formatter_ecs import ECSFormatter
+from django_log_formatter_asim import ASIMFormatter
+
 
 from django.urls import reverse_lazy
 
@@ -43,6 +52,12 @@ env = Env(
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 DEBUG = env("DEBUG")
+
+ENV = env("ENV")
+VCAP_SERVICES = env.json("VCAP_SERVICES", {})
+
+IS_ENV_DBT_PLATFORM = is_copilot()
+IS_ENV_GOV_PAAS = bool(VCAP_SERVICES)
 
 # Please use this to Enable/Disable the Admin site
 ADMIN_ENABLED = env("ADMIN_ENABLED", default=False)
@@ -122,11 +137,12 @@ INSTALLED_APPS = [
     "api.document_data",
     "api.survey",
     "django_db_anonymiser.db_anonymiser",
+    "reversion",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
 
-if "MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS":
+if MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS:
     INSTALLED_APPS += [
         "mock_virus_scan",
     ]
@@ -139,6 +155,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "reversion.middleware.RevisionMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -151,7 +168,7 @@ ROOT_URLCONF = "api.conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR + "/templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "debug": DEBUG,
@@ -237,54 +254,12 @@ STATICFILES_STORAGE = env.str("STATICFILES_STORAGE", "whitenoise.storage.Compres
 
 LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "templates", "letter_templates")
 
-# Database
-DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # AWS
-VCAP_SERVICES = env.json("VCAP_SERVICES", {})
 
 S3_BUCKET_TAG_FILE_UPLOADS = "file-uploads"
-
-if VCAP_SERVICES:
-    if "aws-s3-bucket" not in VCAP_SERVICES:
-        raise Exception("S3 Bucket not bound to environment")
-
-    for bucket_details in VCAP_SERVICES["aws-s3-bucket"]:
-        if S3_BUCKET_TAG_FILE_UPLOADS in bucket_details["tags"]:
-            aws_credentials = bucket_details["credentials"]
-            AWS_ENDPOINT_URL = None
-            AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
-            AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
-            AWS_REGION = aws_credentials["aws_region"]
-            AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
-else:
-    AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
-    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-    AWS_REGION = env("AWS_REGION")
-    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-
-if "redis" in VCAP_SERVICES:
-    REDIS_BASE_URL = VCAP_SERVICES["redis"][0]["credentials"]["uri"]
-else:
-    REDIS_BASE_URL = env("REDIS_BASE_URL", default=None)
-
-
-def _build_redis_url(base_url, db_number, **query_args):
-    encoded_query_args = urlencode(query_args)
-    return f"{base_url}/{db_number}?{encoded_query_args}"
-
-
-if REDIS_BASE_URL:
-    # Give celery tasks their own redis DB - future uses of redis should use a different DB
-    REDIS_CELERY_DB = env("REDIS_CELERY_DB", default=0)
-    is_redis_ssl = REDIS_BASE_URL.startswith("rediss://")
-    url_args = {"ssl_cert_reqs": "CERT_REQUIRED"} if is_redis_ssl else {}
-
-    CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
-    CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 CELERY_ALWAYS_EAGER = env.bool("CELERY_ALWAYS_EAGER", False)
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", False)
@@ -334,52 +309,8 @@ ELASTICSEARCH_DENIALS_INDEX_ALIAS = env.str("ELASTICSEARCH_DENIALS_INDEX_ALIAS",
 ELASTICSEARCH_PRODUCT_INDEX_ALIAS = env.str("ELASTICSEARCH_PRODUCT_INDEX_ALIAS", "products-alias")
 ELASTICSEARCH_APPLICATION_INDEX_ALIAS = env.str("ELASTICSEARCH_APPLICATION_INDEX_ALIAS", "application-alias")
 
-# Elasticsearch configuration
-LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
-if LITE_API_ENABLE_ES:
-    ELASTICSEARCH_DSL = {
-        "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
-    }
-
-    ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
-
-    ELASTICSEARCH_PRODUCT_INDEXES = {"LITE": ELASTICSEARCH_PRODUCT_INDEX_ALIAS}
-    ELASTICSEARCH_APPLICATION_INDEXES = {"LITE": ELASTICSEARCH_APPLICATION_INDEX_ALIAS}
-    SPIRE_APPLICATION_INDEX_NAME = env.str("SPIRE_APPLICATION_INDEX_NAME", "spire-application-alias")
-    SPIRE_PRODUCT_INDEX_NAME = env.str("SPIRE_PRODUCT_INDEX_NAME", "spire-products-alias")
-
-    if ENABLE_SPIRE_SEARCH:
-        ELASTICSEARCH_APPLICATION_INDEXES["SPIRE"] = SPIRE_APPLICATION_INDEX_NAME
-        ELASTICSEARCH_PRODUCT_INDEXES["SPIRE"] = SPIRE_PRODUCT_INDEX_NAME
-
-    INSTALLED_APPS += [
-        "django_elasticsearch_dsl",
-        "django_elasticsearch_dsl_drf",
-    ]
-
 
 DENIAL_REASONS_DELETION_LOGGER = "denial_reasons_deletion_logger"
-GOOD_OVERVIEW_PUT_DELETION_LOGGER = "good_overview_put_deletion_logger"
-
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "simple": {"format": "{asctime} {levelname} {message}", "style": "{"},
-        "ecs_formatter": {"()": ECSFormatter},
-    },
-    "handlers": {
-        "stdout": {"class": "logging.StreamHandler", "formatter": "simple"},
-        "ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"},
-        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
-    },
-    "root": {"handlers": ["stdout", "ecs"], "level": env("LOG_LEVEL").upper()},
-    "loggers": {
-        DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
-        GOOD_OVERVIEW_PUT_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
-    },
-}
 
 # Sentry
 if env.str("SENTRY_DSN", ""):
@@ -416,8 +347,6 @@ STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")
 GOV_NOTIFY_ENABLED = env("GOV_NOTIFY_ENABLED")
 
 GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
-
-ENV = env("ENV")
 
 # If EXPORTER_BASE_URL is not in env vars, build the base_url using the environment
 EXPORTER_BASE_URL = env("EXPORTER_BASE_URL") or f"https://exporter.lite.service.{ENV}.uktrade.digital"
@@ -473,7 +402,7 @@ SANCTION_LIST_SOURCES = env.json(
     {
         "un_sanctions_file": "https://scsanctions.un.org/resources/xml/en/consolidated.xml",
         "office_financial_sanctions_file": "https://ofsistorage.blob.core.windows.net/publishlive/2022format/ConList.xml",
-        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/media/65ca02639c5b7f0012951caf/UK_Sanctions_List.xml",
+        "uk_sanctions_file": "https://assets.publishing.service.gov.uk/media/65ca02639c5b7f0012951caf/UK_Sanctions_List.xml",  # /PS-IGNORE
     },
 )
 LITE_INTERNAL_NOTIFICATION_EMAILS = env.json("LITE_INTERNAL_NOTIFICATION_EMAILS", {})
@@ -506,11 +435,117 @@ BACKUP_DOCUMENT_DATA_TO_DB = env("BACKUP_DOCUMENT_DATA_TO_DB", default=True)
 
 S3_BUCKET_TAG_ANONYMISER_DESTINATION = "anonymiser"
 
-if VCAP_SERVICES:
+ELASTICSEARCH_SANCTION_INDEX_ALIAS = env.str("ELASTICSEARCH_SANCTION_INDEX_ALIAS", "sanctions-alias")
+ELASTICSEARCH_DENIALS_INDEX_ALIAS = env.str("ELASTICSEARCH_DENIALS_INDEX_ALIAS", "denials-alias")
+ELASTICSEARCH_PRODUCT_INDEX_ALIAS = env.str("ELASTICSEARCH_PRODUCT_INDEX_ALIAS", "products-alias")
+ELASTICSEARCH_APPLICATION_INDEX_ALIAS = env.str("ELASTICSEARCH_APPLICATION_INDEX_ALIAS", "application-alias")
+
+DB_ANONYMISER_CONFIG_LOCATION = Path(BASE_DIR) / "conf" / "anonymise_model_config.yaml"
+DB_ANONYMISER_DUMP_FILE_NAME = env.str("DB_ANONYMISER_DUMP_FILE_NAME", "anonymised.sql")
+
+
+def _build_redis_url(base_url, db_number, **query_args):
+    encoded_query_args = urlencode(query_args)
+    return f"{base_url}/{db_number}?{encoded_query_args}"
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "sentry": {"class": "sentry_sdk.integrations.logging.EventHandler"},
+    },
+    "loggers": {
+        DENIAL_REASONS_DELETION_LOGGER: {"handlers": ["sentry"], "level": logging.WARNING},
+    },
+}
+
+if IS_ENV_DBT_PLATFORM:
+    ALLOWED_HOSTS = setup_allowed_hosts(ALLOWED_HOSTS)
+
+    DATABASES = {"default": dj_database_url.config(default=database_url_from_env("DATABASE_CREDENTIALS"))}
+    CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=None)
+    CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+    REDIS_BASE_URL = env("REDIS_BASE_URL", default=None)
+
+    # Elasticsearch configuration
+    LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
+    if LITE_API_ENABLE_ES:
+        ELASTICSEARCH_DSL = {
+            "default": {"hosts": env.str("OPENSEARCH_ENDPOINT")},
+        }
+
+        ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
+
+        ELASTICSEARCH_PRODUCT_INDEXES = {"LITE": ELASTICSEARCH_PRODUCT_INDEX_ALIAS}
+        ELASTICSEARCH_APPLICATION_INDEXES = {"LITE": ELASTICSEARCH_APPLICATION_INDEX_ALIAS}
+        SPIRE_APPLICATION_INDEX_NAME = env.str("SPIRE_APPLICATION_INDEX_NAME", "spire-application-alias")
+        SPIRE_PRODUCT_INDEX_NAME = env.str("SPIRE_PRODUCT_INDEX_NAME", "spire-products-alias")
+
+        if ENABLE_SPIRE_SEARCH:
+            ELASTICSEARCH_APPLICATION_INDEXES["SPIRE"] = SPIRE_APPLICATION_INDEX_NAME
+            ELASTICSEARCH_PRODUCT_INDEXES["SPIRE"] = SPIRE_PRODUCT_INDEX_NAME
+
+        INSTALLED_APPS += [
+            "django_elasticsearch_dsl",
+            "django_elasticsearch_dsl_drf",
+        ]
+
+    LOGGING.update({"formatters": {"asim_formatter": {"()": ASIMFormatter}}})
+    LOGGING["handlers"].update({"asim": {"class": "logging.StreamHandler", "formatter": "asim_formatter"}})
+    LOGGING.update({"root": {"handlers": ["asim"], "level": env("LOG_LEVEL").upper()}})
+
+elif IS_ENV_GOV_PAAS:
+    # This has repeating code as this section can be deleted once migrated to DBT Platform
+    # Database
+    DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+    # redis
+    REDIS_BASE_URL = VCAP_SERVICES["redis"][0]["credentials"]["uri"]
+
+    if REDIS_BASE_URL:
+        # Give celery tasks their own redis DB - future uses of redis should use a different DB
+        REDIS_CELERY_DB = env("REDIS_CELERY_DB", default=0)
+        is_redis_ssl = REDIS_BASE_URL.startswith("rediss://")
+        url_args = {"ssl_cert_reqs": "CERT_REQUIRED"} if is_redis_ssl else {}
+
+        CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
+        CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+
+    # Elasticsearch configuration
+    LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
+    if LITE_API_ENABLE_ES:
+        ELASTICSEARCH_DSL = {
+            "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
+        }
+
+        ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
+
+        ELASTICSEARCH_PRODUCT_INDEXES = {"LITE": ELASTICSEARCH_PRODUCT_INDEX_ALIAS}
+        ELASTICSEARCH_APPLICATION_INDEXES = {"LITE": ELASTICSEARCH_APPLICATION_INDEX_ALIAS}
+        SPIRE_APPLICATION_INDEX_NAME = env.str("SPIRE_APPLICATION_INDEX_NAME", "spire-application-alias")
+        SPIRE_PRODUCT_INDEX_NAME = env.str("SPIRE_PRODUCT_INDEX_NAME", "spire-products-alias")
+
+        if ENABLE_SPIRE_SEARCH:
+            ELASTICSEARCH_APPLICATION_INDEXES["SPIRE"] = SPIRE_APPLICATION_INDEX_NAME
+            ELASTICSEARCH_PRODUCT_INDEXES["SPIRE"] = SPIRE_PRODUCT_INDEX_NAME
+
+        INSTALLED_APPS += [
+            "django_elasticsearch_dsl",
+            "django_elasticsearch_dsl_drf",
+        ]
+    # AWS
     if "aws-s3-bucket" not in VCAP_SERVICES:
         raise Exception("S3 Bucket not bound to environment")
 
     for bucket_details in VCAP_SERVICES["aws-s3-bucket"]:
+        if S3_BUCKET_TAG_FILE_UPLOADS in bucket_details["tags"]:
+            aws_credentials = bucket_details["credentials"]
+            AWS_ENDPOINT_URL = None
+            AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
+            AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
+            AWS_REGION = aws_credentials["aws_region"]
+            AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
+
         if S3_BUCKET_TAG_ANONYMISER_DESTINATION in bucket_details["tags"]:
             aws_credentials = bucket_details["credentials"]
             DB_ANONYMISER_AWS_ENDPOINT_URL = None
@@ -518,12 +553,62 @@ if VCAP_SERVICES:
             DB_ANONYMISER_AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
             DB_ANONYMISER_AWS_REGION = aws_credentials["aws_region"]
             DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
+
+    LOGGING.update({"formatters": {"ecs_formatter": {"()": ECSFormatter}}})
+    LOGGING["handlers"].update({"ecs": {"class": "logging.StreamHandler", "formatter": "ecs_formatter"}})
+    LOGGING.update({"root": {"handlers": ["ecs"], "level": env("LOG_LEVEL").upper()}})
+
 else:
+    # Local configurations and CircleCI
+    # Database
+    DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+    # redis
+    REDIS_BASE_URL = env("REDIS_BASE_URL", default=None)
+
+    if REDIS_BASE_URL:
+        # Give celery tasks their own redis DB - future uses of redis should use a different DB
+        REDIS_CELERY_DB = env("REDIS_CELERY_DB", default=0)
+        is_redis_ssl = REDIS_BASE_URL.startswith("rediss://")
+        url_args = {"ssl_cert_reqs": "CERT_REQUIRED"} if is_redis_ssl else {}
+
+        CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
+        CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+
+    # Elasticsearch configuration
+    LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
+    if LITE_API_ENABLE_ES:
+        ELASTICSEARCH_DSL = {
+            "default": {"hosts": env.str("ELASTICSEARCH_HOST")},
+        }
+
+        ENABLE_SPIRE_SEARCH = env.bool("ENABLE_SPIRE_SEARCH", False)
+
+        ELASTICSEARCH_PRODUCT_INDEXES = {"LITE": ELASTICSEARCH_PRODUCT_INDEX_ALIAS}
+        ELASTICSEARCH_APPLICATION_INDEXES = {"LITE": ELASTICSEARCH_APPLICATION_INDEX_ALIAS}
+        SPIRE_APPLICATION_INDEX_NAME = env.str("SPIRE_APPLICATION_INDEX_NAME", "spire-application-alias")
+        SPIRE_PRODUCT_INDEX_NAME = env.str("SPIRE_PRODUCT_INDEX_NAME", "spire-products-alias")
+
+        if ENABLE_SPIRE_SEARCH:
+            ELASTICSEARCH_APPLICATION_INDEXES["SPIRE"] = SPIRE_APPLICATION_INDEX_NAME
+            ELASTICSEARCH_PRODUCT_INDEXES["SPIRE"] = SPIRE_PRODUCT_INDEX_NAME
+
+        INSTALLED_APPS += [
+            "django_elasticsearch_dsl",
+            "django_elasticsearch_dsl_drf",
+        ]
+    # AWS
+    AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
+    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+    AWS_REGION = env("AWS_REGION")
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+
     DB_ANONYMISER_AWS_ENDPOINT_URL = AWS_ENDPOINT_URL
     DB_ANONYMISER_AWS_ACCESS_KEY_ID = env("DB_ANONYMISER_AWS_ACCESS_KEY_ID", default=None)
     DB_ANONYMISER_AWS_SECRET_ACCESS_KEY = env("DB_ANONYMISER_AWS_SECRET_ACCESS_KEY", default=None)
     DB_ANONYMISER_AWS_REGION = env("DB_ANONYMISER_AWS_REGION", default=None)
     DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME = env("DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME", default=None)
 
-DB_ANONYMISER_CONFIG_LOCATION = Path(BASE_DIR) / "conf" / "anonymise_model_config.yaml"
-DB_ANONYMISER_DUMP_FILE_NAME = env.str("DB_ANONYMISER_DUMP_FILE_NAME", "anonymised.sql")
+    LOGGING.update({"formatters": {"simple": {"format": "{asctime} {levelname} {message}", "style": "{"}}})
+    LOGGING["handlers"].update({"stdout": {"class": "logging.StreamHandler", "formatter": "simple"}})
+    LOGGING.update({"root": {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}})

@@ -2,7 +2,7 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.functional import cached_property
 from rest_framework.exceptions import APIException
@@ -16,11 +16,13 @@ from api.applications.enums import (
 )
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager
+from api.applications.libraries.application_helpers import create_submitted_audit
 from api.audit_trail.models import Audit, AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
-from api.cases.models import Case
+from api.cases.models import Case, CaseQueue
 from api.common.models import TimestampableModel
+from api.core.model_mixins import Clonable
 from api.documents.models import Document
 from api.external_data.models import DenialEntity
 from api.external_data import enums as denial_enums
@@ -36,12 +38,13 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.regimes.models import RegimeEntry
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
-from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
+from api.staticdata.statuses.enums import CaseStatusEnum, CaseStatusIdEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.case_status_validate import is_case_status_draft
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from api.staticdata.units.enums import Units
-from api.users.models import ExporterUser, GovUser
+from api.users.enums import SystemUser
+from api.users.models import ExporterUser, GovUser, BaseUser
 from lite_content.lite_api.strings import PartyErrors
 
 from lite_routing.routing_rules_internal.enums import QueuesEnum
@@ -198,6 +201,20 @@ class BaseApplication(ApplicationPartyMixin, Case):
     class Meta:
         ordering = ["created_at"]
 
+    def on_submit(self, old_status):
+        additional_payload = {}
+        if self.amendment_of:
+            # Add an audit entry to the case that was superseded by this amendment
+            audit_trail_service.create_system_user_audit(
+                verb=AuditType.EXPORTER_SUBMITTED_AMENDMENT,
+                target=self.amendment_of,
+                payload={
+                    "amendment": {"reference_code": self.reference_code},
+                },
+            )
+            additional_payload["amendment_of"] = {"reference_code": self.amendment_of.reference_code}
+        create_submitted_audit(self.submitted_by, self, old_status, additional_payload)
+
     def add_to_queue(self, queue):
         case = self.get_case()
 
@@ -247,9 +264,12 @@ class BaseApplication(ApplicationPartyMixin, Case):
         self.set_sub_status(CaseSubStatusIdEnum.UNDER_APPEAL__APPEAL_RECEIVED)
         self.add_to_queue(Queue.objects.get(id=QueuesEnum.LU_APPEALS))
 
+    def create_amendment(self, user):
+        raise NotImplementedError()
 
-# Licence Applications
-class StandardApplication(BaseApplication):
+
+# Licence     Applications
+class StandardApplication(BaseApplication, Clonable):
     GB = "GB"
     NI = "NI"
     GOODS_STARTING_POINT_CHOICES = [
@@ -302,8 +322,80 @@ class StandardApplication(BaseApplication):
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
 
+    clone_exclusions = [
+        "appeal",
+        "appeal_deadline",
+        "id",
+        "flags",
+        "queues",
+        "reference_code",
+        "submitted_at",
+        "submitted_by",
+        "status",
+        "sub_status",
+        "case_officer",
+        "copy_of",
+        "amendment_of",
+        "sla_days",
+        "sla_remaining_days",
+        "sla_updated_at",
+        "additional_contacts",
+        "case_ptr",
+        "baseapplication_ptr",
+        "last_closed_at",
+    ]
+    clone_mappings = {
+        "organisation": "organisation_id",
+        "case_type": "case_type_id",
+    }
+    clone_overrides = {
+        "status_id": CaseStatusIdEnum.DRAFT,
+    }
 
-class ApplicationDocument(Document):
+    def clone(self, exclusions=None, **overrides):
+        cloned_application = super().clone(exclusions=exclusions, **overrides)
+
+        # TODO: Figure out whether it is desirable to clone ApplicationDocument records
+        # application_documents = ApplicationDocument.objects.filter(application=self)
+        # for application_document in application_documents:
+        #    application_document.clone(application=cloned_application)
+
+        site_on_applications = SiteOnApplication.objects.filter(application=self)
+        for site_on_application in site_on_applications:
+            site_on_application.clone(application=cloned_application)
+
+        good_on_applications = GoodOnApplication.objects.filter(application=self)
+        for good_on_application in good_on_applications:
+            good_on_application.clone(application=cloned_application)
+
+        party_on_applications = PartyOnApplication.objects.filter(application=self)
+        for party_on_application in party_on_applications:
+            party_on_application.clone(application=cloned_application)
+
+        return cloned_application
+
+    @transaction.atomic
+    def create_amendment(self, user):
+        amendment_application = self.clone(amendment_of=self)
+        CaseQueue.objects.filter(case=self.case_ptr).delete()
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.EXPORTER_CREATED_AMENDMENT,
+            target=self.get_case(),
+            payload={},
+        )
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.AMENDMENT_CREATED,
+            target=amendment_application.case_ptr,
+            payload={"superseded_case": {"reference_code": self.reference_code}},
+            ignore_case_status=True,
+        )
+        system_user = BaseUser.objects.get(id=SystemUser.id)
+        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT))
+        return amendment_application
+
+
+class ApplicationDocument(Document, Clonable):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True)
     document_type = models.TextField(
@@ -313,11 +405,25 @@ class ApplicationDocument(Document):
         null=True,
     )
 
+    clone_exclusions = [
+        "id",
+        "application",
+        "document_ptr",
+    ]
 
-class SiteOnApplication(models.Model):
+
+class SiteOnApplication(models.Model, Clonable):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     site = models.ForeignKey(Site, related_name="sites_on_application", on_delete=models.CASCADE)
     application = models.ForeignKey(BaseApplication, related_name="application_sites", on_delete=models.CASCADE)
+
+    clone_exclusions = [
+        "id",
+        "application",
+    ]
+    clone_mappings = {
+        "site": "site_id",
+    }
 
 
 class ApplicationDenialReason(models.Model):
@@ -331,7 +437,7 @@ class ApplicationDenialReason(models.Model):
     reason_details = models.TextField(default=None, blank=True, null=True, max_length=2200)
 
 
-class ExternalLocationOnApplication(models.Model):
+class ExternalLocationOnApplication(models.Model, Clonable):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     external_location = models.ForeignKey(
         ExternalLocation,
@@ -343,6 +449,14 @@ class ExternalLocationOnApplication(models.Model):
         related_name="external_application_sites",
         on_delete=models.CASCADE,
     )
+
+    clone_exclusions = [
+        "id",
+        "application",
+    ]
+    clone_mappings = {
+        "external_location": "external_location_id",
+    }
 
 
 class AbstractGoodOnApplication(TimestampableModel):
@@ -398,7 +512,7 @@ class GoodOnApplicationRegimeEntry(models.Model):
     )
 
 
-class GoodOnApplication(AbstractGoodOnApplication):
+class GoodOnApplication(AbstractGoodOnApplication, Clonable):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods", null=False)
 
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
@@ -460,6 +574,49 @@ class GoodOnApplication(AbstractGoodOnApplication):
         GovUser, on_delete=models.DO_NOTHING, blank=True, null=True, related_name="assessed_by"
     )
 
+    clone_exclusions = [
+        "id",
+        "application",
+        "control_list_entries",
+        "is_good_controlled",
+        "regime_entries",
+        "report_summary",
+        "report_summaries",
+        "report_summary_prefix",
+        "report_summary_subject",
+        "assessed_by",
+        "assessment_date",
+        "comment",
+        "firearm_details",
+        "audit_trail",
+        "is_trigger_list_guidelines_applicable",
+        "nsg_assessment_note",
+        "nsg_list_type",
+    ]
+    clone_mappings = {
+        "good": "good_id",
+    }
+
+    def clone(self, exclusions=None, **overrides):
+        cloned_good_on_application = super().clone(exclusions=exclusions, **overrides)
+        if self.firearm_details:
+            cloned_good_on_application.firearm_details = self.firearm_details.clone()
+            cloned_good_on_application.save()
+
+        good_on_application_documents = GoodOnApplicationDocument.objects.filter(good_on_application=self)
+        for good_on_application_document in good_on_application_documents:
+            good_on_application_document.clone(
+                good_on_application=cloned_good_on_application, application=overrides["application"]
+            )
+
+        good_on_application_internal_documents = GoodOnApplicationInternalDocument.objects.filter(
+            good_on_application=self
+        )
+        for good_on_application_internal_document in good_on_application_internal_documents:
+            good_on_application_internal_document.clone(good_on_application=cloned_good_on_application)
+
+        return cloned_good_on_application
+
     class Meta:
         ordering = ["created_at"]
 
@@ -481,7 +638,7 @@ class GoodOnApplication(AbstractGoodOnApplication):
         return self.control_list_entries
 
 
-class GoodOnApplicationDocument(Document):
+class GoodOnApplicationDocument(Document, Clonable):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods_document")
     good = models.ForeignKey(Good, related_name="goods_on_application_document", on_delete=models.CASCADE)
     user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING, related_name="user")
@@ -501,8 +658,19 @@ class GoodOnApplicationDocument(Document):
     # to.
     good_on_application = models.ForeignKey(GoodOnApplication, on_delete=models.CASCADE, blank=True, null=True)
 
+    clone_exclusions = [
+        "id",
+        "good_on_application",
+        "application",
+        "document_ptr",
+    ]
+    clone_mappings = {
+        "good": "good_id",
+        "user": "user_id",
+    }
 
-class GoodOnApplicationInternalDocument(Document):
+
+class GoodOnApplicationInternalDocument(Document, Clonable):
     document_title = models.TextField(
         default="",
         blank=True,
@@ -511,6 +679,12 @@ class GoodOnApplicationInternalDocument(Document):
     good_on_application = models.ForeignKey(
         GoodOnApplication, on_delete=models.CASCADE, related_name="good_on_application_internal_documents"
     )
+
+    clone_exclusions = [
+        "id",
+        "good_on_application",
+        "document_ptr",
+    ]
 
 
 class PartyOnApplicationManager(models.Manager):
@@ -521,7 +695,7 @@ class PartyOnApplicationManager(models.Manager):
         return self.get_queryset().filter(party__type=PartyType.ADDITIONAL_CONTACT)
 
 
-class PartyOnApplication(TimestampableModel):
+class PartyOnApplication(TimestampableModel, Clonable):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="parties")
     party = models.ForeignKey(Party, on_delete=models.PROTECT, related_name="parties_on_application")
     deleted_at = models.DateTimeField(null=True, default=None)
@@ -546,9 +720,20 @@ class PartyOnApplication(TimestampableModel):
             self.deleted_at = timezone.now()
             self.save()
 
+    clone_exclusions = [
+        "id",
+        "application",
+        "flags",
+    ]
+    clone_mappings = {
+        "party": "party_id",
+    }
+
 
 class DenialMatchOnApplication(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="denial_matches")
-    denial = models.ForeignKey(DenialEntity, related_name="denial_matches_on_application", on_delete=models.CASCADE)
+    denial_entity = models.ForeignKey(
+        DenialEntity, related_name="denial_matches_on_application", on_delete=models.CASCADE
+    )
     category = models.TextField(choices=denial_enums.DenialMatchCategory.choices)

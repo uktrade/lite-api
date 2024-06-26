@@ -10,7 +10,6 @@ from django.db.models import Q
 from django.utils import timezone
 from api.users.enums import UserType
 
-from rest_framework.exceptions import ValidationError
 from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
 
@@ -28,9 +27,7 @@ from api.cases.enums import (
 from api.cases.helpers import working_days_in_range
 from api.cases.libraries.reference_code import generate_reference_code
 from api.cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
-from api.common.models import TimestampableModel, CreatedAt
-from api.core.constants import GovPermissions
-from api.core.permissions import assert_user_has_permission
+from api.common.models import TimestampableModel
 from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import PvGrading
@@ -52,7 +49,6 @@ from api.users.models import (
     UserOrganisationRelationship,
     ExporterNotification,
 )
-from lite_content.lite_api import strings
 
 denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
 
@@ -113,6 +109,9 @@ class Case(TimestampableModel):
     )
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
     copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
+    amendment_of = models.ForeignKey(
+        "self", default=None, null=True, blank=True, on_delete=models.DO_NOTHING, related_name="amendment"
+    )
     last_closed_at = models.DateTimeField(null=True)
 
     sla_days = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
@@ -156,6 +155,12 @@ class Case(TimestampableModel):
                 payload={"sub_status": None, "status": CaseStatusEnum.get_text(self.status.status)},
             )
 
+    @property
+    def superseded_by(self):
+        if not self.amendment.exists():
+            return None
+        return self.amendment.first()
+
     def get_case(self):
         """
         For any child models, this method allows easy access to the parent Case.
@@ -189,24 +194,12 @@ class Case(TimestampableModel):
         Sets the status for the case, runs validation on various parameters,
         creates audit entries and also runs flagging and automation rules
         """
-        from api.cases.helpers import can_set_status
         from api.audit_trail import service as audit_trail_service
-        from api.applications.libraries.application_helpers import can_status_be_set_by_gov_user
         from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
         from api.licences.helpers import update_licence_status
         from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
         old_status = self.status.status
-
-        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-        if status.status == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-
-        if not can_set_status(self, status.status):
-            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
-
-        if not can_status_be_set_by_gov_user(user.govuser, old_status, status.status, is_mod=False):
-            raise ValidationError({"status": ["Status cannot be set by user"]})
 
         self.status = status
         self.save()
@@ -687,13 +680,3 @@ class EnforcementCheckID(models.Model):
     id = models.AutoField(primary_key=True)
     entity_id = models.UUIDField(unique=True)
     entity_type = models.CharField(choices=EnforcementXMLEntityTypes.choices, max_length=20)
-
-
-class CaseReviewDate(CreatedAt):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    next_review_date = models.DateField(default=None, null=True)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    case = models.ForeignKey(Case, related_name="case_review_date", on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = [["case", "team"]]
