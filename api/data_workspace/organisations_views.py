@@ -11,10 +11,9 @@ class OrganisationsView(viewsets.ReadOnlyModelViewSet):
     pagination_class = LimitOffsetPagination
     queryset = models.Organisation.objects.all()
 
+
 class SiteView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     serializer_class = serializers.SiteViewSerializer
     pagination_class = LimitOffsetPagination
     queryset = models.Site.objects.all()
-
-

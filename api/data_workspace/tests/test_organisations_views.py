@@ -7,7 +7,7 @@ class OrganisationsDataWorkspaceTests(DataTestClient):
     def test_organisations(self):
         url = reverse("data_workspace:dw-organisations-response")
         expected_fields = {
-             "id",
+            "id",
             "name",
             "sic_number",
             "eori_number",
@@ -27,7 +27,7 @@ class OrganisationsDataWorkspaceTests(DataTestClient):
     def test_site(self):
         url = reverse("data_workspace:dw-site-response")
         expected_fields = {
-             "id",
+            "id",
             "name",
             "address",
             "records_located_at",

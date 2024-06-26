@@ -69,6 +69,7 @@ def test_LicenceWithoutGoodsSerializer(db):
     assert set(serialized.data) == expected_fields
     assert serialized.data["goods"] == []
 
+
 def test_OrganisationsSerializer(db):
     organisation = OrganisationFactory()
     serialized = OrganisationsSerializer(organisation)
@@ -101,4 +102,3 @@ def test_SiteSerializer(db):
         "is_used_on_application",
     }
     assert set(serialized.data) == expected_fields
-

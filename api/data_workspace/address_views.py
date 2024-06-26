@@ -13,8 +13,3 @@ class AddressView(viewsets.ReadOnlyModelViewSet):
     serializer_class = AddressSerializer
     pagination_class = LimitOffsetPagination
     queryset = Address.objects.all()
-
-
-
-
-
