@@ -19,6 +19,7 @@ from api.parties.enums import PartyType
 from api.parties.models import Party
 from api.parties.serializers import PartySerializer
 from api.users.models import ExporterUser
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 class ApplicationPartyView(APIView):
@@ -136,6 +137,14 @@ class ApplicationPartyView(APIView):
 
     @authorised_to_view_application(ExporterUser)
     def put(self, request, **kwargs):
+        # Check if the case is in draft or applicant_editing status
+        case_status = self.application.get_case().status.status
+        if case_status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.DRAFT]:
+            return JsonResponse(
+                data={"errors": [f"The case cannot be edited in {case_status} status"]},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = PartySerializer(instance=self.party, data=request.data, partial=True)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
