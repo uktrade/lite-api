@@ -141,7 +141,7 @@ class ApplicationPartyView(APIView):
         case_status = self.application.get_case().status.status
         if case_status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.DRAFT]:
             return JsonResponse(
-                data={"errors": [f"The case cannot be edited in {case_status} status"]},
+                data={"errors": [f"The {self.party.type} party cannot be edited in {case_status} status"]},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
