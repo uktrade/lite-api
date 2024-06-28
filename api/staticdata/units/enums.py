@@ -7,24 +7,24 @@ class Units:
     LTR = "LTR"
     MTQ = "MTQ"
     TON = "TON"
-    MIM = "MIM"
-    MCM = "MCM"
-    MIR = "MIR"
-    MCR = "MCR"
+    MGM = "MGM"
+    MCG = "MCG"
+    MLT = "MLT"
+    MCL = "MCL"
 
     choices = [
         (NAR, "Items"),
         (TON, "Tonnes"),
         (KGM, "Kilograms"),
         (GRM, "Grams"),
-        (MIM, "Milligrams"),
-        (MCM, "Micrograms"),
+        (MGM, "Milligrams"),
+        (MCG, "Micrograms"),
         (MTR, "Metres"),
         (MTK, "Square metres"),
         (MTQ, "Cubic metres"),
         (LTR, "Litres"),
-        (MIR, "Millilitres"),
-        (MCR, "Microlitres"),
+        (MLT, "Millilitres"),
+        (MCL, "Microlitres"),
     ]
 
     @classmethod
