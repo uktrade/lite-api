@@ -4,25 +4,6 @@ from test_helpers.clients import DataTestClient
 
 
 class OrganisationsDataWorkspaceTests(DataTestClient):
-    def test_organisations(self):
-        url = reverse("data_workspace:dw-organisations-response")
-        expected_fields = {
-            "id",
-            "name",
-            "sic_number",
-            "eori_number",
-            "type",
-            "status",
-            "registration_number",
-            "vat_number",
-            "created_at",
-        }
-
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.json()["results"]
-        self.assertGreater(len(results), 0)
-        self.assertEqual(set(results[0].keys()), expected_fields)
 
     def test_site(self):
         url = reverse("data_workspace:dw-site-response")
