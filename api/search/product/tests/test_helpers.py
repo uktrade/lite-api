@@ -49,7 +49,7 @@ test_applications_data = [
             {
                 "good": {
                     "name": "Thermal camera",
-                    "part_number": "IMG-1300",
+                    "part_number": "IMG/1300",
                     "is_good_controlled": True,
                     "control_list_entries": ["6A005"],
                 },
