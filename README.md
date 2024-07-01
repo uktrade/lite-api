@@ -71,6 +71,8 @@ Service for handling backend calls in LITE.
 
 - Starting the service
   - In general you can use `docker-compose up --build` if you want to make sure new changes are included in the build
+- Indexing elasticsearch
+  - If this is something you require, you can run `make rebuild-elastic` to rebuild the elastic indexes using your local db.
 
 ### Known issues when running with Docker
 
