@@ -13,8 +13,6 @@ class CaseStatus(models.Model):
     status = models.CharField(max_length=50, unique=True)
     priority = models.PositiveSmallIntegerField(null=False, blank=False)
     workflow_sequence = models.PositiveSmallIntegerField(null=True)
-    is_read_only = models.BooleanField(blank=False, null=True)
-    is_terminal = models.BooleanField(blank=False, null=True)
     next_workflow_status = models.ForeignKey("CaseStatus", on_delete=models.DO_NOTHING, null=True, blank=True)
 
     objects = CaseStatusManager()
