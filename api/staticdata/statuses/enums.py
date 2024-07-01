@@ -40,25 +40,9 @@ class CaseStatusEnum:
 
     _system_status = [DRAFT]
 
-    _read_only_statuses = [
-        APPEAL_REVIEW,
-        APPEAL_FINAL_REVIEW,
-        CHANGE_UNDER_REVIEW,
-        CHANGE_UNDER_FINAL_REVIEW,
-        CLOSED,
-        DEREGISTERED,
-        FINALISED,
-        REGISTERED,
-        REOPENED_DUE_TO_ORG_CHANGES,
-        UNDER_ECJU_REVIEW,
-        UNDER_FINAL_REVIEW,
-        REVOKED,
-        SURRENDERED,
-        SUSPENDED,
-        WITHDRAWN,
-        OGD_ADVICE,
-        OGD_CONSOLIDATION,
-        SUPERSEDED_BY_AMENDMENT,
+    _writeable_statuses = [
+        DRAFT,
+        APPLICANT_EDITING,
     ]
 
     _major_editable_statuses = [APPLICANT_EDITING, DRAFT]
@@ -125,6 +109,8 @@ class CaseStatusEnum:
         (OGD_ADVICE, "OGD Advice"),
         (OGD_CONSOLIDATION, "OGD Consolidation"),
         (SUPERSEDED_BY_AMENDMENT, "Superseded by amendment"),
+        (FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
+        (FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
     ]
 
     priority = {
@@ -166,27 +152,11 @@ class CaseStatusEnum:
 
     @classmethod
     def get_choices(cls):
-        lu_countersign_statuses = []
-        lu_countersign_statuses.extend(
-            [
-                (cls.FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
-                (cls.FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
-            ]
-        )
-
-        return cls.choices + lu_countersign_statuses
+        return cls.choices
 
     @classmethod
     def get_read_only_choices(cls):
-        lu_countersign_statuses = []
-        lu_countersign_statuses.extend(
-            [
-                cls.FINAL_REVIEW_COUNTERSIGN,
-                cls.FINAL_REVIEW_SECOND_COUNTERSIGN,
-            ]
-        )
-
-        return cls._read_only_statuses + lu_countersign_statuses
+        return list(set(cls.all()) - set(cls._writeable_statuses))
 
     @classmethod
     def get_text(cls, status):
@@ -237,7 +207,14 @@ class CaseStatusEnum:
 
     @classmethod
     def all(cls):
-        return [k for k, _ in [*cls.get_choices(), (cls.DRAFT, "Draft")]]
+        _all = []
+        for name, _type in CaseStatusEnum.__dict__.items():
+            if not name.isupper():
+                continue
+            if type(_type) is not str:
+                continue
+            _all.append(name)
+        return _all
 
 
 class CaseStatusIdEnum:
