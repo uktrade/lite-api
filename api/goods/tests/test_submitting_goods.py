@@ -128,7 +128,7 @@ class GoodTests(DataTestClient):
         errors = response.json()["errors"]
         self.assertTrue("agreed_to_declaration_text" not in errors)
 
-    def test_submitted_good_can_be_edited(self):
+    def test_submitted_good_cannot_be_edited(self):
         """
         Tests that the good cannot be edited after submission
         """
@@ -139,10 +139,7 @@ class GoodTests(DataTestClient):
         url = reverse("goods:good", kwargs={"pk": good.id})
 
         response = self.client.put(url, {"is_archived": True}, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        good.refresh_from_db()
-        self.assertTrue(good.is_archived)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_unsubmitted_good_can_be_edited(self):
         """

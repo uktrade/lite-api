@@ -216,6 +216,11 @@ class MakeAssessmentsViewTests(DataTestClient):
             "report_summary": good_on_application.report_summary,
         }
 
+        # ensure verified good cannot be edited
+        url = reverse("goods:good", kwargs={"pk": good.id})
+        response = self.client.put(url, {"is_archived": True}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_making_a_good_uncontrolled_clears_report_fields(self):
         # Setting is_good_controlled to False should set report_summary_prefix and report_summary_subject to None
         good_on_application = self.good_on_application

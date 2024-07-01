@@ -166,7 +166,7 @@ class GoodViewTests(DataTestClient):
 
         self.assertEqual(actual_archive_statuses, expected_archive_statuses)
 
-    def test_goods_list_excludes_archived_goods(self):
+    def test_goods_list_doesnot_excludes_archived_goods(self):
         all_goods = [GoodFactory(organisation=self.organisation, status=GoodStatus.SUBMITTED) for _ in range(5)]
 
         # check we can retrieve all goods
@@ -180,15 +180,15 @@ class GoodViewTests(DataTestClient):
         good = all_goods[-1]
         edit_url = reverse("goods:good", kwargs={"pk": str(good.id)})
         response = self.client.put(edit_url, {"is_archived": True}, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        # check archive good is excluded
+        # check archive good is not excluded
         response = self.client.get(goods_list_url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()
-        self.assertEqual(response["count"], 4)
+        self.assertEqual(response["count"], 5)
         active_good_ids = [item["id"] for item in response["results"]]
-        self.assertNotIn(str(good.id), active_good_ids)
+        self.assertIn(str(good.id), active_good_ids)
 
     def test_archived_goods_list(self):
         archived_goods = [

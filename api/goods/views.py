@@ -273,6 +273,9 @@ class GoodTAUDetails(APIView):
         good = get_good(pk)
         data = request.data.copy()
 
+        if good.status != GoodStatus.DRAFT:
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]})
+
         # return bad request if trying to edit software_or_technology details outside of category group 3
         if good.item_category in ItemCategory.group_one and "software_or_technology_details" in data:
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
@@ -284,9 +287,6 @@ class GoodTAUDetails(APIView):
         # return bad request if editing any of the firearm details on a good that is not in group 2 firearms
         if good.item_category not in ItemCategory.group_two and data.get("firearm_details"):
             check_if_firearm_details_edited_on_unsupported_good(data)
-
-        if good.status == GoodStatus.SUBMITTED:
-            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]})
 
         # check if the user is registered firearm dealer
         if good.item_category == ItemCategory.GROUP2_FIREARMS and good.firearm_details.type in FIREARMS_CORE_TYPES:
@@ -345,6 +345,12 @@ class GoodOverview(APIView):
 
         if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
+
+        if good.status != GoodStatus.DRAFT:
+            return JsonResponse(
+                data={"errors": f"Good {good.name} is already used on a submitted application and cannot be edited"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         data = request.data.copy()
         data["organisation"] = get_request_user_organisation_id(request)
