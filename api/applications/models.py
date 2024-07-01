@@ -1,6 +1,5 @@
 import uuid
 
-from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.utils import timezone
@@ -16,7 +15,7 @@ from api.applications.enums import (
 )
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager
-from api.audit_trail.models import Audit, AuditType
+from api.audit_trail.models import AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case, CaseQueue
@@ -512,12 +511,6 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
     other_item_type = models.CharField(max_length=100, null=True, blank=True, default=None)
-    audit_trail = GenericRelation(
-        Audit,
-        related_query_name="good_on_application",
-        content_type_field="action_object_content_type",
-        object_id_field="action_object_object_id",
-    )
     control_list_entries = models.ManyToManyField(ControlListEntry, through=GoodOnApplicationControlListEntry)
     regime_entries = models.ManyToManyField(RegimeEntry, through=GoodOnApplicationRegimeEntry)
 

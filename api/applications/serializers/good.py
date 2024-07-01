@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from django.contrib.contenttypes.models import ContentType
 from django.forms.models import model_to_dict
 
 from api.applications.models import (
@@ -15,6 +16,7 @@ from api.applications.models import (
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from api.applications.enums import NSGListType
 from api.cases.enums import CaseTypeEnum
@@ -153,7 +155,13 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
         # this serializer is used by a few views. Most views do not need to know audit trail
         if not self.context.get("include_audit_trail"):
             return []
-        return AuditSerializer(instance.audit_trail.all(), many=True).data
+        action_object_content_type = ContentType.objects.get_for_model(GoodOnApplication)
+        action_object_object_id = instance.pk
+        audits = Audit.objects.filter(
+            action_object_content_type=action_object_content_type,
+            action_object_object_id=action_object_object_id,
+        )
+        return AuditSerializer(audits, many=True).data
 
     def update(self, instance, validated_data):
         if "firearm_details" in validated_data:
