@@ -1,5 +1,4 @@
 from django.urls import reverse
-from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.tests.factories import (
