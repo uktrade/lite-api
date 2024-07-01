@@ -25,7 +25,7 @@ class CaseStatus(models.Model):
 
     @queryable_property
     def is_terminal(self):
-        return CaseStatusEnum.is_terminal(self)
+        return CaseStatusEnum.is_terminal(self.status)
 
     @is_terminal.filter(boolean=True)
     @classmethod
@@ -34,7 +34,7 @@ class CaseStatus(models.Model):
 
     @queryable_property
     def is_read_only(self):
-        return CaseStatusEnum.is_read_only(self)
+        return CaseStatusEnum.is_read_only(self.status)
 
     @is_read_only.filter(boolean=True)
     @classmethod
