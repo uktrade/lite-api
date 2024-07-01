@@ -16,7 +16,7 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.application = self.create_standard_application_case(self.organisation)
-        self.application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_REVIEW)
+        self.application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
         self.application.save()
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
         with open(file_path, "rb") as f:
