@@ -1,9 +1,15 @@
 import uuid
 
 from django.db import models
+from django.db.models import Q
+
+from queryable_properties.managers import QueryablePropertiesManager
+from queryable_properties.properties import queryable_property
+
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
-class CaseStatusManager(models.Manager):
+class CaseStatusManager(QueryablePropertiesManager):
     def get_by_natural_key(self, status):
         return self.get(status=status)
 
@@ -16,6 +22,24 @@ class CaseStatus(models.Model):
     next_workflow_status = models.ForeignKey("CaseStatus", on_delete=models.DO_NOTHING, null=True, blank=True)
 
     objects = CaseStatusManager()
+
+    @queryable_property
+    def is_terminal(self):
+        return CaseStatusEnum.is_terminal(self)
+
+    @is_terminal.filter(boolean=True)
+    @classmethod
+    def is_terminal(cls):
+        return Q(status__in=CaseStatusEnum.terminal_statuses())
+
+    @queryable_property
+    def is_read_only(self):
+        return CaseStatusEnum.is_read_only(self)
+
+    @is_read_only.filter(boolean=True)
+    @classmethod
+    def is_read_only(cls):
+        return Q(status__in=CaseStatusEnum.read_only_statuses())
 
     def natural_key(self):
         return (self.status,)

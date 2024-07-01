@@ -155,10 +155,6 @@ class CaseStatusEnum:
         return cls.choices
 
     @classmethod
-    def get_read_only_choices(cls):
-        return list(set(cls.all()) - set(cls._writeable_statuses))
-
-    @classmethod
     def get_text(cls, status):
         # All available statuses and DRAFT (System only status)
         for k, v in [*cls.get_choices(), (cls.DRAFT, "Draft")]:
@@ -174,7 +170,7 @@ class CaseStatusEnum:
 
     @classmethod
     def is_read_only(cls, status):
-        return status in cls.get_read_only_choices()
+        return status in cls.read_only_statuses()
 
     @classmethod
     def is_terminal(cls, status):
@@ -186,7 +182,7 @@ class CaseStatusEnum:
 
     @classmethod
     def read_only_statuses(cls):
-        return cls.get_read_only_choices()
+        return list(set(cls.all()) - set(cls._writeable_statuses))
 
     @classmethod
     def major_editable_statuses(cls):
