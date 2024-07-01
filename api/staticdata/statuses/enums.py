@@ -213,7 +213,7 @@ class CaseStatusEnum:
                 continue
             if type(_type) is not str:
                 continue
-            _all.append(name)
+            _all.append(getattr(cls, name))
         return _all
 
 
