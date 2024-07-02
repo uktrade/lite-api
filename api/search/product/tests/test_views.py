@@ -110,10 +110,12 @@ class ProductSearchTests(BaseProductSearchTests):
         [
             ({"search": "ABC"}, 0),
             ({"search": "ABC-123"}, 1),
-            ({"search": "IMG-1300"}, 1),
+            ({"search": "IMG/1300"}, 1),
+            ({"search": "IMG-1300"}, 0),
             ({"search": "867-"}, 0),
             ({"search": "867-5309"}, 1),
             ({"search": "H2SO4"}, 1),
+            ({"search": "H2SO4/"}, 1),
         ]
     )
     def test_product_search_by_part_number(self, query, expected_count):

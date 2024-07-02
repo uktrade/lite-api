@@ -12,6 +12,9 @@ class QueryStringValidationMixin:
         query_params = self.request.GET.copy()
         search_term = query_params.get("search")
 
+        # This is required as query_string is unable to handle a single /
+        search_term = search_term.replace("/", "//")
+
         # Validation is only required if we are using QueryStringSearchFilterBackend
 
         if filter_backends.QueryStringSearchFilterBackend not in self.filter_backends:
