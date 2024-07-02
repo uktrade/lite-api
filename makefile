@@ -68,5 +68,5 @@ stop-e2e:
 test:
 	./manage.py test
 
-rebuild-elastic:
-	docker exec -it api pipenv run ./manage.py search_index --rebuild
+rebuild-search:
+	docker exec -it api pipenv run ./manage.py search_index -f --rebuild
