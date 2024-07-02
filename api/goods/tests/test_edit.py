@@ -14,6 +14,7 @@ from api.goods.enums import (
     ItemCategory,
     FirearmGoodType,
     FirearmCategory,
+    GoodStatus,
 )
 from api.goods.models import Good, PvGradingDetails
 from api.goods.tests.factories import GoodFactory
@@ -569,6 +570,23 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         good = Good.objects.get()
         self.assertEqual(good.design_details, "design details")
+
+    @parameterized.expand(
+        [
+            [GoodStatus.SUBMITTED, "firearm", "firearm updated"],
+            [GoodStatus.VERIFIED, "firearm", "firearm updated"],
+        ]
+    )
+    def test_cannot_edit_submitted_good(self, good_status, initial, updated):
+        good = GoodFactory(name=initial, organisation=self.organisation, status=good_status)
+        request_data = {"name": updated}
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        good.refresh_from_db()
+        self.assertEqual(good.name, initial)
 
     def test_edit_archive_status(self):
         good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP1_COMPONENTS)
