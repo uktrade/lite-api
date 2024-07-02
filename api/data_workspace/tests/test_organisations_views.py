@@ -6,7 +6,7 @@ from test_helpers.clients import DataTestClient
 class OrganisationsDataWorkspaceTests(DataTestClient):
 
     def test_site(self):
-        url = reverse("data_workspace:dw-site-response")
+        url = reverse("data_workspace:dw-site-response-list")
         expected_fields = {
             "id",
             "name",
