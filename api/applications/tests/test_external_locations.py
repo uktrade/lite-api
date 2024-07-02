@@ -43,7 +43,7 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
             1,
         )
 
-    def test_add_external_location_to_a_submitted_application_success(self):
+    def test_add_external_location_to_a_submitted_application_failure(self):
         SiteOnApplication.objects.filter(application=self.application).delete()
         ExternalLocationOnApplication(application=self.application, external_location=self.external_location).save()
         external_location_to_add = self.create_external_location("storage facility 2", self.organisation)
@@ -58,13 +58,13 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.application.refresh_from_db()
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             ExternalLocationOnApplication.objects.filter(application=self.application).count(),
-            2,
+            1,
         )
 
-    def test_add_external_location_to_a_submitted_application_failure(self):
+    def test_add_external_location_already_on_application_to_a_submitted_application_failure(self):
         """
         Cannot add additional external locations to a submitted application unless the additional external location
         is located in a country that is already on the application

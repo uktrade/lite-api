@@ -3,10 +3,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.views import APIView
 
-from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.models import BaseApplication, DenialMatchOnApplication
 from api.applications.serializers import denial
 from api.core.authentication import GovAuthentication
+from api.staticdata.statuses.enums import CaseStatusEnum
 from lite_content.lite_api import strings
 
 
@@ -25,7 +25,6 @@ class ApplicationDenialMatchesOnApplication(APIView):
         return JsonResponse(data={"denial_matches": denial_matches_data})
 
     def post(self, request, pk):
-
         serializer = denial.DenialMatchOnApplicationCreateSerializer(data=request.data, many=True)
         if serializer.is_valid():
             serializer.save()
@@ -36,7 +35,7 @@ class ApplicationDenialMatchesOnApplication(APIView):
     def delete(self, request, pk):
         application = get_object_or_404(BaseApplication.objects.all(), pk=pk)
 
-        if application.status.status in get_case_statuses(read_only=True):
+        if application.status.status != CaseStatusEnum.INITIAL_CHECKS:
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.READ_ONLY]},
                 status=status.HTTP_400_BAD_REQUEST,

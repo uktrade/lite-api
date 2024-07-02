@@ -6,6 +6,11 @@ from django.db import models, transaction
 from django.db.models import Prefetch, Q, Sum
 from django.utils import timezone
 
+from queryable_properties.managers import (
+    QueryablePropertiesManager,
+    QueryablePropertiesQuerySet,
+)
+
 from api.cases.enums import AdviceLevel, CaseTypeEnum
 from api.cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from api.common.enums import SortOrder
@@ -24,7 +29,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class CaseQuerySet(models.QuerySet):
+class CaseQuerySet(QueryablePropertiesQuerySet):
     """
     Custom queryset for the Case model. This allows us to chain application specific
     filtering logic in a reusable way.
@@ -236,7 +241,7 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(advice__type=AdviceType.REFUSE, advice__user__team__is_ogd=True)
 
 
-class CaseManager(models.Manager):
+class CaseManager(QueryablePropertiesManager):
     """
     Custom manager for the Case model that uses CaseQuerySet and provides a reusable search
     functionality to the Case model.

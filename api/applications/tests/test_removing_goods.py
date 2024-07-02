@@ -10,6 +10,7 @@ from api.flags.enums import SystemFlags
 from api.goods.enums import GoodStatus
 from api.goods.models import Good, FirearmGoodDetails
 from api.users.models import UserOrganisationRelationship
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -26,10 +27,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         Then the good_on_application is deleted
         And the good status is changed to DRAFT
         """
-        draft = self.create_draft_standard_application(self.organisation)
-        application = self.submit_application(
-            draft
-        )  # This will submit the application and set the good status to SUBMITTED
+        application = self.create_draft_standard_application(self.organisation)
         good_on_application = application.goods.first()
 
         url = reverse(
@@ -40,7 +38,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 0)
+        self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 0)
         self.assertEqual(good_on_application.good.status, GoodStatus.DRAFT)
 
     def test_remove_a_good_from_draft_success_when_good_is_verified(self):
@@ -52,8 +50,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         Then the good_on_application is deleted
         And the good status is not changed
         """
-        draft = self.create_draft_standard_application(self.organisation)
-        application = self.submit_application(draft)
+        application = self.create_draft_standard_application(self.organisation)
         good_on_application = application.goods.first()
         good_on_application.good.status = GoodStatus.VERIFIED
         good_on_application.good.save()
@@ -66,7 +63,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 0)
+        self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 0)
         self.assertEqual(good_on_application.good.status, GoodStatus.VERIFIED)
 
     def test_remove_a_good_from_application_success_when_good_is_on_multiple_applications(
@@ -82,6 +79,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         """
         application1 = self.create_draft_standard_application(self.organisation)
         self.submit_application(application1)
+        self.set_application_status(application1, CaseStatusEnum.APPLICANT_EDITING)
         good_on_application1 = GoodOnApplication.objects.get(application=application1)
 
         application2 = self.create_draft_standard_application(self.organisation)
@@ -130,8 +128,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 1)
 
     def test_remove_a_good_from_draft_as_gov_user_failure(self):
-        draft = self.create_draft_standard_application(self.organisation)
-        application = self.submit_application(draft, self.exporter_user)
+        application = self.create_draft_standard_application(self.organisation)
         good_on_application = application.goods.first()
 
         url = reverse(
@@ -145,8 +142,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 1)
 
     def test_remove_goods_from_application_not_in_users_organisation_failure(self):
-        draft = self.create_draft_standard_application(self.organisation)
-        application = self.submit_application(draft)
+        application = self.create_draft_standard_application(self.organisation)
         good_on_application = application.goods.first()
         url = reverse(
             "applications:good_on_application",
@@ -167,8 +163,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_delete_good_from_application_in_an_editable_status_success(self, editable_status):
         application = self.create_draft_standard_application(self.organisation)
-        application.status = get_case_status_by_status(editable_status)
-        application.save()
+        self.set_application_status(application, editable_status)
         good_on_application = application.goods.first()
         url = reverse(
             "applications:good_on_application",
@@ -183,8 +178,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
     @parameterized.expand(get_case_statuses(read_only=True))
     def test_delete_good_from_application_in_read_only_status_failure(self, read_only_status):
         application = self.create_draft_standard_application(self.organisation)
-        application.status = get_case_status_by_status(read_only_status)
-        application.save()
+        self.set_application_status(application, read_only_status)
         good_on_application = application.goods.first()
         url = reverse(
             "applications:good_on_application",
