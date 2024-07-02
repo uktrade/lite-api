@@ -18,10 +18,6 @@ from api.users.libraries.user_to_token import user_to_token
 
 
 class RemovingGoodsOffDraftsTests(DataTestClient):
-    def set_application_status(self, application, status_name):
-        application.status = get_case_status_by_status(status_name)
-        application.save()
-
     def test_remove_a_good_from_draft_success(self):
         """
         Given a standard application with a good
