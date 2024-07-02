@@ -69,7 +69,7 @@ class SeedCommand(ABC, BaseCommand):
             return list(reader)
 
     @staticmethod
-    def update_or_create(model: models.Model, rows: list):
+    def update_or_create(model: models.Model, rows: list, exclude=[]):
         """
         Takes a list of dicts with an id field and other properties applicable
         to a given model. If an object with the given id exists, it will update all
@@ -81,6 +81,8 @@ class SeedCommand(ABC, BaseCommand):
             obj_id = row["id"]
             obj = model.objects.filter(id=obj_id)
             if not obj.exists():
+                for key in exclude:
+                    del row[key]
                 model.objects.create(**row)
                 if not settings.SUPPRESS_TEST_OUTPUT:
                     print(f"CREATED {model.__name__}: {dict(row)}")

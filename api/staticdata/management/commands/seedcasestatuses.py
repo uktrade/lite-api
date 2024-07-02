@@ -46,9 +46,7 @@ class Command(SeedCommand):
             if row["workflow_sequence"] == "None":
                 row["workflow_sequence"] = None
 
-        del status_csv["is_terminal"]
-        del status_csv["is_read_only}"]
-        self.update_or_create(CaseStatus, status_csv)
+        self.update_or_create(CaseStatus, status_csv, exclude=["is_terminal", "is_read_only"])
 
         case_type_list = CaseTypeEnum.CASE_TYPE_LIST
 
