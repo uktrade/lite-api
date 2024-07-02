@@ -38,7 +38,11 @@ def can_status_be_set_by_exporter_user(original_status: str, new_status: str) ->
     elif new_status == CaseStatusEnum.SURRENDERED:
         if original_status != CaseStatusEnum.FINALISED:
             return False
-    elif original_status == CaseStatusEnum.REOPENED_FOR_CHANGES and new_status == CaseStatusEnum.APPLICANT_EDITING:
+    elif (
+        original_status
+        in [CaseStatusEnum.SUBMITTED, CaseStatusEnum.INITIAL_CHECKS, CaseStatusEnum.REOPENED_FOR_CHANGES]
+        and new_status == CaseStatusEnum.APPLICANT_EDITING
+    ):
         return True
     elif CaseStatusEnum.is_read_only(original_status) or new_status != CaseStatusEnum.APPLICANT_EDITING:
         return False
