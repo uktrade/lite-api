@@ -45,6 +45,8 @@ class CaseStatusEnum:
         APPLICANT_EDITING,
     ]
 
+    _can_invoke_major_edit_statuses = [SUBMITTED, INITIAL_CHECKS, REOPENED_FOR_CHANGES]
+
     _major_editable_statuses = [APPLICANT_EDITING, DRAFT]
 
     _terminal_statuses = [
@@ -187,6 +189,14 @@ class CaseStatusEnum:
     @classmethod
     def major_editable_statuses(cls):
         return cls._major_editable_statuses
+
+    @classmethod
+    def can_invoke_major_edit_statuses(cls):
+        return cls._can_invoke_major_edit_statuses
+
+    @classmethod
+    def can_invoke_major_edit(cls, status):
+        return status in cls._can_invoke_major_edit_statuses
 
     @classmethod
     def terminal_statuses(cls):
