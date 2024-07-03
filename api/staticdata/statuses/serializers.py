@@ -28,6 +28,16 @@ class CaseStatusSerializer(serializers.ModelSerializer):
         )
 
 
+class CaseStatusPropertiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseStatus
+        fields = (
+            "is_terminal",
+            "is_read_only",
+            "is_major_editable",
+        )
+
+
 class CaseSubStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseSubStatus

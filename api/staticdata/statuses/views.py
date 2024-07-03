@@ -1,11 +1,13 @@
 from django.http import JsonResponse
+
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
 from api.cases.views.search.service import get_case_status_list
 from api.core.authentication import SharedAuthentication
-from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.statuses.serializers import CaseStatusPropertiesSerializer
 
 
 class StatusesAsList(APIView):
@@ -16,16 +18,8 @@ class StatusesAsList(APIView):
         return JsonResponse(data={"statuses": statuses}, status=HTTP_200_OK)
 
 
-class StatusProperties(APIView):
+class StatusProperties(RetrieveAPIView):
     authentication_classes = (SharedAuthentication,)
-
-    def get(self, request, status):
-        """Return is_read_only and is_terminal properties for a case status."""
-        case_status = CaseStatus.objects.get(status=status)
-        return JsonResponse(
-            data={
-                "is_read_only": CaseStatusEnum.is_read_only(case_status),
-                "is_terminal": CaseStatusEnum.is_terminal(case_status),
-            },
-            status=HTTP_200_OK,
-        )
+    queryset = CaseStatus.objects.all()
+    serializer_class = CaseStatusPropertiesSerializer
+    lookup_field = "status"
