@@ -1093,6 +1093,7 @@ class SearchAPITest(DataTestClient):
                     "reference": self.denial_entity.denial.reference,
                     "category": self.denial_on_application.category,
                     "address": self.denial_entity.address,
+                    "regime_reg_ref": self.denial_on_application.denial_entity.denial.regime_reg_ref,
                 }
             ],
         )
