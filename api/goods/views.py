@@ -197,8 +197,14 @@ class ArchivedGoodList(ListAPIView):
 
 class GoodArchiveRestore(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
-    queryset = Good.objects.all()
     serializer_class = GoodArchiveRestoreSerializer
+
+    def get_queryset(self):
+        organisation = get_request_user_organisation_id(self.request)
+
+        return Good.objects.filter(
+            organisation=organisation,
+        )
 
 
 class GoodDocumentAvailabilityCheck(APIView):
