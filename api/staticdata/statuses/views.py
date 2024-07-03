@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 
 from api.cases.views.search.service import get_case_status_list
 from api.core.authentication import SharedAuthentication
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 
 
@@ -20,7 +21,11 @@ class StatusProperties(APIView):
 
     def get(self, request, status):
         """Return is_read_only and is_terminal properties for a case status."""
-        status_properties = CaseStatus.objects.filter(status=status).values_list("is_read_only", "is_terminal")[0]
+        case_status = CaseStatus.objects.get(status=status)
         return JsonResponse(
-            data={"is_read_only": status_properties[0], "is_terminal": status_properties[1]}, status=HTTP_200_OK
+            data={
+                "is_read_only": CaseStatusEnum.is_read_only(case_status),
+                "is_terminal": CaseStatusEnum.is_terminal(case_status),
+            },
+            status=HTTP_200_OK,
         )
