@@ -91,6 +91,9 @@ def check_user_can_set_status(request, application, data):
     Checks whether an user (internal/exporter) can set the requested status
     Returns error response if user cannot set the status, None otherwise
     """
+    user = request.user.cast_to_user_type()
+
+    return user.can_set_status(request, application, data)
     if hasattr(request.user, "exporteruser"):
         if get_request_user_organisation_id(request) != application.organisation.id:
             raise PermissionDenied()

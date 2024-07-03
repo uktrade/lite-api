@@ -8,10 +8,17 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.http import JsonResponse
+
+from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
+
+from lite_content.lite_api import strings
 
 from api.common.models import TimestampableModel
 from api.core.constants import Roles
 from api.queues.constants import ALL_CASES_QUEUE_ID
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.teams.models import Team
 from api.users.enums import UserStatuses, UserType
@@ -97,6 +104,29 @@ class BaseUser(AbstractUser, TimestampableModel):
     @abstractmethod
     def send_notification(self, **kwargs):
         pass
+
+    def cast_to_user_type(self):
+        try:
+            exporteruser = self.exporteruser
+        except BaseUser.exporteruser.RelatedObjectDoesNotExist:
+            exporteruser = None
+
+        try:
+            govuser = self.govuser
+        except BaseUser.govuser.RelatedObjectDoesNotExist:
+            govuser = None
+
+        if exporteruser and govuser:
+            raise TypeError("Ambiguous concrete type to cast user as ExporterUser and GovUser exists")
+
+        if not exporteruser and not govuser:
+            raise TypeError("No concrete type to case user to as no ExporterUser nor GovUser exists")
+
+        if exporteruser:
+            return exporteruser
+
+        if govuser:
+            return govuser
 
 
 class BaseNotification(models.Model):
@@ -189,6 +219,27 @@ class ExporterUser(models.Model, BaseUserCompatMixin):
 
     def is_in_organisation(self, organisation):
         return self.relationship.filter(organisation=organisation).exists()
+
+    def can_set_status(self, request, application, data):
+        from api.applications.libraries.application_helpers import can_status_be_set_by_exporter_user
+        from api.organisations.libraries.get_organisation import get_request_user_organisation_id
+
+        if get_request_user_organisation_id(request) != application.organisation.id:
+            raise PermissionDenied()
+
+        if data["status"] == CaseStatusEnum.FINALISED:
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not can_status_be_set_by_exporter_user(application.status.status, data["status"]):
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.Finalise.Error.EXPORTER_SET_STATUS]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return None
 
 
 class GovUser(models.Model, BaseUserCompatMixin):
