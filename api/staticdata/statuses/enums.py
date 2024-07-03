@@ -183,6 +183,10 @@ class CaseStatusEnum:
         return status in cls._system_status
 
     @classmethod
+    def writeable_statuses(cls):
+        return cls._writeable_statuses
+
+    @classmethod
     def read_only_statuses(cls):
         return list(set(cls.all()) - set(cls._writeable_statuses))
 
