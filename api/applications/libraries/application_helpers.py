@@ -38,6 +38,8 @@ def can_status_be_set_by_exporter_user(original_status: str, new_status: str) ->
     elif new_status == CaseStatusEnum.SURRENDERED:
         if original_status != CaseStatusEnum.FINALISED:
             return False
+    elif CaseStatusEnum.can_invoke_major_edit(original_status) and new_status == CaseStatusEnum.APPLICANT_EDITING:
+        return True
     elif CaseStatusEnum.is_read_only(original_status) or new_status != CaseStatusEnum.APPLICANT_EDITING:
         return False
 
@@ -89,7 +91,6 @@ def check_user_can_set_status(request, application, data):
     Checks whether an user (internal/exporter) can set the requested status
     Returns error response if user cannot set the status, None otherwise
     """
-
     if hasattr(request.user, "exporteruser"):
         if get_request_user_organisation_id(request) != application.organisation.id:
             raise PermissionDenied()
