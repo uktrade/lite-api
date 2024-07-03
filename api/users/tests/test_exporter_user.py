@@ -104,42 +104,22 @@ class ExporterUserTests(DataTestClient):
 
     @parameterized.expand(
         [
-            # *[(terminal_status, CaseStatusEnum.WITHDRAWN) for terminal_status in CaseStatusEnum.terminal_statuses()],
-            # *[(status, CaseStatusEnum.SURRENDERED) for status in CaseStatusEnum.all() if status != CaseStatusEnum.FINALISED],
+            *[(terminal_status, CaseStatusEnum.WITHDRAWN) for terminal_status in CaseStatusEnum.terminal_statuses()],
+            *[
+                (status, CaseStatusEnum.SURRENDERED)
+                for status in CaseStatusEnum.all()
+                if status != CaseStatusEnum.FINALISED
+            ],
             *[
                 (status, CaseStatusEnum.APPLICANT_EDITING)
                 for status in CaseStatusEnum.all()
-                if status not in CaseStatusEnum.can_invoke_major_edit_statuses()
+                if status
+                not in [
+                    *CaseStatusEnum.can_invoke_major_edit_statuses(),
+                    CaseStatusEnum.DRAFT,
+                    CaseStatusEnum.APPLICANT_EDITING,
+                ]
             ],
-            # (CaseStatusEnum.APPEAL_FINAL_REVIEW, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.APPEAL_REVIEW, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.CHANGE_INTIAL_REVIEW, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.CHANGE_UNDER_FINAL_REVIEW, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.CHANGE_UNDER_REVIEW, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.CLC, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.OPEN, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.UNDER_INTERNAL_REVIEW, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.RETURN_TO_INSPECTOR, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.AWAITING_EXPORTER_RESPONSE, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.CLOSED, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.DEREGISTERED, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.FINALISED, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.PV, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.REGISTERED, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.RESUBMITTED, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.REVOKED, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.OGD_ADVICE, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.SURRENDERED, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.SUSPENDED, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.UNDER_APPEAL, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.UNDER_ECJU_REVIEW, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.UNDER_FINAL_REVIEW, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.WITHDRAWN, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.OGD_CONSOLIDATION, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.FINAL_REVIEW_COUNTERSIGN, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.FINAL_REVIEW_SECOND_COUNTERSIGN, CaseStatusEnum.APPLICANT_EDITING),
-            # (CaseStatusEnum.SUPERSEDED_BY_AMENDMENT, CaseStatusEnum.APPLICANT_EDITING),
             (CaseStatusEnum.APPEAL_FINAL_REVIEW, CaseStatusEnum.SUBMITTED),
             (CaseStatusEnum.APPEAL_REVIEW, CaseStatusEnum.SUBMITTED),
             (CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.SUBMITTED),
