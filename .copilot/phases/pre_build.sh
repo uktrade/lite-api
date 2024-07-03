@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
+
+# Exit early if something goes wrong
 set -e
 
 git_clone_base_url="https://codestar-connections.eu-west-2.amazonaws.com/git-http/730335529260/eu-west-2/192881c6-e3f2-41a9-9dcb-fcc87d8b90be/uktrade"
+
+git config --global credential.helper '!aws codecommit credential-helper $@'
 
 cat <<EOF > ./.gitmodules
 [submodule "lite-content"]
@@ -18,5 +22,3 @@ cat <<EOF > ./.gitmodules
 EOF
 
 git submodule update --init --remote --recursive
-
-echo "done"
