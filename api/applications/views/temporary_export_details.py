@@ -12,7 +12,7 @@ from api.core.authentication import ExporterAuthentication
 from api.core.decorators import (
     authorised_to_view_application,
     allowed_application_types,
-    application_in_state,
+    application_is_major_editable,
 )
 from api.users.models import ExporterUser
 
@@ -22,7 +22,7 @@ class TemporaryExportDetails(UpdateAPIView):
 
     @authorised_to_view_application(ExporterUser)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
-    @application_in_state(is_major_editable=True)
+    @application_is_major_editable
     def put(self, request, pk):
         application = get_application(pk)
         if application.export_type == ApplicationExportType.PERMANENT:

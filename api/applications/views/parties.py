@@ -10,7 +10,7 @@ from api.core.authentication import ExporterAuthentication
 from api.core.decorators import (
     authorised_to_view_application,
     allowed_party_type_for_open_application_goodstype_category,
-    application_in_state,
+    application_is_major_editable,
 )
 from api.core.helpers import str_to_bool
 from lite_content.lite_api import strings
@@ -37,7 +37,7 @@ class ApplicationPartyView(APIView):
 
     @allowed_party_type_for_open_application_goodstype_category()
     @authorised_to_view_application(ExporterUser)
-    @application_in_state(is_major_editable=True)
+    @application_is_major_editable
     def post(self, request, pk):
         """
         Add a party to an application
