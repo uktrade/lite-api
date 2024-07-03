@@ -8,7 +8,7 @@ git_clone_base_url="https://codestar-connections.eu-west-2.amazonaws.com/git-htt
 git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true
 
-echo <<EOF
+cat <<EOF > ./.gitmodules
 [submodule "lite-content"]
 	path = lite_content
 	url = $git_clone_base_url/lite-content.git
@@ -20,7 +20,7 @@ echo <<EOF
 [submodule "django_db_anonymiser"]
 	path = django_db_anonymiser
 	url = $git_clone_base_url/django-db-anonymiser.git
-EOF > ./.gitmodules
+EOF
 
 git submodule update --init --remote --recursive
 
