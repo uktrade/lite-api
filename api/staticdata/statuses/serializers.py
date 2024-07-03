@@ -35,6 +35,7 @@ class CaseStatusPropertiesSerializer(serializers.ModelSerializer):
             "is_terminal",
             "is_read_only",
             "is_major_editable",
+            "can_invoke_major_editable",
         )
 
 

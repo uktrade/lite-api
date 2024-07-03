@@ -30,5 +30,6 @@ class StatusPropertiesTests(DataTestClient):
                 "is_read_only": case_status.is_read_only,
                 "is_terminal": case_status.is_terminal,
                 "is_major_editable": case_status.is_major_editable,
+                "can_invoke_major_editable": case_status.can_invoke_major_editable,
             },
         )
