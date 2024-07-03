@@ -24,8 +24,8 @@ class StatusProperties(APIView):
         case_status = CaseStatus.objects.get(status=status)
         return JsonResponse(
             data={
-                "is_read_only": CaseStatusEnum.is_read_only(case_status),
-                "is_terminal": CaseStatusEnum.is_terminal(case_status),
+                "is_read_only": case_status.is_read_only,
+                "is_terminal": case_status.is_terminal,
             },
             status=HTTP_200_OK,
         )
