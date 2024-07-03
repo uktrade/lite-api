@@ -213,14 +213,7 @@ class CaseStatusEnum:
 
     @classmethod
     def all(cls):
-        _all = []
-        for name, _type in CaseStatusEnum.__dict__.items():
-            if not name.isupper():
-                continue
-            if type(_type) is not str:
-                continue
-            _all.append(getattr(cls, name))
-        return _all
+        return [getattr(cls, param) for param in dir(cls) if param.isupper()]
 
 
 class CaseStatusIdEnum:
