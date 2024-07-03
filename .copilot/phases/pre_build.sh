@@ -7,3 +7,12 @@ export GIT_CLONE_BASE_URL="https://codestar-connections.eu-west-2.amazonaws.com/
 
 git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true
+
+echo "pulling submodules"
+pwd
+
+git submodule update --init --remote --recursive
+
+echo "done"
+ls -al
+
