@@ -204,6 +204,7 @@ class GoodArchiveRestore(UpdateAPIView):
 
         return Good.objects.filter(
             organisation=organisation,
+            status__in=GoodStatus.archivable_statuses(),
         )
 
 
