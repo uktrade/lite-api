@@ -228,3 +228,16 @@ class GoodViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), count)
+
+    def test_cannot_archive_good_from_other_organisation(self):
+        good = GoodFactory(organisation=self.organisation, status=GoodStatus.SUBMITTED)
+        url = reverse("goods:archive_restore", kwargs={"pk": str(good.id)})
+
+        headers = self.exporter_headers.copy()
+        headers["HTTP_ORGANISATION_ID"] = str(good.id)
+
+        response = self.client.put(url, {"is_archived": True}, **headers)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        good.refresh_from_db()
+        self.assertIsNone(good.is_archived)

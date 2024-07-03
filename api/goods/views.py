@@ -4,7 +4,7 @@ from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.generics import ListAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, UpdateAPIView
 from rest_framework.views import APIView
 
 from api.applications.models import (
@@ -46,6 +46,7 @@ from api.goods.serializers import (
     GoodDocumentAvailabilitySerializer,
     GoodDocumentSensitivitySerializer,
     TinyGoodDetailsSerializer,
+    GoodArchiveRestoreSerializer,
 )
 from api.applications.serializers.good import (
     GoodOnApplicationInternalDocumentCreateSerializer,
@@ -192,6 +193,19 @@ class ArchivedGoodList(ListAPIView):
         queryset = queryset.prefetch_related("control_list_entries")
 
         return queryset.order_by("-updated_at")
+
+
+class GoodArchiveRestore(UpdateAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = GoodArchiveRestoreSerializer
+
+    def get_queryset(self):
+        organisation = get_request_user_organisation_id(self.request)
+
+        return Good.objects.filter(
+            organisation=organisation,
+            status__in=GoodStatus.archivable_statuses(),
+        )
 
 
 class GoodDocumentAvailabilityCheck(APIView):
