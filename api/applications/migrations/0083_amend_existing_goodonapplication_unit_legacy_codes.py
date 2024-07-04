@@ -11,13 +11,13 @@ def change_legacy_unit_codes(apps, schema_editor):
 
     for good in GoodOnApplication.objects.filter(unit__in=legacy_unit_codes):
         if good.unit == legacy_unit_codes[0]:
-            good.unit = Units.MGM.value
+            good.unit = Units.MGM
         elif good.unit == legacy_unit_codes[1]:
-            good.unit = Units.MCG.value
+            good.unit = Units.MCG
         elif good.unit == legacy_unit_codes[2]:
-            good.unit = Units.MLT.value
+            good.unit = Units.MLT
         elif good.unit == legacy_unit_codes[3]:
-            good.unit = Units.MCL.value
+            good.unit = Units.MCL
         good.save()
 
 
