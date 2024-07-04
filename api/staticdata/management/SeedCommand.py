@@ -83,7 +83,8 @@ class SeedCommand(ABC, BaseCommand):
             obj = model.objects.filter(id=obj_id)
             if not obj.exists():
                 for key in exclude:
-                    del row[key]
+                    if key in row:
+                        del row[key]
                 model.objects.create(**row)
                 if not settings.SUPPRESS_TEST_OUTPUT:
                     print(f"CREATED {model.__name__}: {dict(row)}")
@@ -96,7 +97,8 @@ class SeedCommand(ABC, BaseCommand):
         # `delete_unused_objects`
         exclude = exclude or []
         for key in exclude:
-            del row[key]
+            if key in row:
+                del row[key]
         attributes = {k: v for k, v in row.items() if k != "id"}
         obj = obj.exclude(**attributes)
         if obj.exists():

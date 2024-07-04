@@ -175,6 +175,10 @@ class CaseStatusEnum:
         return status in cls.read_only_statuses()
 
     @classmethod
+    def is_editable(cls, status):
+        return not cls.is_read_only(status)
+
+    @classmethod
     def is_terminal(cls, status):
         return status in cls._terminal_statuses
 
@@ -189,6 +193,10 @@ class CaseStatusEnum:
     @classmethod
     def major_editable_statuses(cls):
         return cls._major_editable_statuses
+
+    @classmethod
+    def is_major_editable_status(cls, status):
+        return status in cls._major_editable_statuses
 
     @classmethod
     def can_invoke_major_edit_statuses(cls):
@@ -213,14 +221,7 @@ class CaseStatusEnum:
 
     @classmethod
     def all(cls):
-        _all = []
-        for name, _type in CaseStatusEnum.__dict__.items():
-            if not name.isupper():
-                continue
-            if type(_type) is not str:
-                continue
-            _all.append(getattr(cls, name))
-        return _all
+        return [getattr(cls, param) for param in dir(cls) if param.isupper()]
 
 
 class CaseStatusIdEnum:

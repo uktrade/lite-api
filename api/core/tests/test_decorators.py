@@ -7,7 +7,12 @@ from rest_framework import status
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.authentication import ORGANISATION_ID
-from api.core.decorators import allowed_application_types, application_in_state, authorised_to_view_application
+from api.core.decorators import (
+    allowed_application_types,
+    application_is_editable,
+    application_is_major_editable,
+    authorised_to_view_application,
+)
 from lite_content.lite_api import strings
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -52,7 +57,7 @@ class DecoratorTests(DataTestClient):
         application.status = get_case_status_by_status(editable_status)
         application.save()
 
-        @application_in_state(is_editable=True)
+        @application_is_editable
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 
@@ -65,7 +70,7 @@ class DecoratorTests(DataTestClient):
         application.status = CaseStatus.objects.get(status=application_status)
         application.save()
 
-        @application_in_state(is_editable=True)
+        @application_is_editable
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 
@@ -80,7 +85,7 @@ class DecoratorTests(DataTestClient):
         application.status = CaseStatus.objects.get(status=CaseStatusEnum.major_editable_statuses()[0])
         application.save()
 
-        @application_in_state(is_major_editable=True)
+        @application_is_major_editable
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 
@@ -92,7 +97,7 @@ class DecoratorTests(DataTestClient):
         application.status = CaseStatus.objects.get(status=CaseStatusEnum.read_only_statuses()[0])
         application.save()
 
-        @application_in_state(is_major_editable=True)
+        @application_is_major_editable
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 
