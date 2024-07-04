@@ -2,6 +2,6 @@ repository: lite/lite-backend
 builder:
   name: paketobuildpacks/builder-jammy-full
   version: 0.3.339
-  packages:
-    - swig
-    - swig4.0
+packages:
+  - swig
+  - swig4.0
