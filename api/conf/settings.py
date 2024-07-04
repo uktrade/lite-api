@@ -462,7 +462,7 @@ LOGGING = {
 
 if IS_ENV_DBT_PLATFORM:
     ALLOWED_HOSTS = setup_allowed_hosts(ALLOWED_HOSTS)
-
+    AWS_ENDPOINT_URL = None
     DATABASES = {"default": dj_database_url.config(default=database_url_from_env("DATABASE_CREDENTIALS"))}
     CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=None)
     CELERY_RESULT_BACKEND = CELERY_BROKER_URL
