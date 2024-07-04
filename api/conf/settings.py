@@ -468,6 +468,14 @@ if IS_ENV_DBT_PLATFORM:
     CELERY_RESULT_BACKEND = CELERY_BROKER_URL
     REDIS_BASE_URL = env("REDIS_BASE_URL", default=None)
 
+    if REDIS_BASE_URL:
+        # Give celery tasks their own redis DB - future uses of redis should use a different DB
+        REDIS_CELERY_DB = env("REDIS_CELERY_DB", default=0)
+        is_redis_ssl = REDIS_BASE_URL.startswith("rediss://")
+        url_args = {"ssl_cert_reqs": "CERT_REQUIRED"} if is_redis_ssl else {}
+        CELERY_BROKER_URL = _build_redis_url(REDIS_BASE_URL, REDIS_CELERY_DB, **url_args)
+        CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+
     # Elasticsearch configuration
     LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
     if LITE_API_ENABLE_ES:
