@@ -2,5 +2,5 @@ repository: lite/lite-backend
 builder:
   name: paketobuildpacks/builder-jammy-full
   version: 0.3.339
-packages:
-  - libpq-dev
+packs:
+  - acodeninja/install
