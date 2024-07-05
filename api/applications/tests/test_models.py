@@ -31,6 +31,7 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterUser
 
 
@@ -92,7 +93,7 @@ class TestStandardApplication(DataTestClient):
         assert amendment_application.status.status == "draft"
         assert amendment_application.amendment_of == original_application.case_ptr
         original_application.refresh_from_db()
-        assert original_application.status.status == "superseded_by_amendment"
+        assert original_application.status.status == CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT
         assert original_application.queues.all().count() == 0
         audit_entries = Audit.objects.all()
         supersede_audit_entry = audit_entries[1]
@@ -106,7 +107,9 @@ class TestStandardApplication(DataTestClient):
         assert amendment_audit_entry.verb == "exporter_created_amendment"
         assert amendment_audit_entry.actor == exporter_user
         status_change_audit_entry = audit_entries[0]
-        assert status_change_audit_entry.payload == {"status": {"new": "Superseded by amendment", "old": "ogd_advice"}}
+        assert status_change_audit_entry.payload == {
+            "status": {"new": "Superseded by exporter edit", "old": "ogd_advice"}
+        }
         assert status_change_audit_entry.verb == "updated_status"
 
     def test_clone(self):
