@@ -7,18 +7,17 @@ from api.staticdata.units.enums import Units
 def change_legacy_unit_codes(apps, schema_editor):
     GoodOnApplication = apps.get_model("applications", "GoodOnApplication")
 
-    legacy_unit_codes = ["MIM", "MCM", "MIR", "MCR"]
+    unit_mapping = {
+        "MIM": Units.MGM,
+        "MCM": Units.MCG,
+        "MIR": Units.MLT,
+        "MCR": Units.MCL,
+    }
 
-    for good in GoodOnApplication.objects.filter(unit__in=legacy_unit_codes):
-        if good.unit == legacy_unit_codes[0]:
-            good.unit = Units.MGM
-        elif good.unit == legacy_unit_codes[1]:
-            good.unit = Units.MCG
-        elif good.unit == legacy_unit_codes[2]:
-            good.unit = Units.MLT
-        elif good.unit == legacy_unit_codes[3]:
-            good.unit = Units.MCL
-        good.save()
+    for good_on_application in GoodOnApplication.objects.filter(unit__in=unit_mapping.keys()):
+        legacy_unit = good_on_application.unit
+        good_on_application.unit = unit_mapping[legacy_unit]
+        good_on_application.save()
 
 
 class Migration(migrations.Migration):

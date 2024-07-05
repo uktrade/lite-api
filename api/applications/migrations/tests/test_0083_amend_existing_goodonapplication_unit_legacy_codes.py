@@ -4,13 +4,13 @@ from api.staticdata.units.enums import Units
 
 
 def old_state_good_on_application_factory(self, unit):
-    CaseStatus = self.old_state.apps.get_model("statuses", "CaseStatus")  # noqa N806
-    Good = self.old_state.apps.get_model("goods", "Good")  # noqa N806
-    GoodOnApplication = self.old_state.apps.get_model("applications", "GoodOnApplication")  # noqa N806
-    StandardApplication = self.old_state.apps.get_model("applications", "StandardApplication")  # noqa N806
-    Organisation = self.old_state.apps.get_model("organisations", "Organisation")  # noqa N806
-    Case = self.old_state.apps.get_model("cases", "Case")  # noqa N806
-    CaseType = self.old_state.apps.get_model("cases", "CaseType")  # noqa N806
+    CaseStatus = self.old_state.apps.get_model("statuses", "CaseStatus")
+    Good = self.old_state.apps.get_model("goods", "Good")
+    GoodOnApplication = self.old_state.apps.get_model("applications", "GoodOnApplication")
+    StandardApplication = self.old_state.apps.get_model("applications", "StandardApplication")
+    Organisation = self.old_state.apps.get_model("organisations", "Organisation")
+    Case = self.old_state.apps.get_model("cases", "Case")
+    CaseType = self.old_state.apps.get_model("cases", "CaseType")
 
     case_status = CaseStatus.objects.get(status="submitted")
     case_type = CaseType.objects.get(type="application", reference="oiel", sub_type="open")
@@ -30,21 +30,31 @@ class ChangeLegacyUnitCodesTestCase(MigratorTestCase):
     migrate_from = ("applications", "0082_alter_goodonapplication_unit")
     migrate_to = ("applications", "0083_amend_existing_goodonapplication_unit_legacy_codes")
 
-    old_unit_codes = ["MIM", "MCM", "MIR", "MCR"]
-    new_unit_codes = [Units.MGM, Units.MCG, Units.MLT, Units.MCL]
-
     def prepare(self):
-        for old_unit_code in self.old_unit_codes:
-            old_state_good_on_application_factory(self, unit=old_unit_code)
+
+        self.expected_mappings = {
+            "MIM": Units.MGM,
+            "MCM": Units.MCG,
+            "MIR": Units.MLT,
+            "MCR": Units.MCL,
+            "NAR": Units.NAR,
+        }
+
+        self.test_records = [
+            {
+                "id": old_state_good_on_application_factory(self, unit=old_unit).id,
+                "expected_unit": new_unit,
+            }
+            for old_unit, new_unit in self.expected_mappings.items()
+        ]
 
     def test_change_legacy_unit_codes(self):
-        GoodOnApplication = self.new_state.apps.get_model("applications", "GoodOnApplication")
-        new_good_on_applications = GoodOnApplication.objects.all()
 
-        assert all(
-            new_good_on_application.unit not in self.old_unit_codes
-            for new_good_on_application in new_good_on_applications
-        )
-        assert all(
-            new_good_on_application.unit in self.new_unit_codes for new_good_on_application in new_good_on_applications
-        )
+        GoodOnApplication = self.new_state.apps.get_model("applications", "GoodOnApplication")
+
+        assert len(self.test_records) == len(self.expected_mappings)
+
+        for test_record in self.test_records:
+            good_on_application = GoodOnApplication.objects.get(id=test_record["id"])
+
+            assert good_on_application.unit == test_record["expected_unit"]
