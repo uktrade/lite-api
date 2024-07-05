@@ -717,10 +717,14 @@ class PartyOnApplication(TimestampableModel, Clonable):
         "id",
         "application",
         "flags",
+        "party",
     ]
-    clone_mappings = {
-        "party": "party_id",
-    }
+
+    def clone(self, exclusions=None, **overrides):
+        if not overrides.get("party"):
+            cloned_party = self.party.clone()
+            overrides["party"] = cloned_party
+        return super().clone(exclusions=exclusions, **overrides)
 
 
 class DenialMatchOnApplication(TimestampableModel):
