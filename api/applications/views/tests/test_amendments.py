@@ -6,6 +6,7 @@ from api.applications import models as application_models
 from api.applications.models import StandardApplication
 from api.applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
 from api.organisations.tests.factories import OrganisationFactory
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 from test_helpers.clients import DataTestClient
 
@@ -31,7 +32,7 @@ class TestCreateApplicationAmendment(DataTestClient):
         self.assertEqual(amendment_application.name, self.application.name)
         self.assertEqual(amendment_application.amendment_of_id, self.application.id)
         self.application.refresh_from_db()
-        self.assertEqual(self.application.status.status, "superseded_by_exporter_edit")
+        self.assertEqual(self.application.status.status, CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT)
 
     @mock.patch.object(application_models.GoodOnApplication, "clone")
     def test_create_amendment_partial_failure(self, mocked_good_on_application_clone):
