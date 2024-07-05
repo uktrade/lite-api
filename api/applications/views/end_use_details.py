@@ -6,7 +6,10 @@ from api.applications.helpers import get_application_end_use_details_update_seri
 from api.applications.libraries.edit_applications import save_and_audit_end_use_details
 from api.applications.libraries.get_applications import get_application
 from api.core.authentication import ExporterAuthentication
-from api.core.decorators import authorised_to_view_application, application_in_state
+from api.core.decorators import (
+    authorised_to_view_application,
+    application_is_major_editable,
+)
 from api.users.models import ExporterUser
 
 
@@ -14,7 +17,7 @@ class EndUseDetails(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_to_view_application(ExporterUser)
-    @application_in_state(is_major_editable=True)
+    @application_is_major_editable
     def put(self, request, pk):
         application = get_application(pk)
         serializer = get_application_end_use_details_update_serializer(application)
