@@ -938,6 +938,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             Key=key,
         )
 
+    def set_application_status(self, application, status_name):
+        application.status = get_case_status_by_status(status_name)
+        application.save()
+
 
 @pytest.mark.performance
 # we need to set debug to true otherwise we can't see the amount of queries

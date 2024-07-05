@@ -10,7 +10,7 @@ from api.core.authentication import ExporterAuthentication
 from api.core.decorators import (
     authorised_to_view_application,
     allowed_party_type_for_open_application_goodstype_category,
-    application_in_state,
+    application_is_major_editable,
 )
 from api.core.helpers import str_to_bool
 from lite_content.lite_api import strings
@@ -19,6 +19,7 @@ from api.parties.enums import PartyType
 from api.parties.models import Party
 from api.parties.serializers import PartySerializer
 from api.users.models import ExporterUser
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 class ApplicationPartyView(APIView):
@@ -36,7 +37,7 @@ class ApplicationPartyView(APIView):
 
     @allowed_party_type_for_open_application_goodstype_category()
     @authorised_to_view_application(ExporterUser)
-    @application_in_state(is_major_editable=True)
+    @application_is_major_editable
     def post(self, request, pk):
         """
         Add a party to an application
@@ -136,6 +137,14 @@ class ApplicationPartyView(APIView):
 
     @authorised_to_view_application(ExporterUser)
     def put(self, request, **kwargs):
+        # Check if the case is in draft or applicant_editing status
+        case_status = self.application.get_case().status.status
+        if case_status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.DRAFT]:
+            return JsonResponse(
+                data={"errors": [f"The {self.party.type} party cannot be edited in {case_status} status"]},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = PartySerializer(instance=self.party, data=request.data, partial=True)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
