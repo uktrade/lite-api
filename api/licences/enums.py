@@ -51,6 +51,5 @@ licence_status_to_hmrc_integration_action = {
     LicenceStatus.REINSTATED: HMRCIntegrationActionEnum.UPDATE,
     LicenceStatus.REVOKED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.SURRENDERED: HMRCIntegrationActionEnum.CANCEL,
-    LicenceStatus.SUSPENDED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.CANCELLED: HMRCIntegrationActionEnum.CANCEL,
 }
