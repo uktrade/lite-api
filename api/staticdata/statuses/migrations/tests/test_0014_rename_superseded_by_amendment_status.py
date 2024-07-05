@@ -1,7 +1,6 @@
 import pytest
 from django.forms.models import model_to_dict
 
-from django_test_migrations.migrator import Migrator
 from django_test_migrations.contrib.unittest_case import MigratorTestCase
 
 
