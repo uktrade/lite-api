@@ -13,7 +13,8 @@ from test_helpers.clients import DataTestClient
 class GovUserNotificationTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_standard_application_case(self.organisation, "Case")
+        self.case = self.create_draft_standard_application(self.organisation, "Case")
+        self.set_application_status(self.case, CaseStatusEnum.APPLICANT_EDITING)
         self.audit_content_type = ContentType.objects.get_for_model(Audit)
 
     def test_edit_application_creates_new_audit_notification_success(self):

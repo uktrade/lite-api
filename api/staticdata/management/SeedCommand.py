@@ -69,7 +69,7 @@ class SeedCommand(ABC, BaseCommand):
             return list(reader)
 
     @staticmethod
-    def update_or_create(model: models.Model, rows: list):
+    def update_or_create(model: models.Model, rows: list, exclude=None):
         """
         Takes a list of dicts with an id field and other properties applicable
         to a given model. If an object with the given id exists, it will update all
@@ -77,20 +77,28 @@ class SeedCommand(ABC, BaseCommand):
         :param model: A given Django model to populate
         :param rows: A list of dictionaries (csv entries) to populate to the model
         """
+        exclude = exclude or []
         for row in rows:
             obj_id = row["id"]
             obj = model.objects.filter(id=obj_id)
             if not obj.exists():
+                for key in exclude:
+                    if key in row:
+                        del row[key]
                 model.objects.create(**row)
                 if not settings.SUPPRESS_TEST_OUTPUT:
                     print(f"CREATED {model.__name__}: {dict(row)}")
             else:
-                SeedCommand.update_if_not_equal(obj, row)
+                SeedCommand.update_if_not_equal(obj, row, exclude)
 
     @staticmethod
-    def update_if_not_equal(obj: QuerySet, row: dict):
+    def update_if_not_equal(obj: QuerySet, row: dict, exclude=None):
         # Can not delete the "id" key-value from `rows` as it will manipulate the data which is later used in
         # `delete_unused_objects`
+        exclude = exclude or []
+        for key in exclude:
+            if key in row:
+                del row[key]
         attributes = {k: v for k, v in row.items() if k != "id"}
         obj = obj.exclude(**attributes)
         if obj.exists():
