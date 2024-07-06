@@ -138,11 +138,8 @@ class GoodTests(DataTestClient):
         good = Good.objects.get()
         url = reverse("goods:good", kwargs={"pk": good.id})
 
-        response = self.client.put(url, {"is_archived": True}, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        good.refresh_from_db()
-        self.assertTrue(good.is_archived)
+        response = self.client.put(url, {"name": "Updated name"}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_unsubmitted_good_can_be_edited(self):
         """
@@ -197,3 +194,16 @@ class GoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Good.objects.all().count(), 0)
         self.assertEqual(GoodOnApplication.objects.count(), 0)
+
+    def test_submitted_good_cannot_be_edited_good_details_url(self):
+        """
+        Tests that the good cannot be edited after submission
+        """
+        draft = self.create_draft_standard_application(self.organisation)
+        self.submit_application(application=draft)
+
+        good = Good.objects.get()
+        url = reverse("goods:good_details", kwargs={"pk": good.id})
+
+        response = self.client.put(url, {"name": "Updated name"}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

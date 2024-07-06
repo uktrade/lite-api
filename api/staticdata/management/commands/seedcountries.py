@@ -28,7 +28,7 @@ class Command(SeedCommand):
                 if not settings.SUPPRESS_TEST_OUTPUT:
                     print(f"CREATED {Country.__name__}: {dict(row)}")
             else:
-                SeedCommand.update_if_not_equal(obj, row)
+                SeedCommand.update_if_not_equal(obj, row, exclude=["is_terminal", "is_read_only"])
 
         ids = [row["id"] for row in csv]
         for obj in Country.objects.all():
