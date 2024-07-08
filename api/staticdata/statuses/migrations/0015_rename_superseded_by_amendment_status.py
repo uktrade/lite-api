@@ -15,7 +15,7 @@ def rename_case_status_superseded_by_amendment(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("statuses", "0013_add_superseded_by_amendment_status"),
+        ("statuses", "0014_remove_casestatus_is_read_only_and_more"),
     ]
 
     operations = [

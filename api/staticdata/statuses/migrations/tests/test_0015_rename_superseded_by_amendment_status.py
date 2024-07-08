@@ -7,8 +7,8 @@ from django_test_migrations.contrib.unittest_case import MigratorTestCase
 @pytest.mark.django_db()
 class TestRenameSupersededByAmendment(MigratorTestCase):
 
-    migrate_from = ("statuses", "0013_add_superseded_by_amendment_status")
-    migrate_to = ("statuses", "0014_rename_superseded_by_amendment_status")
+    migrate_from = ("statuses", "0014_remove_casestatus_is_read_only_and_more")
+    migrate_to = ("statuses", "0015_rename_superseded_by_amendment_status")
 
     def test_migration_0013_add_superseded_by_amendment_status(self):
         CaseStatus = self.new_state.apps.get_model("statuses", "CaseStatus")
@@ -20,7 +20,5 @@ class TestRenameSupersededByAmendment(MigratorTestCase):
             "status": "superseded_by_exporter_edit",
             "priority": 34,
             "workflow_sequence": None,
-            "is_read_only": True,
-            "is_terminal": True,
             "next_workflow_status": None,
         }
