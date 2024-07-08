@@ -527,7 +527,7 @@ jobs:
       - run:
           name: Create temporary branch and commit on lite-frontend
           command: |
-            git clone git@github.com:uktrade/lite-api.git
+            git clone -b $CIRCLE_BRANCH git@github.com:uktrade/lite-api.git
             TEMPORARY_BRANCH_NAME="lite-api-ci-tmp-"
             TEMPORARY_BRANCH_NAME+=$(cat /proc/sys/kernel/random/uuid)
             git clone git@github.com:uktrade/lite-frontend.git
