@@ -13,7 +13,7 @@ def old_state_good_on_application_factory(self, unit):
     CaseType = self.old_state.apps.get_model("cases", "CaseType")
 
     case_status = CaseStatus.objects.get(status="submitted")
-    case_type = CaseType.objects.get(type="application", reference="oiel", sub_type="open")
+    case_type = CaseType.objects.get(type="application", reference="siel", sub_type="standard")
 
     organisation = Organisation.objects.create(name="test")
     case = Case.objects.create(case_type=case_type, organisation=organisation)
