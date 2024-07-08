@@ -178,8 +178,8 @@ class GoodViewTests(DataTestClient):
 
         # archive one good
         good = all_goods[-1]
-        edit_url = reverse("goods:good", kwargs={"pk": str(good.id)})
-        response = self.client.put(edit_url, {"is_archived": True}, **self.exporter_headers)
+        archive_restore_url = reverse("goods:archive_restore", kwargs={"pk": str(good.id)})
+        response = self.client.put(archive_restore_url, {"is_archived": True}, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # check archive good is excluded

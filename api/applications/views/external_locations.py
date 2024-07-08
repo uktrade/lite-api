@@ -12,7 +12,10 @@ from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeEnum
 from api.core.authentication import ExporterAuthentication
-from api.core.decorators import authorised_to_view_application, application_in_state
+from api.core.decorators import (
+    authorised_to_view_application,
+    application_is_editable,
+)
 from lite_content.lite_api.strings import ExternalLocations
 from api.organisations.enums import LocationType
 from api.organisations.libraries.get_external_location import get_location
@@ -44,7 +47,7 @@ class ApplicationExternalLocations(APIView):
 
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
-    @application_in_state(is_editable=True)
+    @application_is_editable
     def post(self, request, pk):
         application = get_application(pk)
         data = request.data
