@@ -213,6 +213,7 @@ class DenialMatchOnApplicationSummarySerializer(serializers.Serializer):
     """
 
     name = serializers.CharField(source="denial_entity.name")
+    regime_reg_ref = serializers.CharField(source="denial_entity.denial.regime_reg_ref")
     reference = serializers.CharField(source="denial_entity.denial.reference")
     category = serializers.CharField()
     address = serializers.CharField(source="denial_entity.address")
