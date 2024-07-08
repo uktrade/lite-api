@@ -533,7 +533,7 @@ jobs:
             cd lite-frontend
             git config user.email $GIT_EMAIL
             git config user.name "LITE CI"
-            git checkout $(python which_frontend_branch.py $CIRCLE_BRANCH)
+            git checkout $(python ../which_frontend_branch.py $CIRCLE_BRANCH)
             git checkout -b $TEMPORARY_BRANCH_NAME
             git commit --allow-empty -m "Testing lite-api"
             git push origin $TEMPORARY_BRANCH_NAME
