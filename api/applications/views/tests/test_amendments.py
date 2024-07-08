@@ -1,12 +1,16 @@
 from unittest import mock
+
 from django.urls import reverse
 from rest_framework import status
 
 from api.applications import models as application_models
 from api.applications.models import StandardApplication
 from api.applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
+from api.licences.tests.factories import StandardLicenceFactory
+from api.licences.enums import LicenceStatus
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 
 from test_helpers.clients import DataTestClient
 
@@ -52,3 +56,17 @@ class TestCreateApplicationAmendment(DataTestClient):
         self.application.delete()
         response = self.client.post(self.url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_amendment_application_wrong_status(self):
+        self.application.status = CaseStatus.objects.get(status="ogd_advice")
+        self.application.save()
+        response = self.client.post(self.url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_amendment_licence_exists_on_original(self):
+        licence = StandardLicenceFactory(case=self.application.case_ptr, status=LicenceStatus.ISSUED)
+        response = self.client.post(self.url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["non_field_errors"], "Application has at least one licence so cannot be amended."
+        )
