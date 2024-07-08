@@ -97,8 +97,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(SiteOnApplication.objects.filter(application=draft).count(), 1)
         self.assertEqual(ExternalLocationOnApplication.objects.filter(application=draft).count(), 0)
 
-    def test_add_site_to_a_submitted_application_success(self):
-
+    def test_add_site_to_a_submitted_application_failure(self):
         site_to_add = SiteFactory(organisation=self.organisation, address=AddressFactoryGB())
 
         data = {"sites": [self.primary_site.id, site_to_add.id]}
@@ -107,10 +106,10 @@ class SitesOnDraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.application.refresh_from_db()
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(SiteOnApplication.objects.filter(application=self.application).count(), 2)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(SiteOnApplication.objects.filter(application=self.application).count(), 1)
 
-    def test_add_site_to_a_submitted_application_failure(self):
+    def test_add_site_to_a_submitted_application_failure_different_country(self):
         """
         Cannot add additional site to a submitted application unless the additional site
         is located in a country that is already on the application

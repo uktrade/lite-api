@@ -67,45 +67,45 @@ def allowed_application_types(application_types: List[str]) -> Callable:
     return decorator
 
 
-def application_in_state(is_editable: bool = False, is_major_editable: bool = False) -> Callable:
-    """
-    Checks if application is in an editable or major-editable state
-    """
-
-    def decorator(func):
-        @wraps(func)
+def application_in_status(status_check_func):
+    @wraps(status_check_func)
+    def decorator(view_func):
+        @wraps(view_func)
         def inner(request, *args, **kwargs):
             application_status = _get_application(request, kwargs).values_list("status__status", flat=True)[0]
-
-            if is_editable and application_status in CaseStatusEnum.read_only_statuses():
-                return JsonResponse(
-                    data={
-                        "errors": {
-                            "non_field_errors": [
-                                strings.Applications.Generic.INVALID_OPERATION_FOR_READ_ONLY_CASE_ERROR
-                            ]
-                        }
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            if is_major_editable and application_status not in CaseStatusEnum.major_editable_statuses():
-                return JsonResponse(
-                    data={
-                        "errors": {
-                            "non_field_errors": [
-                                strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR
-                            ]
-                        }
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            return func(request, *args, **kwargs)
+            has_status, error = status_check_func(application_status)
+            if has_status:
+                return view_func(request, *args, **kwargs)
+            return JsonResponse(
+                data={"errors": {"non_field_errors": [error]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return inner
 
     return decorator
+
+
+@application_in_status
+def application_is_editable(application_status):
+    """
+    Checks if application is editable
+    """
+    return (
+        CaseStatusEnum.is_editable(application_status),
+        strings.Applications.Generic.INVALID_OPERATION_FOR_READ_ONLY_CASE_ERROR,
+    )
+
+
+@application_in_status
+def application_is_major_editable(application_status):
+    """
+    Checks if application is major editable
+    """
+    return (
+        CaseStatusEnum.is_major_editable_status(application_status),
+        strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR,
+    )
 
 
 def authorised_to_view_application(user_type: Union[Type[GovUser], Type[ExporterUser]]) -> Callable:

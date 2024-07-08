@@ -1,13 +1,22 @@
+from parameterized import parameterized
+
 from django.http import HttpResponse
 from django.test import RequestFactory
 from rest_framework import status
 
+from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.authentication import ORGANISATION_ID
-from api.core.decorators import allowed_application_types, application_in_state, authorised_to_view_application
+from api.core.decorators import (
+    allowed_application_types,
+    application_is_editable,
+    application_is_major_editable,
+    authorised_to_view_application,
+)
 from lite_content.lite_api import strings
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from api.users.models import ExporterUser, GovUser
@@ -42,10 +51,13 @@ class DecoratorTests(DataTestClient):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue("This operation can only be used on applications of type:" in resp.content.decode("utf-8"))
 
-    def test_application_in_state_editable_success(self):
+    @parameterized.expand(get_case_statuses(read_only=False))
+    def test_application_in_state_editable_success(self, editable_status):
         application = self.create_standard_application_case(self.organisation)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
 
-        @application_in_state(is_editable=True)
+        @application_is_editable
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 
@@ -58,7 +70,7 @@ class DecoratorTests(DataTestClient):
         application.status = CaseStatus.objects.get(status=application_status)
         application.save()
 
-        @application_in_state(is_editable=True)
+        @application_is_editable
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 
@@ -73,7 +85,7 @@ class DecoratorTests(DataTestClient):
         application.status = CaseStatus.objects.get(status=CaseStatusEnum.major_editable_statuses()[0])
         application.save()
 
-        @application_in_state(is_major_editable=True)
+        @application_is_major_editable
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 
@@ -85,7 +97,7 @@ class DecoratorTests(DataTestClient):
         application.status = CaseStatus.objects.get(status=CaseStatusEnum.read_only_statuses()[0])
         application.save()
 
-        @application_in_state(is_major_editable=True)
+        @application_is_major_editable
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 

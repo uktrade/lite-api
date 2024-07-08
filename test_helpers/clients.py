@@ -3,7 +3,7 @@ import timeit
 import uuid
 import sys
 from django.utils import timezone
-from typing import List, Tuple
+from typing import Tuple
 
 import django.utils.timezone
 from django.db import connection
@@ -937,6 +937,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             Bucket=settings.AWS_STORAGE_BUCKET_NAME,
             Key=key,
         )
+
+    def set_application_status(self, application, status_name):
+        application.status = get_case_status_by_status(status_name)
+        application.save()
 
 
 @pytest.mark.performance
