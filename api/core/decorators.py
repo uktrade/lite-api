@@ -108,6 +108,17 @@ def application_is_major_editable(application_status):
     )
 
 
+@application_in_status
+def application_can_invoke_major_edit(application_status):
+    """
+    Checks if application is in a state where a  major edit can be started
+    """
+    return (
+        CaseStatusEnum.can_invoke_major_edit(application_status),
+        strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR,
+    )
+
+
 def authorised_to_view_application(user_type: Union[Type[GovUser], Type[ExporterUser]]) -> Callable:
     """
     Checks if the user is the correct type and if they have access to the application being requested

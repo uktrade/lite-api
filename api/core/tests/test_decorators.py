@@ -9,6 +9,7 @@ from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.authentication import ORGANISATION_ID
 from api.core.decorators import (
     allowed_application_types,
+    application_can_invoke_major_edit,
     application_is_editable,
     application_is_major_editable,
     authorised_to_view_application,
@@ -98,6 +99,36 @@ class DecoratorTests(DataTestClient):
         application.save()
 
         @application_is_major_editable
+        def a_view(request, *args, **kwargs):
+            return HttpResponse()
+
+        resp = a_view(request=None, pk=application.pk)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(
+            strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR
+            in resp.content.decode("utf-8")
+        )
+
+    @parameterized.expand(CaseStatusEnum.can_invoke_major_edit_statuses)
+    def test_application_can_invoke_major_editable_success(self, case_status):
+        application = self.create_standard_application_case(self.organisation)
+        application.status = CaseStatus.objects.get(status=case_status)
+        application.save()
+
+        @application_can_invoke_major_edit
+        def a_view(request, *args, **kwargs):
+            return HttpResponse()
+
+        resp = a_view(request=None, pk=application.pk)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    @parameterized.expand(CaseStatusEnum.can_not_invoke_major_edit_statuses)
+    def test_application_can_invoke_major_edit_failure(self, case_status):
+        application = self.create_standard_application_case(self.organisation)
+        application.status = CaseStatus.objects.get(status=case_status)
+        application.save()
+
+        @application_can_invoke_major_edit
         def a_view(request, *args, **kwargs):
             return HttpResponse()
 
