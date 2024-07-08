@@ -12,7 +12,8 @@ from api.core.authentication import ExporterAuthentication
 from api.core.decorators import (
     authorised_to_view_application,
     allowed_application_types,
-    application_in_state,
+    application_is_editable,
+    application_is_major_editable,
 )
 from api.goodstype.helpers import get_goods_type
 from api.users.models import ExporterUser
@@ -37,7 +38,7 @@ class ApplicationDocumentView(APIView):
 
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
-    @application_in_state(is_editable=True)
+    @application_is_editable
     def post(self, request, pk):
         """
         Upload additional document onto an application
@@ -62,7 +63,7 @@ class ApplicationDocumentDetailView(APIView):
 
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
-    @application_in_state(is_editable=True)
+    @application_is_editable
     def delete(self, request, pk, doc_pk):
         """
         Delete an additional document on an application
@@ -86,7 +87,7 @@ class GoodsTypeDocumentView(APIView):
 
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
-    @application_in_state(is_major_editable=True)
+    @application_is_major_editable
     @authorised_to_view_application(ExporterUser)
     def post(self, request, pk, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
