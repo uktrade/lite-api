@@ -7,6 +7,8 @@ from rest_framework import status
 
 from api.applications.tests.factories import DenialEntityFactory
 from api.external_data import models
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -14,12 +16,17 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.application = self.create_standard_application_case(self.organisation)
+        self.application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
+        self.application.save()
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
         with open(file_path, "rb") as f:
             content = f.read()
+            f.seek(0)
+            self.total_denials = len(f.readlines()) - 1
+
         response = self.client.post(reverse("external_data:denial-list"), {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(models.DenialEntity.objects.count(), 5)
+        self.assertEqual(models.DenialEntity.objects.count(), self.total_denials)
 
     @pytest.mark.xfail(reason="This test is flaky and should be rewritten")
     # Occasionally causes this error:
@@ -45,7 +52,7 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
     def test_revoke_denial_without_comment_failure(self):
         response = self.client.get(reverse("external_data:denial-list"), **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["count"], 5)
+        self.assertEqual(response.json()["count"], self.total_denials)
 
         denials = response.json()["results"]
 
@@ -62,7 +69,7 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
     def test_revoke_denial_success(self):
         response = self.client.get(reverse("external_data:denial-list"), **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["count"], 5)
+        self.assertEqual(response.json()["count"], self.total_denials)
 
         denials = response.json()["results"]
 
@@ -82,7 +89,7 @@ class ApplicationDenialMatchesOnApplicationTests(DataTestClient):
     def test_revoke_denial_active_success(self):
         response = self.client.get(reverse("external_data:denial-list"), **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["count"], 5)
+        self.assertEqual(response.json()["count"], self.total_denials)
 
         denials = response.json()["results"]
 

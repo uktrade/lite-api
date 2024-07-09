@@ -847,6 +847,13 @@ class TinyGoodDetailsSerializer(serializers.ModelSerializer):
         )
 
 
+class GoodArchiveRestoreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Good
+        fields = ("is_archived",)
+
+
 class GoodArchiveHistorySerializer(serializers.Serializer):
     is_archived = serializers.SerializerMethodField()
     actioned_on = serializers.SerializerMethodField()

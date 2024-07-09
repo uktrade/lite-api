@@ -23,7 +23,7 @@ from api.core.authentication import ExporterAuthentication, GovAuthentication, S
 from api.core.decorators import (
     authorised_to_view_application,
     allowed_application_types,
-    application_in_state,
+    application_is_major_editable,
 )
 from api.core.exceptions import BadRequestError
 from api.flags.enums import SystemFlags
@@ -67,7 +67,7 @@ class ApplicationGoodsOnApplication(APIView):
             CaseTypeSubTypeEnum.F680,
         ]
     )
-    @application_in_state(is_major_editable=True)
+    @application_is_major_editable
     @authorised_to_view_application(ExporterUser)
     def post(self, request, pk):
         data = request.data
@@ -271,7 +271,7 @@ class ApplicationGoodOnApplicationDocumentView(APIView):
 
         return JsonResponse({"documents": serializer.data}, status=status.HTTP_200_OK)
 
-    @application_in_state(is_major_editable=True)
+    @application_is_major_editable
     @authorised_to_view_application(ExporterUser)
     def post(self, request, pk, good_pk):
         data = request.data
@@ -300,7 +300,7 @@ class ApplicationGoodOnApplicationDocumentView(APIView):
         delete_uploaded_document(data)
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    @application_in_state(is_major_editable=True)
+    @application_is_major_editable
     @authorised_to_view_application(ExporterUser)
     def delete(self, request, pk, good_pk):
         delete_uploaded_document(request.data)
