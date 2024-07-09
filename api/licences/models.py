@@ -59,7 +59,7 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.SURRENDERED
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
-    def suspend(self, send_status_change_to_hmrc=True):
+    def suspend(self, send_status_change_to_hmrc=False):
         self.status = LicenceStatus.SUSPENDED
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
