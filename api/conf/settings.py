@@ -125,7 +125,6 @@ INSTALLED_APPS = [
     "api.support",
     "health_check",
     "health_check.cache",
-    "health_check.contrib.migrations",
     "health_check.contrib.celery",
     "health_check.contrib.celery_ping",
     "django_audit_log_middleware",
