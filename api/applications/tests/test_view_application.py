@@ -12,6 +12,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication, SiteOnApplication
+from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.cases.enums import AdviceType, CaseTypeEnum
 from api.organisations.tests.factories import SiteFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -31,7 +32,7 @@ class DraftTests(DataTestClient):
         Ensure we can get a list of drafts.
         """
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        standard_application = self.create_draft_standard_application(self.organisation)
+        standard_application = DraftStandardApplicationFactory(organisation=self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
