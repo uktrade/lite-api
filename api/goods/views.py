@@ -32,7 +32,6 @@ from api.goods.libraries.save_good import create_or_update_good
 from api.goods.models import Good, GoodDocument
 from api.goods.permissions import (
     IsDocumentInOrganisation,
-    IsGoodDraft,
 )
 from api.goods.serializers import (
     GoodAttachingSerializer,
@@ -478,15 +477,11 @@ class GoodDocumentDetail(APIView):
         """
         Returns a list of documents on the specified good
         """
+
         good = get_good(pk)
 
         if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
-
-        if good.status != GoodStatus.DRAFT:
-            return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
-            )
 
         good_document = get_good_document(good, doc_pk)
         serializer = GoodDocumentViewSerializer(good_document)
@@ -546,10 +541,7 @@ class GoodDocumentStream(DocumentStreamAPIView):
     parent_filter_id_lookup_field = "good_id"
     lookup_url_kwarg = "doc_pk"
     queryset = GoodDocument.objects.all()
-    permission_classes = (
-        IsDocumentInOrganisation,
-        IsGoodDraft,
-    )
+    permission_classes = (IsDocumentInOrganisation,)
 
     def get_document(self, instance):
         return instance
