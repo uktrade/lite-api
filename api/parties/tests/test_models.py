@@ -1,7 +1,9 @@
 from django.forms import model_to_dict
+from django.utils import timezone
 
 from api.flags.models import Flag
-from api.parties.tests.factories import PartyFactory
+from api.parties.models import PartyDocument
+from api.parties.tests.factories import PartyFactory, PartyDocumentFactory
 from api.staticdata.countries.models import Country
 
 from test_helpers.clients import DataTestClient
@@ -36,6 +38,7 @@ class TestParty(DataTestClient):
             details="some details",
         )
         original_party.flags.add(Flag.objects.first())
+        original_party_document = PartyDocumentFactory(party=original_party, s3_key="some key")
 
         cloned_party = original_party.clone()
         assert original_party.id != cloned_party.id
@@ -69,3 +72,37 @@ class TestParty(DataTestClient):
         of a schema migration, think carefully about whether the new fields should be
         cloned by default or not and adjust Party.clone_* attributes accordingly.
         """
+        assert PartyDocument.objects.filter(party=cloned_party).count() == 1
+
+
+class TestPartyDocument(DataTestClient):
+
+    def test_clone(self):
+        scanned_at_time = timezone.now()
+        original_party = PartyFactory()
+        original_party_document = PartyDocumentFactory(
+            party=original_party,
+            description="some description",
+            name="some name",
+            s3_key="some key",
+            safe=True,
+            size=100,
+            type="supporting_document",
+            virus_scanned_at=scanned_at_time,
+        )
+        new_party = PartyFactory()
+
+        cloned_party_document = original_party_document.clone(party=new_party)
+        assert original_party_document.id != cloned_party_document.id
+        assert original_party_document.document_ptr != cloned_party_document.document_ptr
+        assert model_to_dict(cloned_party_document) == {
+            "description": "some description",
+            "document_ptr": cloned_party_document.document_ptr.id,
+            "name": "some name",
+            "party": new_party.id,
+            "s3_key": "some key",
+            "safe": True,
+            "size": 100,
+            "type": "supporting_document",
+            "virus_scanned_at": scanned_at_time,
+        }
