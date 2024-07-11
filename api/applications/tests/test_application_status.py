@@ -1,5 +1,7 @@
 from unittest import mock
 
+from django.conf import settings
+from django.test import override_settings
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -409,8 +411,13 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
         self.assertEqual(self.standard_application.status, get_case_status_by_status(expected_status))
 
+    @override_settings(
+        MIDDLEWARE=[item for item in settings.MIDDLEWARE if item != "reversion.middleware.RevisionMiddleware"]
+    )
     @mock.patch.object(SharedAuthentication, "authenticate")
     def test_hmrc_user_set_status_to_finalised_fail(self, mock_authenticate):
+        # Skip reversion middleware as we are mocking the authenticate method
+        # Reversion sets the user once authenticated which fails in this case
         mock_authenticate.return_value = ["token", ""]
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW)
         self.standard_application.save()

@@ -1,9 +1,15 @@
+from datetime import datetime
+
+from django.urls import reverse
 from django.utils import timezone
+from freezegun import freeze_time
+from rest_framework import status
 
 from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     StandardApplicationFactory,
 )
+from api.goods.enums import ItemCategory
 from api.staticdata.countries.factories import CountryFactory
 from api.parties.tests.factories import PartyFactory
 from test_helpers.clients import DataTestClient
@@ -11,7 +17,7 @@ from test_helpers.clients import DataTestClient
 from api.applications.tests.factories import PartyOnApplicationFactory
 
 from api.goods.tests.factories import GoodFactory
-from api.goods.serializers import GoodOnApplicationSerializer, GoodSerializerInternal
+from api.goods.serializers import GoodSerializerExporterFullDetail, GoodOnApplicationSerializer, GoodSerializerInternal
 from api.staticdata.report_summaries.models import ReportSummaryPrefix, ReportSummarySubject
 
 
@@ -143,3 +149,36 @@ class GoodSerializerInternalTests(DataTestClient):
         self.assertEqual(actual_prefix["name"], self.good.report_summary_prefix.name)
         self.assertEqual(actual_subject["id"], str(self.good.report_summary_subject.id))
         self.assertEqual(actual_subject["name"], self.good.report_summary_subject.name)
+
+
+class GoodSerializerExporterFullDetailTests(DataTestClient):
+
+    @freeze_time("2024-01-01 09:00:00")
+    def test_exporter_has_archive_history(self):
+        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP1_COMPONENTS)
+        edit_url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+
+        data = {"is_archived": True}
+        response = self.client.put(edit_url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        good.refresh_from_db()
+
+        good_details = GoodSerializerExporterFullDetail(good).data
+        archive_history = good_details["archive_history"]
+        self.assertEqual(len(archive_history), 1)
+        archive_history = archive_history[0]
+        self.assertEqual(archive_history["is_archived"], data["is_archived"])
+        self.assertEqual(
+            archive_history["user"],
+            {
+                "first_name": self.exporter_user.first_name,
+                "last_name": self.exporter_user.last_name,
+                "email": self.exporter_user.email,
+                "pending": self.exporter_user.pending,
+            },
+        )
+        self.assertEqual(
+            archive_history["actioned_on"],
+            datetime(2024, 1, 1, 9, 0, 0, tzinfo=timezone.get_current_timezone()),
+        )

@@ -1084,7 +1084,6 @@ class SearchAPITest(DataTestClient):
         self.assertEqual(case_api_result["has_open_queries"], False)
         self.assertEqual(case_api_result["id"], str(self.case.id))
         self.assertEqual(case_api_result["is_recently_updated"], True)
-        self.assertEqual(case_api_result["next_review_date"], None)
         self.assertEqual(case_api_result["organisation"]["name"], self.case.organisation.name)
         self.assertEqual(
             case_api_result["denials"],

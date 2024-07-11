@@ -1,9 +1,7 @@
 from decimal import Decimal, InvalidOperation
 
-import django
-from django.db.models import F, When, DateField, Exists, OuterRef
+from django.db.models import Exists, OuterRef
 from django.http import HttpResponse
-from django.utils import timezone
 from rest_framework import generics
 
 from api.cases.libraries.dates import make_date_from_params
@@ -36,15 +34,6 @@ class CasesSearchView(generics.ListAPIView):
         filters = self.get_filters(request)
         page = self.paginate_queryset(
             self.get_case_queryset(user, queue_id, is_work_queue, include_hidden, filters).annotate(
-                next_review_date=django.db.models.Case(
-                    When(
-                        case_review_date__team_id=user.team.id,
-                        case_review_date__next_review_date__gte=timezone.now().date(),
-                        then=F("case_review_date__next_review_date"),
-                    ),
-                    default=None,
-                    output_field=DateField(),
-                ),
                 has_open_queries=Exists(
                     EcjuQuery.objects.filter(
                         case=OuterRef("pk"), raised_by_user__team_id=user.team.id, is_query_closed=False

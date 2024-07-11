@@ -8,10 +8,10 @@ common_env_vars: &common_env_vars
   AV_SERVICE_PASSWORD: AV_SERVICE_PASSWORD
 
 image_python: &image_python
-  image: cimg/python:3.8.18
+  image: cimg/python:3.9.18
 
 image_python_node: &image_python_node
-  image: cimg/python:3.8.18-node
+  image: cimg/python:3.9.18-node
 
 image_postgres: &image_postgres
   image: circleci/postgres:12
@@ -25,15 +25,25 @@ image_postgres13: &image_postgres13
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: password
 
-image_elasticsearch: &image_elasticsearch
-  image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+image_opensearch_v1: &image_opensearch_v1
+  image: opensearchproject/opensearch:1.3.13
   environment:
-    ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-    xpack.security.enabled: "false"
-    xpack.monitoring.enabled: "false"
-    xpack.graph.enabled: "false"
-    xpack.watcher.enabled: "false"
-    transport.host: "localhost"
+    - cluster.name=cluster-001
+    - node.name=node-001
+    - discovery.type=single-node
+    - bootstrap.memory_lock=true
+    - DISABLE_INSTALL_DEMO_CONFIG=true # Prevents execution of bundled demo script which installs demo certificates and security configurations to OpenSearch
+    - DISABLE_SECURITY_PLUGIN=true # Disables security plugin
+
+image_opensearch: &image_opensearch
+  image: opensearchproject/opensearch:2.14.0
+  environment:
+    - cluster.name=cluster-001
+    - node.name=node-001
+    - discovery.type=single-node
+    - bootstrap.memory_lock=true
+    - DISABLE_INSTALL_DEMO_CONFIG=true # Prevents execution of bundled demo script which installs demo certificates and security configurations to OpenSearch
+    - DISABLE_SECURITY_PLUGIN=true # Disables security plugin
 
 image_redis: &image_redis
   image: circleci/redis:3.2-alpine
@@ -112,7 +122,7 @@ jobs:
     docker:
       - <<: *image_python
       - <<: *image_postgres
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch_v1
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -128,11 +138,11 @@ jobs:
       - upload_code_coverage:
           alias: tests
 
-  tests_postgres13:
+  tests_dbt_platform:
     docker:
       - <<: *image_python
       - <<: *image_postgres13
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -146,13 +156,13 @@ jobs:
           command: |
             pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
       - upload_code_coverage:
-          alias: tests_postgres13
+          alias: tests_dbt_platform
 
   seeding_tests:
     docker:
       - <<: *image_python
       - <<: *image_postgres
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch_v1
     working_directory: ~/lite-api
     environment:
       <<: *common_env_vars
@@ -166,11 +176,11 @@ jobs:
       - upload_code_coverage:
           alias: seeding_tests
 
-  seeding_tests_postgres13:
+  seeding_tests_dbt_platform:
     docker:
       - <<: *image_python
       - <<: *image_postgres13
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch
     working_directory: ~/lite-api
     environment:
       <<: *common_env_vars
@@ -182,13 +192,13 @@ jobs:
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k seeding
       - upload_code_coverage:
-          alias: seeding_tests_postgres13
+          alias: seeding_tests_dbt_platform
 
   anonymised_db_dump_tests:
     docker:
       - <<: *image_python
       - <<: *image_postgres
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch_v1
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -203,11 +213,11 @@ jobs:
       - upload_code_coverage:
           alias: anonymised_db_dumps
 
-  anonymised_db_dump_tests_postgres13:
+  anonymised_db_dump_tests_dbt_platform:
     docker:
       - <<: *image_python
       - <<: *image_postgres13
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -220,13 +230,13 @@ jobs:
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc api/anonymised_db_dumps
       - upload_code_coverage:
-          alias: anonymised_db_dumps_postgres13
+          alias: anonymised_db_dump_tests_dbt_platform
 
   migration_tests:
     docker:
       - <<: *image_python
       - <<: *image_postgres
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch_v1
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -241,11 +251,11 @@ jobs:
       - upload_code_coverage:
           alias: migration_tests
 
-  migration_tests_postgres13:
+  migration_tests_dbt_platform:
     docker:
       - <<: *image_python
       - <<: *image_postgres13
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -254,17 +264,17 @@ jobs:
     steps:
       - setup
       - run:
-          name: Run migration tests on Postgres 13
+          name: Run migration tests for dbt platform
           command: |
             pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k migration
       - upload_code_coverage:
-          alias: migration_tests_postgres13
+          alias: migration_tests_dbt_platform
 
   lite_routing_tests:
     docker:
       - <<: *image_python
       - <<: *image_postgres
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch_v1
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -280,11 +290,11 @@ jobs:
       - upload_code_coverage:
           alias: lite_routing_tests
 
-  lite_routing_tests_postgres13:
+  lite_routing_tests_dbt_platform:
     docker:
       - <<: *image_python
       - <<: *image_postgres13
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -294,17 +304,17 @@ jobs:
     steps:
       - setup
       - run:
-          name: Run lite_routing tests onn Postgres 13
+          name: Run lite_routing tests for dbt platform
           command: |
             pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc -k "not migration" --ignore lite_routing/routing_rules_internal/tests/bdd lite_routing
       - upload_code_coverage:
-          alias: lite_routing_tests_postgres13
+          alias: lite_routing_tests_dbt_platform
 
   lite_routing_bdd_tests:
     docker:
       - <<: *image_python_node
       - <<: *image_postgres
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch_v1
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -330,11 +340,11 @@ jobs:
       - store_artifacts:
           path: cucumber_html
 
-  lite_routing_bdd_tests_postgres13:
+  lite_routing_bdd_tests_dbt_platform:
     docker:
       - <<: *image_python_node
       - <<: *image_postgres13
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch
       - <<: *image_redis
     working_directory: ~/lite-api
     environment:
@@ -360,11 +370,11 @@ jobs:
       - store_artifacts:
           path: cucumber_html
 
-  elastic_search_tests:
+  open_search_tests:
     docker:
       - <<: *image_python
       - <<: *image_postgres
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch_v1
     working_directory: ~/lite-api
     environment:
       <<: *common_env_vars
@@ -372,17 +382,17 @@ jobs:
     steps:
       - setup
       - run:
-          name: Run elasticsearch tests
+          name: Run opensearch tests v1
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
       - upload_code_coverage:
-          alias: elastic_search_tests
+          alias: open_search_v1_tests
 
-  elastic_search_tests_postgres13:
+  open_search_tests_dbt_platform:
     docker:
       - <<: *image_python
       - <<: *image_postgres13
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch
     working_directory: ~/lite-api
     environment:
       <<: *common_env_vars
@@ -390,17 +400,17 @@ jobs:
     steps:
       - setup
       - run:
-          name: Run elasticsearch tests on Postgres 13
+          name: Run opensearch tests on dbt platform config
           command: |
             pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k elasticsearch
       - upload_code_coverage:
-          alias: elastic_search_tests_postgres13
+          alias: open_search_tests_dbt_platform
 
   check_migrations:
     docker:
       - <<: *image_python
       - <<: *image_postgres
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch_v1
     working_directory: ~/lite-api
     environment:
       <<: *common_env_vars
@@ -411,11 +421,11 @@ jobs:
           name: Check migrations are made
           command: pipenv run ./manage.py makemigrations --check
 
-  check_migrations_postgres13:
+  check_migrations_dbt_platform:
     docker:
       - <<: *image_python
       - <<: *image_postgres13
-      - <<: *image_elasticsearch
+      - <<: *image_opensearch
     working_directory: ~/lite-api
     environment:
       <<: *common_env_vars
@@ -454,6 +464,10 @@ jobs:
       - <<: *image_python
     steps:
       - setup
+      - run: pipenv install pre-commit
+      - restore_cache:
+          keys:
+            - pre-commit-cache-{{ checksum ".pre-commit-config.yaml" }}
       - run:
           name: Prospector
           command: pipenv run prospector -W pylint -W pep257 -W mccabe
@@ -464,6 +478,13 @@ jobs:
           name: Bandit
           command: |
             pipenv run bandit -r .
+      - run:
+          name: Ruff
+          command: pipenv run pre-commit run ruff --from-ref origin/HEAD --to-ref HEAD
+      - save_cache:
+          key: pre-commit-cache-{{ checksum ".pre-commit-config.yaml" }}
+          paths:
+            - ~/.cache/pre-commit
 
   check-lite-routing-sha:
     docker:
@@ -496,7 +517,7 @@ jobs:
 
   e2e_tests:
     docker:
-      - image: cimg/python:3.8.18
+      - image: cimg/python:3.9.18
     steps:
       - run:
           name: Add known hosts
@@ -506,13 +527,14 @@ jobs:
       - run:
           name: Create temporary branch and commit on lite-frontend
           command: |
+            git clone -b $CIRCLE_BRANCH git@github.com:uktrade/lite-api.git
             TEMPORARY_BRANCH_NAME="lite-api-ci-tmp-"
             TEMPORARY_BRANCH_NAME+=$(cat /proc/sys/kernel/random/uuid)
             git clone git@github.com:uktrade/lite-frontend.git
             cd lite-frontend
-            git checkout master
             git config user.email $GIT_EMAIL
             git config user.name "LITE CI"
+            git checkout $(python ../lite-api/scripts/which_frontend_branch.py $CIRCLE_BRANCH)
             git checkout -b $TEMPORARY_BRANCH_NAME
             git commit --allow-empty -m "Testing lite-api"
             git push origin $TEMPORARY_BRANCH_NAME
@@ -575,25 +597,25 @@ workflows:
       - linting
       - tests
       - seeding_tests
-      - seeding_tests_postgres13
+      - seeding_tests_dbt_platform
       - lite_routing_tests
-      - lite_routing_tests_postgres13
+      - lite_routing_tests_dbt_platform
       - lite_routing_bdd_tests
-      - lite_routing_bdd_tests_postgres13
-      - elastic_search_tests
-      - elastic_search_tests_postgres13
+      - lite_routing_bdd_tests_dbt_platform
+      - open_search_tests_dbt_platform
+      - open_search_tests
       - migration_tests
-      - migration_tests_postgres13
+      - migration_tests_dbt_platform
       - check_migrations
-      - check_migrations_postgres13
+      - check_migrations_dbt_platform
       - check_coverage:
           requires:
               - tests
               - seeding_tests
-              - elastic_search_tests
+              - open_search_tests
               - migration_tests
               - lite_routing_tests
       - check-lite-routing-sha
       - e2e_tests
       - anonymised_db_dump_tests
-      - anonymised_db_dump_tests_postgres13
+      - anonymised_db_dump_tests_dbt_platform
