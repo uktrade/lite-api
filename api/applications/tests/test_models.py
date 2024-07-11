@@ -8,6 +8,7 @@ from api.audit_trail.models import Audit
 from api.cases.models import CaseType, Queue
 from api.flags.models import Flag
 from api.applications.models import (
+    ApplicationDocument,
     GoodOnApplication,
     GoodOnApplicationDocument,
     GoodOnApplicationInternalDocument,
@@ -173,6 +174,7 @@ class TestStandardApplication(DataTestClient):
         original_site_on_application = SiteOnApplicationFactory(application=original_application)
         original_good_on_application = GoodOnApplicationFactory(application=original_application)
         original_party_on_application = PartyOnApplicationFactory(application=original_application)
+        original_application_document = ApplicationDocumentFactory(application=original_application)
         cloned_application = original_application.clone()
 
         assert cloned_application.id != original_application.id
@@ -243,6 +245,7 @@ class TestStandardApplication(DataTestClient):
         assert SiteOnApplication.objects.filter(application=cloned_application).count() == 1
         assert GoodOnApplication.objects.filter(application=cloned_application).count() == 1
         assert PartyOnApplication.objects.filter(application=cloned_application).count() == 1
+        assert ApplicationDocument.objects.filter(application=cloned_application).count() == 1
 
 
 class TestApplicationDocument(DataTestClient):
