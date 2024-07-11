@@ -85,6 +85,11 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     countries = serializers.SerializerMethodField()
     goods = serializers.SerializerMethodField()
 
+    def validate(self, data):
+        if data["action"] == HMRCIntegrationActionEnum.CANCEL and self.instance.status == LicenceStatus.SUSPENDED:
+            raise serializers.ValidationError("Cannot cancel a licence that is suspended.")
+        return data
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
