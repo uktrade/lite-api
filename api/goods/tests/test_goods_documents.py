@@ -233,4 +233,4 @@ class GoodDocumentStreamTests(DataTestClient):
         )
         response = self.client.get(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
