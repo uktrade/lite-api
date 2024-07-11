@@ -1,3 +1,4 @@
+from parameterized import parameterized
 from unittest import mock
 
 from django.urls import reverse
@@ -28,7 +29,10 @@ class TestCreateApplicationAmendment(DataTestClient):
             },
         )
 
-    def test_create_amendment(self):
+    @parameterized.expand(CaseStatusEnum.can_invoke_major_edit_statuses)
+    def test_create_amendment(self, case_status):
+        self.application.status = CaseStatus.objects.get(status=case_status)
+        self.application.save()
         response = self.client.post(self.url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         amendment_id = response.json().get("id")
@@ -57,8 +61,9 @@ class TestCreateApplicationAmendment(DataTestClient):
         response = self.client.post(self.url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_create_amendment_application_wrong_status(self):
-        self.application.status = CaseStatus.objects.get(status="ogd_advice")
+    @parameterized.expand(CaseStatusEnum.can_not_invoke_major_edit_statuses)
+    def test_create_amendment_application_wrong_status(self, case_status):
+        self.application.status = CaseStatus.objects.get(status=case_status)
         self.application.save()
         response = self.client.post(self.url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
