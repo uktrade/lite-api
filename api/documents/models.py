@@ -11,6 +11,7 @@ from api.documents.libraries import s3_operations, av_operations
 class Document(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False, blank=False)
+    # s3_key is not unique.  We can have many different Document records pointing to the same file in S3
     s3_key = models.CharField(max_length=1000, null=False, blank=False, default=None)
     size = models.IntegerField(null=True, blank=True)
     virus_scanned_at = models.DateTimeField(null=True, blank=True)
