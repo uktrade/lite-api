@@ -44,10 +44,13 @@ def send_licence_details_to_lite_hmrc(licence_id, action):
 
 
 def schedule_licence_details_to_lite_hmrc(licence_id, action):
+
     licence = Licence.objects.get(id=licence_id)
+
     if licence.status == LicenceStatus.SUSPENDED and action == HMRCIntegrationActionEnum.CANCEL:
-        logger.info("Licence %s is suspended, skipping sending details to lite-hmrc", licence.reference_code)
+        logger.info("Licence %s is suspended, so cancel message should not be sent to HMRC", licence.reference_code)
         return
+
     if (
         licence.status == LicenceStatus.ISSUED
         and action == HMRCIntegrationActionEnum.INSERT
