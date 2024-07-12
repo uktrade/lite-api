@@ -125,12 +125,6 @@ class SurveyResponseSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class OrganisationsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Organisation
-        fields = "__all__"
-
-
 class SiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Site
