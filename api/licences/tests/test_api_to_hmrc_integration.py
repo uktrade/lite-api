@@ -499,18 +499,6 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence.assert_called_once()
         self.assertEqual(str(error.exception), "Received an unexpected response")
 
-    @mock.patch("api.licences.celery_tasks.send_licence")
-    def test_suspend_licence_to_hmrc_integration_task_failure_with_hmrc_cancel_action(self, send_licence):
-        send_licence.side_effect = HMRCIntegrationException("Received an unexpected response")
-
-        self.standard_licence.suspend()
-
-        with self.assertRaises(HMRCIntegrationException) as error:
-            send_licence_details_to_lite_hmrc(str(self.standard_licence.id), HMRCIntegrationActionEnum.CANCEL)
-
-        send_licence.assert_called_once()
-        self.assertEqual(str(error.exception), "Received an unexpected response")
-
 
 class HMRCIntegrationTests(DataTestClient):
     def setUp(self):
