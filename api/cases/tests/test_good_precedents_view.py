@@ -138,7 +138,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
                         "%Y-%m-%dT%H:%M:%S.%f"
                     )[:-3]
                     + "Z",
-                    "goods_starting_point": "",
+                    "goods_starting_point": "GB",
                     "regime_entries": [
                         {
                             "name": "Wassenaar Arrangement",
