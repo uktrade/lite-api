@@ -13,4 +13,4 @@ class LicenceStatusTests(DataTestClient):
         licence.suspend()
 
         assert licence.status == LicenceStatus.SUSPENDED
-        assert licence_status_to_hmrc_integration_action.get(licence.status) == None
+        assert licence_status_to_hmrc_integration_action.get(licence.status) is None
