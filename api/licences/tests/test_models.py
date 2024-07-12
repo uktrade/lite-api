@@ -1,6 +1,6 @@
 from test_helpers.clients import DataTestClient
 from api.licences.tests.factories import StandardLicenceFactory
-from api.licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action
+from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 
 
 class LicenceStatusTests(DataTestClient):
@@ -13,4 +13,4 @@ class LicenceStatusTests(DataTestClient):
         licence.suspend()
 
         assert licence.status == LicenceStatus.SUSPENDED
-        assert licence_status_to_hmrc_integration_action.get(licence.status) != HMRCIntegrationActionEnum.CANCEL
+        assert licence_status_to_hmrc_integration_action.get(licence.status) == None
