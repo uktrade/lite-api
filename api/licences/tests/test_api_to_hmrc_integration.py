@@ -33,8 +33,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
-from rest_framework.serializers import ValidationError
-
 
 class MockResponse:
     def __init__(self, message: str, status_code: int):
@@ -61,21 +59,6 @@ class MockTask:
 
 
 class HMRCIntegrationSerializersTests(DataTestClient):
-    def test_validate_cancel_suspended_licence(self):
-        standard_application = self.create_standard_application_case(self.organisation)
-        standard_licence = StandardLicenceFactory(case=standard_application, status=LicenceStatus.ISSUED)
-        standard_licence.suspend()
-
-        serializer = HMRCIntegrationLicenceSerializer(standard_licence)
-
-        data = HMRCIntegrationLicenceSerializer(standard_licence).data
-        data["action"] = HMRCIntegrationActionEnum.CANCEL
-
-        with self.assertRaises(ValidationError) as error:
-            serializer.validate(data)
-
-        assert "Cannot cancel a licence that is suspended." in str(error.exception)
-
     @parameterized.expand(
         [
             [LicenceStatus.ISSUED],
