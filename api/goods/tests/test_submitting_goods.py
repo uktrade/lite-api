@@ -128,7 +128,7 @@ class GoodTests(DataTestClient):
         errors = response.json()["errors"]
         self.assertTrue("agreed_to_declaration_text" not in errors)
 
-    def test_submitted_good_cannot_be_edited(self):
+    def test_submitted_good_can_be_edited(self):
         """
         Tests that the good cannot be edited after submission
         """

@@ -4,7 +4,7 @@ from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, UpdateAPIView
 from rest_framework.views import APIView
 
 from api.applications.models import (
@@ -32,7 +32,6 @@ from api.goods.libraries.save_good import create_or_update_good
 from api.goods.models import Good, GoodDocument
 from api.goods.permissions import (
     IsDocumentInOrganisation,
-    IsGoodDraft,
 )
 from api.goods.serializers import (
     GoodAttachingSerializer,
@@ -46,6 +45,7 @@ from api.goods.serializers import (
     GoodDocumentAvailabilitySerializer,
     GoodDocumentSensitivitySerializer,
     TinyGoodDetailsSerializer,
+    GoodArchiveRestoreSerializer,
 )
 from api.applications.serializers.good import (
     GoodOnApplicationInternalDocumentCreateSerializer,
@@ -83,7 +83,7 @@ class GoodList(ListCreateAPIView):
             name__icontains=name,
             description__icontains=description,
             part_number__icontains=part_number,
-        )
+        ).exclude(is_archived=True)
 
         if control_list_entry:
             queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
@@ -166,6 +166,45 @@ class GoodList(ListCreateAPIView):
         serializer = GoodCreateSerializer(data=data)
 
         return create_or_update_good(serializer, data, is_created=True)
+
+
+class ArchivedGoodList(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = GoodListSerializer
+    pagination_class = MaxFiftyPageSizePaginator
+
+    def get_queryset(self):
+        name = self.request.GET.get("name", "")
+        part_number = self.request.GET.get("part_number", "")
+        control_list_entry = self.request.GET.get("control_list_entry")
+        organisation = get_request_user_organisation_id(self.request)
+
+        queryset = Good.objects.filter(
+            organisation_id=organisation,
+            name__icontains=name,
+            part_number__icontains=part_number,
+            is_archived=True,
+        )
+
+        if control_list_entry:
+            queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
+
+        queryset = queryset.prefetch_related("control_list_entries")
+
+        return queryset.order_by("-updated_at")
+
+
+class GoodArchiveRestore(UpdateAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = GoodArchiveRestoreSerializer
+
+    def get_queryset(self):
+        organisation = get_request_user_organisation_id(self.request)
+
+        return Good.objects.filter(
+            organisation=organisation,
+            status__in=GoodStatus.archivable_statuses(),
+        )
 
 
 class GoodDocumentAvailabilityCheck(APIView):
@@ -438,15 +477,11 @@ class GoodDocumentDetail(APIView):
         """
         Returns a list of documents on the specified good
         """
+
         good = get_good(pk)
 
         if good.organisation_id != get_request_user_organisation_id(request):
             raise PermissionDenied()
-
-        if good.status != GoodStatus.DRAFT:
-            return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
-            )
 
         good_document = get_good_document(good, doc_pk)
         serializer = GoodDocumentViewSerializer(good_document)
@@ -506,10 +541,7 @@ class GoodDocumentStream(DocumentStreamAPIView):
     parent_filter_id_lookup_field = "good_id"
     lookup_url_kwarg = "doc_pk"
     queryset = GoodDocument.objects.all()
-    permission_classes = (
-        IsDocumentInOrganisation,
-        IsGoodDraft,
-    )
+    permission_classes = (IsDocumentInOrganisation,)
 
     def get_document(self, instance):
         return instance

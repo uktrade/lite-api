@@ -7,6 +7,7 @@ from rest_framework.reverse import reverse
 from reversion.models import Version
 
 from api.goods.enums import (
+    GoodStatus,
     GoodPvGraded,
     PvGrading,
     MilitaryUse,
@@ -571,8 +572,12 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(good.design_details, "design details")
 
     def test_edit_archive_status(self):
-        good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP1_COMPONENTS)
-        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        good = GoodFactory(
+            organisation=self.organisation,
+            status=GoodStatus.SUBMITTED,
+            item_category=ItemCategory.GROUP1_COMPONENTS,
+        )
+        url = reverse("goods:archive_restore", kwargs={"pk": str(good.id)})
 
         for version_count, is_archived in enumerate([True, False], start=1):
             request_data = {"is_archived": is_archived}
@@ -580,7 +585,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
             response = self.client.put(url, request_data, **self.exporter_headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             response = response.json()
-            self.assertEqual(response["good"]["is_archived"], is_archived)
+            self.assertEqual(response["is_archived"], is_archived)
 
             good.refresh_from_db()
             self.assertEqual(good.is_archived, is_archived)
@@ -592,6 +597,70 @@ class GoodsEditDraftGoodTests(DataTestClient):
             # Ensure user is recorded in each revision
             for version in versions:
                 self.assertEqual(version.revision.user, self.exporter_user.baseuser_ptr)
+
+    @parameterized.expand(
+        [
+            [
+                {"name": "Rifle", "is_archived": None},
+                {"is_archived": True},
+                {"name": "Rifle", "is_archived": True},
+            ],
+            [
+                {"name": "Rifle", "is_archived": True},
+                {"is_archived": False},
+                {"name": "Rifle", "is_archived": False},
+            ],
+            [
+                {"name": "Rifle", "is_archived": None},
+                {"name": "Rifle updated", "is_archived": False},
+                {"name": "Rifle", "is_archived": False},
+            ],
+        ]
+    )
+    def test_only_archive_field_can_be_updated(self, initial, data, expected):
+        good = GoodFactory(organisation=self.organisation, status=GoodStatus.SUBMITTED, **initial)
+        url = reverse("goods:archive_restore", kwargs={"pk": str(good.id)})
+
+        response = self.client.put(url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+
+        good.refresh_from_db()
+        actual = {"name": good.name, "is_archived": good.is_archived}
+        self.assertEqual(actual, expected)
+
+    @parameterized.expand(
+        [
+            [
+                GoodStatus.DRAFT,
+                {"is_archived": True},
+                status.HTTP_404_NOT_FOUND,
+                {"is_archived": None},
+            ],
+            [
+                GoodStatus.SUBMITTED,
+                {"is_archived": True},
+                status.HTTP_200_OK,
+                {"is_archived": True},
+            ],
+            [
+                GoodStatus.VERIFIED,
+                {"is_archived": True},
+                status.HTTP_200_OK,
+                {"is_archived": True},
+            ],
+        ]
+    )
+    def test_good_with_archivable_status_can_only_be_archived(self, good_status, data, expected_status_code, expected):
+        good = GoodFactory(organisation=self.organisation, status=good_status)
+        url = reverse("goods:archive_restore", kwargs={"pk": str(good.id)})
+
+        response = self.client.put(url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, expected_status_code)
+
+        good.refresh_from_db()
+        actual = {"is_archived": good.is_archived}
+        self.assertEqual(actual, expected)
 
 
 class GoodsAttachingTests(DataTestClient):

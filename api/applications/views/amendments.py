@@ -35,7 +35,7 @@ class CreateApplicationAmendment(CreateAPIView):
         return self.application.organisation
 
     def perform_create(self, serializer):
-        self.amendment_application = self.application.create_amendment()
+        self.amendment_application = self.application.create_amendment(self.request.user)
 
     def create(self, request, *args, **kwargs):
         super().create(request, *args, **kwargs)

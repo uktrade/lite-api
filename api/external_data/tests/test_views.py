@@ -9,7 +9,7 @@ from django.core.management import call_command
 from django.conf import settings
 from django.urls import reverse
 
-from api.external_data import documents, models, serializers
+from api.external_data import models, serializers
 from test_helpers.clients import DataTestClient
 
 denial_data_fields = [
@@ -24,6 +24,14 @@ denial_data_fields = [
 
 
 class DenialViewSetTests(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_standard_application_case(self.organisation)
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            self.CSV_DENIAL_COUNT = len(f.readlines()) - 1
+
     def test_create_success(self):
         url = reverse("external_data:denial-list")
         file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
@@ -32,8 +40,8 @@ class DenialViewSetTests(DataTestClient):
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.DenialEntity.objects.count(), 5)
-        self.assertEqual(models.Denial.objects.count(), 5)
+        self.assertEqual(models.DenialEntity.objects.count(), self.CSV_DENIAL_COUNT)
+        self.assertEqual(models.Denial.objects.count(), self.CSV_DENIAL_COUNT)
         self.assertEqual(
             list(
                 models.DenialEntity.objects.values(
@@ -69,6 +77,18 @@ class DenialViewSetTests(DataTestClient):
                     "name": "UK Issued",
                     "address": "2000 main road, some place",
                     "country": "Country Name 3",
+                    "entity_type": "third_party",
+                },
+                {
+                    "name": "Forward slash",
+                    "address": "30/1 ltd",
+                    "country": "Country Name 4",
+                    "entity_type": "third_party",
+                },
+                {
+                    "name": "c/o ltd",
+                    "address": "forward slash",
+                    "country": "Country Name 6",
                     "entity_type": "third_party",
                 },
             ],
@@ -117,6 +137,24 @@ class DenialViewSetTests(DataTestClient):
                     "regime_reg_ref": "AB-CD-EF-200",
                     "notifying_government": "United Kingdom",
                     "denial_cle": "0A00300",
+                    "item_description": "Large Size Widget",
+                    "end_use": "Used in other industry",
+                    "reason_for_refusal": "Risk of outcome 2",
+                },
+                {
+                    "reference": "DN4102/0001",
+                    "regime_reg_ref": "AB-CD-EF-400",
+                    "notifying_government": "Country Name 4",
+                    "denial_cle": "0A00504",
+                    "item_description": "Large Size Widget",
+                    "end_use": "Used in other industry",
+                    "reason_for_refusal": "Risk of outcome 2",
+                },
+                {
+                    "reference": "DN4103/0001",
+                    "regime_reg_ref": "AB-CD-EF-500",
+                    "notifying_government": "Country Name 5",
+                    "denial_cle": "0A0050",
                     "item_description": "Large Size Widget",
                     "end_use": "Used in other industry",
                     "reason_for_refusal": "Risk of outcome 2",
@@ -315,6 +353,14 @@ class DenialViewSetTests(DataTestClient):
 
 
 class DenialSearchViewTests(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_standard_application_case(self.organisation)
+        file_path = os.path.join(settings.BASE_DIR, "external_data/tests/denial_valid.csv")
+        with open(file_path, "rb") as f:
+            self.CSV_DENIAL_COUNT = len(f.readlines()) - 1
+
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
@@ -330,7 +376,7 @@ class DenialSearchViewTests(DataTestClient):
             content = f.read()
         response = self.client.post(url, {"csv_file": content}, **self.gov_headers)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(models.DenialEntity.objects.count(), 5)
+        self.assertEqual(models.DenialEntity.objects.count(), self.CSV_DENIAL_COUNT)
 
         # Set one of them as revoked
         denial_entity = models.DenialEntity.objects.get(name="Organisation Name")
@@ -398,8 +444,16 @@ class DenialSearchViewTests(DataTestClient):
             ({"search": "address:(Example)"}, ["AB-XY-EF-900"]),
             ({"search": "name:(UK Issued)"}, []),
             ({"search": "denial_cle:(catch all)"}, ["AB-XY-EF-900"]),
-            ({"search": "name:(Widget) OR address:(2001)"}, ["AB-CD-EF-300", "AB-XY-EF-900"]),
+            (
+                {"search": "name:(Widget) OR address:(2001)"},
+                [
+                    "AB-XY-EF-900",
+                    "AB-CD-EF-300",
+                ],
+            ),
             ({"search": "name:(Organisation) AND address:(2000)"}, ["AB-CD-EF-100"]),
+            ({"search": "address:(30/1)"}, ["AB-CD-EF-400"]),
+            ({"search": "name:(c/o)"}, ["AB-CD-EF-500"]),
         ]
     )
     def test_denial_entity_search(self, query, expected_items):
@@ -418,7 +472,7 @@ class DenialSearchViewTests(DataTestClient):
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
         regime_reg_ref_results = [r["regime_reg_ref"] for r in response_json["results"]]
-        self.assertEqual(regime_reg_ref_results, expected_items)
+        self.assertListEqual(regime_reg_ref_results, expected_items)
 
     @pytest.mark.elasticsearch
     @parameterized.expand(

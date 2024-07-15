@@ -3,7 +3,7 @@ import timeit
 import uuid
 import sys
 from django.utils import timezone
-from typing import List, Tuple
+from typing import Tuple
 
 import django.utils.timezone
 from django.db import connection

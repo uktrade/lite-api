@@ -44,6 +44,7 @@ class GenericApplicationListSerializer(serializers.Serializer):
     name = serializers.CharField()
     case_type = TinyCaseTypeSerializer()
     status = CaseStatusField()
+    submitted_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
     reference_code = serializers.CharField()
     export_type = serializers.SerializerMethodField()

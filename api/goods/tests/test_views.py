@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from reversion.models import Version
 
-from api.goods.enums import ItemCategory
+from api.goods.enums import GoodStatus, ItemCategory
 from api.goods.models import Good
 from api.goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
@@ -136,7 +136,7 @@ class GoodViewTests(DataTestClient):
     )
     def test_view_good_archive_history(self, good_archive_status):
         good = GoodFactory(organisation=self.organisation, item_category=ItemCategory.GROUP1_COMPONENTS)
-        edit_url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        edit_url = reverse("goods:good", kwargs={"pk": str(good.id)})
 
         # Create sample version history
         for is_archived in good_archive_status:
@@ -165,3 +165,79 @@ class GoodViewTests(DataTestClient):
         actual_archive_statuses = [item["is_archived"] for item in archive_history]
 
         self.assertEqual(actual_archive_statuses, expected_archive_statuses)
+
+    def test_goods_list_excludes_archived_goods(self):
+        all_goods = [GoodFactory(organisation=self.organisation, status=GoodStatus.SUBMITTED) for _ in range(5)]
+
+        # check we can retrieve all goods
+        goods_list_url = reverse("goods:goods")
+        response = self.client.get(goods_list_url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(response["count"], 5)
+
+        # archive one good
+        good = all_goods[-1]
+        archive_restore_url = reverse("goods:archive_restore", kwargs={"pk": str(good.id)})
+        response = self.client.put(archive_restore_url, {"is_archived": True}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check archive good is excluded
+        response = self.client.get(goods_list_url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(response["count"], 4)
+        active_good_ids = [item["id"] for item in response["results"]]
+        self.assertNotIn(str(good.id), active_good_ids)
+
+    def test_archived_goods_list(self):
+        archived_goods = [
+            GoodFactory(organisation=self.organisation, status=GoodStatus.SUBMITTED, is_archived=True) for _ in range(5)
+        ]
+
+        archived_goods_url = reverse("goods:archived_goods")
+        response = self.client.get(archived_goods_url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+        self.assertEqual(response["count"], len(archived_goods))
+        expected_goods_ids = sorted([str(item.id) for item in archived_goods])
+        actual_goods_ids = sorted([item["id"] for item in response["results"]])
+        self.assertEqual(expected_goods_ids, actual_goods_ids)
+
+    @parameterized.expand([("ML", 2), ("FR", 1)])
+    def test_view_archived_goods_filter_by_control_list_entry(self, control_list_entry, count):
+        GoodFactory(
+            organisation=self.organisation,
+            status=GoodStatus.SUBMITTED,
+            is_archived=True,
+            is_good_controlled=True,
+            control_list_entries=["ML4a"],
+        )
+        GoodFactory(
+            organisation=self.organisation,
+            status=GoodStatus.SUBMITTED,
+            is_archived=True,
+            is_good_controlled=True,
+            control_list_entries=["ML1a", "FR AI"],
+        )
+
+        url = reverse("goods:archived_goods") + "?control_list_entry=" + control_list_entry
+
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), count)
+
+    def test_cannot_archive_good_from_other_organisation(self):
+        good = GoodFactory(organisation=self.organisation, status=GoodStatus.SUBMITTED)
+        url = reverse("goods:archive_restore", kwargs={"pk": str(good.id)})
+
+        headers = self.exporter_headers.copy()
+        headers["HTTP_ORGANISATION_ID"] = str(good.id)
+
+        response = self.client.put(url, {"is_archived": True}, **headers)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        good.refresh_from_db()
+        self.assertIsNone(good.is_archived)
