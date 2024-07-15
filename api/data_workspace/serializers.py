@@ -4,7 +4,7 @@ from api.teams.models import Department
 from api.cases.models import CaseAssignment, EcjuQuery, DepartmentSLA
 from api.licences.serializers.view_licence import LicenceListSerializer
 from api.queues.models import Queue
-from api.organisations.models import Organisation, Site
+from api.organisations.models import Site
 from rest_framework import serializers
 import api.cases.serializers as cases_serializers
 
