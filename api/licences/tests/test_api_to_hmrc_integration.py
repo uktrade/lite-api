@@ -425,6 +425,17 @@ class HMRCIntegrationLicenceTests(DataTestClient):
             str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status)
         )
 
+    @override_settings(LITE_HMRC_INTEGRATION_ENABLED=True)
+    @mock.patch("api.licences.celery_tasks.schedule_licence_details_to_lite_hmrc")
+    def test_suspend_licence_does_not_schedule_licence_details_to_lite_hmrc(
+        self, schedule_licence_details_to_lite_hmrc
+    ):
+        schedule_licence_details_to_lite_hmrc.return_value = None
+
+        self.standard_licence.suspend()
+
+        schedule_licence_details_to_lite_hmrc.assert_not_called()
+
 
 class HMRCIntegrationTasksTests(DataTestClient):
     def setUp(self):
@@ -453,6 +464,17 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence_details_to_lite_hmrc_task.assert_called_with(
             str(self.standard_licence.id), self.hmrc_integration_status
         )
+
+    @mock.patch("api.licences.celery_tasks.send_licence_details_to_lite_hmrc.delay")
+    def test_schedule_licence_suspend_with_cancel_message_to_lite_hmrc_failure(
+        self, send_licence_details_to_lite_hmrc_task
+    ):
+        send_licence_details_to_lite_hmrc_task.return_value = None
+        self.standard_licence.suspend()
+
+        schedule_licence_details_to_lite_hmrc(str(self.standard_licence.id), HMRCIntegrationActionEnum.CANCEL)
+
+        send_licence_details_to_lite_hmrc_task.assert_not_called()
 
     @mock.patch("api.licences.celery_tasks.send_licence")
     def test_send_licence_to_hmrc_integration_success(self, send_licence):
