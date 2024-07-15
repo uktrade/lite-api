@@ -501,6 +501,32 @@ class TestPartyOnApplication(DataTestClient):
         cloned_party_on_application = original_party_on_application.clone(application=new_application)
         assert cloned_party_on_application.id != original_party_on_application.id
         assert cloned_party_on_application.application_id == new_application.id
+        assert cloned_party_on_application.party_id != original_party_on_application.party_id
+        assert model_to_dict(cloned_party_on_application) == {
+            "id": cloned_party_on_application.id,
+            "application": new_application.id,
+            "deleted_at": original_party_on_application.deleted_at,
+            "flags": [],
+            "party": cloned_party_on_application.party_id,
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust PartyOnApplication.clone_*
+        attributes accordingly.
+        """
+
+    def test_clone_with_party_override(self):
+        original_party_on_application = PartyOnApplicationFactory(
+            deleted_at=timezone.now(),
+        )
+        original_party_on_application.flags.add(Flag.objects.first())
+        original_party_on_application.save()
+        new_application = StandardApplicationFactory()
+        cloned_party_on_application = original_party_on_application.clone(
+            application=new_application, party=original_party_on_application.party
+        )
+        assert cloned_party_on_application.id != original_party_on_application.id
+        assert cloned_party_on_application.application_id == new_application.id
         assert model_to_dict(cloned_party_on_application) == {
             "id": cloned_party_on_application.id,
             "application": new_application.id,
