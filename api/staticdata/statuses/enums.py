@@ -36,7 +36,7 @@ class CaseStatusEnum:
     OGD_CONSOLIDATION = "ogd_consolidation"
     FINAL_REVIEW_COUNTERSIGN = "final_review_countersign"
     FINAL_REVIEW_SECOND_COUNTERSIGN = "final_review_second_countersign"
-    SUPERSEDED_BY_AMENDMENT = "superseded_by_amendment"
+    SUPERSEDED_BY_EXPORTER_EDIT = "superseded_by_exporter_edit"
 
     _system_status = [DRAFT]
 
@@ -57,7 +57,7 @@ class CaseStatusEnum:
         REVOKED,
         SURRENDERED,
         WITHDRAWN,
-        SUPERSEDED_BY_AMENDMENT,
+        SUPERSEDED_BY_EXPORTER_EDIT,
     ]
 
     goods_query_statuses = [CLC, PV]
@@ -110,7 +110,7 @@ class CaseStatusEnum:
         (WITHDRAWN, "Withdrawn"),
         (OGD_ADVICE, "OGD Advice"),
         (OGD_CONSOLIDATION, "OGD Consolidation"),
-        (SUPERSEDED_BY_AMENDMENT, "Superseded by amendment"),
+        (SUPERSEDED_BY_EXPORTER_EDIT, "Superseded by exporter edit"),
         (FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
         (FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
     ]
@@ -149,7 +149,7 @@ class CaseStatusEnum:
         SUSPENDED: 31,
         SURRENDERED: 32,
         DEREGISTERED: 33,
-        SUPERSEDED_BY_AMENDMENT: 34,
+        SUPERSEDED_BY_EXPORTER_EDIT: 34,
     }
 
     @classmethod
@@ -259,7 +259,7 @@ class CaseStatusIdEnum:
     OGD_CONSOLIDATION = UUID("00000000-0000-0000-0000-000000000031")
     FINAL_REVIEW_COUNTERSIGN = UUID("00000000-0000-0000-0000-000000000032")
     FINAL_REVIEW_SECOND_COUNTERSIGN = UUID("00000000-0000-0000-0000-000000000033")
-    SUPERSEDED_BY_AMENDMENT = UUID("00000000-0000-0000-0000-000000000034")
+    SUPERSEDED_BY_EXPORTER_EDIT = UUID("00000000-0000-0000-0000-000000000034")
 
 
 class CaseSubStatusIdEnum:
