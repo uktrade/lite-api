@@ -47,7 +47,9 @@ def schedule_licence_details_to_lite_hmrc(licence_id, action):
     licence = Licence.objects.get(id=licence_id)
 
     if licence.status == LicenceStatus.SUSPENDED:
-        logger.info("Licence %s is suspended, so cancel message should not be sent to HMRC", licence.reference_code)
+        logger.info(
+            "Licence %s is suspended, status not supported by HMRC so no message will be sent.", licence.reference_code
+        )
         return
 
     if (
