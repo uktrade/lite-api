@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from api.common.models import TimestampableModel
+from api.core.model_mixins import Clonable
 from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import PvGrading
@@ -44,7 +45,7 @@ class PartyManager(models.Manager):
         return values
 
 
-class Party(TimestampableModel):
+class Party(TimestampableModel, Clonable):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default="", blank=True)
     address = models.TextField(default=None, blank=True, max_length=256)
@@ -82,6 +83,22 @@ class Party(TimestampableModel):
 
     class Meta:
         ordering = ["name"]
+
+    clone_exclusions = [
+        "id",
+        "flags",
+        "copy_of",
+    ]
+    clone_mappings = {
+        "organisation": "organisation_id",
+        "country": "country_id",
+    }
+
+    def clone(self, exclusions=None, **overrides):
+        cloned_party = super().clone(exclusions=exclusions, **overrides)
+        cloned_party.copy_of = self
+        cloned_party.save()
+        return cloned_party
 
 
 class PartyDocument(Document):

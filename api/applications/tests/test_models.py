@@ -31,6 +31,7 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.models import ExporterUser
 
 
@@ -92,7 +93,7 @@ class TestStandardApplication(DataTestClient):
         assert amendment_application.status.status == "draft"
         assert amendment_application.amendment_of == original_application.case_ptr
         original_application.refresh_from_db()
-        assert original_application.status.status == "superseded_by_amendment"
+        assert original_application.status.status == CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT
         assert original_application.queues.all().count() == 0
         audit_entries = Audit.objects.all()
         supersede_audit_entry = audit_entries[1]
@@ -106,7 +107,9 @@ class TestStandardApplication(DataTestClient):
         assert amendment_audit_entry.verb == "exporter_created_amendment"
         assert amendment_audit_entry.actor == exporter_user
         status_change_audit_entry = audit_entries[0]
-        assert status_change_audit_entry.payload == {"status": {"new": "Superseded by amendment", "old": "ogd_advice"}}
+        assert status_change_audit_entry.payload == {
+            "status": {"new": "Superseded by exporter edit", "old": "ogd_advice"}
+        }
         assert status_change_audit_entry.verb == "updated_status"
 
     def test_clone(self):
@@ -496,6 +499,32 @@ class TestPartyOnApplication(DataTestClient):
         original_party_on_application.save()
         new_application = StandardApplicationFactory()
         cloned_party_on_application = original_party_on_application.clone(application=new_application)
+        assert cloned_party_on_application.id != original_party_on_application.id
+        assert cloned_party_on_application.application_id == new_application.id
+        assert cloned_party_on_application.party_id != original_party_on_application.party_id
+        assert model_to_dict(cloned_party_on_application) == {
+            "id": cloned_party_on_application.id,
+            "application": new_application.id,
+            "deleted_at": original_party_on_application.deleted_at,
+            "flags": [],
+            "party": cloned_party_on_application.party_id,
+        }, """
+        The attributes on the cloned record were not as expected. If this is the result
+        of a schema migration, think carefully about whether the new fields should be
+        cloned by default or not and adjust PartyOnApplication.clone_*
+        attributes accordingly.
+        """
+
+    def test_clone_with_party_override(self):
+        original_party_on_application = PartyOnApplicationFactory(
+            deleted_at=timezone.now(),
+        )
+        original_party_on_application.flags.add(Flag.objects.first())
+        original_party_on_application.save()
+        new_application = StandardApplicationFactory()
+        cloned_party_on_application = original_party_on_application.clone(
+            application=new_application, party=original_party_on_application.party
+        )
         assert cloned_party_on_application.id != original_party_on_application.id
         assert cloned_party_on_application.application_id == new_application.id
         assert model_to_dict(cloned_party_on_application) == {
