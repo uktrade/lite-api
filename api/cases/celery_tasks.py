@@ -101,62 +101,62 @@ def update_cases_sla():
 
     logger.info("SLA Update Started")
     date = timezone.localtime()
-    if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
-        try:
 
-            # Get cases submitted before the cutoff time today, where they have never been closed
-            # and where the cases SLA haven't been updated today (to avoid running twice in a single day).
-            # Lock with select_for_update()
-            # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
-            active_ecju_query_cases = get_case_ids_with_active_ecju_queries(date)
-            terminal_case_status = CaseStatus.objects.filter(status__in=CaseStatusEnum.terminal_statuses())
-            cases = (
-                Case.objects.filter(
-                    submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=tz(settings.TIME_ZONE)),
-                    last_closed_at__isnull=True,
-                    sla_remaining_days__isnull=False,
-                )
-                .exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
-                .exclude(status__in=terminal_case_status)
+    if is_bank_holiday(date, call_api=True) or is_weekend(date):
+        logger.info("SLA Update Not Performed. Non-working day")
+        return False
+
+    try:
+        # Get cases submitted before the cutoff time today, where they have never been closed
+        # and where the cases SLA haven't been updated today (to avoid running twice in a single day).
+        # Lock with select_for_update()
+        # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
+        active_ecju_query_cases = get_case_ids_with_active_ecju_queries(date)
+        terminal_case_status = CaseStatus.objects.filter(status__in=CaseStatusEnum.terminal_statuses())
+        cases = (
+            Case.objects.filter(
+                submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=tz(settings.TIME_ZONE)),
+                last_closed_at__isnull=True,
+                sla_remaining_days__isnull=False,
             )
-            with transaction.atomic():
-                # Keep track of the department SLA updates.
-                # We only want to update a department SLA once per case assignment per day.
-                department_slas_updated = set()
-                for assignment in CaseQueue.objects.filter(case__in=cases):
-                    # Update team SLAs
+            .exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
+            .exclude(status__in=terminal_case_status)
+        )
+        with transaction.atomic():
+            # Keep track of the department SLA updates.
+            # We only want to update a department SLA once per case assignment per day.
+            department_slas_updated = set()
+            for assignment in CaseQueue.objects.filter(case__in=cases):
+                # Update team SLAs
+                try:
+                    assignment_sla = CaseAssignmentSLA.objects.get(queue=assignment.queue, case=assignment.case)
+                    assignment_sla.sla_days += 1
+                    assignment_sla.save()
+                except CaseAssignmentSLA.DoesNotExist:
+                    CaseAssignmentSLA.objects.create(queue=assignment.queue, case=assignment.case, sla_days=1)
+                # Update department SLAs
+                department = assignment.queue.team.department
+                if department is not None:
                     try:
-                        assignment_sla = CaseAssignmentSLA.objects.get(queue=assignment.queue, case=assignment.case)
-                        assignment_sla.sla_days += 1
-                        assignment_sla.save()
-                    except CaseAssignmentSLA.DoesNotExist:
-                        CaseAssignmentSLA.objects.create(queue=assignment.queue, case=assignment.case, sla_days=1)
-                    # Update department SLAs
-                    department = assignment.queue.team.department
-                    if department is not None:
-                        try:
-                            department_sla = DepartmentSLA.objects.get(department=department, case=assignment.case)
-                            if department_sla.id not in department_slas_updated:
-                                department_sla.sla_days += 1
-                                department_sla.save()
-                        except DepartmentSLA.DoesNotExist:
-                            department_sla = DepartmentSLA.objects.create(
-                                department=department, case=assignment.case, sla_days=1
-                            )
-                        department_slas_updated.add(department_sla.id)
+                        department_sla = DepartmentSLA.objects.get(department=department, case=assignment.case)
+                        if department_sla.id not in department_slas_updated:
+                            department_sla.sla_days += 1
+                            department_sla.save()
+                    except DepartmentSLA.DoesNotExist:
+                        department_sla = DepartmentSLA.objects.create(
+                            department=department, case=assignment.case, sla_days=1
+                        )
+                    department_slas_updated.add(department_sla.id)
 
-                results = cases.select_for_update().update(
-                    sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
-                )
+            results = cases.select_for_update().update(
+                sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
+            )
 
-            logger.info(f"SLA Update Successful. Updated {results} cases")
-            return results
-        except Exception as e:  # noqa
-            logger.error(e)
-            return False
-
-    logger.info("SLA Update Not Performed. Non-working day")
-    return False
+        logger.info(f"SLA Update Successful. Updated {results} cases")
+        return results
+    except Exception as e:  # noqa
+        logger.error(e)
+        return False
 
 
 @shared_task
