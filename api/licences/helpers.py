@@ -6,7 +6,7 @@ from api.applications.models import GoodOnApplication
 from api.applications.serializers.good import GoodOnApplicationViewSerializer
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.cases.models import GoodCountryDecision
-from api.cases.notify import notify_exporter_licence_revoked
+from api.cases.notify import notify_exporter_licence_revoked, notify_exporter_licence_suspended
 from api.core.exceptions import NotFoundError
 from api.licences.models import Licence
 from lite_content.lite_api import strings
@@ -70,6 +70,7 @@ def update_licence_status(case, status):
                 licence.surrender()
             elif status == CaseStatusEnum.SUSPENDED:
                 licence.suspend()
+                notify_exporter_licence_suspended(licence)
             elif status == CaseStatusEnum.REVOKED:
                 licence.revoke()
                 notify_exporter_licence_revoked(licence)
