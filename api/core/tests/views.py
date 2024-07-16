@@ -12,6 +12,7 @@ class MisconfiguredParentFilterView(RetrieveAPIView):
 
 class ParentFilterView(RetrieveAPIView):
     filter_backends = (ParentFilter,)
+    lookup_url_kwarg = "child_pk"
     parent_filter_id_lookup_field = "parent_id"
     queryset = ChildModel.objects.all()
     serializer_class = ChildModelSerializer

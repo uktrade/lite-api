@@ -3,6 +3,7 @@ from dateutil.parser import parse
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils import timezone
+from api.applications.tests.factories import DenialMatchOnApplicationFactory
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.models import Case, CaseQueue
@@ -399,3 +400,46 @@ class CaseGetTests(DataTestClient):
 
         data = response.json()
         self.assertEqual(data["results"]["cases"][0]["sub_status"]["name"], sub_status.name)
+
+    def test_case_returns_expected_denial_matches(self):
+        """
+        Given a case with a denial match
+        When the case is retrieved
+        Then the denial match json data is as expected.
+        """
+        case = self.submit_application(self.standard_application)
+        denial_match = DenialMatchOnApplicationFactory(application=case)
+        url = reverse("cases:case", kwargs={"pk": case.id})
+
+        expected_denial_matches = [
+            {
+                "id": str(denial_match.id),
+                "application": str(case.id),
+                "denial_entity": {
+                    "id": str(denial_match.denial_entity.id),
+                    "created_by": str(denial_match.denial_entity.created_by_id),
+                    "name": denial_match.denial_entity.name,
+                    "address": denial_match.denial_entity.address,
+                    "regime_reg_ref": denial_match.denial_entity.denial.regime_reg_ref,
+                    "notifying_government": denial_match.denial_entity.denial.notifying_government,
+                    "country": denial_match.denial_entity.country,
+                    "denial_cle": denial_match.denial_entity.denial.denial_cle,
+                    "item_description": denial_match.denial_entity.denial.item_description,
+                    "end_use": denial_match.denial_entity.denial.end_use,
+                    "is_revoked": denial_match.denial_entity.denial.is_revoked,
+                    "is_revoked_comment": denial_match.denial_entity.denial.is_revoked_comment,
+                    "reason_for_refusal": denial_match.denial_entity.denial.reason_for_refusal,
+                    "entity_type": denial_match.denial_entity.entity_type,
+                    "reference": denial_match.denial_entity.denial.reference,
+                    "denial": str(denial_match.denial_entity.denial.id),
+                },
+                "category": denial_match.category,
+            }
+        ]
+
+        response = self.client.get(url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["case"]["data"]["denial_matches"], expected_denial_matches)

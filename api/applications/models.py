@@ -1,6 +1,5 @@
 import uuid
 
-from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.utils import timezone
@@ -17,7 +16,7 @@ from api.applications.enums import (
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager
 from api.applications.libraries.application_helpers import create_submitted_audit
-from api.audit_trail.models import Audit, AuditType
+from api.audit_trail.models import AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case, CaseQueue
@@ -391,7 +390,7 @@ class StandardApplication(BaseApplication, Clonable):
             ignore_case_status=True,
         )
         system_user = BaseUser.objects.get(id=SystemUser.id)
-        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT))
+        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
         return amendment_application
 
 
@@ -538,12 +537,6 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
     other_item_type = models.CharField(max_length=100, null=True, blank=True, default=None)
-    audit_trail = GenericRelation(
-        Audit,
-        related_query_name="good_on_application",
-        content_type_field="action_object_content_type",
-        object_id_field="action_object_object_id",
-    )
     control_list_entries = models.ManyToManyField(ControlListEntry, through=GoodOnApplicationControlListEntry)
     regime_entries = models.ManyToManyField(RegimeEntry, through=GoodOnApplicationRegimeEntry)
 
@@ -724,10 +717,14 @@ class PartyOnApplication(TimestampableModel, Clonable):
         "id",
         "application",
         "flags",
+        "party",
     ]
-    clone_mappings = {
-        "party": "party_id",
-    }
+
+    def clone(self, exclusions=None, **overrides):
+        if not overrides.get("party"):
+            cloned_party = self.party.clone()
+            overrides["party"] = cloned_party
+        return super().clone(exclusions=exclusions, **overrides)
 
 
 class DenialMatchOnApplication(TimestampableModel):

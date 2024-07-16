@@ -110,7 +110,8 @@ class ProductSearchTests(BaseProductSearchTests):
         [
             ({"search": "ABC"}, 0),
             ({"search": "ABC-123"}, 1),
-            ({"search": "IMG-1300"}, 1),
+            ({"search": "IMG/1300"}, 1),
+            ({"search": "IMG-1300"}, 0),
             ({"search": "867-"}, 0),
             ({"search": "867-5309"}, 1),
             ({"search": "H2SO4"}, 1),

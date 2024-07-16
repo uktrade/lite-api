@@ -59,6 +59,8 @@ class ApplicationManageStatusTests(DataTestClient):
     @mock.patch("api.applications.views.applications.notify_exporter_case_opened_for_editing")
     def test_exporter_set_application_status_applicant_editing_when_in_editable_status_success(self, mock_notify):
         self.submit_application(self.standard_application)
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.REOPENED_FOR_CHANGES)
+        self.standard_application.save()
 
         data = {"status": CaseStatusEnum.APPLICANT_EDITING}
         response = self.client.put(self.url, data=data, **self.exporter_headers)
@@ -70,7 +72,8 @@ class ApplicationManageStatusTests(DataTestClient):
         audit_event = Audit.objects.first()
         self.assertEqual(audit_event.verb, AuditType.UPDATED_STATUS)
         self.assertEqual(
-            audit_event.payload, {"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": CaseStatusEnum.SUBMITTED}}
+            audit_event.payload,
+            {"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": CaseStatusEnum.REOPENED_FOR_CHANGES}},
         )
         mock_notify.assert_called_with(self.standard_application)
 
@@ -420,7 +423,9 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.save()
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW))
 
-        base_user = BaseUser(email="test@mail.com", first_name="John", last_name="Smith", type=UserType.SYSTEM)
+        base_user = BaseUser(
+            email="test@mail.com", first_name="John", last_name="Smith", type=UserType.SYSTEM  # /PS-IGNORE
+        )
         base_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
         base_user.save()
 

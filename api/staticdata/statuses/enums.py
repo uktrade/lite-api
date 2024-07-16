@@ -36,30 +36,16 @@ class CaseStatusEnum:
     OGD_CONSOLIDATION = "ogd_consolidation"
     FINAL_REVIEW_COUNTERSIGN = "final_review_countersign"
     FINAL_REVIEW_SECOND_COUNTERSIGN = "final_review_second_countersign"
-    SUPERSEDED_BY_AMENDMENT = "superseded_by_amendment"
+    SUPERSEDED_BY_EXPORTER_EDIT = "superseded_by_exporter_edit"
 
     _system_status = [DRAFT]
 
-    _read_only_statuses = [
-        APPEAL_REVIEW,
-        APPEAL_FINAL_REVIEW,
-        CHANGE_UNDER_REVIEW,
-        CHANGE_UNDER_FINAL_REVIEW,
-        CLOSED,
-        DEREGISTERED,
-        FINALISED,
-        REGISTERED,
-        REOPENED_DUE_TO_ORG_CHANGES,
-        UNDER_ECJU_REVIEW,
-        UNDER_FINAL_REVIEW,
-        REVOKED,
-        SURRENDERED,
-        SUSPENDED,
-        WITHDRAWN,
-        OGD_ADVICE,
-        OGD_CONSOLIDATION,
-        SUPERSEDED_BY_AMENDMENT,
+    _writeable_statuses = [
+        DRAFT,
+        APPLICANT_EDITING,
     ]
+
+    _can_invoke_major_edit_statuses = [SUBMITTED, INITIAL_CHECKS, UNDER_REVIEW, REOPENED_FOR_CHANGES]
 
     _major_editable_statuses = [APPLICANT_EDITING, DRAFT]
 
@@ -71,7 +57,7 @@ class CaseStatusEnum:
         REVOKED,
         SURRENDERED,
         WITHDRAWN,
-        SUPERSEDED_BY_AMENDMENT,
+        SUPERSEDED_BY_EXPORTER_EDIT,
     ]
 
     goods_query_statuses = [CLC, PV]
@@ -124,7 +110,9 @@ class CaseStatusEnum:
         (WITHDRAWN, "Withdrawn"),
         (OGD_ADVICE, "OGD Advice"),
         (OGD_CONSOLIDATION, "OGD Consolidation"),
-        (SUPERSEDED_BY_AMENDMENT, "Superseded by amendment"),
+        (SUPERSEDED_BY_EXPORTER_EDIT, "Superseded by exporter edit"),
+        (FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
+        (FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
     ]
 
     priority = {
@@ -161,32 +149,12 @@ class CaseStatusEnum:
         SUSPENDED: 31,
         SURRENDERED: 32,
         DEREGISTERED: 33,
-        SUPERSEDED_BY_AMENDMENT: 34,
+        SUPERSEDED_BY_EXPORTER_EDIT: 34,
     }
 
     @classmethod
     def get_choices(cls):
-        lu_countersign_statuses = []
-        lu_countersign_statuses.extend(
-            [
-                (cls.FINAL_REVIEW_COUNTERSIGN, "Final review countersign"),
-                (cls.FINAL_REVIEW_SECOND_COUNTERSIGN, "Final review second countersign"),
-            ]
-        )
-
-        return cls.choices + lu_countersign_statuses
-
-    @classmethod
-    def get_read_only_choices(cls):
-        lu_countersign_statuses = []
-        lu_countersign_statuses.extend(
-            [
-                cls.FINAL_REVIEW_COUNTERSIGN,
-                cls.FINAL_REVIEW_SECOND_COUNTERSIGN,
-            ]
-        )
-
-        return cls._read_only_statuses + lu_countersign_statuses
+        return cls.choices
 
     @classmethod
     def get_text(cls, status):
@@ -204,7 +172,11 @@ class CaseStatusEnum:
 
     @classmethod
     def is_read_only(cls, status):
-        return status in cls.get_read_only_choices()
+        return status in cls.read_only_statuses()
+
+    @classmethod
+    def is_editable(cls, status):
+        return not cls.is_read_only(status)
 
     @classmethod
     def is_terminal(cls, status):
@@ -216,11 +188,23 @@ class CaseStatusEnum:
 
     @classmethod
     def read_only_statuses(cls):
-        return cls.get_read_only_choices()
+        return list(set(cls.all()) - set(cls._writeable_statuses))
 
     @classmethod
     def major_editable_statuses(cls):
         return cls._major_editable_statuses
+
+    @classmethod
+    def is_major_editable_status(cls, status):
+        return status in cls._major_editable_statuses
+
+    @classmethod
+    def can_invoke_major_edit_statuses(cls):
+        return cls._can_invoke_major_edit_statuses
+
+    @classmethod
+    def can_invoke_major_edit(cls, status):
+        return status in cls._can_invoke_major_edit_statuses
 
     @classmethod
     def terminal_statuses(cls):
@@ -237,7 +221,7 @@ class CaseStatusEnum:
 
     @classmethod
     def all(cls):
-        return [k for k, _ in [*cls.get_choices(), (cls.DRAFT, "Draft")]]
+        return [getattr(cls, param) for param in dir(cls) if param.isupper()]
 
 
 class CaseStatusIdEnum:
@@ -275,7 +259,7 @@ class CaseStatusIdEnum:
     OGD_CONSOLIDATION = UUID("00000000-0000-0000-0000-000000000031")
     FINAL_REVIEW_COUNTERSIGN = UUID("00000000-0000-0000-0000-000000000032")
     FINAL_REVIEW_SECOND_COUNTERSIGN = UUID("00000000-0000-0000-0000-000000000033")
-    SUPERSEDED_BY_AMENDMENT = UUID("00000000-0000-0000-0000-000000000034")
+    SUPERSEDED_BY_EXPORTER_EDIT = UUID("00000000-0000-0000-0000-000000000034")
 
 
 class CaseSubStatusIdEnum:
