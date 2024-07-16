@@ -36,6 +36,11 @@ class CreateApplicationAmendment(CreateAPIView):
         return self.application.organisation
 
     def perform_create(self, serializer):
+        # Create a clone of the application in question and set the original application
+        # to a superseded status.  Amendment applications are new copies of the original
+        # which can be edited by exporters as if they were a completely new draft.
+        # Caseworker commentary is not copied to the amendment application but persists
+        # on the old superseded application
         self.amendment_application = self.application.create_amendment(self.request.user)
 
     @application_can_invoke_major_edit
