@@ -1,12 +1,17 @@
+from parameterized import parameterized
 from unittest import mock
+
 from django.urls import reverse
 from rest_framework import status
 
 from api.applications import models as application_models
 from api.applications.models import StandardApplication
 from api.applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
+from api.licences.tests.factories import StandardLicenceFactory
+from api.licences.enums import LicenceStatus
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 
 from test_helpers.clients import DataTestClient
 
@@ -24,7 +29,10 @@ class TestCreateApplicationAmendment(DataTestClient):
             },
         )
 
-    def test_create_amendment(self):
+    @parameterized.expand(CaseStatusEnum.can_invoke_major_edit_statuses)
+    def test_create_amendment(self, case_status):
+        self.application.status = CaseStatus.objects.get(status=case_status)
+        self.application.save()
         response = self.client.post(self.url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         amendment_id = response.json().get("id")
@@ -52,3 +60,18 @@ class TestCreateApplicationAmendment(DataTestClient):
         self.application.delete()
         response = self.client.post(self.url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @parameterized.expand(CaseStatusEnum.can_not_invoke_major_edit_statuses)
+    def test_create_amendment_application_wrong_status(self, case_status):
+        self.application.status = CaseStatus.objects.get(status=case_status)
+        self.application.save()
+        response = self.client.post(self.url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_amendment_licence_exists_on_original(self):
+        licence = StandardLicenceFactory(case=self.application.case_ptr, status=LicenceStatus.ISSUED)
+        response = self.client.post(self.url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["non_field_errors"], "Application has at least one licence so cannot be amended."
+        )
