@@ -6,6 +6,7 @@ from api.cases.notify import (
     notify_exporter_licence_refused,
     notify_exporter_no_licence_required,
     notify_exporter_licence_revoked,
+    notify_exporter_licence_suspended,
     notify_exporter_inform_letter,
     notify_exporter_appeal_acknowledgement,
 )
@@ -17,6 +18,7 @@ from gov_notify.payloads import (
     ExporterLicenceIssued,
     ExporterLicenceRefused,
     ExporterLicenceRevoked,
+    ExporterLicenceSuspended,
     ExporterNoLicenceRequired,
     ExporterInformLetter,
     ExporterAppealAcknowledgement,
@@ -75,6 +77,21 @@ class NotifyTests(DataTestClient):
         mock_send_email.assert_called_with(
             self.exporter_user.email,
             TemplateType.EXPORTER_LICENCE_REVOKED,
+            expected_payload,
+        )
+
+    @mock.patch("api.cases.notify.send_email")
+    def test_notify_licence_suspended(self, mock_send_email):
+        expected_payload = ExporterLicenceSuspended(
+            user_first_name=self.exporter_user.first_name,
+            application_reference=self.licence.case.reference_code,
+        )
+
+        notify_exporter_licence_suspended(self.licence)
+
+        mock_send_email.assert_called_with(
+            self.exporter_user.email,
+            TemplateType.EXPORTER_LICENCE_SUSPENDED,
             expected_payload,
         )
 
