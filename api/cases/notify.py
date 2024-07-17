@@ -100,7 +100,6 @@ def notify_exporter_licence_suspended(licence):
         {
             "user_first_name": exporter.first_name,
             "application_reference": case.reference_code,
-            "exporter_frontend_url": get_exporter_frontend_url("/"),
         },
     )
 
