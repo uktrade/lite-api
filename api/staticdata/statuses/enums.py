@@ -203,6 +203,10 @@ class CaseStatusEnum:
         return cls._can_invoke_major_edit_statuses
 
     @classmethod
+    def can_not_invoke_major_edit_statuses(cls):
+        return list(set(cls.all()) - set(cls._can_invoke_major_edit_statuses))
+
+    @classmethod
     def can_invoke_major_edit(cls, status):
         return status in cls._can_invoke_major_edit_statuses
 
