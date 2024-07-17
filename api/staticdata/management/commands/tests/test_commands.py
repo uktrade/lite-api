@@ -1,7 +1,6 @@
 import os
 import pytest
 
-from django.conf import settings
 from tempfile import NamedTemporaryFile
 
 from api.cases.enums import CaseTypeEnum
@@ -9,7 +8,6 @@ from api.cases.models import CaseType
 from api.core.constants import GovPermissions, ExporterPermissions
 from api.conf.settings import BASE_DIR
 from api.letter_templates.models import LetterTemplate
-from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.cases.enums import AdviceType
 from api.staticdata.decisions.models import Decision
@@ -20,7 +18,6 @@ from api.staticdata.management.commands import (
     seedlayouts,
     seedcasestatuses,
     seedcasetypes,
-    seedcontrollistentries,
     seedcountries,
     seeddenialreasons,
     seedlettertemplates,
@@ -28,7 +25,6 @@ from api.staticdata.management.commands import (
     seedfinaldecisions,
 )
 from api.staticdata.statuses.models import CaseStatus, CaseStatusCaseType
-from api.teams.models import Team
 from api.users.models import Permission
 
 
@@ -57,11 +53,6 @@ class SeedingTests(SeedCommandTest):
                     counter += 1
 
         self.assertEqual(CaseStatusCaseType.objects.all().count(), counter)
-
-    @pytest.mark.seeding
-    def test_seed_control_list_entries(self):
-        self.seed_command(seedcontrollistentries.Command)
-        self.assertEqual(ControlListEntry.objects.count(), 2943)
 
     @pytest.mark.seeding
     def test_seed_countries(self):
