@@ -38,7 +38,10 @@ class TestParty(DataTestClient):
             details="some details",
         )
         original_party.flags.add(Flag.objects.first())
-        original_party_document = PartyDocumentFactory(party=original_party, s3_key="some key")
+        original_party_safe_document = PartyDocumentFactory(party=original_party, s3_key="some safe key", safe=True)
+        original_party_unsafe_document = PartyDocumentFactory(
+            party=original_party, s3_key="some unsafe key", safe=False
+        )
 
         cloned_party = original_party.clone()
         assert original_party.id != cloned_party.id
@@ -72,7 +75,9 @@ class TestParty(DataTestClient):
         of a schema migration, think carefully about whether the new fields should be
         cloned by default or not and adjust Party.clone_* attributes accordingly.
         """
-        assert PartyDocument.objects.filter(party=cloned_party).count() == 1
+        assert list(PartyDocument.objects.filter(party=cloned_party).values_list("s3_key", flat=True)) == [
+            "some safe key"
+        ]
 
 
 class TestPartyDocument(DataTestClient):

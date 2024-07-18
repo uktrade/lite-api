@@ -99,7 +99,7 @@ class Party(TimestampableModel, Clonable):
         cloned_party.copy_of = self
         cloned_party.save()
 
-        party_documents = PartyDocument.objects.filter(party=self)
+        party_documents = PartyDocument.objects.filter(party=self, safe=True)
         for party_document in party_documents:
             party_document.clone(party=cloned_party)
 
