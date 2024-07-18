@@ -94,12 +94,11 @@ def _notify_exporter_licence_suspended(email, data):
 
 def notify_exporter_licence_suspended(licence):
     exporter = licence.case.submitted_by
-    case = licence.case.get_case()
     _notify_exporter_licence_suspended(
         exporter.email,
         {
             "user_first_name": exporter.first_name,
-            "application_reference": case.reference_code,
+            "application_reference": licence.reference_code,
         },
     )
 
