@@ -14,6 +14,12 @@ class GoodStatus:
         (VERIFIED, "Verified"),
     ]
 
+    _archivable_statuses = [SUBMITTED, VERIFIED]
+
+    @classmethod
+    def archivable_statuses(cls):
+        return cls._archivable_statuses
+
 
 class ItemType:
     EQUIPMENT = "equipment"

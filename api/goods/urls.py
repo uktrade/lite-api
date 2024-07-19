@@ -38,4 +38,6 @@ urlpatterns = [
         views.DocumentGoodOnApplicationInternalDetailView.as_view(),
         name="document_internal_good_on_application_detail",
     ),
+    path("archived-goods/", views.ArchivedGoodList.as_view(), name="archived_goods"),
+    path("<uuid:pk>/archive-restore/", views.GoodArchiveRestore.as_view(), name="archive_restore"),
 ]

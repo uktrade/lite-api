@@ -1,29 +1,38 @@
 from uuid import UUID
+import datetime
 
+from django.utils import timezone
 from django.urls import reverse
+from api.cases.tests.factories import FinalAdviceFactory
+from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
+from api.staticdata.decisions.models import Decision
+from api.staticdata.statuses.models import CaseStatus
 from parameterized import parameterized
 from rest_framework import status
 
 from api.applications.models import GoodOnApplication, SiteOnApplication
-from api.cases.enums import CaseTypeEnum
+from api.applications.tests.factories import DraftStandardApplicationFactory
+from api.cases.enums import AdviceType, CaseTypeEnum
 from api.organisations.tests.factories import SiteFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 from api.users.libraries.get_user import get_user_organisation_relationship
+from api.core.constants import GovPermissions
 
 
 class DraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.url = reverse("applications:applications") + "?submitted=false"
+        self.url = reverse("applications:applications") + "?sort_by=-created_at&selected_filter=draft_applications"
 
     def test_view_draft_standard_application_list_as_exporter_success(self):
         """
         Ensure we can get a list of drafts.
         """
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        standard_application = self.create_draft_standard_application(self.organisation)
+        standard_application = DraftStandardApplicationFactory(organisation=self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -203,3 +212,77 @@ class DraftTests(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["applications"], True)
+
+    def test_view_finalised_applications(self):
+        url = reverse("applications:applications")
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 0)
+
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        application = self.create_draft_standard_application(self.organisation)
+
+        self.submit_application(application)
+        url = reverse("applications:applications") + "?sort_by=submitted_at"
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 1)
+
+        application_finalised = self.create_standard_application_case(self.organisation)
+        FinalAdviceFactory(user=self.gov_user, case=application_finalised, type=AdviceType.APPROVE)
+        template = self.create_letter_template(
+            name="Template",
+            case_types=[CaseTypeEnum.SIEL.id],
+            decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
+        )
+
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
+        licence = StandardLicenceFactory(case=application_finalised, status=LicenceStatus.DRAFT)
+        self.create_generated_case_document(
+            application_finalised, template, advice_type=AdviceType.APPROVE, licence=licence
+        )
+
+        finalised_url = reverse("cases:finalise", kwargs={"pk": application_finalised.id})
+        response = self.client.put(finalised_url, data={}, **self.gov_headers)
+
+        application.submitted_at = timezone.make_aware(datetime.datetime(2020, 6, 20, 12, 0))
+        application.save()
+        application_finalised.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(application_finalised.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
+
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 2)
+
+        data = response.json()
+        submitted_dates = [
+            datetime.datetime.fromisoformat(item["submitted_at"].rstrip("Z").replace("Z", "+00:00"))
+            for item in data["results"]
+        ]
+        assert all(
+            submitted_dates[i] <= submitted_dates[i + 1] for i in range(len(submitted_dates) - 1)
+        ), "Dates are not in ascending order."
+
+        url = reverse("applications:applications") + "?sort_by=-updated_at"
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        updated_dates = [
+            datetime.datetime.fromisoformat(item["updated_at"].rstrip("Z").replace("Z", "+00:00"))
+            for item in data["results"]
+        ]
+        assert all(
+            updated_dates[i] >= updated_dates[i + 1] for i in range(len(updated_dates) - 1)
+        ), "Dates are not in descending order."
+
+        url = reverse("applications:applications") + "?selected_filter=finalised_applications"
+        response = self.client.get(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(
+            response.json()["results"][0]["status"]["value"],
+            "Finalised",
+        )
