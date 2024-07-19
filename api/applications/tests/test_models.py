@@ -8,6 +8,7 @@ from api.audit_trail.models import Audit
 from api.cases.models import CaseType, Queue
 from api.flags.models import Flag
 from api.applications.models import (
+    ApplicationDocument,
     GoodOnApplication,
     GoodOnApplicationDocument,
     GoodOnApplicationInternalDocument,
@@ -173,6 +174,12 @@ class TestStandardApplication(DataTestClient):
         original_site_on_application = SiteOnApplicationFactory(application=original_application)
         original_good_on_application = GoodOnApplicationFactory(application=original_application)
         original_party_on_application = PartyOnApplicationFactory(application=original_application)
+        original_application_safe_document = ApplicationDocumentFactory(
+            application=original_application, s3_key="some safe key", safe=True
+        )
+        original_application_unsafe_document = ApplicationDocumentFactory(
+            application=original_application, s3_key="some unsafe key", safe=False
+        )
         cloned_application = original_application.clone()
 
         assert cloned_application.id != original_application.id
@@ -243,6 +250,9 @@ class TestStandardApplication(DataTestClient):
         assert SiteOnApplication.objects.filter(application=cloned_application).count() == 1
         assert GoodOnApplication.objects.filter(application=cloned_application).count() == 1
         assert PartyOnApplication.objects.filter(application=cloned_application).count() == 1
+        assert list(
+            ApplicationDocument.objects.filter(application=cloned_application).values_list("s3_key", flat=True)
+        ) == ["some safe key"]
 
 
 class TestApplicationDocument(DataTestClient):
@@ -354,16 +364,34 @@ class TestGoodOnApplication(DataTestClient):
         original_good_on_application_internal_document = GoodOnApplicationInternalDocumentFactory(
             document_title="some title",
             name="some name",
-            s3_key="doc.xlsx",
+            s3_key="safe.xlsx",
             safe=True,
+            size=100,
+            good_on_application=original_good_on_application,
+        )
+        original_good_on_application_internal_document_unsafe = GoodOnApplicationInternalDocumentFactory(
+            document_title="some title",
+            name="some name",
+            s3_key="unsafe.xlsx",
+            safe=False,
             size=100,
             good_on_application=original_good_on_application,
         )
         original_good_on_application_document = GoodOnApplicationDocumentFactory(
             document_type="some type",
             name="some name",
-            s3_key="doc.xlsx",
+            s3_key="safe.xlsx",
             safe=True,
+            size=100,
+            good_on_application=original_good_on_application,
+            good=original_good_on_application.good,
+            application=original_good_on_application.application,
+        )
+        original_good_on_application_document_unsafe = GoodOnApplicationDocumentFactory(
+            document_type="some type",
+            name="some name",
+            s3_key="unsafe.xlsx",
+            safe=False,
             size=100,
             good_on_application=original_good_on_application,
             good=original_good_on_application.good,
@@ -412,11 +440,16 @@ class TestGoodOnApplication(DataTestClient):
         cloned by default or not and adjust GoodOnApplication.clone_* attributes accordingly.
         """
         # Defer checking of related models' clone() methods to specific unit tests
-        assert (
-            GoodOnApplicationInternalDocument.objects.filter(good_on_application=cloned_good_on_application).count()
-            == 1
-        )
-        assert GoodOnApplicationDocument.objects.filter(good_on_application=cloned_good_on_application).count() == 1
+        assert list(
+            GoodOnApplicationInternalDocument.objects.filter(
+                good_on_application=cloned_good_on_application
+            ).values_list("s3_key", flat=True)
+        ) == ["safe.xlsx"]
+        assert list(
+            GoodOnApplicationDocument.objects.filter(good_on_application=cloned_good_on_application).values_list(
+                "s3_key", flat=True
+            )
+        ) == ["safe.xlsx"]
 
 
 class TestGoodOnApplicationDocument(DataTestClient):

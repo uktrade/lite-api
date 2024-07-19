@@ -98,10 +98,21 @@ class Party(TimestampableModel, Clonable):
         cloned_party = super().clone(exclusions=exclusions, **overrides)
         cloned_party.copy_of = self
         cloned_party.save()
+
+        party_documents = PartyDocument.objects.filter(party=self, safe=True)
+        for party_document in party_documents:
+            party_document.clone(party=cloned_party)
+
         return cloned_party
 
 
-class PartyDocument(Document):
+class PartyDocument(Document, Clonable):
     party = models.ForeignKey(Party, on_delete=models.CASCADE)
     type = models.TextField(choices=PartyDocumentType.choices, default=PartyDocumentType.SUPPORTING_DOCUMENT)
     description = models.TextField(blank=True, default="")
+
+    clone_exclusions = [
+        "id",
+        "party",
+        "document_ptr",
+    ]
