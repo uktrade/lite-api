@@ -84,7 +84,7 @@ class NotifyTests(DataTestClient):
     def test_notify_licence_suspended(self, mock_send_email):
         expected_payload = ExporterLicenceSuspended(
             user_first_name=self.exporter_user.first_name,
-            application_reference=self.licence.reference_code,
+            license_reference=self.licence.reference_code,
         )
 
         notify_exporter_licence_suspended(self.licence)

@@ -60,7 +60,7 @@ class ExporterLicenceRevoked(EmailData):
 @dataclass(frozen=True)
 class ExporterLicenceSuspended(EmailData):
     user_first_name: str
-    application_reference: str
+    license_reference: str
 
 
 @dataclass(frozen=True)

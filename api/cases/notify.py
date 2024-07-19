@@ -98,7 +98,7 @@ def notify_exporter_licence_suspended(licence):
         exporter.email,
         {
             "user_first_name": exporter.first_name,
-            "application_reference": licence.reference_code,
+            "license_reference": licence.reference_code,
         },
     )
 
