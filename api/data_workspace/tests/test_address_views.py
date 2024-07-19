@@ -5,7 +5,7 @@ from test_helpers.clients import DataTestClient
 
 class AddressDataWorkspaceTests(DataTestClient):
     def test_addresses(self):
-        url = reverse("data_workspace:dw-address-response-list")
+        url = reverse("data_workspace:dw-address-list")
         expected_fields = {"id", "address_line_1", "address_line_2", "city", "region", "postcode", "country"}
 
         response = self.client.get(url)
