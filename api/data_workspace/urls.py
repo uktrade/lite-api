@@ -12,6 +12,8 @@ from api.data_workspace import (
     external_data_views,
     users_views,
     advice_views,
+    address_views,
+    organisations_views,
 )
 
 app_name = "data_workspace"
@@ -89,4 +91,6 @@ router_v1.register(
     basename="dw-audit-licence-updated-status",
 )
 router_v1.register("survey-response", views.SurveyResponseListView, basename="dw-survey-reponse")
+router_v1.register("address", address_views.AddressView, basename="dw-address")
+router_v1.register("site", organisations_views.SiteView, basename="dw-site")
 urlpatterns = [path("v0/", include(router_v0.urls)), path("v1/", include(router_v1.urls))]
