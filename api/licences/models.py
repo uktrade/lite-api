@@ -11,6 +11,7 @@ from api.core.helpers import add_months
 from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 from api.licences.managers import LicenceManager
 from api.staticdata.decisions.models import Decision
+from api.cases.notify import notify_exporter_licence_suspended, notify_exporter_licence_revoked
 
 
 class HMRCIntegrationUsageData(TimestampableModel):
@@ -61,10 +62,12 @@ class Licence(TimestampableModel):
 
     def suspend(self):
         self.status = LicenceStatus.SUSPENDED
+        notify_exporter_licence_suspended(self)
         self.save()
 
     def revoke(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.REVOKED
+        notify_exporter_licence_revoked(self)
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def cancel(self, send_status_change_to_hmrc=True):
