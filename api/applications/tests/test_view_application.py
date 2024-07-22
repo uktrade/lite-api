@@ -185,7 +185,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.json()["count"], 0)
 
     def test_view_submitted_applications(self):
-        url = reverse("applications:applications") + "?submitted=true"
+        url = reverse("applications:applications") + "?sort_by=submitted_at&selected_filter=submitted_applications"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 0)
@@ -194,7 +194,28 @@ class DraftTests(DataTestClient):
         application = self.create_draft_standard_application(self.organisation)
 
         self.submit_application(application)
-        url = reverse("applications:applications") + "?submitted=true"
+
+        application_finalised = self.create_standard_application_case(self.organisation)
+        FinalAdviceFactory(user=self.gov_user, case=application_finalised, type=AdviceType.APPROVE)
+        template = self.create_letter_template(
+            name="Template",
+            case_types=[CaseTypeEnum.SIEL.id],
+            decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
+        )
+
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
+        licence = StandardLicenceFactory(case=application_finalised, status=LicenceStatus.DRAFT)
+        self.create_generated_case_document(
+            application_finalised, template, advice_type=AdviceType.APPROVE, licence=licence
+        )
+
+        finalised_url = reverse("cases:finalise", kwargs={"pk": application_finalised.id})
+        response = self.client.put(finalised_url, data={}, **self.gov_headers)
+
+        application_finalised.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(application_finalised.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
+
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 1)
@@ -254,7 +275,7 @@ class DraftTests(DataTestClient):
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["count"], 2)
+        self.assertEqual(response.json()["count"], 1)
 
         data = response.json()
         submitted_dates = [
