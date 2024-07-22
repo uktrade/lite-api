@@ -458,11 +458,18 @@ LOGGING = {
 
 if IS_ENV_DBT_PLATFORM:
     ALLOWED_HOSTS = setup_allowed_hosts(ALLOWED_HOSTS)
-    AWS_ENDPOINT_URL = None
+    AWS_ENDPOINT_URL = env("AWS_ENDPOINT_URL", default=None)
     DATABASES = {"default": dj_database_url.config(default=database_url_from_env("DATABASE_CREDENTIALS"))}
     CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=None)
     CELERY_RESULT_BACKEND = CELERY_BROKER_URL
     REDIS_BASE_URL = env("REDIS_BASE_URL", default=None)
+
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    DB_ANONYMISER_AWS_ENDPOINT_URL = AWS_ENDPOINT_URL
+    DB_ANONYMISER_AWS_ACCESS_KEY_ID = env("DB_ANONYMISER_AWS_ACCESS_KEY_ID", default=None)
+    DB_ANONYMISER_AWS_SECRET_ACCESS_KEY = env("DB_ANONYMISER_AWS_SECRET_ACCESS_KEY", default=None)
+    DB_ANONYMISER_AWS_REGION = env("DB_ANONYMISER_AWS_REGION", default=None)
+    DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME = env("DB_ANONYMISER_AWS_STORAGE_BUCKET_NAME", default=None)
 
     if REDIS_BASE_URL:
         # Give celery tasks their own redis DB - future uses of redis should use a different DB
