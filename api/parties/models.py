@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from api.common.models import TimestampableModel
+from api.core.model_mixins import Clonable
 from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import PvGrading
@@ -44,7 +45,7 @@ class PartyManager(models.Manager):
         return values
 
 
-class Party(TimestampableModel):
+class Party(TimestampableModel, Clonable):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default="", blank=True)
     address = models.TextField(default=None, blank=True, max_length=256)
@@ -83,8 +84,35 @@ class Party(TimestampableModel):
     class Meta:
         ordering = ["name"]
 
+    clone_exclusions = [
+        "id",
+        "flags",
+        "copy_of",
+    ]
+    clone_mappings = {
+        "organisation": "organisation_id",
+        "country": "country_id",
+    }
 
-class PartyDocument(Document):
+    def clone(self, exclusions=None, **overrides):
+        cloned_party = super().clone(exclusions=exclusions, **overrides)
+        cloned_party.copy_of = self
+        cloned_party.save()
+
+        party_documents = PartyDocument.objects.filter(party=self, safe=True)
+        for party_document in party_documents:
+            party_document.clone(party=cloned_party)
+
+        return cloned_party
+
+
+class PartyDocument(Document, Clonable):
     party = models.ForeignKey(Party, on_delete=models.CASCADE)
     type = models.TextField(choices=PartyDocumentType.choices, default=PartyDocumentType.SUPPORTING_DOCUMENT)
     description = models.TextField(blank=True, default="")
+
+    clone_exclusions = [
+        "id",
+        "party",
+        "document_ptr",
+    ]
