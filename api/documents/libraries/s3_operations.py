@@ -25,9 +25,7 @@ def init_s3_client():
         additional_s3_params["endpoint_url"] = settings.AWS_ENDPOINT_URL
     _client = boto3.client(
         "s3",
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        region_name=settings.AWS_REGION,
+        region_name="eu-west-2",
         config=Config(connect_timeout=settings.S3_CONNECT_TIMEOUT, read_timeout=settings.S3_REQUEST_TIMEOUT),
         **additional_s3_params,
     )
