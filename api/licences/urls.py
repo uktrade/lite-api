@@ -7,6 +7,7 @@ app_name = "licences"
 urlpatterns = [
     path("", main.Licences.as_view(), name="licences"),
     path("<uuid:pk>/", main.ViewLicence.as_view(), name="licence"),
+    path("license_details/<uuid:pk>/", main.LicenceDetails.as_view(), name="licence_details"),
     path("nlrs/", main.NLRs.as_view(), name="nlrs"),
     path(
         "hmrc-integration/force-mail-push/", hmrc_integration.force_mail_push, name="hmrc_integration_force_mail_push"

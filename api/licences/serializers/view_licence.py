@@ -212,6 +212,18 @@ class LicenceSerializer(serializers.ModelSerializer):
         return {"id": document.id}
 
 
+class LicenceDetailsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Licence
+        fields = (
+            "id",
+            "reference_code",
+            "status",
+        )
+        read_only_fields = ["id", "reference_code"]
+
+
 class LicenceWithGoodsViewSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     start_date = serializers.DateField()
