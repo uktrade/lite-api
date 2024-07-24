@@ -3,7 +3,7 @@ from rest_framework import status
 
 from api.cases.enums import CaseTypeEnum, AdviceType
 from api.cases.models import CaseType
-from api.cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
+from api.cases.tests.factories import FinalAdviceFactory
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.licences.tests.factories import GoodOnLicenceFactory
@@ -182,3 +182,44 @@ class GetLicencesFilterTests(DataTestClient):
         response_data = response.json()["results"]
 
         self.assertEqual(len(response_data), 0)
+
+
+class GetLicencesDetailsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.standard_application = self.create_standard_application_case(self.organisation)
+        self.standard_application_licence = StandardLicenceFactory(
+            case=self.standard_application, status=LicenceStatus.ISSUED
+        )
+        self.url = reverse("licences:licence_details", kwargs={"pk": self.standard_application_licence.id})
+
+    def test_get_license_detail(self):
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # application is not finalised yet
+
+        expected_data = {
+            "id": str(self.standard_application_licence.id),
+            "reference_code": self.standard_application_licence.reference_code,
+            "status": self.standard_application_licence.status,
+        }
+        self.assertEqual(response_data, expected_data)
+
+    def test_update_license_details(self):
+
+        data = {"status": "revoked"}
+        response = self.client.patch(self.url, data, **self.gov_headers)
+
+        response_data = response.json()
+        expected_data = {
+            "id": str(self.standard_application_licence.id),
+            "reference_code": self.standard_application_licence.reference_code,
+            "status": "revoked",
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # application is not finalised yet
+        self.assertEqual(response_data, expected_data)
