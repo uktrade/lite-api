@@ -32,6 +32,7 @@ class ApplicationStateFilter(filters.BaseFilterBackend):
             ]
         ),
         "finalised_applications": CaseStatus.objects.filter(status=CaseStatusEnum.FINALISED),
+        "archived_applications": CaseStatus.objects.filter(status=CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT),
     }
 
     def filter_queryset(self, request, queryset, view):
