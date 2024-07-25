@@ -354,10 +354,9 @@ class StandardApplication(BaseApplication, Clonable):
     def clone(self, exclusions=None, **overrides):
         cloned_application = super().clone(exclusions=exclusions, **overrides)
 
-        # TODO: Figure out whether it is desirable to clone ApplicationDocument records
-        # application_documents = ApplicationDocument.objects.filter(application=self)
-        # for application_document in application_documents:
-        #    application_document.clone(application=cloned_application)
+        application_documents = ApplicationDocument.objects.filter(application=self, safe=True)
+        for application_document in application_documents:
+            application_document.clone(application=cloned_application)
 
         site_on_applications = SiteOnApplication.objects.filter(application=self)
         for site_on_application in site_on_applications:
@@ -390,7 +389,7 @@ class StandardApplication(BaseApplication, Clonable):
             ignore_case_status=True,
         )
         system_user = BaseUser.objects.get(id=SystemUser.id)
-        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_AMENDMENT))
+        self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
         return amendment_application
 
 
@@ -596,14 +595,15 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
             cloned_good_on_application.firearm_details = self.firearm_details.clone()
             cloned_good_on_application.save()
 
-        good_on_application_documents = GoodOnApplicationDocument.objects.filter(good_on_application=self)
+        good_on_application_documents = GoodOnApplicationDocument.objects.filter(good_on_application=self, safe=True)
         for good_on_application_document in good_on_application_documents:
             good_on_application_document.clone(
                 good_on_application=cloned_good_on_application, application=overrides["application"]
             )
 
         good_on_application_internal_documents = GoodOnApplicationInternalDocument.objects.filter(
-            good_on_application=self
+            good_on_application=self,
+            safe=True,
         )
         for good_on_application_internal_document in good_on_application_internal_documents:
             good_on_application_internal_document.clone(good_on_application=cloned_good_on_application)
@@ -717,10 +717,14 @@ class PartyOnApplication(TimestampableModel, Clonable):
         "id",
         "application",
         "flags",
+        "party",
     ]
-    clone_mappings = {
-        "party": "party_id",
-    }
+
+    def clone(self, exclusions=None, **overrides):
+        if not overrides.get("party"):
+            cloned_party = self.party.clone()
+            overrides["party"] = cloned_party
+        return super().clone(exclusions=exclusions, **overrides)
 
 
 class DenialMatchOnApplication(TimestampableModel):

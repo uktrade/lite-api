@@ -22,3 +22,6 @@ class LicenceManager(models.Manager):
                 return self.get_active_licence(application)
             except self.model.DoesNotExist:
                 return None
+
+    def filter_non_draft_licences(self, application):
+        return self.filter(case=application).exclude(status=LicenceStatus.DRAFT)
