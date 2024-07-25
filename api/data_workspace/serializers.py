@@ -4,7 +4,7 @@ from api.teams.models import Department
 from api.cases.models import CaseAssignment, EcjuQuery, DepartmentSLA
 from api.licences.serializers.view_licence import LicenceListSerializer
 from api.queues.models import Queue
-
+from api.organisations.models import Site
 from rest_framework import serializers
 import api.cases.serializers as cases_serializers
 
@@ -61,7 +61,6 @@ class AuditMoveCaseSerializer(serializers.ModelSerializer):
 
 
 class AuditUpdatedCaseStatusSerializer(serializers.ModelSerializer):
-
     user = serializers.SerializerMethodField()
     case = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
@@ -123,4 +122,10 @@ class LicenceWithoutGoodsSerializer(LicenceListSerializer):
 class SurveyResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = SurveyResponse
+        fields = "__all__"
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Site
         fields = "__all__"
