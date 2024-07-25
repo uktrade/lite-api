@@ -49,6 +49,10 @@ class CaseStatus(models.Model):
     def can_invoke_major_editable(self):
         return CaseStatusEnum.can_invoke_major_edit(self.status)
 
+    @property
+    def is_caseworker_operable(self):
+        return CaseStatusEnum.is_caseworker_operable(self.status)
+
     def natural_key(self):
         return (self.status,)
 
