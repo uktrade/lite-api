@@ -1,5 +1,5 @@
 from django.db.models import Q
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView
 
 from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
@@ -83,7 +83,7 @@ class ViewLicence(RetrieveAPIView):
         return Licence.objects.filter(case__organisation_id=get_request_user_organisation_id(self.request))
 
 
-class LicenceDetails(RetrieveAPIView):
+class LicenceDetails(RetrieveUpdateAPIView):
     # This is used to retrieve the details of the license based on id. ViewLicence is mainly used on exported side to get the
     # License(s) on the case.
     authentication_classes = (GovAuthentication,)
