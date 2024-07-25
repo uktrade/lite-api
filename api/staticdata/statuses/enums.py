@@ -246,6 +246,10 @@ class CaseStatusEnum:
         return cls._caseworker_operable_statuses
 
     @classmethod
+    def caseworker_inoperable_statuses(cls):
+        return list(set(CaseStatusEnum.all()) - set(cls._caseworker_operable_statuses))
+
+    @classmethod
     def is_major_editable_status(cls, status):
         return status in cls._major_editable_statuses
 
