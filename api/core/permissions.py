@@ -29,3 +29,8 @@ def check_user_has_permission(user, permission, organisation: Organisation = Non
 class IsExporterInOrganisation(permissions.BasePermission):
     def has_permission(self, request, view):
         return get_request_user_organisation(request) == view.get_organisation()
+
+
+class CaseInCaseworkerOperableStatus(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return view.get_case().status.is_caseworker_operable
