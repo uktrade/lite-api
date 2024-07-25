@@ -91,7 +91,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json(), {"case": str(self.standard_case.pk)})
 
-    @mock.patch("api.licences.helpers.notify_exporter_licence_revoked")
+    @mock.patch("api.licences.models.revoke.notify_exporter_licence_revoked")
     @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_licence_and_revoke(
@@ -134,7 +134,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(self.standard_case.status, get_case_status_by_status(CaseStatusEnum.REVOKED))
         mock_notify_licence_revoked.assert_called_with(licence)
 
-    @mock.patch("api.licences.helpers.notify_exporter_licence_suspended")
+    @mock.patch("api.licences.models.suspend.notify_exporter_licence_suspended")
     @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_licence_and_suspend(
