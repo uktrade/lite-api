@@ -1,5 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
+from api.core.constants import Roles
+from api.teams.enums import TeamIdEnum
+from api.teams.models import Team
+from api.users.models import Role
+from parameterized import parameterized
 
 from api.applications.tests.factories import StandardApplicationFactory
 from api.cases.enums import CaseTypeEnum, AdviceType
@@ -194,6 +199,14 @@ class LicencesDetailsTests(DataTestClient):
         )
         self.url = reverse("licences:licence_details", kwargs={"pk": self.standard_application_licence.id})
 
+        # Make User LU Super User
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_role, _ = Role.objects.get_or_create(
+            id=Roles.INTERNAL_LU_SENIOR_MANAGER_ROLE_ID, name=Roles.INTERNAL_LU_SENIOR_MANAGER_ROLE_NAME
+        )
+        self.gov_user.role = lu_role
+        self.gov_user.save()
+
     def test_get_license_details(self):
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -211,4 +224,59 @@ class LicencesDetailsTests(DataTestClient):
     def test_get_license_details_exporter_not_allowed(self):
 
         response = self.client.get(self.url, **self.exporter_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @parameterized.expand(
+        [
+            [{"status": "revoked"}],
+            [{"status": "issued"}],
+            [{"status": "revoked"}],
+        ]
+    )
+    def test_update_license_details(self, data):
+
+        response = self.client.patch(self.url, data, **self.gov_headers)
+
+        response_data = response.json()
+        self.standard_application_licence.refresh_from_db()
+        expected_data = {
+            "id": str(self.standard_application_licence.id),
+            "reference_code": self.standard_application_licence.reference_code,
+            **data,
+        }
+
+        assert response.status_code == status.HTTP_200_OK
+
+        assert response_data == expected_data
+
+    @parameterized.expand(
+        [
+            [{"reference_code": "1234"}],
+            [{"duration": "5"}],
+            [{"hmrc_integration_sent_at": True}],
+        ]
+    )
+    def test_update_license_details_not_updated(self, data):
+
+        key = list(data.keys())[0]
+        old_state = getattr(self.standard_application_licence, key)
+
+        response = self.client.patch(self.url, data, **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+        self.standard_application_licence.refresh_from_db()
+        new_state = getattr(self.standard_application_licence, key)
+
+        assert old_state == new_state
+
+    def test_update_license_details_non_lu_admin(self):
+        data = {"status": "revoked"}
+
+        defult_role, _ = Role.objects.get_or_create(
+            id=Roles.INTERNAL_DEFAULT_ROLE_ID, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
+        )
+        self.gov_user.role = defult_role
+        self.gov_user.save()
+
+        response = self.client.patch(self.url, data, **self.gov_headers)
+
         assert response.status_code == status.HTTP_403_FORBIDDEN
