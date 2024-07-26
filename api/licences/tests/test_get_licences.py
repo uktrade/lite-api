@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 from api.core.constants import Roles
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 from api.users.models import Role
@@ -190,10 +191,14 @@ class GetLicencesFilterTests(DataTestClient):
         self.assertEqual(len(response_data), 0)
 
 
-class LicencesDetailsTests(DataTestClient):
+class LicenceDetailsTests(DataTestClient):
     def setUp(self):
         super().setUp()
+        self.status_data = {"status": "revoked"}
         self.standard_application = StandardApplicationFactory()
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        self.standard_application.save()
+
         self.standard_application_licence = StandardLicenceFactory(
             case=self.standard_application, status=LicenceStatus.ISSUED
         )
@@ -246,8 +251,10 @@ class LicencesDetailsTests(DataTestClient):
         }
 
         assert response.status_code == status.HTTP_200_OK
-
         assert response_data == expected_data
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @parameterized.expand(
         [
@@ -268,8 +275,7 @@ class LicencesDetailsTests(DataTestClient):
 
         assert old_state == new_state
 
-    def test_update_license_details_non_lu_admin(self):
-        data = {"status": "revoked"}
+    def test_update_license_details_non_lu_admin_forbidden(self):
 
         defult_role, _ = Role.objects.get_or_create(
             id=Roles.INTERNAL_DEFAULT_ROLE_ID, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
@@ -277,6 +283,41 @@ class LicencesDetailsTests(DataTestClient):
         self.gov_user.role = defult_role
         self.gov_user.save()
 
-        response = self.client.patch(self.url, data, **self.gov_headers)
-
+        response = self.client.patch(self.url, self.status_data, **self.gov_headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @parameterized.expand(
+        [
+            [CaseStatusEnum.FINALISED, status.HTTP_200_OK],
+            [CaseStatusEnum.APPEAL_REVIEW, status.HTTP_403_FORBIDDEN],
+            [CaseStatusEnum.SUSPENDED, status.HTTP_403_FORBIDDEN],
+            [CaseStatusEnum.REVOKED, status.HTTP_403_FORBIDDEN],
+            [CaseStatusEnum.INITIAL_CHECKS, status.HTTP_403_FORBIDDEN],
+        ]
+    )
+    def test_update_license_details_case_non_finialised(self, case_status, expected_status):
+        self.standard_application.status = get_case_status_by_status(case_status)
+        self.standard_application.save()
+
+        response = self.client.patch(self.url, self.status_data, **self.gov_headers)
+        assert response.status_code == expected_status
+
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED, status.HTTP_200_OK],
+            [LicenceStatus.REINSTATED, status.HTTP_200_OK],
+            [LicenceStatus.SUSPENDED, status.HTTP_200_OK],
+            [LicenceStatus.REVOKED, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.SURRENDERED, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.EXHAUSTED, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.EXPIRED, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.DRAFT, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.CANCELLED, status.HTTP_403_FORBIDDEN],
+        ]
+    )
+    def test_update_license_details_case_licence_editable_states(self, licence_status, expected_status):
+        self.standard_application_licence.status = licence_status
+        self.standard_application_licence.save()
+
+        response = self.client.patch(self.url, self.status_data, **self.gov_headers)
+        assert response.status_code == expected_status

@@ -1,10 +1,14 @@
 from django.db.models import Q
+from django.http import JsonResponse
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView
+from rest_framework import status
 
 from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import CaseType
 from api.core.authentication import ExporterAuthentication, GovAuthentication
+from api.core.constants import Roles
+from api.core.decorators import authorised_govuser_roles, licence_is_editable
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.licences.serializers.view_licence import (
@@ -83,6 +87,7 @@ class ViewLicence(RetrieveAPIView):
         return Licence.objects.filter(case__organisation_id=get_request_user_organisation_id(self.request))
 
 
+#
 class LicenceDetails(RetrieveUpdateAPIView):
     # This is used to retrieve the details of the license based on id. ViewLicence is mainly used on exported side to get the
     # License(s) on the case.
@@ -90,6 +95,19 @@ class LicenceDetails(RetrieveUpdateAPIView):
     serializer_class = LicenceDetailsSerializer
     queryset = Licence.objects.all()
     lookup_field = "pk"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == "PUT":
+            return JsonResponse(
+                data={"errors": ["You are not authorised to perform this operation"]},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().dispatch(request, *args, **kwargs)
+
+    @authorised_govuser_roles([Roles.INTERNAL_LU_SENIOR_MANAGER_ROLE_ID])
+    @licence_is_editable()
+    def patch(self, request, pk):
+        return super().patch(request, pk)
 
 
 class NLRs(ListAPIView):

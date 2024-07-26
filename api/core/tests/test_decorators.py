@@ -1,3 +1,6 @@
+from api.core.constants import Roles
+from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 from parameterized import parameterized
 
 from django.http import HttpResponse
@@ -12,7 +15,9 @@ from api.core.decorators import (
     application_can_invoke_major_edit,
     application_is_editable,
     application_is_major_editable,
+    authorised_govuser_roles,
     authorised_to_view_application,
+    licence_is_editable,
 )
 from lite_content.lite_api import strings
 from api.organisations.tests.factories import OrganisationFactory
@@ -188,3 +193,83 @@ class DecoratorTests(DataTestClient):
             "You can only perform this operation on an application that has been opened within your organisation"
             in resp.content.decode("utf-8")
         )
+
+    def test_authorised_roles_govuser_success(self):
+        request = _FakeRequest(self.gov_user, self.organisation)
+
+        @authorised_govuser_roles([Roles.INTERNAL_DEFAULT_ROLE_ID])
+        def a_view(request, *args, **kwargs):
+            return HttpResponse()
+
+    def test_authorised_roles_exporter_failure(self):
+        request = _FakeRequest(self.exporter_user, self.organisation)
+
+        @authorised_govuser_roles([Roles.INTERNAL_DEFAULT_ROLE_ID])
+        def a_view(request, *args, **kwargs):
+            return HttpResponse()
+
+        resp = a_view(request=request)
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue("You are not authorised to perform this operation" in resp.content.decode("utf-8"))
+
+    def test_authorised_roles_govuser_role_failure(self):
+        request = _FakeRequest(self.gov_user, self.organisation)
+
+        @authorised_govuser_roles([Roles.INTERNAL_LU_SENIOR_MANAGER_ROLE_ID])
+        def a_view(request, *args, **kwargs):
+            return HttpResponse()
+
+        resp = a_view(request=request)
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue("You are not authorised to perform this operation" in resp.content.decode("utf-8"))
+
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED],
+            [LicenceStatus.REINSTATED],
+            [LicenceStatus.SUSPENDED],
+        ]
+    )
+    def test_licence_is_editable_success(self, licence_status):
+        application = self.create_standard_application_case(self.organisation)
+        licence = StandardLicenceFactory(case=application, status=licence_status)
+        application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        application.save()
+
+        request = _FakeRequest(self.exporter_user, self.organisation)
+
+        @licence_is_editable()
+        def a_view(request, *args, **kwargs):
+            return HttpResponse()
+
+        resp = a_view(request=request, pk=licence.pk)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED, CaseStatusEnum.DRAFT],
+            [LicenceStatus.REINSTATED, CaseStatusEnum.INITIAL_CHECKS],
+            [LicenceStatus.SUSPENDED, CaseStatusEnum.RESUBMITTED],
+            [LicenceStatus.REVOKED, CaseStatusEnum.FINALISED],
+            [LicenceStatus.SURRENDERED, CaseStatusEnum.FINALISED],
+            [LicenceStatus.EXHAUSTED, CaseStatusEnum.FINALISED],
+            [LicenceStatus.EXPIRED, CaseStatusEnum.FINALISED],
+            [LicenceStatus.DRAFT, CaseStatusEnum.FINALISED],
+            [LicenceStatus.CANCELLED, CaseStatusEnum.FINALISED],
+        ]
+    )
+    def test_licence_is_editable_failure(self, license_status, case_status):
+        application = self.create_standard_application_case(self.organisation)
+        licence = StandardLicenceFactory(case=application, status=license_status)
+        application.status = get_case_status_by_status(case_status)
+        application.save()
+
+        request = _FakeRequest(self.exporter_user, self.organisation)
+
+        @licence_is_editable()
+        def a_view(request, *args, **kwargs):
+            return HttpResponse()
+
+        resp = a_view(request=request, pk=licence.pk)
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue("You are not authorised to perform this operation" in resp.content.decode("utf-8"))
