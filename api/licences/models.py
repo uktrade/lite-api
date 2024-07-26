@@ -78,6 +78,12 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.CANCELLED
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
+    def reinstate(self):
+        # This supersedes the issue method as it's called explicity on the license
+        # Hence the user explicty knows which license is being reinstated
+        self.status = LicenceStatus.REINSTATED
+        self.save()
+
     def issue(self, send_status_change_to_hmrc=True):
         # re-issue the licence if an older version exists
         status = LicenceStatus.ISSUED
