@@ -213,6 +213,13 @@ class LicenceSerializer(serializers.ModelSerializer):
 
 
 class LicenceDetailsSerializer(serializers.ModelSerializer):
+    # These actions are used to support the Licence status change screen
+    # Suspened to reinstated don't send HMRC messages as these are only support offline via email
+    action_dict = {
+        "reinstated": lambda instance: Licence.reinstate(instance),
+        "suspended": lambda instance: Licence.suspend(instance),
+        "revoked": lambda instance: Licence.revoke(instance, send_status_change_to_hmrc=True),
+    }
 
     class Meta:
         model = Licence
@@ -222,6 +229,15 @@ class LicenceDetailsSerializer(serializers.ModelSerializer):
             "status",
         )
         read_only_fields = ["id", "reference_code"]
+
+    def update(self, instance, validated_data):
+        update_action = validated_data.get("status")
+        try:
+            action_method = self.action_dict[update_action]
+            action_method(instance)
+        except KeyError:
+            raise serializers.ValidationError(f"Updating licence status: {update_action} not allowed")
+        return super().update(instance, validated_data)
 
 
 class LicenceWithGoodsViewSerializer(serializers.Serializer):
