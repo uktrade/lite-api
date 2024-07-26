@@ -62,13 +62,13 @@ class Licence(TimestampableModel):
 
     def suspend(self):
         self.status = LicenceStatus.SUSPENDED
-        notify_exporter_licence_suspended(self)
         self.save()
+        notify_exporter_licence_suspended(self)
 
     def revoke(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.REVOKED
-        notify_exporter_licence_revoked(self)
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+        notify_exporter_licence_revoked(self)
 
     def cancel(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.CANCELLED
