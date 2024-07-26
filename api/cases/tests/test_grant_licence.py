@@ -91,7 +91,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json(), {"case": str(self.standard_case.pk)})
 
-    @mock.patch("api.licences.helpers.notify_exporter_licence_revoked")
+    @mock.patch("api.licences.models.notify_exporter_licence_revoked")
     @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_licence_and_revoke(
@@ -133,3 +133,46 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_case.status, get_case_status_by_status(CaseStatusEnum.REVOKED))
         mock_notify_licence_revoked.assert_called_with(licence)
+
+    @mock.patch("api.licences.models.notify_exporter_licence_suspended")
+    @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
+    @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
+    def test_grant_standard_application_licence_and_suspend(
+        self, send_exporter_notifications_func, mock_notify_licence_issue, mock_notify_licence_suspended
+    ):
+        self.gov_user.role.permissions.set(
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.REOPEN_CLOSED_CASES.name]
+        )
+        licence = StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
+        self.create_generated_case_document(
+            self.standard_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
+        )
+
+        response = self.client.put(self.url, data={}, **self.gov_headers)
+        self.standard_case.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["licence"], str(licence.id))
+        self.assertEqual(
+            Licence.objects.filter(
+                case=self.standard_case,
+                status=LicenceStatus.ISSUED,
+                decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
+            ).count(),
+            1,
+        )
+        self.assertEqual(self.standard_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
+        for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
+            self.assertTrue(document.visible_to_exporter)
+
+        send_exporter_notifications_func.assert_called()
+        mock_notify_licence_issue.assert_called_with(self.standard_case.get_case())
+
+        self.change_status_url = reverse("applications:manage_status", kwargs={"pk": self.standard_case.id})
+        data = {"status": CaseStatusEnum.SUSPENDED}
+        response = self.client.put(self.change_status_url, data=data, **self.gov_headers)
+
+        self.standard_case.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.standard_case.status, get_case_status_by_status(CaseStatusEnum.SUSPENDED))
+        mock_notify_licence_suspended.assert_called_with(licence)
