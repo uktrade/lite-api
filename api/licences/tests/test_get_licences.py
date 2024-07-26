@@ -1,3 +1,4 @@
+from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 from api.core.constants import Roles
@@ -233,26 +234,60 @@ class LicenceDetailsTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"status": "revoked"}],
-            [{"status": "issued"}],
-            [{"status": "revoked"}],
+            [{"status": "revoked"}, "revoke"],
+            [{"status": "reinstated"}, "reinstate"],
         ]
     )
-    def test_update_license_details(self, data):
+    def test_update_license_details_hmrc_message_success(self, data, expect_model_method):
 
+        with mock.patch(f"api.licences.models.Licence.{expect_model_method}") as save_method_mock:
+
+            response = self.client.patch(self.url, data, **self.gov_headers)
+
+            response_data = response.json()
+            self.standard_application_licence.refresh_from_db()
+            expected_data = {
+                "id": str(self.standard_application_licence.id),
+                "reference_code": self.standard_application_licence.reference_code,
+                **data,
+            }
+            save_method_mock.assert_called_once()
+            save_method_mock.assert_called_once_with(self.standard_application_licence, send_status_change_to_hmrc=True)
+            assert response.status_code == status.HTTP_200_OK
+            assert response_data == expected_data
+
+    def test_update_license_details_suspended_success(self):
+        data = {"status": "suspended"}
+        with mock.patch(f"api.licences.models.Licence.suspend") as save_method_mock:
+            response = self.client.patch(self.url, data, **self.gov_headers)
+            response_data = response.json()
+            self.standard_application_licence.refresh_from_db()
+            expected_data = {
+                "id": str(self.standard_application_licence.id),
+                "reference_code": self.standard_application_licence.reference_code,
+                **data,
+            }
+            save_method_mock.assert_called_once()
+            save_method_mock.assert_called_once_with(self.standard_application_licence)
+            assert response.status_code == status.HTTP_200_OK
+            assert response_data == expected_data
+
+    @parameterized.expand(
+        [
+            [{"status": "revoked"}],
+            [{"status": "issued"}],
+            [{"status": "suspended"}],
+        ]
+    )
+    def test_update_license_details_put_fails(self, data):
+        response = self.client.put(self.url, data, **self.gov_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_license_details_invalid_status(self):
+        data = {"status": "dummy"}
         response = self.client.patch(self.url, data, **self.gov_headers)
-
-        response_data = response.json()
-        self.standard_application_licence.refresh_from_db()
-        expected_data = {
-            "id": str(self.standard_application_licence.id),
-            "reference_code": self.standard_application_licence.reference_code,
-            **data,
-        }
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response_data == expected_data
-
+        assert response.json()["errors"] == {"status": ['"dummy" is not a valid choice.']}
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         response = self.client.put(self.url, data, **self.gov_headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -265,15 +300,8 @@ class LicenceDetailsTests(DataTestClient):
     )
     def test_update_license_details_not_updated(self, data):
 
-        key = list(data.keys())[0]
-        old_state = getattr(self.standard_application_licence, key)
-
         response = self.client.patch(self.url, data, **self.gov_headers)
-        assert response.status_code == status.HTTP_200_OK
-        self.standard_application_licence.refresh_from_db()
-        new_state = getattr(self.standard_application_licence, key)
-
-        assert old_state == new_state
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_update_license_details_non_lu_admin_forbidden(self):
 
