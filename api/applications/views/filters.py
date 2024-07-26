@@ -1,6 +1,6 @@
 from rest_framework import filters
 
-from api.applications.models import BaseApplication, SiteOnApplication
+from api.applications.models import SiteOnApplication
 from api.organisations.libraries.get_organisation import get_request_user_organisation
 from api.organisations.models import Site
 from api.staticdata.statuses.enums import CaseStatusEnum
