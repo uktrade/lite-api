@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from api.applications.models import StandardApplication
+from api.cases.models import EcjuQuery
 
 
 def get_original_application(obj):
@@ -51,3 +52,23 @@ class ApplicationSerializer(serializers.ModelSerializer):
     def get_closed_status(self, application):
         application = get_last_application(application)
         return application.closed_status
+
+
+class RFISerializer(serializers.ModelSerializer):
+    application_id = serializers.SerializerMethodField(required=False)
+    closed_at = serializers.SerializerMethodField(required=False)
+
+    class Meta:
+        model = EcjuQuery
+        fields = (
+            "id",
+            "application_id",
+            "created_at",
+            "closed_at",
+        )
+
+    def get_application_id(self, rfi):
+        return get_last_application(rfi.case).pk
+
+    def get_closed_at(self, rfi):
+        return rfi.responded_at

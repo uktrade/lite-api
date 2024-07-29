@@ -9,3 +9,8 @@ router_v2.register(
     application_views.ApplicationListView,
     basename="dw-applications",
 )
+router_v2.register(
+    "rfis",
+    application_views.RFIListView,
+    basename="dw-rfis",
+)
