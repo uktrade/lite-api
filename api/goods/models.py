@@ -5,10 +5,10 @@ from itertools import zip_longest
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from reversion.models import Version
+
 
 from api.common.models import TimestampableModel
-from api.core.model_mixins import Clonable, Trackable
+from api.core.model_mixins import Clonable, TrackableMixin
 from api.documents.models import Document
 from api.flags.models import Flag
 from api.goods.enums import (
@@ -126,7 +126,7 @@ class GoodControlListEntry(models.Model):
 
 
 @reversion.register()
-class Good(TimestampableModel, Trackable):
+class Good(TimestampableModel, TrackableMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField(max_length=280)
