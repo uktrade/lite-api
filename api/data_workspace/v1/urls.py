@@ -8,6 +8,7 @@ from api.data_workspace.v1 import (
     case_views,
     external_data_views,
     good_views,
+    license_views,
     organisations_views,
     staticdata_views,
     users_views,
