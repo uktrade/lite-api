@@ -21,19 +21,27 @@ class ApplicationSiteFilter(filters.BaseFilterBackend):
 
 
 class ApplicationStateFilter(filters.BaseFilterBackend):
-    FILTER_STATUS_MAP = {
-        "draft_tab": CaseStatus.objects.filter(status=CaseStatusEnum.DRAFT),
-        "draft_applications": CaseStatus.objects.filter(status=CaseStatusEnum.DRAFT),
-        "submitted_applications": CaseStatus.objects.exclude(
-            status__in=[
-                CaseStatusEnum.DRAFT,
-                CaseStatusEnum.FINALISED,
-                CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
-            ]
-        ),
-        "finalised_applications": CaseStatus.objects.filter(status=CaseStatusEnum.FINALISED),
-        "archived_applications": CaseStatus.objects.filter(status=CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT),
-    }
+
+    def get_filter_statuses(self, selected_filter):
+
+        FILTER_STATUS_MAP = {
+            "draft_tab": CaseStatus.objects.filter(status=CaseStatusEnum.DRAFT),
+            "draft_applications": CaseStatus.objects.filter(status=CaseStatusEnum.DRAFT),
+            "submitted_applications": CaseStatus.objects.exclude(
+                status__in=[
+                    CaseStatusEnum.DRAFT,
+                    CaseStatusEnum.FINALISED,
+                    CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
+                ]
+            ),
+            "finalised_applications": CaseStatus.objects.filter(status=CaseStatusEnum.FINALISED),
+            "archived_applications": CaseStatus.objects.filter(status=CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT),
+        }
+
+        if selected_filter not in FILTER_STATUS_MAP:
+            selected_filter = "submitted_applications"
+
+        return FILTER_STATUS_MAP[selected_filter]
 
     def filter_queryset(self, request, queryset, view):
         selected_filter = request.GET.get("selected_filter", "submitted_applications")
@@ -41,7 +49,7 @@ class ApplicationStateFilter(filters.BaseFilterBackend):
 
         organisation = get_request_user_organisation(request)
 
-        statuses = self.FILTER_STATUS_MAP[selected_filter]
+        statuses = self.get_filter_statuses(selected_filter)
         queryset = queryset.filter(organisation=organisation, status__in=statuses).order_by(sort_by)
 
         return queryset.prefetch_related("status", "case_type").select_subclasses()
