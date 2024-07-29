@@ -16,6 +16,7 @@ def get_last_application(obj):
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
+    created_at = serializers.SerializerMethodField(required=False)
     submitted_at = serializers.SerializerMethodField(required=False)
     closed_at = serializers.SerializerMethodField(required=False)
     closed_status = serializers.SerializerMethodField(required=False)
@@ -24,10 +25,15 @@ class ApplicationSerializer(serializers.ModelSerializer):
         model = StandardApplication
         fields = (
             "id",
+            "created_at",
             "submitted_at",
             "closed_at",
             "closed_status",
         )
+
+    def get_created_at(self, application):
+        application = get_original_application(application)
+        return application.created_at
 
     def get_submitted_at(self, application):
         application = get_original_application(application)
