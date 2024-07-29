@@ -1,19 +1,19 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from api.data_workspace import (
+from api.data_workspace.views.v0 import license_views
+from api.data_workspace.views.v1 import (
+    address_views,
+    advice_views,
     application_views,
     audit_views,
     case_views,
-    good_views,
-    license_views,
-    views,
-    staticdata_views,
     external_data_views,
-    users_views,
-    advice_views,
-    address_views,
+    good_views,
     organisations_views,
+    staticdata_views,
+    users_views,
+    views,
 )
 
 app_name = "data_workspace"
@@ -93,4 +93,8 @@ router_v1.register(
 router_v1.register("survey-response", views.SurveyResponseListView, basename="dw-survey-reponse")
 router_v1.register("address", address_views.AddressView, basename="dw-address")
 router_v1.register("site", organisations_views.SiteView, basename="dw-site")
-urlpatterns = [path("v0/", include(router_v0.urls)), path("v1/", include(router_v1.urls))]
+
+urlpatterns = [
+    path("v0/", include(router_v0.urls)),
+    path("v1/", include(router_v1.urls)),
+]
