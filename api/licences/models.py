@@ -1,4 +1,6 @@
 import uuid
+from datetime import datetime
+import reversion
 
 from django.db import models
 from django.conf import settings
@@ -23,11 +25,13 @@ class HMRCIntegrationUsageData(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 
+@reversion.register()
 class Licence(TimestampableModel):
     """
     A licence issued to an exporter application
     """
 
+    DATETIME_FORMAT = "%Y-%m-%d"
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
@@ -88,7 +92,11 @@ class Licence(TimestampableModel):
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def save(self, *args, **kwargs):
-        self.end_date = add_months(self.start_date, self.duration, "%Y-%m-%d")
+        end_datetime = datetime.strptime(
+            add_months(self.start_date, self.duration, self.DATETIME_FORMAT), self.DATETIME_FORMAT
+        )
+        self.end_date = end_datetime.date()
+
         send_status_change_to_hmrc = kwargs.pop("send_status_change_to_hmrc", False)
         super(Licence, self).save(*args, **kwargs)
 
