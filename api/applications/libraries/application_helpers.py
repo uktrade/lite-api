@@ -91,6 +91,7 @@ def create_submitted_audit(user, application, old_status: str, additional_payloa
     )
 
 
+# TODO: After release of LTD-5225, remove this function alongside legacy ApplicationManageStatus view
 def check_user_can_set_status(request, application, data):
     """
     Checks whether an user (internal/exporter) can set the requested status
