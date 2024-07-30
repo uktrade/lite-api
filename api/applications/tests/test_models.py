@@ -109,7 +109,7 @@ class TestStandardApplication(DataTestClient):
         assert amendment_audit_entry.actor == exporter_user
         status_change_audit_entry = audit_entries[0]
         assert status_change_audit_entry.payload == {
-            "status": {"new": "Superseded by exporter edit", "old": "ogd_advice"}
+            "status": {"new": "superseded_by_exporter_edit", "old": "ogd_advice"}
         }
         assert status_change_audit_entry.verb == "updated_status"
 
