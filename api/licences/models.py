@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from api.core.model_mixins import TrackableMixin
 import reversion
 
@@ -97,7 +98,7 @@ class Licence(TimestampableModel, TrackableMixin):
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def save(self, *args, **kwargs):
-        self.end_date = add_months(self.start_date, self.duration, "%Y-%m-%d")
+        self.end_date = datetime.strptime(add_months(self.start_date, self.duration, "%Y-%m-%d"), "%Y-%m-%d")
         send_status_change_to_hmrc = kwargs.pop("send_status_change_to_hmrc", False)
         super(Licence, self).save(*args, **kwargs)
 

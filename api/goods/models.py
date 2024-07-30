@@ -1,3 +1,4 @@
+from reversion.models import Version
 import reversion
 import uuid
 

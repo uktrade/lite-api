@@ -7,8 +7,7 @@ from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTy
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import CaseType
 from api.core.authentication import ExporterAuthentication, GovAuthentication
-from api.core.constants import Roles
-from api.core.decorators import authorised_govuser_roles, licence_is_editable
+from api.core.decorators import licence_is_editable
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.licences.serializers.view_licence import (
@@ -104,7 +103,7 @@ class LicenceDetails(RetrieveUpdateAPIView):
             )
         return super().dispatch(request, *args, **kwargs)
 
-    @authorised_govuser_roles([Roles.INTERNAL_LU_SENIOR_MANAGER_ROLE_ID])
+    # @authorised_govuser_roles([Roles.INTERNAL_LU_SENIOR_MANAGER_ROLE_ID])
     @licence_is_editable()
     def patch(self, request, pk):
         return super().patch(request, pk)
