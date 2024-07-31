@@ -221,13 +221,13 @@ class Case(TimestampableModel):
         if old_status != self.status.status:
             run_routing_rules(case=self, keep_status=True)
 
-            if application.status.status == CaseStatusEnum.APPLICANT_EDITING:
-                notify_exporter_case_opened_for_editing(application)
+            if status.status == CaseStatusEnum.APPLICANT_EDITING:
+                notify_exporter_case_opened_for_editing(self)
 
         # Remove needed flags when case is Withdrawn/Closed
-        if case_status.status in [CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED]:
-            remove_flags_on_finalisation(application.get_case())
-            remove_flags_from_audit_trail(application.get_case())
+        if status.status in [CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED]:
+            remove_flags_on_finalisation(self)
+            remove_flags_from_audit_trail(self)
 
     def parameter_set(self):
         """
