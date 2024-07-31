@@ -26,6 +26,7 @@ def optional_str_to_bool(optional_string: str):
         raise ValueError("You provided " + optional_string + ', while the allowed values are None, "true" or "false"')
 
 
+# TODO: After release of LTD-5225, remove this function alongside legacy ApplicationManageStatus view
 def can_status_be_set_by_exporter_user(original_status: str, new_status: str) -> bool:
     """Check that a status can be set by an exporter user. Exporter users cannot withdraw an application
     that is already in a terminal state and they cannot set an application to `Applicant editing` if the
@@ -45,6 +46,7 @@ def can_status_be_set_by_exporter_user(original_status: str, new_status: str) ->
     return True
 
 
+# TODO: After release of LTD-5225, remove this function alongside legacy ApplicationManageStatus view
 def can_status_be_set_by_gov_user(user: GovUser, original_status: str, new_status: str, is_mod: bool) -> bool:
     """
     Check that a status can be set by a gov user. Gov users can not set a case's status to
