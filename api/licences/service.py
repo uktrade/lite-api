@@ -1,6 +1,7 @@
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence, Licence
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
+from api.staticdata.statuses.serializers import CaseStatusSerializer
 
 from rest_framework import serializers
 
@@ -38,6 +39,7 @@ class LicenceSerializer(serializers.ModelSerializer):
 
     goods = GoodOnLicenceSerializer(many=True)
     status = serializers.SerializerMethodField()
+    case_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Licence
@@ -45,8 +47,12 @@ class LicenceSerializer(serializers.ModelSerializer):
             "id",
             "reference_code",
             "status",
+            "case_status",
             "goods",
         )
+
+    def get_case_status(self, instance):
+        return CaseStatusSerializer.get_value(instance, instance.case.status)
 
     def get_status(self, instance):
         return LicenceStatus.to_str(instance.status)
@@ -55,9 +61,15 @@ class LicenceSerializer(serializers.ModelSerializer):
 def get_case_licences(case):
     licences = (
         Licence.objects.prefetch_related(
-            "goods", "goods__good", "goods__good__good", "goods__good__good__control_list_entries"
+            "goods",
+            "goods__good",
+            "goods__good__good",
+            "goods__good__good__control_list_entries",
+            "case",
+            "case__status",
         )
         .filter(case=case)
         .order_by("created_at")
     )
+
     return LicenceSerializer(licences, many=True).data
