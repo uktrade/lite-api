@@ -1,4 +1,4 @@
-id_to_uuid_map = {
+DENIAL_REASON_ID_TO_UUID_MAP = {
     "1": "f8e2cd45-071b-4bf2-bc01-155d9c83c460",  # /PS-IGNORE
     "1a": "6e96160f-de24-4f3e-a2f7-056f96012efa",  # /PS-IGNORE
     "1b": "4a86755a-25c4-4b0d-8874-c337ecbd0d67",  # /PS-IGNORE

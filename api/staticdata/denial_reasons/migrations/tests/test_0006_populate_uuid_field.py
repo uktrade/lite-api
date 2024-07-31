@@ -3,7 +3,7 @@ import uuid
 
 from django_test_migrations.migrator import Migrator
 
-from api.staticdata.denial_reasons.constants import id_to_uuid_map
+from api.staticdata.denial_reasons.constants import DENIAL_REASON_ID_TO_UUID_MAP
 
 
 @pytest.mark.django_db()
@@ -17,8 +17,8 @@ def test_populate_uuid_field():
     for denial_reason in DenialReason.objects.all():
         assert denial_reason.uuid is not None
         assert type(denial_reason.uuid) is uuid.UUID
-        assert str(denial_reason.uuid) == id_to_uuid_map[denial_reason.id]
+        assert str(denial_reason.uuid) == DENIAL_REASON_ID_TO_UUID_MAP[denial_reason.id]
 
-    expected_uuids = set(id_to_uuid_map.values())
+    expected_uuids = set(DENIAL_REASON_ID_TO_UUID_MAP.values())
     actual_uuids = set([str(denial_reason.uuid) for denial_reason in DenialReason.objects.all()])
     assert expected_uuids == actual_uuids
