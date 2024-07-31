@@ -76,6 +76,7 @@ class CaseStatusEnum:
         FINAL_REVIEW_COUNTERSIGN,
         FINAL_REVIEW_SECOND_COUNTERSIGN,
         FINALISED,
+        SUPERSEDED_BY_EXPORTER_EDIT,
     ]
 
     choices = [
