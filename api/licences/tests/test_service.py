@@ -13,6 +13,7 @@ from api.licences.service import get_case_licences
 from api.licences.tests.factories import StandardLicenceFactory, GoodOnLicenceFactory
 from test_helpers.clients import DataTestClient
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class GetCaseLicenceTests(DataTestClient):
@@ -70,5 +71,9 @@ class GetCaseLicenceTests(DataTestClient):
         self.assertEqual(set([x["rating"] for x in data["goods"][0]["control_list_entries"]]), {"ML1a", "ML13d1"})
 
     def test_get_application_licences_case_status(self):
+        self.licence.case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        self.licence.case.save()
+
         data = get_case_licences(self.application)[0]
-        assert data["case_status"] == CaseStatusEnum.FINALISED
+
+        assert data["case_status"] == CaseStatusEnum.FINALISED.capitalize()

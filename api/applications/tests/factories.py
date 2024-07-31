@@ -59,7 +59,7 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         if "status" in kwargs and isinstance(kwargs["status"], CaseStatus):
             obj.status = kwargs["status"]
         obj.save()
