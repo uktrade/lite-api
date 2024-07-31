@@ -1,9 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
 
+from api.applications.tests.factories import StandardApplicationFactory
 from api.cases.enums import CaseTypeEnum, AdviceType
 from api.cases.models import CaseType
-from api.cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
+from api.cases.tests.factories import FinalAdviceFactory
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.licences.tests.factories import GoodOnLicenceFactory
@@ -182,3 +183,32 @@ class GetLicencesFilterTests(DataTestClient):
         response_data = response.json()["results"]
 
         self.assertEqual(len(response_data), 0)
+
+
+class LicencesDetailsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.standard_application = StandardApplicationFactory()
+        self.standard_application_licence = StandardLicenceFactory(
+            case=self.standard_application, status=LicenceStatus.ISSUED
+        )
+        self.url = reverse("licences:licence_details", kwargs={"pk": self.standard_application_licence.id})
+
+    def test_get_license_details(self):
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()
+
+        assert response.status_code == status.HTTP_200_OK
+
+        expected_data = {
+            "id": str(self.standard_application_licence.id),
+            "reference_code": self.standard_application_licence.reference_code,
+            "status": self.standard_application_licence.status,
+        }
+        assert response_data == expected_data
+
+    def test_get_license_details_exporter_not_allowed(self):
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
