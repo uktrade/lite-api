@@ -107,6 +107,7 @@ class ApplicationFiltersTests(DataTestClient):
                     {"selected_filter": "draft_applications", "expected": 8},
                     {"selected_filter": "submitted_applications", "expected": 2},
                     {"selected_filter": "archived_applications", "expected": 0},
+                    {"selected_filter": "unknown_filter", "expected": 2},
                 ],
             ],
             [
