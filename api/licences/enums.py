@@ -35,10 +35,15 @@ class LicenceStatus:
     ]
 
     open_statuses = [ISSUED, REINSTATED]
+    _can_edit_status = [ISSUED, REINSTATED, SUSPENDED]
 
     @classmethod
     def to_str(cls, status):
         return next(choice[1] for choice in cls.choices if choice[0] == status)
+
+    @classmethod
+    def can_edit_status(cls, status):
+        return status in cls._can_edit_status
 
 
 hmrc_integration_action_to_licence_status = {
