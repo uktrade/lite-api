@@ -79,6 +79,7 @@ from api.core.permissions import (
     assert_user_has_permission,
     IsExporterInOrganisation,
 )
+from api.applications.views.filters import ApplicationSiteFilter, ApplicationStateFilter
 from api.applications.views.helpers.advice import ensure_lu_countersign_complete
 from api.flags.enums import FlagStatuses, SystemFlags
 from api.goods.serializers import GoodCreateSerializer
@@ -107,30 +108,11 @@ from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_fl
 class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer
-
-    def get_queryset(self):
-        """
-        Filter applications on submitted
-        """
-        organisation = get_request_user_organisation(self.request)
-
-        selected_filter = self.request.GET.get("selected_filter", "submitted_applications")
-        sort_by = self.request.GET.get("sort_by", "-submitted_at")
-
-        if selected_filter == "submitted_applications":
-            applications = BaseApplication.objects.submitted(organisation, sort_by)
-        elif selected_filter == "finalised_applications":
-            applications = BaseApplication.objects.finalised(organisation, sort_by)
-        else:
-            applications = BaseApplication.objects.drafts(organisation, sort_by)
-
-        users_sites = Site.objects.get_by_user_and_organisation(self.request.user.exporteruser, organisation)
-        disallowed_applications = SiteOnApplication.objects.exclude(site__id__in=users_sites).values_list(
-            "application", flat=True
-        )
-        applications = applications.exclude(id__in=disallowed_applications)
-
-        return applications.prefetch_related("status", "case_type").select_subclasses()
+    filter_backends = (
+        ApplicationSiteFilter,
+        ApplicationStateFilter,
+    )
+    queryset = BaseApplication.objects.all()
 
     def get_paginated_response(self, data):
         data = get_case_notifications(data, self.request)
