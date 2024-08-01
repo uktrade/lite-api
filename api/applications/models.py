@@ -354,10 +354,9 @@ class StandardApplication(BaseApplication, Clonable):
     def clone(self, exclusions=None, **overrides):
         cloned_application = super().clone(exclusions=exclusions, **overrides)
 
-        # TODO: Figure out whether it is desirable to clone ApplicationDocument records
-        # application_documents = ApplicationDocument.objects.filter(application=self)
-        # for application_document in application_documents:
-        #    application_document.clone(application=cloned_application)
+        application_documents = ApplicationDocument.objects.filter(application=self, safe=True)
+        for application_document in application_documents:
+            application_document.clone(application=cloned_application)
 
         site_on_applications = SiteOnApplication.objects.filter(application=self)
         for site_on_application in site_on_applications:
@@ -596,14 +595,15 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
             cloned_good_on_application.firearm_details = self.firearm_details.clone()
             cloned_good_on_application.save()
 
-        good_on_application_documents = GoodOnApplicationDocument.objects.filter(good_on_application=self)
+        good_on_application_documents = GoodOnApplicationDocument.objects.filter(good_on_application=self, safe=True)
         for good_on_application_document in good_on_application_documents:
             good_on_application_document.clone(
                 good_on_application=cloned_good_on_application, application=overrides["application"]
             )
 
         good_on_application_internal_documents = GoodOnApplicationInternalDocument.objects.filter(
-            good_on_application=self
+            good_on_application=self,
+            safe=True,
         )
         for good_on_application_internal_document in good_on_application_internal_documents:
             good_on_application_internal_document.clone(good_on_application=cloned_good_on_application)
