@@ -1,7 +1,6 @@
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence, Licence
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
-from api.staticdata.statuses.serializers import CaseStatusSerializer
 
 from rest_framework import serializers
 
@@ -52,7 +51,7 @@ class LicenceSerializer(serializers.ModelSerializer):
         )
 
     def get_case_status(self, instance):
-        return CaseStatusSerializer.get_value(instance, instance.case.status)
+        return instance.case.status.status
 
     def get_status(self, instance):
         return LicenceStatus.to_str(instance.status)
@@ -65,7 +64,6 @@ def get_case_licences(case):
             "goods__good",
             "goods__good__good",
             "goods__good__good__control_list_entries",
-            "case",
             "case__status",
         )
         .filter(case=case)

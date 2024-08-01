@@ -76,4 +76,4 @@ class GetCaseLicenceTests(DataTestClient):
 
         data = get_case_licences(self.application)[0]
 
-        assert data["case_status"] == CaseStatusEnum.FINALISED.capitalize()
+        assert data["case_status"] == CaseStatusEnum.FINALISED
