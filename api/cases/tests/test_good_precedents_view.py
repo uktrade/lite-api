@@ -171,7 +171,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
         assert json == expected_data
 
     @parameterized.expand(CaseStatusEnum.precedent_statuses)
-    def test_get_previous_assessments(self, status):
+    def test_get_expected_previous_assessments(self, status):
         good = GoodFactory(organisation=self.organisation)
         good.flags.add(SystemFlags.WASSENAAR)
 
@@ -200,7 +200,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
         good.save()
 
         # Reuse the same good from the previous application and ensure that
-        # sssessment given previously comes up as precedent 
+        # assessment given previously comes up as precedent
         application = DraftStandardApplicationFactory(organisation=self.organisation)
         GoodOnApplicationFactory(
             good=good,
@@ -269,3 +269,51 @@ class GoodPrecedentsListViewTests(DataTestClient):
         }
 
         assert expected == json
+
+    @parameterized.expand(CaseStatusEnum.non_precedent_statuses)
+    def test_do_not_expect_previous_assessments(self, status):
+        good = GoodFactory(organisation=self.organisation)
+        good.flags.add(SystemFlags.WASSENAAR)
+
+        precedent_application = DraftStandardApplicationFactory(organisation=self.organisation)
+        good_on_application = GoodOnApplicationFactory(
+            good=good,
+            application=precedent_application,
+            quantity=1000,
+            report_summary="analogue-to-digital converters",
+            is_good_controlled=True,
+            comment="12-bit ADC",
+        )
+        good_on_application.control_list_entries.add(ControlListEntry.objects.get(rating="ML1a"))
+        good_on_application.regime_entries.add(RegimeEntry.objects.get(name="Wassenaar Arrangement"))
+        good_on_application.report_summary_prefix = ReportSummaryPrefix.objects.get(name="components for")
+        good_on_application.report_summary_subject = ReportSummarySubject.objects.get(name="neural computers")
+        good_on_application.save()
+
+        self.submit_application(precedent_application)
+
+        precedent_application.status = get_case_status_by_status(status)
+        precedent_application.save()
+
+        # Reuse the same good from the previous application and ensure that
+        # assessment given previously does not come up as precedent
+        application = DraftStandardApplicationFactory(organisation=self.organisation)
+        GoodOnApplicationFactory(
+            good=good,
+            application=application,
+            quantity=1000,
+            report_summary="analogue-to-digital converters",
+            is_good_controlled=True,
+        )
+        case = self.submit_application(application)
+        application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
+        application.save()
+
+        url = reverse("cases:good_precedents", kwargs={"pk": case.id})
+        response = self.client.get(url, **self.gov_headers)
+        assert response.status_code == 200
+        assert response.json() == {
+            "count": 0,
+            "results": [],
+            "total_pages": 1,
+        }
