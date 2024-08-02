@@ -1,12 +1,15 @@
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
+from urllib.parse import urlencode
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from api.applications.models import StandardApplication, BaseApplication
+from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
 from api.staticdata.trade_control.enums import TradeControlActivity, TradeControlProductCategory
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -143,3 +146,67 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = response.json()["errors"]
         self.assertEqual(errors[missing_field], [expected_error])
+
+
+class ApplicationsListTests(DataTestClient):
+    url = reverse("applications:applications")
+
+    @parameterized.expand(
+        [
+            [
+                {"num_drafts": 10},
+                {"status": "submitted", "count": 2},
+                [
+                    {"selected_filter": "draft_applications", "expected": 8},
+                    {"selected_filter": "submitted_applications", "expected": 2},
+                    {"selected_filter": "archived_applications", "expected": 0},
+                ],
+            ],
+            [
+                {"num_drafts": 10},
+                {"status": "submitted", "count": 4},
+                [
+                    {"selected_filter": "draft_tab", "expected": 6},
+                    {"selected_filter": "submitted_applications", "expected": 4},
+                ],
+            ],
+            [
+                {"num_drafts": 10},
+                {"status": "finalised", "count": 5},
+                [
+                    {"selected_filter": "finalised_applications", "expected": 5},
+                    {"selected_filter": "draft_applications", "expected": 5},
+                ],
+            ],
+            [
+                {"num_drafts": 10},
+                {"status": "superseded_by_exporter_edit", "count": 3},
+                [
+                    {"selected_filter": "archived_applications", "expected": 3},
+                    {"selected_filter": "draft_applications", "expected": 7},
+                    {"selected_filter": "finalised_applications", "expected": 0},
+                ],
+            ],
+        ]
+    )
+    def test_retrieve_applications_tests(self, initial, target_state, filters):
+        drafts = [
+            DraftStandardApplicationFactory(
+                organisation=self.organisation,
+            )
+            for _ in range(initial["num_drafts"])
+        ]
+
+        for draft in drafts[: target_state["count"]]:
+            draft.status = get_case_status_by_status(target_state["status"])
+            draft.save()
+
+        for filter in filters:
+            expected_count = filter.pop("expected")
+
+            url = f"{self.url}?{urlencode(filter, doseq=True)}"
+            response = self.client.get(url, **self.exporter_headers)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+            response = response.json()
+            self.assertEqual(len(response["results"]), expected_count)
