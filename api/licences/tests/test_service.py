@@ -74,6 +74,8 @@ class GetCaseLicenceTests(DataTestClient):
         self.licence.case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.licence.case.save()
 
-        data = get_case_licences(self.application)[0]
+        licences = get_case_licences(self.application)
+        assert len(licences) == 1
 
-        assert data["case_status"] == CaseStatusEnum.FINALISED
+        licence = licences[0]
+        assert licence["case_status"] == CaseStatusEnum.FINALISED
