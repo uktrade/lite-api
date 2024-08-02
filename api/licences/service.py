@@ -46,6 +46,7 @@ class LicenceSerializer(serializers.ModelSerializer):
             "reference_code",
             "status",
             "goods",
+            "created_at",
         )
 
     def get_status(self, instance):
