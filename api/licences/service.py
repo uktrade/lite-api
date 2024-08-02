@@ -38,6 +38,7 @@ class LicenceSerializer(serializers.ModelSerializer):
 
     goods = GoodOnLicenceSerializer(many=True)
     status = serializers.SerializerMethodField()
+    case_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Licence
@@ -45,8 +46,12 @@ class LicenceSerializer(serializers.ModelSerializer):
             "id",
             "reference_code",
             "status",
+            "case_status",
             "goods",
         )
+
+    def get_case_status(self, instance):
+        return instance.case.status.status
 
     def get_status(self, instance):
         return LicenceStatus.to_str(instance.status)
@@ -55,9 +60,14 @@ class LicenceSerializer(serializers.ModelSerializer):
 def get_case_licences(case):
     licences = (
         Licence.objects.prefetch_related(
-            "goods", "goods__good", "goods__good__good", "goods__good__good__control_list_entries"
+            "goods",
+            "goods__good",
+            "goods__good__good",
+            "goods__good__good__control_list_entries",
+            "case__status",
         )
         .filter(case=case)
         .order_by("created_at")
     )
+
     return LicenceSerializer(licences, many=True).data
