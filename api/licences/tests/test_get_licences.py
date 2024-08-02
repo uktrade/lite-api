@@ -6,6 +6,7 @@ from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 from api.users.models import Role
 from parameterized import parameterized
+from reversion.models import Version
 
 from api.applications.tests.factories import StandardApplicationFactory
 from api.cases.enums import CaseTypeEnum, AdviceType
@@ -321,3 +322,21 @@ class LicenceDetailsTests(DataTestClient):
 
         response = self.client.patch(self.url, self.status_data, **self.gov_headers)
         assert response.status_code == expected_status
+
+    def test_update_license_details_check_version(self):
+        data_items = [{"status": "reinstated"}, {"status": "suspended"}, {"status": "revoked"}]
+
+        response = self.client.patch(self.url, data_items[0], **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+        response = self.client.patch(self.url, data_items[1], **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+        response = self.client.patch(self.url, data_items[2], **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+
+        # returns most recent first
+        versions = Version.objects.get_for_object(self.standard_application_licence)
+        self.assertEqual(versions.count(), len(data_items))
+
+        for counter, version in enumerate(versions, start=1):
+            self.assertEqual(version.revision.user, self.gov_user.baseuser_ptr)
+            self.assertEqual(version.field_dict["status"], data_items[3 - counter]["status"])
