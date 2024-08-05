@@ -3,6 +3,7 @@ from typing import Tuple, List
 from pytz import timezone
 
 from api.applications.models import StandardApplication, GoodOnApplication
+from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.flags.enums import SystemFlags
 from parameterized import parameterized
 from api.goods.enums import GoodStatus
@@ -168,3 +169,151 @@ class GoodPrecedentsListViewTests(DataTestClient):
         }
 
         assert json == expected_data
+
+    @parameterized.expand(CaseStatusEnum.precedent_statuses)
+    def test_get_expected_previous_assessments(self, status):
+        good = GoodFactory(organisation=self.organisation)
+        good.flags.add(SystemFlags.WASSENAAR)
+
+        precedent_application = DraftStandardApplicationFactory(organisation=self.organisation)
+        good_on_application = GoodOnApplicationFactory(
+            good=good,
+            application=precedent_application,
+            quantity=1000,
+            report_summary="analogue-to-digital converters",
+            is_good_controlled=True,
+            comment="12-bit ADC",
+        )
+        good_on_application.control_list_entries.add(ControlListEntry.objects.get(rating="ML1a"))
+        good_on_application.regime_entries.add(RegimeEntry.objects.get(name="Wassenaar Arrangement"))
+        good_on_application.report_summary_prefix = ReportSummaryPrefix.objects.get(name="components for")
+        good_on_application.report_summary_subject = ReportSummarySubject.objects.get(name="neural computers")
+        good_on_application.save()
+
+        self.submit_application(precedent_application)
+
+        precedent_application.status = get_case_status_by_status(status)
+        precedent_application.save()
+
+        # Good status becomes verified once it is assessed
+        good.status = GoodStatus.VERIFIED
+        good.save()
+
+        # Reuse the same good from the previous application and ensure that
+        # assessment given previously comes up as precedent
+        application = DraftStandardApplicationFactory(organisation=self.organisation)
+        GoodOnApplicationFactory(
+            good=good,
+            application=application,
+            quantity=1000,
+            report_summary="analogue-to-digital converters",
+            is_good_controlled=True,
+        )
+        case = self.submit_application(application)
+        application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
+        application.save()
+
+        url = reverse("cases:good_precedents", kwargs={"pk": case.id})
+        response = self.client.get(url, **self.gov_headers)
+        assert response.status_code == 200
+
+        json = response.json()
+        wassenaar_regime = RegimeEntry.objects.get(name="Wassenaar Arrangement")
+        expected = {
+            "count": 1,
+            "results": [
+                {
+                    "application": str(precedent_application.id),
+                    "comment": "12-bit ADC",
+                    "control_list_entries": ["ML1a"],
+                    "destinations": ["Italy", "Spain"],
+                    "good": str(good_on_application.good.id),
+                    "goods_starting_point": "GB",
+                    "id": str(good_on_application.id),
+                    "is_good_controlled": True,
+                    "is_ncsc_military_information_security": None,
+                    "quantity": 1000.0,
+                    "queue": None,
+                    "reference": precedent_application.reference_code,
+                    "regime_entries": [
+                        {
+                            "name": "Wassenaar Arrangement",
+                            "pk": str(wassenaar_regime.id),
+                            "shortened_name": "W",
+                            "subsection": {
+                                "name": "Wassenaar Arrangement",
+                                "pk": str(wassenaar_regime.subsection.id),
+                                "regime": {"name": "WASSENAAR", "pk": str(wassenaar_regime.subsection.regime.id)},
+                            },
+                        }
+                    ],
+                    "report_summary": "analogue-to-digital converters",
+                    "report_summary_prefix": {
+                        "id": str(good_on_application.report_summary_prefix.id),
+                        "name": good_on_application.report_summary_prefix.name,
+                    },
+                    "report_summary_subject": {
+                        "id": str(good_on_application.report_summary_subject.id),
+                        "name": good_on_application.report_summary_subject.name,
+                    },
+                    "submitted_at": precedent_application.submitted_at.astimezone(timezone("UTC")).strftime(
+                        "%Y-%m-%dT%H:%M:%S.%f"
+                    )[:-3]
+                    + "Z",
+                    "unit": None,
+                    "value": None,
+                    "wassenaar": True,
+                }
+            ],
+            "total_pages": 1,
+        }
+
+        assert expected == json
+
+    @parameterized.expand(CaseStatusEnum.non_precedent_statuses)
+    def test_do_not_expect_previous_assessments(self, status):
+        good = GoodFactory(organisation=self.organisation)
+        good.flags.add(SystemFlags.WASSENAAR)
+
+        precedent_application = DraftStandardApplicationFactory(organisation=self.organisation)
+        good_on_application = GoodOnApplicationFactory(
+            good=good,
+            application=precedent_application,
+            quantity=1000,
+            report_summary="analogue-to-digital converters",
+            is_good_controlled=True,
+            comment="12-bit ADC",
+        )
+        good_on_application.control_list_entries.add(ControlListEntry.objects.get(rating="ML1a"))
+        good_on_application.regime_entries.add(RegimeEntry.objects.get(name="Wassenaar Arrangement"))
+        good_on_application.report_summary_prefix = ReportSummaryPrefix.objects.get(name="components for")
+        good_on_application.report_summary_subject = ReportSummarySubject.objects.get(name="neural computers")
+        good_on_application.save()
+
+        self.submit_application(precedent_application)
+
+        precedent_application.status = get_case_status_by_status(status)
+        precedent_application.save()
+
+        # Reuse the same good from the previous application and ensure that
+        # assessment given previously does not come up as precedent
+        application = DraftStandardApplicationFactory(organisation=self.organisation)
+        GoodOnApplicationFactory(
+            good=good,
+            application=application,
+            quantity=1000,
+            report_summary="analogue-to-digital converters",
+            is_good_controlled=True,
+        )
+        case = self.submit_application(application)
+        application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
+        application.save()
+
+        url = reverse("cases:good_precedents", kwargs={"pk": case.id})
+        response = self.client.get(url, **self.gov_headers)
+        assert response.status_code == 200
+        assert response.json() == {
+            "count": 0,
+            "results": [],
+            "total_pages": 1,
+        }

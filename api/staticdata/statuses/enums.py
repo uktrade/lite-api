@@ -68,6 +68,11 @@ class CaseStatusEnum:
 
     compliance_visit_statuses = [OPEN, UNDER_INTERNAL_REVIEW, RETURN_TO_INSPECTOR, AWAITING_EXPORTER_RESPONSE, CLOSED]
 
+    non_precedent_statuses = [
+        SUBMITTED,
+        INITIAL_CHECKS,
+    ]
+
     precedent_statuses = [
         UNDER_REVIEW,
         OGD_ADVICE,
@@ -76,6 +81,7 @@ class CaseStatusEnum:
         FINAL_REVIEW_COUNTERSIGN,
         FINAL_REVIEW_SECOND_COUNTERSIGN,
         FINALISED,
+        SUPERSEDED_BY_EXPORTER_EDIT,
     ]
 
     choices = [
