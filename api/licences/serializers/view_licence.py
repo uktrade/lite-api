@@ -216,8 +216,10 @@ class LicenceSerializer(serializers.ModelSerializer):
 class LicenceDetailsSerializer(serializers.ModelSerializer):
     # These actions are used to support the Licence status change screen
     # Suspened to reinstated don't send HMRC messages as these are only support offline via email
+
     case_status = serializers.SerializerMethodField()
     status = ChoiceField(choices=LicenceStatus.choices)
+
     action_dict = {
         "reinstated": lambda instance: Licence.reinstate(instance),
         "suspended": lambda instance: Licence.suspend(instance),
