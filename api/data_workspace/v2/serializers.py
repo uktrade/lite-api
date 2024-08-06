@@ -85,3 +85,10 @@ class StatusSerializer(serializers.Serializer):
 
     def get_is_terminal(self, status_name):
         return CaseStatusEnum.is_terminal(status_name)
+
+
+class NonWorkingDaySerializer(serializers.Serializer):
+    date = serializers.SerializerMethodField(required=False)
+
+    def get_date(self, date):
+        return date

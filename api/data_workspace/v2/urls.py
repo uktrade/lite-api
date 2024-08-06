@@ -24,3 +24,8 @@ router_v2.register(
     views.StatusChangeListView,
     basename="dw-status-changes",
 )
+router_v2.register(
+    "non_working_days",
+    views.NonWorkingDayListView,
+    basename="dw-non-working-days",
+)
