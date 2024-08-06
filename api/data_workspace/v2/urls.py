@@ -14,3 +14,8 @@ router_v2.register(
     views.RFIListView,
     basename="dw-rfis",
 )
+router_v2.register(
+    "status_changes",
+    views.StatusChangeListView,
+    basename="dw-status-changes",
+)

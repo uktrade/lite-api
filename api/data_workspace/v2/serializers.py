@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from api.audit_trail.models import Audit
 from api.applications.models import StandardApplication
 from api.cases.models import EcjuQuery
 
@@ -46,3 +47,29 @@ class RFISerializer(serializers.ModelSerializer):
 
     def get_closed_at(self, rfi):
         return rfi.responded_at
+
+
+class StatusChangeSerializer(serializers.ModelSerializer):
+    application_id = serializers.SerializerMethodField(required=False)
+    changed_at = serializers.SerializerMethodField(required=False)
+    status = serializers.SerializerMethodField(required=False)
+
+    class Meta:
+        model = Audit
+        fields = (
+            "id",
+            "application_id",
+            "changed_at",
+            "status",
+        )
+
+    def get_application_id(self, audit):
+        application = get_original_application(audit.target)
+        return application.pk
+
+    def get_changed_at(self, audit):
+        return audit.created_at
+
+    def get_status(self, audit):
+        status = audit.payload["status"]["new"].lower()
+        return status
