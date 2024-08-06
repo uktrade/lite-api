@@ -2,6 +2,12 @@ import datetime
 
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
+
+from rest_framework_csv.renderers import (
+    CSVRenderer,
+    PaginatedCSVRenderer,
+)
 
 from api.applications.models import StandardApplication
 from api.audit_trail.enums import AuditType
@@ -25,11 +31,13 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 class ApplicationListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     queryset = StandardApplication.objects.filter(amendment__isnull=True).exclude(submitted_at__isnull=True)
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = ApplicationSerializer
 
 
 class StatusListView(viewsets.ViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (CSVRenderer,)
 
     def list(self, request):
         statuses = [status for status in CaseStatusEnum.all()]
@@ -39,17 +47,20 @@ class StatusListView(viewsets.ViewSet):
 class StatusChangeListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     queryset = Audit.objects.filter(verb=AuditType.UPDATED_STATUS).order_by("created_at")
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = StatusChangeSerializer
 
 
 class RFIListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     queryset = EcjuQuery.objects.all()
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = RFISerializer
 
 
 class NonWorkingDayListView(viewsets.ViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (CSVRenderer,)
 
     def get_first_application_created_date(self):
         return StandardApplication.objects.earliest("created_at").created_at.date()
