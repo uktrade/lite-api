@@ -81,12 +81,16 @@ class StatusChangeSerializer(serializers.ModelSerializer):
 class StatusSerializer(serializers.Serializer):
     name = serializers.SerializerMethodField(required=False)
     is_terminal = serializers.SerializerMethodField(required=False)
+    is_closed = serializers.SerializerMethodField(required=False)
 
     def get_name(self, status_name):
         return status_name
 
     def get_is_terminal(self, status_name):
         return CaseStatusEnum.is_terminal(status_name)
+
+    def get_is_closed(self, status_name):
+        return CaseStatusEnum.is_closed(status_name)
 
 
 class NonWorkingDaySerializer(serializers.Serializer):
