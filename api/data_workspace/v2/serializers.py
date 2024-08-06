@@ -72,7 +72,9 @@ class StatusChangeSerializer(serializers.ModelSerializer):
         return audit.created_at
 
     def get_status(self, audit):
-        status = audit.payload["status"]["new"].lower()
+        status = audit.payload["status"]["new"].lower().replace(" ", "_").replace("-", "")
+        if status not in CaseStatusEnum.all():
+            raise ValueError(f"Unknown status {status}")
         return status
 
 
