@@ -15,6 +15,11 @@ router_v2.register(
     basename="dw-rfis",
 )
 router_v2.register(
+    "statuses",
+    views.StatusListView,
+    basename="dw-statuses",
+)
+router_v2.register(
     "status_changes",
     views.StatusChangeListView,
     basename="dw-status-changes",

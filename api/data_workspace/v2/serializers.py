@@ -3,6 +3,7 @@ from rest_framework import serializers
 from api.audit_trail.models import Audit
 from api.applications.models import StandardApplication
 from api.cases.models import EcjuQuery
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 def get_original_application(obj):
@@ -73,3 +74,14 @@ class StatusChangeSerializer(serializers.ModelSerializer):
     def get_status(self, audit):
         status = audit.payload["status"]["new"].lower()
         return status
+
+
+class StatusSerializer(serializers.Serializer):
+    name = serializers.SerializerMethodField(required=False)
+    is_terminal = serializers.SerializerMethodField(required=False)
+
+    def get_name(self, status_name):
+        return status_name
+
+    def get_is_terminal(self, status_name):
+        return CaseStatusEnum.is_terminal(status_name)
