@@ -1,5 +1,8 @@
 from rest_framework import serializers
 
+from django.db.models import Q
+
+from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.applications.models import StandardApplication
 from api.cases.models import EcjuQuery
@@ -102,6 +105,7 @@ class NonWorkingDaySerializer(serializers.Serializer):
 
 class StandardApplicationSerializer(serializers.ModelSerializer):
     destination = serializers.SerializerMethodField(required=False)
+    is_amended = serializers.SerializerMethodField(required=False)
 
     class Meta:
         model = StandardApplication
@@ -115,6 +119,7 @@ class StandardApplicationSerializer(serializers.ModelSerializer):
             "activity",
             "is_eu_military",
             "is_informed_wmd",
+            "is_suspected_wmd",
             "is_compliant_limitations_eu",
             "is_military_end_use_controls",
             "intended_end_use",
@@ -129,6 +134,9 @@ class StandardApplicationSerializer(serializers.ModelSerializer):
             "sla_remaining_days",
             "sla_updated_at",
             "submitted_at",
+            "submitted_by",
+            "copy_of_id",
+            "is_amended",
             "case_officer_id",
             "status_id",
             "case_type_id",
@@ -143,3 +151,29 @@ class StandardApplicationSerializer(serializers.ModelSerializer):
             return party.country.id
 
         return ""
+
+    def get_is_amended(self, instance):
+        """Determines whether an application is major/minor edited using Audit logs
+        and returns True if either of the amends are done, False otherwise"""
+        audit_qs = Audit.objects.filter(target_object_id=instance.id)
+        is_reference_name_updated = audit_qs.filter(verb=AuditType.UPDATED_APPLICATION_NAME).exists()
+        is_product_removed = audit_qs.filter(verb=AuditType.REMOVE_GOOD_FROM_APPLICATION).exists()
+        app_letter_ref_updated = audit_qs.filter(
+            Q(
+                verb__in=[
+                    AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
+                    AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
+                    AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                ]
+            )
+        )
+        # in case of doing major edits then the status is set as "Applicant editing"
+        # Here we are detecting the transition from "Submitted" -> "Applicant editing"
+        for item in audit_qs.filter(verb=AuditType.UPDATED_STATUS):
+            status = item.payload["status"]
+            if status["old"] == CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED) and status[
+                "new"
+            ] == CaseStatusEnum.get_text(CaseStatusEnum.APPLICANT_EDITING):
+                return True
+
+        return any([is_reference_name_updated, app_letter_ref_updated, is_product_removed])
