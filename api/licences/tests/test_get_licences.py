@@ -1,5 +1,12 @@
 from django.urls import reverse
 from rest_framework import status
+from api.core.constants import Roles
+from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.teams.enums import TeamIdEnum
+from api.teams.models import Team
+from api.users.models import Role
+from parameterized import parameterized
+from reversion.models import Version
 
 from api.applications.tests.factories import StandardApplicationFactory
 from api.cases.enums import CaseTypeEnum, AdviceType
@@ -185,14 +192,26 @@ class GetLicencesFilterTests(DataTestClient):
         self.assertEqual(len(response_data), 0)
 
 
-class LicencesDetailsTests(DataTestClient):
+class LicenceDetailsTests(DataTestClient):
     def setUp(self):
         super().setUp()
+        self.status_data = {"status": "revoked"}
         self.standard_application = StandardApplicationFactory()
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        self.standard_application.save()
+
         self.standard_application_licence = StandardLicenceFactory(
             case=self.standard_application, status=LicenceStatus.ISSUED
         )
         self.url = reverse("licences:licence_details", kwargs={"pk": self.standard_application_licence.id})
+
+        # Make User LU Super User
+        self.gov_user.team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+        lu_role, _ = Role.objects.get_or_create(
+            id=Roles.INTERNAL_LU_SENIOR_MANAGER_ROLE_ID, name=Roles.INTERNAL_LU_SENIOR_MANAGER_ROLE_NAME
+        )
+        self.gov_user.role = lu_role
+        self.gov_user.save()
 
     def test_get_license_details(self):
 
@@ -212,3 +231,112 @@ class LicencesDetailsTests(DataTestClient):
 
         response = self.client.get(self.url, **self.exporter_headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @parameterized.expand(
+        [
+            [{"status": "revoked"}],
+            [{"status": "issued"}],
+            [{"status": "suspended"}],
+        ]
+    )
+    def test_update_license_details(self, data):
+
+        response = self.client.patch(self.url, data, **self.gov_headers)
+
+        response_data = response.json()
+        self.standard_application_licence.refresh_from_db()
+        expected_data = {
+            "id": str(self.standard_application_licence.id),
+            "reference_code": self.standard_application_licence.reference_code,
+            **data,
+        }
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response_data == expected_data
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @parameterized.expand(
+        [
+            [{"reference_code": "1234"}],
+            [{"duration": "5"}],
+            [{"hmrc_integration_sent_at": True}],
+        ]
+    )
+    def test_update_license_details_not_updated(self, data):
+
+        key = list(data.keys())[0]
+        old_state = getattr(self.standard_application_licence, key)
+
+        response = self.client.patch(self.url, data, **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+        self.standard_application_licence.refresh_from_db()
+        new_state = getattr(self.standard_application_licence, key)
+
+        assert old_state == new_state
+
+    def test_update_license_details_non_lu_admin_forbidden(self):
+
+        defult_role, _ = Role.objects.get_or_create(
+            id=Roles.INTERNAL_DEFAULT_ROLE_ID, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
+        )
+        self.gov_user.role = defult_role
+        self.gov_user.save()
+
+        response = self.client.patch(self.url, self.status_data, **self.gov_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @parameterized.expand(
+        [
+            [CaseStatusEnum.FINALISED, status.HTTP_200_OK],
+            [CaseStatusEnum.APPEAL_REVIEW, status.HTTP_403_FORBIDDEN],
+            [CaseStatusEnum.SUSPENDED, status.HTTP_403_FORBIDDEN],
+            [CaseStatusEnum.REVOKED, status.HTTP_403_FORBIDDEN],
+            [CaseStatusEnum.INITIAL_CHECKS, status.HTTP_403_FORBIDDEN],
+        ]
+    )
+    def test_update_license_details_case_non_finialised(self, case_status, expected_status):
+        self.standard_application.status = get_case_status_by_status(case_status)
+        self.standard_application.save()
+
+        response = self.client.patch(self.url, self.status_data, **self.gov_headers)
+        assert response.status_code == expected_status
+
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED, status.HTTP_200_OK],
+            [LicenceStatus.REINSTATED, status.HTTP_200_OK],
+            [LicenceStatus.SUSPENDED, status.HTTP_200_OK],
+            [LicenceStatus.REVOKED, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.SURRENDERED, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.EXHAUSTED, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.EXPIRED, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.DRAFT, status.HTTP_403_FORBIDDEN],
+            [LicenceStatus.CANCELLED, status.HTTP_403_FORBIDDEN],
+        ]
+    )
+    def test_update_license_details_case_licence_editable_states(self, licence_status, expected_status):
+        self.standard_application_licence.status = licence_status
+        self.standard_application_licence.save()
+
+        response = self.client.patch(self.url, self.status_data, **self.gov_headers)
+        assert response.status_code == expected_status
+
+    def test_update_license_details_check_version(self):
+        data_items = [{"status": "reinstated"}, {"status": "suspended"}, {"status": "revoked"}]
+
+        response = self.client.patch(self.url, data_items[0], **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+        response = self.client.patch(self.url, data_items[1], **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+        response = self.client.patch(self.url, data_items[2], **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+
+        # returns most recent first
+        versions = Version.objects.get_for_object(self.standard_application_licence)
+        self.assertEqual(versions.count(), len(data_items))
+
+        for counter, version in enumerate(versions, start=1):
+            self.assertEqual(version.revision.user, self.gov_user.baseuser_ptr)
+            self.assertEqual(version.field_dict["status"], data_items[3 - counter]["status"])
