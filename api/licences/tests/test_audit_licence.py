@@ -39,12 +39,11 @@ class AuditLicenceTests(DataTestClient):
         )
         licence.status = LicenceStatus.REVOKED
         licence.save()
-
+        # Just one audit created since revoke should be called directly.
         audit_records = Audit.objects.filter(verb=AuditType.LICENCE_UPDATED_STATUS).order_by("created_at")
 
-        self.assertEqual(audit_records.count(), 2)
+        self.assertEqual(audit_records.count(), 1)
         self.assertEqual(audit_records[0].payload["status"], "issued")
-        self.assertEqual(audit_records[1].payload["status"], "revoked")
 
     def test_update_existing_licence_no_change(self):
         licence = Licence(

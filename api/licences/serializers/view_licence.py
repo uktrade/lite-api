@@ -5,6 +5,7 @@ from django.forms import ChoiceField
 from rest_framework import serializers
 
 from api.applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
+from api.audit_trail.enums import AuditType
 from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import CaseType
@@ -20,6 +21,7 @@ from api.parties.enums import PartyRole
 from api.parties.models import Party, PartyDocument
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
 from api.staticdata.units.enums import Units
+from api.audit_trail import service as audit_trail_service
 
 
 # Case View
@@ -237,12 +239,25 @@ class LicenceDetailsSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "reference_code", "case_status"]
 
     def update(self, instance, validated_data):
+        previous_status = instance.status
         update_action = validated_data.get("status")
+
         try:
             action_method = self.action_dict[update_action]
             action_method(instance)
         except KeyError:
             raise serializers.ValidationError(f"Updating licence status: {update_action} not allowed")
+
+        # Create a user audit for N&T
+        request = self.context.get("request")
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.LICENCE_UPDATED_STATUS,
+            action_object=instance,
+            target=instance.case.get_case(),
+            payload={"licence": instance.reference_code, "status": update_action, "previous_status": previous_status},
+        )
+
         return super().update(instance, validated_data)
 
     def get_case_status(self, instance):
