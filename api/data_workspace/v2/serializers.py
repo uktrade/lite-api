@@ -98,3 +98,48 @@ class NonWorkingDaySerializer(serializers.Serializer):
 
     def get_date(self, date):
         return date
+
+
+class StandardApplicationSerializer(serializers.ModelSerializer):
+    destination = serializers.SerializerMethodField(required=False)
+
+    class Meta:
+        model = StandardApplication
+        fields = (
+            "id",
+            "created_at",
+            "updated_at",
+            "export_type",
+            "reference_code",
+            "name",
+            "activity",
+            "is_eu_military",
+            "is_informed_wmd",
+            "is_compliant_limitations_eu",
+            "is_military_end_use_controls",
+            "intended_end_use",
+            "agreed_to_foi",
+            "foi_reason",
+            "reference_number_on_information_form",
+            "have_you_been_informed",
+            "is_shipped_waybill_or_lading",
+            "is_temp_direct_control",
+            "proposed_return_date",
+            "sla_days",
+            "sla_remaining_days",
+            "sla_updated_at",
+            "submitted_at",
+            "case_officer_id",
+            "status_id",
+            "case_type_id",
+            "organisation_id",
+            "destination",
+            "amendment_of_id",
+        )
+
+    def get_destination(self, standard_application):
+        if getattr(standard_application, "end_user", None):
+            party = standard_application.end_user.party
+            return party.country.id
+
+        return ""
