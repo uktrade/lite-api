@@ -638,8 +638,8 @@ class HMRCIntegrationTests(DataTestClient):
 
         url = reverse("cases:finalise", kwargs={"pk": standard_application.id})
         response = self.client.put(url, data={}, **self.gov_headers)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         request.assert_called_once_with(
             "POST",
             f"{settings.LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",

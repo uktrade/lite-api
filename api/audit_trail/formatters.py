@@ -228,9 +228,11 @@ def product_reviewed(**payload):
 def licence_status_updated(**payload):
     status = payload["status"].lower()
     licence = payload["licence"]
+    previous_status = payload.get("previous_status")
     if status == LicenceStatus.EXHAUSTED:
         return f"The products for licence {licence} were exported and the status set to '{status}'."
-
+    if previous_status:
+        return f"set the licence status of {licence} from {previous_status} to {status}."
     return f"{status} licence {licence}."
 
 

@@ -1,6 +1,9 @@
 from unittest import mock
 from django.urls import reverse
 from rest_framework import status
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
+from api.audit_trail.serializers import AuditSerializer
 from api.core.constants import Roles
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.enums import TeamIdEnum
@@ -214,7 +217,7 @@ class LicenceDetailsTests(DataTestClient):
         self.gov_user.role = lu_role
         self.gov_user.save()
 
-    def test_get_license_details(self):
+    def test_get_licence_details(self):
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
@@ -229,7 +232,7 @@ class LicenceDetailsTests(DataTestClient):
         }
         assert response_data == expected_data
 
-    def test_get_license_details_exporter_not_allowed(self):
+    def test_get_licence_details_exporter_not_allowed(self):
 
         response = self.client.get(self.url, **self.exporter_headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -240,7 +243,7 @@ class LicenceDetailsTests(DataTestClient):
             [{"status": "reinstated"}, "reinstate"],
         ]
     )
-    def test_update_license_details_message_success(self, data, expect_model_method):
+    def test_update_licence_details_message_success(self, data, expect_model_method):
 
         with mock.patch(f"api.licences.models.Licence.{expect_model_method}") as save_method_mock:
 
@@ -255,11 +258,11 @@ class LicenceDetailsTests(DataTestClient):
                 **data,
             }
             save_method_mock.assert_called_once()
-            save_method_mock.assert_called_once_with(self.standard_application_licence)
+            save_method_mock.assert_called_once_with(self.standard_application_licence, self.gov_user.baseuser_ptr)
             assert response.status_code == status.HTTP_200_OK
             assert response_data == expected_data
 
-    def test_update_license_details_revoked_success_send_hmrc(self):
+    def test_update_licence_details_revoked_success_send_hmrc(self):
         data = {"status": "revoked"}
         with mock.patch("api.licences.models.Licence.revoke") as save_method_mock:
             response = self.client.patch(self.url, data, **self.gov_headers)
@@ -272,7 +275,7 @@ class LicenceDetailsTests(DataTestClient):
                 **data,
             }
             save_method_mock.assert_called_once()
-            save_method_mock.assert_called_once_with(self.standard_application_licence, send_status_change_to_hmrc=True)
+            save_method_mock.assert_called_once_with(self.standard_application_licence, self.gov_user.baseuser_ptr)
             assert response.status_code == status.HTTP_200_OK
             assert response_data == expected_data
 
@@ -283,11 +286,11 @@ class LicenceDetailsTests(DataTestClient):
             [{"status": "suspended"}],
         ]
     )
-    def test_update_license_details_put_fails(self, data):
+    def test_update_licence_details_put_fails(self, data):
         response = self.client.put(self.url, data, **self.gov_headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_update_license_details_invalid_status(self):
+    def test_update_licence_details_invalid_status(self):
         data = {"status": "dummy"}
         response = self.client.patch(self.url, data, **self.gov_headers)
         assert response.json()["errors"] == {"status": ['"dummy" is not a valid choice.']}
@@ -302,12 +305,12 @@ class LicenceDetailsTests(DataTestClient):
             [{"hmrc_integration_sent_at": True}],
         ]
     )
-    def test_update_license_details_not_updated(self, data):
+    def test_update_licence_details_not_updated(self, data):
 
         response = self.client.patch(self.url, data, **self.gov_headers)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_update_license_details_non_lu_admin_forbidden(self):
+    def test_update_licence_details_non_lu_admin_forbidden(self):
 
         defult_role, _ = Role.objects.get_or_create(
             id=Roles.INTERNAL_DEFAULT_ROLE_ID, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
@@ -327,7 +330,7 @@ class LicenceDetailsTests(DataTestClient):
             [CaseStatusEnum.INITIAL_CHECKS, status.HTTP_403_FORBIDDEN],
         ]
     )
-    def test_update_license_details_case_non_finialised(self, case_status, expected_status):
+    def test_update_licence_details_case_non_finialised(self, case_status, expected_status):
         self.standard_application.status = get_case_status_by_status(case_status)
         self.standard_application.save()
 
@@ -347,14 +350,14 @@ class LicenceDetailsTests(DataTestClient):
             [LicenceStatus.CANCELLED, status.HTTP_403_FORBIDDEN],
         ]
     )
-    def test_update_license_details_case_licence_editable_states(self, licence_status, expected_status):
+    def test_update_licence_details_case_licence_editable_states(self, licence_status, expected_status):
         self.standard_application_licence.status = licence_status
         self.standard_application_licence.save()
 
         response = self.client.patch(self.url, self.status_data, **self.gov_headers)
         assert response.status_code == expected_status
 
-    def test_update_license_details_check_version(self):
+    def test_update_licence_details_check_version(self):
         data_items = [{"status": "reinstated"}, {"status": "suspended"}, {"status": "revoked"}]
 
         response = self.client.patch(self.url, data_items[0], **self.gov_headers)
@@ -371,3 +374,24 @@ class LicenceDetailsTests(DataTestClient):
         for counter, version in enumerate(versions, start=1):
             self.assertEqual(version.revision.user, self.gov_user.baseuser_ptr)
             self.assertEqual(version.field_dict["status"], data_items[3 - counter]["status"])
+
+    @parameterized.expand(
+        [
+            [LicenceStatus.REINSTATED],
+            [LicenceStatus.SUSPENDED],
+            [LicenceStatus.REVOKED],
+        ]
+    )
+    def test_update_licence_details_audit_trail(self, licence_status):
+        data = {"status": licence_status}
+
+        response = self.client.patch(self.url, data, **self.gov_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        audit = Audit.objects.filter(verb=AuditType.LICENCE_UPDATED_STATUS).first()
+        audit_data = AuditSerializer(audit).data
+        assert audit_data["user"]["id"] == self.gov_user.pk
+        assert (
+            audit_data["text"]
+            == f"set the licence status of {self.standard_application_licence.reference_code} from {self.standard_application_licence.status} to {licence_status}."
+        )
