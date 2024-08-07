@@ -41,8 +41,7 @@ class StatusListView(viewsets.ViewSet):
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (CSVRenderer,)
 
     def list(self, request):
-        statuses = [status for status in CaseStatusEnum.all()]
-        return Response(StatusSerializer(statuses, many=True).data)
+        return Response(StatusSerializer(CaseStatusEnum.all(), many=True).data)
 
 
 class StatusChangeListView(viewsets.ReadOnlyModelViewSet):
