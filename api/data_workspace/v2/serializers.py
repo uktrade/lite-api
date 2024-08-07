@@ -142,6 +142,7 @@ class StandardApplicationSerializer(serializers.ModelSerializer):
             "case_type_id",
             "organisation_id",
             "destination",
+            "goods_starting_point",
             "amendment_of_id",
         )
 
