@@ -1,6 +1,7 @@
 from __future__ import division
 
 from django.db.models import F
+from django.forms import ChoiceField
 from rest_framework import serializers
 
 from api.applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
@@ -215,6 +216,10 @@ class LicenceSerializer(serializers.ModelSerializer):
 class LicenceDetailsSerializer(serializers.ModelSerializer):
     # These actions are used to support the Licence status change screen
     # Suspened to reinstated don't send HMRC messages as these are only support offline via email
+
+    case_status = serializers.SerializerMethodField()
+    status = ChoiceField(choices=LicenceStatus.choices)
+
     action_dict = {
         "reinstated": lambda instance: Licence.reinstate(instance),
         "suspended": lambda instance: Licence.suspend(instance),
@@ -227,8 +232,9 @@ class LicenceDetailsSerializer(serializers.ModelSerializer):
             "id",
             "reference_code",
             "status",
+            "case_status",
         )
-        read_only_fields = ["id", "reference_code"]
+        read_only_fields = ["id", "reference_code", "case_status"]
 
     def update(self, instance, validated_data):
         update_action = validated_data.get("status")
@@ -238,6 +244,9 @@ class LicenceDetailsSerializer(serializers.ModelSerializer):
         except KeyError:
             raise serializers.ValidationError(f"Updating licence status: {update_action} not allowed")
         return super().update(instance, validated_data)
+
+    def get_case_status(self, instance):
+        return instance.case.status.status
 
 
 class LicenceWithGoodsViewSerializer(serializers.Serializer):
