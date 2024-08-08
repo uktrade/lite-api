@@ -4,7 +4,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from api.applications.serializers.advice import Advice
 from api.cases.serializers import AdviceSerializer
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.data_workspace.serializers import AdviceDenialReasonSerializer
+from api.data_workspace.v1.serializers import AdviceDenialReasonSerializer
 
 
 class AdviceListView(viewsets.ReadOnlyModelViewSet):

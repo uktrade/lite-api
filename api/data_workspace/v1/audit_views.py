@@ -7,7 +7,7 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.models import Case
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.data_workspace.serializers import (
+from api.data_workspace.v1.serializers import (
     AuditMoveCaseSerializer,
     AuditUpdatedCaseStatusSerializer,
     AuditUpdatedLicenceStatusSerializer,

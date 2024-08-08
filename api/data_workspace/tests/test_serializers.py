@@ -1,6 +1,6 @@
 from api.audit_trail.models import AuditType
 from api.audit_trail.tests.factories import AuditFactory
-from api.data_workspace.serializers import (
+from api.data_workspace.v1.serializers import (
     AuditMoveCaseSerializer,
     CaseAssignmentSerializer,
     EcjuQuerySerializer,

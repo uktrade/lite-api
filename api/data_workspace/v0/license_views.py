@@ -4,7 +4,7 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from api.cases.enums import CaseTypeEnum
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.data_workspace.serializers import LicenceWithoutGoodsSerializer
+from api.data_workspace.v1.serializers import LicenceWithoutGoodsSerializer
 from api.open_general_licences.models import OpenGeneralLicence
 from api.open_general_licences.serializers import OpenGeneralLicenceSerializer
 from api.licences import models, enums
