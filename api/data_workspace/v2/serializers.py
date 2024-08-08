@@ -96,9 +96,15 @@ class StatusSerializer(serializers.Serializer):
 
 class NonWorkingDaySerializer(serializers.Serializer):
     date = serializers.SerializerMethodField(required=False)
+    type = serializers.SerializerMethodField(required=False)
 
-    def get_date(self, date):
+    def get_date(self, date_and_type):
+        date, _ = date_and_type
         return date
+
+    def get_type(self, date_and_type):
+        _, type = date_and_type
+        return type
 
 
 class StandardApplicationSerializer(serializers.ModelSerializer):

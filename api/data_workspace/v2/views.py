@@ -68,8 +68,10 @@ class NonWorkingDayListView(viewsets.ViewSet):
     def get_non_working_days(self, first_date):
         date = first_date
         while date <= datetime.date.today():
-            if is_bank_holiday(date) or is_weekend(date):
-                yield date
+            if is_bank_holiday(date):
+                yield (date, "BANK_HOLIDAY")
+            if is_weekend(date):
+                yield (date, "WEEKEND")
             date += datetime.timedelta(days=1)
 
     def list(self, request):
