@@ -21,14 +21,18 @@ def get_last_application(obj):
 
 class ApplicationSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField(required=False)
+    status = serializers.SerializerMethodField(required=False)
 
     class Meta:
         model = StandardApplication
-        fields = ("id",)
+        fields = ("id", "status")
 
     def get_id(self, application):
         application = get_original_application(application)
         return application.pk
+
+    def get_status(self, application):
+        return application.status.status
 
 
 class RFISerializer(serializers.ModelSerializer):
