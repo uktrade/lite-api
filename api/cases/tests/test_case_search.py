@@ -1227,3 +1227,6 @@ class SearchAPITest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.case.id))
+
+    def test_get_cases_filter_by_licence_status(self):
+        self._create_data()
