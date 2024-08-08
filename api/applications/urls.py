@@ -16,6 +16,8 @@ from api.applications.views import (
     amendments,
 )
 
+from api.exporter.applications.views import ApplicationQuantityValueUpdateView
+
 app_name = "applications"
 
 urlpatterns = [
@@ -143,5 +145,11 @@ urlpatterns = [
         "<uuid:pk>/amendment/",
         amendments.CreateApplicationAmendment.as_view(),
         name="create_amendment",
+    ),
+    # Exporter specific endpoints
+    path(
+        "<uuid:pk>/good-on-application/<uuid:good_on_application_pk>/quantity-value/",
+        ApplicationQuantityValueUpdateView.as_view(),
+        name="application_goods_quantity_value",
     ),
 ]
