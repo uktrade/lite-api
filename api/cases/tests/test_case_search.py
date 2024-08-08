@@ -50,6 +50,8 @@ from api.cases.views.search.service import (
 )
 
 from lite_routing.routing_rules_internal.enums import FlagsEnum
+from api.licences.enums import LicenceStatus
+from api.licences.tests.factories import StandardLicenceFactory
 
 
 class FilterAndSortTests(DataTestClient):
@@ -1230,3 +1232,17 @@ class SearchAPITest(DataTestClient):
 
     def test_get_cases_filter_by_licence_status(self):
         self._create_data()
+        self.application = StandardApplicationFactory(case_type=CaseType.objects.get(reference="siel"))
+        self.case_2 = Case.objects.get(id=self.application.id)
+        self.case_2.submitted_at = django_utils.timezone.now()
+        self.case_2.licences.add(StandardLicenceFactory(case=self.case_2, status=LicenceStatus.ISSUED))
+        self.case_2.save()
+
+        url = f'{reverse("cases:search")}?licence_status={LicenceStatus.ISSUED}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.case_2.id))

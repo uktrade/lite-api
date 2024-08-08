@@ -56,6 +56,12 @@ class LicenceStatus:
     def can_edit_status(cls, status):
         return status in cls._can_edit_status
 
+    @classmethod
+    def get_licence_status_by_status(cls, status):
+        for status_name in cls.all_statuses:
+            if status == status_name:
+                return status
+
 
 hmrc_integration_action_to_licence_status = {
     HMRCIntegrationActionEnum.SURRENDER: LicenceStatus.SURRENDERED,
