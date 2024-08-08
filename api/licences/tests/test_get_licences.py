@@ -196,7 +196,7 @@ class GetLicencesFilterTests(DataTestClient):
 class LicenceDetailsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.status_data = {"status": "revoked"}
+        self.status_data = {"status": LicenceStatus.REVOKED}
         self.standard_application = StandardApplicationFactory()
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
@@ -225,6 +225,7 @@ class LicenceDetailsTests(DataTestClient):
             "id": str(self.standard_application_licence.id),
             "reference_code": self.standard_application_licence.reference_code,
             "status": self.standard_application_licence.status,
+            "case_status": self.standard_application_licence.case.status.status,
         }
         assert response_data == expected_data
 
@@ -250,6 +251,7 @@ class LicenceDetailsTests(DataTestClient):
             expected_data = {
                 "id": str(self.standard_application_licence.id),
                 "reference_code": self.standard_application_licence.reference_code,
+                "case_status": self.standard_application_licence.case.status.status,
                 **data,
             }
             save_method_mock.assert_called_once()
@@ -266,6 +268,7 @@ class LicenceDetailsTests(DataTestClient):
             expected_data = {
                 "id": str(self.standard_application_licence.id),
                 "reference_code": self.standard_application_licence.reference_code,
+                "case_status": self.standard_application_licence.case.status.status,
                 **data,
             }
             save_method_mock.assert_called_once()
