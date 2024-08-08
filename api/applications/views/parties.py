@@ -20,6 +20,7 @@ from api.parties.models import Party
 from api.parties.serializers import PartySerializer
 from api.users.models import ExporterUser
 from api.staticdata.statuses.enums import CaseStatusEnum
+from django.db.models import Q
 
 
 class ApplicationPartyView(APIView):
@@ -127,7 +128,11 @@ class ApplicationPartyView(APIView):
         )
 
         if "type" in request.GET:
-            application_parties = application_parties.filter(party__type=request.GET["type"])
+            query = Q(party__type=request.GET["type"])
+            if "role_other" in request.GET:
+                query |= Q(party__role_other=request.GET["role_other"])
+
+            application_parties = application_parties.filter(query)
 
         parties_data = PartySerializer([p.party for p in application_parties], many=True).data
 
