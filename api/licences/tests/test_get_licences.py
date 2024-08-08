@@ -1,3 +1,4 @@
+from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 from api.core.constants import Roles
@@ -6,6 +7,7 @@ from api.teams.enums import TeamIdEnum
 from api.teams.models import Team
 from api.users.models import Role
 from parameterized import parameterized
+from reversion.models import Version
 
 from api.applications.tests.factories import StandardApplicationFactory
 from api.cases.enums import CaseTypeEnum, AdviceType
@@ -194,7 +196,7 @@ class GetLicencesFilterTests(DataTestClient):
 class LicenceDetailsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.status_data = {"status": "revoked"}
+        self.status_data = {"status": LicenceStatus.REVOKED}
         self.standard_application = StandardApplicationFactory()
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
@@ -223,6 +225,7 @@ class LicenceDetailsTests(DataTestClient):
             "id": str(self.standard_application_licence.id),
             "reference_code": self.standard_application_licence.reference_code,
             "status": self.standard_application_licence.status,
+            "case_status": self.standard_application_licence.case.status.status,
         }
         assert response_data == expected_data
 
@@ -233,26 +236,62 @@ class LicenceDetailsTests(DataTestClient):
 
     @parameterized.expand(
         [
+            [{"status": "suspended"}, "suspend"],
+            [{"status": "reinstated"}, "reinstate"],
+        ]
+    )
+    def test_update_license_details_message_success(self, data, expect_model_method):
+
+        with mock.patch(f"api.licences.models.Licence.{expect_model_method}") as save_method_mock:
+
+            response = self.client.patch(self.url, data, **self.gov_headers)
+
+            response_data = response.json()
+            self.standard_application_licence.refresh_from_db()
+            expected_data = {
+                "id": str(self.standard_application_licence.id),
+                "reference_code": self.standard_application_licence.reference_code,
+                "case_status": self.standard_application_licence.case.status.status,
+                **data,
+            }
+            save_method_mock.assert_called_once()
+            save_method_mock.assert_called_once_with(self.standard_application_licence)
+            assert response.status_code == status.HTTP_200_OK
+            assert response_data == expected_data
+
+    def test_update_license_details_revoked_success_send_hmrc(self):
+        data = {"status": "revoked"}
+        with mock.patch("api.licences.models.Licence.revoke") as save_method_mock:
+            response = self.client.patch(self.url, data, **self.gov_headers)
+            response_data = response.json()
+            self.standard_application_licence.refresh_from_db()
+            expected_data = {
+                "id": str(self.standard_application_licence.id),
+                "reference_code": self.standard_application_licence.reference_code,
+                "case_status": self.standard_application_licence.case.status.status,
+                **data,
+            }
+            save_method_mock.assert_called_once()
+            save_method_mock.assert_called_once_with(self.standard_application_licence, send_status_change_to_hmrc=True)
+            assert response.status_code == status.HTTP_200_OK
+            assert response_data == expected_data
+
+    @parameterized.expand(
+        [
             [{"status": "revoked"}],
             [{"status": "issued"}],
             [{"status": "suspended"}],
         ]
     )
-    def test_update_license_details(self, data):
+    def test_update_license_details_put_fails(self, data):
+        response = self.client.put(self.url, data, **self.gov_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_update_license_details_invalid_status(self):
+        data = {"status": "dummy"}
         response = self.client.patch(self.url, data, **self.gov_headers)
-
-        response_data = response.json()
-        self.standard_application_licence.refresh_from_db()
-        expected_data = {
-            "id": str(self.standard_application_licence.id),
-            "reference_code": self.standard_application_licence.reference_code,
-            **data,
-        }
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response_data == expected_data
-
+        assert response.json()["errors"] == {"status": ['"dummy" is not a valid choice.']}
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         response = self.client.put(self.url, data, **self.gov_headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -265,15 +304,8 @@ class LicenceDetailsTests(DataTestClient):
     )
     def test_update_license_details_not_updated(self, data):
 
-        key = list(data.keys())[0]
-        old_state = getattr(self.standard_application_licence, key)
-
         response = self.client.patch(self.url, data, **self.gov_headers)
-        assert response.status_code == status.HTTP_200_OK
-        self.standard_application_licence.refresh_from_db()
-        new_state = getattr(self.standard_application_licence, key)
-
-        assert old_state == new_state
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_update_license_details_non_lu_admin_forbidden(self):
 
@@ -321,3 +353,21 @@ class LicenceDetailsTests(DataTestClient):
 
         response = self.client.patch(self.url, self.status_data, **self.gov_headers)
         assert response.status_code == expected_status
+
+    def test_update_license_details_check_version(self):
+        data_items = [{"status": "reinstated"}, {"status": "suspended"}, {"status": "revoked"}]
+
+        response = self.client.patch(self.url, data_items[0], **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+        response = self.client.patch(self.url, data_items[1], **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+        response = self.client.patch(self.url, data_items[2], **self.gov_headers)
+        assert response.status_code == status.HTTP_200_OK
+
+        # returns most recent first
+        versions = Version.objects.get_for_object(self.standard_application_licence)
+        self.assertEqual(versions.count(), len(data_items))
+
+        for counter, version in enumerate(versions, start=1):
+            self.assertEqual(version.revision.user, self.gov_user.baseuser_ptr)
+            self.assertEqual(version.field_dict["status"], data_items[3 - counter]["status"])
