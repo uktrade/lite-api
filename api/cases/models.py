@@ -476,6 +476,9 @@ class Advice(TimestampableModel):
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
     denial_reasons = models.ManyToManyField(DenialReason)
+    denial_reasons_uuid = models.ManyToManyField(
+        DenialReason, through="cases.AdviceDenialReason", related_name="advice_set_new"
+    )
     pv_grading = models.CharField(choices=PvGrading.choices, null=True, max_length=30)
     # This is to store the collated security grading(s) for display purposes
     collated_pv_grading = models.TextField(default=None, blank=True, null=True)
@@ -570,6 +573,11 @@ class Advice(TimestampableModel):
                 [x for x in self.denial_reasons.values_list()] == [x for x in other.denial_reasons.values_list()],
             ]
         )
+
+
+class AdviceDenialReason(models.Model):
+    advice = models.ForeignKey(Advice, on_delete=models.CASCADE)
+    denial_reason = models.ForeignKey(DenialReason, to_field="uuid", on_delete=models.CASCADE)
 
 
 class CountersignAdvice(TimestampableModel):
