@@ -1236,7 +1236,7 @@ class SearchAPITest(DataTestClient):
             [LicenceStatus.SUSPENDED, "suspended", 1],
             [LicenceStatus.REVOKED, "revoked", 1],
             [LicenceStatus.DRAFT, "draft", 1],
-            [LicenceStatus.ISSUED, "dfghhf", 0],
+            [LicenceStatus.ISSUED, "statustext", 0],
         ]
     )
     def test_get_cases_filter_by_licence_status(self, licence_status, licence_status_search, expected_case_count):
@@ -1254,3 +1254,5 @@ class SearchAPITest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), expected_case_count)
+        if response_data:
+            self.assertEqual(response_data[0]["id"], str(self.case_2.id))
