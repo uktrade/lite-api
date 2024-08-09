@@ -424,3 +424,13 @@ class GoodOnApplicationInternalDocumentViewSerializer(serializers.Serializer):
 
     def get_s3_key(self, instance):
         return instance.s3_key if instance.safe else "File not ready"
+
+
+class GoodOnApplicationQuantityValueSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GoodOnApplication
+        fields = (
+            "quantity",
+            "value",
+        )

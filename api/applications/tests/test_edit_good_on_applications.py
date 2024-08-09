@@ -6,7 +6,7 @@ from rest_framework import status
 
 from api.applications.libraries.case_status_helpers import get_case_statuses
 from api.applications.enums import NSGListType
-from api.applications.tests.factories import GoodOnApplicationFactory
+from api.applications.tests.factories import DraftStandardApplicationFactory, GoodOnApplicationFactory
 from api.goods.tests.factories import GoodFactory, FirearmFactory
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
@@ -15,6 +15,18 @@ from test_helpers.clients import DataTestClient
 
 
 class EditGoodOnApplicationsTests(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+
+        self.draft = DraftStandardApplicationFactory(organisation=self.organisation)
+        self.good_on_application = self.draft.goods.first()
+
+        self.edit_quantity_value_url = reverse(
+            "applications:application_goods_quantity_value",
+            kwargs={"pk": self.draft.id, "good_on_application_pk": self.good_on_application.id},
+        )
+
     def test_edit_a_good_on_applicaton(self):
         application = self.create_draft_standard_application(self.organisation)
         good_on_application = application.goods.first()
@@ -116,6 +128,84 @@ class EditGoodOnApplicationsTests(DataTestClient):
             good_on_application.firearm_details.calibre,
             original_calibre,
         )
+
+    @parameterized.expand(
+        [
+            [
+                {"quantity": 5, "value": 10.00},
+                {"value": 10000.00},
+                {"quantity": 5, "value": 10000.00},
+            ],
+            [
+                {"quantity": 5, "value": 10.00},
+                {"quantity": 500},
+                {"quantity": 500, "value": 10.00},
+            ],
+            [
+                {"quantity": 5, "value": 10.00},
+                {"quantity": 500, "value": 100000.00},
+                {"quantity": 500, "value": 100000.00},
+            ],
+        ]
+    )
+    def test_exporter_edit_quantity_value(self, initial, data, expected):
+        self.good_on_application.quantity = initial["quantity"]
+        self.good_on_application.value = initial["value"]
+        self.good_on_application.save()
+
+        response = self.client.patch(self.edit_quantity_value_url, data=data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.good_on_application.refresh_from_db()
+        self.assertEqual(self.good_on_application.quantity, expected["quantity"])
+        self.assertEqual(self.good_on_application.value, expected["value"])
+
+    @parameterized.expand(
+        [
+            [
+                {"report_summary": "optical equipment", "quantity": 5, "value": 10.00},
+                {"report_summary": "aircraft engines", "value": 10000.00},
+                {"report_summary": "optical equipment", "quantity": 5, "value": 10000.00},
+            ],
+            [
+                {"report_summary": "optical equipment", "quantity": 5, "value": 10.00},
+                {"report_summary": "aircraft engines", "quantity": 500},
+                {"report_summary": "optical equipment", "quantity": 500, "value": 10.00},
+            ],
+            [
+                {"report_summary": "optical equipment", "quantity": 5, "value": 10.00},
+                {"report_summary": "aircraft engines", "quantity": 500, "value": 100000.00},
+                {"report_summary": "optical equipment", "quantity": 500, "value": 100000.00},
+            ],
+        ]
+    )
+    def test_exporter_only_editing_quantity_value_allowed(self, initial, data, expected):
+        self.good_on_application.report_summary = initial["report_summary"]
+        self.good_on_application.quantity = initial["quantity"]
+        self.good_on_application.value = initial["value"]
+        self.good_on_application.save()
+
+        response = self.client.patch(self.edit_quantity_value_url, data=data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.good_on_application.refresh_from_db()
+        self.assertEqual(self.good_on_application.report_summary, expected["report_summary"])
+        self.assertEqual(self.good_on_application.quantity, expected["quantity"])
+        self.assertEqual(self.good_on_application.value, expected["value"])
+
+    def test_exporter_edit_invalid_application_raises_error(self):
+        url = reverse(
+            "applications:application_goods_quantity_value",
+            kwargs={"pk": self.good_on_application.id, "good_on_application_pk": self.good_on_application.id},
+        )
+        response = self.client.patch(url, data={"quantity": 20}, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_exporter_edit_invalid_data_raises_error(self):
+        response = self.client.patch(
+            self.edit_quantity_value_url, data={"quantity": "invalid value"}, **self.exporter_headers
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class GovUserEditGoodOnApplicationsTests(DataTestClient):
