@@ -198,6 +198,7 @@ class Case(TimestampableModel):
         from api.audit_trail import service as audit_trail_service
         from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
         from api.licences.helpers import update_licence_status
+        from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
         from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
         old_status = self.status.status
@@ -218,8 +219,13 @@ class Case(TimestampableModel):
             },
         )
 
-        if old_status != self.status.status:
-            run_routing_rules(case=self, keep_status=True)
+        status_changed = old_status != self.status.status
+        is_status_draft = self.status.status == CaseStatusEnum.DRAFT
+        if status_changed and not is_status_draft:
+            run_routing_rules(case=self.get_case(), keep_status=True)
+            if not self.status.is_terminal:
+                # TODO: do the things that the case signal does, but here..
+                apply_flagging_rules_to_case(self.get_case())
 
             if status.status == CaseStatusEnum.APPLICANT_EDITING:
                 notify_exporter_case_opened_for_editing(self)
