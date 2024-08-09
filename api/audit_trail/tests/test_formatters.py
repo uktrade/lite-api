@@ -231,6 +231,10 @@ class FormattersTest(DataTestClient):
             ({"status": "expired", "licence": "1"}, "expired licence 1."),
             ({"status": "draft", "licence": "1"}, "draft licence 1."),
             ({"status": "expired", "licence": "1"}, "expired licence 1."),
+            (
+                {"status": "suspended", "licence": "1", "previous_status": "issued"},
+                "set the licence status of 1 from issued to suspended.",
+            ),
         ]
     )
     def test_licence_status_updated(self, payload, expected_result):

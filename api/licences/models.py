@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from api.audit_trail.enums import AuditType
 import reversion
 
 from django.db import models
@@ -14,6 +15,7 @@ from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration
 from api.licences.managers import LicenceManager
 from api.staticdata.decisions.models import Decision
 from api.cases.notify import notify_exporter_licence_suspended, notify_exporter_licence_revoked
+from api.audit_trail import service as audit_trail_service
 
 
 class HMRCIntegrationUsageData(TimestampableModel):
@@ -60,9 +62,26 @@ class Licence(TimestampableModel):
             raise ImproperlyConfigured("Did you forget to switch on LITE_HMRC_INTEGRATION_ENABLED?")
         return get_mail_status(self)
 
+    def create_licence_change_system_audit_log(self):
+        """
+        Generates a system audit log for licence changes
+        """
+        try:
+            Licence.objects.get(id=self.id, status=self.status)
+        except Licence.DoesNotExist:
+            # Since we only want to add entries where previous status has changed
+            audit_trail_service.create_system_user_audit(
+                verb=AuditType.LICENCE_UPDATED_STATUS,
+                action_object=self,
+                target=self.case.get_case(),
+                payload={"licence": self.reference_code, "status": self.status},
+            )
+
     def surrender(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.SURRENDERED
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+        # Surrender is called from case status change so we log this as a system event
+        self.create_licence_change_system_audit_log()
 
     def suspend(self):
         self.status = LicenceStatus.SUSPENDED
@@ -76,10 +95,12 @@ class Licence(TimestampableModel):
 
     def cancel(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.CANCELLED
+        # Cancel is called from case status change so we log this as a system event
+        self.create_licence_change_system_audit_log()
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def reinstate(self):
-        # This supersedes the issue method as it's called explicity on the license
+        # This supersedes the issue method as it's called explicity on the licence
         # Hence the user explicty knows which license is being reinstated
         self.status = LicenceStatus.REINSTATED
         self.save()
@@ -95,6 +116,8 @@ class Licence(TimestampableModel):
             status = LicenceStatus.REINSTATED
 
         self.status = status
+        # Issue is called from case status change so we log this as a system event
+        self.create_licence_change_system_audit_log()
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def save(self, *args, **kwargs):
@@ -104,6 +127,11 @@ class Licence(TimestampableModel):
         self.end_date = end_datetime.date()
 
         send_status_change_to_hmrc = kwargs.pop("send_status_change_to_hmrc", False)
+
+        # We only require a system log if this is a new save since this isn't user initiated
+        if not Licence.objects.filter(id=self.id).exists():
+            self.create_licence_change_system_audit_log()
+
         super(Licence, self).save(*args, **kwargs)
 
         # Immediately notify HMRC if needed
