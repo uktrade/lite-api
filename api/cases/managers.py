@@ -324,6 +324,7 @@ class CaseManager(QueryablePropertiesManager):
                 "case_assignments__queue",
                 "queues",
                 "queues__team",
+                "baseapplication__licences",
                 Prefetch(
                     "baseapplication__parties",
                     to_attr="end_user_parties",
