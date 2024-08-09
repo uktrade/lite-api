@@ -245,18 +245,22 @@ class LicenceDetailsSerializer(serializers.ModelSerializer):
         try:
             action_method = self.action_dict[update_action]
             action_method(instance)
+            request = self.context.get("request")
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.LICENCE_UPDATED_STATUS,
+                action_object=instance,
+                target=instance.case.get_case(),
+                payload={
+                    "licence": instance.reference_code,
+                    "status": update_action,
+                    "previous_status": previous_status,
+                },
+            )
         except KeyError:
             raise serializers.ValidationError(f"Updating licence status: {update_action} not allowed")
 
         # Create a user audit for N&T
-        request = self.context.get("request")
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.LICENCE_UPDATED_STATUS,
-            action_object=instance,
-            target=instance.case.get_case(),
-            payload={"licence": instance.reference_code, "status": update_action, "previous_status": previous_status},
-        )
 
         return super().update(instance, validated_data)
 

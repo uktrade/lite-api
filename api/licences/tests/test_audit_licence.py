@@ -29,7 +29,7 @@ class AuditLicenceTests(DataTestClient):
         self.assertEqual(audit_records[0].payload["licence"], "test_reference")
         self.assertEqual(audit_records[0].payload["status"], "issued")
 
-    def test_update_existing_licence(self):
+    def test_update_existing_licence_no_revoked_audit(self):
         licence = Licence.objects.create(
             case=self.standard_application,
             status=LicenceStatus.ISSUED,
@@ -45,7 +45,7 @@ class AuditLicenceTests(DataTestClient):
         self.assertEqual(audit_records.count(), 1)
         self.assertEqual(audit_records[0].payload["status"], "issued")
 
-    def test_update_existing_licence_no_change(self):
+    def test_update_existing_licence_no_change_no_audit(self):
         licence = Licence(
             case=self.standard_application,
             status=LicenceStatus.ISSUED,
