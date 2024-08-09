@@ -82,6 +82,9 @@ class CaseQuerySet(QueryablePropertiesQuerySet):
     def has_sub_status(self, sub_status):
         return self.filter(sub_status__name=sub_status)
 
+    def has_licence_status(self, licence_status):
+        return self.filter(baseapplication__licences__status=licence_status)
+
     def is_type(self, case_type):
         return self.filter(case_type=case_type)
 
@@ -259,6 +262,7 @@ class CaseManager(QueryablePropertiesManager):
         user=None,
         status=None,
         sub_status=None,
+        licence_status=None,
         case_type=None,
         assigned_user=None,
         case_officer=None,
@@ -320,6 +324,7 @@ class CaseManager(QueryablePropertiesManager):
                 "case_assignments__queue",
                 "queues",
                 "queues__team",
+                "baseapplication__licences",
                 Prefetch(
                     "baseapplication__parties",
                     to_attr="end_user_parties",
@@ -350,6 +355,9 @@ class CaseManager(QueryablePropertiesManager):
 
         if sub_status:
             case_qs = case_qs.has_sub_status(sub_status=sub_status)
+
+        if licence_status:
+            case_qs = case_qs.has_licence_status(licence_status=licence_status)
 
         if case_type:
             case_type = CaseTypeEnum.reference_to_id(case_type)
