@@ -219,6 +219,8 @@ class DraftTests(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["count"], 1)
+        application_data = response.json()["results"][0]
+        self.assertEqual(application_data["submitted_by"], self.exporter_user.full_name)
 
     def test_organisation_has_existing_applications(self):
         url = reverse("applications:existing")
