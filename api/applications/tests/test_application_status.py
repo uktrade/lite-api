@@ -56,7 +56,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
-    @mock.patch("api.applications.views.applications.notify_exporter_case_opened_for_editing")
+    @mock.patch("api.applications.notify.notify_exporter_case_opened_for_editing")
     def test_exporter_set_application_status_applicant_editing_when_in_editable_status_success(self, mock_notify):
         self.submit_application(self.standard_application)
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.REOPENED_FOR_CHANGES)

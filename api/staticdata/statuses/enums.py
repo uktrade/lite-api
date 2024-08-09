@@ -60,6 +60,43 @@ class CaseStatusEnum:
         SUPERSEDED_BY_EXPORTER_EDIT,
     ]
 
+    # Cases with these statuses can be operated upon by caseworkers
+    _caseworker_operable_statuses = [
+        APPEAL_FINAL_REVIEW,
+        APPEAL_REVIEW,
+        APPLICANT_EDITING,
+        CHANGE_INTIAL_REVIEW,
+        CHANGE_UNDER_FINAL_REVIEW,
+        CHANGE_UNDER_REVIEW,
+        CLC,
+        OPEN,
+        UNDER_INTERNAL_REVIEW,
+        RETURN_TO_INSPECTOR,
+        AWAITING_EXPORTER_RESPONSE,
+        CLOSED,
+        DEREGISTERED,
+        FINALISED,
+        INITIAL_CHECKS,
+        PV,
+        REGISTERED,
+        REOPENED_FOR_CHANGES,
+        REOPENED_DUE_TO_ORG_CHANGES,
+        RESUBMITTED,
+        REVOKED,
+        OGD_ADVICE,
+        SUBMITTED,
+        SURRENDERED,
+        SUSPENDED,
+        UNDER_APPEAL,
+        UNDER_ECJU_REVIEW,
+        UNDER_FINAL_REVIEW,
+        UNDER_REVIEW,
+        WITHDRAWN,
+        OGD_CONSOLIDATION,
+        FINAL_REVIEW_COUNTERSIGN,
+        FINAL_REVIEW_SECOND_COUNTERSIGN,
+    ]
+
     goods_query_statuses = [CLC, PV]
 
     clc_statuses = [SUBMITTED, CLOSED, WITHDRAWN]
@@ -193,12 +230,24 @@ class CaseStatusEnum:
         return status in cls._system_status
 
     @classmethod
+    def is_caseworker_operable(cls, status):
+        return status in cls._caseworker_operable_statuses
+
+    @classmethod
     def read_only_statuses(cls):
         return list(set(cls.all()) - set(cls._writeable_statuses))
 
     @classmethod
     def major_editable_statuses(cls):
         return cls._major_editable_statuses
+
+    @classmethod
+    def caseworker_operable_statuses(cls):
+        return cls._caseworker_operable_statuses
+
+    @classmethod
+    def caseworker_inoperable_statuses(cls):
+        return list(set(CaseStatusEnum.all()) - set(cls._caseworker_operable_statuses))
 
     @classmethod
     def is_major_editable_status(cls, status):

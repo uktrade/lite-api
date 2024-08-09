@@ -25,6 +25,11 @@ class CaseStatusSerializer(serializers.ModelSerializer):
             "value",
             "status",
             "priority",
+            "is_terminal",
+            "is_read_only",
+            "is_major_editable",
+            "can_invoke_major_editable",
+            "is_caseworker_operable",
         )
 
 

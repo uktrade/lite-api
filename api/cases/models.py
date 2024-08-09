@@ -194,9 +194,11 @@ class Case(TimestampableModel):
         Sets the status for the case, runs validation on various parameters,
         creates audit entries and also runs flagging and automation rules
         """
+        from api.applications.notify import notify_exporter_case_opened_for_editing
         from api.audit_trail import service as audit_trail_service
-        from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
+        from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
         from api.licences.helpers import update_licence_status
+        from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
         from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
 
         old_status = self.status.status
@@ -207,21 +209,31 @@ class Case(TimestampableModel):
         # Update licence status if applicable case status change
         update_licence_status(self, status.status)
 
-        if CaseStatusEnum.is_terminal(old_status) and not CaseStatusEnum.is_terminal(self.status.status):
-            apply_flagging_rules_to_case(self)
-
         audit_trail_service.create(
             actor=user,
             verb=AuditType.UPDATED_STATUS,
-            target=self,
+            target=self.get_case(),
             payload={
-                "status": {"new": CaseStatusEnum.get_text(self.status.status), "old": old_status},
+                "status": {"new": self.status.status, "old": old_status},
                 "additional_text": note,
             },
         )
 
-        if old_status != self.status.status:
-            run_routing_rules(case=self, keep_status=True)
+        status_changed = old_status != self.status.status
+        is_status_draft = self.status.status == CaseStatusEnum.DRAFT
+        if status_changed and not is_status_draft:
+            run_routing_rules(case=self.get_case(), keep_status=True)
+            if not self.status.is_terminal:
+                # TODO: do the things that the case signal does, but here..
+                apply_flagging_rules_to_case(self.get_case())
+
+            if status.status == CaseStatusEnum.APPLICANT_EDITING:
+                notify_exporter_case_opened_for_editing(self)
+
+        # Remove needed flags when case is Withdrawn/Closed
+        if status.status in [CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED]:
+            remove_flags_on_finalisation(self)
+            remove_flags_from_audit_trail(self)
 
     def parameter_set(self):
         """

@@ -18,6 +18,7 @@ from api.cases.tests.factories import CountersignAdviceFactory
 from api.core.constants import GovPermissions, Roles
 from api.flags.models import Flag
 from api.staticdata.denial_reasons.models import DenialReason
+from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.teams.enums import TeamIdEnum
@@ -744,9 +745,8 @@ class CountersignAdviceTests(DataTestClient):
     def test_countersign_advice_terminal_status_failure(self):
         """Ensure we cannot countersign a case that is in one of the terminal state"""
         case_url = reverse("cases:case", kwargs={"pk": self.case.id})
-        data = {"status": CaseStatusEnum.WITHDRAWN, "note": "test"}
-        response = self.client.patch(case_url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.case.status = CaseStatus.objects.get(status=CaseStatusEnum.WITHDRAWN)
+        self.case.save()
 
         response = self.client.put(self.url, **self.gov_headers, data=[])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -823,9 +823,8 @@ class CountersignAdviceWithDecisionTests(DataTestClient):
     def test_countersign_advice_with_decision_terminal_status_failure(self):
         """Ensure we cannot countersign a case that is in one of the terminal state"""
         case_url = reverse("cases:case", kwargs={"pk": self.case.id})
-        data = {"status": CaseStatusEnum.WITHDRAWN, "note": "test"}
-        response = self.client.patch(case_url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.case.status = CaseStatus.objects.get(status=CaseStatusEnum.WITHDRAWN)
+        self.case.save()
 
         response = self.client.post(self.url, **self.gov_headers, data=[])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

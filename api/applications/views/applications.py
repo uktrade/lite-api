@@ -51,7 +51,6 @@ from api.applications.models import (
     PartyOnApplication,
     StandardApplication,
 )
-from api.applications.notify import notify_exporter_case_opened_for_editing
 from api.applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
@@ -86,7 +85,7 @@ from api.goods.serializers import GoodCreateSerializer
 from api.goods.models import FirearmGoodDetails
 from api.goodstype.models import GoodsType
 from api.licences.enums import LicenceStatus
-from api.licences.helpers import get_licence_reference_code, update_licence_status
+from api.licences.helpers import get_licence_reference_code
 from api.licences.models import Licence
 from api.licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
@@ -102,7 +101,6 @@ from api.users.models import ExporterUser
 from api.workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 from lite_routing.routing_rules_internal.routing_engine import run_routing_rules
-from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
 
 
 class ApplicationList(ListCreateAPIView):
@@ -380,6 +378,7 @@ class ApplicationSubmission(APIView):
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
 
+# TODO: After release of LTD-5225, remove this endpoint completely
 class ApplicationManageStatus(APIView):
     authentication_classes = (SharedAuthentication,)
 
@@ -392,49 +391,13 @@ class ApplicationManageStatus(APIView):
         if error_response:
             return error_response
 
-        update_licence_status(application, data["status"])
+        new_status = data["status"]
+        note = data.get("note", "")
+        user = request.user
 
-        case_status = get_case_status_by_status(data["status"])
-        data["status"] = str(case_status.pk)
-        old_status = application.status
-
-        serializer = get_application_update_serializer(application)
-        serializer = serializer(application, data=data, partial=True)
-
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        application = serializer.save()
-
-        if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(application.status.status):
-            # we reapply flagging rules if the status is reopened from a terminal state
-            apply_flagging_rules_to_case(application)
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=application.get_case(),
-            payload={
-                "status": {
-                    "new": case_status.status,
-                    "old": old_status.status,
-                },
-                "additional_text": data.get("note"),
-            },
-        )
-
-        if old_status != application.status:
-            run_routing_rules(case=application, keep_status=True)
-
-            if application.status.status == CaseStatusEnum.APPLICANT_EDITING:
-                notify_exporter_case_opened_for_editing(application)
+        application.change_status(user, get_case_status_by_status(new_status), note)
 
         data = get_application_view_serializer(application)(application, context={"user_type": request.user.type}).data
-
-        # Remove needed flags when case is Withdrawn/Closed
-        if case_status.status in [CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED]:
-            remove_flags_on_finalisation(application.get_case())
-            remove_flags_from_audit_trail(application.get_case())
 
         return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
 
