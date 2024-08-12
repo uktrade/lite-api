@@ -570,8 +570,8 @@ class HMRCIntegrationTests(DataTestClient):
         expected_insert_json = HMRCIntegrationLicenceSerializer(standard_licence).data
         expected_insert_json["action"] = HMRCIntegrationActionEnum.CANCEL
 
-        url = reverse("applications:manage_status", kwargs={"pk": standard_application.id})
-        response = self.client.put(url, data={"status": CaseStatusEnum.SURRENDERED}, **self.exporter_headers)
+        url = reverse("exporter_applications:change_status", kwargs={"pk": standard_application.id})
+        response = self.client.post(url, data={"status": CaseStatusEnum.SURRENDERED}, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         request.assert_called_once_with(
@@ -599,8 +599,8 @@ class HMRCIntegrationTests(DataTestClient):
         expected_insert_json = HMRCIntegrationLicenceSerializer(standard_licence).data
         expected_insert_json["action"] = HMRCIntegrationActionEnum.CANCEL
 
-        url = reverse("applications:manage_status", kwargs={"pk": standard_application.id})
-        response = self.client.put(url, data={"status": CaseStatusEnum.REVOKED}, **self.gov_headers)
+        url = reverse("caseworker_applications:change_status", kwargs={"pk": standard_application.id})
+        response = self.client.post(url, data={"status": CaseStatusEnum.REVOKED}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         request.assert_called_once_with(
