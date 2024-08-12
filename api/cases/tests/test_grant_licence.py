@@ -125,9 +125,9 @@ class FinaliseCaseTests(DataTestClient):
         send_exporter_notifications_func.assert_called()
         mock_notify_licence_issue.assert_called_with(self.standard_case.get_case())
 
-        self.change_status_url = reverse("applications:manage_status", kwargs={"pk": self.standard_case.id})
+        self.change_status_url = reverse("caseworker_applications:change_status", kwargs={"pk": self.standard_case.id})
         data = {"status": CaseStatusEnum.REVOKED}
-        response = self.client.put(self.change_status_url, data=data, **self.gov_headers)
+        response = self.client.post(self.change_status_url, data=data, **self.gov_headers)
 
         self.standard_case.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -168,9 +168,9 @@ class FinaliseCaseTests(DataTestClient):
         send_exporter_notifications_func.assert_called()
         mock_notify_licence_issue.assert_called_with(self.standard_case.get_case())
 
-        self.change_status_url = reverse("applications:manage_status", kwargs={"pk": self.standard_case.id})
+        self.change_status_url = reverse("caseworker_applications:change_status", kwargs={"pk": self.standard_case.id})
         data = {"status": CaseStatusEnum.SUSPENDED}
-        response = self.client.put(self.change_status_url, data=data, **self.gov_headers)
+        response = self.client.post(self.change_status_url, data=data, **self.gov_headers)
 
         self.standard_case.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
