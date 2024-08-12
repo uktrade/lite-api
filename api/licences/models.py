@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from api.audit_trail.enums import AuditType
 import reversion
 
 from django.db import models
@@ -14,6 +15,7 @@ from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration
 from api.licences.managers import LicenceManager
 from api.staticdata.decisions.models import Decision
 from api.cases.notify import notify_exporter_licence_suspended, notify_exporter_licence_revoked
+from api.audit_trail import service as audit_trail_service
 
 
 class HMRCIntegrationUsageData(TimestampableModel):
@@ -50,6 +52,14 @@ class Licence(TimestampableModel):
     def __str__(self):
         return self.reference_code
 
+    def _set_status(self, status, user=None, send_status_change_to_hmrc=True):
+        original_status = self.status
+        self.status = status
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+        status_changed = original_status != self.status
+        if status_changed:
+            self.create_licence_change_audit_log(original_status=original_status, user=user)
+
     def hmrc_mail_status(self):
         """
         Fetch mail status from HRMC-integration server
@@ -60,31 +70,46 @@ class Licence(TimestampableModel):
             raise ImproperlyConfigured("Did you forget to switch on LITE_HMRC_INTEGRATION_ENABLED?")
         return get_mail_status(self)
 
-    def surrender(self, send_status_change_to_hmrc=True):
-        self.status = LicenceStatus.SURRENDERED
-        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+    def create_licence_change_audit_log(self, original_status=None, user=None):
+        """
+        Generates a system audit log for licence changes
+        """
+        audit_kwargs = {
+            "verb": AuditType.LICENCE_UPDATED_STATUS,
+            "action_object": self,
+            "target": self.case.get_case(),
+            "payload": {"licence": self.reference_code, "status": self.status, "previous_status": original_status},
+        }
+        if user:
+            audit_trail_service.create(
+                **audit_kwargs,
+                actor=user,
+            )
+        else:
+            audit_trail_service.create_system_user_audit(**audit_kwargs)
 
-    def suspend(self):
-        self.status = LicenceStatus.SUSPENDED
-        self.save()
+    def surrender(self, user=None):
+        self._set_status(status=LicenceStatus.SURRENDERED, user=user, send_status_change_to_hmrc=True)
+
+    def suspend(self, user=None):
+        self._set_status(LicenceStatus.SUSPENDED, user, send_status_change_to_hmrc=False)
         notify_exporter_licence_suspended(self)
 
-    def revoke(self, send_status_change_to_hmrc=True):
-        self.status = LicenceStatus.REVOKED
-        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+    def revoke(self, user=None):
+        self._set_status(LicenceStatus.REVOKED, user=user, send_status_change_to_hmrc=True)
         notify_exporter_licence_revoked(self)
 
-    def cancel(self, send_status_change_to_hmrc=True):
-        self.status = LicenceStatus.CANCELLED
-        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+    def cancel(self, user=None, send_status_change_to_hmrc=True):
+        self._set_status(
+            status=LicenceStatus.CANCELLED, user=user, send_status_change_to_hmrc=send_status_change_to_hmrc
+        )
 
-    def reinstate(self):
-        # This supersedes the issue method as it's called explicity on the license
+    def reinstate(self, user=None):
+        # This supersedes the issue method as it's called explicity on the licence
         # Hence the user explicty knows which license is being reinstated
-        self.status = LicenceStatus.REINSTATED
-        self.save()
+        self._set_status(status=LicenceStatus.REINSTATED, user=user, send_status_change_to_hmrc=True)
 
-    def issue(self, send_status_change_to_hmrc=True):
+    def issue(self, user=None, send_status_change_to_hmrc=True):
         # re-issue the licence if an older version exists
         status = LicenceStatus.ISSUED
         old_licence = (
@@ -94,8 +119,7 @@ class Licence(TimestampableModel):
             old_licence.cancel(send_status_change_to_hmrc=False)
             status = LicenceStatus.REINSTATED
 
-        self.status = status
-        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+        self._set_status(status=status, user=user, send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def save(self, *args, **kwargs):
         end_datetime = datetime.strptime(
@@ -104,6 +128,11 @@ class Licence(TimestampableModel):
         self.end_date = end_datetime.date()
 
         send_status_change_to_hmrc = kwargs.pop("send_status_change_to_hmrc", False)
+
+        # We only require a system log if this is a new save since this isn't user initiated
+
+        if not Licence.objects.filter(id=self.id).exists():
+            self.create_licence_change_audit_log()
         super(Licence, self).save(*args, **kwargs)
 
         # Immediately notify HMRC if needed

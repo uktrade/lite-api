@@ -266,9 +266,9 @@ class DecoratorTests(DataTestClient):
             [LicenceStatus.CANCELLED, CaseStatusEnum.FINALISED, "The licence status is not editable."],
         ]
     )
-    def test_licence_is_editable_failure(self, license_status, case_status, error_msg):
+    def test_licence_is_editable_failure(self, licence_status, case_status, error_msg):
         application = self.create_standard_application_case(self.organisation)
-        licence = StandardLicenceFactory(case=application, status=license_status)
+        licence = StandardLicenceFactory(case=application, status=licence_status)
         application.status = get_case_status_by_status(case_status)
         application.save()
 
