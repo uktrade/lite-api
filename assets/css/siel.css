@@ -49,6 +49,9 @@
   font-style: italic;
   margin-bottom: 5px;
 }
+.document .max-width {
+  max-width: 140px;
+}
 .document .cell__uppercase {
   display: block;
   text-transform: uppercase;
