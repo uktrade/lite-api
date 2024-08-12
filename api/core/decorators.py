@@ -15,7 +15,7 @@ from api.licences.models import Licence
 from lite_content.lite_api import strings
 from api.organisations.libraries.get_organisation import get_request_user_organisation_id
 from api.parties.enums import PartyType
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusEnum
 from api.users.models import GovUser, ExporterUser
 from rest_framework.views import APIView
 from api.users.enums import UserType
@@ -268,6 +268,14 @@ def licence_is_editable() -> Callable:
                     data={"errors": ["To edit a licence the case must be in a finalised state."]},
                     status=status.HTTP_403_FORBIDDEN,
                 )
+
+            # Check if Case sub status is approved
+            if licence.case.sub_status.name != CaseSubStatusEnum.APPROVED:
+                return JsonResponse(
+                    data={"errors": ["To edit a licence the case sub status must be in a approved state."]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
             return func(request, *args, **kwargs)
 
         return inner

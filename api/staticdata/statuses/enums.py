@@ -285,3 +285,18 @@ class CaseSubStatusIdEnum:
     UNDER_APPEAL__OGD_ADVICE = "00000000-0000-0000-0000-000000000010"
     UNDER_APPEAL__FINAL_DECISION = "00000000-0000-0000-0000-000000000011"
     UNDER_APPEAL__DRAFT_REJECTION_LETTER = "00000000-0000-0000-0000-000000000012"
+
+
+class CaseSubStatusEnum:
+    INFORM_LETTER_SENT = "Inform letter sent"
+    REFUSED = "Refused"
+    APPROVED = "Approved"
+    APPEAL_REJECTED = "Appeal rejected"
+    APPROVED_AFTER_APPEAL = "Approved after appeal"
+    REFUSED_AFTER_APPEAL = "Refused after appeal"
+    APPEAL_RECEIVED = "Appeal received"
+    SENIOR_MANAGER_INSTRUCTIONS = "Senior manager instructions"
+    PRE_CIRCULATION = "Pre-circulation"
+    OGD_ADVICE = "OGD advice"
+    FINAL_DECISION = "Final decision"
+    DRAFT_REJECTION_LETTER = "Draft rejection letter"
