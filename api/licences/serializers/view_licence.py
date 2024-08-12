@@ -221,9 +221,9 @@ class LicenceDetailsSerializer(serializers.ModelSerializer):
     status = ChoiceField(choices=LicenceStatus.choices)
 
     action_dict = {
-        "reinstated": lambda instance: Licence.reinstate(instance),
-        "suspended": lambda instance: Licence.suspend(instance),
-        "revoked": lambda instance: Licence.revoke(instance, send_status_change_to_hmrc=True),
+        "reinstated": lambda instance, user: Licence.reinstate(instance, user),
+        "suspended": lambda instance, user: Licence.suspend(instance, user),
+        "revoked": lambda instance, user: Licence.revoke(instance, user),
     }
 
     class Meta:
@@ -239,10 +239,12 @@ class LicenceDetailsSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         update_action = validated_data.get("status")
         try:
+            request = self.context.get("request")
             action_method = self.action_dict[update_action]
-            action_method(instance)
+            action_method(instance, request.user)
         except KeyError:
             raise serializers.ValidationError(f"Updating licence status: {update_action} not allowed")
+
         return super().update(instance, validated_data)
 
     def get_case_status(self, instance):
