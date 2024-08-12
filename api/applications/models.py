@@ -320,6 +320,7 @@ class StandardApplication(BaseApplication, Clonable):
     f1686_reference_number = models.CharField(default=None, blank=True, null=True, max_length=100)
     f1686_approval_date = models.DateField(blank=False, null=True)
     other_security_approval_details = models.TextField(default=None, blank=True, null=True)
+    subject_to_itar_controls = models.BooleanField(blank=True, default=None, null=True)
 
     clone_exclusions = [
         "appeal",

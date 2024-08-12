@@ -97,6 +97,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "appeal_deadline",
                 "appeal",
                 "sub_status",
+                "subject_to_itar_controls",
             )
         )
 
@@ -241,6 +242,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "f1686_reference_number",
             "f1686_approval_date",
             "other_security_approval_details",
+            "subject_to_itar_controls",
         )
 
     def __init__(self, *args, **kwargs):
