@@ -22,7 +22,6 @@ from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
     NonWorkingDaySerializer,
     RFISerializer,
-    StandardApplicationSerializer,
     StatusSerializer,
     StatusChangeSerializer,
 )
@@ -78,10 +77,3 @@ class NonWorkingDayListView(viewsets.ViewSet):
         first_application_created_date = self.get_first_application_created_date()
         non_working_days = self.get_non_working_days(first_application_created_date)
         return Response(NonWorkingDaySerializer(non_working_days, many=True).data)
-
-
-class StandardApplicationListView(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    queryset = StandardApplication.objects.all()
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (CSVRenderer,)
-    serializer_class = StandardApplicationSerializer

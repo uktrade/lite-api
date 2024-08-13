@@ -29,8 +29,3 @@ router_v2.register(
     views.NonWorkingDayListView,
     basename="dw-non-working-days",
 )
-router_v2.register(
-    "standard_applications",
-    views.StandardApplicationListView,
-    basename="dw-standard-applications",
-)
