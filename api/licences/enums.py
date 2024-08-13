@@ -36,17 +36,6 @@ class LicenceStatus:
 
     open_statuses = [ISSUED, REINSTATED]
     _can_edit_status = [ISSUED, REINSTATED, SUSPENDED]
-    all_statuses = [
-        ISSUED,
-        REINSTATED,
-        REVOKED,
-        SURRENDERED,
-        SUSPENDED,
-        EXHAUSTED,
-        EXPIRED,
-        CANCELLED,
-        DRAFT,
-    ]
 
     @classmethod
     def to_str(cls, status):
