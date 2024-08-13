@@ -1,4 +1,3 @@
-import itertools
 import uuid
 
 from django.contrib.postgres.fields import ArrayField
@@ -17,10 +16,7 @@ from api.applications.enums import (
 from api.appeals.models import Appeal
 from api.applications.managers import BaseApplicationManager
 from api.applications.libraries.application_helpers import create_submitted_audit
-from api.audit_trail.models import (
-    Audit,
-    AuditType,
-)
+from api.audit_trail.models import AuditType
 from api.audit_trail import service as audit_trail_service
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import Case, CaseQueue
@@ -395,51 +391,6 @@ class StandardApplication(BaseApplication, Clonable):
         system_user = BaseUser.objects.get(id=SystemUser.id)
         self.case_ptr.change_status(system_user, get_case_status_by_status(CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT))
         return amendment_application
-
-    @property
-    def first_submitted_at(self):
-        submitted_status_audit_log = (
-            Audit.objects.filter(
-                payload__status__new__in=["submitted", "Submitted"],
-                target_object_id=self.pk,
-                verb=AuditType.UPDATED_STATUS,
-            )
-            .order_by("created_at")
-            .first()
-        )
-
-        return submitted_status_audit_log.created_at
-
-    @property
-    def closed_at(self):
-        if self.status.status not in CaseStatusEnum.terminal_statuses():
-            return None
-
-        submitted_status_audit_log = (
-            Audit.objects.filter(
-                payload__status__new__in=list(
-                    itertools.chain.from_iterable(
-                        [status, status.capitalize()] for status in CaseStatusEnum.terminal_statuses()
-                    )
-                ),
-                target_object_id=self.pk,
-                verb=AuditType.UPDATED_STATUS,
-            )
-            .order_by("created_at")
-            .last()
-        )
-
-        if not submitted_status_audit_log:
-            return None
-
-        return submitted_status_audit_log.created_at
-
-    @property
-    def closed_status(self):
-        if self.status.status not in CaseStatusEnum.terminal_statuses():
-            return None
-
-        return self.status.status
 
 
 class ApplicationDocument(Document, Clonable):
