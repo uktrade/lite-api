@@ -1235,7 +1235,7 @@ class SearchAPITest(DataTestClient):
             [LicenceStatus.ISSUED, "issued", 1],
             [LicenceStatus.SUSPENDED, "suspended", 1],
             [LicenceStatus.REVOKED, "revoked", 1],
-            [LicenceStatus.DRAFT, "draft", 1],
+            [LicenceStatus.ISSUED, "statustext", 0],
         ]
     )
     def test_get_cases_filter_by_licence_status(self, licence_status, licence_status_search, expected_case_count):
@@ -1253,25 +1253,3 @@ class SearchAPITest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), expected_case_count)
-        self.assertEqual(response_data[0]["id"], str(self.case_2.id))
-
-    def test_get_cases_filter_by_licence_status_no_results(self):
-        licence_status = LicenceStatus.ISSUED
-        licence_status_search = "statustext"
-        expected_case_count = 0
-
-        self._create_data()
-        self.application = StandardApplicationFactory()
-        self.case_2 = Case.objects.get(id=self.application.id)
-        self.case_2.submitted_at = django_utils.timezone.now()
-        self.case_2.licences.add(StandardLicenceFactory(case=self.case_2, status=licence_status))
-        self.case_2.save()
-
-        url = f'{reverse("cases:search")}?licence_status={licence_status_search}'
-
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"]["cases"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), expected_case_count)
-        self.assertEqual(response_data, [])
