@@ -14,7 +14,7 @@ from rest_framework import status
 from api.applications.tests.factories import StandardApplicationFactory
 
 
-scenarios("./scenarios/")
+scenarios("./scenarios/non_working_days.feature")
 
 
 @pytest.fixture()
