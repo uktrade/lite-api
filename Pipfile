@@ -21,6 +21,7 @@ watchdog = {extras = ["watchmedo"], version = "*"}
 diff-pdf-visually = "~=1.7.0"
 pytest-circleci-parallelized = "~=0.1.0"
 moto = {extras = ["s3"], version = "==5.0.3"}
+pytest-mock = "*"
 
 [packages]
 factory-boy = "~=2.12.0"
