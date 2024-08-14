@@ -26,7 +26,7 @@ class DataWorkspaceTests(DataTestClient):
         )
 
     def test_organisations(self):
-        url = reverse("data_workspace:dw-organisations-list")
+        url = reverse("data_workspace:v1:dw-organisations-list")
         expected_fields = (
             "id",
             "primary_site",
@@ -56,7 +56,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_parties(self):
-        url = reverse("data_workspace:dw-parties-list")
+        url = reverse("data_workspace:v1:dw-parties-list")
         expected_fields = (
             "id",
             "created_at",
@@ -98,7 +98,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_queues(self):
-        url = reverse("data_workspace:dw-queues-list")
+        url = reverse("data_workspace:v1:dw-queues-list")
         expected_fields = ("id", "name", "team", "countersigning_queue")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -112,7 +112,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_teams(self):
-        url = reverse("data_workspace:dw-teams-list")
+        url = reverse("data_workspace:v1:dw-teams-list")
         expected_fields = ("id", "name", "alias", "part_of_ecju", "is_ogd")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -127,7 +127,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_departments(self):
         team = TeamFactory()
-        url = reverse("data_workspace:dw-departments-list")
+        url = reverse("data_workspace:v1:dw-departments-list")
         response = self.client.get(url)
         payload = response.json()
 
@@ -143,7 +143,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_case_department_slas(self):
         department_sla = DepartmentSLAFactory()
-        url = reverse("data_workspace:dw-case-department-sla-list")
+        url = reverse("data_workspace:v1:dw-case-department-sla-list")
         response = self.client.get(url)
         payload = response.json()
         last_result = payload["results"][-1]
@@ -158,7 +158,7 @@ class DataWorkspaceTests(DataTestClient):
         assert last_result["department"] == str(department_sla.department.id)
 
     def test_survey_response(self):
-        url = reverse("data_workspace:dw-survey-reponse-list")
+        url = reverse("data_workspace:v1:dw-survey-reponse-list")
         response = self.client.get(url)
         payload = response.json()
 

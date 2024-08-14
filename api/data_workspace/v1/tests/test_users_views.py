@@ -9,8 +9,8 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
         test_host = "http://testserver"
-        self.users_base_users = parse.urljoin(test_host, reverse("data_workspace:dw-users-base-users-list"))
-        self.users_gov_users = parse.urljoin(test_host, reverse("data_workspace:dw-users-gov-users-list"))
+        self.users_base_users = parse.urljoin(test_host, reverse("data_workspace:v1:dw-users-base-users-list"))
+        self.users_gov_users = parse.urljoin(test_host, reverse("data_workspace:v1:dw-users-gov-users-list"))
 
     def test_dw_users_base_users(self):
         response = self.client.options(self.users_base_users)

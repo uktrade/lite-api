@@ -16,16 +16,11 @@ class DataWorkspaceTests(DataTestClient):
         CaseAssignmentSLA.objects.create(sla_days=4, queue=self.queue, case=self.case)
 
         # Create CaseAssignment
-        user = GovUserFactory(
-            baseuser_ptr__email="john@dov.uk",
-            baseuser_ptr__first_name="John",
-            baseuser_ptr__last_name="Conam",
-            team=self.team,
-        )
+        user = GovUserFactory(team=self.team)
         CaseAssignment.objects.create(queue=self.queue, case=self.case, user=user)
 
     def test_case_assignment(self):
-        url = reverse("data_workspace:dw-case-assignment-list")
+        url = reverse("data_workspace:v1:dw-case-assignment-list")
 
         expected_fields = {"user", "case", "id", "queue", "created_at", "updated_at"}
         response = self.client.options(url)
@@ -35,7 +30,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(set(actions_get.keys()), expected_fields)
 
     def test_case_assignment_slas(self):
-        url = reverse("data_workspace:dw-case-assignment-sla-list")
+        url = reverse("data_workspace:v1:dw-case-assignment-sla-list")
         expected_fields = ("id", "sla_days", "queue", "case")
 
         response = self.client.get(url)
@@ -50,7 +45,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_case_types(self):
-        url = reverse("data_workspace:dw-case-type-list")
+        url = reverse("data_workspace:v1:dw-case-type-list")
         expected_fields = ("id", "reference", "type", "sub_type")
 
         response = self.client.get(url)
@@ -65,7 +60,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_case_queues(self):
-        url = reverse("data_workspace:dw-case-queue-list")
+        url = reverse("data_workspace:v1:dw-case-queue-list")
         expected_fields = ("id", "created_at", "updated_at", "case", "queue")
 
         response = self.client.get(url)
@@ -81,7 +76,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_ecju_queries(self):
         EcjuQueryFactory()
-        url = reverse("data_workspace:dw-ecju-query-list")
+        url = reverse("data_workspace:v1:dw-ecju-query-list")
         expected_fields = {
             "raised_by_user",
             "id",

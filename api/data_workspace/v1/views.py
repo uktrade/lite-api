@@ -10,7 +10,7 @@ from api.queues.models import Queue
 from api.queues.serializers import QueueListSerializer
 from api.teams.models import Team, Department
 from api.teams.serializers import TeamReadOnlySerializer
-from api.data_workspace.serializers import DepartmentSerializer, SurveyResponseSerializer
+from api.data_workspace.v1.serializers import DepartmentSerializer, SurveyResponseSerializer
 from api.survey.models import SurveyResponse
 
 

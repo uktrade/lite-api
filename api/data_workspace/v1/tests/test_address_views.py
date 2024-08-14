@@ -3,19 +3,10 @@ from rest_framework import status
 from test_helpers.clients import DataTestClient
 
 
-class OrganisationsDataWorkspaceTests(DataTestClient):
-
-    def test_site(self):
-        url = reverse("data_workspace:dw-site-list")
-        expected_fields = {
-            "id",
-            "name",
-            "address",
-            "records_located_at",
-            "users",
-            "admin_users",
-            "is_used_on_application",
-        }
+class AddressDataWorkspaceTests(DataTestClient):
+    def test_addresses(self):
+        url = reverse("data_workspace:v1:dw-address-list")
+        expected_fields = {"id", "address_line_1", "address_line_2", "city", "region", "postcode", "country"}
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
