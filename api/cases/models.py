@@ -508,6 +508,8 @@ class Advice(TimestampableModel):
         return getattr(self, self.entity_field, None)
 
     def save(self, *args, **kwargs):
+        # TODO: refactor this whole save() method and add in code that
+        # makes use of the new AdviceDenialReason table
         denial_reasons = None
         try:
             if self.level == AdviceLevel.TEAM:
