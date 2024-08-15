@@ -175,6 +175,11 @@ class UserMeDetail(APIView):
                 organisation__status__in=[OrganisationStatus.IN_REVIEW, OrganisationStatus.REJECTED]
             )
 
+        print(user.first_name)
+        print(user.last_name)
+        print(relationships)
+        print(org_pk)
+
         # Returning a dict over a serializer for performance reasons
         # This endpoint is called often, so it needs to be as fast as possible
         data = {
