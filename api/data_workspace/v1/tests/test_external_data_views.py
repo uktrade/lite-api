@@ -9,7 +9,7 @@ class DataWorkspaceExternalDataViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
         test_host = "http://testserver"
-        self.denial_external_data = parse.urljoin(test_host, reverse("data_workspace:dw-external-data-denial-list"))
+        self.denial_external_data = parse.urljoin(test_host, reverse("data_workspace:v1:dw-external-data-denial-list"))
 
     def test_denial_view(self):
         response = self.client.options(self.denial_external_data)

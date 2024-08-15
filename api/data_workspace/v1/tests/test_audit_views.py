@@ -13,7 +13,7 @@ from test_helpers.clients import DataTestClient
 class DataWorkspaceAuditMoveCaseTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.url = reverse("data_workspace:dw-audit-move-case-list")
+        self.url = reverse("data_workspace:v1:dw-audit-move-case-list")
         case = self.create_standard_application_case(self.organisation, "Test Application")
         # Audit events are only created for non-draft cases
         case.status = get_case_status_by_status(CaseStatusEnum.OPEN)
@@ -62,7 +62,7 @@ class DataWorkspaceAuditMoveCaseTests(DataTestClient):
 class DataWorkspaceAuditUpdatedCaseStatusTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.url = reverse("data_workspace:dw-audit-updated-status-list")
+        self.url = reverse("data_workspace:v1:dw-audit-updated-status-list")
         case = self.create_standard_application_case(self.organisation, "Test Application")
         # Audit events are only created for non-draft cases
         case.status = get_case_status_by_status(CaseStatusEnum.OPEN)
@@ -95,7 +95,7 @@ class DataWorkspaceAuditUpdatedCaseStatusTests(DataTestClient):
 class DataWorkspaceAuditUpdatedLicenceStatusTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.url = reverse("data_workspace:dw-audit-licence-updated-status-list")
+        self.url = reverse("data_workspace:v1:dw-audit-licence-updated-status-list")
         case = self.create_standard_application_case(self.organisation, "Test Application")
         licence = StandardLicenceFactory(case=case, status=LicenceStatus.ISSUED)
 

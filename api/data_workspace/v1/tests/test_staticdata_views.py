@@ -6,7 +6,7 @@ from test_helpers.clients import DataTestClient
 
 class DataWorkspaceTests(DataTestClient):
     def test_control_list_entries(self):
-        url = reverse("data_workspace:dw-control-list-entries-list")
+        url = reverse("data_workspace:v1:dw-control-list-entries-list")
         expected_fields = ("id", "rating", "text", "category", "controlled", "parent")
 
         response = self.client.get(url)
@@ -21,7 +21,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_countries(self):
-        url = reverse("data_workspace:dw-countries-list")
+        url = reverse("data_workspace:v1:dw-countries-list")
         expected_fields = ("id", "name", "type", "is_eu", "report_name")
 
         response = self.client.get(url)
@@ -36,7 +36,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_case_statuses(self):
-        url = reverse("data_workspace:dw-case-statuses-list")
+        url = reverse("data_workspace:v1:dw-case-statuses-list")
         expected_fields = ("id", "key", "value", "status", "priority")
 
         response = self.client.get(url)
@@ -51,7 +51,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_regimes(self):
-        url = reverse("data_workspace:dw-regimes-list")
+        url = reverse("data_workspace:v1:dw-regimes-list")
         expected_fields = ("id", "name")
 
         response = self.client.get(url)
@@ -66,7 +66,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_regime_subsections(self):
-        url = reverse("data_workspace:dw-regime-subsections-list")
+        url = reverse("data_workspace:v1:dw-regime-subsections-list")
         expected_fields = ("id", "name", "regime")
 
         response = self.client.get(url)
@@ -81,7 +81,7 @@ class DataWorkspaceTests(DataTestClient):
         self.assertEqual(tuple(options.keys()), expected_fields)
 
     def test_regime_entries(self):
-        url = reverse("data_workspace:dw-regime-entries-list")
+        url = reverse("data_workspace:v1:dw-regime-entries-list")
         expected_fields = ("id", "name", "shortened_name", "subsection")
 
         response = self.client.get(url)

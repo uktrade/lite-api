@@ -8,7 +8,7 @@ from api.cases.serializers import (
     CaseTypeSerializer,
     CaseQueueSerializer,
 )
-from api.data_workspace.serializers import (
+from api.data_workspace.v1.serializers import (
     EcjuQuerySerializer,
     CaseAssignmentSerializer,
     DepartmentSLASerializer,
