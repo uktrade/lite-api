@@ -491,6 +491,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
             "applied_for_quantity",
             "applied_for_value",
             "created_at",
+            "control_list_entries",
         ]
 
     good = GoodSerializer()
@@ -498,6 +499,7 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
     is_incorporated = FriendlyBooleanField(source="is_good_incorporated")
     applied_for_quantity = serializers.SerializerMethodField()
     applied_for_value = serializers.SerializerMethodField()
+    control_list_entries = serializers.SerializerMethodField()
 
     def get_applied_for_quantity(self, obj):
         if hasattr(obj, "quantity"):
@@ -508,6 +510,9 @@ class GoodOnApplicationSerializer(serializers.ModelSerializer):
         if hasattr(obj, "value"):
             return f"£{obj.value}"
         return ""
+
+    def get_control_list_entries(self, obj):
+        return [clc.rating for clc in obj.get_control_list_entries().all()]
 
 
 class GoodsQuerySerializer(serializers.ModelSerializer):

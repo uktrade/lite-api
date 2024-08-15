@@ -627,7 +627,7 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
         returns relevant control list entries, they can either exist at this level
         or if not overridden then at the good level
         """
-        if self.is_good_controlled is None:
+        if self.is_good_controlled is None or self.is_good_controlled is False:
             return self.good.control_list_entries
         return self.control_list_entries
 

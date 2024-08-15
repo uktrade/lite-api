@@ -309,7 +309,7 @@
                   </table>
                 </td>
                 <td id="row-{{ forloop.counter}}-control-list-entries" class="border-black" colspan="2">
-                    {% for clc in good.control_list_entries %}
+                    {% for clc in good_item.control_list_entries %}
                         {{ clc }}{% if not forloop.last %},{% endif %}
                     {% endfor %}
                 </td>
