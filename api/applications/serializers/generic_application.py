@@ -45,6 +45,7 @@ class GenericApplicationListSerializer(serializers.Serializer):
     case_type = TinyCaseTypeSerializer()
     status = CaseStatusField()
     submitted_at = serializers.DateTimeField()
+    submitted_by = serializers.SerializerMethodField()
     updated_at = serializers.DateTimeField()
     reference_code = serializers.CharField()
     export_type = serializers.SerializerMethodField()
@@ -55,6 +56,9 @@ class GenericApplicationListSerializer(serializers.Serializer):
                 "key": instance.export_type,
                 "value": get_value_from_enum(instance.export_type, ApplicationExportType),
             }
+
+    def get_submitted_by(self, instance):
+        return f"{instance.submitted_by.full_name}" if instance.submitted_by else ""
 
 
 class GenericApplicationViewSerializer(serializers.ModelSerializer):
