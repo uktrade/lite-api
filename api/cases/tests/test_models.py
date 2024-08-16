@@ -1,9 +1,11 @@
+from unittest import mock
 from uuid import UUID
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.audit_trail.serializers import AuditSerializer
 from parameterized import parameterized
 
+from api.applications.tests.factories import StandardApplicationFactory
 from api.cases.models import BadSubStatus
 from api.cases.tests.factories import CaseFactory
 from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
@@ -99,3 +101,72 @@ class CaseTests(DataTestClient):
         )
         audit_text = AuditSerializer(audit).data["text"]
         self.assertEqual(audit_text, "updated the status to Finalised")
+
+    def test_change_status_same_status(self):
+        status = CaseStatus.objects.get(status="submitted")
+        app = StandardApplicationFactory(
+            status=status,
+        )
+        case = app.get_case()
+        case.change_status(self.gov_user, status=status)
+        case.refresh_from_db()
+        assert case.status == status
+
+    @mock.patch("api.licences.helpers.update_licence_status")
+    @mock.patch("lite_routing.routing_rules_internal.routing_engine.run_routing_rules")
+    def test_change_status_new_status(self, mock_run_routing_rules, mock_update_licence_status):
+        original_status = CaseStatus.objects.get(status="submitted")
+        new_status = CaseStatus.objects.get(status="ogd_advice")
+        app = StandardApplicationFactory(
+            status=original_status,
+        )
+        case = app.get_case()
+        case.change_status(self.gov_user, status=new_status, note="some note")
+        case.refresh_from_db()
+        assert case.status == new_status
+        audit_entry = Audit.objects.first()
+        assert audit_entry.verb == AuditType.UPDATED_STATUS
+        assert audit_entry.target == case
+        assert audit_entry.payload == {
+            "status": {"new": new_status.status, "old": original_status.status},
+            "additional_text": "some note",
+        }
+        assert audit_entry.actor == self.gov_user
+        mock_update_licence_status.assert_called_with(case, new_status.status)
+        mock_run_routing_rules.assert_called_with(case=case, keep_status=True)
+
+    @mock.patch("api.applications.notify.notify_exporter_case_opened_for_editing")
+    def test_change_status_to_applicant_editing(self, mock_notify_exporter_case_opened_for_editing):
+        original_status = CaseStatus.objects.get(status="submitted")
+        new_status = CaseStatus.objects.get(status="applicant_editing")
+        app = StandardApplicationFactory(
+            status=original_status,
+        )
+        case = app.get_case()
+        case.change_status(self.gov_user, status=new_status, note="some note")
+        case.refresh_from_db()
+        assert case.status == new_status
+        mock_notify_exporter_case_opened_for_editing.assert_called_with(case)
+
+    @parameterized.expand(
+        [
+            (CaseStatusEnum.WITHDRAWN,),
+            (CaseStatusEnum.CLOSED,),
+        ]
+    )
+    @mock.patch("api.cases.libraries.finalise.remove_flags_on_finalisation")
+    @mock.patch("api.cases.libraries.finalise.remove_flags_from_audit_trail")
+    def test_change_status_to_closed(
+        self, case_status, mock_remove_flags_from_audit_trail, mock_remove_flags_on_finalisation
+    ):
+        original_status = CaseStatus.objects.get(status="submitted")
+        new_status = CaseStatus.objects.get(status=case_status)
+        app = StandardApplicationFactory(
+            status=original_status,
+        )
+        case = app.get_case()
+        case.change_status(self.gov_user, status=new_status, note="some note")
+        case.refresh_from_db()
+        assert case.status == new_status
+        mock_remove_flags_from_audit_trail.assert_called_with(case)
+        mock_remove_flags_on_finalisation.assert_called_with(case)
