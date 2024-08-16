@@ -36,6 +36,8 @@ urlpatterns = [
     path("bookmarks/", include("api.bookmarks.urls")),
     path("appeals/", include("api.appeals.urls")),
     path("survey/", include("api.survey.urls")),
+    path("caseworker/", include("api.conf.caseworker_urls")),
+    path("exporter/", include("api.conf.exporter_urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 handler500 = "rest_framework.exceptions.server_error"
