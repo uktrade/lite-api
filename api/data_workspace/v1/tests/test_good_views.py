@@ -15,7 +15,7 @@ class DataWorkspaceTests(DataTestClient):
 
     @override_settings(HAWK_AUTHENTICATION_ENABLED=False)
     def test_goods(self):
-        url = reverse("data_workspace:dw-goods-list")
+        url = reverse("data_workspace:v1:dw-goods-list")
         expected_fields = set(
             [
                 "id",
@@ -68,7 +68,7 @@ class DataWorkspaceTests(DataTestClient):
     def test_good_control_list_entry(self):
         clc_entry = ControlListEntry.objects.first()
         GoodControlListEntry.objects.create(good=self.good, controllistentry=clc_entry)
-        url = reverse("data_workspace:dw-good-control-list-entries-list")
+        url = reverse("data_workspace:v1:dw-good-control-list-entries-list")
         expected_fields = ("id", "good", "controllistentry")
 
         response = self.client.get(url)

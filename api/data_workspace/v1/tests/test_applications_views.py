@@ -17,14 +17,18 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
         test_host = "http://testserver"
-        self.standard_applications = parse.urljoin(test_host, reverse("data_workspace:dw-standard-applications-list"))
-        self.good_on_applications = parse.urljoin(test_host, reverse("data_workspace:dw-good-on-applications-list"))
-        self.good_on_applications_clc_entries = parse.urljoin(
-            test_host, reverse("data_workspace:dw-good-on-applications-control-list-entries-list")
+        self.standard_applications = parse.urljoin(
+            test_host, reverse("data_workspace:v1:dw-standard-applications-list")
         )
-        self.party_on_applications = parse.urljoin(test_host, reverse("data_workspace:dw-party-on-applications-list"))
+        self.good_on_applications = parse.urljoin(test_host, reverse("data_workspace:v1:dw-good-on-applications-list"))
+        self.good_on_applications_clc_entries = parse.urljoin(
+            test_host, reverse("data_workspace:v1:dw-good-on-applications-control-list-entries-list")
+        )
+        self.party_on_applications = parse.urljoin(
+            test_host, reverse("data_workspace:v1:dw-party-on-applications-list")
+        )
         self.denial_on_applications = parse.urljoin(
-            test_host, reverse("data_workspace:dw-denial-match-on-applications-list")
+            test_host, reverse("data_workspace:v1:dw-denial-match-on-applications-list")
         )
 
     def test_dw_standard_application_views(self):

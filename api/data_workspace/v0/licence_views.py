@@ -4,7 +4,6 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from api.cases.enums import CaseTypeEnum
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.data_workspace.serializers import LicenceWithoutGoodsSerializer
 from api.open_general_licences.models import OpenGeneralLicence
 from api.open_general_licences.serializers import OpenGeneralLicenceSerializer
 from api.licences import models, enums
@@ -41,17 +40,3 @@ class OpenGeneralLicenceListDW(viewsets.ReadOnlyModelViewSet):
         .select_related("case_type")
         .prefetch_related("countries", "control_list_entries")
     )
-
-
-class GoodOnLicenceList(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = serializers.GoodOnLicenceReportsViewSerializer
-    pagination_class = LimitOffsetPagination
-    queryset = models.GoodOnLicence.objects.all()
-
-
-class LicencesList(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    serializer_class = LicenceWithoutGoodsSerializer
-    pagination_class = LimitOffsetPagination
-    queryset = models.Licence.objects.all()
