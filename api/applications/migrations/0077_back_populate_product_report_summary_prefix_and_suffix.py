@@ -41,7 +41,8 @@ class Migration(migrations.Migration):
             try:
                 good_on_application = GoodOnApplication.objects.get(id=good_on_application_pk)
             except GoodOnApplication.DoesNotExist:
-                logger.warning("GoodOnApplication with id %s does not exist", good_on_application_pk)
+                # logger.warning("GoodOnApplication with id %s does not exist", good_on_application_pk)
+                continue
             else:
                 good_on_application.report_summary_prefix_id = None
                 good_on_application.report_summary_subject_id = None
@@ -57,7 +58,7 @@ class Migration(migrations.Migration):
             try:
                 good_on_application = GoodOnApplication.objects.get(id=good_on_application_pk)
             except GoodOnApplication.DoesNotExist:
-                logger.warning("GoodOnApplication with id %s does not exist", good_on_application_pk)
+                # logger.warning("GoodOnApplication with id %s does not exist", good_on_application_pk)
                 continue
 
             if good_on_application.report_summary_prefix_id is not None:
