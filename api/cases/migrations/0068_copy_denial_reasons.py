@@ -4,6 +4,7 @@ from django.db import migrations
 def copy_denial_reasons(apps, schema_editor):
     Advice = apps.get_model("cases", "Advice")
     AdviceDenialReason = apps.get_model("cases", "AdviceDenialReason")
+    print("Advice object count: " + str(Advice.objects.all().count()))
 
     for advice in Advice.objects.all():
         for denial_reason in advice.denial_reasons.all():
