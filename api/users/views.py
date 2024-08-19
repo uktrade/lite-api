@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 
 from django.http.response import JsonResponse
@@ -41,6 +42,8 @@ from api.users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AuthenticateExporterUser(APIView):
@@ -162,9 +165,12 @@ class UserMeDetail(APIView):
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
+        logger.info("UserMeDetail- Start")
         org_pk = request.headers["ORGANISATION-ID"]
         user = request.user.exporteruser
-        relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(user=user)
+        relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(
+            user=user, status="False"
+        )
 
         if str_to_bool(request.GET.get("in_review", False)):
             relationships = relationships.filter(organisation__status=OrganisationStatus.IN_REVIEW)
@@ -212,7 +218,7 @@ class UserMeDetail(APIView):
                     }
                 }
             )
-
+        logger.info(f"UserMeDetail- end {data}")
         return JsonResponse(data=data)
 
 
