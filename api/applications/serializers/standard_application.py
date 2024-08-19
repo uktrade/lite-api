@@ -157,6 +157,15 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 
 class StandardApplicationDataWorkspaceSerializer(StandardApplicationViewSerializer):
     goods = GoodOnApplicationDataWorkspaceSerializer(many=True, read_only=True)
+    amendment_of = serializers.UUIDField(source="amendment_of.id", default=None)
+    superseded_by = serializers.UUIDField(source="superseded_by.id", default=None)
+
+    class Meta:
+        model = StandardApplication
+        fields = StandardApplicationViewSerializer.Meta.fields + (
+            "amendment_of",
+            "superseded_by",
+        )
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
