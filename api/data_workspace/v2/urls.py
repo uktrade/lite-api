@@ -9,3 +9,8 @@ router_v2.register(
     views.LicenceStatusesListView,
     basename="dw-licence-statuses",
 )
+router_v2.register(
+    "licence-decision-types",
+    views.LicenceDecisionTypesListView,
+    basename="dw-licence-decision-types",
+)

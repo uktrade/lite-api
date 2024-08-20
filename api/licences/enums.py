@@ -50,6 +50,18 @@ class LicenceStatus:
         return [getattr(cls, param) for param in dir(cls) if param.isupper()]
 
 
+class LicenceDecisionType:
+    ISSUED = "issued"
+    REFUSED = "refused"
+    REJECTED = "rejected"
+    NLR = "nlr"
+    WITHDRAWN = "withdrawn"
+
+    @classmethod
+    def all(cls):
+        return [getattr(cls, param) for param in dir(cls) if param.isupper()]
+
+
 hmrc_integration_action_to_licence_status = {
     HMRCIntegrationActionEnum.SURRENDER: LicenceStatus.SURRENDERED,
     HMRCIntegrationActionEnum.CANCEL: LicenceStatus.CANCELLED,

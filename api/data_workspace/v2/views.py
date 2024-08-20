@@ -6,8 +6,14 @@ from rest_framework.settings import api_settings
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.data_workspace.v2.serializers import LicenceStatusSerializer
-from api.licences.enums import LicenceStatus
+from api.data_workspace.v2.serializers import (
+    LicenceDecisionTypeSerializer,
+    LicenceStatusSerializer,
+)
+from api.licences.enums import (
+    LicenceDecisionType,
+    LicenceStatus,
+)
 
 
 class LicenceStatusesListView(viewsets.GenericViewSet, ListAPIView):
@@ -18,3 +24,13 @@ class LicenceStatusesListView(viewsets.GenericViewSet, ListAPIView):
 
     def get_queryset(self):
         return LicenceStatus.all()
+
+
+class LicenceDecisionTypesListView(viewsets.GenericViewSet, ListAPIView):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = LimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = LicenceDecisionTypeSerializer
+
+    def get_queryset(self):
+        return LicenceDecisionType.all()
