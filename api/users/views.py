@@ -11,6 +11,7 @@ from api.cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from api.core.authentication import (
     ExporterAuthentication,
     GovAuthentication,
+    ExporterOnlyAuthentication,
     HawkOnlyAuthentication,
 )
 from api.core.constants import ExporterPermissions
@@ -161,7 +162,7 @@ class UserMeDetail(APIView):
     Get the user from request
     """
 
-    authentication_classes = ()
+    authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
         logger.error("UserMeDetail- Start")
