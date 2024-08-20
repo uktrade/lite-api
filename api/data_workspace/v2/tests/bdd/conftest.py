@@ -1,15 +1,21 @@
 import pytest
 
 from rest_framework import status
+from rest_framework.test import APIClient
+
+from api.organisations.tests.factories import OrganisationFactory
+from api.users.enums import SystemUser
+from api.users.libraries.user_to_token import user_to_token
+from api.users.tests.factories import (
+    BaseUserFactory,
+    ExporterUserFactory,
+    UserOrganisationRelationshipFactory,
+)
 
 
-def pytest_bdd_apply_tag(tag, function):
-    if tag == "db":
-        marker = pytest.mark.django_db()
-        marker(function)
-        return True
-
-    return None
+@pytest.fixture(autouse=True)
+def system_user(db):
+    return BaseUserFactory(id=SystemUser.id)
 
 
 @pytest.fixture
@@ -45,3 +51,33 @@ def unpage_data(client):
         return unpaged_results
 
     return _unpage_data
+
+
+@pytest.fixture()
+def api_client():
+    return APIClient()
+
+
+@pytest.fixture()
+def exporter_user():
+    return ExporterUserFactory()
+
+
+@pytest.fixture()
+def organisation(exporter_user):
+    organisation = OrganisationFactory()
+
+    UserOrganisationRelationshipFactory(
+        organisation=organisation,
+        user=exporter_user,
+    )
+
+    return organisation
+
+
+@pytest.fixture()
+def exporter_headers(exporter_user, organisation):
+    return {
+        "HTTP_EXPORTER_USER_TOKEN": user_to_token(exporter_user.baseuser_ptr),
+        "HTTP_ORGANISATION_ID": str(organisation.id),
+    }
