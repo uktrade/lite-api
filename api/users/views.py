@@ -58,8 +58,9 @@ class AuthenticateExporterUser(APIView):
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
         """
-
+        logger.error("User AuthenticateExporterUser - start")
         data = request.data
+        logger.error(f"User AuthenticateExporterUser - data  {data}")
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
         external_id = data.get("sub", "")
@@ -70,7 +71,7 @@ class AuthenticateExporterUser(APIView):
             )
         try:
             user = ExporterUser.objects.get(baseuser_ptr__email__iexact=data.get("email"))
-
+            logger.error(f"User AuthenticateExporterUser - user  {user}")
             # Update the user's first and last names
             if first_name and last_name:
                 user.baseuser_ptr.first_name = first_name
@@ -85,11 +86,13 @@ class AuthenticateExporterUser(APIView):
                 user.save()
 
         except ExporterUser.DoesNotExist:
+            logger.error(f"User AuthenticateExporterUser - user  not found")
             return JsonResponse(
                 data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_401_UNAUTHORIZED
             )
 
         token = user_to_token(user.baseuser_ptr)
+        logger.error(f"User AuthenticateExporterUser - user  token {token}")
         return JsonResponse(
             data={
                 "token": token,
