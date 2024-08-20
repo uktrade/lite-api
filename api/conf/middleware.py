@@ -24,9 +24,7 @@ class HawkSigningMiddleware:
                 logger.error(f"HawkSigningMiddleware - __call__ - StreamingHttpResponse instance {signing_content}")
             else:
                 signing_content = response.content
-                logger.error(
-                    f"HawkSigningMiddleware - __call__ -  no StreamingHttpResponse instance: {signing_content}"
-                )
+                logger.error("HawkSigningMiddleware - __call__ -  no StreamingHttpResponse")
 
             # Get mohawk to produce the header for the response
             response_header = request.auth.respond(content=signing_content, content_type=response["Content-Type"])
