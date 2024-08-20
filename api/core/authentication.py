@@ -277,15 +277,15 @@ def _seen_nonce(access_key_id, nonce, _):
     Returns if the passed access_key_id/nonce combination has been
     used within settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS
     """
-
     cache_key = f"hawk:{access_key_id}:{nonce}"
     logger.error(f"_seen_nonce  cache_key {cache_key}")
     # cache.add only adds key if it isn't present
     seen_cache_key = not cache.add(cache_key, True, timeout=settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS)
     logger.error(f"_seen_nonce  seen_cache_key {seen_cache_key}")
     if seen_cache_key:
+        logger.error(f"_seen_nonce Already seen nonce {nonce}")
         raise AlreadyProcessed(f"Already seen nonce {nonce}")
-
+    logger.error(f"_seen_nonce all ok ")
     return seen_cache_key
 
 

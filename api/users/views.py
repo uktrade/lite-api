@@ -64,7 +64,7 @@ class AuthenticateExporterUser(APIView):
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
         external_id = data.get("sub", "")
-        logger.error(f"User AuthenticateExporterUser - first_name  {first_name}")
+        # logger.error(f"User AuthenticateExporterUser - first_name  {first_name}")
         if not data.get("email"):
             logger.error(f"User AuthenticateExporterUser - no email")
             return JsonResponse(
@@ -73,7 +73,7 @@ class AuthenticateExporterUser(APIView):
             )
         try:
             user = ExporterUser.objects.get(baseuser_ptr__email__iexact=data.get("email"))
-            logger.error(f"User AuthenticateExporterUser - user  {user.email}")
+            # logger.error(f"User AuthenticateExporterUser - user  {user.email}")
             # Update the user's first and last names
             if first_name and last_name:
                 user.baseuser_ptr.first_name = first_name
@@ -88,13 +88,13 @@ class AuthenticateExporterUser(APIView):
                 user.save()
 
         except ExporterUser.DoesNotExist:
-            logger.error("User AuthenticateExporterUser - user  not found")
+            # logger.error("User AuthenticateExporterUser - user  not found")
             return JsonResponse(
                 data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_401_UNAUTHORIZED
             )
 
         token = user_to_token(user.baseuser_ptr)
-        logger.error(f"User AuthenticateExporterUser - user  user.first_name {user.first_name}")
+        # logger.error(f"User AuthenticateExporterUser - user  user.first_name {user.first_name}")
         return JsonResponse(
             data={
                 "token": token,
