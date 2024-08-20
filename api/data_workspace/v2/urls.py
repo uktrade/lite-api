@@ -14,3 +14,8 @@ router_v2.register(
     views.LicenceDecisionTypesListView,
     basename="dw-licence-decision-types",
 )
+router_v2.register(
+    "siel-applications",
+    views.SIELApplicationsListView,
+    basename="dw-siel-applications",
+)

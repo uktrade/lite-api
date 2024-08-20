@@ -5,10 +5,12 @@ from rest_framework.settings import api_settings
 
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
+from api.applications.models import StandardApplication
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.data_workspace.v2.serializers import (
     LicenceDecisionTypeSerializer,
     LicenceStatusSerializer,
+    SIELApplicationSerializer,
 )
 from api.licences.enums import (
     LicenceDecisionType,
@@ -34,3 +36,11 @@ class LicenceDecisionTypesListView(viewsets.GenericViewSet, ListAPIView):
 
     def get_queryset(self):
         return LicenceDecisionType.all()
+
+
+class SIELApplicationsListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = LimitOffsetPagination
+    queryset = StandardApplication.objects.filter(amendment__isnull=True).exclude(submitted_at__isnull=True)
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = SIELApplicationSerializer

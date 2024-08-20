@@ -3,6 +3,15 @@ import pytest
 from rest_framework import status
 
 
+def pytest_bdd_apply_tag(tag, function):
+    if tag == "db":
+        marker = pytest.mark.django_db()
+        marker(function)
+        return True
+
+    return None
+
+
 @pytest.fixture
 def create_table():
     def _create_table(data_table):
