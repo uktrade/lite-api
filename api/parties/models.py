@@ -10,6 +10,7 @@ from api.goods.enums import PvGrading
 from api.organisations.models import Organisation
 from api.parties.enums import PartyType, SubType, PartyRole, PartyDocumentType
 from api.staticdata.countries.models import Country
+import reversion
 
 
 class PartyManager(models.Manager):
@@ -45,6 +46,7 @@ class PartyManager(models.Manager):
         return values
 
 
+@reversion.register()
 class Party(TimestampableModel, Clonable):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default="", blank=True)
