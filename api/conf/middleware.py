@@ -1,15 +1,19 @@
 from django.http import StreamingHttpResponse
 from mohawk import Receiver
 from mohawk.util import prepare_header_val, utc_now
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class HawkSigningMiddleware:
     def __init__(self, get_response=None):
+        logger.error("HawkSigningMiddleware - init")
         self.get_response = get_response
 
     def __call__(self, request):
         response = self.get_response(request)
-
+        logger.error("HawkSigningMiddleware - __call__")
         # Sign response
         if hasattr(request, "auth") and isinstance(request.auth, Receiver):
             # To handle StreamingHttpResponses such as document downloads
