@@ -138,18 +138,20 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         hawk_receiver = _authenticate(request, _lookup_credentials)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
+            logging.error(f"ExporterOnlyAuthentication exporter_user_token ")
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(exporter_user_token)
-            logging.error(f"ExporterOnlyAuthentication use-id- {user_id}")
+            logging.error(f"ExporterOnlyAuthentication user-id- {user_id}")
         else:
             logging.error(f"ExporterOnlyAuthentication missing token")
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
+            logging.error(f"ExporterOnlyAuthentication ExporterUser.objects.get")
             exporter_user = ExporterUser.objects.get(pk=user_id)
             logging.error(f"ExporterOnlyAuthentication exporter_user {exporter_user}")
         except ExporterUser.DoesNotExist:
-            logging.info(f"ExporterOnlyAuthentication user not found {exporter_user}")
+            logging.error(f"ExporterOnlyAuthentication user not found {exporter_user}")
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
         logging.error(f"ExporterOnlyAuthentication base user id {exporter_user.baseuser_ptr}")
         return exporter_user.baseuser_ptr, hawk_receiver
@@ -161,7 +163,7 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
         Establish that the request has come from an authorised LITE API client
         by checking that the request is correctly Hawk signed
         """
-
+        logging.error("HawkOnlyAuthentication - start")
         return AnonymousUser(), _authenticate(request, _lookup_credentials)
 
 
