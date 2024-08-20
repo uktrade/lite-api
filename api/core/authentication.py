@@ -134,24 +134,24 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         """
         When given an exporter user token, validate that the user exists
         """
-        logging.info("ExporterOnlyAuthentication - start")
+        logging.error("ExporterOnlyAuthentication - start")
         hawk_receiver = _authenticate(request, _lookup_credentials)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(exporter_user_token)
-            logging.info(f"ExporterOnlyAuthentication use-id- {user_id}")
+            logging.error(f"ExporterOnlyAuthentication use-id- {user_id}")
         else:
-            logging.info(f"ExporterOnlyAuthentication missing token")
+            logging.error(f"ExporterOnlyAuthentication missing token")
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
             exporter_user = ExporterUser.objects.get(pk=user_id)
-            logging.info(f"ExporterOnlyAuthentication exporter_user {exporter_user}")
+            logging.error(f"ExporterOnlyAuthentication exporter_user {exporter_user}")
         except ExporterUser.DoesNotExist:
             logging.info(f"ExporterOnlyAuthentication user not found {exporter_user}")
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
-        logging.info(f"ExporterOnlyAuthentication base user id {exporter_user.baseuser_ptr}")
+        logging.error(f"ExporterOnlyAuthentication base user id {exporter_user.baseuser_ptr}")
         return exporter_user.baseuser_ptr, hawk_receiver
 
 

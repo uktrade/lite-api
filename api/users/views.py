@@ -165,7 +165,7 @@ class UserMeDetail(APIView):
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
-        logger.info("UserMeDetail- Start")
+        logger.error("UserMeDetail- Start")
         org_pk = request.headers["ORGANISATION-ID"]
         user = request.user.exporteruser
         relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(
@@ -174,12 +174,12 @@ class UserMeDetail(APIView):
 
         if str_to_bool(request.GET.get("in_review", False)):
             relationships = relationships.filter(organisation__status=OrganisationStatus.IN_REVIEW)
-            logger.info(f"UserMeDetail- relationships IN_REVIEW {relationships}")
+            logger.error(f"UserMeDetail- relationships IN_REVIEW {relationships}")
         elif str_to_bool(request.GET.get("draft", False)):
-            logger.info(f"UserMeDetail- relationships {relationships}")
+            logger.error(f"UserMeDetail- relationships {relationships}")
             relationships = relationships.filter(organisation__status=OrganisationStatus.DRAFT)
         else:
-            logger.info(f"UserMeDetail- relationships exclude {relationships}")
+            logger.error(f"UserMeDetail- relationships exclude {relationships}")
             relationships = relationships.exclude(
                 organisation__status__in=[OrganisationStatus.IN_REVIEW, OrganisationStatus.REJECTED]
             )
@@ -221,7 +221,7 @@ class UserMeDetail(APIView):
                     }
                 }
             )
-        logger.info(f"UserMeDetail- end {data}")
+        logger.error(f"UserMeDetail- end {data}")
         return JsonResponse(data=data)
 
 
