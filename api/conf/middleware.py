@@ -21,7 +21,7 @@ class HawkSigningMiddleware:
             # For all normal HTTPResponses we use the response content.
             if isinstance(response, StreamingHttpResponse):
                 signing_content = response["content-disposition"]
-                logger.error(f"HawkSigningMiddleware - __call__ - StreamingHttpResponse instance {signing_content}")
+                logger.error("HawkSigningMiddleware - __call__ - StreamingHttpResponse instance")
             else:
                 signing_content = response.content
                 logger.error("HawkSigningMiddleware - __call__ -  no StreamingHttpResponse")

@@ -259,7 +259,9 @@ def _authenticate(request, lookup_credentials):
     """
 
     if settings.HAWK_AUTHENTICATION_ENABLED:
+        logger.error("_authenticate")
         header = request.META.get("HTTP_HAWK_AUTHENTICATION") or request.META.get("HTTP_AUTHORIZATION") or ""
+        logger.error(f"_authenticate - header {header}")
         return Receiver(
             lookup_credentials,
             header,
@@ -278,10 +280,10 @@ def _seen_nonce(access_key_id, nonce, _):
     """
 
     cache_key = f"hawk:{access_key_id}:{nonce}"
-
+    logger.error(f"_seen_nonce  cache_key {cache_key}")
     # cache.add only adds key if it isn't present
     seen_cache_key = not cache.add(cache_key, True, timeout=settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS)
-
+    logger.error(f"_seen_nonce  seen_cache_key {seen_cache_key}")
     if seen_cache_key:
         raise AlreadyProcessed(f"Already seen nonce {nonce}")
 
