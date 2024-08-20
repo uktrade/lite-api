@@ -26,8 +26,6 @@ ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated or not in draft"
 USER_DEACTIVATED_ERROR = "User is not active for this organisation"
 USER_NOT_FOUND_ERROR = "User does not exist"
 
-logger = logging.getLogger(__name__)
-
 
 class ExporterBaseAuthentication(authentication.BaseAuthentication):
     def get_header_data(self, request):
@@ -134,6 +132,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         """
         When given an exporter user token, validate that the user exists
         """
+
         hawk_receiver = _authenticate(request, _lookup_credentials)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
@@ -146,6 +145,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
             exporter_user = ExporterUser.objects.get(pk=user_id)
         except ExporterUser.DoesNotExist:
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
+
         return exporter_user.baseuser_ptr, hawk_receiver
 
 
@@ -155,6 +155,7 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
         Establish that the request has come from an authorised LITE API client
         by checking that the request is correctly Hawk signed
         """
+
         return AnonymousUser(), _authenticate(request, _lookup_credentials)
 
 
@@ -248,6 +249,7 @@ def _authenticate(request, lookup_credentials):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
+
     if settings.HAWK_AUTHENTICATION_ENABLED:
         header = request.META.get("HTTP_HAWK_AUTHENTICATION") or request.META.get("HTTP_AUTHORIZATION") or ""
         return Receiver(
@@ -266,15 +268,15 @@ def _seen_nonce(access_key_id, nonce, _):
     Returns if the passed access_key_id/nonce combination has been
     used within settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS
     """
+
     cache_key = f"hawk:{access_key_id}:{nonce}"
-    logger.error(f"_seen_nonce  cache_key {cache_key}")
+
     # cache.add only adds key if it isn't present
     seen_cache_key = not cache.add(cache_key, True, timeout=settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS)
-    logger.error(f"_seen_nonce  seen_cache_key {seen_cache_key}")
+
     if seen_cache_key:
-        logger.error(f"_seen_nonce Already seen nonce {nonce}")
         raise AlreadyProcessed(f"Already seen nonce {nonce}")
-    logger.error(f"_seen_nonce all ok ")
+
     return seen_cache_key
 
 
