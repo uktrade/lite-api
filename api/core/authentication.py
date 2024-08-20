@@ -257,9 +257,8 @@ def _authenticate(request, lookup_credentials):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
-
+    logger.error("_authenticate")
     if settings.HAWK_AUTHENTICATION_ENABLED:
-        logger.error("_authenticate")
         header = request.META.get("HTTP_HAWK_AUTHENTICATION") or request.META.get("HTTP_AUTHORIZATION") or ""
         logger.error(f"_authenticate - header {header}")
         return Receiver(
@@ -297,6 +296,7 @@ def _lookup_credentials(access_key_id):
 
     try:
         credentials = settings.HAWK_CREDENTIALS[access_key_id]
+        logger.error(f"_lookup_credentials - {access_key_id}")
     except KeyError as exc:
         raise HawkFail(f"No Hawk ID of {access_key_id}") from exc
 
