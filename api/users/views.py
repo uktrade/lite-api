@@ -1,4 +1,3 @@
-import logging
 from uuid import UUID
 
 from django.http.response import JsonResponse
@@ -43,8 +42,6 @@ from api.users.serializers import (
     ExporterUserCreateUpdateSerializer,
 )
 
-logger = logging.getLogger(__name__)
-
 
 class AuthenticateExporterUser(APIView):
     """
@@ -58,22 +55,19 @@ class AuthenticateExporterUser(APIView):
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
         """
-        # logger.error("User AuthenticateExporterUser - start")
-        data = request.data
 
+        data = request.data
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
         external_id = data.get("sub", "")
-        # logger.error(f"User AuthenticateExporterUser - first_name  {first_name}")
         if not data.get("email"):
-            logger.error(f"User AuthenticateExporterUser - no email")
             return JsonResponse(
                 data={"errors": ["No email provided"]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
             user = ExporterUser.objects.get(baseuser_ptr__email__iexact=data.get("email"))
-            # logger.error(f"User AuthenticateExporterUser - user  {user.email}")
+
             # Update the user's first and last names
             if first_name and last_name:
                 user.baseuser_ptr.first_name = first_name
@@ -88,13 +82,11 @@ class AuthenticateExporterUser(APIView):
                 user.save()
 
         except ExporterUser.DoesNotExist:
-            # logger.error("User AuthenticateExporterUser - user  not found")
             return JsonResponse(
                 data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_401_UNAUTHORIZED
             )
 
         token = user_to_token(user.baseuser_ptr)
-        # logger.error(f"User AuthenticateExporterUser - user  user.first_name {user.first_name}")
         return JsonResponse(
             data={
                 "token": token,
@@ -170,29 +162,18 @@ class UserMeDetail(APIView):
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
-        # logger.error("UserMeDetail- Start")
         org_pk = request.headers["ORGANISATION-ID"]
         user = request.user.exporteruser
-        relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(
-            user=user, status="False"
-        )
+        relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(user=user)
 
         if str_to_bool(request.GET.get("in_review", False)):
             relationships = relationships.filter(organisation__status=OrganisationStatus.IN_REVIEW)
-            # logger.error(f"UserMeDetail- relationships IN_REVIEW {relationships}")
         elif str_to_bool(request.GET.get("draft", False)):
-            # f"UserMeDetail- relationships {relationships}")
             relationships = relationships.filter(organisation__status=OrganisationStatus.DRAFT)
         else:
-            # logger.error(f"UserMeDetail- relationships exclude {relationships}")
             relationships = relationships.exclude(
                 organisation__status__in=[OrganisationStatus.IN_REVIEW, OrganisationStatus.REJECTED]
             )
-
-        print(user.first_name)
-        print(user.last_name)
-        print(relationships)
-        print(org_pk)
 
         # Returning a dict over a serializer for performance reasons
         # This endpoint is called often, so it needs to be as fast as possible
@@ -226,7 +207,7 @@ class UserMeDetail(APIView):
                     }
                 }
             )
-        # logger.error(f"UserMeDetail- end {data}")
+
         return JsonResponse(data=data)
 
 
