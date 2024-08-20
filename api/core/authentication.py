@@ -134,7 +134,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         """
         When given an exporter user token, validate that the user exists
         """
-        logging.error("ExporterOnlyAuthentication - start")
+        # logging.error("ExporterOnlyAuthentication - start")
         hawk_receiver = _authenticate(request, _lookup_credentials)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
@@ -147,13 +147,13 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
-            logging.error(f"ExporterOnlyAuthentication ExporterUser.objects.get")
+            # logging.error(f"ExporterOnlyAuthentication ExporterUser.objects.get")
             exporter_user = ExporterUser.objects.get(pk=user_id)
-            logging.error(f"ExporterOnlyAuthentication exporter_user {exporter_user}")
+            # logging.error(f"ExporterOnlyAuthentication exporter_user {exporter_user}")
         except ExporterUser.DoesNotExist:
             logging.error(f"ExporterOnlyAuthentication user not found {exporter_user}")
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
-        logging.error(f"ExporterOnlyAuthentication base user id {exporter_user.baseuser_ptr}")
+        # logging.error(f"ExporterOnlyAuthentication base user id {exporter_user.baseuser_ptr}")
         return exporter_user.baseuser_ptr, hawk_receiver
 
 
@@ -257,10 +257,10 @@ def _authenticate(request, lookup_credentials):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
-    logger.error("_authenticate")
+    # logger.error("_authenticate")
     if settings.HAWK_AUTHENTICATION_ENABLED:
         header = request.META.get("HTTP_HAWK_AUTHENTICATION") or request.META.get("HTTP_AUTHORIZATION") or ""
-        logger.error(f"_authenticate - header {header}")
+        # f"_authenticate - header {header}")
         return Receiver(
             lookup_credentials,
             header,
@@ -296,7 +296,7 @@ def _lookup_credentials(access_key_id):
 
     try:
         credentials = settings.HAWK_CREDENTIALS[access_key_id]
-        logger.error(f"_lookup_credentials - {access_key_id}")
+        # f"_lookup_credentials - {access_key_id}")
     except KeyError as exc:
         raise HawkFail(f"No Hawk ID of {access_key_id}") from exc
 
