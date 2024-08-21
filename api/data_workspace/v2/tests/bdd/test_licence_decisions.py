@@ -220,3 +220,47 @@ def application_with_licence_refused(organisation, api_client, gov_headers, gov_
 def application_with_licence_issued(licence_decisions_data, refused_time):
     licence_decision = licence_decisions_data[0]
     assert licence_decision["decision_made_at"] == refused_time
+
+
+@pytest.fixture()
+def nlr_time():
+    with freeze_time("2024-01-01 12:00:01") as frozen_time:
+        yield timezone.make_aware(frozen_time())
+
+
+@given("a SIEL application that is NLR", target_fixture="application")
+def nlr_siel_application(gov_user, organisation, api_client, gov_headers, nlr_time):
+    submitted_application = StandardApplicationFactory(organisation=organisation)
+    FinalAdviceFactory(user=gov_user, case=submitted_application, type=AdviceType.NO_LICENCE_REQUIRED)
+    letter_layout = LetterLayoutFactory(id=uuid.UUID(int=1))
+    template = LetterTemplateFactory(
+        layout=letter_layout,
+    )
+    template.case_types.set([CaseTypeEnum.SIEL.id])
+    template.decisions.set([Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED)])
+    GeneratedCaseDocumentFactory(
+        advice_type=AdviceType.NO_LICENCE_REQUIRED,
+        case=submitted_application.get_case(),
+        template=template,
+    )
+
+    finalise_case_url = reverse(
+        "cases:finalise",
+        kwargs={
+            "pk": str(submitted_application.pk),
+        },
+    )
+    response = api_client.put(
+        finalise_case_url,
+        data={},
+        **gov_headers,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+
+    return submitted_application
+
+
+@then("the licence decision time will be the time of when a decision of no licence needed was made")
+def nlr_licence_decision_time(licence_decisions_data, nlr_time):
+    licence_decision = licence_decisions_data[0]
+    assert licence_decision["decision_made_at"] == nlr_time
