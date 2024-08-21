@@ -134,7 +134,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         """
         When given an exporter user token, validate that the user exists
         """
-        logger.warning("UserMeDetail - Start")
+        logger.warning("ExporterOnlyAuthentication - Start")
 
         hawk_receiver = _authenticate(request, _lookup_credentials)
 
@@ -142,16 +142,16 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(exporter_user_token)
         else:
-            logger.warning("UserMeDetail - MISSING_TOKEN_ERROR")
+            logger.warning("ExporterOnlyAuthentication - MISSING_TOKEN_ERROR")
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
             exporter_user = ExporterUser.objects.get(pk=user_id)
         except ExporterUser.DoesNotExist:
-            logger.warning("UserMeDetail - USER_NOT_FOUND_ERROR")
+            logger.warning("ExporterOnlyAuthentication - USER_NOT_FOUND_ERROR")
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
-        logger.warning("UserMeDetail - End")
+        logger.warning("ExporterOnlyAuthentication - End")
         return exporter_user.baseuser_ptr, hawk_receiver
 
 
