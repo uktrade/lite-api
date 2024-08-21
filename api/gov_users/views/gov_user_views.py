@@ -33,6 +33,8 @@ class AuthenticateGovUser(APIView):
         :param email, first_name, last_name:
         :return token:
         """
+        logger.warning("AuthenticateGovUser - Start")
+
         data = request.data
         email = data.get("email")
         first_name = data.get("first_name")
@@ -56,6 +58,8 @@ class AuthenticateGovUser(APIView):
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user.baseuser_ptr)
+        logger.warning("AuthenticateGovUser - End")
+
         return JsonResponse(
             data={"default_queue": str(user.default_queue), "token": token, "lite_api_user_id": str(user.pk)}
         )
@@ -112,9 +116,11 @@ class GovUserDetail(APIView):
         """
         Get user from pk
         """
+        logger.warning("GovUserDetail - Start")
         gov_user = get_user_by_pk(pk)
 
         serializer = GovUserViewSerializer(gov_user)
+        logger.warning("GovUserDetail - End")
         return JsonResponse(data={"user": serializer.data})
 
     def put(self, request, pk):
