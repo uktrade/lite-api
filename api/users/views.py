@@ -166,6 +166,8 @@ class UserMeDetail(APIView):
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
+        logger.warning("UserMeDetail - Start")
+
         org_pk = request.headers["ORGANISATION-ID"]
         user = request.user.exporteruser
         relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(user=user)
@@ -211,7 +213,7 @@ class UserMeDetail(APIView):
                     }
                 }
             )
-
+        logger.warning("UserMeDetail - End")
         return JsonResponse(data=data)
 
 

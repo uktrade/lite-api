@@ -26,6 +26,8 @@ ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated or not in draft"
 USER_DEACTIVATED_ERROR = "User is not active for this organisation"
 USER_NOT_FOUND_ERROR = "User does not exist"
 
+logger = logging.getLogger(__name__)
+
 
 class ExporterBaseAuthentication(authentication.BaseAuthentication):
     def get_header_data(self, request):
@@ -132,6 +134,7 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         """
         When given an exporter user token, validate that the user exists
         """
+        logger.warning("UserMeDetail - Start")
 
         hawk_receiver = _authenticate(request, _lookup_credentials)
 
@@ -139,13 +142,16 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(exporter_user_token)
         else:
+            logger.warning("UserMeDetail - MISSING_TOKEN_ERROR")
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
             exporter_user = ExporterUser.objects.get(pk=user_id)
         except ExporterUser.DoesNotExist:
+            logger.warning("UserMeDetail - USER_NOT_FOUND_ERROR")
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
+        logger.warning("UserMeDetail - End")
         return exporter_user.baseuser_ptr, hawk_receiver
 
 
@@ -155,7 +161,7 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
         Establish that the request has come from an authorised LITE API client
         by checking that the request is correctly Hawk signed
         """
-
+        logger.warning("HawkOnlyAuthentication - Start")
         return AnonymousUser(), _authenticate(request, _lookup_credentials)
 
 
