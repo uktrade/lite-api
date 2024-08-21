@@ -200,9 +200,9 @@ class GovAuthentication(authentication.BaseAuthentication):
         """
         When given a gov user token, validate that the user exists and that their account is active
         """
-
+        logger.warning("GovAuthentication - Start")
         hawk_receiver = _authenticate(request, _lookup_credentials)
-
+        logger.warning("GovAuthentication - after hawk_receiver")
         if request.META.get(GOV_USER_TOKEN_HEADER):
             gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(gov_user_token)
@@ -216,7 +216,7 @@ class GovAuthentication(authentication.BaseAuthentication):
 
         if gov_user.status == GovUserStatuses.DEACTIVATED:
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
-
+        logger.warning("GovAuthentication - End")
         return gov_user.baseuser_ptr, hawk_receiver
 
 
