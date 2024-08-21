@@ -3,12 +3,19 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from api.core.constants import (
+    GovPermissions,
+    Roles,
+)
 from api.organisations.tests.factories import OrganisationFactory
 from api.users.enums import SystemUser
 from api.users.libraries.user_to_token import user_to_token
 from api.users.tests.factories import (
     BaseUserFactory,
     ExporterUserFactory,
+    GovUserFactory,
+    PermissionFactory,
+    RoleFactory,
     UserOrganisationRelationshipFactory,
 )
 
@@ -81,3 +88,24 @@ def exporter_headers(exporter_user, organisation):
         "HTTP_EXPORTER_USER_TOKEN": user_to_token(exporter_user.baseuser_ptr),
         "HTTP_ORGANISATION_ID": str(organisation.id),
     }
+
+
+@pytest.fixture(autouse=True)
+def internal_default_role_id(db):
+    role = RoleFactory(
+        pk=Roles.INTERNAL_DEFAULT_ROLE_ID,
+        permissions=[
+            PermissionFactory(pk=GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name),
+        ],
+    )
+    return role
+
+
+@pytest.fixture()
+def gov_user():
+    return GovUserFactory()
+
+
+@pytest.fixture()
+def gov_headers(gov_user):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}

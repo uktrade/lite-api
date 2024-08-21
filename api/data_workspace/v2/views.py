@@ -18,7 +18,6 @@ from api.licences.enums import (
     LicenceStatus,
 )
 from api.staticdata.statuses.enums import CaseStatusEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class LicenceStatusesListView(viewsets.GenericViewSet, ListAPIView):
@@ -56,8 +55,10 @@ class LicenceDecisionsListView(viewsets.ReadOnlyModelViewSet):
     serializer_class = LicenceDecisionSerializer
 
     def get_queryset(self):
-        withdrawn_status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
         return StandardApplication.objects.filter(
             amendment__isnull=True,
-            status=withdrawn_status,
+            status__status__in=[
+                CaseStatusEnum.FINALISED,
+                CaseStatusEnum.WITHDRAWN,
+            ],
         ).exclude(submitted_at__isnull=True)

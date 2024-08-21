@@ -12,6 +12,7 @@ from pytest_bdd import (
 from rest_framework import status
 
 from api.applications.tests.factories import StandardApplicationFactory
+from api.cases.enums import AdviceType
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 
@@ -44,7 +45,8 @@ def withdrawn_siel_application(api_client, exporter_headers, organisation, withd
         data={"status": CaseStatusEnum.WITHDRAWN},
     )
     assert response.status_code == status.HTTP_200_OK
-
+    submitted_application.refresh_from_db()
+    assert submitted_application.status.status == CaseStatusEnum.WITHDRAWN
     return submitted_application
 
 
@@ -61,7 +63,58 @@ def licence_decision(licence_decision_type, unpage_data, licence_decisions_list_
     return licence_decisions_data
 
 
-@then("it will have the time of when the decision was made")
+@then("the licence decision time will be the time of when the application was withdrawn")
 def licence_decision_time(licence_decisions_data, withdrawn_time):
     licence_decision = licence_decisions_data[0]
     assert licence_decision["decision_made_at"] == withdrawn_time
+
+
+@given("a SIEL application that has a licence issued", target_fixture="application")
+def application_with_licence_issued(organisation, api_client, gov_headers, issued_time):
+    submitted_application = StandardApplicationFactory(organisation=organisation)
+    finalise_application_url = reverse(
+        "applications:finalise",
+        kwargs={
+            "pk": str(submitted_application.pk),
+        },
+    )
+    post_date = timezone.now()
+    response = api_client.put(
+        finalise_application_url,
+        data={
+            "action": AdviceType.APPROVE,
+            "year": post_date.year,
+            "month": post_date.month,
+            "day": post_date.day,
+        },
+        **gov_headers,
+    )
+    assert response.status_code == status.HTTP_200_OK, f"Error {response.json()['errors']} raised instead of 200"
+
+    finalise_case_url = reverse(
+        "cases:finalise",
+        kwargs={
+            "pk": str(submitted_application.pk),
+        },
+    )
+    response = api_client.put(
+        finalise_case_url,
+        data={},
+        **gov_headers,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    submitted_application.refresh_from_db()
+    assert submitted_application.status.status == CaseStatusEnum.FINALISED
+    return submitted_application
+
+
+@pytest.fixture()
+def issued_time():
+    with freeze_time("2024-01-01 12:00:01") as frozen_time:
+        yield timezone.make_aware(frozen_time())
+
+
+@then("the licence decision time will be the time of when the licence was issued")
+def application_with_licence_issued(licence_decisions_data, issued_time):
+    licence_decision = licence_decisions_data[0]
+    assert licence_decision["decision_made_at"] == issued_time

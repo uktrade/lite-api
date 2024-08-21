@@ -46,14 +46,28 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         if application.status.status == CaseStatusEnum.WITHDRAWN:
             return LicenceDecisionType.WITHDRAWN
 
+        if application.status.status == CaseStatusEnum.FINALISED:
+            return LicenceDecisionType.ISSUED
+
     def get_decision_made_at(self, application):
+        target_content_type = ContentType.objects.get_for_model(Case)
+        case_audit_logs = Audit.objects.filter(
+            target_content_type=target_content_type,
+            target_object_id=application.get_case().pk,
+        )
+
         if application.status.status == CaseStatusEnum.WITHDRAWN:
-            target_content_type = ContentType.objects.get_for_model(Case)
-            withdrawn_audit_logs = Audit.objects.filter(
+            withdrawn_audit_logs = case_audit_logs.filter(
                 payload__status__new__in=["withdrawn", "Withdrawn"],
-                target_content_type=target_content_type,
-                target_object_id=application.get_case().pk,
                 verb=AuditType.UPDATED_STATUS,
             )
             audit = withdrawn_audit_logs.latest("created_at")
+            return audit.created_at
+
+        if application.status.status == CaseStatusEnum.FINALISED:
+            issued_audit_logs = case_audit_logs.filter(
+                payload__status="issued",
+                verb=AuditType.LICENCE_UPDATED_STATUS,
+            )
+            audit = issued_audit_logs.latest("created_at")
             return audit.created_at

@@ -6,7 +6,11 @@ from faker import Faker
 from api.organisations.tests.factories import OrganisationFactory
 from api.users import models
 from api.users.enums import UserType, UserStatuses
-from api.users.models import Role, UserOrganisationRelationship
+from api.users.models import (
+    Permission,
+    Role,
+    UserOrganisationRelationship,
+)
 from api.teams.tests.factories import TeamFactory
 
 faker = Faker()
@@ -34,6 +38,11 @@ class ExporterUserFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.ExporterUser
+
+
+class PermissionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Permission
 
 
 class RoleFactory(factory.django.DjangoModelFactory):
