@@ -58,7 +58,7 @@ class AuthenticateExporterUser(APIView):
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
         """
-        logger.error("AuthenticateExporterUser - Start")
+        logger.warning("AuthenticateExporterUser - Start")
         data = request.data
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
@@ -90,7 +90,7 @@ class AuthenticateExporterUser(APIView):
             )
 
         token = user_to_token(user.baseuser_ptr)
-        logger.error("AuthenticateExporterUser - End")
+        logger.warning("AuthenticateExporterUser - End")
         return JsonResponse(
             data={
                 "token": token,
@@ -166,7 +166,7 @@ class UserMeDetail(APIView):
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
-        logger.error("UserMeDetail - Start")
+        logger.warning("UserMeDetail - Start")
 
         org_pk = request.headers["ORGANISATION-ID"]
         user = request.user.exporteruser
@@ -213,7 +213,7 @@ class UserMeDetail(APIView):
                     }
                 }
             )
-        logger.error("UserMeDetail - End")
+        logger.warning("UserMeDetail - End")
         return JsonResponse(data=data)
 
 
