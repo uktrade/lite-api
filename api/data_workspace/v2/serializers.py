@@ -6,7 +6,10 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.models import Case
 from api.licences.enums import LicenceDecisionType
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import (
+    CaseStatusEnum,
+    CaseSubStatusIdEnum,
+)
 
 
 # def get_original_application(obj):
@@ -46,8 +49,17 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         if application.status.status == CaseStatusEnum.WITHDRAWN:
             return LicenceDecisionType.WITHDRAWN
 
-        if application.status.status == CaseStatusEnum.FINALISED:
+        if (
+            application.status.status == CaseStatusEnum.FINALISED
+            and str(application.sub_status.pk) == CaseSubStatusIdEnum.FINALISED__APPROVED
+        ):
             return LicenceDecisionType.ISSUED
+
+        if (
+            application.status.status == CaseStatusEnum.FINALISED
+            and str(application.sub_status.pk) == CaseSubStatusIdEnum.FINALISED__REFUSED
+        ):
+            return LicenceDecisionType.REFUSED
 
     def get_decision_made_at(self, application):
         target_content_type = ContentType.objects.get_for_model(Case)
@@ -64,10 +76,24 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             audit = withdrawn_audit_logs.latest("created_at")
             return audit.created_at
 
-        if application.status.status == CaseStatusEnum.FINALISED:
+        if (
+            application.status.status == CaseStatusEnum.FINALISED
+            and str(application.sub_status.pk) == CaseSubStatusIdEnum.FINALISED__APPROVED
+        ):
             issued_audit_logs = case_audit_logs.filter(
                 payload__status="issued",
                 verb=AuditType.LICENCE_UPDATED_STATUS,
+            )
+            audit = issued_audit_logs.latest("created_at")
+            return audit.created_at
+
+        if (
+            application.status.status == CaseStatusEnum.FINALISED
+            and str(application.sub_status.pk) == CaseSubStatusIdEnum.FINALISED__REFUSED
+        ):
+            issued_audit_logs = case_audit_logs.filter(
+                payload__decision="refuse",
+                verb=AuditType.CREATED_FINAL_RECOMMENDATION,
             )
             audit = issued_audit_logs.latest("created_at")
             return audit.created_at

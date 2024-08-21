@@ -1,4 +1,5 @@
 import pytest
+import uuid
 
 from django.utils import timezone
 from django.urls import reverse
@@ -12,8 +13,19 @@ from pytest_bdd import (
 from rest_framework import status
 
 from api.applications.tests.factories import StandardApplicationFactory
-from api.cases.enums import AdviceType
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.cases.enums import (
+    AdviceType,
+    CaseTypeEnum,
+)
+from api.cases.tests.factories import FinalAdviceFactory
+from api.cases.generated_documents.tests.factories import GeneratedCaseDocumentFactory
+from api.letter_templates.tests.factories import LetterTemplateFactory
+from api.staticdata.decisions.models import Decision
+from api.staticdata.letter_layouts.tests.factories import LetterLayoutFactory
+from api.staticdata.statuses.enums import (
+    CaseStatusEnum,
+    CaseSubStatusIdEnum,
+)
 
 
 scenarios("./scenarios/licence_decisions.feature")
@@ -70,7 +82,7 @@ def licence_decision_time(licence_decisions_data, withdrawn_time):
 
 
 @given("a SIEL application that has a licence issued", target_fixture="application")
-def application_with_licence_issued(organisation, api_client, gov_headers, issued_time):
+def application_with_licence_issued(organisation, api_client, gov_headers, gov_user, issued_time):
     submitted_application = StandardApplicationFactory(organisation=organisation)
     finalise_application_url = reverse(
         "applications:finalise",
@@ -91,6 +103,101 @@ def application_with_licence_issued(organisation, api_client, gov_headers, issue
     )
     assert response.status_code == status.HTTP_200_OK, f"Error {response.json()['errors']} raised instead of 200"
 
+    licence = submitted_application.licences.get()
+
+    FinalAdviceFactory(
+        case=submitted_application,
+        user=gov_user,
+        type=AdviceType.APPROVE,
+    )
+    letter_layout = LetterLayoutFactory(id=uuid.UUID(int=1))
+    template = LetterTemplateFactory(
+        layout=letter_layout,
+    )
+    template.case_types.set([CaseTypeEnum.SIEL.id])
+    template.decisions.set([Decision.objects.get(name=AdviceType.APPROVE)])
+    GeneratedCaseDocumentFactory(
+        advice_type=AdviceType.APPROVE,
+        case=submitted_application.get_case(),
+        licence=licence,
+        template=template,
+    )
+
+    finalise_case_url = reverse(
+        "cases:finalise",
+        kwargs={
+            "pk": str(submitted_application.pk),
+        },
+    )
+    response = api_client.put(
+        finalise_case_url,
+        data={},
+        **gov_headers,
+    )
+    assert response.status_code == status.HTTP_201_CREATED, f"Error {response.json()['errors']} raised instead of 201"
+    submitted_application.refresh_from_db()
+    assert submitted_application.status.status == CaseStatusEnum.FINALISED
+    assert str(submitted_application.sub_status.pk) == CaseSubStatusIdEnum.FINALISED__APPROVED
+    return submitted_application
+
+
+@pytest.fixture()
+def issued_time():
+    with freeze_time("2024-01-01 12:00:01") as frozen_time:
+        yield timezone.make_aware(frozen_time())
+
+
+@then("the licence decision time will be the time of when the licence was issued")
+def application_with_licence_issued(licence_decisions_data, issued_time):
+    licence_decision = licence_decisions_data[0]
+    assert licence_decision["decision_made_at"] == issued_time
+
+
+@pytest.fixture()
+def refused_time():
+    with freeze_time("2024-01-01 12:00:01") as frozen_time:
+        yield timezone.make_aware(frozen_time())
+
+
+@given("a SIEL application that has a licence refused", target_fixture="application")
+def application_with_licence_refused(organisation, api_client, gov_headers, gov_user, refused_time):
+    submitted_application = StandardApplicationFactory(organisation=organisation)
+    finalise_application_url = reverse(
+        "applications:finalise",
+        kwargs={
+            "pk": str(submitted_application.pk),
+        },
+    )
+    post_date = timezone.now()
+    response = api_client.put(
+        finalise_application_url,
+        data={
+            "action": AdviceType.REFUSE,
+            "year": post_date.year,
+            "month": post_date.month,
+            "day": post_date.day,
+        },
+        **gov_headers,
+    )
+    assert response.status_code == status.HTTP_200_OK, f"Error {response.json()['errors']} raised instead of 200"
+
+    FinalAdviceFactory(
+        case=submitted_application,
+        user=gov_user,
+        type=AdviceType.REFUSE,
+    )
+    letter_layout = LetterLayoutFactory(id=uuid.UUID(int=1))
+    template = LetterTemplateFactory(
+        layout=letter_layout,
+    )
+    template.case_types.set([CaseTypeEnum.SIEL.id])
+    template.decisions.set([Decision.objects.get(name=AdviceType.REFUSE)])
+    GeneratedCaseDocumentFactory(
+        advice_type=AdviceType.REFUSE,
+        case=submitted_application.get_case(),
+        template=template,
+    )
+
     finalise_case_url = reverse(
         "cases:finalise",
         kwargs={
@@ -105,16 +212,11 @@ def application_with_licence_issued(organisation, api_client, gov_headers, issue
     assert response.status_code == status.HTTP_201_CREATED
     submitted_application.refresh_from_db()
     assert submitted_application.status.status == CaseStatusEnum.FINALISED
+    assert str(submitted_application.sub_status.pk) == CaseSubStatusIdEnum.FINALISED__REFUSED
     return submitted_application
 
 
-@pytest.fixture()
-def issued_time():
-    with freeze_time("2024-01-01 12:00:01") as frozen_time:
-        yield timezone.make_aware(frozen_time())
-
-
-@then("the licence decision time will be the time of when the licence was issued")
-def application_with_licence_issued(licence_decisions_data, issued_time):
+@then("the licence decision time will be the time of when the licence was refused")
+def application_with_licence_issued(licence_decisions_data, refused_time):
     licence_decision = licence_decisions_data[0]
-    assert licence_decision["decision_made_at"] == issued_time
+    assert licence_decision["decision_made_at"] == refused_time

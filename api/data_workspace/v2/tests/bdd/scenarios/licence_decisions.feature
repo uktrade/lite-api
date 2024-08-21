@@ -9,3 +9,8 @@ Scenario: Issued licence application
     Given a SIEL application that has a licence issued
     Then there will be a licence decision of "issued" for that application
     And the licence decision time will be the time of when the licence was issued
+
+Scenario: Refused licence application
+    Given a SIEL application that has a licence refused
+    Then there will be a licence decision of "refused" for that application
+    And the licence decision time will be the time of when the licence was refused
