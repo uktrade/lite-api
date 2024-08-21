@@ -46,6 +46,9 @@ class ControlListEntriesListTests(DataTestClient):
         # Assert that the count returned by the view is unchanged
         self.assertTrue(updated_cles_count_data == cles_count_data)
 
+        # Assert that the data returned by the view does not contain the deprecated CLE
+        self.assertNotIn("rating123", [cle["rating"] for cle in updated_cles_data])
+
     def test_gov_user_control_list_entries_list_includes_deprecated_cles_if_include_deprecated_is_true(self):
         url = reverse("staticdata:control_list_entries:control_list_entries") + "?include_deprecated=True"
         cles_count_model = ControlListEntry.objects.all().count()
@@ -79,6 +82,9 @@ class ControlListEntriesListTests(DataTestClient):
         # Assert that the count returned by the view has increased by 1
         self.assertTrue(updated_cles_count_data == cles_count_data + 1)
 
+        # Assert that the data returned by the view contains the deprecated CLE
+        self.assertIn("rating123", [cle["rating"] for cle in updated_cles_data])
+
     def test_exporter_user_control_list_entries_list_ignores_deprecated_cles(self):
         cles_count_model = ControlListEntry.objects.all().count()
 
@@ -110,3 +116,6 @@ class ControlListEntriesListTests(DataTestClient):
 
         # Assert that the count returned by the view is unchanged
         self.assertTrue(updated_cles_count_data == cles_count_data)
+
+        # Assert that the data returned by the view does not contain the deprecated CLE
+        self.assertNotIn("rating123", [cle["rating"] for cle in updated_cles_data])
