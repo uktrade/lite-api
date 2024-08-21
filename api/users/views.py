@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 
 from django.http.response import JsonResponse
@@ -42,6 +43,8 @@ from api.users.serializers import (
     ExporterUserCreateUpdateSerializer,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class AuthenticateExporterUser(APIView):
     """
@@ -55,7 +58,7 @@ class AuthenticateExporterUser(APIView):
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
         """
-
+        logger.warning("AuthenticateExporterUser - Start")
         data = request.data
         first_name = data.get("user_profile", {}).get("first_name", "")
         last_name = data.get("user_profile", {}).get("last_name", "")
@@ -87,6 +90,7 @@ class AuthenticateExporterUser(APIView):
             )
 
         token = user_to_token(user.baseuser_ptr)
+        logger.warning("AuthenticateExporterUser - End")
         return JsonResponse(
             data={
                 "token": token,
