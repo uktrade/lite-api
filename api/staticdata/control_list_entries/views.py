@@ -14,7 +14,7 @@ class ControlListEntriesList(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get_queryset(self):
-        return ControlListEntry.objects.filter(controlled=True)
+        return ControlListEntry.objects.filter(controlled=True, deprecated=False)
 
     def get(self, request):
         """
