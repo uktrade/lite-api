@@ -10,6 +10,7 @@ class ControlListEntry(models.Model):
     parent = models.ForeignKey("self", related_name="children", default=None, null=True, on_delete=models.CASCADE)
     category = models.CharField(max_length=100, default="")
     controlled = models.BooleanField(default=True)
+    deprecated = models.BooleanField(default=False)
 
     class Meta:
         db_table = "control_list_entry"
