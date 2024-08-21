@@ -13,7 +13,10 @@ from api.staticdata.control_list_entries.serializers import ControlListEntrySeri
 class ControlListEntriesList(APIView):
     authentication_classes = (SharedAuthentication,)
 
-    def get_queryset(self):
+    def get_queryset(self, include_deprecated=False):
+        if include_deprecated:
+            return ControlListEntry.objects.filter(controlled=True)
+
         return ControlListEntry.objects.filter(controlled=True, deprecated=False)
 
     def get(self, request):
@@ -21,7 +24,9 @@ class ControlListEntriesList(APIView):
         Returns list of all Control List Entries
         """
 
-        queryset = self.get_queryset()
+        include_deprecated = request.GET.get("include_deprecated", False)
+
+        queryset = self.get_queryset(include_deprecated=include_deprecated)
 
         if request.GET.get("group", False):
             return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree(queryset.values())})
