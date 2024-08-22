@@ -1,9 +1,10 @@
 import csv
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from api.parties.models import Party
 from api.users.models import BaseUser
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
+from django.db import transaction
 
 
 class Command(BaseCommand):
@@ -20,23 +21,25 @@ class Command(BaseCommand):
             party_id = row["party_id"]
             address = row["address"]
             new_address = row["new_address"]
+            additional_text = row["additional_text"]
 
-            self.update_field_on_party(party_id, address, new_address)
+            self.update_field_on_party(party_id, address, new_address, additional_text)
 
-    def update_field_on_party(self, party_id, address, new_address):
+    def update_field_on_party(self, party_id, address, new_address, additional_text):
         party = Party.objects.get(id=party_id)
         system_user = BaseUser.objects.get(id="00000000-0000-0000-0000-000000000001")
 
-        audit_trail_service.create(
-            actor=system_user,
-            verb=AuditType.DEVELOPER_INTERVENTION,
-            target=party,
-            payload={
-                "address": {"new": new_address, "old": address},
-            },
-        )
+        with transaction.atomic():
+            audit_trail_service.create(
+                actor=system_user,
+                verb=AuditType.DEVELOPER_INTERVENTION,
+                target=party,
+                payload={"address": {"new": new_address, "old": address}, "additional_text": additional_text},
+            )
 
-        assert party.address == address
-        party.address = new_address
-        party.save()
-        self.stdout.write(f"Updated address for Party {party_id} from {address} to {new_address}.")
+            if party.address == address:
+                party.address = new_address
+                party.save()
+                self.stdout.write(f"Updated address for Party {party_id} from {address} to {new_address}.")
+            else:
+                raise CommandError("Current address does not match csv address, please check csv values")
