@@ -1,3 +1,5 @@
+from functools import wraps
+
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
@@ -33,6 +35,21 @@ class SIELApplicationSerializer(serializers.ModelSerializer):
         fields = ("id", "status")
 
 
+def decision_type_checker(decision_type):
+    def _decision_type_check(func):
+        @wraps(func)
+        def wrapper(application, case_audit_logs):
+            decision_made_at = func(application, case_audit_logs)
+            if not decision_made_at:
+                return None
+            return decision_type, decision_made_at
+
+        return wrapper
+
+    return _decision_type_check
+
+
+@decision_type_checker(LicenceDecisionType.WITHDRAWN)
 def withdrawn_check(application, case_audit_logs):
     if application.status.status != CaseStatusEnum.WITHDRAWN:
         return
@@ -43,9 +60,10 @@ def withdrawn_check(application, case_audit_logs):
     )
     audit = withdrawn_audit_logs.latest("created_at")
 
-    return LicenceDecisionType.WITHDRAWN, audit.created_at
+    return audit.created_at
 
 
+@decision_type_checker(LicenceDecisionType.NLR)
 def nlr_check(application, case_audit_logs):
     if application.status.status != CaseStatusEnum.FINALISED:
         return
@@ -59,7 +77,7 @@ def nlr_check(application, case_audit_logs):
     )
     if final_recommendation_audit_logs.exists():
         audit = final_recommendation_audit_logs.latest("created_at")
-        return LicenceDecisionType.NLR, audit.created_at
+        return audit.created_at
 
     nlr_letter_audit_logs = case_audit_logs.filter(
         payload__template="No licence required letter template",
@@ -67,9 +85,10 @@ def nlr_check(application, case_audit_logs):
     )
     if nlr_letter_audit_logs.exists():
         audit = nlr_letter_audit_logs.latest("created_at")
-        return LicenceDecisionType.NLR, audit.created_at
+        return audit.created_at
 
 
+@decision_type_checker(LicenceDecisionType.ISSUED)
 def issued_check(application, case_audit_logs):
     if application.status.status != CaseStatusEnum.FINALISED:
         return
@@ -82,7 +101,7 @@ def issued_check(application, case_audit_logs):
             return
 
         audit = application_granted_audit_logs.latest("created_at")
-        return LicenceDecisionType.ISSUED, audit.created_at
+        return audit.created_at
 
     if str(application.sub_status.pk) != CaseSubStatusIdEnum.FINALISED__APPROVED:
         return
@@ -92,9 +111,10 @@ def issued_check(application, case_audit_logs):
         verb=AuditType.LICENCE_UPDATED_STATUS,
     )
     audit = issued_audit_logs.latest("created_at")
-    return LicenceDecisionType.ISSUED, audit.created_at
+    return audit.created_at
 
 
+@decision_type_checker(LicenceDecisionType.REFUSED)
 def refused_check(application, case_audit_logs):
     if application.status.status != CaseStatusEnum.FINALISED:
         return
@@ -107,7 +127,7 @@ def refused_check(application, case_audit_logs):
         if not refusal_letter_generated_audit_logs.exists():
             return
         audit = refusal_letter_generated_audit_logs.latest("created_at")
-        return LicenceDecisionType.REFUSED, audit.created_at
+        return audit.created_at
 
     if str(application.sub_status.pk) != CaseSubStatusIdEnum.FINALISED__REFUSED:
         return
@@ -118,7 +138,7 @@ def refused_check(application, case_audit_logs):
     )
     audit = final_recommendation_audit_logs.latest("created_at")
 
-    return LicenceDecisionType.REFUSED, audit.created_at
+    return audit.created_at
 
 
 class LicenceDecision:
