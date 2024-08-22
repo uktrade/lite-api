@@ -57,12 +57,17 @@ def nlr_check(application, case_audit_logs):
         payload__decision=AdviceType.NO_LICENCE_REQUIRED,
         verb=AuditType.CREATED_FINAL_RECOMMENDATION,
     )
-    if not final_recommendation_audit_logs.exists():
-        return
+    if final_recommendation_audit_logs.exists():
+        audit = final_recommendation_audit_logs.latest("created_at")
+        return LicenceDecisionType.NLR, audit.created_at
 
-    audit = final_recommendation_audit_logs.latest("created_at")
-
-    return LicenceDecisionType.NLR, audit.created_at
+    nlr_letter_audit_logs = case_audit_logs.filter(
+        payload__template="No licence required letter template",
+        verb=AuditType.GENERATE_CASE_DOCUMENT,
+    )
+    if nlr_letter_audit_logs.exists():
+        audit = nlr_letter_audit_logs.latest("created_at")
+        return LicenceDecisionType.NLR, audit.created_at
 
 
 def issued_check(application, case_audit_logs):
