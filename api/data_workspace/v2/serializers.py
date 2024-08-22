@@ -128,14 +128,23 @@ def refused_check(application, case_audit_logs):
         return
 
     if application.sub_status is None:
+        final_recommendation_audit_logs = case_audit_logs.filter(
+            payload__decision=AdviceType.REFUSE,
+            verb=AuditType.CREATED_FINAL_RECOMMENDATION,
+        )
+        if final_recommendation_audit_logs.exists():
+            audit = final_recommendation_audit_logs.latest("created_at")
+            return audit.created_at
+
         refusal_letter_generated_audit_logs = case_audit_logs.filter(
             payload__template="Refusal letter template",
             verb=AuditType.GENERATE_CASE_DOCUMENT,
         )
-        if not refusal_letter_generated_audit_logs.exists():
-            return
-        audit = refusal_letter_generated_audit_logs.latest("created_at")
-        return audit.created_at
+        if refusal_letter_generated_audit_logs.exists():
+            audit = refusal_letter_generated_audit_logs.latest("created_at")
+            return audit.created_at
+
+        return
 
     if str(application.sub_status.pk) != CaseSubStatusIdEnum.FINALISED__REFUSED:
         return

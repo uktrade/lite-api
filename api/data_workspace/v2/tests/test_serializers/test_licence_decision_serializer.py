@@ -87,3 +87,19 @@ class LicenceDecisionSerializerTests(TestCase):
         serializer = LicenceDecisionSerializer(instance=application)
         assert serializer.data["decision"] == LicenceDecisionType.ISSUED
         assert serializer.data["decision_made_at"] == audit.created_at
+
+    def test_finalised_and_refused_without_status_with_licence_refused_decision(self):
+        application = StandardApplicationFactory(status=get_case_status_by_status(CaseStatusEnum.FINALISED))
+        assert application.sub_status is None
+        audit = AuditFactory(
+            payload={
+                "case_reference": application.reference_code,
+                "decision": "refuse",
+                "licence_reference": "",
+            },
+            target=application.get_case(),
+            verb=AuditType.CREATED_FINAL_RECOMMENDATION,
+        )
+        serializer = LicenceDecisionSerializer(instance=application)
+        assert serializer.data["decision"] == LicenceDecisionType.REFUSED
+        assert serializer.data["decision_made_at"] == audit.created_at
