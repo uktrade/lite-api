@@ -1,3 +1,5 @@
+import datetime
+
 from django.test import TestCase
 from parameterized import parameterized
 
@@ -5,6 +7,7 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.tests.factories import AuditFactory
 from api.applications.tests.factories import StandardApplicationFactory
 from api.data_workspace.v2.serializers import LicenceDecisionSerializer
+from api.licences.enums import LicenceDecisionType
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -20,4 +23,19 @@ class LicenceDecisionSerializerTests(TestCase):
             verb=AuditType.UPDATED_STATUS,
         )
         serializer = LicenceDecisionSerializer(instance=application)
+        assert serializer.data["decision_made_at"] == audit.created_at
+
+    def test_finalised_without_sub_status(self):
+        application = StandardApplicationFactory(status=get_case_status_by_status(CaseStatusEnum.FINALISED))
+        assert application.sub_status is None
+        audit = AuditFactory(
+            payload={
+                "start_date": datetime.date.today().isoformat(),
+                "licence_duration": "12",
+            },
+            target=application.get_case(),
+            verb=AuditType.GRANTED_APPLICATION,
+        )
+        serializer = LicenceDecisionSerializer(instance=application)
+        assert serializer.data["decision"] == LicenceDecisionType.ISSUED
         assert serializer.data["decision_made_at"] == audit.created_at
