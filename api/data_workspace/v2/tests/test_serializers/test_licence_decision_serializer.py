@@ -7,7 +7,10 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.tests.factories import AuditFactory
 from api.applications.tests.factories import StandardApplicationFactory
 from api.data_workspace.v2.serializers import LicenceDecisionSerializer
-from api.licences.enums import LicenceDecisionType
+from api.licences.enums import (
+    LicenceDecisionType,
+    LicenceStatus,
+)
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -68,4 +71,19 @@ class LicenceDecisionSerializerTests(TestCase):
         )
         serializer = LicenceDecisionSerializer(instance=application)
         assert serializer.data["decision"] == LicenceDecisionType.NLR
+        assert serializer.data["decision_made_at"] == audit.created_at
+
+    def test_finalised_and_issued_without_sub_status_with_issued_updated_status(self):
+        application = StandardApplicationFactory(status=get_case_status_by_status(CaseStatusEnum.FINALISED))
+        assert application.sub_status is None
+        audit = AuditFactory(
+            payload={
+                "licence": application.reference_code,
+                "status": LicenceStatus.ISSUED,
+            },
+            target=application.get_case(),
+            verb=AuditType.LICENCE_UPDATED_STATUS,
+        )
+        serializer = LicenceDecisionSerializer(instance=application)
+        assert serializer.data["decision"] == LicenceDecisionType.ISSUED
         assert serializer.data["decision_made_at"] == audit.created_at

@@ -94,14 +94,22 @@ def issued_check(application, case_audit_logs):
         return
 
     if application.sub_status is None:
+        issued_audit_logs = case_audit_logs.filter(
+            payload__status="issued",
+            verb=AuditType.LICENCE_UPDATED_STATUS,
+        )
+        if issued_audit_logs.exists():
+            audit = issued_audit_logs.latest("created_at")
+            return audit.created_at
+
         application_granted_audit_logs = case_audit_logs.filter(
             verb=AuditType.GRANTED_APPLICATION,
         )
-        if not application_granted_audit_logs.exists():
-            return
+        if application_granted_audit_logs.exists():
+            audit = application_granted_audit_logs.latest("created_at")
+            return audit.created_at
 
-        audit = application_granted_audit_logs.latest("created_at")
-        return audit.created_at
+        return
 
     if str(application.sub_status.pk) != CaseSubStatusIdEnum.FINALISED__APPROVED:
         return
