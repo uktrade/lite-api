@@ -25,7 +25,7 @@ class LicenceDecisionSerializerTests(TestCase):
         serializer = LicenceDecisionSerializer(instance=application)
         assert serializer.data["decision_made_at"] == audit.created_at
 
-    def test_finalised_without_sub_status(self):
+    def test_finalised_and_issued_without_sub_status_with_granted_application_audit(self):
         application = StandardApplicationFactory(status=get_case_status_by_status(CaseStatusEnum.FINALISED))
         assert application.sub_status is None
         audit = AuditFactory(
@@ -38,4 +38,19 @@ class LicenceDecisionSerializerTests(TestCase):
         )
         serializer = LicenceDecisionSerializer(instance=application)
         assert serializer.data["decision"] == LicenceDecisionType.ISSUED
+        assert serializer.data["decision_made_at"] == audit.created_at
+
+    def test_finalised_and_refused_without_sub_status_with_refusal_letter_generated_audit(self):
+        application = StandardApplicationFactory(status=get_case_status_by_status(CaseStatusEnum.FINALISED))
+        assert application.sub_status is None
+        audit = AuditFactory(
+            payload={
+                "file_name": "madeupfile.doc",
+                "template": "Refusal letter template",
+            },
+            target=application.get_case(),
+            verb=AuditType.GENERATE_CASE_DOCUMENT,
+        )
+        serializer = LicenceDecisionSerializer(instance=application)
+        assert serializer.data["decision"] == LicenceDecisionType.REFUSED
         assert serializer.data["decision_made_at"] == audit.created_at

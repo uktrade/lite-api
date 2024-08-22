@@ -95,7 +95,14 @@ def refused_check(application, case_audit_logs):
         return
 
     if application.sub_status is None:
-        return
+        refusal_letter_generated_audit_logs = case_audit_logs.filter(
+            payload__template="Refusal letter template",
+            verb=AuditType.GENERATE_CASE_DOCUMENT,
+        )
+        if not refusal_letter_generated_audit_logs.exists():
+            return
+        audit = refusal_letter_generated_audit_logs.latest("created_at")
+        return LicenceDecisionType.REFUSED, audit.created_at
 
     if str(application.sub_status.pk) != CaseSubStatusIdEnum.FINALISED__REFUSED:
         return
@@ -136,8 +143,8 @@ class LicenceDecision:
             if decision:
                 self.type, self.decision_made_at = decision
                 break
-
-        return
+        else:
+            raise ValueError(f"Cannot determine type of licence decision for application {application.reference_code}")
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -153,8 +160,8 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             "decision_made_at",
         )
 
-    def to_representation(self, instance):
-        return super().to_representation(LicenceDecision(instance))
+    def to_representation(self, application):
+        return super().to_representation(LicenceDecision(application))
 
     def get_decision(self, licence_decision):
         return licence_decision.type
