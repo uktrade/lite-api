@@ -25,13 +25,17 @@ class Command(BaseCommand):
         parser.add_argument(
             "--from",
             type=str,
-            help="An iso format datetime (UTC) which can be used to filter results e.g. '2024-01-01T00:00:00' such that only results *after* this datetime are included",
+            help="""An iso format datetime (UTC) which can be used to filter
+            results e.g. '2024-01-01T00:00:00' such that only results *after*
+            this datetime are included""",
         )
 
         parser.add_argument(
             "--to",
             type=str,
-            help="An iso format datetime (UTC) which can be used to filter results e.g. '2024-01-01T00:00:00' such that only results *before* this datetime are included",
+            help="""An iso format datetime (UTC) which can be used to filter
+            results e.g. '2024-01-01T00:00:00' such that only results *before*
+            this datetime are included""",
         )
 
     def handle(self, *args, **options):
