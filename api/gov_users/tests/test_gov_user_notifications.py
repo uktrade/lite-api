@@ -63,10 +63,10 @@ class GovUserNotificationTests(DataTestClient):
         prev_case_audit_notification_count = GovNotification.objects.filter(
             user=self.gov_user.baseuser_ptr, content_type=self.audit_content_type, case=self.case
         ).count()
-        url = reverse("applications:manage_status", kwargs={"pk": self.case.id})
+        url = reverse("caseworker_applications:change_status", kwargs={"pk": self.case.id})
         data = {"status": "under_review"}
 
-        response = self.client.put(url, data, **self.gov_headers)
+        response = self.client.post(url, data, **self.gov_headers)
         self.case.refresh_from_db()
         case_audit_notification_count = GovNotification.objects.filter(
             user=self.gov_user.baseuser_ptr, content_type=self.audit_content_type, case=self.case

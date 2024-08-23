@@ -1,4 +1,3 @@
-import pytest
 from unittest import mock
 from django.urls import reverse
 from api.audit_trail.enums import AuditType
@@ -137,7 +136,7 @@ class ApproveAdviceTests(DataTestClient):
         self.test_flag.save()
         self.application.flags.add(self.test_flag)
 
-        user = BaseUser(email="test@mail.com", first_name="John", last_name="Smith", type=UserType.SYSTEM)
+        user = BaseUser(email="test@mail.com", first_name="John", last_name="Smith", type=UserType.SYSTEM)  # /PS-IGNORE
 
         case = self.application.get_case()
 
@@ -212,12 +211,12 @@ class ApproveAdviceTests(DataTestClient):
 
     @parameterized.expand(case_status for case_status in [CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED])
     def test_standard_application_remove_audit_and_flag_with_statuses(self, case_status):
-        url = reverse("applications:manage_status", kwargs={"pk": self.application.id})
+        url = reverse("caseworker_applications:change_status", kwargs={"pk": self.application.id})
         data = {"status": case_status}
 
         self.assertEqual(self.application.flags.count(), 2)
 
-        response = self.client.put(url, data=data, **self.gov_headers)
+        response = self.client.post(url, data=data, **self.gov_headers)
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
