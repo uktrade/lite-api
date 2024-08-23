@@ -56,9 +56,9 @@ class Command(BaseCommand):
             queryset = queryset.filter(licences__hmrc_integration_sent_at__lte=to_datetime)
 
         self.fieldnames = [
-            "cases__reference_code",
-            "cases__status__status",
+            "cases__licences__reference_code",
             "cases__licences__status",
+            "cases__licences__hmrc_integration_sent_at",
             "cases__baseapplication__goods__matches",
             "cases__baseapplication__parties__party__matches",
         ]
@@ -99,10 +99,15 @@ class Command(BaseCommand):
                     }
                 )
             if all_good_name_matches or all_party_address_matches:
-                row.update({"cases__reference_code": case.reference_code})
-                row.update({"cases__status__status": case.status.status})
+                row.update({"cases__licences__reference_code": getattr(case.licences.last(), "reference_code", "")})
                 row.update({"cases__licences__status": getattr(case.licences.last(), "status", "")})
-
+                row.update(
+                    {
+                        "cases__licences__hmrc_integration_sent_at": str(
+                            getattr(case.licences.last(), "hmrc_integration_sent_at", "")
+                        )
+                    }
+                )
                 # add to csv_rows only if matches exist
                 self.csv_rows.append(row)
 
