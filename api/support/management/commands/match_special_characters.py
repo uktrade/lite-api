@@ -66,52 +66,56 @@ class Command(BaseCommand):
 
         for case in queryset:
             row = {}
-
-            # search goods
-            all_good_name_matches = []
-            goods_on_application = case.baseapplication.goods.all()
-            for goa in goods_on_application:
-                good_name = goa.good.name
-                good_name_matches = self.get_matches(good_name)
-                if good_name_matches:
-                    all_good_name_matches.append(good_name_matches)
-                    logging.info("Matches found on good name: %s", str(good_name_matches))
-            if all_good_name_matches:
-                row.update(
-                    {"cases__baseapplication__goods__matches": ", ".join([str(m) for m in all_good_name_matches])}
-                )
-
-            # search parties
-            all_party_address_matches = []
-            parties_on_application = case.baseapplication.parties.all()
-            for poa in parties_on_application:
-                party_address = poa.party.address
-                party_address_matches = self.get_matches(party_address)
-                if party_address_matches:
-                    all_party_address_matches.append(party_address_matches)
-                    logging.info("Matches found on party address: %s", str(party_address_matches))
-            if all_party_address_matches:
-                row.update(
-                    {
-                        "cases__baseapplication__parties__party__matches": ", ".join(
-                            [str(m) for m in all_party_address_matches]
-                        )
-                    }
-                )
+            all_good_name_matches = self.search_goods(case, row)
+            all_party_address_matches = self.search_parties(case, row)
             if all_good_name_matches or all_party_address_matches:
-                row.update({"cases__licences__reference_code": getattr(case.licences.last(), "reference_code", "")})
-                row.update({"cases__licences__status": getattr(case.licences.last(), "status", "")})
-                row.update(
-                    {
-                        "cases__licences__hmrc_integration_sent_at": str(
-                            getattr(case.licences.last(), "hmrc_integration_sent_at", "")
-                        )
-                    }
-                )
-                # add to csv_rows only if matches exist
-                self.csv_rows.append(row)
+                self.append_row(case, row)
 
         self.write_to_csv()
+
+    def search_goods(self, case, row):
+        all_good_name_matches = []
+        goods_on_application = case.baseapplication.goods.all()
+        for goa in goods_on_application:
+            good_name = goa.good.name
+            good_name_matches = self.get_matches(good_name)
+            if good_name_matches:
+                all_good_name_matches.append(good_name_matches)
+                logging.info("Matches found in good name: %s", str(good_name_matches))
+        if all_good_name_matches:
+            row.update({"cases__baseapplication__goods__matches": ", ".join([str(m) for m in all_good_name_matches])})
+        return all_good_name_matches
+
+    def search_parties(self, case, row):
+        all_party_address_matches = []
+        parties_on_application = case.baseapplication.parties.all()
+        for poa in parties_on_application:
+            party_address = poa.party.address
+            party_address_matches = self.get_matches(party_address)
+            if party_address_matches:
+                all_party_address_matches.append(party_address_matches)
+                logging.info("Matches found in party address: %s", str(party_address_matches))
+        if all_party_address_matches:
+            row.update(
+                {
+                    "cases__baseapplication__parties__party__matches": ", ".join(
+                        [str(m) for m in all_party_address_matches]
+                    )
+                }
+            )
+        return all_party_address_matches
+
+    def append_row(self, case, row):
+        row.update({"cases__licences__reference_code": getattr(case.licences.last(), "reference_code", "")})
+        row.update({"cases__licences__status": getattr(case.licences.last(), "status", "")})
+        row.update(
+            {
+                "cases__licences__hmrc_integration_sent_at": str(
+                    getattr(case.licences.last(), "hmrc_integration_sent_at", "")
+                )
+            }
+        )
+        self.csv_rows.append(row)
 
     def get_matches(self, string):
         pattern = r"[^a-zA-Z0-9 .,\-\\)\\('/+:=\\?\\!\"%&\\*;\\<\\>]"
