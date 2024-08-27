@@ -118,7 +118,7 @@ class Command(BaseCommand):
         self.csv_rows.append(row)
 
     def get_matches(self, string):
-        pattern = r"[^a-zA-Z0-9 .,\-\\)\\('/+:=\\?\\!\"%&\\*;\\<\\>]"
+        pattern = r"[^a-zA-Z0-9 .,\-\\)\\('/+:=\\?\\!\"%&\\*;\\<\\>\r\n]"
         matches = re.findall(pattern, string)
         return matches
 
