@@ -134,7 +134,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps --ignore api/data_workspace/v2/tests/bdd -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
       - upload_code_coverage:
           alias: tests
 
@@ -154,7 +154,7 @@ jobs:
       - run:
           name: Run tests on Postgres 13
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps --ignore api/data_workspace/v2/tests/bdd -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
       - upload_code_coverage:
           alias: tests_dbt_platform
 
@@ -363,6 +363,36 @@ jobs:
       - run:
           name: Run lite_routing tests
           command: pipenv run pytest --circleci-parallelize --gherkin-terminal-reporter -vv lite_routing/routing_rules_internal/tests/bdd --cucumberjson=cucumber_results/cuc.json
+      - run:
+          name: Generate html cucumber report
+          command: node generate_cucumber_report.js
+          when: always
+      - store_artifacts:
+          path: cucumber_html
+
+  lite_data_bdd_tests:
+    docker:
+      - <<: *image_python_node
+      - <<: *image_postgres13
+      - <<: *image_opensearch
+      - <<: *image_redis
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    parallelism: 5
+    steps:
+      - setup
+      - run:
+          name: Install cucumber reporter package
+          command: npm install multiple-cucumber-html-reporter
+      - run:
+          name: Create report directories
+          command: |
+            mkdir cucumber_results
+      - run:
+          name: Run lite_routing tests
+          command: pipenv run pytest --circleci-parallelize --gherkin-terminal-reporter -vv api/data_workspace/v2/tests/bdd --cucumberjson=cucumber_results/cuc.json
       - run:
           name: Generate html cucumber report
           command: node generate_cucumber_report.js
@@ -600,6 +630,7 @@ workflows:
       - lite_routing_tests_dbt_platform
       - lite_routing_bdd_tests
       - lite_routing_bdd_tests_dbt_platform
+      - lite_data_bdd_tests
       - open_search_tests_dbt_platform
       - open_search_tests
       - migration_tests
@@ -613,6 +644,7 @@ workflows:
               - open_search_tests
               - migration_tests
               - lite_routing_tests
+              - lite_data_bdd_tests
       - check-lite-routing-sha
       - e2e_tests
       - anonymised_db_dump_tests
