@@ -62,10 +62,11 @@ class TestChangeStatusCaseworkerChangeable(DataTestClient):
         mock_request.data = {"status": CaseStatusEnum.OGD_ADVICE}
         assert self.permission_obj.has_object_permission(mock_request, None, self.application) is True
 
-    def test_has_object_permission_new_status_applicant_editing(self):
+    @parameterized.expand([CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT])
+    def test_has_object_permission_new_status_disallowed(self, new_status):
         mock_request = mock.Mock()
         mock_request.user = self.gov_user.baseuser_ptr
-        mock_request.data = {"status": CaseStatusEnum.APPLICANT_EDITING}
+        mock_request.data = {"status": new_status}
         assert self.permission_obj.has_object_permission(mock_request, None, self.application) is False
 
     def test_has_object_permission_new_status_finalised_user_permitted(self):
