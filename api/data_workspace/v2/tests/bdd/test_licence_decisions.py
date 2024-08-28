@@ -1,3 +1,4 @@
+import datetime
 import pytest
 import uuid
 
@@ -44,7 +45,10 @@ def withdrawn_time():
 
 @given("a SIEL application that has been withdrawn by the exporter", target_fixture="application")
 def withdrawn_siel_application(api_client, exporter_headers, organisation, withdrawn_time):
-    submitted_application = StandardApplicationFactory(organisation=organisation)
+    submitted_application = StandardApplicationFactory(
+        organisation=organisation,
+        submitted_at=datetime.datetime.now(),
+    )
     change_status_url = reverse(
         "exporter_applications:change_status",
         kwargs={
@@ -83,7 +87,10 @@ def licence_decision_time(licence_decisions_data, withdrawn_time):
 
 @given("a SIEL application that has a licence issued", target_fixture="application")
 def application_with_licence_issued(organisation, api_client, gov_headers, gov_user, issued_time):
-    submitted_application = StandardApplicationFactory(organisation=organisation)
+    submitted_application = StandardApplicationFactory(
+        organisation=organisation,
+        submitted_at=datetime.datetime.now(),
+    )
     finalise_application_url = reverse(
         "applications:finalise",
         kwargs={
@@ -161,7 +168,10 @@ def refused_time():
 
 @given("a SIEL application that has a licence refused", target_fixture="application")
 def application_with_licence_refused(organisation, api_client, gov_headers, gov_user, refused_time):
-    submitted_application = StandardApplicationFactory(organisation=organisation)
+    submitted_application = StandardApplicationFactory(
+        organisation=organisation,
+        submitted_at=datetime.datetime.now(),
+    )
     finalise_application_url = reverse(
         "applications:finalise",
         kwargs={
@@ -230,7 +240,10 @@ def nlr_time():
 
 @given("a SIEL application that is NLR", target_fixture="application")
 def nlr_siel_application(gov_user, organisation, api_client, gov_headers, nlr_time):
-    submitted_application = StandardApplicationFactory(organisation=organisation)
+    submitted_application = StandardApplicationFactory(
+        organisation=organisation,
+        submitted_at=datetime.datetime.now(),
+    )
     FinalAdviceFactory(user=gov_user, case=submitted_application, type=AdviceType.NO_LICENCE_REQUIRED)
     letter_layout = LetterLayoutFactory(id=uuid.UUID(int=1))
     template = LetterTemplateFactory(

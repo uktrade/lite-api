@@ -1,3 +1,4 @@
+import datetime
 import pytest
 
 from django.urls import reverse
@@ -34,7 +35,9 @@ def draft_application_not_presented(unpage_data, siel_applications_list_url):
 
 @given("a submitted SIEL application without an amendment", target_fixture="siel_application")
 def siel_application_without_an_amendment():
-    return StandardApplicationFactory()
+    return StandardApplicationFactory(
+        submitted_at=datetime.datetime.now(),
+    )
 
 
 @then("it is presented as a single SIEL application", target_fixture="siel_application_data")
@@ -51,8 +54,13 @@ def siel_application_id_of_itself(siel_application, siel_application_data):
 
 @given("a submitted SIEL application that has been amended", target_fixture="original_siel_application")
 def siel_application_with_an_amendment():
-    original_siel_application = StandardApplicationFactory()
-    StandardApplicationFactory(amendment_of=original_siel_application)
+    original_siel_application = StandardApplicationFactory(
+        submitted_at=datetime.datetime.now(),
+    )
+    StandardApplicationFactory(
+        amendment_of=original_siel_application,
+        submitted_at=datetime.datetime.now(),
+    )
     return original_siel_application
 
 
@@ -63,8 +71,16 @@ def siel_application_has_first_id_in_amendment_chain(original_siel_application, 
 
 @given("a submitted SIEL application with multiple amendments", target_fixture="original_siel_application")
 def siel_application_with_multiple_amendments():
-    original_siel_application = StandardApplicationFactory()
-    next_siel_application = StandardApplicationFactory(amendment_of=original_siel_application)
-    another_siel_application = StandardApplicationFactory(amendment_of=next_siel_application)
-    StandardApplicationFactory(amendment_of=another_siel_application)
+    original_siel_application = StandardApplicationFactory(
+        submitted_at=datetime.datetime.now(),
+    )
+    next_siel_application = StandardApplicationFactory(
+        amendment_of=original_siel_application,
+        submitted_at=datetime.datetime.now(),
+    )
+    another_siel_application = StandardApplicationFactory(
+        amendment_of=next_siel_application,
+        submitted_at=datetime.datetime.now(),
+    )
+    StandardApplicationFactory(amendment_of=another_siel_application, submitted_at=datetime.datetime.now())
     return original_siel_application
