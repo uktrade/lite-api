@@ -130,7 +130,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
                     "good": str(self.good.id),
                     "report_summary": "test2",
                     "quantity": 10.0,
-                    "unit": None,
+                    "unit": "NAR",
                     "value": None,
                     "control_list_entries": ["ML1a"],
                     "destinations": expected_destinations,
@@ -260,7 +260,7 @@ class GoodPrecedentsListViewTests(DataTestClient):
                         "%Y-%m-%dT%H:%M:%S.%f"
                     )[:-3]
                     + "Z",
-                    "unit": None,
+                    "unit": "NAR",
                     "value": None,
                     "wassenaar": True,
                 }
