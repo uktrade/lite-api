@@ -33,7 +33,9 @@ class TestIsRecentlyUpdated(DataTestClient):
 
         # GOV user updates the case (changes the status of it)
         data = {"status": CaseStatusEnum.RESUBMITTED}
-        self.client.put(reverse("applications:manage_status", kwargs={"pk": case.id}), data=data, **self.gov_headers)
+        self.client.post(
+            reverse("caseworker_applications:change_status", kwargs={"pk": case.id}), data=data, **self.gov_headers
+        )
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["results"]["cases"][0]
@@ -47,8 +49,8 @@ class TestIsRecentlyUpdated(DataTestClient):
 
         # Exporter user updates the case (changes the status of it)
         data = {"status": CaseStatusEnum.APPLICANT_EDITING}
-        self.client.put(
-            reverse("applications:manage_status", kwargs={"pk": case.id}), data=data, **self.exporter_headers
+        self.client.post(
+            reverse("caseworker_applications:change_status", kwargs={"pk": case.id}), data=data, **self.exporter_headers
         )
 
         response = self.client.get(self.url, **self.gov_headers)

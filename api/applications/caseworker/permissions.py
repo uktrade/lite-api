@@ -21,6 +21,9 @@ class CaseStatusCaseworkerChangeable(permissions.BasePermission):
         if new_status == CaseStatusEnum.APPLICANT_EDITING:
             return False
 
+        if new_status == CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT:
+            return False
+
         if CaseStatusEnum.is_terminal(original_status) and not user.has_permission(GovPermissions.REOPEN_CLOSED_CASES):
             return False
 
