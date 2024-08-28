@@ -11,6 +11,7 @@ from api.organisations.models import Organisation
 from api.parties.enums import PartyType, SubType, PartyRole
 from api.parties.models import Party
 from api.parties.models import PartyDocument
+import re
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -136,6 +137,19 @@ class PartySerializer(serializers.ModelSerializer):
         else:
             # Field is optional so doesn't validate if blank and just saves an empty string
             return ""
+
+    @staticmethod
+    def validate_name(value):
+        if value:
+            match_regex = re.compile(r"^[a-zA-Z0-9 .,\-\)\(\/'+:=\?\!\"%&\*;\<\>]+$")
+            is_value_valid = bool(match_regex.match(value))
+            if not is_value_valid:
+                raise serializers.ValidationError(
+                    {
+                        "name": "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+                    }
+                )
+            return value
 
     def get_document(self, instance):
         if not instance.partydocument_set.exists():

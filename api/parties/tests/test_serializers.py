@@ -3,6 +3,7 @@ from parameterized import parameterized
 
 from api.parties.serializers import PartySerializer
 from django.core.exceptions import ValidationError
+from rest_framework import serializers
 
 
 @parameterized.expand(
@@ -22,3 +23,17 @@ def test_party_serializer_validate_website_valid(url_input, url_output):
 def test_party_serializer_validate_website_invalid():
     with pytest.raises(ValidationError):
         PartySerializer.validate_website("invalid@ur&l-i.am")
+
+
+@pytest.mark.parametrize(
+    "name",
+    (("random good"), ("good-name"), ("good!name"), ("good-!.<>/%&*;+'(),.name")),
+)
+def test_validate_goods_name_valid(name):
+    assert PartySerializer.validate_name(name) is name
+
+
+@pytest.mark.parametrize("name", (("\r\n"), ("good_name"), ("good$name"), ("good@name")))
+def test_validate_goods_name_invalid(name):
+    with pytest.raises(serializers.ValidationError):
+        PartySerializer.validate_name(name)
