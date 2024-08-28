@@ -15,10 +15,10 @@ from api.staticdata.statuses.enums import (
 )
 
 
-# def get_original_application(obj):
-#     if not obj.amendment_of:
-#         return obj
-#     return get_original_application(obj.amendment_of)
+def get_original_application(obj):
+    if not obj.amendment_of:
+        return obj
+    return get_original_application(obj.amendment_of)
 
 
 class LicenceStatusSerializer(serializers.Serializer):
@@ -30,9 +30,14 @@ class LicenceDecisionTypeSerializer(serializers.Serializer):
 
 
 class SIELApplicationSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+
     class Meta:
         model = StandardApplication
         fields = ("id", "status")
+
+    def get_id(self, application):
+        return get_original_application(application).pk
 
 
 def decision_type_checker(decision_type):
