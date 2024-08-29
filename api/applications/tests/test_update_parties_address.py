@@ -3,7 +3,7 @@ from api.audit_trail.enums import AuditType
 from django.core.management import call_command
 from tempfile import NamedTemporaryFile
 import pytest
-from django.core.management.base import CommandError
+from api.parties.models import Party
 from test_helpers.clients import DataTestClient
 
 
@@ -57,5 +57,5 @@ class UpdatePartyFromCSVTests(DataTestClient):
             tmp_file.write("\n".join(rows).encode("utf-8"))
             tmp_file.flush()
 
-            with pytest.raises(CommandError):
+            with pytest.raises(Party.DoesNotExist):
                 call_command("update_party_address", tmp_file.name)
