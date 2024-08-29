@@ -117,8 +117,7 @@ class PartySerializer(serializers.ModelSerializer):
 
         return validated_data
 
-    @staticmethod
-    def validate_website(value):
+    def validate_website(self, value):
         """
         Custom validation for URL that makes use of django URLValidator
         but makes the passing of http:// or https:// optional by prepending
@@ -138,7 +137,7 @@ class PartySerializer(serializers.ModelSerializer):
             # Field is optional so doesn't validate if blank and just saves an empty string
             return ""
 
-    def validate_name(value):
+    def validate_name(self, value):
         if value:
             match_regex = re.compile(r"^[a-zA-Z0-9 .,\-\)\(\/'+:=\?\!\"%&\*;\<\>]+$")
             is_value_valid = bool(match_regex.match(value))
