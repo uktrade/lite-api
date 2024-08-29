@@ -391,8 +391,10 @@ jobs:
           command: |
             mkdir cucumber_results
       - run:
-          name: Run lite_routing tests
-          command: pipenv run pytest --circleci-parallelize --gherkin-terminal-reporter -vv api/data_workspace/v2/tests/bdd --cucumberjson=cucumber_results/cuc.json
+          name: Run lite_data_bdd tests
+          command: pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc --circleci-parallelize --gherkin-terminal-reporter -vv api/data_workspace/v2/tests/bdd --cucumberjson=cucumber_results/cuc.json
+      - upload_code_coverage:
+          alias: lite_data_bdd_tests
       - run:
           name: Generate html cucumber report
           command: node generate_cucumber_report.js
