@@ -30,7 +30,7 @@ def test_party_serializer_validate_website_invalid():
     (("random good"), ("good-name"), ("good!name"), ("good-!.<>/%&*;+'(),.name")),
 )
 def test_validate_goods_name_valid(name):
-    assert PartySerializer.validate_name(name) is name
+    assert PartySerializer.validate_name(name) == name
 
 
 @pytest.mark.parametrize("name", (("\r\n"), ("good_name"), ("good$name"), ("good@name")))

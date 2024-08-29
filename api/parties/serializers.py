@@ -138,7 +138,6 @@ class PartySerializer(serializers.ModelSerializer):
             # Field is optional so doesn't validate if blank and just saves an empty string
             return ""
 
-    @staticmethod
     def validate_name(value):
         if value:
             match_regex = re.compile(r"^[a-zA-Z0-9 .,\-\)\(\/'+:=\?\!\"%&\*;\<\>]+$")
