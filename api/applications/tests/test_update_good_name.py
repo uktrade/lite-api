@@ -3,7 +3,7 @@ from api.audit_trail.enums import AuditType
 from django.core.management import call_command
 from tempfile import NamedTemporaryFile
 import pytest
-from django.core.management.base import CommandError
+from api.goods.models import Good
 from test_helpers.clients import DataTestClient
 
 
@@ -61,5 +61,5 @@ class UpdateGoodFromCSVTests(DataTestClient):
             tmp_file.write("\n".join(rows).encode("utf-8"))
             tmp_file.flush()
 
-            with pytest.raises(CommandError):
+            with pytest.raises(Good.DoesNotExist):
                 call_command("update_good_name", tmp_file.name)
