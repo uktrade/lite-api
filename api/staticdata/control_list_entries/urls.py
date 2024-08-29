@@ -6,6 +6,7 @@ app_name = "control_list_entries"
 
 urlpatterns = [
     path("", views.ControlListEntriesList.as_view(), name="control_list_entries"),
+    path("exporter-list/", views.ExporterControlListEntriesList.as_view(), name="exporter_list"),
     path(
         "<str:rating>/",
         views.ControlListEntryDetail.as_view(),
