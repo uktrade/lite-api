@@ -138,16 +138,17 @@ class PartySerializer(serializers.ModelSerializer):
             return ""
 
     def validate_name(self, value):
-        if value:
-            match_regex = re.compile(r"^[a-zA-Z0-9 .,\-\)\(\/'+:=\?\!\"%&\*;\<\>]+$")
-            is_value_valid = bool(match_regex.match(value))
-            if not is_value_valid:
-                raise serializers.ValidationError(
-                    {
-                        "name": "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
-                    }
-                )
-            return value
+        if not value:
+            return
+
+        match_regex = re.compile(r"^[a-zA-Z0-9 .,\-\)\(\/'+:=\?\!\"%&\*;\<\>]+$")
+        is_value_valid = bool(match_regex.match(value))
+        if not is_value_valid:
+            raise serializers.ValidationError(
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+            )
+
+        return value
 
     def get_document(self, instance):
         if not instance.partydocument_set.exists():
