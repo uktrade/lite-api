@@ -23,3 +23,9 @@ class ControlListEntriesListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ControlListEntry
         fields = "__all__"
+
+
+class ExporterControlListEntriesListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ControlListEntry
+        fields = ("rating", "text")

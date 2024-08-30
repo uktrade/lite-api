@@ -14,9 +14,7 @@ class ExporterControlListEntriesListTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(list(response.json().keys()), ["control_list_entries"])
-
-        for cle in response.json()["control_list_entries"]:
+        for cle in response.json():
             self.assertEqual(list(cle.keys()), ["rating", "text"])
 
     def test_exporter_list_view_failure_bad_headers(self):
