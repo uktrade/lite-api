@@ -44,6 +44,18 @@ class TestPartySerializer(DataTestClient):
         [
             ("\r\n", "Enter a name"),
             (
+                "good\rname",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good\nname",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good\r\nname",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
                 "good_name",
                 "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
             ),
