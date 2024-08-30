@@ -1,15 +1,10 @@
 from parameterized import parameterized
 
 from api.parties.serializers import PartySerializer
-from django.core.exceptions import ValidationError
 from test_helpers.clients import DataTestClient
 
 
 class TestPartySerializer(DataTestClient):
-    def setUp(self):
-        super().setUp()
-        self.ps = PartySerializer()
-
     @parameterized.expand(
         [
             ("http://workingexample.com", "http://workingexample.com"),
@@ -21,11 +16,28 @@ class TestPartySerializer(DataTestClient):
         ]
     )
     def test_party_serializer_validate_website_valid(self, url_input, url_output):
-        self.assertEqual(url_output, self.ps.validate_website(url_input))
+        serializer = PartySerializer(
+            data={"website": url_input},
+            partial=True,
+        )
+        self.assertTrue(serializer.is_valid())
+        self.assertEqual(
+            serializer.validated_data["website"],
+            url_output,
+        )
 
     def test_party_serializer_validate_website_invalid(self):
-        with self.assertRaises(ValidationError):
-            self.ps.validate_website("invalid@ur&l-i.am")
+        serializer = PartySerializer(
+            data={"website": "invalid@ur&l-i.am"},
+            partial=True,
+        )
+        self.assertFalse(serializer.is_valid())
+        website_errors = serializer.errors["website"]
+        self.assertEqual(len(website_errors), 1)
+        self.assertEqual(
+            str(website_errors[0]),
+            "Enter a valid URL.",
+        )
 
     @parameterized.expand(
         [
@@ -36,9 +48,11 @@ class TestPartySerializer(DataTestClient):
         ]
     )
     def test_validate_goods_name_valid(self, name):
-        serializer = PartySerializer(data={"name": name})
-        serializer.is_valid()
-        self.assertNotIn("name", serializer.errors)
+        serializer = PartySerializer(
+            data={"name": name},
+            partial=True,
+        )
+        self.assertTrue(serializer.is_valid())
 
     @parameterized.expand(
         [
@@ -70,11 +84,14 @@ class TestPartySerializer(DataTestClient):
         ]
     )
     def test_validate_goods_name_invalid(self, name, error_message):
-        serializer = PartySerializer(data={"name": name})
-        serializer.is_valid()
+        serializer = PartySerializer(
+            data={"name": name},
+            partial=True,
+        )
+        self.assertFalse(serializer.is_valid())
         name_errors = serializer.errors["name"]
         self.assertEqual(len(name_errors), 1)
         self.assertEqual(
-            str(serializer.errors["name"][0]),
+            str(name_errors[0]),
             error_message,
         )
