@@ -3,7 +3,6 @@ from parameterized import parameterized
 from api.parties.serializers import PartySerializer
 from django.core.exceptions import ValidationError
 from test_helpers.clients import DataTestClient
-from rest_framework.exceptions import ValidationError as DrfValidationError
 
 
 class TestPartySerializer(DataTestClient):
@@ -37,16 +36,33 @@ class TestPartySerializer(DataTestClient):
         ]
     )
     def test_validate_goods_name_valid(self, name):
-        self.assertEqual(self.ps.validate_name(name), name)
+        serializer = PartySerializer(data={"name": name})
+        serializer.is_valid()
+        self.assertNotIn("name", serializer.errors)
 
     @parameterized.expand(
         [
-            "\r\n",
-            "good_name",
-            "good$name",
-            "good@name",
+            ("\r\n", "Enter a name"),
+            (
+                "good_name",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good$name",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good@name",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
         ]
     )
-    def test_validate_goods_name_invalid(self, name):
-        with self.assertRaises(DrfValidationError):
-            self.ps.validate_name(name)
+    def test_validate_goods_name_invalid(self, name, error_message):
+        serializer = PartySerializer(data={"name": name})
+        serializer.is_valid()
+        name_errors = serializer.errors["name"]
+        self.assertEqual(len(name_errors), 1)
+        self.assertEqual(
+            str(serializer.errors["name"][0]),
+            error_message,
+        )
