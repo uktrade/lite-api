@@ -52,4 +52,4 @@ class ExporterControlListEntriesList(generics.ListAPIView):
     model = ControlListEntry
     pagination_class = None
     serializer_class = ExporterControlListEntriesListSerializer
-    queryset = ControlListEntry.objects.all()
+    queryset = ControlListEntry.objects.filter(controlled=True)
