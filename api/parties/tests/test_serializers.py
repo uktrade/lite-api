@@ -41,13 +41,13 @@ class TestPartySerializer(DataTestClient):
 
     @parameterized.expand(
         [
-            "random good",
-            "good-name",
-            "good!name",
-            "good-!.<>/%&*;+'(),.name",
+            "random party",
+            "party-name",
+            "party!name",
+            "party-!.<>/%&*;+'(),.name",
         ]
     )
-    def test_validate_goods_name_valid(self, name):
+    def test_validate_party_name_valid(self, name):
         serializer = PartySerializer(
             data={"name": name},
             partial=True,
@@ -58,32 +58,32 @@ class TestPartySerializer(DataTestClient):
         [
             ("\r\n", "Enter a name"),
             (
-                "good\rname",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+                "party\rname",
+                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
             ),
             (
-                "good\nname",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+                "party\nname",
+                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
             ),
             (
-                "good\r\nname",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+                "party\r\nname",
+                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
             ),
             (
-                "good_name",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+                "party_name",
+                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
             ),
             (
-                "good$name",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+                "party$name",
+                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
             ),
             (
-                "good@name",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+                "party@name",
+                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
             ),
         ]
     )
-    def test_validate_goods_name_invalid(self, name, error_message):
+    def test_validate_party_name_invalid(self, name, error_message):
         serializer = PartySerializer(
             data={"name": name},
             partial=True,
