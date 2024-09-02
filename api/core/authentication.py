@@ -295,9 +295,10 @@ def _lookup_credentials(access_key_id):
 
     try:
         credentials = settings.HAWK_CREDENTIALS[access_key_id]
+        logger.warning(f"_lookup_credentials credentials {credentials}")
     except KeyError as exc:
         raise HawkFail(f"No Hawk ID of {access_key_id}") from exc
-
+    logger.warning(f"_lookup_credentials access_key_id {access_key_id}")
     return {
         "id": access_key_id,
         "algorithm": "sha256",
