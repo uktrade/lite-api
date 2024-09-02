@@ -200,21 +200,26 @@ class GovAuthentication(authentication.BaseAuthentication):
         """
         When given a gov user token, validate that the user exists and that their account is active
         """
-        logger.warning("GovAuthentication - Start")
+        logger.warning("_seen_nonce Hawk cache_key")
         hawk_receiver = _authenticate(request, _lookup_credentials)
         logger.warning("GovAuthentication - after hawk_receiver")
         if request.META.get(GOV_USER_TOKEN_HEADER):
             gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(gov_user_token)
+            logger.warning(f"GovAuthentication - user_id {user_id}")
         else:
+            logger.warning("GovAuthentication - MISSING_TOKEN_ERROR")
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
         try:
             gov_user = GovUser.objects.select_related("baseuser_ptr", "team").get(pk=user_id)
+            logger.warning("GovAuthentication - gov_user")
         except GovUser.DoesNotExist:
+            logger.warning("GovAuthentication - DoesNotExist")
             raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
         if gov_user.status == GovUserStatuses.DEACTIVATED:
+            logger.warning("GovAuthentication - USER_DEACTIVATED_ERROR")
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
         logger.warning("GovAuthentication - End")
         return gov_user.baseuser_ptr, hawk_receiver
