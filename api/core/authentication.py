@@ -255,9 +255,11 @@ def _authenticate(request, lookup_credentials):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
-
+    logger.warning("_authenticate Hawk")
     if settings.HAWK_AUTHENTICATION_ENABLED:
+        logger.warning("_authenticate Hawk HAWK_AUTHENTICATION_ENABLED")
         header = request.META.get("HTTP_HAWK_AUTHENTICATION") or request.META.get("HTTP_AUTHORIZATION") or ""
+        logger.warning(f"_authenticate Hawk header {header}")
         return Receiver(
             lookup_credentials,
             header,
@@ -276,10 +278,10 @@ def _seen_nonce(access_key_id, nonce, _):
     """
 
     cache_key = f"hawk:{access_key_id}:{nonce}"
-
+    logger.warning(f"_seen_nonce Hawk cache_key {cache_key}")
     # cache.add only adds key if it isn't present
     seen_cache_key = not cache.add(cache_key, True, timeout=settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS)
-
+    logger.warning(f"_seen_nonce Hawk seen_cache_key {seen_cache_key}")
     if seen_cache_key:
         raise AlreadyProcessed(f"Already seen nonce {nonce}")
 
