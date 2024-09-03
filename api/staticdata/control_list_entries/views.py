@@ -1,15 +1,12 @@
 from django.http import JsonResponse
-from rest_framework import generics, permissions
+from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
-from api.core.authentication import SharedAuthentication, ExporterAuthentication
+from api.core.authentication import SharedAuthentication
 from api.staticdata.control_list_entries.helpers import get_control_list_entry, convert_control_list_entries_to_tree
 from api.staticdata.control_list_entries.models import ControlListEntry
-from api.staticdata.control_list_entries.serializers import (
-    ControlListEntrySerializerWithLinks,
-    ExporterControlListEntriesListSerializer,
-)
+from api.staticdata.control_list_entries.serializers import ControlListEntrySerializerWithLinks
 
 
 @permission_classes((permissions.AllowAny,))
@@ -45,11 +42,3 @@ class ControlListEntryDetail(APIView):
         control_list_entry = get_control_list_entry(rating)
         serializer = ControlListEntrySerializerWithLinks(control_list_entry)
         return JsonResponse(data={"control_list_entry": serializer.data})
-
-
-class ExporterControlListEntriesList(generics.ListAPIView):
-    authentication_classes = (ExporterAuthentication,)
-    model = ControlListEntry
-    pagination_class = None
-    serializer_class = ExporterControlListEntriesListSerializer
-    queryset = ControlListEntry.objects.filter(controlled=True)
