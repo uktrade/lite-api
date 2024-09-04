@@ -161,6 +161,41 @@ class OrganisationDocumentViewTests(DataTestClient):
             },
         )
 
+    def test_retrieve_documents_on_organisation_details(self):
+        # We create 2 documents on the organisation
+
+        DocumentOnOrganisationFactory.create(
+            organisation=self.organisation,
+            expiry_date=datetime.now() + timedelta(days=365),
+            document_type=OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE,
+            reference_code="123",
+            document__name="some-document-one",
+            document__s3_key="some-document-one",
+            document__size=476,
+            document__safe=True,
+            created_at=datetime.now() - timedelta(hours=1),
+        )
+        DocumentOnOrganisationFactory.create(
+            organisation=self.organisation,
+            expiry_date=datetime.now() + timedelta(days=365),
+            document_type=OrganisationDocumentType.REGISTERED_FIREARM_DEALER_CERTIFICATE,
+            reference_code="321",
+            document__name="some-document-two",
+            document__s3_key="some-document-two",
+            document__size=476,
+            document__safe=True,
+            created_at=datetime.now(),
+        )
+
+        url = reverse("organisations:organisation", kwargs={"pk": self.organisation.pk})
+
+        response = self.client.get(url, **self.exporter_headers)
+
+        # We check that the first document delivered to organisation details is the most recently created
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["documents"][0]["document"]["name"], "some-document-two")
+
     def test_retrieve_organisation_documents_invalid_organisation(self):
         other_organisation, _ = self.create_organisation_with_exporter_user()
         document_on_application = DocumentOnOrganisationFactory.create(
