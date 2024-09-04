@@ -1,5 +1,5 @@
 import factory
-
+import factory.fuzzy
 from faker import Faker
 
 from api.applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
@@ -14,7 +14,8 @@ from api.applications.models import (
     GoodOnApplicationInternalDocument,
     StandardApplication,
 )
-from api.cases.enums import CaseTypeEnum
+from api.cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from api.cases.models import Advice
 from api.external_data.models import Denial, DenialEntity, SanctionMatch
 from api.documents.tests.factories import DocumentFactory
 from api.staticdata.statuses.models import CaseStatus
@@ -238,5 +239,28 @@ class DraftStandardApplicationFactory(StandardApplicationFactory):
 
         if kwargs["goods_recipients"] == StandardApplication.VIA_CONSIGNEE_AND_THIRD_PARTIES:
             PartyOnApplicationFactory(application=obj, party=ThirdPartyFactory(organisation=obj.organisation))
+
+        return obj
+
+
+class AdviceFactory(factory.django.DjangoModelFactory):
+    user = factory.SubFactory(GovUserFactory)
+    case = factory.SubFactory(StandardApplicationFactory)
+    type = factory.fuzzy.FuzzyChoice(AdviceType.choices, getter=lambda t: t[0])
+    level = factory.fuzzy.FuzzyChoice(AdviceLevel.choices, getter=lambda t: t[0])
+
+    class Meta:
+        model = Advice
+
+
+class FinalAdviceOnApplicationFactory(StandardApplicationFactory):
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.status = get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW)
+        obj.save()
+
+        AdviceFactory(case=obj, level=AdviceLevel.FINAL)
 
         return obj
