@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from api.audit_trail.enums import AuditType
 from api.common.dates import is_bank_holiday, is_weekend
-from api.users.models import BaseUser, GovUser, GovNotification
+from api.users.models import BaseUser, GovUser
 from api.users.enums import SystemUser
 
 
@@ -20,17 +20,6 @@ def get_assigned_as_case_officer_case_ids(user: GovUser):
     from api.cases.models import Case
 
     return Case.objects.filter(case_officer=user).values_list("id", flat=True)
-
-
-def get_updated_case_ids(user: GovUser):
-    """
-    Get the cases that have raised notifications when updated by an exporter
-    """
-    assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
-    assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
-    cases = assigned_to_user_case_ids.union(assigned_as_case_officer_case_ids)
-
-    return GovNotification.objects.filter(user_id=user.pk, case__id__in=cases).values_list("case__id", flat=True)
 
 
 def working_days_in_range(start_date, end_date):
