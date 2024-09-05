@@ -21,6 +21,9 @@ class GetLicenceTests(DataTestClient):
         good_advice = FinalAdviceFactory(
             user=self.gov_user, team=self.team, case=application, good=good, type=AdviceType.APPROVE
         )
+        # Creating muliple advice to ensure it's handled
+        FinalAdviceFactory(user=self.gov_user, team=self.team, case=application, good=good, type=AdviceType.APPROVE)
+
         good_on_application = GoodOnApplicationFactory(
             application=application, good=good, quantity=100.0, value=1500, unit=Units.KGM
         )

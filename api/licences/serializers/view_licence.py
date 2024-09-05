@@ -164,7 +164,9 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
     advice = serializers.SerializerMethodField()
 
     def get_advice(self, instance):
-        advice = instance.good.good.advice.get(level=AdviceLevel.FINAL, case_id=instance.licence.case_id)
+        # Muliple advice of objects may exist if the product has been used muliple times on an application.
+        # In this scenario the same advice object is created muliple times hence we only need to display the first one.
+        advice = instance.good.good.advice.filter(level=AdviceLevel.FINAL, case_id=instance.licence.case_id).first()
         return SimpleAdviceSerializer(instance=advice).data
 
     def get_applied_for_value_per_item(self, instance):
