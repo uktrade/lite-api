@@ -9,4 +9,10 @@ class ControlListEntriesList(generics.ListAPIView):
     authentication_classes = (ExporterAuthentication,)
     pagination_class = None
     serializer_class = ControlListEntriesListSerializer
-    queryset = ControlListEntry.objects.filter(controlled=True, deprecated=False)
+
+    def get_queryset(self):
+        include_deprecated = self.request.GET.get("include_deprecated", False)
+        if include_deprecated:
+            return ControlListEntry.objects.filter(controlled=True)
+
+        return ControlListEntry.objects.filter(controlled=True, deprecated=False)

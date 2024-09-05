@@ -47,7 +47,7 @@ class ControlListEntriesListTests(DataTestClient):
             ],
         )
 
-    def test_list_view_ignores_deprecated_cles(self):
+    def test_list_view_ignores_deprecated_cles_by_default(self):
         cles_count_model = ControlListEntry.objects.all().count()
 
         # Assert that we have at least 1 CLE returned by the db manager
@@ -81,3 +81,39 @@ class ControlListEntriesListTests(DataTestClient):
 
         # Assert that the data returned by the view does not contain the deprecated CLE
         self.assertNotIn("rating123", [cle["rating"] for cle in updated_cles_data])
+
+    def test_list_view_includes_deprecated_cles_if_include_deprecated_is_true(self):
+        url = reverse("exporter_staticdata:control_list_entries:control_list_entries") + "?include_deprecated=True"
+        cles_count_model = ControlListEntry.objects.all().count()
+
+        # Assert that we have at least 1 CLE returned by the db manager
+        self.assertTrue(cles_count_model > 0)
+
+        response = self.client.get(url, **self.exporter_headers)
+        cles_data = response.json()
+        cles_count_data = len(cles_data)
+
+        # Assert that we have at least 1 CLE returned by the view
+        self.assertTrue(cles_count_data > 0)
+
+        # Create a CLE with deprecated=True
+        deprecated_cle = ControlListEntriesFactory(rating="rating123", text="text", deprecated=True)
+
+        # Assert that the object was created successfully
+        self.assertTrue(deprecated_cle.deprecated)
+        self.assertTrue(ControlListEntry.objects.filter(rating="rating123", deprecated=True).count() == 1)
+
+        updated_cles_count_model = ControlListEntry.objects.all().count()
+
+        # Assert that the count returned by the db manager has increased by 1
+        self.assertTrue(updated_cles_count_model == cles_count_model + 1)
+
+        response = self.client.get(url, **self.exporter_headers)
+        updated_cles_data = response.json()
+        updated_cles_count_data = len(updated_cles_data)
+
+        # Assert that the count returned by the view has increased by 1
+        self.assertTrue(updated_cles_count_data == cles_count_data + 1)
+
+        # Assert that the data returned by the view contains the deprecated CLE
+        self.assertIn("rating123", [cle["rating"] for cle in updated_cles_data])
