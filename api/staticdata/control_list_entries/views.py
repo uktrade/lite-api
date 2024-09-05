@@ -3,7 +3,7 @@ from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
-from api.core.authentication import SharedAuthentication
+from api.core.authentication import GovAuthentication, SharedAuthentication
 from api.staticdata.control_list_entries.helpers import get_control_list_entry, convert_control_list_entries_to_tree
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializerWithLinks
@@ -11,7 +11,7 @@ from api.staticdata.control_list_entries.serializers import ControlListEntrySeri
 
 @permission_classes((permissions.AllowAny,))
 class ControlListEntriesList(APIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (GovAuthentication,)
 
     def get_queryset(self, include_deprecated=False):
         if include_deprecated:

@@ -46,3 +46,38 @@ class ControlListEntriesListTests(DataTestClient):
                 {"rating": cle_3.rating, "text": cle_3.text},
             ],
         )
+
+    def test_list_view_ignores_deprecated_cles(self):
+        cles_count_model = ControlListEntry.objects.all().count()
+
+        # Assert that we have at least 1 CLE returned by the db manager
+        self.assertTrue(cles_count_model > 0)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        cles_data = response.json()
+        cles_count_data = len(cles_data)
+
+        # Assert that we have at least 1 CLE returned by the view
+        self.assertTrue(cles_count_data > 0)
+
+        # Create a CLE with deprecated=True
+        deprecated_cle = ControlListEntriesFactory(rating="rating123", text="text", deprecated=True)
+
+        # Assert that the object was created successfully
+        self.assertTrue(deprecated_cle.deprecated)
+        self.assertTrue(ControlListEntry.objects.filter(rating="rating123", deprecated=True).count() == 1)
+
+        updated_cles_count_model = ControlListEntry.objects.all().count()
+
+        # Assert that the count returned by the db manager has increased by 1
+        self.assertTrue(updated_cles_count_model == cles_count_model + 1)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        updated_cles_data = response.json()
+        updated_cles_count_data = len(updated_cles_data)
+
+        # Assert that the count returned by the view is unchanged
+        self.assertTrue(updated_cles_count_data == cles_count_data)
+
+        # Assert that the data returned by the view does not contain the deprecated CLE
+        self.assertNotIn("rating123", [cle["rating"] for cle in updated_cles_data])

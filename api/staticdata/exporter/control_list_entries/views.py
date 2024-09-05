@@ -9,4 +9,4 @@ class ControlListEntriesList(generics.ListAPIView):
     authentication_classes = (ExporterAuthentication,)
     pagination_class = None
     serializer_class = ControlListEntriesListSerializer
-    queryset = ControlListEntry.objects.filter(controlled=True)
+    queryset = ControlListEntry.objects.filter(controlled=True, deprecated=False)
