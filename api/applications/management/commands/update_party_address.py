@@ -20,7 +20,7 @@ class Command(BaseCommand):
         with transaction.atomic():
             for row in reader:
                 party_id = row["party_id"]
-                address = row["address"]
+                address = row["address"].replace("\\r\\n", "\r\n")
                 new_address = row["new_address"]
                 additional_text = row["additional_text"]
 
