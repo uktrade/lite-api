@@ -6,59 +6,58 @@ from gov_notify.enums import TemplateType
 from gov_notify.payloads import (
     ExporterECJUQuery,
     ExporterECJUQueryChaser,
-    ExporterLicenceIssued,
-    ExporterLicenceRefused,
     ExporterNoLicenceRequired,
     ExporterLicenceRevoked,
     ExporterInformLetter,
     ExporterAppealAcknowledgement,
     ExporterLicenceSuspended,
 )
+from gov_notify.email import NotifyEmail
 from gov_notify.service import send_email
 
 
-def _notify_exporter_licence_issued(email, data):
-    payload = ExporterLicenceIssued(**data)
-    send_email(
-        email,
-        TemplateType.EXPORTER_LICENCE_ISSUED,
-        payload,
-    )
+class NotifyExporterLicenceIssued(NotifyEmail):
+    template_id = "f2757d61-2319-4279-82b2-a52170b0222a"
+
+    def __init__(self, case):
+        self.case = case
+        self.exporter = case.submitted_by
+
+    def get_email_recipient(self):
+        return self.exporter.email
+
+    def get_data(self):
+        return {
+            "user_first_name": self.exporter.first_name,
+            "application_reference": self.case.reference_code,
+            "exporter_frontend_url": get_exporter_frontend_url("/"),
+        }
 
 
 def notify_exporter_licence_issued(case):
-    exporter = case.submitted_by
-    case = case.get_case()
-    _notify_exporter_licence_issued(
-        exporter.email,
-        {
-            "user_first_name": exporter.first_name,
-            "application_reference": case.reference_code,
+    NotifyExporterLicenceIssued(case).send()
+
+
+class NotifyExporterLicenceRefused(NotifyEmail):
+    template_id = "6d8089be-9551-456d-8305-d4185555f725"
+
+    def __init__(self, case):
+        self.case = case
+        self.exporter = case.submitted_by
+
+    def get_email_recipient(self):
+        return self.exporter.email
+
+    def get_data(self):
+        return {
+            "user_first_name": self.exporter.first_name,
+            "application_reference": self.case.reference_code,
             "exporter_frontend_url": get_exporter_frontend_url("/"),
-        },
-    )
-
-
-def _notify_exporter_licence_refused(email, data):
-    payload = ExporterLicenceRefused(**data)
-    send_email(
-        email,
-        TemplateType.EXPORTER_LICENCE_REFUSED,
-        payload,
-    )
+        }
 
 
 def notify_exporter_licence_refused(case):
-    exporter = case.submitted_by
-    case = case.get_case()
-    _notify_exporter_licence_refused(
-        exporter.email,
-        {
-            "user_first_name": exporter.first_name,
-            "application_reference": case.reference_code,
-            "exporter_frontend_url": get_exporter_frontend_url("/"),
-        },
-    )
+    NotifyExporterLicenceRefused(case).send()
 
 
 def _notify_exporter_licence_revoked(email, data):

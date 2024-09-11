@@ -15,8 +15,6 @@ from api.users.tests.factories import ExporterUserFactory
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import (
     ExporterECJUQuery,
-    ExporterLicenceIssued,
-    ExporterLicenceRefused,
     ExporterLicenceRevoked,
     ExporterLicenceSuspended,
     ExporterNoLicenceRequired,
@@ -32,36 +30,32 @@ class NotifyTests(DataTestClient):
         self.case = self.create_standard_application_case(self.organisation)
         self.licence = StandardLicenceFactory(case=self.case)
 
-    @mock.patch("api.cases.notify.send_email")
+    @mock.patch("gov_notify.email.send_email")
     def test_notify_licence_issued(self, mock_send_email):
-        expected_payload = ExporterLicenceIssued(
-            user_first_name=self.exporter_user.first_name,
-            application_reference=self.case.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
-        )
-
         notify_exporter_licence_issued(self.case)
 
         mock_send_email.assert_called_with(
             self.exporter_user.email,
-            TemplateType.EXPORTER_LICENCE_ISSUED,
-            expected_payload,
+            "f2757d61-2319-4279-82b2-a52170b0222a",
+            {
+                "user_first_name": self.exporter_user.first_name,
+                "application_reference": self.case.reference_code,
+                "exporter_frontend_url": "https://exporter.lite.service.localhost.uktrade.digital/",
+            },
         )
 
-    @mock.patch("api.cases.notify.send_email")
+    @mock.patch("gov_notify.email.send_email")
     def test_notify_licence_refused(self, mock_send_email):
-        expected_payload = ExporterLicenceRefused(
-            user_first_name=self.exporter_user.first_name,
-            application_reference=self.case.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
-        )
-
         notify_exporter_licence_refused(self.case)
 
         mock_send_email.assert_called_with(
             self.exporter_user.email,
-            TemplateType.EXPORTER_LICENCE_REFUSED,
-            expected_payload,
+            "6d8089be-9551-456d-8305-d4185555f725",
+            {
+                "user_first_name": self.exporter_user.first_name,
+                "application_reference": self.case.reference_code,
+                "exporter_frontend_url": "https://exporter.lite.service.localhost.uktrade.digital/",
+            },
         )
 
     @mock.patch("api.cases.notify.send_email")
