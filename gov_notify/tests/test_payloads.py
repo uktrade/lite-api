@@ -1,5 +1,3 @@
-from unittest import mock
-
 from parameterized import parameterized
 from rest_framework.test import APITestCase
 
@@ -9,22 +7,6 @@ from gov_notify import payloads
 class DataclassTests(APITestCase):
     @parameterized.expand(
         [
-            (
-                payloads.EcjuCreatedEmailData,
-                {
-                    "case_reference": "testref",
-                    "application_reference": "testref2",
-                    "link": "testlink",
-                },
-            ),
-            (
-                payloads.ApplicationStatusEmailData,
-                {
-                    "case_reference": "testref",
-                    "application_reference": "testref2",
-                    "link": "testlink",
-                },
-            ),
             (
                 payloads.ExporterRegistration,
                 {
@@ -97,7 +79,7 @@ class DataclassTests(APITestCase):
                 payloads.CaseWorkerNewRegistration,
                 {
                     "organisation_name": "testref",
-                    "applicant_email": "test@user.com",
+                    "applicant_email": "test@user.com",  # /PS-IGNORE
                 },
             ),
         ]
