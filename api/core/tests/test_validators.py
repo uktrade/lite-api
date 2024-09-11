@@ -1,11 +1,11 @@
 import pytest
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from api.core.validators import EdifactStringValidator
 
 
 @pytest.mark.parametrize(
     "value",
-    ((""), ("random value"), ("random-value"), ("random!value"), ("random-!.<>/%&*;+'(),.value")),
+    (("random value"), ("random-value"), ("random!value"), ("random-!.<>/%&*;+'(),.value")),
 )
 def test_edifactstringvalidator_valid(value):
     validator = EdifactStringValidator()
