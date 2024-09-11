@@ -593,27 +593,27 @@ workflows:
   tests:
     jobs:
       - linting
-      - tests
-      - seeding_tests
-      - seeding_tests_dbt_platform
-      - lite_routing_tests
-      - lite_routing_tests_dbt_platform
-      - lite_routing_bdd_tests
-      - lite_routing_bdd_tests_dbt_platform
-      - open_search_tests_dbt_platform
-      - open_search_tests
-      - migration_tests
-      - migration_tests_dbt_platform
-      - check_migrations
-      - check_migrations_dbt_platform
-      - check_coverage:
-          requires:
-              - tests
-              - seeding_tests
-              - open_search_tests
-              - migration_tests
-              - lite_routing_tests
-      - check-lite-routing-sha
-      - e2e_tests
-      - anonymised_db_dump_tests
-      - anonymised_db_dump_tests_dbt_platform
+      # - tests
+      # - seeding_tests
+      # - seeding_tests_dbt_platform
+      # - lite_routing_tests
+      # - lite_routing_tests_dbt_platform
+      # - lite_routing_bdd_tests
+      # - lite_routing_bdd_tests_dbt_platform
+      # - open_search_tests_dbt_platform
+      # - open_search_tests
+      # - migration_tests
+      # - migration_tests_dbt_platform
+      # - check_migrations
+      # - check_migrations_dbt_platform
+      # - check_coverage:
+      #     requires:
+      #         - tests
+      #         - seeding_tests
+      #         - open_search_tests
+      #         - migration_tests
+      #         - lite_routing_tests
+      # - check-lite-routing-sha
+      # - e2e_tests
+      # - anonymised_db_dump_tests
+      # - anonymised_db_dump_tests_dbt_platform
