@@ -10,7 +10,7 @@ from api.core.validators import EdifactStringValidator
 def test_edifactstringvalidator_valid(value):
     validator = EdifactStringValidator()
     result = validator(value)
-    assert result == None
+    assert result is None
 
 
 @pytest.mark.parametrize("value", (("\r\n"), ("random_value"), ("random$value"), ("random@value")))
