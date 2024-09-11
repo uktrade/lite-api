@@ -54,7 +54,6 @@ class ExporterLicenceRefused(EmailData):
 class ExporterLicenceRevoked(EmailData):
     user_first_name: str
     application_reference: str
-    exporter_frontend_url: str
 
 
 @dataclass(frozen=True)
@@ -122,7 +121,6 @@ class ExporterInformLetter(EmailData):
 class ExporterAppealAcknowledgement(EmailData):
     user_first_name: str
     application_reference: str
-    exporter_frontend_url: str
 
 
 @dataclass(frozen=True)
