@@ -12,20 +12,6 @@ class EmailData:
 
 
 @dataclass(frozen=True)
-class EcjuCreatedEmailData(EmailData):
-    case_reference: str
-    application_reference: str
-    link: str
-
-
-@dataclass(frozen=True)
-class ApplicationStatusEmailData(EmailData):
-    case_reference: str
-    application_reference: str
-    link: str
-
-
-@dataclass(frozen=True)
 class ExporterRegistration(EmailData):
     organisation_name: str
 
