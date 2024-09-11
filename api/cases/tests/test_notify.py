@@ -69,7 +69,6 @@ class NotifyTests(DataTestClient):
         expected_payload = ExporterLicenceRevoked(
             user_first_name=self.exporter_user.first_name,
             application_reference=self.licence.case.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
         )
 
         notify_exporter_licence_revoked(self.licence)
@@ -154,7 +153,6 @@ class NotifyTests(DataTestClient):
         expected_payload = ExporterAppealAcknowledgement(
             user_first_name=self.case.submitted_by.first_name,
             application_reference=self.case.reference_code,
-            exporter_frontend_url="https://exporter.lite.service.localhost.uktrade.digital/",
         )
         mock_send_email.assert_called_with(
             self.case.submitted_by.email,
