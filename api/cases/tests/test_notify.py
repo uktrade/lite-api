@@ -32,7 +32,7 @@ class NotifyTests(DataTestClient):
         self.case = self.create_standard_application_case(self.organisation)
         self.licence = StandardLicenceFactory(case=self.case)
 
-    @mock.patch("api.cases.notify.send_email")
+    @mock.patch("gov_notify.registry.send_email")
     def test_notify_licence_issued(self, mock_send_email):
         expected_payload = ExporterLicenceIssued(
             user_first_name=self.exporter_user.first_name,
