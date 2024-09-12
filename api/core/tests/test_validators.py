@@ -1,0 +1,20 @@
+import pytest
+from rest_framework.exceptions import ValidationError
+from api.core.validators import EdifactStringValidator
+
+
+@pytest.mark.parametrize(
+    "value",
+    (("random value"), ("random-value"), ("random!value"), ("random-!.<>/%&*;+'(),.value")),
+)
+def test_edifactstringvalidator_valid(value):
+    validator = EdifactStringValidator()
+    result = validator(value)
+    assert result is None
+
+
+@pytest.mark.parametrize("value", (("\r\n"), ("random_value"), ("random$value"), ("random@value")))
+def test_edifactstringvalidator_invalid(value):
+    validator = EdifactStringValidator()
+    with pytest.raises(ValidationError):
+        results = validator(value)
