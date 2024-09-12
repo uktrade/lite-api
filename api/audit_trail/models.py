@@ -1,6 +1,6 @@
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timesince
@@ -9,7 +9,6 @@ from django.utils.translation import gettext_lazy as _
 from api.audit_trail.managers import AuditManager
 from api.audit_trail.enums import AuditType
 from api.common.models import TimestampableModel
-from api.users.models import GovNotification
 
 
 class Audit(TimestampableModel):
@@ -50,8 +49,6 @@ class Audit(TimestampableModel):
     payload = models.JSONField(default=dict)
 
     objects = AuditManager()
-
-    notifications = GenericRelation(GovNotification, related_query_name="audit")
 
     class Meta:
         ordering = ("-created_at",)

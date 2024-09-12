@@ -59,5 +59,4 @@ def create_submitted_audit(user, application, old_status: str, additional_payloa
         target=application.get_case(),
         payload=payload,
         ignore_case_status=True,
-        send_notification=False,
     )
