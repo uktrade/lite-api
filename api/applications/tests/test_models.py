@@ -1,9 +1,16 @@
+import concurrent.futures
+import pytest
+
 from django.forms import model_to_dict
+from django.test import TransactionTestCase
 from django.utils import timezone
+
+from parameterized import parameterized
 
 from test_helpers.clients import DataTestClient
 
 from api.appeals.tests.factories import AppealFactory
+from api.applications.exceptions import AmendmentError
 from api.audit_trail.models import Audit
 from api.cases.models import CaseType, Queue
 from api.flags.models import Flag
@@ -32,8 +39,12 @@ from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.report_summaries.models import ReportSummary, ReportSummaryPrefix, ReportSummarySubject
 from api.staticdata.statuses.models import CaseStatus, CaseSubStatus
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import (
+    CaseStatusEnum,
+)
+from api.users.enums import SystemUser
 from api.users.models import ExporterUser
+from api.users.tests.factories import BaseUserFactory
 
 
 class TestBaseApplication(DataTestClient):
@@ -79,9 +90,10 @@ class TestBaseApplication(DataTestClient):
 
 class TestStandardApplication(DataTestClient):
 
-    def test_create_amendment(self):
+    @parameterized.expand(CaseStatusEnum.can_invoke_major_edit_statuses())
+    def test_create_amendment(self, major_editable_status):
         original_application = StandardApplicationFactory(
-            status=CaseStatus.objects.get(status="ogd_advice"),
+            status=CaseStatus.objects.get(status=major_editable_status),
         )
         original_application.queues.add(Queue.objects.first())
         original_application.save()
@@ -109,9 +121,21 @@ class TestStandardApplication(DataTestClient):
         assert amendment_audit_entry.actor == exporter_user
         status_change_audit_entry = audit_entries[0]
         assert status_change_audit_entry.payload == {
-            "status": {"new": "superseded_by_exporter_edit", "old": "ogd_advice"}
+            "status": {"new": "superseded_by_exporter_edit", "old": major_editable_status}
         }
         assert status_change_audit_entry.verb == "updated_status"
+
+    @parameterized.expand(CaseStatusEnum.can_not_invoke_major_edit_statuses())
+    def test_create_amendment_failure(self, non_major_editable_status):
+        original_application = StandardApplicationFactory(
+            status=CaseStatus.objects.get(status=non_major_editable_status),
+        )
+        original_application.queues.add(Queue.objects.first())
+        original_application.save()
+
+        exporter_user = ExporterUser.objects.first()
+        with self.assertRaises(AmendmentError):
+            amendment_application = original_application.create_amendment(exporter_user)
 
     def test_clone(self):
         original_application = StandardApplicationFactory(
@@ -574,3 +598,34 @@ class TestPartyOnApplication(DataTestClient):
         cloned by default or not and adjust PartyOnApplication.clone_*
         attributes accordingly.
         """
+
+
+@pytest.mark.requires_transactions
+class TestStandardApplicationRaceConditions(TransactionTestCase):
+    def test_create_amendment_race_condition_success(self):
+        BaseUserFactory(id=SystemUser.id)
+
+        original_application = StandardApplicationFactory()
+
+        original_application = StandardApplication.objects.get(pk=original_application.pk)
+        same_application = StandardApplication.objects.get(pk=original_application.pk)
+
+        exporter_user = ExporterUser.objects.first()
+
+        def _create_amendment(application):
+            return application.create_amendment(exporter_user)
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_1 = executor.submit(_create_amendment, original_application)
+            future_2 = executor.submit(_create_amendment, same_application)
+
+            amendment_1 = future_1.result()
+            amendment_2 = future_2.result()
+
+        self.assertEqual(
+            StandardApplication.objects.count(),
+            2,
+        )
+        self.assertEqual(amendment_1, amendment_2)
+        self.assertEqual(amendment_1.amendment_of.get_case(), original_application.get_case())
+        self.assertEqual(amendment_2.amendment_of.get_case(), original_application.get_case())
