@@ -48,7 +48,7 @@ defusedxml = "~=0.6.0"
 xmlschema = "~=1.2.0"
 notifications-python-client = "~=5.7.1"
 dataclasses = "~=0.6"
-endesive = "~=1.5.9"
+# endesive = "~=1.5.9" (not included here as installed in a later jenkins step. Uncomment if working locally)
 python-pkcs11 = "~=0.7.0"
 pykcs11 = "~=1.4.4"
 pypdf2 = "~=1.27.5"
