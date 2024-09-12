@@ -3,6 +3,7 @@ from rest_framework import serializers, relations
 
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.serializers import KeyValueChoiceField, CountrySerializerField
+from api.core.validators import PartyAddressValidator
 from api.documents.libraries.process_document import process_document
 from api.flags.serializers import FlagSerializer
 from api.goods.enums import PvGrading
@@ -15,7 +16,7 @@ from api.parties.models import PartyDocument
 
 class PartySerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages=PartyErrors.NAME)
-    address = serializers.CharField(error_messages=PartyErrors.ADDRESS)
+    address = serializers.CharField(error_messages=PartyErrors.ADDRESS, validators=[PartyAddressValidator()])
     country = CountrySerializerField()
     website = serializers.CharField(required=False, allow_blank=True)
     signatory_name_euu = serializers.CharField(allow_blank=True)
@@ -116,8 +117,7 @@ class PartySerializer(serializers.ModelSerializer):
 
         return validated_data
 
-    @staticmethod
-    def validate_website(value):
+    def validate_website(self, value):
         """
         Custom validation for URL that makes use of django URLValidator
         but makes the passing of http:// or https:// optional by prepending

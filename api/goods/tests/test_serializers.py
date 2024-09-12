@@ -1,4 +1,5 @@
 from datetime import datetime
+from parameterized import parameterized
 
 from django.urls import reverse
 from django.utils import timezone
@@ -150,6 +151,61 @@ class GoodSerializerInternalTests(DataTestClient):
         self.assertEqual(actual_subject["id"], str(self.good.report_summary_subject.id))
         self.assertEqual(actual_subject["name"], self.good.report_summary_subject.name)
 
+    @parameterized.expand(
+        [
+            "random good",
+            "good-name",
+            "good!name",
+            "good-!.<>/%&*;+'(),.name",
+        ]
+    )
+    def test_validate_good_internal_name_valid(self, name):
+        serializer = GoodSerializerInternal(
+            data={"name": name},
+            partial=True,
+        )
+        self.assertTrue(serializer.is_valid())
+
+    @parameterized.expand(
+        [
+            ("", "This field may not be blank."),
+            ("\r\n", "This field may not be blank."),
+            (
+                "good\rname",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good\nname",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good\r\nname",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good_name",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good$name",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good@name",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+        ]
+    )
+    def test_validate_good_internal_name_invalid(self, name, error_message):
+        serializer = GoodSerializerInternal(data={"name": name}, partial=True)
+        self.assertFalse(serializer.is_valid())
+        name_errors = serializer.errors["name"]
+        self.assertEqual(len(name_errors), 1)
+        self.assertEqual(
+            str(name_errors[0]),
+            error_message,
+        )
+
 
 class GoodSerializerExporterFullDetailTests(DataTestClient):
 
@@ -181,4 +237,59 @@ class GoodSerializerExporterFullDetailTests(DataTestClient):
         self.assertEqual(
             archive_history["actioned_on"],
             datetime(2024, 1, 1, 9, 0, 0, tzinfo=timezone.get_current_timezone()),
+        )
+
+    @parameterized.expand(
+        [
+            "random good",
+            "good-name",
+            "good!name",
+            "good-!.<>/%&*;+'(),.name",
+        ]
+    )
+    def test_validate_good_exporter_name_valid(self, address):
+        serializer = GoodSerializerInternal(
+            data={"address": address},
+            partial=True,
+        )
+        self.assertTrue(serializer.is_valid())
+
+    @parameterized.expand(
+        [
+            ("", "This field may not be blank."),
+            ("\r\n", "This field may not be blank."),
+            (
+                "good\rname",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good\nname",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good\r\nname",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good_name",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good$name",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+            (
+                "good@name",
+                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
+            ),
+        ]
+    )
+    def test_validate_good_exporter_name_invalid(self, name, error_message):
+        serializer = GoodSerializerExporterFullDetail(data={"name": name}, partial=True)
+        self.assertFalse(serializer.is_valid())
+        name_errors = serializer.errors["name"]
+        self.assertEqual(len(name_errors), 1)
+        self.assertEqual(
+            str(name_errors[0]),
+            error_message,
         )
