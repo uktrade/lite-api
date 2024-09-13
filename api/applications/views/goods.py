@@ -363,7 +363,6 @@ class ApplicationGoodOnApplicationUpdateSerialNumbers(APIView):
                 "good_name": good_on_application.good.name,
             },
             ignore_case_status=True,
-            send_notification=False,
         )
 
         return JsonResponse(
