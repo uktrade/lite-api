@@ -11,8 +11,8 @@ class ControlListEntriesList(generics.ListAPIView):
     serializer_class = ControlListEntriesListSerializer
 
     def get_queryset(self):
-        include_deprecated = self.request.GET.get("include_deprecated", False)
-        if include_deprecated:
+        include_unselectable = self.request.GET.get("include_unselectable", False)
+        if include_unselectable:
             return ControlListEntry.objects.filter(controlled=True)
 
-        return ControlListEntry.objects.filter(controlled=True, deprecated=False)
+        return ControlListEntry.objects.filter(controlled=True, selectable_for_assessment=True)

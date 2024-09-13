@@ -13,20 +13,20 @@ from api.staticdata.control_list_entries.serializers import ControlListEntrySeri
 class ControlListEntriesList(APIView):
     authentication_classes = (GovAuthentication,)
 
-    def get_queryset(self, include_deprecated=False):
-        if include_deprecated:
+    def get_queryset(self, include_unselectable=False):
+        if include_unselectable:
             return ControlListEntry.objects.filter(controlled=True)
 
-        return ControlListEntry.objects.filter(controlled=True, deprecated=False)
+        return ControlListEntry.objects.filter(controlled=True, selectable_for_assessment=True)
 
     def get(self, request):
         """
         Returns list of all Control List Entries
         """
 
-        include_deprecated = request.GET.get("include_deprecated", False)
+        include_unselectable = request.GET.get("include_unselectable", False)
 
-        queryset = self.get_queryset(include_deprecated=include_deprecated)
+        queryset = self.get_queryset(include_unselectable=include_unselectable)
 
         if request.GET.get("group", False):
             return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree(queryset.values())})
