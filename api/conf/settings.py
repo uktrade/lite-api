@@ -137,6 +137,14 @@ INSTALLED_APPS = [
     "drf_spectacular",
 ]
 
+if not IS_ENV_DBT_PLATFORM:
+    INSTALLED_APPS += [
+        "health_check.db",
+        "health_check.cache",
+        "health_check.storage",
+        "health_check.contrib.migrations"
+    ]
+
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
 
 if MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS:
