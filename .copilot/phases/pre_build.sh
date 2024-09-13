@@ -28,6 +28,7 @@ EOF
 
 update_pip_file_for_dbt_platform() {
   sed -i 's/\[packages\]/[packages]\nendesive = "~=1.5.9"\npython-pkcs11 = "~=0.7.0"\npykcs11 = "~=1.4.4"\n/' Pipfile
+  pipenv lock
 }
 
 main() {
