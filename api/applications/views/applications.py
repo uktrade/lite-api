@@ -457,7 +457,6 @@ class ApplicationFinaliseView(APIView):
             }
             for goa in approved_goods_on_application
         ]
-
         return JsonResponse({"goods": good_on_applications_with_advice})
 
     @transaction.atomic  # noqa
@@ -501,6 +500,13 @@ class ApplicationFinaliseView(APIView):
 
         # Refusals & NLRs
         if action in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
+            # If we get to this point with an issued licence for any reason it should be cancelled
+            try:
+                licence = Licence.objects.get_draft_or_active_licence(application)
+                if licence.status == LicenceStatus.ISSUED:
+                    licence.cancel()
+            except Licence.DoesNotExist:
+                licence = None
             return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
 
         # Approvals & Provisos
