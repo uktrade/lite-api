@@ -11,7 +11,7 @@ class ControlListEntriesList(generics.ListAPIView):
     serializer_class = ControlListEntriesListSerializer
 
     def get_queryset(self):
-        include_unselectable = self.request.GET.get("include_unselectable", False)
+        include_unselectable = self.request.GET.get("include_non_selectable_for_assessment", False)
         if include_unselectable:
             return ControlListEntry.objects.filter(controlled=True)
 
