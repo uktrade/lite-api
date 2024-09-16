@@ -9,6 +9,7 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializerWithLinks
 
 
+# TODO: Remove this endpoint when all callers are calling exporter/caseworker variants
 @permission_classes((permissions.AllowAny,))
 class ControlListEntriesList(APIView):
     authentication_classes = (GovAuthentication,)
