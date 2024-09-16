@@ -503,10 +503,11 @@ class ApplicationFinaliseView(APIView):
             # If we get to this point with an issued licence for any reason it should be cancelled
             try:
                 licence = Licence.objects.get_draft_or_active_licence(application)
-                if licence.status == LicenceStatus.ISSUED:
-                    licence.cancel()
             except Licence.DoesNotExist:
                 licence = None
+            if licence and licence.status == LicenceStatus.ISSUED:
+                licence.status = LicenceStatus.CANCELLED
+                licence.save()
             return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
 
         # Approvals & Provisos
