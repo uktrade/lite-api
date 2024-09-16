@@ -19,7 +19,6 @@ from api.organisations.libraries.get_organisation import get_request_user_organi
 from api.organisations.models import Site
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.enums import UserType
-from api.users.models import GovUser, GovNotification
 
 
 class OpenGeneralLicenceList(ListCreateAPIView):
@@ -190,10 +189,6 @@ class OpenGeneralLicenceActivityView(APIView):
         )
 
         data = AuditSerializer(audit_trail_qs, many=True).data
-
-        if isinstance(request.user, GovUser):
-            # Delete notifications related to audits
-            GovNotification.objects.filter(user_id=request.user.pk, object_id__in=[obj["id"] for obj in data]).delete()
 
         filters = audit_trail_service.get_objects_activity_filters(pk, content_type)
 

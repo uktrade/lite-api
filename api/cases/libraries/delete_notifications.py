@@ -1,4 +1,4 @@
-from api.users.models import ExporterNotification, ExporterUser, GovNotification, GovUser
+from api.users.models import ExporterNotification, ExporterUser
 
 
 def delete_exporter_notifications(user: ExporterUser, organisation_id, objects: list):
@@ -6,7 +6,3 @@ def delete_exporter_notifications(user: ExporterUser, organisation_id, objects: 
     ExporterNotification.objects.filter(
         user=user.baseuser_ptr, organisation_id=organisation_id, object_id__in=id_list
     ).delete()
-
-
-def delete_gov_user_notifications(user: GovUser, id_list: list):
-    GovNotification.objects.filter(user=user.baseuser_ptr, object_id__in=id_list).delete()

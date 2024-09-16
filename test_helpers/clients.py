@@ -886,7 +886,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         target=None,
         payload=None,
         ignore_case_status=False,
-        send_notification=True,
     ):
         if not payload:
             payload = {}
@@ -898,7 +897,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             target=target,
             payload=payload,
             ignore_case_status=ignore_case_status,
-            send_notification=send_notification,
         )
 
     def add_users(self, count=3):
