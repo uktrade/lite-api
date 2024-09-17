@@ -9,4 +9,10 @@ class ControlListEntriesList(generics.ListAPIView):
     authentication_classes = (ExporterAuthentication,)
     pagination_class = None
     serializer_class = ControlListEntriesListSerializer
-    queryset = ControlListEntry.objects.filter(controlled=True)
+
+    def get_queryset(self):
+        include_unselectable = self.request.GET.get("include_unselectable", False)
+        if include_unselectable:
+            return ControlListEntry.objects.filter(controlled=True)
+
+        return ControlListEntry.objects.filter(controlled=True, selectable_for_assessment=True)

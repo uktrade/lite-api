@@ -8,6 +8,7 @@ class ControlListEntriesFactory(factory.django.DjangoModelFactory):
     parent = None
     category = "test-list"
     controlled = True
+    selectable_for_assessment = True
 
     class Meta:
         model = models.ControlListEntry
