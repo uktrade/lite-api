@@ -6,15 +6,21 @@ from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.exceptions import ValidationError
 
 from api.addresses.models import Address
+
+from api.audit_trail.enums import AuditType
+from api.audit_trail import service as audit_trail_service
 from api.common.models import TimestampableModel
 from api.core.constants import ExporterPermissions
 from api.core.exceptions import NotFoundError
+from api.core.helpers import get_exporter_frontend_url
 from api.flags.models import Flag
 from api.open_general_licences.enums import OpenGeneralLicenceStatus
 from api.organisations.enums import LocationType, OrganisationDocumentType, OrganisationStatus, OrganisationType
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+
+from api.users.notify import notify_exporter_user_added
 from api.users.libraries.get_user import get_user_organisation_relationship
 from api.users.models import UserOrganisationRelationship
 
@@ -106,6 +112,23 @@ class Organisation(TimestampableModel):
         if self.primary_site:
             self.primary_site.organisation = self
             self.primary_site.save()
+
+    def notify_exporter_user_added(self, email):
+        notify_exporter_user_added(
+            email,
+            {"organisation_name": self.name, "exporter_frontend_url": get_exporter_frontend_url("/")},
+        )
+
+    def add_case_note_add_export_user(self, actor, sites, exporter_email):
+
+        user_org_sites = Site.objects.filter(id__in=sites).values_list("name", flat=True)
+        site_names = ",".join(list(user_org_sites))
+        audit_trail_service.create(
+            actor=actor,
+            verb=AuditType.ADD_EXPORTER_USER_TO_ORGANISATION,
+            payload={"exporter_email": exporter_email, "site_names": site_names},
+            target=self,
+        )
 
     class Meta:
         db_table = "organisation"
