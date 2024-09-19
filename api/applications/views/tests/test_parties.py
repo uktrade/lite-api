@@ -5,6 +5,7 @@ from rest_framework import status
 from api.applications.tests.factories import (
     StandardApplicationFactory,
     PartyOnApplicationFactory,
+    DraftStandardApplicationFactory,
 )
 from api.parties.models import Party
 from api.staticdata.statuses.models import CaseStatus
@@ -79,36 +80,12 @@ class TestApplicationPartyViewValues(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.application = StandardApplicationFactory(organisation=self.organisation)
-        self.case_statuses = [
-            case_status.status
-            for case_status in CaseStatus.objects.all()
-            if case_status.status not in ["draft", "applicant_editing"]
-        ]
+        self.application = DraftStandardApplicationFactory(organisation=self.organisation)
+
         self.party_on_application = PartyOnApplicationFactory(application=self.application)
 
     @parameterized.expand(
         [
-            (
-                {"name": "end user", "address": "1 Example Street"},
-                False,
-                {},
-            ),
-            (
-                {"name": "end/!user", "address": "1 Example Street"},
-                False,
-                {},
-            ),
-            (
-                {"name": "end-user", "address": "1 Example Street"},
-                False,
-                {},
-            ),
-            (
-                {"name": "end-user", "address": "1 \r\nExample Street"},
-                False,
-                {},
-            ),
             (
                 {"name": "end_user", "address": "1 Example Street"},
                 True,
@@ -168,7 +145,7 @@ class TestApplicationPartyViewValues(DataTestClient):
             ),
         ]
     )
-    def test_party_post(self, data, error, error_message):
+    def test_party_post_invalid(self, data, error, error_message):
         data["country"] = {"id": "FR", "name": "France"}
         self.url = reverse(
             "applications:party",
@@ -185,5 +162,22 @@ class TestApplicationPartyViewValues(DataTestClient):
         if error:
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertEqual(response.json()["errors"], error_message)
-        else:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    @parameterized.expand(
+        [
+            ({"name": "end user", "address": "1 Example Street"},),
+            ({"name": "end/!user", "address": "1 Example Street"},),
+            ({"name": "end-user", "address": "1 Example Street"},),
+            ({"name": "end-user", "address": "1 \r\nExample Street"},),
+        ]
+    )
+    def test_party_post_valid(self, data):
+        data["country"] = {"id": "FR", "name": "France"}
+        self.url = reverse(
+            "applications:party",
+            kwargs={"pk": str(self.application.pk), "party_pk": str(self.party_on_application.party.pk)},
+        )
+
+        response = self.client.put(self.url, **self.exporter_headers, data=data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
