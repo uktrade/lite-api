@@ -1,5 +1,3 @@
-import os
-
 workers = 4
 worker_connections = 1000
 # timeout affect document uploads
