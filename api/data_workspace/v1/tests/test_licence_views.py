@@ -61,7 +61,7 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_licenses(self):
         url = reverse("data_workspace:v1:dw-licences-list")
-        expected_fields = ("id", "reference_code", "status", "application", "goods")
+        expected_fields = ("id", "application", "reference_code", "status")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.json()["results"]
