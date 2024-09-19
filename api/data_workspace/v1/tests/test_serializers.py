@@ -10,6 +10,7 @@ from api.data_workspace.v1.serializers import (
     SiteSerializer,
 )
 from api.cases.tests.factories import EcjuQueryFactory, CaseAssignmentFactory
+from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import StandardLicenceFactory
 from api.organisations.tests.factories import SiteFactory
 
@@ -58,13 +59,15 @@ def test_AuditUpdatedLicenceStatusSerializer(db):
 def test_LicenceSerializer(db):
     licence = StandardLicenceFactory()
     serialized = LicenceSerializer(licence)
-    expected_fields = {
-        "id",
-        "reference_code",
-        "status",
-        "application",
+    assert serialized.data == {
+        "id": str(licence.pk),
+        "application": {"application_id": str(licence.case.pk)},
+        "reference_code": licence.reference_code,
+        "status": {
+            "key": licence.status,
+            "value": LicenceStatus.to_str(licence.status),
+        },
     }
-    assert set(serialized.data) == expected_fields
 
 
 def test_SiteSerializer(db):
