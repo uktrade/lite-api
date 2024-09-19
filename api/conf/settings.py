@@ -142,7 +142,7 @@ if not IS_ENV_DBT_PLATFORM:
         "health_check.db",
         "health_check.cache",
         "health_check.storage",
-        "health_check.contrib.migrations"
+        "health_check.contrib.migrations",
     ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
