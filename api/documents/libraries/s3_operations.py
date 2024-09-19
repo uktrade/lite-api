@@ -28,7 +28,7 @@ def init_s3_client():
     if is_copilot():
         _client = boto3.client(
             "s3",
-            region_name="eu-west-2",
+            region_name=settings.AWS_REGION,
             config=Config(connect_timeout=settings.S3_CONNECT_TIMEOUT, read_timeout=settings.S3_REQUEST_TIMEOUT),
             **additional_s3_params,
         )

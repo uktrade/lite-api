@@ -8,6 +8,7 @@ omit =
     ./*/migrations/*
     ./api/conf/schema_generator_urls.py
     ./api/conf/settings.py
+    ./api/conf/gconfig-dbt-platform.py
     ./api/conf/wsgi.py
     ./static/management/*
     *test*
