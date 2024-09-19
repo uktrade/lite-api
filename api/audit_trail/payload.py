@@ -163,4 +163,5 @@ audit_type_format = {
     AuditType.EXPORTER_SUBMITTED_AMENDMENT: formatters.exporter_submitted_amendment,
     AuditType.AMENDMENT_CREATED: formatters.amendment_created,
     AuditType.DEVELOPER_INTERVENTION: "updated application information",
+    AuditType.ADD_EXPORTER_USER_TO_ORGANISATION: " added exporter {exporter_email} to sites {site_names}",
 }
