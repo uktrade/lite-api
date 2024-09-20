@@ -76,6 +76,11 @@ class Licences(ListCreateAPIView):
         if active_only:
             licences = licences.exclude(case__status__in=self.non_active_states)
 
+        licences = licences.prefetch_related(
+            "goods__good__good",
+            "goods__good__control_list_entries",
+        )
+
         return licences.order_by("created_at").reverse()
 
 

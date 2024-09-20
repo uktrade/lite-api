@@ -1,10 +1,9 @@
 import csv
+
 from django.core.management.base import BaseCommand
+
 from api.parties.models import Party
-from api.users.models import BaseUser
-from api.audit_trail import service as audit_trail_service
-from api.audit_trail.enums import AuditType
-from django.db import transaction
+from api.support.helpers import developer_intervention
 
 
 class Command(BaseCommand):
@@ -17,24 +16,24 @@ class Command(BaseCommand):
         csv_file = kwargs["csv_file"]
 
         reader = csv.DictReader(csv_file)
-        with transaction.atomic():
+        with developer_intervention(dry_run=False) as audit_log:
             for row in reader:
                 party_id = row["party_id"]
                 address = row["address"].replace("\\r\\n", "\r\n")
                 new_address = row["new_address"]
                 additional_text = row["additional_text"]
 
-                self.update_field_on_party(party_id, address, new_address, additional_text)
+                self.update_field_on_party(party_id, address, new_address, additional_text, audit_log)
 
-    def update_field_on_party(self, party_id, address, new_address, additional_text):
+    def update_field_on_party(self, party_id, address, new_address, additional_text, audit_log):
         party = Party.objects.get(id=party_id, address=address)
-        system_user = BaseUser.objects.get(id="00000000-0000-0000-0000-000000000001")
 
-        audit_trail_service.create(
-            actor=system_user,
-            verb=AuditType.DEVELOPER_INTERVENTION,
-            target=party,
-            payload={"address": {"new": new_address, "old": address}, "additional_text": additional_text},
+        audit_log(
+            party,
+            additional_text,
+            {
+                "address": {"new": new_address, "old": address},
+            },
         )
 
         party.address = new_address
