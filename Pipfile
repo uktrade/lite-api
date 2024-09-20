@@ -50,7 +50,7 @@ notifications-python-client = "~=5.7.1"
 dataclasses = "~=0.6"
 # endesive = "~=1.5.9" (not included here as installed in a later jenkins step. Uncomment if working locally)
 pypdf2 = "~=1.27.5"
-cryptography = "~=43.0.1"
+cryptography = "~=42.0.0"
 sentry-sdk = "~=2.8.0"
 elastic-apm = "~=6.7.2"
 gunicorn = "~=22.0.0"
