@@ -14,45 +14,8 @@ class ControlListEntriesListTests(DataTestClient):
         super().setUp()
         self.url = reverse("staticdata:control_list_entries:control_list_entries")
 
-    def test_gov_user_control_list_entries_list_ignores_unselectable_cles(self):
-        cles_count_model = ControlListEntry.objects.all().count()
-
-        # Assert that we have at least 1 CLE returned by the db manager
-        self.assertTrue(cles_count_model > 0)
-
-        response = self.client.get(self.url, **self.gov_headers)
-        cles_data = response.json().get("control_list_entries")
-        cles_count_data = len(cles_data)
-
-        # Assert that we have at least 1 CLE returned by the view
-        self.assertTrue(cles_count_data > 0)
-
-        # Create a CLE with selectable_for_assessment=False
-        unselectable_cle = ControlListEntriesFactory(rating="rating123", text="text", selectable_for_assessment=False)
-
-        # Assert that the object was created successfully
-        self.assertFalse(unselectable_cle.selectable_for_assessment)
-        self.assertTrue(
-            ControlListEntry.objects.filter(rating="rating123", selectable_for_assessment=False).count() == 1
-        )
-
-        updated_cles_count_model = ControlListEntry.objects.all().count()
-
-        # Assert that the count returned by the db manager has increased by 1
-        self.assertTrue(updated_cles_count_model == cles_count_model + 1)
-
-        response = self.client.get(self.url, **self.gov_headers)
-        updated_cles_data = response.json().get("control_list_entries")
-        updated_cles_count_data = len(updated_cles_data)
-
-        # Assert that the count returned by the view is unchanged
-        self.assertTrue(updated_cles_count_data == cles_count_data)
-
-        # Assert that the data returned by the view does not contain the unselectable CLE
-        self.assertNotIn("rating123", [cle["rating"] for cle in updated_cles_data])
-
-    def test_gov_user_control_list_entries_list_includes_unselectable_cles_if_include_unselectable_is_true(self):
-        url = reverse("staticdata:control_list_entries:control_list_entries") + "?include_unselectable=True"
+    def test_gov_user_control_list_entries_list_includes_unselectable_cles(self):
+        url = reverse("staticdata:control_list_entries:control_list_entries")
         cles_count_model = ControlListEntry.objects.all().count()
 
         # Assert that we have at least 1 CLE returned by the db manager
