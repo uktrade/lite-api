@@ -9,24 +9,19 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializerWithLinks
 
 
+# TODO: Remove this endpoint when all callers are calling exporter/caseworker variants
 @permission_classes((permissions.AllowAny,))
 class ControlListEntriesList(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get_queryset(self, include_unselectable=False):
-        if include_unselectable:
-            return ControlListEntry.objects.filter(controlled=True)
-
-        return ControlListEntry.objects.filter(controlled=True, selectable_for_assessment=True)
+        return ControlListEntry.objects.filter(controlled=True)
 
     def get(self, request):
         """
         Returns list of all Control List Entries
         """
-
-        include_unselectable = request.GET.get("include_unselectable", False)
-
-        queryset = self.get_queryset(include_unselectable=include_unselectable)
+        queryset = self.get_queryset()
 
         if request.GET.get("group", False):
             return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree(queryset.values())})

@@ -85,7 +85,10 @@ class ControlListEntriesListTests(DataTestClient):
         self.assertNotIn("rating123", [cle["rating"] for cle in updated_cles_data])
 
     def test_list_view_includes_unselectable_cles_if_include_unselectable_is_true(self):
-        url = reverse("exporter_staticdata:control_list_entries:control_list_entries") + "?include_unselectable=True"
+        url = (
+            reverse("exporter_staticdata:control_list_entries:control_list_entries")
+            + "?include_non_selectable_for_assessment=True"
+        )
         cles_count_model = ControlListEntry.objects.all().count()
 
         # Assert that we have at least 1 CLE returned by the db manager
