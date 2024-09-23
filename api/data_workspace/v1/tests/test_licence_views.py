@@ -5,6 +5,7 @@ from api.applications.tests.factories import GoodOnApplicationFactory
 from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.enums import AdviceType
 from api.goods.tests.factories import GoodFactory
+from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import StandardLicenceFactory, GoodOnLicenceFactory
 from test_helpers.clients import DataTestClient
 
@@ -19,10 +20,11 @@ class DataWorkspaceTests(DataTestClient):
             is_good_controlled=True,
             control_list_entries=["ML21"],
         )
+        self.licence = StandardLicenceFactory(case=case)
         FinalAdviceFactory(user=self.gov_user, team=self.team, case=case, good=good, type=AdviceType.APPROVE)
         GoodOnLicenceFactory(
             good=GoodOnApplicationFactory(application=case, good=good),
-            licence=StandardLicenceFactory(case=case),
+            licence=self.licence,
             quantity=100,
             value=1,
         )
@@ -61,12 +63,23 @@ class DataWorkspaceTests(DataTestClient):
 
     def test_licenses(self):
         url = reverse("data_workspace:v1:dw-licences-list")
-        expected_fields = ("id", "reference_code", "status", "application", "goods")
+        expected_fields = ("id", "application", "reference_code", "status")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.json()["results"]
         self.assertGreater(len(results), 0)
-        self.assertEqual(tuple(results[0].keys()), expected_fields)
+        self.assertEqual(
+            results[0],
+            {
+                "id": str(self.licence.pk),
+                "application": {"application_id": str(self.licence.case.pk)},
+                "reference_code": self.licence.reference_code,
+                "status": {
+                    "key": self.licence.status,
+                    "value": LicenceStatus.to_str(self.licence.status),
+                },
+            },
+        )
 
         response = self.client.options(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
