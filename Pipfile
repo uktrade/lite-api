@@ -76,6 +76,8 @@ psycopg = "~=3.1.18"
 django-log-formatter-asim = "~=0.0.5"
 dbt-copilot-python = "~=0.2.1"
 dj-database-url = "~=2.2.0"
+certifi = "~=2024.7.4"
+pytz = "~=2024.1"
 
 [requires]
 python_version = "3.9"
