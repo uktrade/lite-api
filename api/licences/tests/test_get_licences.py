@@ -22,6 +22,7 @@ from api.licences.tests.factories import GoodOnLicenceFactory
 from api.licences.views.main import LicenceType
 from api.licences.tests.factories import StandardLicenceFactory
 from api.open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
+from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
@@ -47,6 +48,7 @@ class GetLicencesTests(DataTestClient):
 
         for application, licence in self.licences.items():
             for good in application.goods.all():
+                good.control_list_entries.add(ControlListEntry.objects.get(rating="ML2b"))
                 FinalAdviceFactory(user=self.gov_user, good=good.good, case=application)
                 GoodOnLicenceFactory(licence=licence, good=good, quantity=good.quantity, value=good.value)
 
@@ -69,16 +71,34 @@ class GetLicencesTests(DataTestClient):
         for licence in self.licences.values():
             licence_data = node_by_id(response_data, licence.id)
 
-            good_on_application = licence.case.goods.first()
-
-            self.assertEqual(
-                licence_data["goods"][0]["good_on_application_id"],
-                str(good_on_application.id),
-            )
-            self.assertEqual(
-                licence_data["goods"][0]["control_list_entries"][0]["rating"],
-                good_on_application.good.control_list_entries.all()[0].rating,
-            )
+            for goods_data, good_on_licence in zip(licence_data["goods"], licence.goods.all()):
+                good_on_application = good_on_licence.good
+                good = good_on_application.good
+                self.assertEqual(
+                    goods_data,
+                    {
+                        "id": str(good_on_licence.pk),
+                        "assessed_control_list_entries": [
+                            {
+                                "id": str(cle.pk),
+                                "rating": cle.rating,
+                                "text": cle.text,
+                            }
+                            for cle in good_on_application.control_list_entries.all()
+                        ],
+                        "control_list_entries": [
+                            {
+                                "id": str(cle.pk),
+                                "rating": cle.rating,
+                                "text": cle.text,
+                            }
+                            for cle in good.control_list_entries.all()
+                        ],
+                        "description": good.description,
+                        "good_on_application_id": str(good_on_application.pk),
+                        "name": good.name,
+                    },
+                )
 
     def test_get_standard_licences_only(self):
         response = self.client.get(self.url + "?licence_type=" + LicenceType.LICENCE, **self.exporter_headers)
