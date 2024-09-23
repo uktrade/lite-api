@@ -1,9 +1,11 @@
+from parameterized import parameterized
 from django.urls import reverse
 from rest_framework import status
 
 from api.applications.tests.factories import (
     StandardApplicationFactory,
     PartyOnApplicationFactory,
+    DraftStandardApplicationFactory,
 )
 from api.parties.models import Party
 from api.staticdata.statuses.models import CaseStatus
@@ -72,3 +74,110 @@ class TestApplicationPartyView(DataTestClient):
                     ]
                 },
             )
+
+
+class TestApplicationPartyViewValues(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+        self.application = DraftStandardApplicationFactory(organisation=self.organisation)
+
+        self.party_on_application = PartyOnApplicationFactory(application=self.application)
+
+    @parameterized.expand(
+        [
+            (
+                {"name": "end_user", "address": "1 Example Street"},
+                True,
+                {
+                    "name": [
+                        "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+                    ]
+                },
+            ),
+            (
+                {"name": "end\auser", "address": "1 Example Street"},
+                True,
+                {
+                    "name": [
+                        "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+                    ]
+                },
+            ),
+            (
+                {"name": "end£user", "address": "1 Example Street"},
+                True,
+                {
+                    "name": [
+                        "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+                    ]
+                },
+            ),
+            (
+                {"name": "end user", "address": "1_Example Street"},
+                True,
+                {
+                    "address": [
+                        "Address must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+                    ]
+                },
+            ),
+            (
+                {"name": "end user", "address": "1\aExample Street"},
+                True,
+                {
+                    "address": [
+                        "Address must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+                    ]
+                },
+            ),
+            (
+                {"name": "end_user", "address": "1\aExample Street"},
+                True,
+                {
+                    "name": [
+                        "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+                    ],
+                    "address": [
+                        "Address must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+                    ],
+                },
+            ),
+        ]
+    )
+    def test_party_post_invalid(self, data, error, error_message):
+        data["country"] = {"id": "FR", "name": "France"}
+        self.url = reverse(
+            "applications:party",
+            kwargs={"pk": str(self.application.pk), "party_pk": str(self.party_on_application.party.pk)},
+        )
+        party = Party.objects.get(id=self.party_on_application.party.pk)
+        versions = Version.objects.get_for_object(party)
+        self.assertEqual(versions.count(), 0)
+
+        self.application.status = CaseStatus.objects.get(status="draft")
+        self.application.save()
+
+        response = self.client.put(self.url, **self.exporter_headers, data=data)
+        if error:
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(response.json()["errors"], error_message)
+
+    @parameterized.expand(
+        [
+            ({"name": "end user", "address": "1 Example Street"},),
+            ({"name": "end/!user", "address": "1 Example Street"},),
+            ({"name": "end-user", "address": "1 Example Street"},),
+            ({"name": "end-user", "address": "1 \r\nExample Street"},),
+        ]
+    )
+    def test_party_post_valid(self, data):
+        data["country"] = {"id": "FR", "name": "France"}
+        self.url = reverse(
+            "applications:party",
+            kwargs={"pk": str(self.application.pk), "party_pk": str(self.party_on_application.party.pk)},
+        )
+
+        response = self.client.put(self.url, **self.exporter_headers, data=data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
