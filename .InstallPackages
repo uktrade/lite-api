@@ -11,3 +11,4 @@ imagemagick
 poppler-utils
 libsqlite3-dev
 postgresql-client-14
+python-gevent
