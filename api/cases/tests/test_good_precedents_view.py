@@ -1,9 +1,10 @@
 from typing import Tuple, List
 
+from rest_framework import status
 from pytz import timezone
 
 from api.applications.models import StandardApplication, GoodOnApplication
-from api.applications.tests.factories import DraftStandardApplicationFactory
+from api.applications.tests.factories import DraftStandardApplicationFactory, StandardApplicationFactory
 from api.flags.enums import SystemFlags
 from parameterized import parameterized
 from api.goods.enums import GoodStatus
@@ -317,3 +318,97 @@ class GoodPrecedentsListViewTests(DataTestClient):
             "results": [],
             "total_pages": 1,
         }
+
+    def test_good_precedents_changes(self):
+        """
+        Test to ensure licence document shows CLEs for the products assessed as part of this application.
+        This is usually the case but can be different if the underlying Good is re-used in multiple applications.
+        In this test we create two applications that reuse the same underlying Good but in each application
+        this is assessed with different set of CLEs. Because of the way we record CLEs on the Good model
+        it will retain previous assessments as well (unlike GoodOnApplication which contains assessments
+        for that application).
+        Test generates licence document and ensures it contains CLEs assessed for this application.
+        """
+        application1 = StandardApplicationFactory(organisation=self.organisation)
+        application1.status = get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW)
+        application1.save()
+        good1 = GoodFactory(organisation=self.organisation)
+        good_on_application1 = GoodOnApplicationFactory(good=good1, application=application1, quantity=10, value=500)
+        good2 = GoodFactory(organisation=self.organisation)
+        good_on_application2 = GoodOnApplicationFactory(good=good2, application=application1, quantity=30, value=3000)
+
+        regime_entry = RegimeEntry.objects.first()
+        report_summary_prefix = ReportSummaryPrefix.objects.first()
+        report_summary_subject = ReportSummarySubject.objects.first()
+        data = [
+            {
+                "id": good_on_application1.id,
+                "control_list_entries": ["ML3a", "ML15d", "ML9a"],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": report_summary_subject.id,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some string we expect to be overwritten",
+                "is_ncsc_military_information_security": True,
+            },
+            {
+                "id": good_on_application2.id,
+                "control_list_entries": ["ML22a"],
+                "regime_entries": [regime_entry.id],
+                "report_summary_prefix": report_summary_prefix.id,
+                "report_summary_subject": report_summary_subject.id,
+                "is_good_controlled": True,
+                "comment": "some comment",
+                "report_summary": "some string we expect to be overwritten",
+            }
+        ]
+        assessment_url = reverse("assessments:make_assessments", kwargs={"case_pk": application1.id})
+        response = self.client.put(assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application1.refresh_from_db()
+
+        all_cles = [cle.rating for cle in good_on_application1.control_list_entries.all()]
+        assert sorted(all_cles) == sorted(["ML3a", "ML9a", "ML15d"])
+
+        # Create another application and reuse the same good
+        application2 = StandardApplicationFactory(organisation=self.organisation)
+        application2.status = get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW)
+        application2.save()
+        good_on_application2 = GoodOnApplicationFactory(good=good1, application=application2, quantity=20, value=1000)
+
+        data[0]["id"] = good_on_application2.id
+        data[0]["control_list_entries"] = ["ML5d", "ML2a", "ML18a"]
+        assessment_url = reverse("assessments:make_assessments", kwargs={"case_pk": application2.id})
+        response = self.client.put(assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application2.refresh_from_db()
+
+        all_cles = [cle.rating for cle in good_on_application2.control_list_entries.all()]
+        assert sorted(all_cles) == sorted(["ML5d", "ML2a", "ML18a"])
+
+        # Create another application and reuse the same good
+        application3 = StandardApplicationFactory(organisation=self.organisation)
+        application3.status = get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW)
+        application3.save()
+        good_on_application3 = GoodOnApplicationFactory(good=good1, application=application3, quantity=5, value=2560)
+
+        data[0]["id"] = good_on_application3.id
+        data[0]["control_list_entries"] = ["PL9002", "PL5001"]
+        assessment_url = reverse("assessments:make_assessments", kwargs={"case_pk": application3.id})
+        response = self.client.put(assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_on_application3.refresh_from_db()
+
+        all_cles = [cle.rating for cle in good_on_application3.control_list_entries.all()]
+        assert sorted(all_cles) == sorted(["PL5001", "PL9002"])
+
+        # Get precedents when the same good1 is used in a different application
+        application4 = StandardApplicationFactory(organisation=self.organisation)
+        application4.status = get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW)
+        application4.save()
+        good_on_application4 = GoodOnApplicationFactory(good=good1, application=application4, quantity=5, value=2560)
+
+        precedents_url = reverse("cases:good_precedents", kwargs={"pk": application4.id})
+        response = self.client.get(precedents_url, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

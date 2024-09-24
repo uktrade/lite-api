@@ -136,11 +136,12 @@ class AssessmentSerializer(GoodControlReviewSerializer):
         good = instance.good
         # Add control entries to a verified good
         if good.status == GoodStatus.VERIFIED:
-            good.control_list_entries.add(*validated_data["control_list_entries"])
+            # good.control_list_entries.add(*validated_data["control_list_entries"])
+            pass
         # Overwrite control entries for a previously unverified good
         else:
             good.status = GoodStatus.VERIFIED
-            good.control_list_entries.set(validated_data["control_list_entries"])
+            # good.control_list_entries.set(validated_data["control_list_entries"])
             good.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
 
         # Set report summary fields on the good
