@@ -42,3 +42,7 @@ class GoodNameValidator(EdifactStringValidator):
 class PartyAddressValidator(EdifactStringValidator):
     regex_string = re.compile(r"^[a-zA-Z0-9 .,\-\)\(\/'+:=\?\!\"%&\*;\<\>\r\n]+$")
     message = "Address must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
+
+
+class PartyNameValidator(EdifactStringValidator):
+    message = "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes"
