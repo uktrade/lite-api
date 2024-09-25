@@ -61,7 +61,7 @@ def test_LicenceSerializer(db):
     serialized = LicenceSerializer(licence)
     assert serialized.data == {
         "id": str(licence.pk),
-        "application": {"application_id": str(licence.case.pk)},
+        "application": {"id": str(licence.case.pk)},
         "reference_code": licence.reference_code,
         "status": {
             "key": licence.status,
