@@ -131,7 +131,7 @@ class LicenceSerializer(serializers.ModelSerializer):
         ordering = ["created_at"]
 
     def get_application(self, instance):
-        return {"application_id": str(instance.case.pk)}
+        return {"id": str(instance.case.pk)}
 
 
 class SurveyResponseSerializer(serializers.ModelSerializer):
