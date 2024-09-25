@@ -72,7 +72,7 @@ class DataWorkspaceTests(DataTestClient):
             results[0],
             {
                 "id": str(self.licence.pk),
-                "application": {"application_id": str(self.licence.case.pk)},
+                "application": {"id": str(self.licence.case.pk)},
                 "reference_code": self.licence.reference_code,
                 "status": {
                     "key": self.licence.status,
