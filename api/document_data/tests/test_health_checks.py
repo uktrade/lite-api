@@ -1,5 +1,4 @@
 import celery
-import datetime
 import uuid
 
 from unittest.mock import patch
@@ -69,14 +68,24 @@ class TestBackupDocumentDataHealthcheckBackend(APITestCase):
             self.backend.check_status()
         mock_AsyncResult.assert_called_with(str(task_id))
 
+    @patch("api.document_data.health_checks.logger")
     @patch("api.document_data.health_checks.app")
-    def test_backup_document_data_not_run_today(self, mock_app):
+    def test_backup_document_data_not_run_today(self, mock_app, mock_logger):
         task_id = uuid.uuid4()
         ended_at = timezone.datetime(
             2024,
             2,
             26,
             2,
+            0,
+            0,
+            tzinfo=timezone.timezone.utc,
+        )
+        now = timezone.datetime(
+            2024,
+            2,
+            26,
+            10,
             0,
             0,
             tzinfo=timezone.timezone.utc,
@@ -92,9 +101,11 @@ class TestBackupDocumentDataHealthcheckBackend(APITestCase):
         with freeze_time("2024-02-26 10:00:00"), self.assertRaises(BackupDocumentDataHealthCheckException):
             self.backend.check_status()
         mock_remaining_estimate.assert_called_with(ended_at)
+        mock_logger.warning.assert_called_with("Next run: %s is before now: %s", ended_at, now)
 
+    @patch("api.document_data.health_checks.logger")
     @patch("api.document_data.health_checks.app")
-    def test_backup_document_data_missing_files_in_backup(self, mock_app):
+    def test_backup_document_data_missing_files_in_backup(self, mock_app, mock_logger):
         task_id = uuid.uuid4()
         ended_at = timezone.datetime(
             2024,
@@ -109,7 +120,7 @@ class TestBackupDocumentDataHealthcheckBackend(APITestCase):
             ended_at=ended_at,
             task_id=task_id,
         )
-        DocumentFactory.create(
+        document = DocumentFactory.create(
             created_at=timezone.datetime(
                 2024,
                 2,
@@ -126,6 +137,8 @@ class TestBackupDocumentDataHealthcheckBackend(APITestCase):
         mock_remaining_estimate.return_value = timezone.timedelta(hours=16)
         with freeze_time("2024-02-26 10:00:00"), self.assertRaises(BackupDocumentDataHealthCheckException):
             self.backend.check_status()
+
+        mock_logger.warning.assert_called_with("Files not backed up: %s", [document.s3_key])
 
     @patch("api.document_data.health_checks.app")
     def test_backup_document_data_unsafe_files_ignored(self, mock_app):
