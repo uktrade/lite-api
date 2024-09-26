@@ -1,4 +1,5 @@
 import celery
+import logging
 
 from django.conf import settings
 from django.utils import timezone
@@ -13,6 +14,9 @@ from health_check.exceptions import HealthCheckException
 
 from api.documents.models import Document
 from api.document_data.models import BackupLog, DocumentData
+
+
+logger = logging.getLogger(__name__)
 
 
 class BackupDocumentDataHealthCheckException(HealthCheckException):
@@ -67,6 +71,7 @@ class BackupDocumentDataHealthCheckBackend(BaseHealthCheckBackend):
         now = timezone.localtime()
         next_run = now + next_run_delta
         if next_run < now:
+            logger.warning("Next run: %s is before now: %s", next_run, now)
             raise BackupDocumentDataHealthCheckException("Backup not run today")
 
         # If we manage to get here we know that the task was run recently and
@@ -78,6 +83,7 @@ class BackupDocumentDataHealthCheckBackend(BaseHealthCheckBackend):
             safe=True,
         ).exclude(s3_key__in=backed_up_s3_keys)
         if not_backed_up.exists():
+            logger.warning("Files not backed up: %s", list(not_backed_up.values_list("s3_key", flat=True)))
             raise BackupDocumentDataHealthCheckException(f"{(not_backed_up.count())} files missing from backup")
 
     def identifier(self):  # pragma: no cover
