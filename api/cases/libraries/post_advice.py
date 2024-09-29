@@ -8,6 +8,7 @@ from api.applications.serializers.advice import AdviceCreateSerializer, AdviceUp
 from api.applications.views.helpers.advice import (
     mark_lu_rejected_countersignatures_as_invalid,
     remove_countersign_process_flags,
+    mark_final_advice_as_invalid,
 )
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
@@ -92,6 +93,10 @@ def post_advice(request, case, level, team=False):
     serializer = AdviceCreateSerializer(data=data, many=True, context={"footnote_permission": footnote_permission})
 
     if serializer.is_valid() and not refusal_error:
+
+        if level == AdviceLevel.FINAL:
+            mark_final_advice_as_invalid(case)
+
         serializer.save()
 
         audit_verbs = {

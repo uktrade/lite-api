@@ -1,7 +1,7 @@
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases.enums import AdviceLevel, AdviceType, CountersignOrder
-from api.cases.models import CountersignAdvice
+from api.cases.models import Advice, CountersignAdvice
 
 from api.flags.enums import FlagStatuses
 from api.flags.models import Flag
@@ -25,6 +25,16 @@ class CounterSignatureIncompleteError(Exception):
     """
 
     pass
+
+
+def mark_final_advice_as_invalid(case):
+    lu_team = Team.objects.get(id=TeamIdEnum.LICENSING_UNIT)
+    previous_final_advice = Advice.objects.filter(
+        case=case,
+        level=AdviceLevel.FINAL,
+        user__team=lu_team,
+    )
+    previous_final_advice.update(valid=False)
 
 
 def lu_countersigning_flags_all():
