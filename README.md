@@ -154,6 +154,7 @@ Gegenerate diagrams
 ## Running tests
 
 - `pipenv run pytest`
+- `pipenv run pytest --reuse-db` to speed up tests
 
 ## Running code coverage
 
