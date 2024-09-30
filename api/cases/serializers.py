@@ -1,8 +1,11 @@
+from collections import defaultdict
 from rest_framework import serializers
 
 from api.applications.libraries.get_applications import get_application
 from api.applications.models import BaseApplication, StandardApplication
 from api.applications.serializers.advice import AdviceViewSerializer, CountersignDecisionAdviceViewSerializer
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.staticdata.statuses.serializers import CaseSubStatusSerializer
 
 from api.cases.enums import (
@@ -54,6 +57,7 @@ from api.users.serializers import (
     ExporterUserSimpleSerializer,
 )
 from lite_content.lite_api import strings
+from lite_routing.routing_rules_internal.helpers import get_move_case_audit_events
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -246,14 +250,56 @@ class CaseCopyOfSerializer(serializers.ModelSerializer):
         )
 
 
+def is_case_sent_back(case):
+    """Returns True if a Case is sent back after OGDs have given their recommendation"""
+    queues_data = defaultdict(list)
+    move_case_qs = get_move_case_audit_events(case)
+    move_case_qs = move_case_qs.order_by("created_at")
+
+    for item in move_case_qs:
+        payload = item.payload
+        if isinstance(payload["queues"], list):
+            for q in payload["queues"]:
+                queues_data[q].append(item.created_at)
+        else:
+            queues_data[payload["queues"]].append(item.created_at)
+
+    tau = Queue.objects.get(id="2876addb-1860-4226-b1f3-0bd0c1e21f9c").name
+    if tau not in queues_data:
+        return False
+
+    ogd_queues = [queue.name for queue in Queue.objects.filter(team__is_ogd=True)]
+
+    ogds_assessed = set(queues_data.keys()).intersection(set(ogd_queues))
+    if not ogds_assessed:
+        return False
+
+    if len(queues_data[tau]) > 1:
+        return True
+
+    return False
+
+
 class CaseDetailBasicSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
     )
+    circulation_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
-        fields = ("id", "reference_code", "organisation")
+        fields = (
+            "id",
+            "reference_code",
+            "organisation",
+            "circulation_details",
+        )
+
+    def get_circulation_details(self, instance):
+        details = {}
+        details["is_case_sent_back"] = is_case_sent_back(instance)
+
+        return details
 
 
 class CaseDetailSerializer(serializers.ModelSerializer):

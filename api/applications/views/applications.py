@@ -425,12 +425,14 @@ class ApplicationFinaliseView(APIView):
         approved_goods_on_application = (
             GoodOnApplication.objects.filter(
                 application_id=pk,
+                good__advice__valid=True,
                 good__advice__level=AdviceLevel.FINAL,
                 good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO, AdviceType.NO_LICENCE_REQUIRED],
                 good__advice__case_id=pk,
                 good__advice__good_id__isnull=False,
             )
             .annotate(
+                advice_valid=F("good__advice__valid"),
                 advice_type=F("good__advice__type"),
                 advice_text=F("good__advice__text"),
                 advice_proviso=F("good__advice__proviso"),
@@ -450,6 +452,7 @@ class ApplicationFinaliseView(APIView):
                 "is_good_controlled": goa.is_good_controlled,
                 "value": goa.value,
                 "advice": {
+                    "valid": goa.advice_valid,
                     "type": AdviceType.as_representation(goa.advice_type),
                     "text": goa.advice_text,
                     "proviso": goa.advice_proviso,

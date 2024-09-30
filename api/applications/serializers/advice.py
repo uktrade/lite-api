@@ -52,6 +52,7 @@ class AdviceViewSerializer(serializers.Serializer):
     type = KeyValueChoiceField(choices=AdviceType.choices)
     level = serializers.CharField()
     proviso = serializers.CharField()
+    valid = serializers.BooleanField()
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True)
     footnote = serializers.CharField()
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)

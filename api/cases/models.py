@@ -457,6 +457,12 @@ class Advice(TimestampableModel):
     is_refusal_note = models.BooleanField(default=False)
     team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True)
     level = models.CharField(choices=AdviceLevel.choices, max_length=30)
+    valid = models.BooleanField(
+        default=True,
+        blank=True,
+        null=True,
+        help_text="Indicates whether it is valid or not. Existing advice become invalid if new advice is given by the user",
+    )
 
     # optional footnotes for advice
     footnote = models.TextField(blank=True, null=True, default=None)
