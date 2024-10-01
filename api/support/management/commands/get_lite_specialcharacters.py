@@ -10,6 +10,7 @@ class SpecialCharacterFinder:
     fieldnames = []
 
     results = []
+    unique_result = {}
 
     def __init__(self, filename, data):
         self.filename = filename
@@ -24,12 +25,18 @@ class SpecialCharacterFinder:
     def get_value(self, entry):
         return entry
 
+    def get_id(self, entry):
+        return entry
+
     def check_data(self, data):
         results = []
         for entry in data:
-            value = self.get_value(entry)
-            if match := self.check_regex(value):
-                results.append(self.format_results(entry, match))
+            id = self.get_id(entry)
+            if not self.unique_result.get(id):
+                value = self.get_value(entry)
+                if match := self.check_regex(value):
+                    results.append(self.format_results(entry, match))
+                    self.unique_result[id] = True
         return results
 
     def format_results(self, data, match):
@@ -54,12 +61,18 @@ class GoodSpecialCharacterFinder(SpecialCharacterFinder):
     def get_value(self, entry):
         return entry.good.name
 
+    def get_id(self, entry):
+        return str(entry.good.id)
+
 
 class PartyNameSpecialCharacterFinder(SpecialCharacterFinder):
     fieldnames = ["org_name", "reference_code", "party_id", "value", "match"]
 
     def get_value(self, entry):
         return entry.party.name
+
+    def get_id(self, entry):
+        return str(entry.party.id)
 
     def format_results(self, data, match):
         return {
@@ -77,6 +90,9 @@ class PartyAddressSpecialCharacterFinder(SpecialCharacterFinder):
 
     def get_value(self, entry):
         return entry.party.address
+
+    def get_id(self, entry):
+        return str(entry.party.id)
 
     def format_results(self, data, match):
         return {
@@ -120,7 +136,7 @@ class Command(BaseCommand):
         PartyAddressSpecialCharacterFinder("party_address", party_matches)
 
 
-# retrieve file:
+# # retrieve file:
 # cf ssh lite-api-uat -c "cat app/good_names.csv" > good_names.csv
 # cf ssh lite-api-uat -c "cat app/party_names.csv" > party_names.csv
 # cf ssh lite-api-uat -c "cat app/party_address.csv" > party_address.csv
