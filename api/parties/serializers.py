@@ -3,7 +3,6 @@ from rest_framework import serializers, relations
 
 from api.cases.enums import CaseTypeSubTypeEnum
 from api.core.serializers import KeyValueChoiceField, CountrySerializerField
-from api.core.validators import PartyAddressValidator, PartyNameValidator
 from api.documents.libraries.process_document import process_document
 from api.flags.serializers import FlagSerializer
 from api.goods.enums import PvGrading
@@ -15,8 +14,8 @@ from api.parties.models import PartyDocument
 
 
 class PartySerializer(serializers.ModelSerializer):
-    name = serializers.CharField(error_messages=PartyErrors.NAME, validators=[PartyNameValidator()])
-    address = serializers.CharField(error_messages=PartyErrors.ADDRESS, validators=[PartyAddressValidator()])
+    name = serializers.CharField(error_messages=PartyErrors.NAME)
+    address = serializers.CharField(error_messages=PartyErrors.ADDRESS)
     country = CountrySerializerField()
     website = serializers.CharField(required=False, allow_blank=True)
     signatory_name_euu = serializers.CharField(allow_blank=True)

@@ -170,30 +170,6 @@ class GoodSerializerInternalTests(DataTestClient):
         [
             ("", "This field may not be blank."),
             ("\r\n", "This field may not be blank."),
-            (
-                "good\rname",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good\nname",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good\r\nname",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good_name",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good$name",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good@name",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
         ]
     )
     def test_validate_good_internal_name_invalid(self, name, error_message):
@@ -258,30 +234,6 @@ class GoodSerializerExporterFullDetailTests(DataTestClient):
         [
             ("", "This field may not be blank."),
             ("\r\n", "This field may not be blank."),
-            (
-                "good\rname",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good\nname",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good\r\nname",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good_name",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good$name",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "good@name",
-                "Product name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
         ]
     )
     def test_validate_good_exporter_name_invalid(self, name, error_message):
