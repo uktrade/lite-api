@@ -694,6 +694,3 @@ workflows:
       - anonymised_db_dump_tests_dbt_platform
       - requires_transactions_tests
       - requires_transactions_tests_dbt_platform
-  check_routing_docs:
-    jobs:
-      - check_routing_docs
