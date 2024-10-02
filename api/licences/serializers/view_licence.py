@@ -431,3 +431,56 @@ class LicenceListSerializer(serializers.ModelSerializer):
         )
         read_only_fields = fields
         ordering = ["created_at"]
+
+
+class GoodOnLicenceExporterLicenceViewSerializer(serializers.ModelSerializer):
+    applied_for_quantity = serializers.FloatField(source="good.quantity")
+    assessed_control_list_entries = ControlListEntrySerializer(source="good.control_list_entries", many=True)
+    control_list_entries = ControlListEntrySerializer(source="good.good.control_list_entries", many=True)
+    description = serializers.CharField(source="good.good.description")
+    name = serializers.CharField(source="good.good.name")
+    licenced_quantity = serializers.FloatField(source="quantity")
+    licenced_value = serializers.FloatField(source="value")
+    units = KeyValueChoiceField(source="good.unit", choices=Units.choices)
+    usage = serializers.FloatField()
+
+    class Meta:
+        model = GoodOnLicence
+        fields = (
+            "id",
+            "applied_for_quantity",
+            "assessed_control_list_entries",
+            "control_list_entries",
+            "description",
+            "licenced_quantity",
+            "licenced_value",
+            "name",
+            "units",
+            "usage",
+        )
+        read_only_fields = fields
+
+
+class ExporterLicenceViewSerializer(serializers.ModelSerializer):
+    application = ApplicationLicenceSerializer(source="case.baseapplication")
+    document = serializers.SerializerMethodField()
+    status = KeyValueChoiceField(choices=LicenceStatus.choices)
+    goods = GoodOnLicenceExporterLicenceViewSerializer(many=True)
+
+    class Meta:
+        model = Licence
+        fields = (
+            "id",
+            "application",
+            "document",
+            "duration",
+            "goods",
+            "reference_code",
+            "start_date",
+            "status",
+        )
+        read_only_fields = fields
+
+    def get_document(self, instance):
+        document = GeneratedCaseDocument.objects.get(licence=instance)
+        return {"id": document.id}
