@@ -9,6 +9,7 @@ from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType
 from api.cases.models import Case
 from api.licences.enums import LicenceDecisionType
+from api.licences.models import Licence
 from api.staticdata.statuses.enums import (
     CaseStatusEnum,
     CaseSubStatusIdEnum,
@@ -38,6 +39,21 @@ class SIELApplicationSerializer(serializers.ModelSerializer):
 
     def get_id(self, application):
         return get_original_application(application).pk
+
+
+class SIELLicenceSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Licence
+        fields = (
+            "id",
+            "reference_code",
+            "status",
+        )
+
+    def get_status(self, licence):
+        return licence.status
 
 
 def decision_type_checker(decision_type):

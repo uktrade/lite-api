@@ -12,11 +12,13 @@ from api.data_workspace.v2.serializers import (
     LicenceDecisionTypeSerializer,
     LicenceStatusSerializer,
     SIELApplicationSerializer,
+    SIELLicenceSerializer,
 )
 from api.licences.enums import (
     LicenceDecisionType,
     LicenceStatus,
 )
+from api.licences.models import Licence
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 
@@ -62,3 +64,11 @@ class LicenceDecisionsListView(viewsets.ReadOnlyModelViewSet):
                 CaseStatusEnum.WITHDRAWN,
             ],
         ).exclude(submitted_at__isnull=True)
+
+
+class SIELLicencesListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = LimitOffsetPagination
+    queryset = Licence.objects.exclude(status=LicenceStatus.DRAFT)
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = SIELLicenceSerializer
