@@ -8,6 +8,7 @@ from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType
 from api.cases.models import Case
+from api.data_workspace.v2.licence import determine_licence_status
 from api.licences.enums import LicenceDecisionType
 from api.licences.models import Licence
 from api.staticdata.statuses.enums import (
@@ -53,7 +54,7 @@ class SIELLicenceSerializer(serializers.ModelSerializer):
         )
 
     def get_status(self, licence):
-        return licence.status
+        return determine_licence_status(licence)
 
 
 def decision_type_checker(decision_type):
