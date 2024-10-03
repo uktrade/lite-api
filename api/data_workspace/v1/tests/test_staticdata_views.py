@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 class DataWorkspaceTests(DataTestClient):
     def test_control_list_entries(self):
         url = reverse("data_workspace:v1:dw-control-list-entries-list")
-        expected_fields = ("id", "rating", "text", "category", "controlled", "parent")
+        expected_fields = ("id", "rating", "text", "category", "controlled", "selectable_for_assessment", "parent")
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

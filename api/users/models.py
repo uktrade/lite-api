@@ -115,10 +115,6 @@ class ExporterNotification(BaseNotification):
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=False)
 
 
-class GovNotification(BaseNotification):
-    pass
-
-
 class BaseUserCompatMixin:
     baseuser_ptr: BaseUser
 
@@ -211,20 +207,6 @@ class GovUser(models.Model, BaseUserCompatMixin):
         Remove gov user from all cases
         """
         self.case_assignments.filter(user=self).delete()
-
-    def send_notification(self, content_object, case):
-        from api.audit_trail.models import Audit
-
-        if isinstance(content_object, Audit):
-            # There can only be one notification per gov user's case
-            # If a notification for that gov user's case already exists, update the case activity it points to
-            try:
-                content_type = ContentType.objects.get_for_model(Audit)
-                notification = GovNotification.objects.get(user=self.baseuser_ptr, content_type=content_type, case=case)
-                notification.content_object = content_object
-                notification.save()
-            except GovNotification.DoesNotExist:
-                GovNotification.objects.create(user=self.baseuser_ptr, content_object=content_object, case=case)
 
     def has_permission(self, permission):
         user_permissions = self.role.permissions.values_list("id", flat=True)

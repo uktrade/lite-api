@@ -78,7 +78,6 @@ def notify_exporter_licence_revoked(licence):
         {
             "user_first_name": exporter.first_name,
             "application_reference": case.reference_code,
-            "exporter_frontend_url": get_exporter_frontend_url("/"),
         },
     )
 
@@ -188,6 +187,5 @@ def notify_exporter_appeal_acknowledgement(case):
     payload = ExporterAppealAcknowledgement(
         user_first_name=exporter.first_name,
         application_reference=case.reference_code,
-        exporter_frontend_url=get_exporter_frontend_url("/"),
     )
     send_email(exporter.email, TemplateType.EXPORTER_APPEAL_ACKNOWLEDGEMENT, payload)

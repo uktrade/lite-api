@@ -134,7 +134,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps --ignore api/data_workspace/v2/tests/bdd -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps --ignore api/data_workspace/v2/tests/bdd -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser and not requires_transactions"
       - upload_code_coverage:
           alias: tests
 
@@ -154,7 +154,7 @@ jobs:
       - run:
           name: Run tests on Postgres 13
           command: |
-            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps --ignore api/data_workspace/v2/tests/bdd -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser"
+            pipenv run pytest --circleci-parallelize --cov=. --cov-report xml --cov-config=.coveragerc --ignore lite_routing --ignore api/anonymised_db_dumps --ignore api/data_workspace/v2/tests/bdd -k "not seeding and not elasticsearch and not performance and not migration and not db_anonymiser and not requires_transactions"
       - upload_code_coverage:
           alias: tests_dbt_platform
 
@@ -232,6 +232,44 @@ jobs:
       - upload_code_coverage:
           alias: anonymised_db_dump_tests_dbt_platform
 
+  requires_transactions_tests:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_opensearch_v1
+      - <<: *image_redis
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    steps:
+      - setup
+      - run:
+          name: Run requiring transactions tests
+          command: |
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k requires_transactions
+      - upload_code_coverage:
+          alias: requires_transactions_tests
+
+  requires_transactions_tests_dbt_platform:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres13
+      - <<: *image_opensearch
+      - <<: *image_redis
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    steps:
+      - setup
+      - run:
+          name: Run requiring transactions tests on Postgres 13
+          command: |
+            pipenv run pytest --cov=. --cov-report xml --cov-config=.coveragerc -k requires_transactions
+      - upload_code_coverage:
+          alias: requires_transactions_tests_dbt_platform
+
   migration_tests:
     docker:
       - <<: *image_python
@@ -242,6 +280,7 @@ jobs:
     environment:
       <<: *common_env_vars
       LITE_API_ENABLE_ES: True
+    parallelism: 5
     steps:
       - setup
       - run:
@@ -261,6 +300,7 @@ jobs:
     environment:
       <<: *common_env_vars
       LITE_API_ENABLE_ES: True
+    parallelism: 5
     steps:
       - setup
       - run:
@@ -647,7 +687,10 @@ workflows:
               - migration_tests
               - lite_routing_tests
               - lite_data_bdd_tests
+              - requires_transactions_tests
       - check-lite-routing-sha
       - e2e_tests
       - anonymised_db_dump_tests
       - anonymised_db_dump_tests_dbt_platform
+      - requires_transactions_tests
+      - requires_transactions_tests_dbt_platform
