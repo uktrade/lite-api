@@ -69,6 +69,13 @@ class LicenceDecisionsListView(viewsets.ReadOnlyModelViewSet):
 class SIELLicencesListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = LimitOffsetPagination
-    queryset = Licence.objects.exclude(status=LicenceStatus.DRAFT)
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = SIELLicenceSerializer
+
+    def get_queryset(self):
+        return Licence.objects.filter(
+            case__status__status__in=[
+                CaseStatusEnum.FINALISED,
+                CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
+            ],
+        ).exclude(status=LicenceStatus.DRAFT)
