@@ -254,8 +254,9 @@ class HMRCIntegrationSerializersTests(DataTestClient):
                     "line_1": organisation.primary_site.name,
                     "line_2": organisation.primary_site.address.address_line_1,
                     "line_3": organisation.primary_site.address.address_line_2,
-                    "line_4": organisation.primary_site.address.city,
-                    "line_5": organisation.primary_site.address.region,
+                    "line_4": organisation.primary_site.address.address_line_3,
+                    "line_5": organisation.primary_site.address.city,
+                    "line_6": organisation.primary_site.address.region,
                     "postcode": organisation.primary_site.address.postcode,
                     "country": {
                         "id": organisation.primary_site.address.country.id,
