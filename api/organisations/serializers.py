@@ -48,6 +48,7 @@ class SiteListSerializer(serializers.Serializer):
                 "address": {
                     "address_line_1": site.address.address_line_1,
                     "address_line_2": site.address.address_line_2,
+                    "address_line_3": site.address.address_line_3,
                     "region": site.address.region,
                     "postcode": site.address.postcode,
                     "city": site.address.city,

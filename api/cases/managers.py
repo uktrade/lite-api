@@ -105,6 +105,7 @@ class CaseQuerySet(QueryablePropertiesQuerySet):
         return self.filter(
             Q(baseapplication__application_sites__site__address__address_line_1__icontains=exporter_site_address)
             | Q(baseapplication__application_sites__site__address__address_line_2__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__address_line_3__icontains=exporter_site_address)
             | Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address)
             | Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address)
             | Q(baseapplication__application_sites__site__address__postcode__icontains=exporter_site_address)
