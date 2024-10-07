@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from api.licences.enums import LicenceStatus
-from api.licences.models import Licence
 
 
 def is_licence_issued(licence):
