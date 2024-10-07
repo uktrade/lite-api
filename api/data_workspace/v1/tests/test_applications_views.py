@@ -117,6 +117,7 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
                                 "address": {
                                     "address_line_1": organisation.primary_site.address.address_line_1,
                                     "address_line_2": organisation.primary_site.address.address_line_2,
+                                    "address_line_3": organisation.primary_site.address.address_line_3,
                                     "city": organisation.primary_site.address.city,
                                     "country": {
                                         "id": organisation.primary_site.address.country.id,
