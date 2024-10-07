@@ -112,6 +112,7 @@ class OrganisationSitesTests(DataTestClient):
                 "address": {
                     "address_line_1": site.address.address_line_1,
                     "address_line_2": site.address.address_line_2,
+                    "address_line_3": site.address.address_line_3,
                     "city": site.address.city,
                     "country": {"name": site.address.country.name},
                     "postcode": site.address.postcode,
