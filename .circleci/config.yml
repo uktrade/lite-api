@@ -62,7 +62,7 @@ commands:
             sudo apt-get update
             sudo apt-get install swig libpango1.0-0 libcairo2 libpq-dev libpangocairo-1.0-0 imagemagick poppler-utils
 
-  setup:
+  git_checkout:
     steps:
       - checkout
       - run:
@@ -89,6 +89,9 @@ commands:
                   git checkout << pipeline.parameters.lite_routing_branch_name >>
                   cd ..
 
+  setup:
+    steps:
+      - git_checkout
       # Download and cache dependencies
       # ensure this step occurs *before* installing dependencies
       - restore_cache:
@@ -514,8 +517,7 @@ jobs:
     docker:
       - <<: *image_python
     steps:
-      - checkout
-      - run: git submodule sync --recursive && git submodule update --recursive --init
+      - git_checkout
       - attach_workspace:
           at: ~/lite-api/tmp
       - run: pip install coverage diff_cover
@@ -694,6 +696,3 @@ workflows:
       - anonymised_db_dump_tests_dbt_platform
       - requires_transactions_tests
       - requires_transactions_tests_dbt_platform
-  check_routing_docs:
-    jobs:
-      - check_routing_docs
