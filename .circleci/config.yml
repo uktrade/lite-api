@@ -62,7 +62,7 @@ commands:
             sudo apt-get update
             sudo apt-get install swig libpango1.0-0 libcairo2 libpq-dev libpangocairo-1.0-0 imagemagick poppler-utils
 
-  setup:
+  git_checkout:
     steps:
       - checkout
       - run:
@@ -89,6 +89,9 @@ commands:
                   git checkout << pipeline.parameters.lite_routing_branch_name >>
                   cd ..
 
+  setup:
+    steps:
+      - git_checkout
       # Download and cache dependencies
       # ensure this step occurs *before* installing dependencies
       - restore_cache:
@@ -508,13 +511,45 @@ jobs:
           name: Check migrations are made
           command: pipenv run ./manage.py makemigrations --check
 
+  check_routing_docs:
+    docker:
+      - <<: *image_python
+      - <<: *image_postgres
+      - <<: *image_opensearch_v1
+    working_directory: ~/lite-api
+    environment:
+      <<: *common_env_vars
+      LITE_API_ENABLE_ES: True
+    steps:
+      - setup
+      - run:
+          name: Migrate app
+          command: pipenv run ./manage.py migrate
+      - run:
+          name: Seed app
+          command: pipenv run ./manage.py seedall
+      - run:
+          name: Generate routing rules documentation
+          command: pipenv run ./manage.py generate_rules_docs
+      - run:
+          name: Check for routing documentation changes
+          command: |
+            cd lite_routing
+            CHANGED_FILES=$(git diff --name-only)
+            CHANGED_CONTENT=$(git diff)
+            if [[ "$CHANGED_FILES" == *"docs/"* ]]; then
+              echo "lite-routing docs are stale! They should be re-generated with manage.py generate_rules_docs and committed to the lite-routing repository."
+              echo "Changed files; $CHANGED_FILES"
+              echo "$CHANGED_CONTENT"
+              exit 1
+            fi
+
   check_coverage:
     working_directory: ~/lite-api
     docker:
       - <<: *image_python
     steps:
-      - checkout
-      - run: git submodule sync --recursive && git submodule update --recursive --init
+      - git_checkout
       - attach_workspace:
           at: ~/lite-api/tmp
       - run: pip install coverage diff_cover
@@ -689,6 +724,7 @@ workflows:
               - lite_data_bdd_tests
               - requires_transactions_tests
       - check-lite-routing-sha
+      - check_routing_docs
       - e2e_tests
       - anonymised_db_dump_tests
       - anonymised_db_dump_tests_dbt_platform

@@ -11,6 +11,7 @@ AWS_ENDPOINT_URL = None
 
 INSTALLED_APPS += [
     "api.core.tests.apps.CoreTestsConfig",
+    "api.support.tests.apps.SupportTestsConfig",
 ]
 
 

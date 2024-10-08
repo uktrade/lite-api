@@ -1,8 +1,10 @@
 from api.audit_trail.models import Audit
+from api.core.serializers import KeyValueChoiceField
 from api.survey.models import SurveyResponse
 from api.teams.models import Department
 from api.cases.models import CaseAssignment, EcjuQuery, DepartmentSLA
-from api.licences.serializers.view_licence import LicenceListSerializer
+from api.licences.enums import LicenceStatus
+from api.licences.models import Licence
 from api.queues.models import Queue
 from api.organisations.models import Site
 from rest_framework import serializers
@@ -113,10 +115,23 @@ class AdviceDenialReasonSerializer(serializers.Serializer):
     denialreason_id = serializers.CharField()
 
 
-class LicenceWithoutGoodsSerializer(LicenceListSerializer):
-    def get_goods(self, instance):
-        # Good are not required by reporting
-        return []
+class LicenceSerializer(serializers.ModelSerializer):
+    application = serializers.SerializerMethodField()
+    status = KeyValueChoiceField(choices=LicenceStatus.choices)
+
+    class Meta:
+        model = Licence
+        fields = (
+            "id",
+            "application",
+            "reference_code",
+            "status",
+        )
+        read_only_fields = fields
+        ordering = ["created_at"]
+
+    def get_application(self, instance):
+        return {"id": str(instance.case.pk)}
 
 
 class SurveyResponseSerializer(serializers.ModelSerializer):

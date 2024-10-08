@@ -12,8 +12,8 @@ from api.core.decorators import authorised_govuser_roles, licence_is_editable
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.licences.serializers.view_licence import (
+    ExporterLicenceViewSerializer,
     LicenceDetailsSerializer,
-    LicenceSerializer,
     NLRdocumentSerializer,
     LicenceListSerializer,
 )
@@ -76,12 +76,17 @@ class Licences(ListCreateAPIView):
         if active_only:
             licences = licences.exclude(case__status__in=self.non_active_states)
 
+        licences = licences.prefetch_related(
+            "goods__good__good",
+            "goods__good__control_list_entries",
+        )
+
         return licences.order_by("created_at").reverse()
 
 
 class ViewLicence(RetrieveAPIView):
     authentication_classes = (ExporterAuthentication,)
-    serializer_class = LicenceSerializer
+    serializer_class = ExporterLicenceViewSerializer
 
     def get_queryset(self):
         return Licence.objects.filter(case__organisation_id=get_request_user_organisation_id(self.request))

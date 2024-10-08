@@ -15,7 +15,10 @@ from api.goods.enums import GoodControlled
 from api.goodstype.models import GoodsType
 from api.licences.enums import LicenceStatus
 from api.licences.helpers import serialize_goods_on_licence, get_approved_countries
-from api.licences.models import Licence
+from api.licences.models import (
+    GoodOnLicence,
+    Licence,
+)
 from api.parties.enums import PartyRole
 from api.parties.models import Party, PartyDocument
 from api.staticdata.control_list_entries.serializers import ControlListEntrySerializer
@@ -392,22 +395,92 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
             ]
 
 
+class GoodOnLicenceLicenceListSerializer(serializers.ModelSerializer):
+    good_on_application_id = serializers.UUIDField(source="good.id")
+    control_list_entries = ControlListEntrySerializer(source="good.good.control_list_entries", many=True)
+    assessed_control_list_entries = ControlListEntrySerializer(source="good.control_list_entries", many=True)
+    description = serializers.CharField(source="good.good.description")
+    name = serializers.CharField(source="good.good.name")
+
+    class Meta:
+        model = GoodOnLicence
+        fields = (
+            "id",
+            "good_on_application_id",
+            "control_list_entries",
+            "assessed_control_list_entries",
+            "description",
+            "name",
+        )
+        read_only_fields = fields
+
+
 class LicenceListSerializer(serializers.ModelSerializer):
     application = ApplicationLicenceListSerializer(source="case.baseapplication")
-    goods = serializers.SerializerMethodField()
     status = KeyValueChoiceField(choices=LicenceStatus.choices)
+    goods = GoodOnLicenceLicenceListSerializer(many=True)
 
     class Meta:
         model = Licence
         fields = (
             "id",
+            "application",
             "reference_code",
             "status",
-            "application",
             "goods",
         )
         read_only_fields = fields
         ordering = ["created_at"]
 
-    def get_goods(self, instance):
-        return serialize_goods_on_licence(instance)
+
+class GoodOnLicenceExporterLicenceViewSerializer(serializers.ModelSerializer):
+    applied_for_quantity = serializers.FloatField(source="good.quantity")
+    assessed_control_list_entries = ControlListEntrySerializer(source="good.control_list_entries", many=True)
+    control_list_entries = ControlListEntrySerializer(source="good.good.control_list_entries", many=True)
+    description = serializers.CharField(source="good.good.description")
+    name = serializers.CharField(source="good.good.name")
+    licenced_quantity = serializers.FloatField(source="quantity")
+    licenced_value = serializers.FloatField(source="value")
+    units = KeyValueChoiceField(source="good.unit", choices=Units.choices)
+    usage = serializers.FloatField()
+
+    class Meta:
+        model = GoodOnLicence
+        fields = (
+            "id",
+            "applied_for_quantity",
+            "assessed_control_list_entries",
+            "control_list_entries",
+            "description",
+            "licenced_quantity",
+            "licenced_value",
+            "name",
+            "units",
+            "usage",
+        )
+        read_only_fields = fields
+
+
+class ExporterLicenceViewSerializer(serializers.ModelSerializer):
+    application = ApplicationLicenceSerializer(source="case.baseapplication")
+    document = serializers.SerializerMethodField()
+    status = KeyValueChoiceField(choices=LicenceStatus.choices)
+    goods = GoodOnLicenceExporterLicenceViewSerializer(many=True)
+
+    class Meta:
+        model = Licence
+        fields = (
+            "id",
+            "application",
+            "document",
+            "duration",
+            "goods",
+            "reference_code",
+            "start_date",
+            "status",
+        )
+        read_only_fields = fields
+
+    def get_document(self, instance):
+        document = GeneratedCaseDocument.objects.get(licence=instance)
+        return {"id": document.id}
