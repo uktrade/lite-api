@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from api.applications.models import SiteOnApplication, ExternalLocationOnApplication
-from api.cases.enforcement_check.export_xml import _get_address_line_2, get_enforcement_id
+from api.cases.enforcement_check.export_xml import _get_address_lines, get_enforcement_id
 from api.cases.enforcement_check.import_xml import enforcement_id_to_uuid
 from api.cases.enums import EnforcementXMLEntityTypes
 from api.cases.models import EnforcementCheckID
@@ -30,6 +30,7 @@ class ExportXML(DataTestClient):
             "PD_SURNAME": stakeholder[6].text,
             "ADDRESS1": stakeholder[9].text,
             "ADDRESS2": stakeholder[10].text,
+            "ADDRESS3": stakeholder[10].text,
         }
 
     def _assert_enforcement_type_recorded(self, stakholder_id, entity_uuid, type):
@@ -118,7 +119,9 @@ class ExportXML(DataTestClient):
         self.assertEqual(stakeholder["ADDRESS1"], site.address.address_line_1)
         self.assertEqual(
             stakeholder["ADDRESS2"],
-            _get_address_line_2(site.address.address_line_2, site.address.postcode, site.address.city),
+            _get_address_lines(
+                site.address.address_line_2, site.address.address_line_3, site.address.postcode, site.address.city
+            ),
         )
         # Ensure the correct EnforcementCheckID object is added for the import xml process
         self._assert_enforcement_type_recorded(stakeholder["SH_ID"], site.pk, EnforcementXMLEntityTypes.SITE)
@@ -166,8 +169,9 @@ class ExportXML(DataTestClient):
         self.assertEqual(stakeholder["ADDRESS1"], self.organisation.primary_site.address.address_line_1)
         self.assertEqual(
             stakeholder["ADDRESS2"],
-            _get_address_line_2(
+            _get_address_lines(
                 self.organisation.primary_site.address.address_line_2,
+                self.organisation.primary_site.address.address_line_3,
                 self.organisation.primary_site.address.postcode,
                 self.organisation.primary_site.address.city,
             ),
