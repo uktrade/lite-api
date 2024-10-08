@@ -95,8 +95,41 @@ class ExportXML(DataTestClient):
         # Ensure the correct EnforcementCheckID object is added for the import xml process
         self._assert_enforcement_type_recorded(stakeholder["SH_ID"], entity_uuid, party.type)
 
-    def test_export_xml_with_site_success(self):
+    def test_export_xml_with_site_success_three_line_address(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        application = self.create_standard_application_case(self.organisation, parties=False, site=False)
+        application.queues.set([self.queue])
+        application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+        site_on_application = SiteOnApplication.objects.create(
+            site=self.organisation.primary_site, application=application
+        )
+        site = site_on_application.site
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
+        stakeholder = self._xml_to_dict(data[0])
+
+        self.assertEqual(stakeholder["ELA_ID"], str(get_enforcement_id(application.pk)))
+        self.assertEqual(stakeholder["SH_ID"], str(get_enforcement_id(site.pk)))
+        self.assertEqual(stakeholder["SH_TYPE"], "SOURCE")
+        self.assertEqual(stakeholder["COUNTRY"], site.address.country.name)
+        self.assertEqual(stakeholder["ORG_NAME"], site.organisation.name)
+        self.assertEqual(stakeholder["ADDRESS1"], site.address.address_line_1)
+        self.assertEqual(
+            stakeholder["ADDRESS2"],
+            _get_address_lines(
+                site.address.address_line_2, site.address.address_line_3, site.address.postcode, site.address.city
+            ),
+        )
+        # Ensure the correct EnforcementCheckID object is added for the import xml process
+        self._assert_enforcement_type_recorded(stakeholder["SH_ID"], site.pk, EnforcementXMLEntityTypes.SITE)
+
+    def test_export_xml_with_site_success_two_line_address(self):
+        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        self.organisation.primary_site.address_line_3 = None
+
         application = self.create_standard_application_case(self.organisation, parties=False, site=False)
         application.queues.set([self.queue])
         application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
