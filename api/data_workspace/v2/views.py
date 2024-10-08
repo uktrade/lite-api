@@ -67,7 +67,7 @@ class LicenceDecisionsListView(viewsets.ReadOnlyModelViewSet):
 
 
 class SIELLicencesListView(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    # authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = LimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = SIELLicenceSerializer
