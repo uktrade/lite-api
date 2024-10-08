@@ -13,6 +13,7 @@ def AddressFactoryGB():
 class AddressFactory(factory.django.DjangoModelFactory):
     address_line_1 = factory.Faker("street_address")
     address_line_2 = factory.Faker("secondary_address")
+    address_line_3 = factory.Faker("secondary_address")
     region = factory.Faker("state")
     postcode = factory.Faker("postcode")
     city = factory.Faker("city")
