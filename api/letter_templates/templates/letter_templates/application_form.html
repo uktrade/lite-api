@@ -718,7 +718,7 @@
 							<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
 							<td class="govuk-table__cell">{{ site.name }}</td>
 							{% if site.city and site.region and site.postcode %}
-								<td class="govuk-table__cell">{{ site.address_line_1 }},{% if site.address_line_2 %}{{ site.address_line_2 }},{% endif %}{{ site.city }}, {{ site.region }}, {{ site.postcode }}
+								<td class="govuk-table__cell">{{ site.address_line_1 }},{% if site.address_line_2 %}{{ site.address_line_2 }},{% endif %}{% if site.address_line_3 %}{{ site.address_line_3 }},{% endif %}{{ site.city }}, {{ site.region }}, {{ site.postcode }}
 							{% else %}
 								<td class="govuk-table__cell">{{ site.address_line_1 }}, {{ site.country.name }}
 							{% endif %}

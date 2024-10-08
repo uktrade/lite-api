@@ -24,6 +24,7 @@ strategy:
   address:
     address_line_1: faker.street_address
     address_line_2: faker.city
+    address_line_3: faker.city
     region: faker.city
     postcode: faker.postcode
     city: faker.city

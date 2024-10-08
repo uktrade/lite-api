@@ -52,6 +52,7 @@ class DocumentContextGenerationTests(DataTestClient):
             address.address_line_1 or address.address,
         )
         self.assertEqual(context["address_line_2"], address.address_line_2)
+        self.assertEqual(context["address_line_3"], address.address_line_3)
         self.assertEqual(context["postcode"], address.postcode)
         self.assertEqual(context["city"], address.city)
         self.assertEqual(context["region"], address.region)

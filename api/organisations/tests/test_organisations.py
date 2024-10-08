@@ -1,7 +1,6 @@
 import pytest
 
 from unittest import mock
-from django.conf import settings
 from faker import Faker
 from parameterized import parameterized
 
@@ -14,7 +13,6 @@ from api.audit_trail.models import Audit
 from api.core.authentication import EXPORTER_USER_TOKEN_HEADER
 from api.core.constants import Roles, GovPermissions
 from lite_content.lite_api.strings import Organisations
-from api.organisations.constants import UK_VAT_VALIDATION_REGEX, UK_EORI_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.tests.factories import OrganisationFactory
 from api.organisations.models import Organisation
@@ -124,6 +122,7 @@ class CreateOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
@@ -155,6 +154,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.name, data["site"]["name"])
         self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
         self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
+        self.assertEqual(site.address.address_line_3, data["site"]["address"]["address_line_3"])
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
@@ -174,6 +174,7 @@ class CreateOrganisationTests(DataTestClient):
                 {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
@@ -230,6 +231,7 @@ class CreateOrganisationTests(DataTestClient):
         if "address_line_1" in address:
             self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
             self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
+            self.assertEqual(site.address.address_line_3, data["site"]["address"]["address_line_3"])
             self.assertEqual(site.address.region, data["site"]["address"]["region"])
             self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
             self.assertEqual(site.address.city, data["site"]["address"]["city"])
@@ -262,6 +264,7 @@ class CreateOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
@@ -328,6 +331,7 @@ class CreateOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
@@ -356,6 +360,7 @@ class CreateOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "city": "St Albans",
                 },
@@ -386,6 +391,7 @@ class CreateOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
@@ -409,6 +415,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.name, data["site"]["name"])
         self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
         self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
+        self.assertEqual(site.address.address_line_3, data["site"]["address"]["address_line_3"])
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
@@ -427,6 +434,7 @@ class CreateOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
@@ -449,6 +457,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.name, data["site"]["name"])
         self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
         self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
+        self.assertEqual(site.address.address_line_3, data["site"]["address"]["address_line_3"])
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
@@ -706,6 +715,7 @@ class EditOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
@@ -759,6 +769,7 @@ class EditOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
@@ -823,6 +834,7 @@ class EditOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
@@ -859,6 +871,7 @@ class EditOrganisationTests(DataTestClient):
                 "address": {
                     "address_line_1": "42 Industrial Estate",
                     "address_line_2": "Queens Road",
+                    "address_line_3": "Westbury",
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
