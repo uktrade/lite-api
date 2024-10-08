@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from api.core.helpers import str_to_bool
 from api.core.serializers import KeyValueChoiceField, ControlListEntryField, GoodControlReviewSerializer
-from api.core.validators import GoodNameValidator
 from api.documents.libraries.process_document import process_document
 from api.goods.enums import (
     FirearmCategory,
@@ -308,7 +307,7 @@ class FirearmDetailsAttachingSerializer(serializers.Serializer):
 
 class GoodListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    name = serializers.CharField(validators=[GoodNameValidator()])
+    name = serializers.CharField()
     description = serializers.CharField()
     control_list_entries = ControlListEntrySerializer(many=True, allow_null=True)
     part_number = serializers.CharField()
@@ -357,7 +356,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     Because of this, each 'get' override must check the instance type before creating queries
     """
 
-    name = serializers.CharField(error_messages={"blank": "Enter a product name"}, validators=[GoodNameValidator()])
+    name = serializers.CharField(error_messages={"blank": "Enter a product name"})
     description = serializers.CharField(max_length=280, allow_blank=True, required=False)
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices, allow_null=True)
     control_list_entries = ControlListEntryField(required=False, many=True, allow_null=True, allow_empty=True)
@@ -690,7 +689,7 @@ class GoodDocumentCreateSerializer(serializers.ModelSerializer):
 class GoodDocumentViewSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     created_at = serializers.DateTimeField()
-    name = serializers.CharField(validators=[GoodNameValidator()])
+    name = serializers.CharField()
     description = serializers.CharField()
     user = ExporterUserSimpleSerializer()
     s3_key = serializers.SerializerMethodField()
@@ -788,7 +787,7 @@ class GoodOnApplicationPrecedentSerializer(GoodOnApplicationSerializer):
 
 class GoodSerializerInternal(serializers.Serializer):
     id = serializers.UUIDField()
-    name = serializers.CharField(validators=[GoodNameValidator()])
+    name = serializers.CharField()
     description = serializers.CharField()
     part_number = serializers.CharField()
     no_part_number_comments = serializers.CharField()
@@ -871,7 +870,7 @@ class GoodArchiveHistorySerializer(serializers.Serializer):
 
 class GoodSerializerExporter(serializers.Serializer):
     id = serializers.UUIDField()
-    name = serializers.CharField(validators=[GoodNameValidator()])
+    name = serializers.CharField()
     description = serializers.CharField()
     control_list_entries = ControlListEntryField(many=True)
     part_number = serializers.CharField()
