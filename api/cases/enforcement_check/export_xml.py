@@ -47,7 +47,7 @@ def _dict_to_xml(parent, data):
 def _get_address_lines(address_line_2, address_line_3, postcode, city):
     if address_line_2 and address_line_3:
         return ", ".join([address_line_2, address_line_3, postcode, city])
-    elif address_line_2 and not address_line_3:
+    elif address_line_2:
         return ", ".join([address_line_2, postcode, city])
     else:
         return ", ".join([postcode, city])
@@ -59,7 +59,16 @@ def _format_address(address):
 
 
 def _entity_to_xml(
-    base, application_id, id, type, sh_type, country, organisation, address_line_1, name=None, address_line_2=None
+    base,
+    application_id,
+    id,
+    type,
+    sh_type,
+    country,
+    organisation,
+    address_line_1,
+    name=None,
+    address_line_2=None,
 ):
     stakeholder = ElementTree.SubElement(base, "STAKEHOLDER")
     _dict_to_xml(
