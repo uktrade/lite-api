@@ -1,0 +1,81 @@
+from rest_framework import viewsets
+from rest_framework.generics import ListAPIView
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.settings import api_settings
+
+from rest_framework_csv.renderers import PaginatedCSVRenderer
+
+from api.applications.models import StandardApplication
+from api.core.authentication import DataWorkspaceOnlyAuthentication
+from api.data_workspace.v2.serializers import (
+    LicenceDecisionSerializer,
+    LicenceDecisionTypeSerializer,
+    LicenceStatusSerializer,
+    SIELApplicationSerializer,
+    SIELLicenceSerializer,
+)
+from api.licences.enums import (
+    LicenceDecisionType,
+    LicenceStatus,
+)
+from api.licences.models import Licence
+from api.staticdata.statuses.enums import CaseStatusEnum
+
+
+class LicenceStatusesListView(viewsets.GenericViewSet, ListAPIView):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = LimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = LicenceStatusSerializer
+
+    def get_queryset(self):
+        return LicenceStatus.all()
+
+
+class LicenceDecisionTypesListView(viewsets.GenericViewSet, ListAPIView):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = LimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = LicenceDecisionTypeSerializer
+
+    def get_queryset(self):
+        return LicenceDecisionType.all()
+
+
+class SIELApplicationsListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = LimitOffsetPagination
+    queryset = StandardApplication.objects.filter(amendment__isnull=True).exclude(submitted_at__isnull=True)
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = SIELApplicationSerializer
+
+
+class LicenceDecisionsListView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = LimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = LicenceDecisionSerializer
+
+    def get_queryset(self):
+        return StandardApplication.objects.filter(
+            amendment__isnull=True,
+            status__status__in=[
+                CaseStatusEnum.FINALISED,
+                CaseStatusEnum.WITHDRAWN,
+            ],
+        ).exclude(submitted_at__isnull=True)
+
+
+class SIELLicencesListView(viewsets.ReadOnlyModelViewSet):
+    # authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = LimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = SIELLicenceSerializer
+
+    def get_queryset(self):
+        return Licence.objects.filter(
+            case__status__status__in=[
+                CaseStatusEnum.FINALISED,
+                CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
+            ],
+        ).exclude(status=LicenceStatus.DRAFT)

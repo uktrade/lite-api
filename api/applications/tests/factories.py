@@ -64,6 +64,8 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
         obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         if "status" in kwargs and isinstance(kwargs["status"], CaseStatus):
             obj.status = kwargs["status"]
+        if "submitted_at" in kwargs:
+            obj.submitted_at = kwargs["submitted_at"]
         obj.save()
         return obj
 
