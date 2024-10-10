@@ -91,6 +91,8 @@ class OrganisationSitesTests(DataTestClient):
             "site_records_stored_here": True,
             "address": {
                 "address_line_1": "a street",
+                "address_line_2": "a place",
+                "address_line_3": "an area",
                 "city": "london",
                 "postcode": "E14GH",
                 "region": "Hertfordshire",
@@ -112,6 +114,7 @@ class OrganisationSitesTests(DataTestClient):
                 "address": {
                     "address_line_1": site.address.address_line_1,
                     "address_line_2": site.address.address_line_2,
+                    "address_line_3": site.address.address_line_3,
                     "city": site.address.city,
                     "country": {"name": site.address.country.name},
                     "postcode": site.address.postcode,

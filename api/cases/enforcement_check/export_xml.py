@@ -44,10 +44,12 @@ def _dict_to_xml(parent, data):
             element.text = escape(str(value))
 
 
-def _get_address_line_2(address_line_2, postcode, city):
-    if address_line_2:
+def _get_address_lines(address_line_2, address_line_3, postcode, city):
+    if address_line_2 and address_line_3:
+        return ", ".join([address_line_2, address_line_3, postcode, city])
+    elif address_line_2:
         return ", ".join([address_line_2, postcode, city])
-    elif postcode and city:
+    else:
         return ", ".join([postcode, city])
 
 
@@ -57,7 +59,16 @@ def _format_address(address):
 
 
 def _entity_to_xml(
-    base, application_id, id, type, sh_type, country, organisation, address_line_1, name=None, address_line_2=None
+    base,
+    application_id,
+    id,
+    type,
+    sh_type,
+    country,
+    organisation,
+    address_line_1,
+    name=None,
+    address_line_2=None,
 ):
     stakeholder = ElementTree.SubElement(base, "STAKEHOLDER")
     _dict_to_xml(
@@ -153,6 +164,7 @@ def _export_sites_on_applications(case_ids, xml_base):
             "site__address__address",
             "site__address__address_line_1",
             "site__address__address_line_2",
+            "site__address__address_line_3",
             "site__address__country__name",
             "site__address__postcode",
             "site__address__city",
@@ -168,8 +180,11 @@ def _export_sites_on_applications(case_ids, xml_base):
             country=soa["site__address__country__name"],
             organisation=soa["site__organisation__name"],
             address_line_1=soa["site__address__address_line_1"] or soa["site__address__address"],
-            address_line_2=_get_address_line_2(
-                soa["site__address__address_line_2"], soa["site__address__postcode"], soa["site__address__city"]
+            address_line_2=_get_address_lines(
+                soa["site__address__address_line_2"],
+                soa["site__address__address_line_3"],
+                soa["site__address__postcode"],
+                soa["site__address__city"],
             ),
         )
 
@@ -184,6 +199,7 @@ def _export_organisations_on_applications(cases, xml_base):
         "organisation__primary_site__address__address",
         "organisation__primary_site__address__address_line_1",
         "organisation__primary_site__address__address_line_2",
+        "organisation__primary_site__address__address_line_3",
         "organisation__primary_site__address__country__name",
         "organisation__primary_site__address__postcode",
         "organisation__primary_site__address__city",
@@ -199,8 +215,9 @@ def _export_organisations_on_applications(cases, xml_base):
             organisation=org["organisation__name"],
             address_line_1=org["organisation__primary_site__address__address_line_1"]
             or org["organisation__primary_site__address__address"],
-            address_line_2=_get_address_line_2(
+            address_line_2=_get_address_lines(
                 org["organisation__primary_site__address__address_line_2"],
+                org["organisation__primary_site__address__address_line_3"],
                 org["organisation__primary_site__address__postcode"],
                 org["organisation__primary_site__address__city"],
             ),

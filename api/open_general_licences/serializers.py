@@ -105,6 +105,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
                                 "address": {
                                     "address_line_1": case.site.address.address_line_1,
                                     "address_line_2": case.site.address.address_line_2,
+                                    "address_line_3": case.site.address.address_line_3,
                                     "city": case.site.address.city,
                                     "region": case.site.address.region,
                                     "postcode": case.site.address.postcode,
