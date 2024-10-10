@@ -55,3 +55,57 @@ def parse_list_into_control_list_entries(worksheet):
                 control_rating.save()
             except ControlListEntry.DoesNotExist:
                 pass
+
+
+def parse_list_into_control_list_entries(worksheet):
+    if not settings.SUPPRESS_TEST_OUTPUT:
+        print(f"Seeding {worksheet.title}...")
+
+    current_depth = 1
+    parents_at_depth = [None] * MAX_DEPTH
+
+    cles = []
+
+    for row in worksheet.iter_rows(min_row=4):
+        text, rating, controlled = None, None, True
+        previous_depth = current_depth
+        for cell in row:
+            if cell.value is not None:
+                if cell.column <= MAX_DEPTH:
+                    current_depth = cell.column
+                    text = cell.value
+                elif cell.column == RATING_COLUMN:
+                    rating = cell.value
+                elif cell.column == CONTROLLED_COLUMN:
+                    controlled = cell.value.lower() != "x"
+
+        if text is None:
+            break
+
+        # breakpoint()
+        if "-" in str(rating):
+            continue
+
+        control_rating = {
+            "rating": rating,
+            "controlled": False,
+            "parent": None,
+            "text": text,
+            "selectable_for_assessment": True,
+            "category": worksheet.title,
+        }
+        if controlled:
+            if rating is None:
+                raise Exception(f"Row {row[0].row} in {worksheet.title} doesn't have a rating and is controlled")
+
+            # mechanism for scanning parent by depth
+            if current_depth > previous_depth:
+                parent = parents_at_depth[previous_depth]
+            else:
+                parent = parents_at_depth[current_depth - 1]
+            parents_at_depth[current_depth] = rating
+
+            control_rating["parent"] = parent
+
+        cles.append(control_rating)
+    return cles
