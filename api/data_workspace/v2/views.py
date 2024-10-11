@@ -1,3 +1,4 @@
+from django.db.models import Count
 from rest_framework import viewsets
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import LimitOffsetPagination
@@ -73,9 +74,19 @@ class SIELLicencesListView(viewsets.ReadOnlyModelViewSet):
     serializer_class = SIELLicenceSerializer
 
     def get_queryset(self):
-        return Licence.objects.filter(
-            case__status__status__in=[
-                CaseStatusEnum.FINALISED,
-                CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
-            ],
-        ).exclude(status=LicenceStatus.DRAFT)
+        # When an application with all goods as NLR is finalised then the current code
+        # creates a licence however the goods on this licence will be empty. This
+        # will skew licence data hence exclude them
+        return (
+            Licence.objects.prefetch_related("goods")
+            .annotate(num_licensed_goods=Count("goods"))
+            .exclude(status=LicenceStatus.DRAFT)
+            .filter(
+                case__status__status__in=[
+                    CaseStatusEnum.FINALISED,
+                    CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
+                ],
+            )
+            .exclude(num_licensed_goods=0)
+            .order_by("-reference_code")
+        )
