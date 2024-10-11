@@ -29,19 +29,25 @@ def is_licence_revoked(licence):
 
 
 def is_licence_surrendered(licence):
-    return licence.status == LicenceStatus.SURRENDERED
+    return is_licence_valid(licence) and licence.status == LicenceStatus.SURRENDERED
 
 
 def is_licence_suspended(licence):
-    return licence.status == LicenceStatus.SUSPENDED
+    return is_licence_valid(licence) and licence.status == LicenceStatus.SUSPENDED
 
 
 def is_licence_expired(licence):
-    return licence.status == LicenceStatus.EXPIRED or datetime.today().date() > licence.end_date
+    return not is_licence_exhausted(licence) and (
+        licence.status == LicenceStatus.EXPIRED or datetime.today().date() > licence.end_date
+    )
 
 
 def is_licence_cancelled(licence):
-    return licence.status == LicenceStatus.CANCELLED
+    return (
+        not is_licence_exhausted(licence)
+        and not is_licence_expired(licence)
+        and licence.status == LicenceStatus.CANCELLED
+    )
 
 
 def is_licence_extant(licence):
