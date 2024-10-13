@@ -27,7 +27,6 @@ from api.flags.models import Flag
 from api.flags.serializers import (
     FlagSerializer,
     FlagAssignmentSerializer,
-    FlagReadOnlySerializer,
 )
 
 from api.goods.models import Good
@@ -42,7 +41,7 @@ from api.queries.goods_query.models import GoodsQuery
 
 class FlagsListView(ListAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = FlagReadOnlySerializer
+    serializer_class = FlagSerializer
 
     def get_queryset(self):
         case = self.request.GET.get("case")
