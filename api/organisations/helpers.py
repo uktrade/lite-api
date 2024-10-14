@@ -70,6 +70,23 @@ def audit_edited_organisation_fields(user, organisation, new_org, is_non_uk=None
             new_org.get("registration_number"),
         )
 
+    if (
+        (
+            (organisation.type == OrganisationType.COMMERCIAL and new_org.get("royal_charter_number"))
+            or organisation.type != OrganisationType.COMMERCIAL
+            or is_non_uk
+        )
+        and organisation.registration_number != new_org.get("royal_charter_number")
+        and organisation.type != OrganisationType.HMRC
+    ):
+        add_edited_audit_entry(
+            user,
+            organisation,
+            "royal charter number",
+            organisation.royal_charter_number,
+            new_org.get("royal_charter_number"),
+        )
+
 
 def audit_reviewed_organisation(user, organisation, decision):
 

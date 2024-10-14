@@ -41,6 +41,7 @@ class DataWorkspaceTests(DataTestClient):
             "sic_number",
             "vat_number",
             "registration_number",
+            "royal_charter_number",
             "phone_number",
             "website",
         )

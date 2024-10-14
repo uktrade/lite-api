@@ -147,6 +147,7 @@ class DataWorkspaceApplicationViewTests(DataTestClient):
                                 },
                             },
                             "registration_number": organisation.registration_number,
+                            "royal_charter_number": organisation.royal_charter_number,
                             "sic_number": organisation.sic_number,
                             "status": {"key": "active", "value": "Active"},
                             "type": {"key": "commercial", "value": "Commercial Organisation"},

@@ -138,7 +138,15 @@ class FlattenedSiteSerializer(SiteSerializer):
 class OrganisationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organisation
-        fields = ["name", "eori_number", "sic_number", "vat_number", "registration_number", "primary_site"]
+        fields = [
+            "name",
+            "eori_number",
+            "sic_number",
+            "vat_number",
+            "registration_number",
+            "royal_charter_number",
+            "primary_site",
+        ]
 
     primary_site = FlattenedSiteSerializer()
 

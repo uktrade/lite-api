@@ -15,3 +15,6 @@ class OrganisationProvider(BaseProvider):
 
     def registration_number(self):
         return str(random.randint(10000000, 99999999))  # nosec
+
+    def royal_charter_number(self):
+        return f"RC{random.randint(100000000, 999999999)}"  # nosec

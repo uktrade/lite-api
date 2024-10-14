@@ -230,6 +230,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "sic_number",
             "vat_number",
             "registration_number",
+            "royal_charter_number",
             "phone_number",
             "website",
             "user",
@@ -367,6 +368,7 @@ class OrganisationListSerializer(serializers.ModelSerializer):
             "type",
             "status",
             "registration_number",
+            "royal_charter_number",
             "vat_number",
             "created_at",
         )

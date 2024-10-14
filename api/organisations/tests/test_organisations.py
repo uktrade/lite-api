@@ -1,7 +1,6 @@
 import pytest
 
 from unittest import mock
-from django.conf import settings
 from faker import Faker
 from parameterized import parameterized
 
@@ -14,7 +13,6 @@ from api.audit_trail.models import Audit
 from api.core.authentication import EXPORTER_USER_TOKEN_HEADER
 from api.core.constants import Roles, GovPermissions
 from lite_content.lite_api.strings import Organisations
-from api.organisations.constants import UK_VAT_VALIDATION_REGEX, UK_EORI_VALIDATION_REGEX
 from api.organisations.enums import OrganisationType, OrganisationStatus
 from api.organisations.tests.factories import OrganisationFactory
 from api.organisations.models import Organisation
@@ -39,6 +37,7 @@ class GetOrganisationTests(DataTestClient):
         response_data = next(data for data in response.json()["results"] if data["id"] == str(organisation.id))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
         expected_fields = {
             "id",
             "name",
@@ -46,10 +45,12 @@ class GetOrganisationTests(DataTestClient):
             "eori_number",
             "type",
             "registration_number",
+            "royal_charter_number",
             "vat_number",
             "status",
             "created_at",
         }
+
         assert response_data.keys() == expected_fields
         assert response_data["id"] == str(organisation.id)
         assert response_data["name"] == organisation.name
@@ -57,6 +58,7 @@ class GetOrganisationTests(DataTestClient):
         assert response_data["eori_number"] == organisation.eori_number
         assert response_data["type"] == generate_key_value_pair(organisation.type, OrganisationType.choices)
         assert response_data["registration_number"] == organisation.registration_number
+        assert response_data["royal_charter_number"] == organisation.royal_charter_number
         assert response_data["vat_number"] == organisation.vat_number
         assert response_data["status"] == generate_key_value_pair(organisation.status, OrganisationStatus.choices)
         assert response_data["created_at"]
@@ -119,6 +121,7 @@ class CreateOrganisationTests(DataTestClient):
             "phone_number": "+441234567895",
             "website": "",
             "registration_number": "98765432",
+            "royal_charter_number": "RC765432",
             "site": {
                 "name": "Headquarters",
                 "address": {
@@ -143,6 +146,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
+        self.assertEqual(organisation.royal_charter_number, data["royal_charter_number"])
         self.assertEqual(organisation.phone_number, data["phone_number"])
         self.assertEqual(organisation.status, OrganisationStatus.ACTIVE)
 
@@ -197,6 +201,7 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": "01110",
             "vat_number": "GB123456789",
             "registration_number": "98765432",
+            "royal_charter_number": "RC765432",
             "phone_number": "+441234567895",
             "website": "",
             "site": {"name": "Headquarters", "address": address},
@@ -216,6 +221,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
+        self.assertEqual(organisation.royal_charter_number, data["royal_charter_number"])
         self.assertEqual(organisation.status, OrganisationStatus.IN_REVIEW)
 
         self.assertEqual(exporter_user.email, data["user"]["email"])
@@ -256,6 +262,7 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": "01110",
             "vat_number": "GB123456789",
             "registration_number": "98765432",
+            "royal_charter_number": "RC765432",
             "phone_number": "",
             "site": {
                 "name": "Headquarters",
@@ -289,6 +296,7 @@ class CreateOrganisationTests(DataTestClient):
             "sic_number": None,
             "vat_number": None,
             "registration_number": None,
+            "royal_charter_number": None,
             "site": {
                 "name": None,
                 "address": {
@@ -309,19 +317,23 @@ class CreateOrganisationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            ["1234", "1234", "1234", ""],
-            ["1234", "1234", "", "1234"],
-            ["1234", "", "1234", "1234"],
-            ["", "1234", "1234", "1234"],
+            ["1234", "1234", "1234", "1234", ""],
+            ["1234", "1234", "1234", "", "1234"],
+            ["1234", "1234", "", "1234", "1234"],
+            ["1234", "", "1234", "1234", "1234"],
+            ["", "1234", "1234", "1234", "1234"],
         ]
     )
-    def test_create_organisation_missing_fields_failure(self, eori_number, vat_number, sic_number, registration_number):
+    def test_create_organisation_missing_fields_failure(
+        self, eori_number, vat_number, sic_number, registration_number, royal_charter_number
+    ):
         data = {
             "name": "Lemonworld Co",
             "type": "commercial",
             "eori_number": eori_number,
             "sic_number": sic_number,
             "vat_number": vat_number,
+            "registration_number": registration_number,
             "registration_number": registration_number,
             "site": {
                 "name": "Headquarters",
@@ -472,6 +484,7 @@ class EditOrganisationTests(DataTestClient):
         previous_sic_number = organisation.sic_number
         previous_vat_number = organisation.vat_number
         previous_registration_number = organisation.registration_number
+        previous_royal_charter_number = organisation.royal_charter_number
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {
@@ -479,6 +492,7 @@ class EditOrganisationTests(DataTestClient):
             "sic_number": self.faker.sic_number(),
             "vat_number": self.faker.vat_number(),
             "registration_number": self.faker.registration_number(),
+            "royal_charter_number": self.faker.royal_charter_number(),
         }
 
         response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
@@ -489,9 +503,10 @@ class EditOrganisationTests(DataTestClient):
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
+        self.assertEqual(organisation.royal_charter_number, data["royal_charter_number"])
 
         audit_qs = Audit.objects.all()
-        self.assertEqual(audit_qs.count(), 4)
+        self.assertEqual(audit_qs.count(), len(data))
         for audit in audit_qs:
             verb = AuditType.UPDATED_ORGANISATION
             self.assertEqual(AuditType(audit.verb), verb)
@@ -499,6 +514,10 @@ class EditOrganisationTests(DataTestClient):
                 org_field = "registration number"
                 previous_value = previous_registration_number
                 new_value = organisation.registration_number
+            elif audit.payload["key"] == "royal charter number":
+                org_field = "royal charter number"
+                previous_value = previous_royal_charter_number
+                new_value = organisation.royal_charter_number
             elif audit.payload["key"] == "VAT number":
                 org_field = "VAT number"
                 previous_value = previous_vat_number
@@ -526,7 +545,13 @@ class EditOrganisationTests(DataTestClient):
         site.save()
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
-        data = {"eori_number": None, "sic_number": None, "vat_number": None, "registration_number": None}
+        data = {
+            "eori_number": None,
+            "sic_number": None,
+            "vat_number": None,
+            "registration_number": None,
+            "royal_charter_number": None,
+        }
 
         response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
         organisation.refresh_from_db()
@@ -536,6 +561,7 @@ class EditOrganisationTests(DataTestClient):
         self.assertIsNotNone(organisation.sic_number)
         self.assertIsNotNone(organisation.vat_number)
         self.assertIsNotNone(organisation.registration_number)
+        self.assertIsNotNone(organisation.royal_charter_number)
         self.assertEqual(Audit.objects.count(), 0)
 
     def test_set_org_details_to_none_foreign_address_success(self):
@@ -547,7 +573,13 @@ class EditOrganisationTests(DataTestClient):
             type=OrganisationType.COMMERCIAL, primary_site__address=ForeignAddressFactory()
         )
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
-        data = {"eori_number": None, "sic_number": None, "vat_number": None, "registration_number": None}
+        data = {
+            "eori_number": None,
+            "sic_number": None,
+            "vat_number": None,
+            "registration_number": None,
+            "royal_charter_number": None,
+        }
 
         response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
         organisation.refresh_from_db()
@@ -557,7 +589,8 @@ class EditOrganisationTests(DataTestClient):
         self.assertIsNone(organisation.sic_number)
         self.assertIsNone(organisation.vat_number)
         self.assertIsNone(organisation.registration_number)
-        self.assertEqual(Audit.objects.count(), 4)
+        self.assertIsNone(organisation.royal_charter_number)
+        self.assertEqual(Audit.objects.count(), len(data))
 
     def test_cannot_edit_organisation_without_permission(self):
         organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
@@ -699,6 +732,7 @@ class EditOrganisationTests(DataTestClient):
             "sic_number": self.faker.sic_number(),
             "vat_number": vat_number,
             "registration_number": self.faker.registration_number(),
+            "royal_charter_number": self.faker.royal_charter_number(),
             "phone_number": "+441234567999",
             "website": "",
             "site": {
@@ -752,6 +786,7 @@ class EditOrganisationTests(DataTestClient):
             "sic_number": self.faker.sic_number(),
             "vat_number": vat_number,
             "registration_number": self.faker.registration_number(),
+            "royal_charter_number": self.faker.royal_charter_number(),
             "phone_number": "+441234567999",
             "website": "",
             "site": {
@@ -816,6 +851,7 @@ class EditOrganisationTests(DataTestClient):
             "sic_number": self.faker.sic_number(),
             "vat_number": self.faker.vat_number(),
             "registration_number": self.faker.registration_number(),
+            "royal_charter_number": self.faker.royal_charter_number(),
             "phone_number": "+441234567999",
             "website": "",
             "site": {
@@ -852,6 +888,7 @@ class EditOrganisationTests(DataTestClient):
             "sic_number": self.faker.sic_number(),
             "vat_number": self.faker.vat_number(),
             "registration_number": self.faker.registration_number(),
+            "royal_charter_number": self.faker.royal_charter_number(),
             "phone_number": "+441234567999",
             "website": "",
             "site": {
