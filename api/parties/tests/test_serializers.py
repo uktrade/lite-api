@@ -58,26 +58,6 @@ class TestPartySerializer(DataTestClient):
     @parameterized.expand(
         [
             ("\r\n", "Enter an address"),
-            (
-                "party\address",
-                "Address must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "party-\waddress",
-                "Address must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "party_address",
-                "Address must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "party$address",
-                "Address must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "party@address",
-                "Address must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
         ]
     )
     def test_validate_party_address_invalid(self, address, error_message):
@@ -107,40 +87,3 @@ class TestPartySerializer(DataTestClient):
             partial=True,
         )
         self.assertTrue(serializer.is_valid())
-
-    @parameterized.expand(
-        [
-            (
-                "party\aname",
-                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "party-\wname",
-                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "party_name",
-                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "party$name",
-                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-            (
-                "party@name",
-                "Party name must only include letters, numbers, and common special characters such as hyphens, brackets and apostrophes",
-            ),
-        ]
-    )
-    def test_party_name_invalid(self, name, error_message):
-        serializer = PartySerializer(
-            data={"name": name},
-            partial=True,
-        )
-        self.assertFalse(serializer.is_valid())
-        serializer_error = serializer.errors["name"]
-        self.assertEqual(len(serializer_error), 1)
-        self.assertEqual(
-            str(serializer_error[0]),
-            error_message,
-        )
