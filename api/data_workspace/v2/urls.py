@@ -9,3 +9,9 @@ router_v2.register(
     views.LicenceStatusesListView,
     basename="dw-licence-statuses",
 )
+
+router_v2.register(
+    "siel-licences",
+    views.SIELLicencesListView,
+    basename="dw-siel-licences",
+)
