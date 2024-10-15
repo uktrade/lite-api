@@ -8,6 +8,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.functional import cached_property
 from api.users.enums import UserType
 
 from queryable_properties.managers import QueryablePropertiesManager
@@ -228,6 +229,17 @@ class Case(TimestampableModel):
         if status.status in [CaseStatusEnum.WITHDRAWN, CaseStatusEnum.CLOSED]:
             remove_flags_on_finalisation(self)
             remove_flags_from_audit_trail(self)
+
+    @cached_property
+    def all_cles(self):
+        """
+        Returns a set of all CLEs present across all GoodOnApplication objects on
+        the case.
+        """
+        cles = set()
+        for goa in self.baseapplication.goods.all():
+            cles.update(goa.control_list_entries.values_list("rating", flat=True))
+        return cles
 
     def parameter_set(self):
         """
