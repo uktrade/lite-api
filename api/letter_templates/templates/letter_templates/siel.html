@@ -1,7 +1,7 @@
 {% extends "letter_templates/pdf_generation_base.html" %}
 {% load static custom_tags %}
 
-{% block title %}Standard individual export licence{% endblock %}
+{% block title %}Standard individual export licence hello{% endblock %}
 
 {% block content %}
 <div class="document">
@@ -34,7 +34,14 @@
               <br><br>
           </span>
           <span>
-                <strong>Registered No. {{ organisation.registration_number}}</strong>
+                <strong>
+                  {% if  organisation.royal_charter_number %}
+                    Royal Charter No. {{ organisation.royal_charter_number }}
+                  {% else %}
+                    <br>Org {{ organisation }} <br>
+                    Registered No. {{ organisation.registration_number }}
+                  {% endif %}
+                </strong>
           </span>
         </td>
         <td id="licence-reference-column" class="border-black" colspan="3">
@@ -239,7 +246,13 @@
               <br><br>
           </span>
           <span>
-                <strong>Registered No. {{ organisation.registration_number}}</strong>
+                <strong>
+                  {% if  organisation.royal_charter_number %}
+                    Royal Charter No. {{ organisation.royal_charter_number }}
+                  {% else %}
+                    Registered No. {{ organisation.registration_number }}
+                  {% endif %}
+                </strong>
           </span>
         </td>
         <td class="border-black" colspan="3">
@@ -346,7 +359,13 @@
               <br><br>
           </span>
           <span>
-                <strong>Registered No. {{ organisation.registration_number}}</strong>
+                <strong>
+                  {% if  organisation.royal_charter_number %}
+                    Royal Charter No. {{ organisation.royal_charter_number }}
+                  {% else %}
+                    Registered No. {{ organisation.registration_number }}
+                  {% endif %}
+                </strong>
           </span>
         </td>
         <td class="border-black" colspan="3">
@@ -538,7 +557,13 @@
               <br><br>
           </span>
           <span>
-                <strong>Registered No. {{ organisation.registration_number}}</strong>
+                <strong>
+                  {% if  organisation.royal_charter_number %}
+                    Royal Charter No. {{ organisation.royal_charter_number }}
+                  {% else %}
+                    Registered No. {{ organisation.registration_number }}
+                  {% endif %}
+                </strong>
           </span>
         </td>
         <td class="border-black" colspan="3">
