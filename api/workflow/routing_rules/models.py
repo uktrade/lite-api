@@ -16,7 +16,6 @@ from api.staticdata.statuses.models import CaseStatus
 from api.teams.models import Team
 from api.users.models import GovUser
 from api.workflow.routing_rules.enum import RoutingRulesAdditionalFields
-from lite_routing.routing_rules_internal.routing_rules_criteria import run_criteria_function
 
 
 class RoutingRuleManager(models.Manager):
@@ -113,11 +112,6 @@ class RoutingRule(TimestampableModel):
             self.active,
             self.country_id,  # country code
         )
-
-    def is_python_criteria_satisfied(self, case):
-        if not self.is_python_criteria:
-            raise NotImplementedError(f"is_python_criteria_satisfied was run for non-python rule {self.id}")
-        return run_criteria_function(self.id, case)
 
     natural_key.dependencies = ["teams.Team", "queues.Queue", "users.GovUser", "countries.Country"]
 
