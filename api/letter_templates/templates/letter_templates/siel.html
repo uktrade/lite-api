@@ -1,7 +1,7 @@
 {% extends "letter_templates/pdf_generation_base.html" %}
 {% load static custom_tags %}
 
-{% block title %}Standard individual export licence hello{% endblock %}
+{% block title %}Standard individual export licence{% endblock %}
 
 {% block content %}
 <div class="document">
@@ -32,17 +32,9 @@
               {{ organisation.primary_site.region }}<br>
               {{ organisation.primary_site.country.name }}
               <br><br>
+              {% include "letter_templates/includes/organisation_number.html" %}
           </span>
-          <span>
-                <strong>
-                  {% if  organisation.royal_charter_number %}
-                    Royal Charter No. {{ organisation.royal_charter_number }}
-                  {% else %}
-                    <br>Org {{ organisation }} <br>
-                    Registered No. {{ organisation.registration_number }}
-                  {% endif %}
-                </strong>
-          </span>
+
         </td>
         <td id="licence-reference-column" class="border-black" colspan="3">
           <span class="cell__heading">2. Licence number</span>
@@ -245,15 +237,7 @@
               {{ organisation.primary_site.country.name }}
               <br><br>
           </span>
-          <span>
-                <strong>
-                  {% if  organisation.royal_charter_number %}
-                    Royal Charter No. {{ organisation.royal_charter_number }}
-                  {% else %}
-                    Registered No. {{ organisation.registration_number }}
-                  {% endif %}
-                </strong>
-          </span>
+          {% include "letter_templates/includes/organisation_number.html" %}
         </td>
         <td class="border-black" colspan="3">
           <span class="cell__heading">2. Licence number</span>
@@ -358,15 +342,7 @@
               {{ organisation.primary_site.country.name }}
               <br><br>
           </span>
-          <span>
-                <strong>
-                  {% if  organisation.royal_charter_number %}
-                    Royal Charter No. {{ organisation.royal_charter_number }}
-                  {% else %}
-                    Registered No. {{ organisation.registration_number }}
-                  {% endif %}
-                </strong>
-          </span>
+          {% include "letter_templates/includes/organisation_number.html" %}
         </td>
         <td class="border-black" colspan="3">
           <span class="cell__heading">2. Licence number</span>
@@ -556,15 +532,7 @@
               {{ organisation.primary_site.country.name }}
               <br><br>
           </span>
-          <span>
-                <strong>
-                  {% if  organisation.royal_charter_number %}
-                    Royal Charter No. {{ organisation.royal_charter_number }}
-                  {% else %}
-                    Registered No. {{ organisation.registration_number }}
-                  {% endif %}
-                </strong>
-          </span>
+          {% include "letter_templates/includes/organisation_number.html" %}
         </td>
         <td class="border-black" colspan="3">
           <span class="cell__heading">2. Licence number</span>

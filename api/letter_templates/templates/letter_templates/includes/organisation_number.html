@@ -1,0 +1,9 @@
+{% if  organisation.royal_charter_number %}
+  {% if  organisation.registration_number %}
+  <span><strong>Registration No. {{ organisation.registration_number }} </strong></span><br>
+  {% endif %}
+  <span> <strong>Royal Charter No. {{ organisation.royal_charter_number }}  </strong></span>
+
+{% else %}
+  <span><strong>Registration No. {{ organisation.registration_number }} </strong></span>
+{% endif %}

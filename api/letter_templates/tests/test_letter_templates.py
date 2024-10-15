@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.template.loader import render_to_string
 
+from parameterized import parameterized
+
 
 class TemplatesTestCase(TestCase):
     def test_refusal_template(self):
@@ -54,3 +56,27 @@ class TemplatesTestCase(TestCase):
         self.assertNotIn("999222", rendered_template)
         self.assertIn("555111", rendered_template)
         self.assertIn("555222", rendered_template)
+
+    @parameterized.expand(
+        [
+            ({"royal_charter_number": "RN1234"}, ["Royal Charter No.", "RN1234"], ["Registration No."]),
+            (
+                {"royal_charter_number": "RN1234", "registration_number": "RG1234"},
+                ["Royal Charter No.", "RN1234", "Registration No.", "RG1234"],
+                [],
+            ),
+            ({"registration_number": "RG1234"}, ["Registration No.", "RG1234"], ["Royal Charter No."]),
+            ({}, ["Registration No."], ["Royal Charter No."]),
+        ]
+    )
+    def test_siel_template_uses_organisation_number(self, reg_data, expected_display_array, not_displayed_array):
+
+        rendered_template = render_to_string(
+            "letter_templates/siel.html",
+            {"organisation": reg_data},
+        )
+        for expected_value in expected_display_array:
+            self.assertIn(expected_value, rendered_template)
+
+        for not_expected_value in not_displayed_array:
+            self.assertNotIn(expected_value, not_expected_value)
