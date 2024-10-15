@@ -10,6 +10,26 @@ from api.staticdata.units.enums import Units
 
 
 @pytest.fixture()
+def standard_draft_licence():
+    application = StandardApplicationFactory(
+        status=CaseStatus.objects.get(status=CaseStatusEnum.FINALISED),
+    )
+    good = GoodFactory(organisation=application.organisation)
+    good_on_application = GoodOnApplicationFactory(
+        application=application, good=good, quantity=100.0, value=1500, unit=Units.NAR
+    )
+    licence = StandardLicenceFactory(case=application, status=LicenceStatus.DRAFT)
+    GoodOnLicenceFactory(
+        good=good_on_application,
+        quantity=good_on_application.quantity,
+        usage=0.0,
+        value=good_on_application.value,
+        licence=licence,
+    )
+    return licence
+
+
+@pytest.fixture()
 def standard_licence():
     application = StandardApplicationFactory(
         status=CaseStatus.objects.get(status=CaseStatusEnum.FINALISED),
