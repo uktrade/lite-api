@@ -94,8 +94,11 @@ class ExportXML(DataTestClient):
         # Ensure the correct EnforcementCheckID object is added for the import xml process
         self._assert_enforcement_type_recorded(stakeholder["SH_ID"], entity_uuid, party.type)
 
-    def test_export_xml_with_site_success_three_line_address(self):
+    def test_export_xml_with_site_success_two_line_address(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        self.organisation.primary_site.address.address_line_3 = None
+        self.organisation.primary_site.address.save()
+
         application = self.create_standard_application_case(self.organisation, parties=False, site=False)
         application.queues.set([self.queue])
         application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
@@ -125,15 +128,13 @@ class ExportXML(DataTestClient):
         # Ensure the correct EnforcementCheckID object is added for the import xml process
         self._assert_enforcement_type_recorded(stakeholder["SH_ID"], site.pk, EnforcementXMLEntityTypes.SITE)
 
-    def test_export_xml_with_site_success_two_line_address(self):
+    def test_export_xml_with_site_success_three_line_address(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
-        self.organisation.primary_site.address.address_line_3 = None
-
-        application = self.create_standard_application_case(self.organisation2, parties=False, site=False)
+        application = self.create_standard_application_case(self.organisation, parties=False, site=False)
         application.queues.set([self.queue])
         application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
         site_on_application = SiteOnApplication.objects.create(
-            site=self.organisation2.primary_site, application=application
+            site=self.organisation.primary_site, application=application
         )
         site = site_on_application.site
 

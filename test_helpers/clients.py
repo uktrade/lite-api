@@ -143,7 +143,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.base_user)}
 
         # Exporter User Setup
-        (self.organisation2, self.exporter_user) = self.create_organisation_with_exporter_user_and_two_line_address()
         (self.organisation, self.exporter_user) = self.create_organisation_with_exporter_user()
         (self.hmrc_organisation, self.hmrc_exporter_user) = self.create_organisation_with_exporter_user(
             "HMRC org 5843", org_type=OrganisationType.HMRC
@@ -601,23 +600,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self, name="Organisation", org_type=OrganisationType.COMMERCIAL, exporter_user=None
     ) -> Tuple[Organisation, ExporterUser]:
         site_gb = SiteFactory(address=AddressFactoryGB())
-        organisation = OrganisationFactory(name=name, type=org_type, primary_site=site_gb)
-
-        if not exporter_user:
-            exporter_user = self.create_exporter_user(organisation)
-        else:
-            self.add_exporter_user_to_org(organisation, exporter_user)
-
-        return organisation, exporter_user
-
-    def create_organisation_with_exporter_user_and_two_line_address(
-        self, name="Organisation2", org_type=OrganisationType.COMMERCIAL, exporter_user=None
-    ) -> Tuple[Organisation, ExporterUser]:
-        address = AddressFactoryGB()
-        address.address_line_3 = None
-        address.save()
-
-        site_gb = SiteFactory(address=address)
         organisation = OrganisationFactory(name=name, type=org_type, primary_site=site_gb)
 
         if not exporter_user:
