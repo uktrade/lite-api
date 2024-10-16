@@ -9,6 +9,7 @@ class Address(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     address_line_1 = models.CharField(default=None, blank=True, null=True, max_length=50)
     address_line_2 = models.CharField(default=None, blank=True, null=True, max_length=50)
+    address_line_3 = models.CharField(default=None, blank=True, null=True, max_length=50)
     region = models.CharField(default=None, blank=True, null=True, max_length=50)
     postcode = models.CharField(default=None, blank=True, null=True, max_length=10)
     city = models.CharField(default=None, blank=False, null=True, max_length=50)
@@ -26,6 +27,7 @@ class Address(models.Model):
             address = [
                 self.address_line_1,
                 self.address_line_2,
+                self.address_line_3,
                 self.city,
                 self.region,
                 self.postcode,

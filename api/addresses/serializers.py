@@ -61,6 +61,7 @@ class AddressSerializer(serializers.ModelSerializer):
         else:
             del repr_dict["address_line_1"]
             del repr_dict["address_line_2"]
+            del repr_dict["address_line_3"]
             del repr_dict["postcode"]
             del repr_dict["city"]
             del repr_dict["region"]
@@ -73,6 +74,7 @@ class AddressSerializer(serializers.ModelSerializer):
             "address",
             "address_line_1",
             "address_line_2",
+            "address_line_3",
             "city",
             "region",
             "postcode",

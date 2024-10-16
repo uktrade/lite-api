@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-from pathlib import Path
 import subprocess
 
 from django.conf import settings
@@ -16,7 +15,7 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     StandardApplicationFactory,
 )
-from api.applications.models import GoodOnApplication, StandardApplication
+from api.applications.models import GoodOnApplication
 from api.audit_trail.tests.factories import AuditFactory
 from api.audit_trail.models import Audit
 from api.audit_trail.enums import AuditType
@@ -31,14 +30,13 @@ from api.organisations.tests.factories import SiteFactory, OrganisationFactory
 from api.organisations.models import Site, Organisation
 from api.addresses.tests.factories import AddressFactory
 from api.addresses.models import Address
-from api.staticdata.countries.models import Country
 from api.queries.end_user_advisories.tests.factories import EndUserAdvisoryQueryFactory
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.external_data.models import DenialEntity
 from api.parties.tests.factories import PartyFactory
 from api.parties.models import Party
 from api.users.tests.factories import BaseUserFactory, RoleFactory, GovUserFactory
-from api.users.models import BaseUser, GovUser
+from api.users.models import BaseUser
 
 
 # Note: This must inherit from TransactionTestCase - if we use DataTestClient
@@ -123,6 +121,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         cls.address = AddressFactory(
             address_line_1="my address line 1",
             address_line_2="my address line 2",
+            address_line_3="my address line 3",
             region="my region",
             postcode="my postc",
             city="my city",
@@ -442,6 +441,7 @@ class TestAnonymiseDumps(TransactionTestCase):
         updated_address = Address.objects.get(id=self.address.id)
         assert self.address.address_line_1 != updated_address.address_line_1
         assert self.address.address_line_2 != updated_address.address_line_2
+        assert self.address.address_line_3 != updated_address.address_line_3
         assert self.address.region != updated_address.region
         assert self.address.postcode != updated_address.postcode
         assert self.address.city != updated_address.city
