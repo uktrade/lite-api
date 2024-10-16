@@ -45,12 +45,12 @@ def _dict_to_xml(parent, data):
 
 
 def _get_address_lines(address_line_2, address_line_3, postcode, city):
-    if address_line_2 and address_line_3:
-        return ", ".join([address_line_2, address_line_3, postcode, city])
-    elif address_line_2:
-        return ", ".join([address_line_2, postcode, city])
-    else:
-        return ", ".join([postcode, city])
+    address_lines = []
+    for line in [address_line_2, address_line_3, postcode, city]:
+        if line:
+            address_lines.append(line)
+
+    return ", ".join(address_lines)
 
 
 def _format_address(address):
