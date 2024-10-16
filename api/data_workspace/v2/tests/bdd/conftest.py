@@ -3,12 +3,16 @@ import pytest
 from rest_framework import status
 
 from api.users.enums import SystemUser
+from api.users.models import BaseUser
 from api.users.tests.factories import BaseUserFactory
 
 
 @pytest.fixture(autouse=True)
 def system_user(db):
-    return BaseUserFactory(id=SystemUser.id)
+    if BaseUser.objects.filter(id=SystemUser.id).exists():
+        return BaseUser.objects.get(id=SystemUser.id)
+    else:
+        return BaseUserFactory(id=SystemUser.id)
 
 
 @pytest.fixture()
