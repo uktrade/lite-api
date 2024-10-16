@@ -23,9 +23,8 @@ class HMRCIntegrationAddressSerializer(serializers.Serializer):
     line_1 = serializers.SerializerMethodField()
     line_2 = serializers.CharField(source="address_line_1")
     line_3 = serializers.CharField(source="address_line_2")
-    line_4 = serializers.CharField(source="address_line_3")
-    line_5 = serializers.CharField(source="city")
-    line_6 = serializers.CharField(source="region")
+    line_4 = serializers.CharField(source="city")
+    line_5 = serializers.CharField(source="region")
     postcode = serializers.CharField()
     country = HMRCIntegrationCountrySerializer()
 
