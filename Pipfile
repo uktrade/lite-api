@@ -21,6 +21,7 @@ watchdog = {extras = ["watchmedo"], version = "*"}
 diff-pdf-visually = "~=1.7.0"
 pytest-circleci-parallelized = "~=0.1.0"
 moto = {extras = ["s3"], version = "==5.0.3"}
+drf-spectacular = "*"
 
 [packages]
 factory-boy = "~=2.12.0"
@@ -48,7 +49,6 @@ defusedxml = "~=0.6.0"
 xmlschema = "~=1.2.0"
 notifications-python-client = "~=5.7.1"
 dataclasses = "~=0.6"
-# endesive = "~=1.5.9" (not included here as installed in a later jenkins step. Uncomment if working locally)
 pypdf2 = "~=1.27.5"
 cryptography = "~=43.0.1"
 sentry-sdk = "~=2.8.0"

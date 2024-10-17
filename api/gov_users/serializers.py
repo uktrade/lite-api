@@ -3,6 +3,7 @@ from rest_framework.fields import UUIDField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.utils import model_meta
 
+
 from api.core.serializers import PrimaryKeyRelatedSerializerField
 from api.gov_users.enums import GovUserStatuses
 from lite_content.lite_api import strings
@@ -52,16 +53,33 @@ class RoleSerializer(serializers.ModelSerializer):
         )
 
 
-class RoleListSerializer(serializers.Serializer):
+class RoleListSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
     permissions = PrimaryKeyRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = Role
+        fields = (
+            "id",
+            "name",
+            "permissions",
+        )
 
 
 class RoleListStatusesSerializer(RoleListSerializer):
     statuses = PrimaryKeyRelatedSerializerField(
         queryset=CaseStatus.objects.all(), many=True, required=False, serializer=CaseStatusSerializer
     )
+
+    class Meta:
+        model = Role
+        fields = (
+            "id",
+            "name",
+            "permissions",
+            "statuses",
+        )
 
 
 class GovUserListSerializer(serializers.Serializer):
