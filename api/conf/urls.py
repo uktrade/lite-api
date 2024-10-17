@@ -31,7 +31,9 @@ urlpatterns = [
     path("routing-rules/", include("api.workflow.routing_rules.urls")),
     path("licences/", include("api.licences.urls")),
     path("open-general-licences/", include("api.open_general_licences.urls")),
-    path("data-workspace/", include("api.data_workspace.urls")),
+    path(
+        "data-workspace/", include("api.data_workspace.urls")
+    ),  # when changing this value please update schema_generator_urls.py
     path("external-data/", include("api.external_data.urls")),
     path("bookmarks/", include("api.bookmarks.urls")),
     path("appeals/", include("api.appeals.urls")),
