@@ -25,7 +25,12 @@ class LicencesListView(viewsets.ReadOnlyModelViewSet):
         return (
             Licence.objects.prefetch_related("goods")
             .annotate(num_licensed_goods=Count("goods"))
-            .exclude(status=LicenceStatus.DRAFT)
+            .exclude(
+                status__in=[
+                    LicenceStatus.DRAFT,
+                    LicenceStatus.CANCELLED,
+                ]
+            )
             .exclude(num_licensed_goods=0)
             .filter(
                 case__status__status__in=[
