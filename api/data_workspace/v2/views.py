@@ -9,6 +9,7 @@ from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.data_workspace.v2.serializers import LicenceSerializer
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 class LicencesListView(viewsets.ReadOnlyModelViewSet):
@@ -26,5 +27,11 @@ class LicencesListView(viewsets.ReadOnlyModelViewSet):
             .annotate(num_licensed_goods=Count("goods"))
             .exclude(status=LicenceStatus.DRAFT)
             .exclude(num_licensed_goods=0)
+            .filter(
+                case__status__status__in=[
+                    CaseStatusEnum.FINALISED,
+                    CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
+                ],
+            )
             .order_by("-reference_code")
         )
