@@ -1,9 +1,11 @@
-from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+)
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -17,21 +19,14 @@ from api.cases.libraries.get_flags import get_flags
 from api.cases.models import Case
 
 from api.core.authentication import GovAuthentication
-from api.core.constants import GovPermissions
 from api.core.helpers import str_to_bool
-from api.core.permissions import assert_user_has_permission
 
 from api.flags.enums import FlagLevels, FlagStatuses, SystemFlags
 from api.flags.helpers import get_object_of_level
-from api.flags.libraries.get_flag import get_flagging_rule
-from api.flags.models import Flag, FlaggingRule
+from api.flags.models import Flag
 from api.flags.serializers import (
     FlagSerializer,
     FlagAssignmentSerializer,
-    FlaggingRuleSerializer,
-    FlagReadOnlySerializer,
-    FlaggingRuleListSerializer,
-    FlagwithFlaggingRulesReadOnlySerializer,
 )
 
 from api.goods.models import Good
@@ -43,24 +38,10 @@ from api.parties.models import Party
 from api.queries.end_user_advisories.models import EndUserAdvisoryQuery
 from api.queries.goods_query.models import GoodsQuery
 
-from lite_routing.routing_rules_internal.flagging_engine import (
-    apply_flagging_rule_to_all_open_cases,
-    apply_flagging_rule_for_flag,
-)
 
-from lite_content.lite_api import strings
-
-
-class FlagsListCreateView(ListCreateAPIView):
+class FlagsListView(ListAPIView):
     authentication_classes = (GovAuthentication,)
-
-    def get_serializer_class(self):
-        if self.request.method == "GET":
-            if self.request.GET.get("include_flagging_rules"):
-                return FlagwithFlaggingRulesReadOnlySerializer
-            return FlagReadOnlySerializer
-        else:
-            return FlagSerializer
+    serializer_class = FlagSerializer
 
     def get_queryset(self):
         case = self.request.GET.get("case")
@@ -102,19 +83,12 @@ class FlagsListCreateView(ListCreateAPIView):
         return flags.order_by("name").select_related("team")
 
 
-class FlagsRetrieveUpdateView(RetrieveUpdateAPIView):
+class FlagsRetrieveView(RetrieveAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = FlagSerializer
 
     def get_queryset(self):
         return Flag.objects.filter(team=self.request.user.govuser.team).exclude(level=FlagLevels.PARTY_ON_APPLICATION)
-
-    def perform_update(self, serializer):
-        # if status is being updated, ensure user has permission
-        if self.request.data.get("status"):
-            assert_user_has_permission(self.request.user.govuser, GovPermissions.ACTIVATE_FLAGS)
-        serializer.save()
-        apply_flagging_rule_for_flag(self.kwargs["pk"])
 
 
 class AssignFlags(APIView):
@@ -303,72 +277,3 @@ class AssignFlags(APIView):
 
         if qs.exists():
             return qs.first().get_case()
-
-
-class FlaggingRules(ListCreateAPIView):
-    authentication_classes = (GovAuthentication,)
-
-    def get_serializer_class(self):
-        if self.request.method == "GET":
-            return FlaggingRuleListSerializer
-        else:
-            return FlaggingRuleSerializer
-
-    def get_queryset(self):
-        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_FLAGGING_RULES)
-        rules = FlaggingRule.objects.all().prefetch_related("flag", "team")
-
-        include_deactivated = self.request.query_params.get("include_deactivated", "")
-        if not include_deactivated:
-            rules = rules.filter(status=FlagStatuses.ACTIVE)
-
-        level = self.request.query_params.get("level", "")
-        if level:
-            rules = rules.filter(level=level)
-
-        only_my_team = self.request.query_params.get("only_my_team", "")
-        if only_my_team:
-            rules = rules.filter(team=self.request.user.govuser.team)
-
-        return rules
-
-    @transaction.atomic
-    def post(self, request):
-        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_FLAGGING_RULES)
-        json = request.data
-        json["team"] = self.request.user.govuser.team.id
-
-        serializer = FlaggingRuleSerializer(data=request.data)
-
-        if serializer.is_valid():
-            flagging_rule = serializer.save()
-            apply_flagging_rule_to_all_open_cases(flagging_rule)
-            return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class FlaggingRuleDetail(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    def get(self, request, pk):
-        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_FLAGGING_RULES)
-        flagging_rule = get_flagging_rule(pk)
-        serializer = FlaggingRuleSerializer(flagging_rule)
-        return JsonResponse(data={"flag": serializer.data})
-
-    def put(self, request, pk):
-        assert_user_has_permission(self.request.user.govuser, GovPermissions.MANAGE_FLAGGING_RULES)
-        flagging_rule = get_flagging_rule(pk)
-
-        if request.user.govuser.team != flagging_rule.team:
-            return JsonResponse(data={"errors": strings.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = FlaggingRuleSerializer(instance=flagging_rule, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            flagging_rule = serializer.save()
-            apply_flagging_rule_to_all_open_cases(flagging_rule)
-            return JsonResponse(data={"flagging_rule": serializer.data})
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
