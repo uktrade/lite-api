@@ -8,7 +8,7 @@ SIEL_TEMPLATE_ID = "d159b195-9256-4a00-9bc8-1eb2cebfa1d2"
 
 
 class LicenceSerializer(serializers.ModelSerializer):
-    status = serializers.SerializerMethodField()
+    decision = serializers.SerializerMethodField()
     issued_date = serializers.SerializerMethodField()
 
     class Meta:
@@ -16,11 +16,11 @@ class LicenceSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "reference_code",
-            "status",
+            "decision",
             "issued_date",
         )
 
-    def get_status(self, licence):
+    def get_decision(self, licence):
         return LicenceStatus.ISSUED
 
     def get_issued_date(self, licence):
