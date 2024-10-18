@@ -88,7 +88,7 @@ class CountrySerializer(serializers.ModelSerializer):
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ["address_line_1", "address_line_2", "postcode", "city", "region", "country"]
+        fields = ["address_line_1", "address_line_2", "address_line_3", "postcode", "city", "region", "country"]
 
     address_line_1 = serializers.SerializerMethodField()
     country = CountrySerializer()

@@ -20,20 +20,13 @@ class HMRCIntegrationCountrySerializer(serializers.Serializer):
 
 
 class HMRCIntegrationAddressSerializer(serializers.Serializer):
-    line_1 = serializers.SerializerMethodField()
-    line_2 = serializers.CharField(source="address_line_1")
-    line_3 = serializers.CharField(source="address_line_2")
+    line_1 = serializers.CharField(source="address_line_1")
+    line_2 = serializers.CharField(source="address_line_2")
+    line_3 = serializers.CharField(source="address_line_3")
     line_4 = serializers.CharField(source="city")
     line_5 = serializers.CharField(source="region")
     postcode = serializers.CharField()
     country = HMRCIntegrationCountrySerializer()
-
-    def __init__(self, *args, **kwargs):
-        self._address_name = kwargs.pop("address_name")
-        super().__init__(*args, **kwargs)
-
-    def get_line_1(self, _):
-        return self._address_name
 
 
 class HMRCIntegrationOrganisationSerializer(serializers.Serializer):
@@ -43,9 +36,7 @@ class HMRCIntegrationOrganisationSerializer(serializers.Serializer):
     eori_number = serializers.CharField()
 
     def get_address(self, instance):
-        return HMRCIntegrationAddressSerializer(
-            instance.primary_site.address, address_name=instance.primary_site.name
-        ).data
+        return HMRCIntegrationAddressSerializer(instance.primary_site.address).data
 
 
 class HMRCIntegrationEndUserSerializer(serializers.Serializer):

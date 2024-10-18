@@ -1,14 +1,8 @@
-import mohawk
-
-from django.conf import settings
 from django.urls import reverse
-from django.test import override_settings
 from rest_framework import status
-from urllib import parse
 
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
-from api.core.requests import get_hawk_sender
 from api.licences.enums import LicenceStatus
 from api.open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from api.organisations.tests.factories import SiteFactory
@@ -93,6 +87,9 @@ class ExporterListTests(DataTestClient):
         )
         self.assertEqual(
             registration["site"]["address"]["address_line_2"], self.organisation.primary_site.address.address_line_2
+        )
+        self.assertEqual(
+            registration["site"]["address"]["address_line_3"], self.organisation.primary_site.address.address_line_3
         )
         self.assertEqual(registration["site"]["address"]["city"], self.organisation.primary_site.address.city)
         self.assertEqual(

@@ -251,9 +251,9 @@ class HMRCIntegrationSerializersTests(DataTestClient):
                 "name": organisation.name,
                 "eori_number": organisation.eori_number,
                 "address": {
-                    "line_1": organisation.primary_site.name,
-                    "line_2": organisation.primary_site.address.address_line_1,
-                    "line_3": organisation.primary_site.address.address_line_2,
+                    "line_1": organisation.primary_site.address.address_line_1,
+                    "line_2": organisation.primary_site.address.address_line_2,
+                    "line_3": organisation.primary_site.address.address_line_3,
                     "line_4": organisation.primary_site.address.city,
                     "line_5": organisation.primary_site.address.region,
                     "postcode": organisation.primary_site.address.postcode,
