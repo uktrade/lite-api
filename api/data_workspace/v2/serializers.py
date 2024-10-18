@@ -31,9 +31,6 @@ class LicenceSerializer(serializers.ModelSerializer):
             visible_to_exporter=True,
         )
 
-        if not licence_document.exists():
-            return f"Invalid licence ({licence.status})"
-
         if licence_document.count() > 1:
             return "Multiple licence documents"
 
