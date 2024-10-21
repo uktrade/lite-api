@@ -78,6 +78,7 @@ dbt-copilot-python = "~=0.2.1"
 dj-database-url = "~=2.2.0"
 certifi = "~=2024.7.4"
 pytz = "~=2024.1"
+drf-spectacular = "*"
 
 [requires]
 python_version = "3.9"
