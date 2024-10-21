@@ -27,9 +27,7 @@ class LicencesListView(viewsets.ReadOnlyModelViewSet):
             .exclude(
                 status__in=[
                     LicenceStatus.DRAFT,
-                    LicenceStatus.CANCELLED,
                 ]
             )
-            .exclude(num_licensed_goods=0)
             .order_by("-reference_code")
         )
