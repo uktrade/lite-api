@@ -1,12 +1,43 @@
+import csv
+import json
 import pytest
 
 from rest_framework import status
 
+from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
+from api.cases.models import CaseType
 from api.core.constants import GovPermissions
+from api.letter_templates.models import LetterTemplate
+from api.staticdata.letter_layouts.models import LetterLayout
 from api.users.libraries.user_to_token import user_to_token
 from api.users.enums import SystemUser, UserType
 from api.users.models import BaseUser, Permission
 from api.users.tests.factories import BaseUserFactory, GovUserFactory, RoleFactory
+
+
+def load_json(filename):
+    with open(filename) as f:
+        return json.load(f)
+
+
+@pytest.fixture()
+def seed_layouts():
+    layouts = load_json("api/data_workspace/v2/tests/bdd/initial_data/letter_layouts.json")
+    for layout in layouts:
+        LetterLayout.objects.get_or_create(**layout)
+
+
+@pytest.fixture()
+def seed_templates(seed_layouts):
+    templates = load_json("api/data_workspace/v2/tests/bdd/initial_data/letter_templates.json")
+    for template in templates:
+        template_instance, _ = LetterTemplate.objects.get_or_create(**template)
+        template_instance.case_types.add(CaseType.objects.get(id=CaseTypeEnum.SIEL.id))
+
+
+@pytest.fixture()
+def siel_template(seed_templates):
+    return LetterTemplate.objects.get(layout_id="00000000-0000-0000-0000-000000000001")
 
 
 @pytest.fixture(autouse=True)
