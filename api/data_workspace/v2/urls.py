@@ -7,6 +7,6 @@ router_v2 = DefaultRouter()
 
 router_v2.register(
     "licence-decisions",
-    views.LicenceDecisionListView,
+    views.LicenceDecisionViewSet,
     basename="dw-licence-decisions",
 )
