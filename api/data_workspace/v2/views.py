@@ -32,11 +32,5 @@ class LicencesListView(viewsets.ReadOnlyModelViewSet):
                 ]
             )
             .exclude(num_licensed_goods=0)
-            .filter(
-                case__status__status__in=[
-                    CaseStatusEnum.FINALISED,
-                    CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
-                ],
-            )
             .order_by("-reference_code")
         )

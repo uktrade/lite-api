@@ -25,13 +25,13 @@ class LicenceSerializer(serializers.ModelSerializer):
 
     def get_issued_date(self, licence):
         licence_document = GeneratedCaseDocument.objects.filter(
-            licence=licence,
+            case=licence.case,
             template_id=SIEL_TEMPLATE_ID,
             safe=True,
             visible_to_exporter=True,
         )
 
-        if licence_document.count() > 1:
-            return "Multiple licence documents"
+        if not licence_document.exists():
+            return "Invalid licence"
 
-        return licence_document.first().updated_at
+        return licence_document.earliest('created_at').updated_at
