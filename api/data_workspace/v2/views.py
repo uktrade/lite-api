@@ -1,42 +1,31 @@
-from django.db.models import Count
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.settings import api_settings
 
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
+from api.cases.models import Case
+from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.core.authentication import DataWorkspaceOnlyAuthentication
-from api.data_workspace.v2.serializers import LicenceSerializer
-from api.licences.enums import LicenceStatus
-from api.licences.models import Licence
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.data_workspace.v2.serializers import CaseLicenceSerializer
+
+SIEL_TEMPLATE_ID = "d159b195-9256-4a00-9bc8-1eb2cebfa1d2"
 
 
 class LicencesListView(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = LimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
-    serializer_class = LicenceSerializer
+    serializer_class = CaseLicenceSerializer
 
     def get_queryset(self):
-        # When an application with all goods as NLR is finalised then the current code
-        # creates a licence however the goods on this licence will be empty. This
-        # will skew licence data hence exclude them
+        licence_documents = GeneratedCaseDocument.objects.filter(
+            template_id=SIEL_TEMPLATE_ID, visible_to_exporter=True, safe=True
+        )
         return (
-            Licence.objects.prefetch_related("goods")
-            .annotate(num_licensed_goods=Count("goods"))
-            .exclude(
-                status__in=[
-                    LicenceStatus.DRAFT,
-                    LicenceStatus.CANCELLED,
-                ]
+            Case.objects.filter(
+                licences__generatedcasedocument__in=licence_documents,
             )
-            .exclude(num_licensed_goods=0)
-            .filter(
-                case__status__status__in=[
-                    CaseStatusEnum.FINALISED,
-                    CaseStatusEnum.SUPERSEDED_BY_EXPORTER_EDIT,
-                ],
-            )
+            .distinct()
             .order_by("-reference_code")
         )
