@@ -9,7 +9,6 @@ from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.data_workspace.v2.serializers import LicenceSerializer
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
-from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 class LicencesListView(viewsets.ReadOnlyModelViewSet):
@@ -28,7 +27,6 @@ class LicencesListView(viewsets.ReadOnlyModelViewSet):
             .exclude(
                 status__in=[
                     LicenceStatus.DRAFT,
-                    LicenceStatus.CANCELLED,
                 ]
             )
             .exclude(num_licensed_goods=0)
