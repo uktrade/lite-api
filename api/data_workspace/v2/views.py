@@ -29,5 +29,6 @@ class LicencesListView(viewsets.ReadOnlyModelViewSet):
                     LicenceStatus.DRAFT,
                 ]
             )
+            .exclude(num_licensed_goods=0)
             .order_by("-reference_code")
         )
