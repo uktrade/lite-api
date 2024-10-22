@@ -1,13 +1,18 @@
+from enum import Enum
+
 from django.db.models import F
 from rest_framework import serializers
 
-from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import Case
 
 
-class CaseLicenceSerializer(serializers.ModelSerializer):
+class LicenceDecisionType(str, Enum):
+    ISSUED = "issued"
+
+
+class LicenceDecisionSerializer(serializers.ModelSerializer):
     decision = serializers.SerializerMethodField()
-    issued_date = serializers.SerializerMethodField()
+    decision_made_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -15,16 +20,11 @@ class CaseLicenceSerializer(serializers.ModelSerializer):
             "id",
             "reference_code",
             "decision",
-            "issued_date",
+            "decision_made_at",
         )
 
     def get_decision(self, case):
-        return "issued"
+        return LicenceDecisionType.ISSUED
 
-    def get_issued_date(self, case):
-        return (
-            case.licences.all()
-            .annotate(issued_at=F("generatedcasedocument__created_at"))
-            .earliest("issued_at")
-            .issued_at
-        )
+    def get_decision_made_at(self, case):
+        return case.licences.annotate(issued_at=F("generatedcasedocument__created_at")).earliest("issued_at").issued_at
