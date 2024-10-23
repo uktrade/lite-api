@@ -416,6 +416,7 @@ class LicenceDecisionType:
     REJECTED = "rejected"
     NO_LICENCE_REQUIRED = "no_licence_required"
     WITHDRAWN = "withdrawn"
+    REVOKED = "revoked"
 
     choices = [
         (ISSUED, "issued"),
@@ -423,4 +424,5 @@ class LicenceDecisionType:
         (REJECTED, "rejected"),
         (NO_LICENCE_REQUIRED, "no_licence_required"),
         (WITHDRAWN, "withdrawn"),
+        (REVOKED, "revoked"),
     ]
