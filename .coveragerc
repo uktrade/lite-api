@@ -6,6 +6,7 @@ omit =
     ./*/__init__.py
     ./*/models.py
     ./*/migrations/*
+    ./api/conf/schema_generator_urls.py
     ./api/conf/settings.py
     ./api/conf/wsgi.py
     ./static/management/*

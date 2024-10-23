@@ -13,7 +13,7 @@
   <ul class="govuk-list govuk-list--bullet">
     {% for good in goods.refuse %}
       <li>
-        {{good.good.name}}
+        {{good.good.name|split_good_name_across_lines}}
       </li>
     {% endfor %}
   </ul>

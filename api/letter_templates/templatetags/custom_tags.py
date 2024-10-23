@@ -128,3 +128,8 @@ def remove_duplicate_provisos(goods_approved):
             provisos.add(good_item["proviso_reason"])
 
     return provisos
+
+
+@register.filter(name="split_good_name_across_lines")
+def split_good_name_across_lines(value):
+    return value.replace(",", "\n") if "," in value else value
