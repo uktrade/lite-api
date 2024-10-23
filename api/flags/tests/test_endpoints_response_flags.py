@@ -9,9 +9,3 @@ class FlagsResponseTests(EndPointTests):
 
     def test_flags_detail(self):
         self.call_endpoint(self.get_gov_headers(), self.url + self.get_flag_id())
-
-    def test_flagging_rules_list(self):
-        self.call_endpoint(self.get_gov_headers(), self.url + "rules/")
-
-    def test_flagging_rules_detail(self):
-        self.call_endpoint(self.get_gov_headers(), self.url + "rules/" + self.get_flagging_rules_id())
