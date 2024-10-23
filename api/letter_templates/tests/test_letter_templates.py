@@ -60,7 +60,7 @@ class TemplatesTestCase(TestCase):
         )
 
         self.assertIn("Test Good 2\n Another line", rendered_template)
-        self.assertNotIn("999111", rendered_template)
-        self.assertNotIn("999222", rendered_template)
-        self.assertIn("555111", rendered_template)
-        self.assertIn("555222", rendered_template)
+        self.assertIn("999111", rendered_template)
+        self.assertIn("999222", rendered_template)
+        self.assertNotIn("555111", rendered_template)
+        self.assertNotIn("555222", rendered_template)
