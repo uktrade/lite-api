@@ -1,9 +1,5 @@
 ## Seeding Data
 
-### Seed Control List Entries (Essential)
-
-```pipenv run ./manage.py seedcontrollistentries```
-
 ### Seed Document Layouts (Essential)
 
 ```pipenv run ./manage.py seedlayouts```
