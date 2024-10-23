@@ -138,6 +138,7 @@ INSTALLED_APPS = [
     "api.survey",
     "django_db_anonymiser.db_anonymiser",
     "reversion",
+    "drf_spectacular",
 ]
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
@@ -193,6 +194,7 @@ REST_FRAMEWORK = {
     "DEFAULT_METADATA_CLASS": "api.core.metadata.SimpleMetadataForAllMethods",
     "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser", "rest_framework.parsers.FormParser"),
     "DEFAULT_PAGINATION_CLASS": "api.conf.pagination.MaxPageNumberPagination",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "PAGE_SIZE": 25,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     "EXCEPTION_HANDLER": "api.core.handlers.lite_exception_handler",
