@@ -23,6 +23,7 @@ from api.cases.enums import (
     ECJUQueryType,
     AdviceLevel,
     EnforcementXMLEntityTypes,
+    LicenceDecisionType,
 )
 from api.cases.helpers import working_days_in_range
 from api.cases.libraries.reference_code import generate_reference_code
@@ -686,3 +687,10 @@ class EnforcementCheckID(models.Model):
     id = models.AutoField(primary_key=True)
     entity_id = models.UUIDField(unique=True)
     entity_type = models.CharField(choices=EnforcementXMLEntityTypes.choices, max_length=20)
+
+
+class LicenceDecision(models.Model):
+    case = models.ForeignKey(Case, on_delete=models.DO_NOTHING)
+    decision = models.CharField(choices=LicenceDecisionType.choices, max_length=50, null=False, blank=False)
+    decision_made_at = models.DateTimeField(null=False, blank=False)
+    licence = models.ForeignKey("licences.Licence", on_delete=models.DO_NOTHING, null=True, blank=True)

@@ -408,3 +408,19 @@ class EnforcementXMLEntityTypes:
         (SITE, "site"),
         (ORGANISATION, "organisation"),
     ]
+
+
+class LicenceDecisionType:
+    ISSUED = "issued"
+    REFUSED = "refused"
+    NO_LICENCE_REQUIRED = "no_licence_required"
+    WITHDRAWN = "withdrawn"
+    REVOKED = "revoked"
+
+    choices = [
+        (ISSUED, "issued"),
+        (REFUSED, "refused"),
+        (NO_LICENCE_REQUIRED, "no_licence_required"),
+        (WITHDRAWN, "withdrawn"),
+        (REVOKED, "revoked"),
+    ]
