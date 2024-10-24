@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -21,11 +22,7 @@ from api.applications.serializers.advice import (
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases import notify
-from api.cases.enums import (
-    CaseTypeSubTypeEnum,
-    AdviceType,
-    AdviceLevel,
-)
+from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, LicenceDecisionType
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.helpers import create_system_mention
@@ -58,6 +55,7 @@ from api.cases.models import (
     Advice,
     GoodCountryDecision,
     CaseAssignment,
+    LicenceDecision,
 )
 from api.cases.models import CountersignAdvice
 from api.cases.notify import (
@@ -917,6 +915,7 @@ class FinaliseView(UpdateAPIView):
 
         return_payload = {"case": pk}
 
+        licence = None
         # If a licence object exists, finalise the licence.
         try:
             licence = Licence.objects.get_draft_licence(pk)
@@ -1005,6 +1004,17 @@ class FinaliseView(UpdateAPIView):
                 "additional_text": request.data.get("note"),
             },
         )
+
+        for decision in required_decisions:
+            if decision in LicenceDecision.advice_to_licence_decision_mapping.keys():
+                licence_decision__decision = LicenceDecision.advice_to_licence_decision_mapping[decision]
+                licence_decision = LicenceDecision.objects.create(
+                    case=case, decision=licence_decision__decision, decision_made_at=timezone.now()
+                )
+                # for 'issued' decision also link the licence
+                if licence and licence_decision__decision == LicenceDecisionType.ISSUED:
+                    licence_decision.licence_id = licence.id
+                    licence_decision.save()
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)

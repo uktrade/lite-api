@@ -694,3 +694,10 @@ class LicenceDecision(models.Model):
     decision = models.CharField(choices=LicenceDecisionType.choices, max_length=50, null=False, blank=False)
     decision_made_at = models.DateTimeField(null=False, blank=False)
     licence = models.ForeignKey("licences.Licence", on_delete=models.DO_NOTHING, null=True, blank=True)
+
+    advice_to_licence_decision_mapping = {
+        AdviceType.APPROVE: LicenceDecisionType.ISSUED,
+        AdviceType.PROVISO: LicenceDecisionType.ISSUED,
+        AdviceType.REFUSE: LicenceDecisionType.REFUSED,
+        AdviceType.NO_LICENCE_REQUIRED: LicenceDecisionType.NO_LICENCE_REQUIRED,
+    }
