@@ -50,7 +50,6 @@ from api.users.models import (
     UserOrganisationRelationship,
     ExporterNotification,
 )
-from api.licences.models import Licence
 
 denial_reasons_logger = logging.getLogger(settings.DENIAL_REASONS_DELETION_LOGGER)
 
@@ -694,4 +693,4 @@ class LicenceDecision(models.Model):
     case = models.ForeignKey(Case, on_delete=models.DO_NOTHING)
     decision = models.CharField(choices=LicenceDecisionType.choices, max_length=50, null=False, blank=False)
     decision_made_at = models.DateTimeField(null=False, blank=False)
-    licence = models.ForeignKey(Licence, on_delete=models.DO_NOTHING, null=True, blank=True)
+    licence = models.ForeignKey("licences.Licence", on_delete=models.DO_NOTHING, null=True, blank=True)
