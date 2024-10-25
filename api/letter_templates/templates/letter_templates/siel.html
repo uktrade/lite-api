@@ -282,7 +282,7 @@
                   <table border="0">
                     <tr id="row-{{ forloop.counter}}-description-name">
                         <td><strong>Name:</strong></td>
-                        <td>{% if good.name %}{{ good.name }}{% else %}{{ good.description }}{% endif %}
+                        <td>{% if good.name %}{{ good.name|split_good_name_across_lines }}{% else %}{{ good.description|split_good_name_across_lines }}{% endif %}
                         </td>
                     </tr>
                     <tr>

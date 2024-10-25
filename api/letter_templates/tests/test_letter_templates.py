@@ -14,7 +14,7 @@ class TemplatesTestCase(TestCase):
                     ],
                 },
                 {
-                    "good": {"name": "Test Good 2"},
+                    "good": {"name": "Test Good 2, Another line"},
                     "denial_reasons": [
                         {"display_value": "1", "description": "Test Description 1"},
                         {"display_value": "2", "description": "Test Description 2"},
@@ -29,6 +29,8 @@ class TemplatesTestCase(TestCase):
         )
 
         self.assertIn("Test Good 1", rendered_template)
+
+        self.assertIn("Test Good 2\n Another line", rendered_template)
         self.assertIn("Criterion 1", rendered_template)
         self.assertIn("Test Description 1", rendered_template)
 
@@ -42,6 +44,13 @@ class TemplatesTestCase(TestCase):
                     "value": "555111",
                     "quantity": "555222",
                 },
+                {
+                    "good": {"name": "Test Good 2, Another line", "control_list_entries": ["R1a", "M7"]},
+                    "applied_for_value": "999111",
+                    "applied_for_quantity": "999222",
+                    "value": "555111",
+                    "quantity": "555222",
+                },
             ]
         }
 
@@ -50,6 +59,7 @@ class TemplatesTestCase(TestCase):
             {"goods": goods_data},
         )
 
+        self.assertIn("Test Good 2\n Another line", rendered_template)
         self.assertNotIn("999111", rendered_template)
         self.assertNotIn("999222", rendered_template)
         self.assertIn("555111", rendered_template)
