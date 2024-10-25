@@ -695,6 +695,9 @@ class LicenceDecision(models.Model):
     decision_made_at = models.DateTimeField(null=False, blank=False)
     licence = models.ForeignKey("licences.Licence", on_delete=models.DO_NOTHING, null=True, blank=True)
 
+    # These are the AdviceType types that can be mapped to a licence decision.
+    # The remaining types 'not_applicable', 'conflicting', 'inform' cannot be
+    # mapped to a licence decision.
     advice_to_licence_decision_mapping = {
         AdviceType.APPROVE: LicenceDecisionType.ISSUED,
         AdviceType.PROVISO: LicenceDecisionType.ISSUED,
