@@ -938,7 +938,7 @@ class FinaliseView(UpdateAPIView):
                     },
                 )
 
-                LicenceDecision.objects.create(case=case, decision=LicenceDecisionType.ISSUED, licence_id=licence.id)
+                LicenceDecision.objects.create(case=case, decision=LicenceDecisionType.ISSUED, licence=licence)
 
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
 
