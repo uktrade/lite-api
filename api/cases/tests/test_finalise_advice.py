@@ -8,10 +8,11 @@ from rest_framework import status
 from parameterized import parameterized
 
 from api.audit_trail.models import Audit
-from api.cases.enums import AdviceType, CaseTypeEnum
+from api.cases.enums import AdviceType, CaseTypeEnum, LicenceDecisionType
 from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.libraries.get_case import get_case
 from api.cases.generated_documents.models import GeneratedCaseDocument
+from api.cases.models import LicenceDecision
 from api.core.constants import GovPermissions
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -181,6 +182,10 @@ class ApproveAdviceTests(DataTestClient):
         send_exporter_notifications_func.assert_called()
 
         assert case.sub_status.name == "Approved"
+
+        licence_decision = LicenceDecision.objects.get()
+        assert licence_decision.case_id == case.id
+        assert licence_decision.decision == LicenceDecisionType.ISSUED
 
     @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
