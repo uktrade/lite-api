@@ -408,3 +408,9 @@ class EnforcementXMLEntityTypes:
         (SITE, "site"),
         (ORGANISATION, "organisation"),
     ]
+
+
+class LicenceDecisionType:
+    ISSUED = "issued"
+
+    choices = [(ISSUED, "issued")]
