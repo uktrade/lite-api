@@ -110,6 +110,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     client = APIClient
     faker = faker  # Assigning this to the class as `self.faker` is expected in tests
 
+    INITIAL_QUEUE_ID = uuid.uuid4()
+
     @classmethod
     def setUpClass(cls):
         """Run seed operations ONCE for the entire test suite."""
@@ -163,7 +165,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             "HTTP_ORGANISATION_ID": str(self.hmrc_organisation.id),
         }
 
-        self.queue = self.create_queue("Initial Queue", self.team)
+        self.queue = self.create_queue("Initial Queue", self.team, pk=self.INITIAL_QUEUE_ID)
 
         if settings.TIME_TESTS:
             self.tick = timezone.localtime()
@@ -291,8 +293,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_note_mention
 
     @staticmethod
-    def create_queue(name: str, team: Team):
-        queue = Queue(name=name, team=team)
+    def create_queue(name: str, team: Team, pk=None):
+        if not pk:
+            pk = uuid.uuid4()
+        queue = Queue(id=pk, name=name, team=team)
         queue.save()
         return queue
 
