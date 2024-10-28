@@ -10,40 +10,41 @@ class Migration(migrations.Migration):
         those that are parents to newly add CLEs via migration as migration runs first
         """
         ratings = (
-            "1C35023",
-            "1C35029",
-            "1C3504",
-            "1C35065",
-            "1C35066",
-            "1C35067",
-            "1C35068",
-            "1C35069",
-            "1C35070",
-            "1C35071",
-            "1C35072",
-            "1C35073",
-            "1C35074",
-            "1C35075",
-            "1C35076",
-            "1C35077",
-            "1C35078",
-            "1C35079",
-            "1C35080",
-            "1C35081",
-            "1C35082",
-            "1C35083",
-            "1C35084",
-            "1C35085",
-            "1C35086",
-            "1C35087",
-            "1C35088",
-            "1C35089",
+            ("1C35023", "45da2c59-d371-412d-8a62-2208ab676e30"),
+            ("1C35029", "e96122e1-6725-495d-84ab-a35fe461be92"),
+            ("1C3504", "e68b01d3-5042-4510-9b88-73cb98e45fbc"),
+            ("1C35065", "f241e745-cdeb-4faa-a2a7-98125aa96fb0"),
+            ("1C35066", "bca1cba3-7790-4da5-8ea8-e09c34743610"),
+            ("1C35067", "9aec94d8-dd93-42f8-9a83-65af03762cef"),
+            ("1C35068", "85b81dab-3859-4e7f-a92f-7e1d8daeb1da"),
+            ("1C35069", "bee397e1-f5a4-49fd-bdf0-e98aea5cb5f1"),
+            ("1C35070", "75fa569e-9123-45d0-95ad-a7beddba17cb"),
+            ("1C35071", "6e4e3024-0ea1-4675-b777-583173c45ad4"),
+            ("1C35072", "d05172be-1ccd-4c82-977a-2f9516990321"),
+            ("1C35073", "2b5c19ef-d5a8-407c-ac7e-cdd2d59bc72a"),
+            ("1C35074", "c51f7b0c-026c-473b-bb69-c11e4c2fc376"),
+            ("1C35075", "de85dc72-5e30-47d7-af50-b8c4f75b7047"),
+            ("1C35076", "d75b13f4-2732-418c-b723-3537cf6f1675"),
+            ("1C35077", "5d856f38-e97c-43d6-9881-a55f3fb65726"),
+            ("1C35078", "29aee271-0b0c-4ff3-a762-a3880520c734"),
+            ("1C35079", "c0c809e3-68bc-4f42-9ea3-75d5357b874e"),
+            ("1C35080", "4922b413-213e-4139-a38c-53dd6c1a0ef9"),
+            ("1C35081", "9b8b92e5-d190-4a35-98e6-6a2e3f90e290"),
+            ("1C35082", "974757c1-3de7-49a3-bbba-10fdd63379be"),
+            ("1C35083", "852aff79-28dc-4081-afde-17451a177a40"),
+            ("1C35084", "d08d0a82-1751-433f-ac2b-114901ca08cb"),
+            ("1C35085", "61a6131c-c501-48d2-952f-85c271469f48"),
+            ("1C35086", "7db5f50b-6129-4281-96ea-1496a351147b"),
+            ("1C35087", "5d088e66-db5b-4506-8b7b-9b53eaca8021"),
+            ("1C35088", "f11f0eb7-04e5-4fda-aafd-124d07fc95a2"),
+            ("1C35089", "95747628-147e-4376-be97-751032cc0e9b"),
         )
         family_category = "Dual-Use List"
         ControlListEntry = apps.get_model("control_list_entries", "ControlListEntry")
 
         with transaction.atomic():
             great_grandparent_cle, created = ControlListEntry.objects.get_or_create(
+                id="e1c5cdcb-d72d-49fa-85c7-b0a01678a9e3",
                 rating="1",
                 text="Special Materials and Related Equipment",
                 parent_id=None,
@@ -51,6 +52,7 @@ class Migration(migrations.Migration):
                 controlled=True,
             )
             grandparent_cle, created = ControlListEntry.objects.get_or_create(
+                id="d296d395-e122-4766-b834-5d9564f5e886",
                 rating="1C",
                 text="Materials",
                 parent_id=great_grandparent_cle.id,
@@ -58,6 +60,7 @@ class Migration(migrations.Migration):
                 controlled=True,
             )
             parent_cle, created = ControlListEntry.objects.get_or_create(
+                id="29b46846-175c-4018-bf0f-f9b5ad145b9c",
                 rating="1C350",
                 text="Chemicals that may be used as precursors for toxic chemical agents, and chemical mixtures",
                 parent_id=grandparent_cle.id,
@@ -65,9 +68,14 @@ class Migration(migrations.Migration):
                 controlled=True,
             )
 
-            for rating in ratings:
+            for rating, id in ratings:
                 ControlListEntry.objects.get_or_create(
-                    rating=rating, text=rating, parent_id=parent_cle.id, category=family_category, controlled=True
+                    id=id,
+                    rating=rating,
+                    text=rating,
+                    parent_id=parent_cle.id,
+                    category=family_category,
+                    controlled=True,
                 )
 
     dependencies = [
