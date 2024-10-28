@@ -4,7 +4,6 @@ from rest_framework.settings import api_settings
 
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
-from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.models import Case
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
@@ -23,20 +22,15 @@ class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = DisableableLimitOffsetPagination
 
-    issued_qs = Case.objects.filter(
-        licences__generatedcasedocument__template_id=SIEL_TEMPLATE_ID,
-        licences__generatedcasedocument__visible_to_exporter=True,
-        licences__generatedcasedocument__safe=True,
+    queryset = (
+        Case.objects.filter(
+            casedocument__generatedcasedocument__template_id__in=[SIEL_TEMPLATE_ID, SIEL_REFUSAL_TEMPLATE_ID],
+            casedocument__visible_to_exporter=True,
+            casedocument__safe=True,
+        )
+        .distinct()
+        .order_by("-reference_code")
     )
-    refused_qs = Case.objects.filter(
-        id__in=GeneratedCaseDocument.objects.filter(
-            template_id=SIEL_REFUSAL_TEMPLATE_ID,
-            visible_to_exporter=True,
-            safe=True,
-        ).values_list("case", flat=True)
-    )
-
-    queryset = (issued_qs | refused_qs).distinct().order_by("-reference_code")
 
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = LicenceDecisionSerializer
