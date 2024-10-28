@@ -29,13 +29,15 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         )
 
     def get_decision(self, case):
-        if case.licences.count():
-            return LicenceDecisionType.ISSUED
-        else:
-            return LicenceDecisionType.REFUSED
+        return case.decision
 
     def get_decision_made_at(self, case):
-        if not case.licences.count():
+        if case.decision == "issued":
+            return (
+                case.licences.annotate(issued_at=F("generatedcasedocument__created_at")).earliest("issued_at").issued_at
+            )
+
+        if case.decision == "refused":
             return GeneratedCaseDocument.objects.get(case=case, template_id=SIEL_REFUSAL_TEMPLATE_ID).created_at
 
-        return case.licences.annotate(issued_at=F("generatedcasedocument__created_at")).earliest("issued_at").issued_at
+        raise Exception("No decision found")
