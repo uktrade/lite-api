@@ -1,6 +1,7 @@
 import pytest
 
 from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
+from api.cases.enums import AdviceType
 from api.cases.tests.factories import FinalAdviceFactory
 from api.goods.tests.factories import GoodFactory
 from api.licences.enums import LicenceStatus
@@ -63,3 +64,10 @@ def standard_case_with_final_advice(lu_case_officer):
     )
     FinalAdviceFactory(user=lu_case_officer, case=case, good=good_on_application.good)
     return case
+
+
+
+@pytest.fixture()
+def standard_case_with_refused_advice(lu_case_officer, standard_case_with_final_advice):
+    standard_case_with_final_advice.advice.update(type=AdviceType.REFUSE)
+    return standard_case_with_final_advice

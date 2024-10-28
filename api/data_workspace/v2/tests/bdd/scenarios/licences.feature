@@ -15,3 +15,11 @@ Scenario: Licence document is generated when licence is issued
     And case officer generates licence documents
     And case officer issues licence for this case
     Then the issued licence is included in the extract
+
+@refusal
+Scenario: Refusal letter is generated when licence is refused
+    Given a case is ready to be refused
+    When the licence for the case is refused
+    And case officer generates refusal documents
+    And case officer refuses licence for this case
+    Then the refused case is included in the extract
