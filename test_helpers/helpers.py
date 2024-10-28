@@ -2,17 +2,15 @@ import sys
 
 from importlib import import_module, reload
 
-from faker import Faker
-
 from django.conf import settings
 from django.urls import clear_url_caches
+
+from test_helpers.faker import faker
 
 from api.core.constants import Roles
 from api.flags.enums import SystemFlags
 from api.staticdata.countries.models import Country
 from api.users.models import ExporterUser, UserOrganisationRelationship
-
-faker = Faker()
 
 
 def generate_key_value_pair(key, choices):
@@ -37,7 +35,7 @@ def create_exporter_users(organisation, quantity=1, role_id=Roles.EXPORTER_EXPOR
     users = []
 
     for i in range(quantity):
-        user, created = ExporterUser.objects.get_or_create(email=faker.email())
+        user, created = ExporterUser.objects.get_or_create(email=faker.unique.email())
         if created:
             user.first_name = faker.first_name()
             user.last_name = faker.last_name()

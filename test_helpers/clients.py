@@ -8,7 +8,6 @@ from typing import Tuple
 import django.utils.timezone
 from django.db import connection
 from django.test import override_settings
-from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 import pytest
 
@@ -84,6 +83,7 @@ from api.staticdata.urls import urlpatterns as static_urlpatterns
 from api.teams.models import Team
 from api.users.tests.factories import GovUserFactory
 from test_helpers import colours
+from test_helpers.faker import faker
 from api.users.enums import SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
@@ -94,11 +94,6 @@ from api.workflow.routing_rules.models import RoutingRule
 
 class Static:
     seeded = False
-
-
-# Instantiating this once so that we have a single instance across all tests allowing us to use things like .unique
-# and we can guarantee that we will always have unique values even if we use things like `setUpClass`.
-faker = Faker()
 
 
 class DataTestClient(APITestCase, URLPatternsTestCase):
