@@ -4,6 +4,16 @@ from rest_framework.settings import api_settings
 
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import (
+    Case as DBCase,
+    Q,
+    TextField,
+    Value,
+    When,
+)
+from django.db.models.functions import Cast
+
 from api.cases.models import Case
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
@@ -27,6 +37,18 @@ class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
             casedocument__generatedcasedocument__template_id__in=[SIEL_TEMPLATE_ID, SIEL_REFUSAL_TEMPLATE_ID],
             casedocument__visible_to_exporter=True,
             casedocument__safe=True,
+        )
+        .annotate(
+            template_ids=ArrayAgg(
+                Cast("casedocument__generatedcasedocument__template_id", output_field=TextField()), distinct=True
+            )
+        )
+        .filter(Q(template_ids=[SIEL_TEMPLATE_ID]) | Q(template_ids=[SIEL_REFUSAL_TEMPLATE_ID]))
+        .annotate(
+            decision=DBCase(
+                When(template_ids=[SIEL_TEMPLATE_ID], then=Value("issued")),
+                When(template_ids=[SIEL_REFUSAL_TEMPLATE_ID], then=Value("refused")),
+            )
         )
         .distinct()
         .order_by("-reference_code")
