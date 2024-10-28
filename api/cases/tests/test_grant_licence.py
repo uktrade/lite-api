@@ -5,9 +5,8 @@ from rest_framework import status
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.audit_trail.models import Audit
-from api.cases.enums import AdviceType, CaseTypeEnum, LicenceDecisionType
+from api.cases.enums import AdviceType, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
-from api.cases.models import LicenceDecision
 from api.cases.tests.factories import FinalAdviceFactory
 from api.core.constants import GovPermissions
 from api.core.exceptions import PermissionDeniedError
@@ -59,11 +58,6 @@ class FinaliseCaseTests(DataTestClient):
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
         self.assertEqual(Audit.objects.count(), 6)
-
-        licence_decision = LicenceDecision.objects.get()
-        self.assertEqual(licence_decision.case, self.standard_case.get_case())
-        self.assertEqual(licence_decision.decision, LicenceDecisionType.ISSUED)
-        self.assertEqual(licence_decision.licence, licence)
 
         self.assertIsNone(self.standard_case.appeal_deadline)
         send_exporter_notifications_func.assert_called()

@@ -21,7 +21,7 @@ from api.applications.serializers.advice import (
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases import notify
-from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, LicenceDecisionType
+from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.helpers import create_system_mention
@@ -54,7 +54,6 @@ from api.cases.models import (
     Advice,
     GoodCountryDecision,
     CaseAssignment,
-    LicenceDecision,
 )
 from api.cases.models import CountersignAdvice
 from api.cases.notify import (
@@ -937,8 +936,6 @@ class FinaliseView(UpdateAPIView):
                         "licence_reference": licence.reference_code,
                     },
                 )
-
-                LicenceDecision.objects.create(case=case, decision=LicenceDecisionType.ISSUED, licence=licence)
 
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
 

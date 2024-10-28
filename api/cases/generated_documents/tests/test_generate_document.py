@@ -16,7 +16,8 @@ from api.audit_trail.serializers import AuditSerializer
 
 from api.audit_trail.models import Audit
 from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
-from api.cases.enums import CaseTypeEnum, AdviceType
+from api.cases.models import LicenceDecision
+from api.cases.enums import CaseTypeEnum, AdviceType, LicenceDecisionType
 from api.cases.generated_documents.helpers import html_to_pdf
 from api.cases.tests.factories import FinalAdviceFactory
 from api.letter_templates.helpers import generate_preview, DocumentPreviewError
@@ -270,6 +271,11 @@ class GenerateDocumentTests(DataTestClient):
             ).count(),
             0,
         )
+
+        licence_decision = LicenceDecision.objects.get()
+        self.assertEqual(licence_decision.case, self.case.get_case())
+        self.assertEqual(licence_decision.decision, LicenceDecisionType.ISSUED)
+        self.assertEqual(licence_decision.licence, licence)
 
     @mock.patch("api.cases.generated_documents.views.html_to_pdf")
     @mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file")
