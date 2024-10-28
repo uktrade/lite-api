@@ -20,7 +20,7 @@ scenarios("../scenarios/licences.feature")
 
 @pytest.fixture()
 def licences_list_url():
-    return reverse("data_workspace:v2:dw-licences-list")
+    return reverse("data_workspace:v2:dw-licence-decisions-list")
 
 
 @given("a standard draft licence is created", target_fixture="draft_licence")
@@ -58,10 +58,23 @@ def licence_included_in_extract(issued_licence, unpage_data, licences_list_url):
     assert issued_licence.reference_code in [item["reference_code"] for item in licences]
 
 
+@then("the refused case is included in the extract")
+def refused_case_included_in_extract(refused_case, unpage_data, licences_list_url):
+    licences = unpage_data(licences_list_url)
+
+    assert refused_case.reference_code in [item["reference_code"] for item in licences]
+
+
 @given("a case is ready to be finalised", target_fixture="case_with_final_advice")
 def case_ready_to_be_finalised(standard_case_with_final_advice):
     assert standard_case_with_final_advice.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
     return standard_case_with_final_advice
+
+
+@given("a case is ready to be refused", target_fixture="case_with_refused_advice")
+def case_ready_to_be_refused(standard_case_with_refused_advice):
+    assert standard_case_with_refused_advice.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
+    return standard_case_with_refused_advice
 
 
 @when("the licence for the case is approved")
@@ -120,3 +133,44 @@ def licence_for_case_is_approved(client, gov_headers, case_with_final_advice):
     assert licence.status == LicenceStatus.ISSUED
 
     return licence
+
+
+@when("the licence for the case is refused")
+def licence_for_case_is_refused(client, gov_headers, case_with_refused_advice):
+    data = {"action": AdviceType.REFUSE}
+
+    url = reverse("applications:finalise", kwargs={"pk": case_with_refused_advice.id})
+    response = client.put(url, data, content_type="application/json", **gov_headers)
+    assert response.status_code == 200
+
+
+@when("case officer generates refusal documents")
+def generate_refusal_documents(client, siel_refusal_template, gov_headers, case_with_refused_advice):
+    data = {
+        "template": str(siel_refusal_template.id),
+        "text": "",
+        "visible_to_exporter": False,
+        "advice_type": AdviceType.REFUSE,
+    }
+    url = reverse(
+        "cases:generated_documents:generated_documents",
+        kwargs={"pk": str(case_with_refused_advice.pk)},
+    )
+    response = client.post(url, data, content_type="application/json", **gov_headers)
+    assert response.status_code == 201
+
+
+@when("case officer refuses licence for this case", target_fixture="refused_case")
+def licence_for_case_is_refused(client, gov_headers, case_with_refused_advice):
+    url = reverse(
+        "cases:finalise",
+        kwargs={"pk": str(case_with_refused_advice.pk)},
+    )
+    response = client.put(url, {}, content_type="application/json", **gov_headers)
+    assert response.status_code == 201
+
+    case_with_refused_advice.refresh_from_db()
+    assert case_with_refused_advice.status.status == CaseStatusEnum.FINALISED
+    assert case_with_refused_advice.sub_status.name == "Refused"
+
+    return case_with_refused_advice

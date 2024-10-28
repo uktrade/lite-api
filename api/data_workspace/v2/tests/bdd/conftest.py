@@ -1,10 +1,9 @@
-import csv
 import json
 import pytest
 
 from rest_framework import status
 
-from api.cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
+from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
 from api.core.constants import GovPermissions
 from api.letter_templates.models import LetterTemplate
@@ -38,6 +37,11 @@ def seed_templates(seed_layouts):
 @pytest.fixture()
 def siel_template(seed_templates):
     return LetterTemplate.objects.get(layout_id="00000000-0000-0000-0000-000000000001")
+
+
+@pytest.fixture()
+def siel_refusal_template(seed_templates):
+    return LetterTemplate.objects.get(layout_id="00000000-0000-0000-0000-000000000006")
 
 
 @pytest.fixture(autouse=True)
