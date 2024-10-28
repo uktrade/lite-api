@@ -1,10 +1,8 @@
 from enum import Enum
 
-from django.db.models import F
 from rest_framework import serializers
 
 from api.cases.models import Case
-from api.cases.generated_documents.models import GeneratedCaseDocument
 
 SIEL_TEMPLATE_ID = "d159b195-9256-4a00-9bc8-1eb2cebfa1d2"
 SIEL_REFUSAL_TEMPLATE_ID = "074d8a54-ee10-4dca-82ba-650460650342"
@@ -13,6 +11,17 @@ SIEL_REFUSAL_TEMPLATE_ID = "074d8a54-ee10-4dca-82ba-650460650342"
 class LicenceDecisionType(str, Enum):
     ISSUED = "issued"
     REFUSED = "refused"
+
+    @classmethod
+    def templates(cls):
+        return {
+            cls.ISSUED: SIEL_TEMPLATE_ID,
+            cls.REFUSED: SIEL_REFUSAL_TEMPLATE_ID,
+        }
+
+    @classmethod
+    def get_template(cls, decision):
+        return cls.templates()[cls(decision)]
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -32,12 +41,10 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         return case.decision
 
     def get_decision_made_at(self, case):
-        if case.decision == "issued":
-            return (
-                case.licences.annotate(issued_at=F("generatedcasedocument__created_at")).earliest("issued_at").issued_at
-            )
+        documents = case.casedocument_set.filter(
+            generatedcasedocument__template_id=LicenceDecisionType.get_template(case.decision),
+            safe=True,
+            visible_to_exporter=True,
+        )
 
-        if case.decision == "refused":
-            return GeneratedCaseDocument.objects.get(case=case, template_id=SIEL_REFUSAL_TEMPLATE_ID).created_at
-
-        raise Exception("No decision found")
+        return documents.earliest("created_at").created_at
