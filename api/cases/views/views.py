@@ -21,7 +21,7 @@ from api.applications.serializers.advice import (
 from api.audit_trail import service as audit_trail_service
 from api.audit_trail.enums import AuditType
 from api.cases import notify
-from api.cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
+from api.cases.enums import AdviceType, AdviceLevel
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.helpers import create_system_mention
@@ -75,7 +75,6 @@ from api.cases.serializers import (
     EcjuQueryDocumentCreateSerializer,
     EcjuQueryDocumentViewSerializer,
 )
-from api.compliance.helpers import generate_compliance_site_case
 from api.core import constants
 from api.core.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from api.core.constants import GovPermissions
@@ -883,11 +882,7 @@ class FinaliseView(UpdateAPIView):
         """
         case = get_case(pk)
 
-        # Check Permissions
-        if CaseTypeSubTypeEnum.is_mod_clearance(case.case_type.sub_type):
-            assert_user_has_permission(request.user.govuser, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE)
-        else:
-            assert_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        assert_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         required_decisions = get_required_decision_document_types(case)
 
@@ -953,7 +948,6 @@ class FinaliseView(UpdateAPIView):
                         "start_date": licence.start_date.strftime("%Y-%m-%d"),
                     },
                 )
-            generate_compliance_site_case(case)
         except Licence.DoesNotExist:
             # Do nothing if Licence doesn't exist
             pass
