@@ -412,5 +412,17 @@ class EnforcementXMLEntityTypes:
 
 class LicenceDecisionType:
     ISSUED = "issued"
+    REFUSED = "refused"
 
-    choices = [(ISSUED, "issued")]
+    choices = [
+        (ISSUED, "issued"),
+        (REFUSED, "refused"),
+    ]
+
+    decision_map = {
+        AdviceType.APPROVE: ISSUED,
+        AdviceType.REFUSE: REFUSED,
+    }
+
+    def advice_type_to_decision(self, advice_type):
+        return self.decision_map[advice_type]

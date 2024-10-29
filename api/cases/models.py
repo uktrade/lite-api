@@ -381,18 +381,18 @@ class Case(TimestampableModel):
             },
         )
 
-        for decision in required_decisions:
+        for advice_type in required_decisions:
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.CREATED_FINAL_RECOMMENDATION,
                 target=case,
-                payload={"case_reference": case.reference_code, "decision": decision, "licence_reference": ""},
+                payload={"case_reference": case.reference_code, "decision": advice_type, "licence_reference": ""},
             )
 
-            if decision == AdviceType.APPROVE:
+            if advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]:
                 LicenceDecision.objects.create(
                     case=case,
-                    decision=LicenceDecisionType.ISSUED,
+                    decision=LicenceDecisionType.advice_type_to_decision(advice_type),
                     licence=licence,
                 )
 
