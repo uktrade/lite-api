@@ -434,5 +434,6 @@ class LicenceDecisionType:
             cls.REFUSED: SIEL_REFUSAL_TEMPLATE_ID,
         }
 
-    def advice_type_to_decision(self, advice_type):
-        return self.decision_map[advice_type]
+    @classmethod
+    def advice_type_to_decision(cls, advice_type):
+        return cls.decision_map[advice_type]
