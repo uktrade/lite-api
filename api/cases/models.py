@@ -315,7 +315,6 @@ class Case(TimestampableModel):
 
         case = self.get_case()
         required_decisions = get_required_decision_document_types(case)
-        breakpoint()
 
         # Inform letter isn't required for finalisation
         if AdviceType.INFORM in required_decisions:
