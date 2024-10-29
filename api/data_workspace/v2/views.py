@@ -41,51 +41,53 @@ class DisableableLimitOffsetPagination(LimitOffsetPagination):
 class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = DisableableLimitOffsetPagination
-
-    queryset = (
-        (
-            Case.objects.filter(
-                casedocument__generatedcasedocument__template_id__in=LicenceDecisionType.templates().values(),
-                casedocument__visible_to_exporter=True,
-                casedocument__safe=True,
-            )
-            .annotate(
-                template_ids=ArrayAgg(
-                    Cast("casedocument__generatedcasedocument__template_id", output_field=TextField()), distinct=True
-                )
-            )
-            .filter(
-                functools.reduce(
-                    operator.or_,
-                    [Q(template_ids=[template_id]) for template_id in LicenceDecisionType.templates().values()],
-                )
-            )
-            .annotate(
-                decision=DBCase(
-                    *[
-                        When(template_ids=[template_id], then=Value(decision.value))
-                        for decision, template_id in LicenceDecisionType.templates().items()
-                    ]
-                )
-            )
-            .distinct()
-        )
-        .union(
-            Case.objects.filter(
-                pk__in=list(
-                    Audit.objects.filter(
-                        payload__status=LicenceStatus.REVOKED,
-                        verb=AuditType.LICENCE_UPDATED_STATUS,
-                    ).values_list("target_object_id", flat=True)
-                )
-            ).annotate(
-                template_ids=Value([], output_field=ArrayField(TextField())),
-                decision=Value("revoked", output_field=TextField()),
-            ),
-            all=True,
-        )
-        .order_by("-reference_code")
-    )
-
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = LicenceDecisionSerializer
+
+    def get_queryset(self):
+        queryset = (
+            (
+                Case.objects.filter(
+                    casedocument__generatedcasedocument__template_id__in=LicenceDecisionType.templates().values(),
+                    casedocument__visible_to_exporter=True,
+                    casedocument__safe=True,
+                )
+                .annotate(
+                    template_ids=ArrayAgg(
+                        Cast("casedocument__generatedcasedocument__template_id", output_field=TextField()),
+                        distinct=True,
+                    )
+                )
+                .filter(
+                    functools.reduce(
+                        operator.or_,
+                        [Q(template_ids=[template_id]) for template_id in LicenceDecisionType.templates().values()],
+                    )
+                )
+                .annotate(
+                    decision=DBCase(
+                        *[
+                            When(template_ids=[template_id], then=Value(decision.value))
+                            for decision, template_id in LicenceDecisionType.templates().items()
+                        ]
+                    )
+                )
+                .distinct()
+            )
+            .union(
+                Case.objects.filter(
+                    pk__in=list(
+                        Audit.objects.filter(
+                            payload__status=LicenceStatus.REVOKED,
+                            verb=AuditType.LICENCE_UPDATED_STATUS,
+                        ).values_list("target_object_id", flat=True)
+                    )
+                ).annotate(
+                    template_ids=Value([], output_field=ArrayField(TextField())),
+                    decision=Value("revoked", output_field=TextField()),
+                ),
+                all=True,
+            )
+            .order_by("-reference_code")
+        )
+        return queryset
