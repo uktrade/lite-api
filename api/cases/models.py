@@ -382,7 +382,7 @@ class Case(TimestampableModel):
         )
 
         for advice_type in required_decisions:
-            audit_trail_service.create(
+            final_recommendation_audit_log = audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.CREATED_FINAL_RECOMMENDATION,
                 target=case,
@@ -392,6 +392,7 @@ class Case(TimestampableModel):
             if advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]:
                 LicenceDecision.objects.create(
                     case=case,
+                    created_at=final_recommendation_audit_log.created_at,
                     decision=LicenceDecisionType.advice_type_to_decision(advice_type),
                     licence=licence,
                 )
