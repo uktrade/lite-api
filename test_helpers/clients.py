@@ -8,7 +8,6 @@ from typing import Tuple
 import django.utils.timezone
 from django.db import connection
 from django.test import override_settings
-from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 import pytest
 
@@ -84,6 +83,7 @@ from api.staticdata.urls import urlpatterns as static_urlpatterns
 from api.teams.models import Team
 from api.users.tests.factories import GovUserFactory
 from test_helpers import colours
+from test_helpers.faker import faker
 from api.users.enums import SystemUser, UserType
 from api.users.libraries.user_to_token import user_to_token
 from api.users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
@@ -96,11 +96,6 @@ class Static:
     seeded = False
 
 
-# Instantiating this once so that we have a single instance across all tests allowing us to use things like .unique
-# and we can guarantee that we will always have unique values even if we use things like `setUpClass`.
-faker = Faker()
-
-
 class DataTestClient(APITestCase, URLPatternsTestCase):
     """
     Test client which creates seeds the database with system data and sets up an initial organisation and user
@@ -109,6 +104,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
     faker = faker  # Assigning this to the class as `self.faker` is expected in tests
+
+    INITIAL_QUEUE_ID = uuid.uuid4()
 
     @classmethod
     def setUpClass(cls):
@@ -163,7 +160,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             "HTTP_ORGANISATION_ID": str(self.hmrc_organisation.id),
         }
 
-        self.queue = self.create_queue("Initial Queue", self.team)
+        self.queue = self.create_queue("Initial Queue", self.team, pk=self.INITIAL_QUEUE_ID)
 
         if settings.TIME_TESTS:
             self.tick = timezone.localtime()
@@ -291,8 +288,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_note_mention
 
     @staticmethod
-    def create_queue(name: str, team: Team):
-        queue = Queue(name=name, team=team)
+    def create_queue(name: str, team: Team, pk=None):
+        if not pk:
+            pk = uuid.uuid4()
+        queue = Queue(id=pk, name=name, team=team)
         queue.save()
         return queue
 
