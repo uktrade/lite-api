@@ -26,11 +26,7 @@ from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from api.cases.helpers import create_system_mention
 from api.cases.libraries.advice import group_advice
-from api.cases.libraries.finalise import (
-    get_required_decision_document_types,
-    remove_flags_on_finalisation,
-    remove_flags_from_audit_trail,
-)
+from api.cases.libraries.finalise import get_required_decision_document_types
 from api.cases.libraries.get_case import get_case, get_case_document
 from api.cases.libraries.get_destination import get_destination
 from api.cases.libraries.get_ecju_queries import get_ecju_query
@@ -56,11 +52,6 @@ from api.cases.models import (
     CaseAssignment,
 )
 from api.cases.models import CountersignAdvice
-from api.cases.notify import (
-    notify_exporter_licence_issued,
-    notify_exporter_licence_refused,
-    notify_exporter_no_licence_required,
-)
 from api.cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -92,9 +83,7 @@ from api.parties.models import Party
 from api.parties.serializers import PartySerializer, AdditionalContactSerializer
 from api.queues.models import Queue
 from api.staticdata.countries.models import Country
-from api.staticdata.decisions.models import Decision
-from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
-from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
+from api.staticdata.statuses.enums import CaseStatusEnum
 from api.users.libraries.get_user import get_user_by_pk
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Documents, Cases
@@ -884,117 +873,15 @@ class FinaliseView(UpdateAPIView):
 
         assert_user_has_permission(request.user.govuser, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
-        required_decisions = get_required_decision_document_types(case)
-
-        # Inform letter isn't required for finalisation
-        if AdviceType.INFORM in required_decisions:
-            required_decisions.remove(AdviceType.INFORM)
-
-        # Check that each decision has a document
-        # Excluding approve (done in the licence section below)
-        generated_document_decisions = set(
-            GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list(
-                "advice_type", flat=True
-            )
-        )
-
-        if not required_decisions.issubset(generated_document_decisions):
-            raise ParseError(
-                {
-                    f"decision-{decision}": [Cases.Licence.MISSING_DOCUMENTS]
-                    for decision in required_decisions.difference(generated_document_decisions)
-                }
-            )
+        missing_decision_documents = case.validate_decision_documents()
+        for decision_type in missing_decision_documents:
+            raise ParseError({f"decision-{decision_type}": [Cases.Licence.MISSING_DOCUMENTS]})
 
         return_payload = {"case": pk}
 
-        # If a licence object exists, finalise the licence.
-        try:
-            licence = Licence.objects.get_draft_licence(pk)
+        case.finalise(request)
 
-            if AdviceType.APPROVE in required_decisions:
-                # Check that a licence document has been created
-                # (new document required for new licence)
-                licence_document_exists = GeneratedCaseDocument.objects.filter(
-                    advice_type=AdviceType.APPROVE, licence=licence
-                ).exists()
-                if not licence_document_exists:
-                    raise ParseError({"decision-approve": [Cases.Licence.MISSING_LICENCE_DOCUMENT]})
-
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.CREATED_FINAL_RECOMMENDATION,
-                    target=case,
-                    payload={
-                        "case_reference": case.reference_code,
-                        "decision": AdviceType.APPROVE,
-                        "licence_reference": licence.reference_code,
-                    },
-                )
-
-            licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
-
-            logging.info("Initiate issue of licence %s (status: %s)", licence.reference_code, licence.status)
-            licence.issue()
-
-            return_payload["licence"] = licence.id
-            if Licence.objects.filter(case=case).count() > 1:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.REINSTATED_APPLICATION,
-                    target=case,
-                    payload={
-                        "licence_duration": licence.duration,
-                        "start_date": licence.start_date.strftime("%Y-%m-%d"),
-                    },
-                )
-        except Licence.DoesNotExist:
-            # Do nothing if Licence doesn't exist
-            pass
-
-        # Finalise Case
-        old_status = case.status.status
-        case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        case.save()
-        logging.info("Case status is now finalised")
-
-        # Remove Flags and related Audits when Finalising
-        remove_flags_on_finalisation(case)
-        remove_flags_from_audit_trail(case)
-
-        decisions = required_decisions.copy()
-
-        if AdviceType.REFUSE in decisions:
-            case.set_sub_status(CaseSubStatusIdEnum.FINALISED__REFUSED)
-            notify_exporter_licence_refused(case)
-
-        if AdviceType.NO_LICENCE_REQUIRED in decisions:
-            notify_exporter_no_licence_required(case)
-
-        if AdviceType.APPROVE in decisions:
-            case.set_sub_status(CaseSubStatusIdEnum.FINALISED__APPROVED)
-            notify_exporter_licence_issued(case)
-
-        if AdviceType.APPROVE in decisions:
-            decisions.remove(AdviceType.APPROVE)
-
-        for decision in decisions:
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.CREATED_FINAL_RECOMMENDATION,
-                target=case,
-                payload={"case_reference": case.reference_code, "decision": decision, "licence_reference": ""},
-            )
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=case,
-            payload={
-                "status": {"new": case.status.status, "old": old_status},
-                "additional_text": request.data.get("note"),
-            },
-        )
+        case.send_finalised_notifications()
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)

@@ -5,14 +5,14 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
-from api.users.enums import UserType
 
 from queryable_properties.managers import QueryablePropertiesManager
 from queryable_properties.properties import queryable_property
 
+from api.users.enums import UserType
 from api.audit_trail.enums import AuditType
 from api.cases.enums import (
     AdviceType,
@@ -35,8 +35,9 @@ from api.goods.enums import PvGrading
 from api.organisations.models import Organisation
 from api.queues.models import Queue
 from api.staticdata.countries.models import Country
+from api.staticdata.decisions.models import Decision
 from api.staticdata.denial_reasons.models import DenialReason
-from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.enums import CaseStatusEnum, CaseSubStatusIdEnum
 from api.staticdata.statuses.libraries.get_case_status import get_case_status_by_status
 from api.staticdata.statuses.models import (
     CaseStatus,
@@ -307,6 +308,116 @@ class Case(TimestampableModel):
             target=case,
             payload={"sub_status": self.sub_status.name, "status": CaseStatusEnum.get_text(self.status.status)},
         )
+
+    def validate_decision_documents(self):
+        from api.cases.libraries.finalise import get_required_decision_document_types
+        from api.cases.generated_documents.models import GeneratedCaseDocument
+
+        case = self.get_case()
+        required_decisions = get_required_decision_document_types(case)
+        breakpoint()
+
+        # Inform letter isn't required for finalisation
+        if AdviceType.INFORM in required_decisions:
+            required_decisions.remove(AdviceType.INFORM)
+
+        # Check that each decision has a document
+        # Excluding approve (done in the licence section below)
+        generated_document_decisions = set(
+            GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list(
+                "advice_type", flat=True
+            )
+        )
+
+        return required_decisions.difference(generated_document_decisions)
+
+    @transaction.atomic
+    def finalise(self, request):
+        from api.licences.models import Licence
+        from api.cases.libraries.finalise import (
+            get_required_decision_document_types,
+            remove_flags_on_finalisation,
+            remove_flags_from_audit_trail,
+        )
+        from api.audit_trail import service as audit_trail_service
+
+        case = self.get_case()
+        required_decisions = get_required_decision_document_types(case)
+        if AdviceType.INFORM in required_decisions:
+            required_decisions.remove(AdviceType.INFORM)
+
+        try:
+            licence = Licence.objects.get_draft_licence(case)
+        except Licence.DoesNotExist:
+            pass
+
+        licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
+
+        logging.info("Initiate issue of licence %s (status: %s)", licence.reference_code, licence.status)
+        licence.issue()
+
+        if Licence.objects.filter(case=case).count() > 1:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.REINSTATED_APPLICATION,
+                target=case,
+                payload={
+                    "licence_duration": licence.duration,
+                    "start_date": licence.start_date.strftime("%Y-%m-%d"),
+                },
+            )
+
+        # Finalise Case
+        old_status = case.status.status
+        case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        case.save()
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=case,
+            payload={
+                "status": {"new": case.status.status, "old": old_status},
+                "additional_text": request.data.get("note"),
+            },
+        )
+
+        for decision in required_decisions:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.CREATED_FINAL_RECOMMENDATION,
+                target=case,
+                payload={"case_reference": case.reference_code, "decision": decision, "licence_reference": ""},
+            )
+
+        logging.info("Case status is now finalised")
+
+        remove_flags_on_finalisation(case)
+        remove_flags_from_audit_trail(case)
+
+    def send_finalised_notifications(self):
+        from api.cases.libraries.finalise import get_required_decision_document_types
+        from api.cases.notify import (
+            notify_exporter_licence_issued,
+            notify_exporter_licence_refused,
+            notify_exporter_no_licence_required,
+        )
+
+        case = self.get_case()
+
+        decisions = get_required_decision_document_types(case)
+        if AdviceType.INFORM in decisions:
+            decisions.remove(AdviceType.INFORM)
+
+        if AdviceType.REFUSE in decisions:
+            case.set_sub_status(CaseSubStatusIdEnum.FINALISED__REFUSED)
+            notify_exporter_licence_refused(case)
+
+        if AdviceType.NO_LICENCE_REQUIRED in decisions:
+            notify_exporter_no_licence_required(case)
+
+        if AdviceType.APPROVE in decisions:
+            case.set_sub_status(CaseSubStatusIdEnum.FINALISED__APPROVED)
+            notify_exporter_licence_issued(case)
 
 
 class CaseQueue(TimestampableModel):
