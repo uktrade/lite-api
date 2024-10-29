@@ -180,7 +180,7 @@ class DataWorkspaceOnlyAuthentication(authentication.BaseAuthentication):
         Only approve HAWK Signed requests from the Data workspace
         """
 
-        return AnonymousUser(), _
+        return AnonymousUser(), None
 
         try:
             hawk_receiver = _authenticate(request, _lookup_credentials_data_workspace_access)
