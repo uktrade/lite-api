@@ -11,14 +11,14 @@ from api.applications.models import BaseApplication
 from api.applications.helpers import reset_appeal_deadline
 from api.audit_trail.enums import AuditType
 from api.audit_trail import service as audit_trail_service
-from api.cases.enums import CaseDocumentState, AdviceType, LicenceDecisionType
+from api.cases.enums import CaseDocumentState, AdviceType
 from api.cases.generated_documents.helpers import (
     html_to_pdf,
     get_generated_document_data,
     get_decision_type,
     get_draft_licence,
 )
-from api.cases.models import BadSubStatus, LicenceDecision
+from api.cases.models import BadSubStatus
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.generated_documents.serializers import (
     GeneratedCaseDocumentGovSerializer,
@@ -125,11 +125,6 @@ class GeneratedDocuments(generics.ListAPIView):
                     advice_type=request.data.get("advice_type"),
                     licence=licence,
                 )
-
-                if advice_type == AdviceType.APPROVE:
-                    LicenceDecision.objects.create(
-                        case=document.case, decision=LicenceDecisionType.ISSUED, licence=licence
-                    )
 
                 s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
         except Exception:  # noqa

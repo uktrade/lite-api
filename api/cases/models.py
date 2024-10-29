@@ -389,6 +389,13 @@ class Case(TimestampableModel):
                 payload={"case_reference": case.reference_code, "decision": decision, "licence_reference": ""},
             )
 
+            if decision == AdviceType.APPROVE:
+                LicenceDecision.objects.create(
+                    case=case,
+                    decision=LicenceDecisionType.ISSUED,
+                    licence=licence,
+                )
+
         logging.info("Case status is now finalised")
 
         remove_flags_on_finalisation(case)
