@@ -77,6 +77,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("cases", "0067_licencedecision"),
+        ("generated_documents", "0002_alter_generatedcasedocument_advice_type"),
     ]
 
     operations = [
