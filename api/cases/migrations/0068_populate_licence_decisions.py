@@ -62,8 +62,11 @@ def populate_licence_decisions(apps, schema_editor):
     GeneratedCaseDocument = apps.get_model("generated_documents", "GeneratedCaseDocument")
     LicenceDecision = apps.get_model("cases", "LicenceDecision")
 
+    # We want to keep track of all the licence decisions so we don't create duplicates.
     licence_decisions = {}
 
+    # We first try to identify all of the issued and refused licences using the final recommendation audit log.
+    # We order by created_at as we want the first of these for any given application.
     created_final_recommendations = Audit.objects.filter(verb=AuditType.CREATED_FINAL_RECOMMENDATION).order_by(
         "created_at"
     )
@@ -71,20 +74,26 @@ def populate_licence_decisions(apps, schema_editor):
         advice_type = audit_log.payload["decision"]
         if advice_type not in [AdviceType.APPROVE, AdviceType.REFUSE]:
             continue
+
         case_id = audit_log.target_object_id
         decision = LicenceDecisionType.advice_type_to_decision(advice_type)
+
+        # If we've seen this before then we know we already have the first decision of this type for this case.
         found_decision = (str(case_id), decision)
         if found_decision in licence_decisions:
             continue
+
         licence_decisions[found_decision] = LicenceDecision(
             case_id=audit_log.target_object_id,
             created_at=audit_log.created_at,
             decision=decision,
         )
 
-    case_statuses = [*CaseStatusEnum.terminal_statuses(), CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES]
+    # We now fallback to a slightly different heuristic that is less accurate as there were cases created before
+    # the final recommendation audit log was generated so the point in time the case document was generated is the
+    # next best event we can use.
     generated_case_documents = GeneratedCaseDocument.objects.filter(
-        case__status__status__in=case_statuses,
+        case__status__status__in=[*CaseStatusEnum.terminal_statuses(), CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES],
         template_id__in=[SIEL_LICENCE_TEMPLATE_ID, SIEL_REFUSAL_TEMPLATE_ID],
         advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE],
         visible_to_exporter=True,
@@ -99,6 +108,14 @@ def populate_licence_decisions(apps, schema_editor):
         decision_to_find = (str(case_document.case_id), case_document.decision)
         found_decision = licence_decisions.get(decision_to_find)
         if found_decision:
+            # If we have already seen this decision before then that means we can probably skip it but we want to
+            # double check the difference in our generated document timestamp and the audit log.
+            # This is to solve an annoying edge case where a decision was made before and after the final recommendation
+            # audit log existed.
+            # In this case there will be a much later audit log than the original point in time the case document was
+            # generated.
+            # Given these cases (and a timedelta of 3 days lets us find them) we should set the date to the generated
+            # document timestamp.
             decision_made_at = get_decision_made_at(apps, case_document.decision, case_document.case)
             if (found_decision.created_at - decision_made_at) > datetime.timedelta(days=3):
                 found_decision.created_at = decision_made_at
