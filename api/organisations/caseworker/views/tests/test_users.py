@@ -30,7 +30,7 @@ class TestAddExporterUserToOrganisation(DataTestClient):
         )
         self.data = {
             "role": Roles.EXPORTER_ADMINISTRATOR_ROLE_ID,
-            "email": self.faker.email(),
+            "email": self.faker.unique.email(),
             "sites": [self.organisation.primary_site.id],
             "phone_number": "+441234567895",
         }
