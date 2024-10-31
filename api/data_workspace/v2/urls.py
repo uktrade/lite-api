@@ -6,6 +6,12 @@ from api.data_workspace.v2 import views
 router_v2 = DefaultRouter()
 
 router_v2.register(
+    "licence-decisions-derived",
+    views.LicenceDecisionDerivedViewSet,
+    basename="dw-licence-decisions-derived",
+)
+
+router_v2.register(
     "licence-decisions",
     views.LicenceDecisionViewSet,
     basename="dw-licence-decisions",
