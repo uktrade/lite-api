@@ -440,3 +440,7 @@ class LicenceDecisionType:
     @classmethod
     def advice_type_to_decision(cls, advice_type):
         return cls.decision_map[advice_type]
+
+    @classmethod
+    def get_template(cls, decision):
+        return cls.templates()[decision]
