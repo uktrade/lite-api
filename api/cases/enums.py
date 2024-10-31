@@ -430,6 +430,10 @@ class LicenceDecisionType:
     }
 
     @classmethod
+    def decisions(cls):
+        return [d[0] for d in cls.choices]
+
+    @classmethod
     def templates(cls):
         return {
             cls.ISSUED: SIEL_LICENCE_TEMPLATE_ID,
