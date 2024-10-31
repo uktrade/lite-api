@@ -614,3 +614,5 @@ else:
     LOGGING.update({"formatters": {"simple": {"format": "{asctime} {levelname} {message}", "style": "{"}}})
     LOGGING["handlers"].update({"stdout": {"class": "logging.StreamHandler", "formatter": "simple"}})
     LOGGING.update({"root": {"handlers": ["stdout"], "level": env("LOG_LEVEL").upper()}})
+
+ROUTING_DOCS_DIRECTORY = os.path.join(BASE_DIR, "..", "lite_routing", "docs")
