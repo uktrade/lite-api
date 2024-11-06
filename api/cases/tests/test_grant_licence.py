@@ -4,6 +4,7 @@ from rest_framework import status
 
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
+from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
 from api.cases.enums import AdviceType, CaseTypeEnum
 from api.cases.generated_documents.models import GeneratedCaseDocument
@@ -31,7 +32,7 @@ class FinaliseCaseTests(DataTestClient):
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
 
-    @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
+    @mock.patch("api.cases.notify.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_success(self, send_exporter_notifications_func, mock_notify):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
@@ -58,6 +59,12 @@ class FinaliseCaseTests(DataTestClient):
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
         self.assertEqual(Audit.objects.count(), 6)
+
+        final_audit_qs = Audit.objects.filter(
+            target_object_id=self.standard_case.id, verb=AuditType.CREATED_FINAL_RECOMMENDATION
+        )
+        self.assertEqual(final_audit_qs.count(), 1)
+        self.assertEqual(final_audit_qs[0].payload["decision"], AdviceType.APPROVE)
 
         self.assertIsNone(self.standard_case.appeal_deadline)
         send_exporter_notifications_func.assert_called()

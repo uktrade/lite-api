@@ -1,8 +1,8 @@
+from api.audit_trail.models import Audit
+from api.applications.models import GoodOnApplication
 from api.cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from api.cases.models import Advice, GoodCountryDecision
-from api.applications.models import GoodOnApplication
 from api.flags.models import Flag
-from api.audit_trail.models import Audit
 
 
 def get_required_decision_document_types(case):
