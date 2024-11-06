@@ -492,6 +492,7 @@ class AbstractGoodOnApplication(TimestampableModel):
     is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
     is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
     comment = models.TextField(help_text="control review comment", default=None, blank=True, null=True)
+    # DEPRECATED: We should remove this after checking that report_summaries supersedes it (including data)
     report_summary = models.TextField(default=None, blank=True, null=True)
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, null=False)
     control_list_entries = models.ManyToManyField(ControlListEntry)
@@ -550,10 +551,11 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
 
-    # Report Summary prefix and subject
+    # DEPRECATED: we should remove this after checking report_summaries fully supersedes this (including legacy data)
     report_summary_prefix = models.ForeignKey(
         ReportSummaryPrefix, on_delete=models.PROTECT, blank=True, null=True, related_name="prefix_good_on_application"
     )
+    # DEPRECATED: we should remove this after checking report_summaries fully supersedes this (including legacy data)
     report_summary_subject = models.ForeignKey(
         ReportSummarySubject,
         on_delete=models.PROTECT,
@@ -561,6 +563,7 @@ class GoodOnApplication(AbstractGoodOnApplication, Clonable):
         null=True,
         related_name="subject_good_on_application",
     )
+    # report_summaries supersedes report_summary_subject and report_summary_prefix
     report_summaries = models.ManyToManyField(ReportSummary, related_name="goods_on_application")
 
     # Exhibition applications are the only applications that contain the following as such may be null
