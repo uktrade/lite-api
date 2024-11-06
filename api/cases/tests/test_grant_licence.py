@@ -6,7 +6,8 @@ from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.cases.enums import AdviceType, CaseTypeEnum
+from api.cases.enums import AdviceType, CaseTypeEnum, LicenceDecisionType
+from api.licences.models import LicenceDecision
 from api.cases.generated_documents.models import GeneratedCaseDocument
 from api.cases.tests.factories import FinalAdviceFactory
 from api.core.constants import GovPermissions
@@ -60,11 +61,16 @@ class FinaliseCaseTests(DataTestClient):
             self.assertTrue(document.visible_to_exporter)
         self.assertEqual(Audit.objects.count(), 6)
 
-        final_audit_qs = Audit.objects.filter(
-            target_object_id=self.standard_case.id, verb=AuditType.CREATED_FINAL_RECOMMENDATION
+        self.assertTrue(
+            Audit.objects.filter(
+                target_object_id=self.standard_case.id,
+                verb=AuditType.CREATED_FINAL_RECOMMENDATION,
+                payload__decision=AdviceType.APPROVE,
+            ).exists()
         )
-        self.assertEqual(final_audit_qs.count(), 1)
-        self.assertEqual(final_audit_qs[0].payload["decision"], AdviceType.APPROVE)
+        self.assertTrue(
+            LicenceDecision.objects.filter(case=self.standard_case, decision=LicenceDecisionType.ISSUED).exists()
+        )
 
         self.assertIsNone(self.standard_case.appeal_deadline)
         send_exporter_notifications_func.assert_called()
@@ -99,7 +105,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.json(), {"case": str(self.standard_case.pk)})
 
     @mock.patch("api.licences.models.notify_exporter_licence_revoked")
-    @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
+    @mock.patch("api.cases.notify.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_licence_and_revoke(
         self, send_exporter_notifications_func, mock_notify_licence_issue, mock_notify_licence_revoked
@@ -142,7 +148,7 @@ class FinaliseCaseTests(DataTestClient):
         mock_notify_licence_revoked.assert_called_with(licence)
 
     @mock.patch("api.licences.models.notify_exporter_licence_suspended")
-    @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
+    @mock.patch("api.cases.notify.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_licence_and_suspend(
         self, send_exporter_notifications_func, mock_notify_licence_issue, mock_notify_licence_suspended
