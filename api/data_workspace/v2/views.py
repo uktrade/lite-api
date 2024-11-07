@@ -13,9 +13,11 @@ from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
+    CountrySerializer,
     LicenceDecisionSerializer,
     LicenceDecisionType,
 )
+from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 
@@ -67,3 +69,11 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = ApplicationSerializer
     queryset = StandardApplication.objects.exclude(status__status=CaseStatusEnum.terminal_statuses())
+
+
+class CountryViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = DisableableLimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = CountrySerializer
+    queryset = Country.objects.all().order_by("id", "name")

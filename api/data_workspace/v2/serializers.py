@@ -3,6 +3,7 @@ from rest_framework import serializers
 from api.applications.models import StandardApplication
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import Case
+from api.staticdata.countries.models import Country
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -42,4 +43,15 @@ class ApplicationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "licence_type",
+        )
+
+
+class CountrySerializer(serializers.ModelSerializer):
+    code = serializers.CharField(source="id")
+
+    class Meta:
+        model = Country
+        fields = (
+            "code",
+            "name",
         )
