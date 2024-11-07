@@ -10,3 +10,9 @@ router_v2.register(
     views.LicenceDecisionViewSet,
     basename="dw-licence-decisions",
 )
+
+router_v2.register(
+    "applications",
+    views.ApplicationViewSet,
+    basename="dw-applications",
+)

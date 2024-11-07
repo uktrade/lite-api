@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from api.applications.models import StandardApplication
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import Case
 
@@ -30,4 +31,15 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             )
             .earliest("created_at")
             .created_at
+        )
+
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    licence_type = serializers.CharField(source="case_type.reference")
+
+    class Meta:
+        model = StandardApplication
+        fields = (
+            "id",
+            "licence_type",
         )
