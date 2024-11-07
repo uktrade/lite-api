@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.applications.models import StandardApplication
+from api.applications.models import PartyOnApplication, StandardApplication
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import Case
 from api.staticdata.countries.models import Country
@@ -54,4 +54,18 @@ class CountrySerializer(serializers.ModelSerializer):
         fields = (
             "code",
             "name",
+        )
+
+
+class DestinationSerializer(serializers.ModelSerializer):
+    country_code = serializers.CharField(source="party.country.id")
+    application_id = serializers.CharField(source="application.id")
+    type = serializers.CharField(source="party.type")
+
+    class Meta:
+        model = PartyOnApplication
+        fields = (
+            "country_code",
+            "application_id",
+            "type",
         )

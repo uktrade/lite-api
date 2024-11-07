@@ -22,3 +22,9 @@ router_v2.register(
     views.CountryViewSet,
     basename="dw-countries",
 )
+
+router_v2.register(
+    "destinations",
+    views.DestinationViewSet,
+    basename="dw-destinations",
+)
