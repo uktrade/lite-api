@@ -562,7 +562,7 @@ class MakeAssessmentsViewTests(DataTestClient):
         assert good_on_application3.assessed_by == self.gov_user
         assert good_on_application3.assessment_date.isoformat() == "2023-11-03T12:00:00+00:00"
 
-    def test_invalid_report_subject_raises_error(self):
+    def test_missing_report_summary_subject(self):
         regime_entry = RegimeEntry.objects.first()
         report_summary = ReportSummary.objects.last()
         data = [
@@ -572,9 +572,6 @@ class MakeAssessmentsViewTests(DataTestClient):
                 "regime_entries": [regime_entry.id],
                 "is_good_controlled": True,
                 "report_summaries": [
-                    {
-                        "subject": str(report_summary.subject_id),
-                    },
                     {
                         # invalid subject id
                         "subject": str(report_summary.prefix_id),
@@ -586,7 +583,62 @@ class MakeAssessmentsViewTests(DataTestClient):
         response = self.client.put(self.assessment_url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        expected_response_data = {
-            "errors": [{"report_summaries": ["Report summary with given prefix and subject does not exist"]}]
-        }
+        expected_response_data = {"errors": [{"report_summaries": ["Report summary subject does not exist"]}]}
         self.assertDictEqual(response.json(), expected_response_data)
+
+    def test_missing_report_summary_prefix(self):
+        regime_entry = RegimeEntry.objects.first()
+        report_summary = ReportSummary.objects.last()
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [regime_entry.id],
+                "is_good_controlled": True,
+                "report_summaries": [
+                    {
+                        # invalid prefix id
+                        "prefix": str(report_summary.subject_id),
+                        "subject": str(report_summary.subject_id),
+                    },
+                ],
+                "comment": "some comment",
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        expected_response_data = {"errors": [{"report_summaries": ["Report summary prefix does not exist"]}]}
+        self.assertDictEqual(response.json(), expected_response_data)
+
+    def test_missing_report_summary_lazy_create(self):
+        regime_entry = RegimeEntry.objects.first()
+        starting_number_of_report_summary_records = ReportSummary.objects.count()
+        # Create new subject/prefix records but avoid creating a new ReportSummary record linking the two
+        report_summary_subject = ReportSummarySubject.objects.create(name="some new subject", code_level=1)
+        report_summary_prefix = ReportSummaryPrefix.objects.create(name="some new prefix")
+        data = [
+            {
+                "id": self.good_on_application.id,
+                "control_list_entries": [],
+                "regime_entries": [regime_entry.id],
+                "is_good_controlled": True,
+                "report_summaries": [
+                    {
+                        "prefix": str(report_summary_prefix.id),
+                        "subject": str(report_summary_subject.id),
+                    },
+                ],
+                "comment": "some comment",
+            }
+        ]
+        response = self.client.put(self.assessment_url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.good_on_application.refresh_from_db()
+        assert self.good_on_application.report_summary == f"{report_summary_prefix.name} {report_summary_subject.name}"
+        assert self.good_on_application.report_summaries.count() == 1
+        report_summary = self.good_on_application.report_summaries.first()
+        assert report_summary.prefix == report_summary_prefix
+        assert report_summary.subject == report_summary_subject
+        assert ReportSummary.objects.count() == starting_number_of_report_summary_records + 1

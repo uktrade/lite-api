@@ -51,26 +51,33 @@ class AssessmentUpdateListSerializer(serializers.ListSerializer):
         return data
 
 
+# It would be great to make this a nested serializer instead, but to do so we must
+# override AssessmentSerializer.update() completely (i.e. it should not call super())
+# which makes this a larger change to achieve
 class ReportSummaryField(PrimaryKeyRelatedField):
     queryset = ReportSummary.objects.all()
 
     def to_internal_value(self, data):
-        prefix = data.get("prefix", None)
+        # prefix could be empty string so ensure it is None in that case
+        prefix = data.get("prefix", None) or None
         subject = data.get("subject", None)
 
         if not subject:
             raise serializers.ValidationError("You must include a report summary if this item is controlled.")
 
-        try:
-            if prefix:
-                return ReportSummary.objects.get(prefix=prefix, subject=subject)
-            else:
-                # prefix can either be missing or an empty string which is not a valid UUID
-                # so use None in the query in this case
-                return ReportSummary.objects.get(prefix=None, subject=subject)
+        if prefix:
+            try:
+                prefix = ReportSummaryPrefix.objects.get(id=prefix)
+            except ReportSummaryPrefix.DoesNotExist:
+                raise serializers.ValidationError("Report summary prefix does not exist")
 
-        except ReportSummary.DoesNotExist:
-            raise serializers.ValidationError("Report summary with given prefix and subject does not exist")
+        try:
+            subject = ReportSummarySubject.objects.get(id=subject)
+        except ReportSummarySubject.DoesNotExist:
+            raise serializers.ValidationError("Report summary subject does not exist")
+
+        report_summary, _ = ReportSummary.objects.get_or_create(prefix=prefix, subject=subject)
+        return report_summary
 
 
 class AssessmentSerializer(GoodControlReviewSerializer):

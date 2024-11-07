@@ -1,0 +1,27 @@
+[
+    {
+        "id": "9ab0a713-2218-461c-a33f-b60d20a9bf82",
+        "name": "cryogenic integrated circuits",
+        "code_level": 1
+    },
+    {
+        "id": "f8125cad-471b-42a1-a28a-b229bdc904de",
+        "name": "quantum computers",
+        "code_level": 1
+    },
+    {
+        "id": "41841900-bc0a-438c-b1a7-0728cc73e0cb",
+        "name": "high performance integrated circuits",
+        "code_level": 1
+    },
+    {
+        "id": "8d392a69-ec45-4631-bbf2-534bf3a881fe",
+        "name": "additive manufacturing equipment",
+        "code_level": 1
+    },
+    {
+        "id": "8438cb42-c791-4463-9bb2-aca0f301e207",
+        "name": "biological systems",
+        "code_level": 1
+    }
+]
