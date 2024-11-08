@@ -34,14 +34,13 @@ class FinaliseCaseTests(DataTestClient):
     @mock.patch("api.cases.views.views.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_success(self, send_exporter_notifications_func, mock_notify):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         licence = StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
             self.standard_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
         )
         self.assertIsNone(self.standard_case.appeal_deadline)
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
         self.standard_case.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -74,19 +73,17 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.json(), {"errors": {"error": PermissionDeniedError.default_detail}})
 
     def test_missing_advice_document_failure(self):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": {"decision-approve": [Cases.Licence.MISSING_DOCUMENTS]}})
 
     def test_finalise_case_without_licence_success(self):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json(), {"case": str(self.standard_case.pk)})
@@ -97,15 +94,12 @@ class FinaliseCaseTests(DataTestClient):
     def test_grant_standard_application_licence_and_revoke(
         self, send_exporter_notifications_func, mock_notify_licence_issue, mock_notify_licence_revoked
     ):
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.REOPEN_CLOSED_CASES.name]
-        )
         licence = StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
             self.standard_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
         )
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
         self.standard_case.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -140,15 +134,12 @@ class FinaliseCaseTests(DataTestClient):
     def test_grant_standard_application_licence_and_suspend(
         self, send_exporter_notifications_func, mock_notify_licence_issue, mock_notify_licence_suspended
     ):
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.REOPEN_CLOSED_CASES.name]
-        )
         licence = StandardLicenceFactory(case=self.standard_case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
             self.standard_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
         )
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
         self.standard_case.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
