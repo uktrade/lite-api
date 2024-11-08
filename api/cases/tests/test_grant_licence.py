@@ -101,7 +101,7 @@ class FinaliseCaseTests(DataTestClient):
         response = self.client.put(self.url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json(), {"case": str(self.standard_case.pk)})
+        self.assertEqual(response.json(), {"case": str(self.standard_case.pk), "licence": ""})
 
     @mock.patch("api.licences.models.notify_exporter_licence_revoked")
     @mock.patch("api.cases.notify.notify_exporter_licence_issued")
