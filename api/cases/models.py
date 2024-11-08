@@ -125,15 +125,6 @@ class Case(TimestampableModel):
 
     objects = CaseManager()
 
-    @classmethod
-    def get_decision_actions(cls):
-        return {
-            AdviceType.APPROVE: cls.approve,
-            AdviceType.REFUSE: cls.refuse,
-            AdviceType.NO_LICENCE_REQUIRED: cls.no_licence_required,
-            AdviceType.INFORM: lambda x: x,
-        }
-
     def save(self, *args, **kwargs):
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
@@ -147,6 +138,15 @@ class Case(TimestampableModel):
         self._reset_sub_status_on_status_change()
 
         super(Case, self).save(*args, **kwargs)
+
+    @classmethod
+    def get_decision_actions(cls):
+        return {
+            AdviceType.APPROVE: cls.approve,
+            AdviceType.REFUSE: cls.refuse,
+            AdviceType.NO_LICENCE_REQUIRED: cls.no_licence_required,
+            AdviceType.INFORM: lambda x: x,
+        }
 
     def _reset_sub_status_on_status_change(self):
         from api.audit_trail import service as audit_trail_service
@@ -409,6 +409,8 @@ class Case(TimestampableModel):
         # Remove Flags and related Audits when Finalising
         remove_flags_on_finalisation(self)
         remove_flags_from_audit_trail(self)
+
+        return licence.id if licence else ""
 
     def publish_decision_documents(self):
         from api.cases.generated_documents.models import GeneratedCaseDocument
