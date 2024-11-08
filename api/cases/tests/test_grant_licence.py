@@ -47,7 +47,6 @@ class FinaliseCaseTests(DataTestClient):
         self.standard_case.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json()["licence"], str(licence.id))
         self.assertEqual(
             Licence.objects.filter(
                 case=self.standard_case,
@@ -122,7 +121,6 @@ class FinaliseCaseTests(DataTestClient):
         self.standard_case.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json()["licence"], str(licence.id))
         self.assertEqual(
             Licence.objects.filter(
                 case=self.standard_case,
@@ -165,7 +163,6 @@ class FinaliseCaseTests(DataTestClient):
         self.standard_case.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json()["licence"], str(licence.id))
         self.assertEqual(
             Licence.objects.filter(
                 case=self.standard_case,

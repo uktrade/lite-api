@@ -384,8 +384,6 @@ class Case(TimestampableModel):
         for advice_type in decisions:
             decision_actions[advice_type](self)
 
-            licence_reference = licence if advice_type == AdviceType.APPROVE else ""
-
             # NLR is not considered as licence decision
             if advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]:
                 LicenceDecision.objects.create(
@@ -394,7 +392,7 @@ class Case(TimestampableModel):
                     licence=licence,
                 )
 
-            licence_reference = licence.reference_code if advice_type == AdviceType.APPROVE else ""
+            licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.CREATED_FINAL_RECOMMENDATION,

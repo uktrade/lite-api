@@ -893,13 +893,10 @@ class FinaliseView(UpdateAPIView):
                 }
             )
 
+        # finalises case, grants licence and publishes decision documents
         case.finalise(request, required_decisions)
 
-        licence_id = ""
-        if AdviceType.APPROVE in required_decisions:
-            licence_id = Licence.objects.get_active_licence(case).id
-
-        return JsonResponse({"case": pk, "licence": licence_id}, status=status.HTTP_201_CREATED)
+        return JsonResponse({"case": pk}, status=status.HTTP_201_CREATED)
 
 
 class AdditionalContacts(ListCreateAPIView):
