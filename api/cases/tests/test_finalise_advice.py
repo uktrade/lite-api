@@ -11,6 +11,7 @@ from api.cases.models import LicenceDecision
 from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.libraries.get_case import get_case
 from api.cases.generated_documents.models import GeneratedCaseDocument
+from api.cases.generated_documents.tests.factories import SIELLicenceDocumentFactory
 from api.flags.models import Flag
 from api.licences.enums import LicenceStatus
 from api.licences.tests.factories import StandardLicenceFactory
@@ -170,11 +171,6 @@ class ApproveAdviceTests(DataTestClient):
 
         self.url = reverse("cases:finalise", kwargs={"pk": self.application.id})
         FinalAdviceFactory(user=self.gov_user, case=self.application, type=AdviceType.APPROVE)
-        self.template = self.create_letter_template(
-            name="Template",
-            case_types=[CaseTypeEnum.SIEL.id],
-            decisions=[Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED)],
-        )
 
     @mock.patch("api.cases.notify.notify_exporter_licence_issued")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
@@ -184,9 +180,7 @@ class ApproveAdviceTests(DataTestClient):
         mock_notify_exporter_licence_issued,
     ):
         licence = StandardLicenceFactory(case=self.application, status=LicenceStatus.DRAFT)
-        self.create_generated_case_document(
-            self.application, self.template, advice_type=AdviceType.APPROVE, licence=licence
-        )
+        SIELLicenceDocumentFactory(case=self.application, licence=licence)
 
         response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
         self.application.refresh_from_db()
@@ -209,9 +203,7 @@ class ApproveAdviceTests(DataTestClient):
         mock_notify_exporter_licence_issued,
     ):
         licence = StandardLicenceFactory(case=self.application, status=LicenceStatus.DRAFT)
-        self.create_generated_case_document(
-            self.application, self.template, advice_type=AdviceType.APPROVE, licence=licence
-        )
+        SIELLicenceDocumentFactory(case=self.application, licence=licence)
 
         self.assertEqual(self.application.flags.count(), 2)
 
