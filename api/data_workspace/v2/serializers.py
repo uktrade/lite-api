@@ -7,32 +7,33 @@ from api.staticdata.countries.models import Country
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
-    decision = serializers.SerializerMethodField()
+    id = serializers.SerializerMethodField()
+    application_id = serializers.UUIDField(source="id")
+    decision = serializers.CharField()
     decision_made_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
         fields = (
             "id",
-            "reference_code",
+            "application_id",
             "decision",
             "decision_made_at",
         )
 
-    def get_decision(self, case):
-        return case.decision
-
-    def get_decision_made_at(self, case):
+    def get_licence_decision(self, case):
         if case.decision not in LicenceDecisionType.decisions():
             raise ValueError(f"Unknown decision type `{case.decision}`")
 
-        return (
-            case.licence_decisions.filter(
-                decision=case.decision,
-            )
-            .earliest("created_at")
-            .created_at
-        )
+        return case.licence_decisions.filter(
+            decision=case.decision,
+        ).earliest("created_at")
+
+    def get_id(self, case):
+        return self.get_licence_decision(case).pk
+
+    def get_decision_made_at(self, case):
+        return self.get_licence_decision(case).created_at
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -42,6 +43,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         model = StandardApplication
         fields = (
             "id",
+            "reference_code",
             "licence_type",
         )
 
