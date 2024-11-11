@@ -39,6 +39,6 @@ class UserByTeamListTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["users"]), self.gov_user_preexisting_count + 1)
+        self.assertEqual(len(response_data["users"]), self.gov_user_preexisting_count)
         self.assertContains(response, "test2@mail.com")
         self.assertNotContains(response, "test3@mail.com")
