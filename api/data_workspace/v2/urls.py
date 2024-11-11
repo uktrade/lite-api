@@ -28,3 +28,9 @@ router_v2.register(
     views.DestinationViewSet,
     basename="dw-destinations",
 )
+
+router_v2.register(
+    "goods",
+    views.GoodViewSet,
+    basename="dw-goods",
+)
