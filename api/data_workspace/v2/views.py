@@ -17,12 +17,14 @@ from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
+    AssessmentSerializer,
     CountrySerializer,
     DestinationSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
     LicenceDecisionType,
 )
+from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
 
@@ -99,3 +101,13 @@ class GoodViewSet(viewsets.ReadOnlyModelViewSet):
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = GoodSerializer
     queryset = GoodOnApplication.objects.all()
+
+
+class AssessmentViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = DisableableLimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = AssessmentSerializer
+
+    def get_queryset(self):
+        return ControlListEntry.objects.annotate(good_id=F("goodonapplication__id")).exclude(good_id__isnull=True)

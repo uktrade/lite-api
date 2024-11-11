@@ -34,3 +34,9 @@ router_v2.register(
     views.GoodViewSet,
     basename="dw-goods",
 )
+
+router_v2.register(
+    "assessments",
+    views.AssessmentViewSet,
+    basename="dw-assessments",
+)

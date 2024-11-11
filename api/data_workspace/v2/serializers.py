@@ -7,6 +7,7 @@ from api.applications.models import (
 )
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import Case
+from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 
 
@@ -84,4 +85,15 @@ class GoodSerializer(serializers.ModelSerializer):
             "id",
             "application_id",
             "value",
+        )
+
+
+class AssessmentSerializer(serializers.ModelSerializer):
+    good_id = serializers.UUIDField()
+
+    class Meta:
+        model = ControlListEntry
+        fields = (
+            "good_id",
+            "rating",
         )
