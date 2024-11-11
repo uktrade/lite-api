@@ -12,7 +12,6 @@ from api.cases.enums import AdviceType, CaseTypeEnum
 from api.cases.tests.factories import FinalAdviceFactory
 from api.cases.libraries.get_case import get_case
 from api.cases.generated_documents.models import GeneratedCaseDocument
-from api.core.constants import GovPermissions
 from api.staticdata.decisions.models import Decision
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
@@ -36,10 +35,9 @@ class RefuseAdviceTests(DataTestClient):
     @mock.patch("api.cases.views.views.notify_exporter_licence_refused")
     @mock.patch("api.cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_refuse_standard_application_success(self, send_exporter_notifications_func, mock_notify):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_generated_case_document(self.application, self.template, advice_type=AdviceType.REFUSE)
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -62,10 +60,9 @@ class RefuseAdviceTests(DataTestClient):
     def test_refuse_standard_application_success_inform_letter_feature_letter_on(
         self, send_exporter_notifications_func, mock_notify
     ):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_generated_case_document(self.application, self.template, advice_type=AdviceType.REFUSE)
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -104,10 +101,9 @@ class NLRAdviceTests(DataTestClient):
         mock_notify_exporter_no_licence_required,
         mock_notify_exporter_licence_issued,
     ):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_generated_case_document(self.application, self.template, advice_type=AdviceType.NO_LICENCE_REQUIRED)
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -166,10 +162,9 @@ class ApproveAdviceTests(DataTestClient):
         send_exporter_notifications_func,
         mock_notify_exporter_licence_issued,
     ):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_generated_case_document(self.application, self.template, advice_type=AdviceType.APPROVE)
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -189,12 +184,11 @@ class ApproveAdviceTests(DataTestClient):
         send_exporter_notifications_func,
         mock_notify_exporter_licence_issued,
     ):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_generated_case_document(self.application, self.template, advice_type=AdviceType.APPROVE)
 
         self.assertEqual(self.application.flags.count(), 2)
 
-        response = self.client.put(self.url, data={}, **self.gov_headers)
+        response = self.client.put(self.url, data={}, **self.lu_case_officer_headers)
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

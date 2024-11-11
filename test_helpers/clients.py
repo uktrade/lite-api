@@ -43,7 +43,7 @@ from api.cases.models import (
 )
 from api.cases.celery_tasks import get_application_target_sla
 from django.conf import settings
-from api.core.constants import Roles
+from api.core.constants import GovPermissions, Roles
 from api.conf.urls import urlpatterns
 from api.documents.libraries.s3_operations import init_s3_client
 from api.flags.enums import SystemFlags, FlagStatuses, FlagLevels
@@ -138,6 +138,17 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.gov_user = GovUser(baseuser_ptr=self.base_user, team=self.team)
         self.gov_user.save()
         self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.base_user)}
+
+        self.lu_case_officer = GovUserFactory(
+            baseuser_ptr__email="case.officer@lu.gov.uk",
+            baseuser_ptr__first_name="Case",
+            baseuser_ptr__last_name="Officer",
+            team=Team.objects.get(name="Licensing Unit"),
+        )
+        self.lu_case_officer_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.lu_case_officer.baseuser_ptr)}
+        self.lu_case_officer.role.permissions.set(
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.REOPEN_CLOSED_CASES.name]
+        )
 
         # Exporter User Setup
         (self.organisation, self.exporter_user) = self.create_organisation_with_exporter_user()
