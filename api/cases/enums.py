@@ -4,6 +4,9 @@ from rest_framework.exceptions import ValidationError
 
 from lite_content.lite_api import strings
 
+SIEL_LICENCE_TEMPLATE_ID = "d159b195-9256-4a00-9bc8-1eb2cebfa1d2"
+SIEL_REFUSAL_TEMPLATE_ID = "074d8a54-ee10-4dca-82ba-650460650342"
+
 
 class CaseTypeReferenceEnum:
     OIEL = "oiel"
@@ -408,3 +411,32 @@ class EnforcementXMLEntityTypes:
         (SITE, "site"),
         (ORGANISATION, "organisation"),
     ]
+
+
+class LicenceDecisionType:
+    ISSUED = "issued"
+    REFUSED = "refused"
+    REVOKED = "revoked"
+
+    choices = [
+        (ISSUED, "issued"),
+        (REFUSED, "refused"),
+        (REVOKED, "revoked"),
+    ]
+
+    decision_map = {
+        AdviceType.APPROVE: ISSUED,
+        AdviceType.REFUSE: REFUSED,
+    }
+
+    @classmethod
+    def templates(cls):
+        return {
+            cls.ISSUED: SIEL_LICENCE_TEMPLATE_ID,
+            cls.REFUSED: SIEL_REFUSAL_TEMPLATE_ID,
+            cls.REVOKED: None,
+        }
+
+    @classmethod
+    def advice_type_to_decision(cls, advice_type):
+        return cls.decision_map[advice_type]
