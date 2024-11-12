@@ -115,9 +115,7 @@ class AssessmentViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = AssessmentSerializer
-
-    def get_queryset(self):
-        return ControlListEntry.objects.annotate(good_id=F("goodonapplication__id")).exclude(good_id__isnull=True)
+    queryset = ControlListEntry.objects.annotate(good_id=F("goodonapplication__id")).exclude(good_id__isnull=True)
 
 
 class GoodOnLicenceViewSet(viewsets.ReadOnlyModelViewSet):
