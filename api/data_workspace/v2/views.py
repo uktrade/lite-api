@@ -92,7 +92,7 @@ class DestinationViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = DestinationSerializer
-    queryset = PartyOnApplication.objects.exclude(deleted_at__isnull=True)
+    queryset = PartyOnApplication.objects.filter(deleted_at__isnull=True)
 
 
 class GoodViewSet(viewsets.ReadOnlyModelViewSet):
