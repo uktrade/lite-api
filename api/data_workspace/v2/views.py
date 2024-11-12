@@ -79,7 +79,7 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = ApplicationSerializer
-    queryset = StandardApplication.objects.filter(status__status__in=CaseStatusEnum.terminal_statuses())
+    queryset = StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)
 
 
 class CountryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -95,9 +95,8 @@ class DestinationViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = DestinationSerializer
-    queryset = PartyOnApplication.objects.filter(
-        deleted_at__isnull=True,
-        application__status__status__in=CaseStatusEnum.terminal_statuses(),
+    queryset = PartyOnApplication.objects.filter(deleted_at__isnull=True).exclude(
+        application__status__status=CaseStatusEnum.DRAFT
     )
 
 
@@ -106,7 +105,7 @@ class GoodViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = GoodSerializer
-    queryset = GoodOnApplication.objects.filter(application__status__status__in=CaseStatusEnum.terminal_statuses())
+    queryset = GoodOnApplication.objects.exclude(application__status__status=CaseStatusEnum.DRAFT)
 
 
 class AssessmentViewSet(viewsets.ReadOnlyModelViewSet):
@@ -124,6 +123,6 @@ class GoodOnLicenceViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = GoodOnLicenceSerializer
-    queryset = GoodOnLicence.objects.filter(
-        licence__case__status__status__in=CaseStatusEnum.terminal_statuses()
-    ).exclude(licence__status=LicenceStatus.DRAFT)
+    queryset = GoodOnLicence.objects.filter(licence__case__status__status=CaseStatusEnum.DRAFT).exclude(
+        licence__status=LicenceStatus.DRAFT
+    )
