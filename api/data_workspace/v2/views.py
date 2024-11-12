@@ -79,7 +79,7 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = ApplicationSerializer
-    queryset = StandardApplication.objects.exclude(status__status=CaseStatusEnum.terminal_statuses())
+    queryset = StandardApplication.objects.filter(status__status__in=CaseStatusEnum.terminal_statuses())
 
 
 class CountryViewSet(viewsets.ReadOnlyModelViewSet):
