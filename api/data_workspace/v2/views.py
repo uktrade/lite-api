@@ -123,6 +123,7 @@ class GoodOnLicenceViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = GoodOnLicenceSerializer
-    queryset = GoodOnLicence.objects.filter(licence__case__status__status=CaseStatusEnum.DRAFT).exclude(
-        licence__status=LicenceStatus.DRAFT
+    queryset = GoodOnLicence.objects.exclude(
+        licence__case__status__status=CaseStatusEnum.DRAFT,
+        licence__status=LicenceStatus.DRAFT,
     )
