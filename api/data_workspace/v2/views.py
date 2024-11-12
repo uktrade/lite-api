@@ -95,8 +95,10 @@ class DestinationViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = DestinationSerializer
-    queryset = PartyOnApplication.objects.filter(deleted_at__isnull=True).exclude(
-        application__status__status=CaseStatusEnum.DRAFT
+    queryset = (
+        PartyOnApplication.objects.filter(deleted_at__isnull=True)
+        .exclude(application__status__status=CaseStatusEnum.DRAFT)
+        .select_related("party", "party__country")
     )
 
 

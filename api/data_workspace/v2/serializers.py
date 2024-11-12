@@ -86,7 +86,6 @@ class CountrySerializer(serializers.ModelSerializer):
 
 class DestinationSerializer(serializers.ModelSerializer):
     country_code = serializers.CharField(source="party.country.id")
-    application_id = serializers.CharField(source="application.id")
     type = serializers.CharField(source="party.type")
 
     class Meta:
