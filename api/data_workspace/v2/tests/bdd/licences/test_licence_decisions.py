@@ -8,6 +8,7 @@ from pytest_bdd import (
     when,
     scenarios,
 )
+from unittest import mock
 
 from api.cases.enums import AdviceType, LicenceDecisionType
 from api.cases.models import LicenceDecision
@@ -115,8 +116,9 @@ def case_officer_generates_licence_documents(client, siel_template, gov_headers,
         "cases:generated_documents:generated_documents",
         kwargs={"pk": str(case_with_final_advice.pk)},
     )
-    response = client.post(url, data, content_type="application/json", **gov_headers)
-    assert response.status_code == 201
+    with mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file", return_value=None):
+        response = client.post(url, data, content_type="application/json", **gov_headers)
+        assert response.status_code == 201
 
 
 @when("case officer issues licence for this case", target_fixture="issued_licence")
@@ -167,8 +169,9 @@ def generate_refusal_documents(client, siel_refusal_template, gov_headers, case_
         "cases:generated_documents:generated_documents",
         kwargs={"pk": str(case_with_refused_advice.pk)},
     )
-    response = client.post(url, data, content_type="application/json", **gov_headers)
-    assert response.status_code == 201
+    with mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file", return_value=None):
+        response = client.post(url, data, content_type="application/json", **gov_headers)
+        assert response.status_code == 201
 
 
 @when("case officer refuses licence for this case", target_fixture="refused_case")
