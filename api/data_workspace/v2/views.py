@@ -95,7 +95,10 @@ class DestinationViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = DestinationSerializer
-    queryset = PartyOnApplication.objects.filter(deleted_at__isnull=True)
+    queryset = PartyOnApplication.objects.filter(
+        deleted_at__isnull=True,
+        application__status__status__in=CaseStatusEnum.terminal_statuses(),
+    )
 
 
 class GoodViewSet(viewsets.ReadOnlyModelViewSet):
@@ -103,7 +106,7 @@ class GoodViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = GoodSerializer
-    queryset = GoodOnApplication.objects.all()
+    queryset = GoodOnApplication.objects.filter(application__status__status__in=CaseStatusEnum.terminal_statuses())
 
 
 class AssessmentViewSet(viewsets.ReadOnlyModelViewSet):
@@ -121,4 +124,6 @@ class GoodOnLicenceViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = GoodOnLicenceSerializer
-    queryset = GoodOnLicence.objects.exclude(licence__status=LicenceStatus.DRAFT)
+    queryset = GoodOnLicence.objects.filter(
+        licence__case__status__status__in=CaseStatusEnum.terminal_statuses()
+    ).exclude(licence__status=LicenceStatus.DRAFT)
