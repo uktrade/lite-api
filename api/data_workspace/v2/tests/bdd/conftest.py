@@ -28,6 +28,10 @@ def seed_layouts():
 
 @pytest.fixture()
 def seed_templates(seed_layouts):
+    # if this template exists the seed command is executed and all templates are seeded
+    if LetterTemplate.objects.filter(name="SIEL template").exists():
+        return
+
     templates = load_json("api/data_workspace/v2/tests/bdd/initial_data/letter_templates.json")
     for template in templates:
         template_instance, _ = LetterTemplate.objects.get_or_create(**template)
@@ -65,7 +69,7 @@ def lu_user():
 @pytest.fixture()
 def gov_user_permissions():
     for permission in GovPermissions:
-        Permission.objects.get_or_create(id=permission.name, name=permission.name, type=UserType.INTERNAL)
+        Permission.objects.get_or_create(id=permission.name, name=permission.value, type=UserType.INTERNAL.value)
 
 
 @pytest.fixture()

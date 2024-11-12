@@ -194,10 +194,7 @@ def licence_for_case_is_refused(client, gov_headers, case_with_refused_advice):
 
 @when("case officer revokes issued licence", target_fixture="revoked_licence")
 def case_officer_revokes_licence(client, lu_sr_manager_headers, issued_licence):
-    url = reverse(
-        "licences:licence_details",
-        kwargs={"pk": str(issued_licence.pk)}
-    )
+    url = reverse("licences:licence_details", kwargs={"pk": str(issued_licence.pk)})
     response = client.patch(
         url, {"status": LicenceStatus.REVOKED}, content_type="application/json", **lu_sr_manager_headers
     )
