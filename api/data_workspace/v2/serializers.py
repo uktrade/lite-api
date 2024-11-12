@@ -7,6 +7,7 @@ from api.applications.models import (
 )
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import Case
+from api.licences.models import Licence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 
@@ -16,6 +17,7 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
     application_id = serializers.UUIDField(source="id")
     decision = serializers.CharField()
     decision_made_at = serializers.SerializerMethodField()
+    licence_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -24,6 +26,7 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             "application_id",
             "decision",
             "decision_made_at",
+            "licence_id",
         )
 
     def get_licence_decision(self, case):
@@ -39,6 +42,20 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
 
     def get_decision_made_at(self, case):
         return self.get_licence_decision(case).created_at
+
+    def get_licence_id(self, case):
+        licence_decision = self.get_licence_decision(case)
+        if licence_decision.decision != LicenceDecisionType.ISSUED:
+            return None
+
+        licences = licence_decision.case.licences.exclude(status="draft").order_by("created_at")
+        try:
+            return licences.get().pk
+        except Licence.MultipleObjectsReturned:
+            pass
+
+        licences = licences.filter(status="cancelled")
+        return licences.first().pk
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
