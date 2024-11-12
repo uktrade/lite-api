@@ -20,7 +20,7 @@ class Command(BaseCommand):
             for row in reader:
                 party_id = row["party_id"]
                 address = row["address"].replace("\\r\\n", "\r\n")
-                new_address = row["new_address"]
+                new_address = row["new_address"].replace("\\r\\n", "\r\n")
                 additional_text = row["additional_text"]
 
                 self.update_field_on_party(party_id, address, new_address, additional_text, audit_log)
