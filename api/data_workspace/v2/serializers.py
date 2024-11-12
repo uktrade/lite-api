@@ -7,7 +7,10 @@ from api.applications.models import (
 )
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import Case
-from api.licences.models import Licence
+from api.licences.models import (
+    GoodOnLicence,
+    Licence,
+)
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 
@@ -113,4 +116,14 @@ class AssessmentSerializer(serializers.ModelSerializer):
         fields = (
             "good_id",
             "rating",
+        )
+
+
+class GoodOnLicenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoodOnLicence
+        fields = (
+            "id",
+            "good_id",
+            "licence_id",
         )

@@ -40,3 +40,9 @@ router_v2.register(
     views.AssessmentViewSet,
     basename="dw-assessments",
 )
+
+router_v2.register(
+    "goods-on-licence",
+    views.GoodOnLicenceViewSet,
+    basename="dw-goods-on-licence",
+)

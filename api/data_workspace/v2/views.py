@@ -20,10 +20,13 @@ from api.data_workspace.v2.serializers import (
     AssessmentSerializer,
     CountrySerializer,
     DestinationSerializer,
+    GoodOnLicenceSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
     LicenceDecisionType,
 )
+from api.licences.enums import LicenceStatus
+from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.statuses.enums import CaseStatusEnum
@@ -111,3 +114,11 @@ class AssessmentViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return ControlListEntry.objects.annotate(good_id=F("goodonapplication__id")).exclude(good_id__isnull=True)
+
+
+class GoodOnLicenceViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = DisableableLimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = GoodOnLicenceSerializer
+    queryset = GoodOnLicence.objects.exclude(licence__status=LicenceStatus.DRAFT)
