@@ -14,6 +14,7 @@ from api.licences.models import (
 )
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
+from api.staticdata.report_summaries.models import ReportSummary
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -137,4 +138,16 @@ class GoodOnLicenceSerializer(serializers.ModelSerializer):
             "id",
             "good_id",
             "licence_id",
+        )
+
+
+class GoodDescriptionSerializer(serializers.ModelSerializer):
+    description = serializers.CharField(source="name")
+    good_id = serializers.UUIDField()
+
+    class Meta:
+        model = ReportSummary
+        fields = (
+            "description",
+            "good_id",
         )

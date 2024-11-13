@@ -46,3 +46,9 @@ router_v2.register(
     views.GoodOnLicenceViewSet,
     basename="dw-goods-on-licences",
 )
+
+router_v2.register(
+    "goods-descriptions",
+    views.GoodDescriptionViewSet,
+    basename="dw-goods-descriptions",
+)

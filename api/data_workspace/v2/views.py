@@ -19,6 +19,7 @@ from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
     CountrySerializer,
     DestinationSerializer,
+    GoodDescriptionSerializer,
     GoodOnLicenceSerializer,
     GoodSerializer,
     GoodRatingSerializer,
@@ -29,6 +30,7 @@ from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
+from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 
@@ -120,6 +122,19 @@ class GoodRatingViewSet(viewsets.ReadOnlyModelViewSet):
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = GoodRatingSerializer
     queryset = ControlListEntry.objects.annotate(good_id=F("goodonapplication__id")).exclude(good_id__isnull=True)
+
+
+class GoodDescriptionViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = DisableableLimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = GoodDescriptionSerializer
+    queryset = (
+        ReportSummary.objects.select_related("prefix", "subject")
+        .prefetch_related("goods_on_application")
+        .exclude(goods_on_application__isnull=True)
+        .annotate(good_id=F("goods_on_application__id"))
+    )
 
 
 class GoodOnLicenceViewSet(viewsets.ReadOnlyModelViewSet):
