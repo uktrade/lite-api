@@ -47,30 +47,33 @@ class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LicenceDecisionSerializer
 
     def get_queryset(self):
-        queryset = (
-            (
-                Case.objects.filter(
-                    licence_decisions__decision__in=[LicenceDecisionType.ISSUED, LicenceDecisionType.REFUSED],
-                )
-                .annotate(
-                    unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
-                )
-                .filter(unique_decisions__len=1)
-                .annotate(decision=F("unique_decisions__0"))
+        qs_issued_refused = (
+            Case.objects.filter(
+                licence_decisions__decision__in=[LicenceDecisionType.ISSUED, LicenceDecisionType.REFUSED],
             )
-            .union(
-                Case.objects.filter(
-                    licence_decisions__decision__in=[LicenceDecisionType.REVOKED],
-                )
-                .annotate(
-                    unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
-                )
-                .filter(unique_decisions__len=1)
-                .annotate(decision=F("unique_decisions__0")),
-                all=True,
+            .annotate(
+                unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
             )
-            .order_by("-reference_code")
+            .filter(unique_decisions__len=1)
+            .annotate(decision=F("unique_decisions__0"))
         )
+
+        qs_revoked = (
+            Case.objects.filter(
+                licence_decisions__decision__in=[LicenceDecisionType.REVOKED],
+            )
+            .annotate(
+                unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
+            )
+            .filter(unique_decisions__len=1)
+            .annotate(decision=F("unique_decisions__0"))
+        )
+
+        queryset = qs_issued_refused.union(
+            qs_revoked,
+            all=True,
+        ).order_by("-reference_code")
+
         return queryset
 
 
