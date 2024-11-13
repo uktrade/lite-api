@@ -14,6 +14,16 @@ from api.licences.enums import LicenceStatus
 
 @transaction.atomic
 def populate_licence_decisions(apps, schema_editor):
+    """
+    To back populate licence decision we primarily take the timestamp of CREATED_FINAL_RECOMMENDATION audit log
+    as the decision date. This is emitted when the case is finalised and all decision documents are published
+    to Exporter so this is the accurate decision date.
+    However this event is introduced at a later point of time and not available for cases. In these cases
+    we fallback to using the document generation date as the decision date. Usually these two steps happen
+    without much time difference (generating documents and publishing them) so it is a reliable approximation.
+    We also observed that only few cases differ and maximum variation is ~3days which doesn't affect reports.
+    """
+
     Audit = apps.get_model("audit_trail", "Audit")
     GeneratedCaseDocument = apps.get_model("generated_documents", "GeneratedCaseDocument")
     LicenceDecision = apps.get_model("cases", "LicenceDecision")
@@ -21,11 +31,9 @@ def populate_licence_decisions(apps, schema_editor):
     licence_decisions = []
 
     final_decision_qs = Audit.objects.filter(verb=AuditType.CREATED_FINAL_RECOMMENDATION).order_by("-created_at")
-    earliest_audit_log = final_decision_qs.last()
 
     document_qs = (
         GeneratedCaseDocument.objects.filter(
-            created_at__date__lt=earliest_audit_log.created_at.date(),
             template_id__in=LicenceDecisionType.templates().values(),
             advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE],
             visible_to_exporter=True,
@@ -47,6 +55,14 @@ def populate_licence_decisions(apps, schema_editor):
             )
         )
     )
+
+    # When running tests audit entries are not available so filtering documents
+    # the audit log created date earlier fails
+    if final_decision_qs:
+        earliest_audit_log = final_decision_qs.last()
+        document_qs = document_qs.filter(
+            created_at__date__lt=earliest_audit_log.created_at.date(),
+        )
 
     for audit_log in final_decision_qs:
         advice_type = audit_log.payload["decision"]
@@ -94,6 +110,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("cases", "0067_licencedecision"),
+        ("generated_documents", "0002_alter_generatedcasedocument_advice_type"),
     ]
 
     operations = [

@@ -8,7 +8,8 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from api.applications.models import GoodOnApplication
-from api.cases.models import Case
+from api.cases.enums import LicenceDecisionType
+from api.cases.models import Case, LicenceDecision
 from api.common.models import TimestampableModel
 from api.core.helpers import add_months
 from api.licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
@@ -97,6 +98,11 @@ class Licence(TimestampableModel):
 
     def revoke(self, user=None):
         self._set_status(LicenceStatus.REVOKED, user=user, send_status_change_to_hmrc=True)
+        LicenceDecision.objects.create(
+            case=self.case,
+            decision=LicenceDecisionType.REVOKED,
+            licence=self,
+        )
         notify_exporter_licence_revoked(self)
 
     def cancel(self, user=None, send_status_change_to_hmrc=True):

@@ -21,7 +21,7 @@ class Command(BaseCommand):
             for row in reader:
                 party_id = row["party_id"]
                 name = row["name"].replace("\\r\\n", "\r\n")
-                new_name = row["new_name"]
+                new_name = row["new_name"].replace("\\r\\n", "\r\n")
                 additional_text = row["additional_text"]
 
                 self.update_field_on_party(party_id, name, new_name, additional_text)
