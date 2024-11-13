@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from django.db.models import Q
+
 from api.applications.models import (
     GoodOnApplication,
     PartyOnApplication,
@@ -63,15 +65,25 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
 
 class ApplicationSerializer(serializers.ModelSerializer):
     licence_type = serializers.CharField(source="case_type.reference")
+    sub_type = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
         fields = (
             "id",
-            "export_type",
-            "reference_code",
             "licence_type",
+            "reference_code",
+            "sub_type",
         )
+
+    def get_sub_type(self, application):
+        if application.goods.filter(Q(is_good_incorporated=True) | Q(is_onward_incorporated=True)):
+            return "incorporation"
+
+        if application.export_type:
+            return application.export_type
+
+        raise Exception("Unknown sub-type")
 
 
 class CountrySerializer(serializers.ModelSerializer):
