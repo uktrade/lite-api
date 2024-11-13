@@ -208,8 +208,11 @@ def case_officer_revokes_licence(client, lu_sr_manager_headers, issued_licence):
         decision=LicenceDecisionType.REVOKED,
     ).exists()
 
-    issued_licence.refresh_from_db()
-    return issued_licence
+    revoked_licence = LicenceDecision.objects.get(
+        case=issued_licence.case, decision=LicenceDecisionType.REVOKED
+    ).licence
+
+    return revoked_licence
 
 
 @then("I see revoked licence is included in the extract")
