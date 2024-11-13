@@ -5,7 +5,7 @@ from rest_framework.settings import api_settings
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import F
+from django.db.models import F, Max, Q
 
 from api.applications.models import (
     GoodOnApplication,
@@ -51,22 +51,24 @@ class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
             Case.objects.filter(
                 licence_decisions__decision__in=[LicenceDecisionType.ISSUED, LicenceDecisionType.REFUSED],
             )
-            .annotate(
+            .alias(
                 unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
             )
             .filter(unique_decisions__len=1)
-            .annotate(decision=F("unique_decisions__0"))
+            .alias(decision=F("unique_decisions__0"))
         )
 
         qs_revoked = (
-            Case.objects.filter(
-                licence_decisions__decision__in=[LicenceDecisionType.REVOKED],
+            Case.objects.alias(
+                latest_revoked_at=Max(
+                    "licence_decisions__created_at", filter=Q(licence_decisions__decision=LicenceDecisionType.REVOKED)
+                ),
+                latest_issued_at=Max(
+                    "licence_decisions__created_at", filter=Q(licence_decisions__decision=LicenceDecisionType.ISSUED)
+                ),
             )
-            .annotate(
-                unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
-            )
-            .filter(unique_decisions__len=1)
-            .annotate(decision=F("unique_decisions__0"))
+            .filter(latest_revoked_at__isnull=False)
+            .filter(Q(latest_revoked_at__gt=F("latest_issued_at")))
         )
 
         queryset = qs_issued_refused.union(
