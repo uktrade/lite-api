@@ -22,7 +22,7 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
 
     def get_decision_made_at(self, case):
         if case.decision not in LicenceDecisionType.decisions():
-            raise ValueError(f"Unknown decision type `{case.decision}`")
+            raise ValueError(f"Unknown decision type `{case.decision}`")  # pragma: no cover
 
         return (
             case.licence_decisions.filter(
