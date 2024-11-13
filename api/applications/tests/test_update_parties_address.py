@@ -14,8 +14,9 @@ class UpdatePartyFromCSVTests(DataTestClient):
 
     def test_update_field_on_party_from_csv(self):
 
-        new_address = "56 Heathwood Road Broadstairs Kent"
+        new_address = "56 Heathwood Road\\r\\n Broadstairs Kent"
         old_address = self.standard_application.end_user.party.address
+        result = "56 Heathwood Road\r\n Broadstairs Kent"
         party_id = self.standard_application.end_user.party.id
 
         with NamedTemporaryFile(suffix=".csv", delete=True) as tmp_file:
@@ -28,7 +29,7 @@ class UpdatePartyFromCSVTests(DataTestClient):
 
             call_command("update_party_address", tmp_file.name)
             self.standard_application.refresh_from_db()
-            self.assertEqual(self.standard_application.end_user.party.address, new_address)
+            self.assertEqual(self.standard_application.end_user.party.address, result)
 
             audit = Audit.objects.get()
 
@@ -38,7 +39,7 @@ class UpdatePartyFromCSVTests(DataTestClient):
             self.assertEqual(
                 audit.payload,
                 {
-                    "address": {"new": new_address, "old": old_address},
+                    "address": {"new": result, "old": old_address},
                     "additional_text": "added by John Smith as per LTD-XXX",
                 },
             )

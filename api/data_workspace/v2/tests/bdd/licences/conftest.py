@@ -66,7 +66,6 @@ def standard_case_with_final_advice(lu_case_officer):
     return case
 
 
-
 @pytest.fixture()
 def standard_case_with_refused_advice(lu_case_officer, standard_case_with_final_advice):
     standard_case_with_final_advice.advice.update(type=AdviceType.REFUSE)

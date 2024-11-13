@@ -37,7 +37,7 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 class DisableableLimitOffsetPagination(LimitOffsetPagination):
     def paginate_queryset(self, queryset, request, view=None):
         if str_to_bool(request.GET.get("disable_pagination", False)):
-            return
+            return  # pragma: no cover
 
         return super().paginate_queryset(queryset, request, view)
 
