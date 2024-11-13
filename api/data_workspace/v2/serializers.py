@@ -68,6 +68,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         model = StandardApplication
         fields = (
             "id",
+            "export_type",
             "reference_code",
             "licence_type",
         )
