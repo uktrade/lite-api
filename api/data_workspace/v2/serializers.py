@@ -108,7 +108,7 @@ class GoodSerializer(serializers.ModelSerializer):
         )
 
 
-class AssessmentSerializer(serializers.ModelSerializer):
+class GoodRatingSerializer(serializers.ModelSerializer):
     good_id = serializers.UUIDField()
 
     class Meta:

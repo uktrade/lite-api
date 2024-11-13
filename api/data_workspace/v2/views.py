@@ -17,11 +17,11 @@ from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
-    AssessmentSerializer,
     CountrySerializer,
     DestinationSerializer,
     GoodOnLicenceSerializer,
     GoodSerializer,
+    GoodRatingSerializer,
     LicenceDecisionSerializer,
     LicenceDecisionType,
 )
@@ -110,11 +110,11 @@ class GoodViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = GoodOnApplication.objects.exclude(application__status__status=CaseStatusEnum.DRAFT)
 
 
-class AssessmentViewSet(viewsets.ReadOnlyModelViewSet):
+class GoodRatingViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
-    serializer_class = AssessmentSerializer
+    serializer_class = GoodRatingSerializer
     queryset = ControlListEntry.objects.annotate(good_id=F("goodonapplication__id")).exclude(good_id__isnull=True)
 
 

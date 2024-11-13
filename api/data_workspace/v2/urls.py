@@ -36,13 +36,13 @@ router_v2.register(
 )
 
 router_v2.register(
-    "assessments",
-    views.AssessmentViewSet,
-    basename="dw-assessments",
+    "goods-ratings",
+    views.GoodRatingViewSet,
+    basename="dw-goods-ratings",
 )
 
 router_v2.register(
-    "goods-on-licence",
+    "goods-on-licences",
     views.GoodOnLicenceViewSet,
-    basename="dw-goods-on-licence",
+    basename="dw-goods-on-licences",
 )
