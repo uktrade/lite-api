@@ -1,0 +1,23 @@
+[
+    {
+        "id": "d159b195-9256-4a00-9bc8-1eb2cebfa1d2",
+        "name": "SIEL template",
+        "layout_id": "00000000-0000-0000-0000-000000000001",
+        "visible_to_exporter": true,
+        "include_digital_signature": true
+    },
+    {
+        "id": "074d8a54-ee10-4dca-82ba-650460650342",
+        "name": "Refusal letter template",
+        "layout_id": "00000000-0000-0000-0000-000000000006",
+        "visible_to_exporter": true,
+        "include_digital_signature": true
+    },
+    {
+        "id": "d71c3cfc-a127-46b6-96c0-a435cdd63cdb",
+        "name": "No licence required letter template",
+        "layout_id": "00000000-0000-0000-0000-000000000003",
+        "visible_to_exporter": true,
+        "include_digital_signature": true
+    }
+]

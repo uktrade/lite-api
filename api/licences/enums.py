@@ -45,6 +45,10 @@ class LicenceStatus:
     def can_edit_status(cls, status):
         return status in cls._can_edit_status
 
+    @classmethod
+    def all(cls):
+        return [getattr(cls, param) for param in dir(cls) if param.isupper()]  # pragma: no cover
+
 
 hmrc_integration_action_to_licence_status = {
     HMRCIntegrationActionEnum.SURRENDER: LicenceStatus.SURRENDERED,
