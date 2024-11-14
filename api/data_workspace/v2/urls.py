@@ -52,3 +52,9 @@ router_v2.register(
     views.GoodDescriptionViewSet,
     basename="dw-goods-descriptions",
 )
+
+router_v2.register(
+    "licences-refusals-criteria",
+    views.LicenceRefusalCriteriaViewSet,
+    basename="dw-licences-refusals-criteria",
+)

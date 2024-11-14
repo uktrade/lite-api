@@ -7,7 +7,9 @@ from api.applications.models import (
     StandardApplication,
 )
 from api.cases.enums import LicenceDecisionType
-from api.cases.models import Case
+from api.cases.models import (
+    Case,
+)
 from api.licences.models import (
     GoodOnLicence,
     Licence,
@@ -151,3 +153,8 @@ class GoodDescriptionSerializer(serializers.ModelSerializer):
             "description",
             "good_id",
         )
+
+
+class LicenceRefusalCriteriaSerializer(serializers.Serializer):
+    criteria = serializers.CharField(source="denial_reasons__display_value")
+    licence_decision_id = serializers.UUIDField(source="case__licence_decisions__id")

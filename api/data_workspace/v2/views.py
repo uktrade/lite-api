@@ -12,7 +12,10 @@ from api.applications.models import (
     PartyOnApplication,
     StandardApplication,
 )
-from api.cases.models import Case
+from api.cases.models import (
+    Advice,
+    Case,
+)
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
@@ -25,6 +28,7 @@ from api.data_workspace.v2.serializers import (
     GoodRatingSerializer,
     LicenceDecisionSerializer,
     LicenceDecisionType,
+    LicenceRefusalCriteriaSerializer,
 )
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
@@ -145,4 +149,18 @@ class GoodOnLicenceViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = GoodOnLicence.objects.exclude(
         licence__case__status__status=CaseStatusEnum.DRAFT,
         licence__status=LicenceStatus.DRAFT,
+    )
+
+
+class LicenceRefusalCriteriaViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = DisableableLimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+    serializer_class = LicenceRefusalCriteriaSerializer
+    queryset = (
+        Advice.objects.filter(
+            case__licence_decisions__decision="refused", team_id="58e77e47-42c8-499f-a58d-94f94541f8c6"
+        )
+        .values("denial_reasons__display_value", "case__licence_decisions__id")
+        .distinct()
     )
