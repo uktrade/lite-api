@@ -159,8 +159,12 @@ class LicenceRefusalCriteriaViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LicenceRefusalCriteriaSerializer
     queryset = (
         Advice.objects.filter(
-            case__licence_decisions__decision="refused", team_id="58e77e47-42c8-499f-a58d-94f94541f8c6"
+            case__licence_decisions__decision="refused",
+            team_id="58e77e47-42c8-499f-a58d-94f94541f8c6",  # Just care about LU advice
         )
-        .values("denial_reasons__display_value", "case__licence_decisions__id")
+        .only("denial_reasons__display_value", "case__licence_decisions__id")
+        .exclude(denial_reasons__display_value__isnull=True)  # This removes refusals without any criteria
+        .values_list("denial_reasons__display_value", "case__licence_decisions__id")
+        .order_by()  # We need to remove the order_by to make sure the distinct works
         .distinct()
     )
