@@ -46,10 +46,13 @@ class DisableableLimitOffsetPagination(LimitOffsetPagination):
         return super().paginate_queryset(queryset, request, view)
 
 
-class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
+class BaseViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+
+
+class LicenceDecisionViewSet(BaseViewSet):
     serializer_class = LicenceDecisionSerializer
 
     def get_queryset(self):
@@ -80,10 +83,7 @@ class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class ApplicationViewSet(BaseViewSet):
     serializer_class = ApplicationSerializer
     queryset = (
         StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)
@@ -92,18 +92,12 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
     )
 
 
-class CountryViewSet(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class CountryViewSet(BaseViewSet):
     serializer_class = CountrySerializer
     queryset = Country.objects.all().order_by("id", "name")
 
 
-class DestinationViewSet(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class DestinationViewSet(BaseViewSet):
     serializer_class = DestinationSerializer
     queryset = (
         PartyOnApplication.objects.filter(deleted_at__isnull=True)
@@ -112,26 +106,17 @@ class DestinationViewSet(viewsets.ReadOnlyModelViewSet):
     )
 
 
-class GoodViewSet(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class GoodViewSet(BaseViewSet):
     serializer_class = GoodSerializer
     queryset = GoodOnApplication.objects.exclude(application__status__status=CaseStatusEnum.DRAFT)
 
 
-class GoodRatingViewSet(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class GoodRatingViewSet(BaseViewSet):
     serializer_class = GoodRatingSerializer
     queryset = ControlListEntry.objects.annotate(good_id=F("goodonapplication__id")).exclude(good_id__isnull=True)
 
 
-class GoodDescriptionViewSet(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class GoodDescriptionViewSet(BaseViewSet):
     serializer_class = GoodDescriptionSerializer
     queryset = (
         ReportSummary.objects.select_related("prefix", "subject")
@@ -141,10 +126,7 @@ class GoodDescriptionViewSet(viewsets.ReadOnlyModelViewSet):
     )
 
 
-class GoodOnLicenceViewSet(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class GoodOnLicenceViewSet(BaseViewSet):
     serializer_class = GoodOnLicenceSerializer
     queryset = GoodOnLicence.objects.exclude(
         licence__case__status__status=CaseStatusEnum.DRAFT,
@@ -152,10 +134,7 @@ class GoodOnLicenceViewSet(viewsets.ReadOnlyModelViewSet):
     )
 
 
-class LicenceRefusalCriteriaViewSet(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class LicenceRefusalCriteriaViewSet(BaseViewSet):
     serializer_class = LicenceRefusalCriteriaSerializer
     queryset = (
         Advice.objects.filter(
