@@ -164,7 +164,7 @@ class LicenceRefusalCriteriaViewSet(viewsets.ReadOnlyModelViewSet):
         )
         .only("denial_reasons__display_value", "case__licence_decisions__id")
         .exclude(denial_reasons__display_value__isnull=True)  # This removes refusals without any criteria
-        .values_list("denial_reasons__display_value", "case__licence_decisions__id")
+        .values("denial_reasons__display_value", "case__licence_decisions__id")
         .order_by()  # We need to remove the order_by to make sure the distinct works
         .distinct()
     )
