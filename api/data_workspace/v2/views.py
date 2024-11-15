@@ -61,6 +61,7 @@ class LicenceDecisionViewSet(BaseViewSet):
                 Case.objects.filter(
                     licence_decisions__decision__in=[LicenceDecisionType.ISSUED, LicenceDecisionType.REFUSED],
                 )
+                .exclude(licence_decisions__excluded_from_statistics_reason__isnull=False)
                 .annotate(
                     unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
                 )
@@ -71,6 +72,7 @@ class LicenceDecisionViewSet(BaseViewSet):
                 Case.objects.filter(
                     licence_decisions__decision__in=[LicenceDecisionType.REVOKED],
                 )
+                .exclude(licence_decisions__excluded_from_statistics_reason__isnull=False)
                 .annotate(
                     unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
                 )
