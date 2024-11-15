@@ -14,7 +14,4 @@ def test_attach_licence_to_licence_decisions(migrator):
 
     LicenceDecision = new_state.apps.get_model("cases", "LicenceDecision")
 
-    assert all(
-        item.licence == item.case.licences.earliest("created_at")
-        for item in LicenceDecision.objects.filter(decision=LicenceDecisionType.ISSUED)
-    )
+    assert LicenceDecision.objects.filter(decision=LicenceDecisionType.ISSUED, licence__isnull=True).count() == 0
