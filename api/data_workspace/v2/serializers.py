@@ -129,3 +129,10 @@ class ApplicationSerializer(serializers.ModelSerializer):
             return application.baseapplication_ptr.case_ptr.closed_status_updates[0].created_at
 
         return None
+
+
+class FootnoteSerializer(serializers.Serializer):
+    footnote = serializers.CharField()
+    team_name = serializers.CharField(source="team__name")
+    application_id = serializers.CharField(source="case__pk")
+    type = serializers.CharField()

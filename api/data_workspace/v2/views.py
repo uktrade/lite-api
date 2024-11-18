@@ -24,13 +24,14 @@ from api.applications.models import (
 )
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.cases.models import LicenceDecision
+from api.cases.models import Advice, LicenceDecision
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
     CountrySerializer,
     DestinationSerializer,
+    FootnoteSerializer,
     GoodDescriptionSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
@@ -141,3 +142,16 @@ class ApplicationViewSet(BaseViewSet):
 
     class DataWorkspace:
         table_name = "applications"
+
+
+class FootnoteViewSet(BaseViewSet):
+    serializer_class = FootnoteSerializer
+    queryset = (
+        Advice.objects.exclude(Q(footnote="") | Q(footnote__isnull=True))
+        .values("footnote", "team__name", "case__pk", "type")
+        .order_by("case__pk")
+        .distinct()
+    )
+
+    class DataWorkspace:
+        table_name = "footnotes"
