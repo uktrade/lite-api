@@ -6,6 +6,7 @@ from api.applications.models import (
     PartyOnApplication,
     StandardApplication,
 )
+from api.cases.enums import LicenceDecisionType
 from api.cases.models import LicenceDecision
 from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
@@ -29,7 +30,12 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         )
 
     def get_licence_id(self, licence_decision):
-        return licence_decision.licence.id if licence_decision.licence else ""
+        if licence_decision.decision in [LicenceDecisionType.REFUSED, LicenceDecisionType.REVOKED]:
+            return ""
+
+        latest_decision = licence_decision.case.licence_decisions.order_by("created_at").last()
+
+        return latest_decision.licence.id if latest_decision.licence else ""
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
