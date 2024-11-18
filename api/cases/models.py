@@ -810,6 +810,7 @@ class LicenceDecision(TimestampableModel):
     licence = models.ForeignKey(
         "licences.Licence", on_delete=models.DO_NOTHING, related_name="licence_decisions", null=True, blank=True
     )
+    excluded_from_statistics_reason = models.TextField(default=None, blank=True, null=True)
 
     def __str__(self):
         return f"{self.case.reference_code} - {self.decision} ({self.created_at})"

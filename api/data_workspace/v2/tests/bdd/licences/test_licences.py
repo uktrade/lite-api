@@ -8,26 +8,19 @@ from pytest_bdd import (
     when,
     scenarios,
 )
-from unittest import mock
 
-from api.cases.enums import AdviceType, LicenceDecisionType
-from api.cases.models import LicenceDecision
+from api.cases.enums import AdviceType
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 
-scenarios("../scenarios/licence_decisions.feature")
+scenarios("../scenarios/licences.feature")
 
 
 @pytest.fixture()
-def licence_decisions_list_url():
+def licences_list_url():
     return reverse("data_workspace:v2:dw-licence-decisions-list")
-
-
-@when("I fetch all licence decisions", target_fixture="licence_decisions")
-def fetch_licence_decisions(licence_decisions_list_url, unpage_data):
-    return unpage_data(licence_decisions_list_url)
 
 
 @given("a standard draft licence is created", target_fixture="draft_licence")
@@ -37,10 +30,10 @@ def standard_draft_licence_created(standard_draft_licence):
 
 
 @then("the draft licence is not included in the extract")
-def draft_licence_not_included_in_extract(draft_licence, unpage_data, licence_decisions_list_url):
-    licences = unpage_data(licence_decisions_list_url)
+def draft_licence_not_included_in_extract(draft_licence, unpage_data, licences_list_url):
+    licences = unpage_data(licences_list_url)
 
-    assert str(draft_licence.case.id) not in [item["application_id"] for item in licences]
+    assert draft_licence.reference_code not in [item["reference_code"] for item in licences]
 
 
 @given("a standard licence is cancelled", target_fixture="cancelled_licence")
@@ -52,24 +45,24 @@ def standard_licence_is_cancelled(standard_licence):
 
 
 @then("the cancelled licence is not included in the extract")
-def cancelled_licence_not_included_in_extract(cancelled_licence, unpage_data, licence_decisions_list_url):
-    licences = unpage_data(licence_decisions_list_url)
+def cancelled_licence_not_included_in_extract(cancelled_licence, unpage_data, licences_list_url):
+    licences = unpage_data(licences_list_url)
 
-    assert str(cancelled_licence.case.id) not in [item["application_id"] for item in licences]
-
-
-@then("I see issued licence is included in the extract")
-def licence_included_in_extract(issued_licence, unpage_data, licence_decisions_list_url):
-    licences = unpage_data(licence_decisions_list_url)
-
-    assert str(issued_licence.case.id) in [item["application_id"] for item in licences]
+    assert cancelled_licence.reference_code not in [item["reference_code"] for item in licences]
 
 
-@then("I see refused case is included in the extract")
-def refused_case_included_in_extract(refused_case, unpage_data, licence_decisions_list_url):
-    licences = unpage_data(licence_decisions_list_url)
+@then("the issued licence is included in the extract")
+def licence_included_in_extract(issued_licence, unpage_data, licences_list_url):
+    licences = unpage_data(licences_list_url)
 
-    assert str(refused_case.id) in [item["application_id"] for item in licences]
+    assert issued_licence.reference_code in [item["reference_code"] for item in licences]
+
+
+@then("the refused case is included in the extract")
+def refused_case_included_in_extract(refused_case, unpage_data, licences_list_url):
+    licences = unpage_data(licences_list_url)
+
+    assert refused_case.reference_code in [item["reference_code"] for item in licences]
 
 
 @given("a case is ready to be finalised", target_fixture="case_with_final_advice")
@@ -105,7 +98,7 @@ def licence_for_case_is_approved(client, gov_headers, case_with_final_advice):
 
 
 @when("case officer generates licence documents")
-def case_officer_generates_licence_documents(client, siel_template, gov_headers, case_with_final_advice):
+def licence_for_case_is_approved(client, siel_template, gov_headers, case_with_final_advice):
     data = {
         "template": str(siel_template.id),
         "text": "",
@@ -116,13 +109,12 @@ def case_officer_generates_licence_documents(client, siel_template, gov_headers,
         "cases:generated_documents:generated_documents",
         kwargs={"pk": str(case_with_final_advice.pk)},
     )
-    with mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file", return_value=None):
-        response = client.post(url, data, content_type="application/json", **gov_headers)
-        assert response.status_code == 201
+    response = client.post(url, data, content_type="application/json", **gov_headers)
+    assert response.status_code == 201
 
 
 @when("case officer issues licence for this case", target_fixture="issued_licence")
-def case_officer_issues_licence(client, gov_headers, case_with_final_advice):
+def licence_for_case_is_approved(client, gov_headers, case_with_final_advice):
     url = reverse(
         "cases:finalise",
         kwargs={"pk": str(case_with_final_advice.pk)},
@@ -139,11 +131,6 @@ def case_officer_issues_licence(client, gov_headers, case_with_final_advice):
 
     licence = Licence.objects.get(id=response["licence"])
     assert licence.status == LicenceStatus.ISSUED
-
-    assert LicenceDecision.objects.filter(
-        case=case_with_final_advice,
-        decision=LicenceDecisionType.ISSUED,
-    ).exists()
 
     return licence
 
@@ -169,9 +156,8 @@ def generate_refusal_documents(client, siel_refusal_template, gov_headers, case_
         "cases:generated_documents:generated_documents",
         kwargs={"pk": str(case_with_refused_advice.pk)},
     )
-    with mock.patch("api.cases.generated_documents.views.s3_operations.upload_bytes_file", return_value=None):
-        response = client.post(url, data, content_type="application/json", **gov_headers)
-        assert response.status_code == 201
+    response = client.post(url, data, content_type="application/json", **gov_headers)
+    assert response.status_code == 201
 
 
 @when("case officer refuses licence for this case", target_fixture="refused_case")
@@ -187,37 +173,4 @@ def licence_for_case_is_refused(client, gov_headers, case_with_refused_advice):
     assert case_with_refused_advice.status.status == CaseStatusEnum.FINALISED
     assert case_with_refused_advice.sub_status.name == "Refused"
 
-    assert LicenceDecision.objects.filter(
-        case=case_with_refused_advice,
-        decision=LicenceDecisionType.REFUSED,
-    ).exists()
-
     return case_with_refused_advice
-
-
-@when("case officer revokes issued licence", target_fixture="revoked_licence")
-def case_officer_revokes_licence(client, lu_sr_manager_headers, issued_licence):
-    url = reverse("licences:licence_details", kwargs={"pk": str(issued_licence.pk)})
-    response = client.patch(
-        url, {"status": LicenceStatus.REVOKED}, content_type="application/json", **lu_sr_manager_headers
-    )
-    assert response.status_code == 200
-
-    assert LicenceDecision.objects.filter(
-        case=issued_licence.case,
-        decision=LicenceDecisionType.REVOKED,
-    ).exists()
-
-    revoked_licence = LicenceDecision.objects.get(
-        case=issued_licence.case, decision=LicenceDecisionType.REVOKED
-    ).licence
-
-    return revoked_licence
-
-
-@then("I see revoked licence is included in the extract")
-def revoked_licence_decision_included_in_extract(licence_decisions, revoked_licence):
-
-    all_revoked_licences = [item for item in licence_decisions if item["decision"] == "revoked"]
-
-    assert str(revoked_licence.case.id) in [item["application_id"] for item in all_revoked_licences]
