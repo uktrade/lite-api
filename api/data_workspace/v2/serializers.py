@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from api.applications.models import PartyOnApplication
+from api.cases.enums import LicenceDecisionType
 from api.cases.models import LicenceDecision
 from api.staticdata.countries.models import Country
 
@@ -21,7 +22,12 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         )
 
     def get_licence_id(self, licence_decision):
-        return licence_decision.licence.id if licence_decision.licence else None
+        if licence_decision.decision in [LicenceDecisionType.REFUSED, LicenceDecisionType.REVOKED]:
+            return ""
+
+        latest_decision = licence_decision.case.licence_decisions.order_by("created_at").last()
+
+        return latest_decision.licence.id if latest_decision.licence else None
 
 
 class CountrySerializer(serializers.ModelSerializer):
