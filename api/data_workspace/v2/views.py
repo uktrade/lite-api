@@ -5,7 +5,10 @@ from rest_framework.settings import api_settings
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import F
+from django.db.models import (
+    F,
+    Q,
+)
 
 from api.applications.models import (
     GoodOnApplication,
@@ -22,6 +25,7 @@ from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
     CountrySerializer,
     DestinationSerializer,
+    FootnoteSerializer,
     GoodDescriptionSerializer,
     GoodOnLicenceSerializer,
     GoodSerializer,
@@ -147,5 +151,15 @@ class LicenceRefusalCriteriaViewSet(BaseViewSet):
         .exclude(denial_reasons__display_value__isnull=True)  # This removes refusals without any criteria
         .values("denial_reasons__display_value", "case__licence_decisions__id")
         .order_by()  # We need to remove the order_by to make sure the distinct works
+        .distinct()
+    )
+
+
+class FootnoteViewSet(BaseViewSet):
+    serializer_class = FootnoteSerializer
+    queryset = (
+        Advice.objects.exclude(Q(footnote="") | Q(footnote__isnull=True))
+        .values("footnote", "team__name", "case__pk", "type")
+        .order_by("case__pk")
         .distinct()
     )
