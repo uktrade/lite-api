@@ -129,7 +129,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()["roles"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 6)
+        self.assertEqual(len(response_data), 5)
         self.assertIn(str(Role.objects.get(name="multi permission role").id), str(response_data))
         self.assertIn(
             str(Role.objects.get(name=constants.GovPermissions.MANAGE_TEAM_ADVICE.name).id), str(response_data)
@@ -172,7 +172,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()["roles"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 4)
+        self.assertEqual(len(response_data), 3)
         self.assertIn(
             str(Role.objects.get(name=constants.GovPermissions.MANAGE_TEAM_ADVICE.name).id), str(response_data)
         )
@@ -207,7 +207,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()["roles"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 3)
+        self.assertEqual(len(response_data), 2)
         self.assertIn(
             str(Role.objects.get(name=constants.GovPermissions.MANAGE_TEAM_ADVICE.name).id), str(response_data)
         )
