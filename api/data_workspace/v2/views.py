@@ -38,7 +38,7 @@ class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
     serializer_class = LicenceDecisionSerializer
     queryset = (
-        LicenceDecision.objects.filter(parent__isnull=True)
+        LicenceDecision.objects.filter(previous_decision__isnull=True)
         .exclude(excluded_from_statistics_reason__isnull=False)
         .order_by("-case__reference_code")
     )
