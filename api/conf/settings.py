@@ -126,6 +126,7 @@ INSTALLED_APPS = [
     "health_check",
     "health_check.contrib.celery",
     "health_check.contrib.celery_ping",
+    "health_check.contrib.migrations",
     "django_audit_log_middleware",
     "lite_routing",
     "api.appeals",
@@ -139,11 +140,16 @@ INSTALLED_APPS = [
 
 if not IS_ENV_DBT_PLATFORM:
     INSTALLED_APPS += [
-        "health_check.db",
         "health_check.cache",
+        "health_check.db",
         "health_check.storage",
-        "health_check.contrib.migrations",
     ]
+
+HEALTH_CHECK = {
+    "SUBSETS": {
+        "startup-liveness-probe": ["MigrationsHealthCheck"],
+    },
+}
 
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
 
