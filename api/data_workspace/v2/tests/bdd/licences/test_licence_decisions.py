@@ -40,7 +40,7 @@ def standard_draft_licence_created(standard_draft_licence):
 def draft_licence_not_included_in_extract(draft_licence, unpage_data, licence_decisions_list_url):
     licences = unpage_data(licence_decisions_list_url)
 
-    assert draft_licence.reference_code not in [item["reference_code"] for item in licences]
+    assert str(draft_licence.case.id) not in [item["application_id"] for item in licences]
 
 
 @given("a standard licence is cancelled", target_fixture="cancelled_licence")
@@ -55,21 +55,21 @@ def standard_licence_is_cancelled(standard_licence):
 def cancelled_licence_not_included_in_extract(cancelled_licence, unpage_data, licence_decisions_list_url):
     licences = unpage_data(licence_decisions_list_url)
 
-    assert cancelled_licence.reference_code not in [item["reference_code"] for item in licences]
+    assert str(cancelled_licence.case.id) not in [item["application_id"] for item in licences]
 
 
 @then("I see issued licence is included in the extract")
 def licence_included_in_extract(issued_licence, unpage_data, licence_decisions_list_url):
     licences = unpage_data(licence_decisions_list_url)
 
-    assert issued_licence.reference_code in [item["reference_code"] for item in licences]
+    assert str(issued_licence.case.id) in [item["application_id"] for item in licences]
 
 
 @then("I see refused case is included in the extract")
 def refused_case_included_in_extract(refused_case, unpage_data, licence_decisions_list_url):
     licences = unpage_data(licence_decisions_list_url)
 
-    assert refused_case.reference_code in [item["reference_code"] for item in licences]
+    assert str(refused_case.id) in [item["application_id"] for item in licences]
 
 
 @given("a case is ready to be finalised", target_fixture="case_with_final_advice")
@@ -220,4 +220,4 @@ def revoked_licence_decision_included_in_extract(licence_decisions, revoked_lice
 
     all_revoked_licences = [item for item in licence_decisions if item["decision"] == "revoked"]
 
-    assert revoked_licence.case.reference_code in [item["reference_code"] for item in all_revoked_licences]
+    assert str(revoked_licence.case.id) in [item["application_id"] for item in all_revoked_licences]
