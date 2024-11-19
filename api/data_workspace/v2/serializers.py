@@ -31,11 +31,15 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
 
     def get_licence_id(self, licence_decision):
         if licence_decision.decision in [LicenceDecisionType.REFUSED, LicenceDecisionType.REVOKED]:
-            return ""
+            return None
 
-        latest_decision = licence_decision.case.licence_decisions.order_by("created_at").last()
+        licence_decisions = sorted(licence_decision.case.licence_decisions.all(), key=lambda ld: ld.created_at)
+        licence_decision = licence_decisions[-1]
 
-        return latest_decision.licence.id if latest_decision.licence else ""
+        if not licence_decision.licence:
+            return None
+
+        return licence_decision.licence.pk
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
