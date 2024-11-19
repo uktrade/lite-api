@@ -22,10 +22,14 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         )
 
     def get_licence_id(self, licence_decision):
-        if licence_decision.decision in [LicenceDecisionType.REFUSED, LicenceDecisionType.REVOKED]:
+        if licence_decision.decision in [LicenceDecisionType.REFUSED]:
             return None
 
-        licence_decisions = sorted(licence_decision.case.licence_decisions.all(), key=lambda ld: ld.created_at)
+        licence_decisions = licence_decision.case.licence_decisions.all()
+        licence_decisions = [
+            ld for ld in licence_decision.case.licence_decisions.all() if ld.decision == LicenceDecisionType.ISSUED
+        ]
+        licence_decisions = sorted(licence_decisions, key=lambda ld: ld.created_at)
         licence_decision = licence_decisions[-1]
 
         if not licence_decision.licence:
