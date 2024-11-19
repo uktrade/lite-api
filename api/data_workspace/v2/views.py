@@ -17,6 +17,7 @@ from django.db.models.aggregates import (
     Min,
 )
 from django.db.models.lookups import GreaterThan
+from django.http import Http404
 
 from api.applications.models import (
     GoodOnApplication,
@@ -146,7 +147,6 @@ class ApplicationViewSet(BaseViewSet):
         table_name = "applications"
 
 
-
 class UnitViewSet(viewsets.ViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = DisableableLimitOffsetPagination
@@ -158,7 +158,10 @@ class UnitViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk):
         units = dict(Units.choices)
-        description = units[pk]
+        try:
+            description = units[pk]
+        except KeyError:
+            raise Http404()
         return Response(UnitSerializer({"code": pk, "description": description}).data)
 
     class DataWorkspace:
