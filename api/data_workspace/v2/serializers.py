@@ -7,27 +7,20 @@ from api.applications.models import (
     StandardApplication,
 )
 from api.cases.enums import LicenceDecisionType
-from api.cases.models import (
-    Case,
-)
-from api.licences.models import (
-    GoodOnLicence,
-    Licence,
-)
+from api.cases.models import LicenceDecision
+from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.report_summaries.models import ReportSummary
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField()
-    application_id = serializers.UUIDField(source="id")
-    decision = serializers.CharField()
-    decision_made_at = serializers.SerializerMethodField()
+    application_id = serializers.CharField(source="case.id")
+    decision_made_at = serializers.CharField(source="created_at")
     licence_id = serializers.SerializerMethodField()
 
     class Meta:
-        model = Case
+        model = LicenceDecision
         fields = (
             "id",
             "application_id",
@@ -36,33 +29,13 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             "licence_id",
         )
 
-    def get_licence_decision(self, case):
-        if case.decision not in LicenceDecisionType.decisions():
-            raise ValueError(f"Unknown decision type `{case.decision}`")
+    def get_licence_id(self, licence_decision):
+        if licence_decision.decision in [LicenceDecisionType.REFUSED, LicenceDecisionType.REVOKED]:
+            return ""
 
-        return case.licence_decisions.filter(
-            decision=case.decision,
-        ).earliest("created_at")
+        latest_decision = licence_decision.case.licence_decisions.order_by("created_at").last()
 
-    def get_id(self, case):
-        return self.get_licence_decision(case).pk
-
-    def get_decision_made_at(self, case):
-        return self.get_licence_decision(case).created_at
-
-    def get_licence_id(self, case):
-        licence_decision = self.get_licence_decision(case)
-        if licence_decision.decision != LicenceDecisionType.ISSUED:
-            return None
-
-        licences = licence_decision.case.licences.exclude(status="draft").order_by("created_at")
-        try:
-            return licences.get().pk
-        except Licence.MultipleObjectsReturned:
-            pass
-
-        licences = licences.filter(status="cancelled")
-        return licences.first().pk
+        return latest_decision.licence.id if latest_decision.licence else ""
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
