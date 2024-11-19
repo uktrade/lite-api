@@ -399,9 +399,15 @@ class Case(TimestampableModel):
                 ):
                     previous_decision = previous_licence_decision
 
+                # In case if it is being issued after an appeal then we want to reflect that in the decision
+                if current_decision == LicenceDecisionType.ISSUED and self.licence_decisions.count() == 2:
+                    prev, current = self.licence_decisions.all()
+                    if prev.decision == LicenceDecisionType.REFUSED and current.decision == LicenceDecisionType.ISSUED:
+                        current_decision = LicenceDecisionType.ISSUED_ON_APPEAL
+
                 LicenceDecision.objects.create(
                     case=self,
-                    decision=LicenceDecisionType.advice_type_to_decision(advice_type),
+                    decision=current_decision,
                     licence=licence,
                     previous_decision=previous_decision,
                 )
