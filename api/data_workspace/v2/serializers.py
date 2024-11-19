@@ -129,3 +129,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
             return application.baseapplication_ptr.case_ptr.closed_status_updates[0].created_at
 
         return None
+
+
+class UnitSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    description = serializers.CharField()
