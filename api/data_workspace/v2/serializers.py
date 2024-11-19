@@ -83,6 +83,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "reference_code",
             "sub_type",
             "status",
+            "sla_days",
         )
 
     def get_sub_type(self, application):
