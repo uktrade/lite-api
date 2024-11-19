@@ -124,9 +124,12 @@ INSTALLED_APPS = [
     "api.external_data",
     "api.support",
     "health_check",
+    "health_check.cache",
     "health_check.contrib.celery",
     "health_check.contrib.celery_ping",
+    "health_check.db",
     "health_check.contrib.migrations",
+    "health_check.storage",
     "django_audit_log_middleware",
     "lite_routing",
     "api.appeals",
@@ -138,12 +141,6 @@ INSTALLED_APPS = [
     "drf_spectacular",
 ]
 
-if not IS_ENV_DBT_PLATFORM:
-    INSTALLED_APPS += [
-        "health_check.cache",
-        "health_check.db",
-        "health_check.storage",
-    ]
 
 HEALTH_CHECK = {
     "SUBSETS": {
