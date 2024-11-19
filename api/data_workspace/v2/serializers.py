@@ -167,3 +167,8 @@ class FootnoteSerializer(serializers.Serializer):
     team_name = serializers.CharField(source="team__name")
     application_id = serializers.CharField(source="case__pk")
     type = serializers.CharField()
+
+
+class UnitSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    description = serializers.CharField()

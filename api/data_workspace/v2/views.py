@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 from rest_framework_csv.renderers import PaginatedCSVRenderer
@@ -33,6 +34,7 @@ from api.data_workspace.v2.serializers import (
     LicenceDecisionSerializer,
     LicenceDecisionType,
     LicenceRefusalCriteriaSerializer,
+    UnitSerializer,
 )
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
@@ -40,6 +42,7 @@ from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.units.enums import Units
 
 
 class DisableableLimitOffsetPagination(LimitOffsetPagination):
@@ -163,3 +166,18 @@ class FootnoteViewSet(BaseViewSet):
         .order_by("case__pk")
         .distinct()
     )
+
+
+class UnitViewSet(viewsets.ViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = DisableableLimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+
+    def list(self, request):
+        units = [{"code": code, "description": description} for code, description in Units.choices]
+        return Response(UnitSerializer(units, many=True).data)
+
+    def retrieve(self, request, pk):
+        units = dict(Units.choices)
+        description = units[pk]
+        return Response(UnitSerializer({"code": pk, "description": description}).data)

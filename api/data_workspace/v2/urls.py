@@ -64,3 +64,9 @@ router_v2.register(
     views.FootnoteViewSet,
     basename="dw-footnotes",
 )
+
+router_v2.register(
+    "units",
+    views.UnitViewSet,
+    basename="dw-units",
+)
