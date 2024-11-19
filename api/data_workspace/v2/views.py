@@ -10,9 +10,11 @@ from api.cases.models import Case
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
+    CountrySerializer,
     LicenceDecisionSerializer,
     LicenceDecisionType,
 )
+from api.staticdata.countries.models import Country
 
 
 class DisableableLimitOffsetPagination(LimitOffsetPagination):
@@ -23,10 +25,13 @@ class DisableableLimitOffsetPagination(LimitOffsetPagination):
         return super().paginate_queryset(queryset, request, view)
 
 
-class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
+class BaseViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+
+
+class LicenceDecisionViewSet(BaseViewSet):
     serializer_class = LicenceDecisionSerializer
 
     def get_queryset(self):
@@ -55,3 +60,8 @@ class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
             .order_by("-reference_code")
         )
         return queryset
+
+
+class CountryViewSet(BaseViewSet):
+    serializer_class = CountrySerializer
+    queryset = Country.objects.all().order_by("id", "name")
