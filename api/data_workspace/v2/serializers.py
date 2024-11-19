@@ -91,6 +91,8 @@ class GoodSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "application_id",
+            "quantity",
+            "unit",
             "value",
         )
 
@@ -131,3 +133,15 @@ class GoodDescriptionSerializer(serializers.ModelSerializer):
 class LicenceRefusalCriteriaSerializer(serializers.Serializer):
     criteria = serializers.CharField(source="denial_reasons__display_value")
     licence_decision_id = serializers.UUIDField(source="case__licence_decisions__id")
+
+
+class FootnoteSerializer(serializers.Serializer):
+    footnote = serializers.CharField()
+    team_name = serializers.CharField(source="team__name")
+    application_id = serializers.CharField(source="case__pk")
+    type = serializers.CharField()
+
+
+class UnitSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    description = serializers.CharField()

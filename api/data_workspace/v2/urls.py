@@ -58,3 +58,15 @@ router_v2.register(
     views.LicenceRefusalCriteriaViewSet,
     basename="dw-licences-refusals-criteria",
 )
+
+router_v2.register(
+    "footnotes",
+    views.FootnoteViewSet,
+    basename="dw-footnotes",
+)
+
+router_v2.register(
+    "units",
+    views.UnitViewSet,
+    basename="dw-units",
+)
