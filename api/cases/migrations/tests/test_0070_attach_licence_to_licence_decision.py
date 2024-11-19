@@ -2,8 +2,8 @@ import pytest
 
 from api.cases.enums import LicenceDecisionType
 
-INITIAL_MIGRATION = "0068_populate_licence_decisions"
-MIGRATION_UNDER_TEST = "0069_attach_licence_to_licence_decision"
+INITIAL_MIGRATION = "0069_licencedecision_excluded_from_statistics_reason"
+MIGRATION_UNDER_TEST = "0070_attach_licence_to_licence_decision"
 
 
 @pytest.mark.django_db()
