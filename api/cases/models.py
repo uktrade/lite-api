@@ -829,5 +829,8 @@ class LicenceDecision(TimestampableModel):
         "self", related_name="previous_decisions", default=None, null=True, on_delete=models.DO_NOTHING
     )
 
+    class Meta:
+        ordering = ("created_at",)
+
     def __str__(self):
         return f"{self.case.reference_code} - {self.decision} ({self.created_at})"
