@@ -53,13 +53,21 @@ class DisableableLimitOffsetPagination(LimitOffsetPagination):
         return super().paginate_queryset(queryset, request, view)
 
 
-class BaseViewSet(viewsets.ReadOnlyModelViewSet):
+class ConfigMixin:
     authentication_classes = (DataWorkspaceOnlyAuthentication,)
     pagination_class = DisableableLimitOffsetPagination
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
 
 
-class LicenceDecisionViewSet(BaseViewSet):
+class BaseViewSet(ConfigMixin, viewsets.ViewSet):
+    pass
+
+
+class BaseReadOnlyModelViewSet(ConfigMixin, viewsets.ReadOnlyModelViewSet):
+    pass
+
+
+class LicenceDecisionViewSet(BaseReadOnlyModelViewSet):
     serializer_class = LicenceDecisionSerializer
     queryset = (
         LicenceDecision.objects.filter(previous_decision__isnull=True)
@@ -69,8 +77,11 @@ class LicenceDecisionViewSet(BaseViewSet):
         .order_by("-case__reference_code")
     )
 
+    class DataWorkspace:
+        table_name = "licence_decisions"
 
-class ApplicationViewSet(BaseViewSet):
+
+class ApplicationViewSet(BaseReadOnlyModelViewSet):
     serializer_class = ApplicationSerializer
     queryset = (
         StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)
@@ -78,13 +89,19 @@ class ApplicationViewSet(BaseViewSet):
         .prefetch_related("goods")
     )
 
+    class DataWorkspace:
+        table_name = "applications"
 
-class CountryViewSet(BaseViewSet):
+
+class CountryViewSet(BaseReadOnlyModelViewSet):
     serializer_class = CountrySerializer
     queryset = Country.objects.all().order_by("id", "name")
 
+    class DataWorkspace:
+        table_name = "countries"
 
-class DestinationViewSet(BaseViewSet):
+
+class DestinationViewSet(BaseReadOnlyModelViewSet):
     serializer_class = DestinationSerializer
     queryset = (
         PartyOnApplication.objects.filter(deleted_at__isnull=True)
@@ -92,18 +109,27 @@ class DestinationViewSet(BaseViewSet):
         .select_related("party", "party__country")
     )
 
+    class DataWorkspace:
+        table_name = "destinations"
 
-class GoodViewSet(BaseViewSet):
+
+class GoodViewSet(BaseReadOnlyModelViewSet):
     serializer_class = GoodSerializer
     queryset = GoodOnApplication.objects.exclude(application__status__status=CaseStatusEnum.DRAFT)
 
+    class DataWorkspace:
+        table_name = "goods"
 
-class GoodRatingViewSet(BaseViewSet):
+
+class GoodRatingViewSet(BaseReadOnlyModelViewSet):
     serializer_class = GoodRatingSerializer
     queryset = ControlListEntry.objects.annotate(good_id=F("goodonapplication__id")).exclude(good_id__isnull=True)
 
+    class DataWorkspace:
+        table_name = "goods_ratings"
 
-class GoodDescriptionViewSet(BaseViewSet):
+
+class GoodDescriptionViewSet(BaseReadOnlyModelViewSet):
     serializer_class = GoodDescriptionSerializer
     queryset = (
         ReportSummary.objects.select_related("prefix", "subject")
@@ -112,16 +138,22 @@ class GoodDescriptionViewSet(BaseViewSet):
         .annotate(good_id=F("goods_on_application__id"))
     )
 
+    class DataWorkspace:
+        table_name = "goods_descriptions"
 
-class GoodOnLicenceViewSet(BaseViewSet):
+
+class GoodOnLicenceViewSet(BaseReadOnlyModelViewSet):
     serializer_class = GoodOnLicenceSerializer
     queryset = GoodOnLicence.objects.exclude(
         licence__case__status__status=CaseStatusEnum.DRAFT,
         licence__status=LicenceStatus.DRAFT,
     )
 
+    class DataWorkspace:
+        table_name = "goods_on_licences"
 
-class LicenceRefusalCriteriaViewSet(BaseViewSet):
+
+class LicenceRefusalCriteriaViewSet(BaseReadOnlyModelViewSet):
     serializer_class = LicenceRefusalCriteriaSerializer
     queryset = (
         Advice.objects.filter(
@@ -135,8 +167,11 @@ class LicenceRefusalCriteriaViewSet(BaseViewSet):
         .distinct()
     )
 
+    class DataWorkspace:
+        table_name = "licence_refusal_criteria"
 
-class FootnoteViewSet(BaseViewSet):
+
+class FootnoteViewSet(BaseReadOnlyModelViewSet):
     serializer_class = FootnoteSerializer
     queryset = (
         Advice.objects.exclude(Q(footnote="") | Q(footnote__isnull=True))
@@ -145,11 +180,13 @@ class FootnoteViewSet(BaseViewSet):
         .distinct()
     )
 
+    class DataWorkspace:
+        table_name = "footnotes"
 
-class UnitViewSet(viewsets.ViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+
+class UnitViewSet(BaseViewSet):
+    class DataWorkspace:
+        table_name = "units"
 
     def list(self, request):
         units = [{"code": code, "description": description} for code, description in Units.choices]
@@ -164,10 +201,9 @@ class UnitViewSet(viewsets.ViewSet):
         return Response(UnitSerializer({"code": pk, "description": description}).data)
 
 
-class StatusViewSet(viewsets.ViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class StatusViewSet(BaseViewSet):
+    class DataWorkspace:
+        table_name = "statuses"
 
     def list(self, request):
         statuses = [{"status": status, "name": name} for status, name in CaseStatusEnum.choices]

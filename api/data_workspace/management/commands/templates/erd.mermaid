@@ -1,0 +1,7 @@
+---
+title: Data Workspace ERD
+---
+erDiagram
+    {% for table in tables %}
+    {{ table.name }}
+    {% endfor %}
