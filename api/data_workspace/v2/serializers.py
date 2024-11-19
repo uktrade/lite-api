@@ -118,6 +118,8 @@ class GoodSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "application_id",
+            "quantity",
+            "unit",
             "value",
         )
 
