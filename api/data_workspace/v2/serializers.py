@@ -12,6 +12,7 @@ from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
 from api.staticdata.report_summaries.models import ReportSummary
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -176,3 +177,12 @@ class FootnoteSerializer(serializers.Serializer):
 class UnitSerializer(serializers.Serializer):
     code = serializers.CharField()
     description = serializers.CharField()
+
+
+class StatusSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    name = serializers.CharField()
+    is_closed = serializers.SerializerMethodField()
+
+    def get_is_closed(self, status):
+        return CaseStatusEnum.is_closed(status["status"])

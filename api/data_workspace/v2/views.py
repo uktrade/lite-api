@@ -33,6 +33,7 @@ from api.data_workspace.v2.serializers import (
     GoodRatingSerializer,
     LicenceDecisionSerializer,
     LicenceRefusalCriteriaSerializer,
+    StatusSerializer,
     UnitSerializer,
 )
 from api.licences.enums import LicenceStatus
@@ -161,3 +162,21 @@ class UnitViewSet(viewsets.ViewSet):
         except KeyError:
             raise Http404()
         return Response(UnitSerializer({"code": pk, "description": description}).data)
+
+
+class StatusViewSet(viewsets.ViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = DisableableLimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+
+    def list(self, request):
+        statuses = [{"status": status, "name": name} for status, name in CaseStatusEnum.choices]
+        return Response(StatusSerializer(statuses, many=True).data)
+
+    def retrieve(self, request, pk):
+        statuses = dict(CaseStatusEnum.choices)
+        try:
+            name = statuses[pk]
+        except KeyError:
+            raise Http404()
+        return Response(StatusSerializer({"status": pk, "name": name}).data)
