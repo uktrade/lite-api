@@ -73,6 +73,7 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
 class ApplicationSerializer(serializers.ModelSerializer):
     licence_type = serializers.CharField(source="case_type.reference")
     sub_type = serializers.SerializerMethodField()
+    status = serializers.CharField(source="status.status")
 
     class Meta:
         model = StandardApplication
@@ -81,6 +82,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "licence_type",
             "reference_code",
             "sub_type",
+            "status",
         )
 
     def get_sub_type(self, application):
