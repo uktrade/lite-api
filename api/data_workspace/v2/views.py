@@ -10,6 +10,7 @@ from django.db.models import (
     F,
     Q,
 )
+from django.http import Http404
 
 from api.applications.models import (
     GoodOnApplication,
@@ -179,5 +180,8 @@ class UnitViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk):
         units = dict(Units.choices)
-        description = units[pk]
+        try:
+            description = units[pk]
+        except KeyError:
+            raise Http404()
         return Response(UnitSerializer({"code": pk, "description": description}).data)
