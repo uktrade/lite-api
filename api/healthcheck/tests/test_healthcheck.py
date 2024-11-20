@@ -66,7 +66,18 @@ def test_healthcheck_down(client, backends):
     )
 
 
-def test_service_available_check(client):
+def test_service_available_check_broken(client, backends):
+    backends.reset()
+    backends.register(HealthCheckBroken)
+    url = reverse("service-available-check")
+    response = client.get(url)
+
+    assert response.status_code == 200
+
+
+def test_service_available_check_ok(client, backends):
+    backends.reset()
+    backends.register(HealthCheckOk)
     url = reverse("service-available-check")
     response = client.get(url)
 
