@@ -6,15 +6,19 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer
 
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import F
+
+from api.applications.models import PartyOnApplication
 from api.cases.models import Case
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     CountrySerializer,
+    DestinationSerializer,
     LicenceDecisionSerializer,
     LicenceDecisionType,
 )
 from api.staticdata.countries.models import Country
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 class DisableableLimitOffsetPagination(LimitOffsetPagination):
@@ -71,3 +75,15 @@ class CountryViewSet(BaseViewSet):
 
     class DataWorkspace:
         table_name = "countries"
+
+
+class DestinationViewSet(BaseViewSet):
+    serializer_class = DestinationSerializer
+    queryset = (
+        PartyOnApplication.objects.filter(deleted_at__isnull=True)
+        .exclude(application__status__status=CaseStatusEnum.DRAFT)
+        .select_related("party", "party__country")
+    )
+
+    class DataWorkspace:
+        table_name = "destinations"
