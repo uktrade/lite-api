@@ -10,12 +10,14 @@ from rest_framework.test import URLPatternsTestCase
 class MetadataTestCase(URLPatternsTestCase):
     urlpatterns = [
         path("api/", include("api.data_workspace.metadata.tests.urls")),
+        path("namespaced/", include(("api.data_workspace.metadata.tests.urls", "namespaced"), namespace="namespaced")),
     ]
 
     def setUp(self):
         super().setUp()
 
         self.url = reverse("table-metadata")
+        self.namespaced_url = reverse("namespaced:table-metadata")
 
     def test_metadata_endpoint(self):
         response = self.client.get(self.url)
@@ -36,6 +38,27 @@ class MetadataTestCase(URLPatternsTestCase):
                 {
                     "table_name": "another_fake_table",
                     "endpoint": "http://testserver/api/endpoints/another-fake-table/",
+                    "indexes": ["one", "two", "three"],
+                    "fields": [{"name": "id", "primary_key": True, "type": "UUID"}],
+                },
+            ],
+        )
+
+    def test_metadata_tables_definitions_with_namespace(self):
+        response = self.client.get(self.namespaced_url)
+        output = response.json()
+        self.assertEqual(
+            output["tables"],
+            [
+                {
+                    "table_name": "fake_table",
+                    "endpoint": "http://testserver/namespaced/endpoints/fake-table/",
+                    "indexes": [],
+                    "fields": [],
+                },
+                {
+                    "table_name": "another_fake_table",
+                    "endpoint": "http://testserver/namespaced/endpoints/another-fake-table/",
                     "indexes": ["one", "two", "three"],
                     "fields": [{"name": "id", "primary_key": True, "type": "UUID"}],
                 },
