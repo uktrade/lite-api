@@ -148,7 +148,7 @@ e.g. BASEURL.com/healthcheck/startup-liveness-probe/
 """
 HEALTH_CHECK = {
     "SUBSETS": {
-        "startup-liveness-probe": ["MigrationsHealthCheck"],
+        "startup-liveness-probe": ["ServiceAvailableHealthCheck"],
     },
 }
 
@@ -301,6 +301,8 @@ UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
 TIME_TESTS = True  # If True, print the length of time it takes to run each test
 SUPPRESS_TEST_OUTPUT = env("SUPPRESS_TEST_OUTPUT")
+
+LITE_API_URL = env.str("LITE_API_URL", f"https://lite-api-{ENV}.london.cloudapps.digital")
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
