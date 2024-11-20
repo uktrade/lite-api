@@ -36,6 +36,7 @@ class TableMetadataView(APIView):
                 {
                     "table_name": table_metadata["table_name"],
                     "endpoint": url,
+                    "indexes": table_metadata["indexes"],
                 }
             )
         return Response({"tables": tables})
@@ -46,10 +47,12 @@ class TableMetadataRouter(DefaultRouter):
         metadata = []
         list_name = self.routes[0].name
         for prefix, viewset, basename in self.registry:
+            data_workspace_metadata = viewset.DataWorkspace
             metadata.append(
                 {
-                    "table_name": viewset.DataWorkspace.table_name,
+                    "table_name": data_workspace_metadata.table_name,
                     "endpoint": list_name.format(basename=basename),
+                    "indexes": getattr(data_workspace_metadata, "indexes", []),
                 }
             )
 

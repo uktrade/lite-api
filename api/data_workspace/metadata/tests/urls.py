@@ -16,6 +16,11 @@ test_router.register(
     basename="dw-fake-table",
 )
 
+test_router.register(
+    "another-fake-table",
+    views.AnotherFakeTableViewSet,
+    basename="dw-another-fake-table",
+)
 
 urlpatterns = [
     path("endpoints/", include(test_router.urls)),

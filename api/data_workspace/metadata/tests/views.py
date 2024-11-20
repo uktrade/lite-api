@@ -11,3 +11,15 @@ class FakeTableViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk):
         return Response({})
+
+
+class AnotherFakeTableViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "another_fake_table"
+        indexes = ["one", "two", "three"]
+
+    def list(self, request):
+        return Response({})
+
+    def retrieve(self, request, pk):
+        return Response({})

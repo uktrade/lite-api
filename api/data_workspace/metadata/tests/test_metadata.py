@@ -30,6 +30,12 @@ class MetadataTestCase(URLPatternsTestCase):
                 {
                     "table_name": "fake_table",
                     "endpoint": "http://testserver/api/endpoints/fake-table/",
+                    "indexes": [],
+                },
+                {
+                    "table_name": "another_fake_table",
+                    "endpoint": "http://testserver/api/endpoints/another-fake-table/",
+                    "indexes": ["one", "two", "three"],
                 },
             ],
         )
