@@ -141,17 +141,6 @@ INSTALLED_APPS = [
     "drf_spectacular",
 ]
 
-"""
-This takes any healthchecks added into the list and creates a callable URL for them
-which will be the key corresponding to the list value.
-e.g. BASEURL.com/healthcheck/startup-liveness-probe/
-"""
-HEALTH_CHECK = {
-    "SUBSETS": {
-        "startup-liveness-probe": ["ServiceAvailableHealthCheck"],
-    },
-}
-
 MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS = env("MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS")
 
 if MOCK_VIRUS_SCAN_ACTIVATE_ENDPOINTS:
