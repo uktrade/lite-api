@@ -22,6 +22,12 @@ test_router.register(
     basename="dw-another-fake-table",
 )
 
+test_router.register(
+    "detail-only",
+    views.DetailOnlyViewSet,
+    basename="dw-detail-only-table",
+)
+
 urlpatterns = [
     path("endpoints/", include(test_router.urls)),
 ]
