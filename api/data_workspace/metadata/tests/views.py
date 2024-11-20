@@ -17,6 +17,7 @@ class AnotherFakeTableViewSet(viewsets.ViewSet):
     class DataWorkspace:
         table_name = "another_fake_table"
         indexes = ["one", "two", "three"]
+        fields = [{"name": "id", "primary_key": True, "type": "UUID"}]
 
     def list(self, request):
         return Response({})

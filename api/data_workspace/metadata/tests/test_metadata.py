@@ -31,11 +31,13 @@ class MetadataTestCase(URLPatternsTestCase):
                     "table_name": "fake_table",
                     "endpoint": "http://testserver/api/endpoints/fake-table/",
                     "indexes": [],
+                    "fields": [],
                 },
                 {
                     "table_name": "another_fake_table",
                     "endpoint": "http://testserver/api/endpoints/another-fake-table/",
                     "indexes": ["one", "two", "three"],
+                    "fields": [{"name": "id", "primary_key": True, "type": "UUID"}],
                 },
             ],
         )

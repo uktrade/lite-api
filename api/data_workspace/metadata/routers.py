@@ -37,6 +37,7 @@ class TableMetadataView(APIView):
                     "table_name": table_metadata["table_name"],
                     "endpoint": url,
                     "indexes": table_metadata["indexes"],
+                    "fields": table_metadata["fields"],
                 }
             )
         return Response({"tables": tables})
@@ -53,6 +54,7 @@ class TableMetadataRouter(DefaultRouter):
                     "table_name": data_workspace_metadata.table_name,
                     "endpoint": list_name.format(basename=basename),
                     "indexes": getattr(data_workspace_metadata, "indexes", []),
+                    "fields": getattr(data_workspace_metadata, "fields", []),
                 }
             )
 
