@@ -44,6 +44,12 @@ class TableMetadataView(APIView):
 
 
 class TableMetadataRouter(DefaultRouter):
+    def register(self, viewset):
+        prefix = viewset.DataWorkspace.table_name.replace("_", "-")
+        basename = f"dw-{prefix}"
+
+        super().register(prefix, viewset, basename)
+
     def get_metadata_view(self, urls):
         metadata = []
         list_name = self.routes[0].name
