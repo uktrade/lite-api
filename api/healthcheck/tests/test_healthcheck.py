@@ -66,8 +66,8 @@ def test_healthcheck_down(client, backends):
     )
 
 
-def test_service_available_check(self):
+def test_service_available_check(client):
     url = reverse("service-available-check")
-    response = self.client.get(url)
+    response = client.get(url)
 
-    self.assertEqual(response.status_code, 200)
+    assert response.status_code == 200
