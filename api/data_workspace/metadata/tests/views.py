@@ -24,3 +24,13 @@ class AnotherFakeTableViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk):
         return Response({})
+
+
+class DetailOnlyViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "another_fake_table"
+        indexes = ["one", "two", "three"]
+        fields = [{"name": "id", "primary_key": True, "type": "UUID"}]
+
+    def retrieve(self, request, pk):
+        return Response({})
