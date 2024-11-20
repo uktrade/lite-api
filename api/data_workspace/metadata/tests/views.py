@@ -28,7 +28,7 @@ class AnotherFakeTableViewSet(viewsets.ViewSet):
 
 class DetailOnlyViewSet(viewsets.ViewSet):
     class DataWorkspace:
-        table_name = "another_fake_table"
+        table_name = "detail_only_table"
         indexes = ["one", "two", "three"]
         fields = [{"name": "id", "primary_key": True, "type": "UUID"}]
 

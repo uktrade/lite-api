@@ -10,23 +10,9 @@ from . import views
 
 test_router = TableMetadataRouter()
 
-test_router.register(
-    "fake-table",
-    views.FakeTableViewSet,
-    basename="dw-fake-table",
-)
-
-test_router.register(
-    "another-fake-table",
-    views.AnotherFakeTableViewSet,
-    basename="dw-another-fake-table",
-)
-
-test_router.register(
-    "detail-only",
-    views.DetailOnlyViewSet,
-    basename="dw-detail-only-table",
-)
+test_router.register(views.FakeTableViewSet)
+test_router.register(views.AnotherFakeTableViewSet)
+test_router.register(views.DetailOnlyViewSet)
 
 urlpatterns = [
     path("endpoints/", include(test_router.urls)),

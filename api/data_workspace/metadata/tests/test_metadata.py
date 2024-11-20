@@ -23,6 +23,25 @@ class MetadataTestCase(URLPatternsTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
 
+    def test_urls(self):
+        self.assertEqual(
+            reverse("dw-fake-table-list"),
+            "/api/endpoints/fake-table/",
+        )
+        self.assertEqual(
+            reverse("dw-fake-table-detail", kwargs={"pk": "test"}),
+            "/api/endpoints/fake-table/test/",
+        )
+
+        self.assertEqual(
+            reverse("namespaced:dw-fake-table-list"),
+            "/namespaced/endpoints/fake-table/",
+        )
+        self.assertEqual(
+            reverse("namespaced:dw-fake-table-detail", kwargs={"pk": "test"}),
+            "/namespaced/endpoints/fake-table/test/",
+        )
+
     def test_metadata_tables_definitions(self):
         response = self.client.get(self.url)
         output = response.json()
