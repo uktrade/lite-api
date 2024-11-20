@@ -16,7 +16,10 @@ from api.applications.models import (
     PartyOnApplication,
     StandardApplication,
 )
-from api.cases.models import Advice, LicenceDecision
+from api.cases.models import (
+    Advice,
+    LicenceDecision,
+)
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
@@ -55,14 +58,13 @@ class BaseViewSet(viewsets.ReadOnlyModelViewSet):
     renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
 
 
-class LicenceDecisionViewSet(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (DataWorkspaceOnlyAuthentication,)
-    pagination_class = DisableableLimitOffsetPagination
-    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+class LicenceDecisionViewSet(BaseViewSet):
     serializer_class = LicenceDecisionSerializer
     queryset = (
         LicenceDecision.objects.filter(previous_decision__isnull=True)
         .exclude(excluded_from_statistics_reason__isnull=False)
+        .prefetch_related("case__licence_decisions", "case__licence_decisions__licence")
+        .select_related("case")
         .order_by("-case__reference_code")
     )
 
