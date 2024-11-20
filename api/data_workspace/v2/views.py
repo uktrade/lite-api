@@ -35,25 +35,6 @@ class LicenceDecisionViewSet(BaseViewSet):
     serializer_class = LicenceDecisionSerializer
 
     class DataWorkspace:
-        fields = [
-            {
-                "name": "id",
-                "type": "UUID",
-                "primary_key": True,
-            },
-            {
-                "name": "reference_code",
-                "type": "String",
-            },
-            {
-                "name": "decision",
-                "type": "String",
-            },
-            {
-                "name": "decision_made_at",
-                "type": "DateTime",
-            },
-        ]
         table_name = "licence_decisions"
 
     def get_queryset(self):
@@ -89,15 +70,4 @@ class CountryViewSet(BaseViewSet):
     queryset = Country.objects.all().order_by("id", "name")
 
     class DataWorkspace:
-        fields = [
-            {
-                "name": "code",
-                "type": "String",
-                "primary_key": True,
-            },
-            {
-                "name": "name",
-                "type": "String",
-            },
-        ]
         table_name = "countries"
