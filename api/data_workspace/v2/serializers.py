@@ -1,11 +1,14 @@
-from rest_framework import serializers
+import itertools
 
+from rest_framework import serializers
 
 from api.applications.models import (
     GoodOnApplication,
     PartyOnApplication,
     StandardApplication,
 )
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import LicenceDecision
 from api.licences.models import GoodOnLicence
@@ -75,6 +78,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
     sub_type = serializers.SerializerMethodField()
     status = serializers.CharField(source="status.status")
     processing_time = serializers.IntegerField(source="sla_days")
+    first_closed_at = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -85,6 +89,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "sub_type",
             "status",
             "processing_time",
+            "first_closed_at",
         )
 
     def get_sub_type(self, application):
@@ -95,6 +100,31 @@ class ApplicationSerializer(serializers.ModelSerializer):
             return application.export_type
 
         raise Exception("Unknown sub-type")
+
+    def get_first_closed_at(self, application):
+        if application.licence_decisions.exists():
+            earliest = None
+            for licence_decision in application.licence_decisions.all():
+                if not earliest:
+                    earliest = licence_decision.created_at
+                    continue
+                if licence_decision.created_at < earliest:
+                    earliest = licence_decision.created_at
+            return earliest
+
+        status_map = dict(CaseStatusEnum.choices)
+        closed_statuses = itertools.chain.from_iterable(
+            (status, status_map[status]) for status in CaseStatusEnum.closed_statuses()
+        )
+        closed_status_updates = Audit.objects.filter(
+            target_object_id=application.pk,
+            verb=AuditType.UPDATED_STATUS,
+            payload__status__new__in=closed_statuses,
+        )
+        if closed_status_updates.exists():
+            return closed_status_updates.earliest("created_at").created_at
+
+        return None
 
 
 class CountrySerializer(serializers.ModelSerializer):

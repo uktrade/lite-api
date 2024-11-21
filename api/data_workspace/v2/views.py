@@ -75,7 +75,7 @@ class ApplicationViewSet(BaseViewSet):
     queryset = (
         StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)
         .select_related("case_type", "status")
-        .prefetch_related("goods")
+        .prefetch_related("goods", "licence_decisions")
     )
 
 

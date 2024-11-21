@@ -284,6 +284,10 @@ class CaseStatusEnum:
         return cls._terminal_statuses
 
     @classmethod
+    def closed_statuses(cls):
+        return cls._closed_statuses
+
+    @classmethod
     def as_list(cls):
         from api.staticdata.statuses.models import CaseStatus
         from api.staticdata.statuses.serializers import CaseStatusSerializer
