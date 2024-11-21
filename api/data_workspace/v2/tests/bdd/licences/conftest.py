@@ -5,6 +5,7 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     StandardApplicationFactory,
     PartyOnApplicationFactory,
+    DraftStandardApplicationFactory,
 )
 from api.cases.enums import AdviceType
 from api.cases.tests.factories import FinalAdviceFactory
@@ -86,3 +87,9 @@ def licence_with_deleted_party(standard_licence):
     new_party_on_application = PartyOnApplicationFactory(application=application)
     old_party_on_application.delete()
     return licence
+
+
+@pytest.fixture()
+def draft_application():
+    draft_application = DraftStandardApplicationFactory()
+    return draft_application
