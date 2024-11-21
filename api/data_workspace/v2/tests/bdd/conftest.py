@@ -2,6 +2,7 @@ import json
 import pytest
 
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from pytest_bdd import (
     parsers,
@@ -18,9 +19,14 @@ from api.applications.tests.factories import (
 )
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
-from api.core.constants import GovPermissions, Roles
+from api.core.constants import (
+    ExporterPermissions,
+    GovPermissions,
+    Roles,
+)
 from api.goods.tests.factories import GoodFactory
 from api.letter_templates.models import LetterTemplate
+from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
@@ -28,7 +34,13 @@ from api.staticdata.units.enums import Units
 from api.users.libraries.user_to_token import user_to_token
 from api.users.enums import SystemUser, UserType
 from api.users.models import BaseUser, Permission
-from api.users.tests.factories import BaseUserFactory, GovUserFactory, RoleFactory
+from api.users.tests.factories import (
+    BaseUserFactory,
+    ExporterUserFactory,
+    GovUserFactory,
+    RoleFactory,
+    UserOrganisationRelationshipFactory,
+)
 
 
 def load_json(filename):
@@ -122,6 +134,43 @@ def lu_sr_manager_headers(lu_senior_manager):
 
 
 @pytest.fixture()
+def exporter_user():
+    return ExporterUserFactory()
+
+
+@pytest.fixture()
+def exporter_user_permissions():
+    for permission in ExporterPermissions:
+        Permission.objects.get_or_create(id=permission.name, name=permission.value, type=UserType.EXPORTER.value)
+
+
+@pytest.fixture()
+def organisation(exporter_user_permissions, exporter_user):
+    organisation = OrganisationFactory()
+
+    UserOrganisationRelationshipFactory(
+        organisation=organisation,
+        role__permissions=[ExporterPermissions.SUBMIT_LICENCE_APPLICATION.name],
+        user=exporter_user,
+    )
+
+    return organisation
+
+
+@pytest.fixture()
+def exporter_headers(exporter_user, organisation):
+    return {
+        "HTTP_EXPORTER_USER_TOKEN": user_to_token(exporter_user.baseuser_ptr),
+        "HTTP_ORGANISATION_ID": str(organisation.id),
+    }
+
+
+@pytest.fixture()
+def api_client():
+    return APIClient()
+
+
+@pytest.fixture()
 def unpage_data(client):
     def _unpage_data(url):
         unpaged_results = []
@@ -157,7 +206,7 @@ def draft_application():
     return draft_application
 
 
-@then(parsers.parse("the {table_name} table is empty"))
+@then(parsers.parse("the `{table_name}` table is empty"))
 def empty_table(client, unpage_data, table_name):
     metadata_url = reverse("data_workspace:v2:table-metadata")
     response = client.get(metadata_url)
@@ -172,3 +221,35 @@ def empty_table(client, unpage_data, table_name):
     table_data = unpage_data(table_metadata["endpoint"])
 
     assert table_data == [], f"`{table_name}` table should be empty"
+
+
+def parse_table(data_table):
+    lines = data_table.strip().split("\n")
+
+    keys = [key.strip() for key in lines[0].split("|") if key]
+
+    parsed_data_table = []
+    for line in lines[1:]:
+        values = [value.strip() for value in line.split("|") if value]
+        entry = dict(zip(keys, values))
+        parsed_data_table.append(entry)
+
+    return parsed_data_table
+
+
+@then(parsers.parse("the `{table_name}` table has the following rows:{rows}"))
+def check_rows(client, unpage_data, table_name, rows):
+    metadata_url = reverse("data_workspace:v2:table-metadata")
+    response = client.get(metadata_url)
+    tables_metadata = response.json()["tables"]
+    for m in tables_metadata:
+        if m["table_name"] == table_name:
+            table_metadata = m
+            break
+    else:
+        pytest.fail(f"No table called {table_name} found")
+
+    actual_data = unpage_data(table_metadata["endpoint"])
+    expected_data = parse_table(rows)
+
+    assert actual_data == expected_data
