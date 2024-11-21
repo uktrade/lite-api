@@ -2,7 +2,11 @@ import datetime
 
 from rest_framework import serializers
 
-from api.applications.models import GoodOnApplication, PartyOnApplication
+from api.applications.models import (
+    GoodOnApplication,
+    PartyOnApplication,
+    StandardApplication,
+)
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import Case
 from api.staticdata.countries.models import Country
@@ -75,3 +79,9 @@ class GoodSerializer(serializers.ModelSerializer):
             "unit",
             "value",
         )
+
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StandardApplication
+        fields = ("id",)

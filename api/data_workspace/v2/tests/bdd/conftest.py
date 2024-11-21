@@ -3,6 +3,13 @@ import pytest
 
 from rest_framework import status
 
+from pytest_bdd import (
+    parsers,
+    then,
+)
+
+from django.urls import reverse
+
 from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
@@ -148,3 +155,20 @@ def standard_application():
 def draft_application():
     draft_application = DraftStandardApplicationFactory()
     return draft_application
+
+
+@then(parsers.parse("the {table_name} table is empty"))
+def empty_table(client, unpage_data, table_name):
+    metadata_url = reverse("data_workspace:v2:table-metadata")
+    response = client.get(metadata_url)
+    tables_metadata = response.json()["tables"]
+    for m in tables_metadata:
+        if m["table_name"] == table_name:
+            table_metadata = m
+            break
+    else:
+        pytest.fail(f"No table called {table_name} found")
+
+    table_data = unpage_data(table_metadata["endpoint"])
+
+    assert table_data == [], f"`{table_name}` table should be empty"
