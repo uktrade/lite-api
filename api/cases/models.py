@@ -846,5 +846,8 @@ class LicenceDecision(TimestampableModel):
     )
     denial_reasons = models.ManyToManyField(DenialReason)
 
+    class Meta:
+        ordering = ("created_at",)
+
     def __str__(self):
         return f"{self.case.reference_code} - {self.decision} ({self.created_at})"
