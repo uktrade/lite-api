@@ -48,17 +48,14 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         if licence_decision.decision in [LicenceDecisionType.REFUSED]:
             return None
 
-        licence_decisions = licence_decision.case.licence_decisions.all()
-        licence_decisions = [
-            ld for ld in licence_decision.case.licence_decisions.all() if ld.decision == LicenceDecisionType.ISSUED
-        ]
-        licence_decisions = sorted(licence_decisions, key=lambda ld: ld.created_at)
-        licence_decision = licence_decisions[-1]
+        latest_decision = licence_decision.case.licence_decisions.exclude(
+            excluded_from_statistics_reason__isnull=False
+        ).last()
 
-        if not licence_decision.licence:
+        if not latest_decision.licence:
             return None
 
-        return licence_decision.licence.pk
+        return latest_decision.licence.pk
 
 
 class CountrySerializer(serializers.ModelSerializer):
