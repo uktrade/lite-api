@@ -1,6 +1,10 @@
 import pytest
 
-from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
+from api.applications.tests.factories import (
+    GoodOnApplicationFactory,
+    StandardApplicationFactory,
+    PartyOnApplicationFactory,
+)
 from api.cases.enums import AdviceType
 from api.cases.tests.factories import FinalAdviceFactory
 from api.goods.tests.factories import GoodFactory
@@ -36,6 +40,7 @@ def standard_licence():
     application = StandardApplicationFactory(
         status=CaseStatus.objects.get(status=CaseStatusEnum.FINALISED),
     )
+    party_on_application = PartyOnApplicationFactory(application=application)
     good = GoodFactory(organisation=application.organisation)
     good_on_application = GoodOnApplicationFactory(
         application=application, good=good, quantity=100.0, value=1500, unit=Units.NAR
