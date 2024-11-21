@@ -1,5 +1,6 @@
 from health_check.views import MainView
 from django.http import HttpResponse
+from rest_framework import status
 
 
 class HealthCheckPingdomView(MainView):
@@ -13,8 +14,7 @@ class HealthCheckPingdomView(MainView):
 
 class ServiceAvailableHealthCheckView(MainView):
     def get(self, request, *args, **kwargs):
-        status = 200
-        return self.render_to_response(status)
+        return self.render_to_response()
 
-    def render_to_response(self, status):
-        return HttpResponse("STATUS OK" if status == 200 else "STATUS NOT OK", status=status)
+    def render_to_response(self):
+        return HttpResponse(status.HTTP_200_OK)
