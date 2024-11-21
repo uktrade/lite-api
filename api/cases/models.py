@@ -399,12 +399,22 @@ class Case(TimestampableModel):
                 ):
                     previous_decision = previous_licence_decision
 
-                LicenceDecision.objects.create(
+                licence_decision = LicenceDecision.objects.create(
                     case=self,
                     decision=LicenceDecisionType.advice_type_to_decision(advice_type),
                     licence=licence,
                     previous_decision=previous_decision,
                 )
+
+                if advice_type == AdviceType.REFUSE:
+                    denial_reasons = (
+                        self.advice.filter(team_id="58e77e47-42c8-499f-a58d-94f94541f8c6")
+                        .only("denial_reasons__id")
+                        .order_by()
+                        .distinct()
+                        .values_list("denial_reasons__id", flat=True)
+                    )
+                    licence_decision.denial_reasons.set(denial_reasons)
 
             licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
             audit_trail_service.create(
@@ -828,6 +838,7 @@ class LicenceDecision(TimestampableModel):
     previous_decision = models.ForeignKey(
         "self", related_name="previous_decisions", default=None, null=True, on_delete=models.DO_NOTHING
     )
+    denial_reasons = models.ManyToManyField(DenialReason)
 
     def __str__(self):
         return f"{self.case.reference_code} - {self.decision} ({self.created_at})"
