@@ -66,6 +66,13 @@ def test_healthcheck_down(client, backends):
     )
 
 
+"""
+The tests below expect a 200 response whether healthchecks produce a healthy
+response or not as the url is used by DBT platform pipeline to check that
+the django app is alive.
+"""
+
+
 def test_service_available_check_broken(client, backends):
     backends.reset()
     backends.register(HealthCheckBroken)
