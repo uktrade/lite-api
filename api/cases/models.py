@@ -388,8 +388,7 @@ class Case(TimestampableModel):
             # NLR is not considered as licence decision
             if advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]:
                 decision = LicenceDecisionType.advice_type_to_decision(advice_type)
-                all_licence_decisions = self.licence_decisions.all().order_by("created_at")
-                previous_licence_decision = all_licence_decisions.last()
+                previous_licence_decision = self.licence_decisions.last()
 
                 previous_decision = None
                 current_decision = decision

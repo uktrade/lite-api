@@ -36,7 +36,6 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
 
         latest_decision = (
             licence_decision.case.licence_decisions.exclude(excluded_from_statistics_reason__isnull=False)
-            .order_by("created_at")
             .last()
         )
 
