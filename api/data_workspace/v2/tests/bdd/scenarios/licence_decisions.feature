@@ -70,6 +70,6 @@ Scenario: Licence issued after an appeal and re-issued again
     And the licence for the case is approved
     And case officer generates licence documents
     And case officer issues licence for this case
-    Then a licence decision with an issued decision is created
+    Then a licence decision with an issued_on_appeal decision is created
     When I fetch all licence decisions
     Then I see issued licence is included in the extract
