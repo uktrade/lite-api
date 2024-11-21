@@ -1,5 +1,6 @@
 import pytest
 
+from api.applications.models import PartyOnApplication
 from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     StandardApplicationFactory,
@@ -75,3 +76,13 @@ def standard_case_with_final_advice(lu_case_officer):
 def standard_case_with_refused_advice(lu_case_officer, standard_case_with_final_advice):
     standard_case_with_final_advice.advice.update(type=AdviceType.REFUSE)
     return standard_case_with_final_advice
+
+
+@pytest.fixture()
+def licence_with_deleted_party(standard_licence):
+    licence = standard_licence
+    application = licence.case.baseapplication
+    old_party_on_application = PartyOnApplication.objects.get(application=application)
+    new_party_on_application = PartyOnApplicationFactory(application=application)
+    old_party_on_application.delete()
+    return licence

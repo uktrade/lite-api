@@ -34,3 +34,38 @@ def country_code_and_type_included_in_extract(destinations):
 
     destination = {"application_id": application_id, "country_code": country_code, "type": party_type}
     assert destination in destinations
+
+
+@given("a licence with deleted party is created", target_fixture="licence_with_deleted_party")
+def licence_with_deleted_party_created(licence_with_deleted_party):
+    assert licence_with_deleted_party.status == LicenceStatus.ISSUED
+    application = licence_with_deleted_party.case.baseapplication
+    assert PartyOnApplication.objects.filter(application=application).count() == 2
+
+
+@then("the existing party is included in the extract")
+def existing_party_included_in_extract(destinations):
+    existing_party_on_application = PartyOnApplication.objects.get(deleted_at__isnull=True)
+    application_id = existing_party_on_application.application.id
+    country_code = existing_party_on_application.party.country.id
+    party_type = existing_party_on_application.party.type
+
+    assert PartyOnApplication.objects.filter(application_id=application_id).count() == 2
+
+    destination = {"application_id": application_id, "country_code": country_code, "type": party_type}
+    assert destination in destinations
+    assert len(destinations) == 1
+
+
+@then("the deleted party is not included in the extract")
+def deleted_party_not_included_in_extract(destinations):
+    deleted_party_on_application = PartyOnApplication.objects.get(deleted_at__isnull=False)
+    application_id = deleted_party_on_application.application.id
+    country_code = deleted_party_on_application.party.country.id
+    party_type = deleted_party_on_application.party.type
+
+    assert PartyOnApplication.objects.filter(application_id=application_id).count() == 2
+
+    destination = {"application_id": application_id, "country_code": country_code, "type": party_type}
+    assert destination not in destinations
+    assert len(destinations) == 1
