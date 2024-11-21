@@ -5,7 +5,11 @@ from api.core.permissions import assert_user_in_role
 
 class CanCaseworkersManageUser(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.data.get("default_queue") and len(request.data) < 2:
-            return True
-        else:
-            return assert_user_in_role(request.user.govuser, Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        return assert_user_in_role(request.user.govuser, Roles.INTERNAL_SUPER_USER_ROLE_ID)
+
+
+class CanUserManageQueue(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user_managing_self = request.user.govuser.pk == view.kwargs["pk"]
+        user_managing_queue = list(request.data.keys()) == ["default_queue"]
+        return user_managing_self and user_managing_queue

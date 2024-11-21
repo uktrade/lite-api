@@ -8,6 +8,7 @@ from api.gov_users.enums import GovUserStatuses
 from api.organisations.enums import OrganisationStatus, OrganisationType
 from api.organisations.tests.factories import OrganisationFactory, SiteFactory
 from api.queues.constants import MY_TEAMS_QUEUES_CASES_ID
+from api.queues.tests.factories import QueueFactory
 from api.users.models import Role
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import generate_key_value_pair
@@ -89,12 +90,25 @@ class UserCaseWorkerTests(DataTestClient):
             "team": str(self.team.id),
             "default_queue": str(MY_TEAMS_QUEUES_CASES_ID),
         }
+        self.gov_user_edit = GovUserFactory()
+        self.update_url = reverse("caseworker_gov_users:update", kwargs={"pk": self.gov_user_edit.pk})
 
     def test_gov_user_list_all(self):
         url = reverse("caseworker_gov_users:list")
         response = self.client.get(url, **self.gov_headers, data={})
+        response_json = response.json()
         assert response.status_code == 200
-        assert response.json()["count"] == 2
+        assert response_json["count"] == 3
+        assert list(response_json["results"][0].keys()) == [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "status",
+            "team",
+            "role",
+            "default_queue",
+        ]
 
     def test_gov_user_list_no_permission(self):
         url = reverse("caseworker_gov_users:list")
@@ -102,22 +116,44 @@ class UserCaseWorkerTests(DataTestClient):
         assert response.status_code == 403
 
     def test_gov_user_update_sucessfull(self):
-        gov_user = GovUserFactory()
 
-        url = reverse("caseworker_gov_users:update", kwargs={"pk": gov_user.pk})
-        response = self.client.put(url, **self.gov_headers, data=self.data)
-        gov_user_response = response.json()["gov_user"]
-        gov_user.refresh_from_db()
+        response = self.client.patch(self.update_url, **self.gov_headers, data=self.data)
         assert response.status_code == 200
+
+        gov_user_response = response.json()
+        self.gov_user_edit.refresh_from_db()
 
         for key, value in self.data.items():
             assert gov_user_response[key] == value
 
+    def test_gov_user_update_queue_non_exist(self):
+        self.data["default_queue"] = "35cf631f-bf84-43ce-b029-e3f51ba43349"
+
+        response = self.client.patch(self.update_url, **self.gov_headers, data=self.data)
+
+        assert response.status_code == 400
+        assert response.json()["errors"] == {"default_queue": ["select a valid queue"]}
+
+    def test_gov_user_update_queue_incorrect_team(self):
+        self.data["default_queue"] = str(QueueFactory().id)
+
+        response = self.client.patch(self.update_url, **self.gov_headers, data=self.data)
+
+        assert response.status_code == 400
+        assert response.json()["errors"] == {"default_queue": ["select a valid queue for team"]}
+
+    def test_gov_user_update_existing_email(self):
+        self.data["email"] = self.gov_user.email
+        response = self.client.patch(self.update_url, **self.gov_headers, data=self.data)
+
+        assert response.status_code == 400
+        assert response.json()["errors"] == {"email": {"email": ["This email has already been registered"]}}
+
     def test_gov_user_update_bad_data(self):
-        gov_user = GovUserFactory()
         self.data["status"] = "bad_status"
-        url = reverse("caseworker_gov_users:update", kwargs={"pk": gov_user.pk})
-        response = self.client.put(url, **self.gov_headers, data=self.data)
+
+        response = self.client.put(self.update_url, **self.gov_headers, data=self.data)
+
         assert response.status_code == 400
         assert response.json()["errors"] == {"status": ['"bad_status" is not a valid choice.']}
 
@@ -126,7 +162,7 @@ class UserCaseWorkerTests(DataTestClient):
             (Roles.INTERNAL_SUPER_USER_ROLE_ID, {"email": "update@update.me"}, 200),
             (Roles.INTERNAL_SUPER_USER_ROLE_ID, {"role": Roles.INTERNAL_SUPER_USER_ROLE_ID}, 200),
             (Roles.INTERNAL_SUPER_USER_ROLE_ID, {"default_queue": str(MY_TEAMS_QUEUES_CASES_ID)}, 200),
-            (Roles.INTERNAL_DEFAULT_ROLE_ID, {"default_queue": str(MY_TEAMS_QUEUES_CASES_ID)}, 200),
+            (Roles.INTERNAL_DEFAULT_ROLE_ID, {"default_queue": str(MY_TEAMS_QUEUES_CASES_ID)}, 403),
             (
                 Roles.INTERNAL_DEFAULT_ROLE_ID,
                 {"role": Roles.INTERNAL_SUPER_USER_ROLE_ID, "default_queue": str(MY_TEAMS_QUEUES_CASES_ID)},
@@ -135,25 +171,36 @@ class UserCaseWorkerTests(DataTestClient):
         ]
     )
     def test_gov_user_update_permission(self, role_id, data, expected_status):
-
-        edit_user = GovUserFactory()
         self.gov_user.role = Role.objects.get(id=role_id)
         self.gov_user.save()
-        url = reverse("caseworker_gov_users:update", kwargs={"pk": edit_user.pk})
-        response = self.client.put(url, **self.gov_headers, data=data)
+        response = self.client.patch(self.update_url, **self.gov_headers, data=data)
+        assert response.status_code == expected_status
+
+    @parameterized.expand(
+        [
+            ({"default_queue": str(MY_TEAMS_QUEUES_CASES_ID)}, 200),
+            (
+                {"role": Roles.INTERNAL_SUPER_USER_ROLE_ID, "default_queue": str(MY_TEAMS_QUEUES_CASES_ID)},
+                403,
+            ),
+        ]
+    )
+    def test_gov_user_update_self_non_super_user_permission(self, data, expected_status):
+        self.gov_user.role = Role.objects.get(id=Roles.INTERNAL_DEFAULT_ROLE_ID)
+        self.gov_user.save()
+        url = reverse("caseworker_gov_users:update", kwargs={"pk": self.gov_user.pk})
+        response = self.client.patch(url, **self.gov_headers, data=data)
         assert response.status_code == expected_status
 
     @parameterized.expand([(GovUserStatuses.DEACTIVATED, 0), (GovUserStatuses.ACTIVE, 1)])
     def test_gov_user_deactivate(self, user_status, expected):
-        edit_user = GovUserFactory()
         self.case.queues.set([self.queue])
-        self.create_case_assignment(self.queue, self.case, [edit_user])
+        self.create_case_assignment(self.queue, self.case, [self.gov_user_edit])
 
-        assert edit_user.case_assignments.all().count() == 1
+        assert self.gov_user_edit.case_assignments.all().count() == 1
 
-        url = reverse("caseworker_gov_users:update", kwargs={"pk": edit_user.pk})
-        response = self.client.put(url, **self.gov_headers, data={"status": user_status})
+        response = self.client.patch(self.update_url, **self.gov_headers, data={"status": user_status})
         assert response.status_code == 200
-        edit_user.refresh_from_db()
-        assert edit_user.status == user_status
-        assert edit_user.case_assignments.all().count() == expected
+        self.gov_user_edit.refresh_from_db()
+        assert self.gov_user_edit.status == user_status
+        assert self.gov_user_edit.case_assignments.all().count() == expected
