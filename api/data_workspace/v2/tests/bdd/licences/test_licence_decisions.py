@@ -294,12 +294,7 @@ def case_ready_to_be_finalised_after_amending_licence(client, lu_case_officer_he
 
 @then("a licence decision with an issued_on_appeal decision is created")
 def licence_decision_issued_on_appeal_created(issued_licence):
-    assert LicenceDecision.objects.filter(
-        case=issued_licence.case,
-        decision=LicenceDecisionType.REFUSED,
-    ).exists()
+    all_licence_decisions = LicenceDecision.objects.filter(case=issued_licence.case).order_by("created_at")
 
-    assert LicenceDecision.objects.filter(
-        case=issued_licence.case,
-        decision=LicenceDecisionType.ISSUED_ON_APPEAL,
-    ).exists()
+    assert all_licence_decisions.first().decision == LicenceDecisionType.REFUSED
+    assert all(item.decision == LicenceDecisionType.ISSUED_ON_APPEAL for item in all_licence_decisions[1:])
