@@ -46,6 +46,7 @@ from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.units.enums import Units
@@ -165,16 +166,8 @@ class GoodOnLicenceViewSet(BaseViewSet):
 
 class LicenceRefusalCriteriaViewSet(BaseViewSet):
     serializer_class = LicenceRefusalCriteriaSerializer
-    queryset = (
-        Advice.objects.filter(
-            case__licence_decisions__decision="refused",
-            team_id="58e77e47-42c8-499f-a58d-94f94541f8c6",  # Just care about LU advice
-        )
-        .only("denial_reasons__display_value", "case__licence_decisions__id")
-        .exclude(denial_reasons__display_value__isnull=True)  # This removes refusals without any criteria
-        .values("denial_reasons__display_value", "case__licence_decisions__id")
-        .order_by()  # We need to remove the order_by to make sure the distinct works
-        .distinct()
+    queryset = DenialReason.objects.exclude(licencedecision__denial_reasons__isnull=True).annotate(
+        licence_decisions_id=F("licencedecision__id")
     )
 
 

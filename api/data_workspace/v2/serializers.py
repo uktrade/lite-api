@@ -10,6 +10,7 @@ from api.cases.models import LicenceDecision
 from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
 
@@ -184,9 +185,13 @@ class GoodDescriptionSerializer(serializers.ModelSerializer):
         )
 
 
-class LicenceRefusalCriteriaSerializer(serializers.Serializer):
-    criteria = serializers.CharField(source="denial_reasons__display_value")
-    licence_decision_id = serializers.UUIDField(source="case__licence_decisions__id")
+class LicenceRefusalCriteriaSerializer(serializers.ModelSerializer):
+    criteria = serializers.CharField(source="display_value")
+    licence_decision_id = serializers.UUIDField(source="licence_decisions_id")
+
+    class Meta:
+        model = DenialReason
+        fields = ("criteria", "licence_decision_id")
 
 
 class FootnoteSerializer(serializers.Serializer):
