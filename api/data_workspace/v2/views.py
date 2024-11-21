@@ -1,3 +1,5 @@
+import itertools
+
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
@@ -7,8 +9,10 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer
 
 from django.db.models import (
     F,
+    Min,
     Q,
 )
+from django.db.models.query import QuerySet
 from django.http import Http404
 
 from api.applications.models import (
@@ -16,6 +20,8 @@ from api.applications.models import (
     PartyOnApplication,
     StandardApplication,
 )
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.cases.models import (
     Advice,
     LicenceDecision,
@@ -77,6 +83,42 @@ class ApplicationViewSet(BaseViewSet):
         .select_related("case_type", "status")
         .prefetch_related("goods", "licence_decisions")
     )
+
+    def get_first_closed_statuses(self, queryset):
+        status_map = dict(CaseStatusEnum.choices)
+        closed_statuses = itertools.chain.from_iterable(
+            (status, status_map[status]) for status in CaseStatusEnum.closed_statuses()
+        )
+        application_ids = []
+        if isinstance(queryset, list):
+            application_ids = [str(s.pk) for s in queryset]
+        elif isinstance(queryset, QuerySet):
+            application_ids = [str(pk) for pk in queryset.values_list("pk", flat=True)]
+
+        first_closed_status_updates = (
+            Audit.objects.filter(
+                target_object_id__in=application_ids,
+                verb=AuditType.UPDATED_STATUS,
+                payload__status__new__in=closed_statuses,
+            )
+            .annotate(first_closed_date=Min("created_at"))
+            .values_list("target_object_id", "first_closed_date")
+        )
+
+        return dict(first_closed_status_updates)
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+
+        context = self.get_serializer_context()
+
+        if args and isinstance(args[0], (QuerySet, list)) and kwargs.get("many", False):
+            context["first_closed_statuses"] = self.get_first_closed_statuses(args[0])
+        elif args and isinstance(args[0], StandardApplication):
+            context["first_closed_statuses"] = self.get_first_closed_statuses([args[0]])
+        kwargs.setdefault("context", context)
+
+        return serializer_class(*args, **kwargs)
 
 
 class CountryViewSet(BaseViewSet):

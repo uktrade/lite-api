@@ -1,5 +1,3 @@
-import itertools
-
 from rest_framework import serializers
 
 from api.applications.models import (
@@ -7,8 +5,6 @@ from api.applications.models import (
     PartyOnApplication,
     StandardApplication,
 )
-from api.audit_trail.enums import AuditType
-from api.audit_trail.models import Audit
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import LicenceDecision
 from api.licences.models import GoodOnLicence
@@ -112,17 +108,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
                     earliest = licence_decision.created_at
             return earliest
 
-        status_map = dict(CaseStatusEnum.choices)
-        closed_statuses = itertools.chain.from_iterable(
-            (status, status_map[status]) for status in CaseStatusEnum.closed_statuses()
-        )
-        closed_status_updates = Audit.objects.filter(
-            target_object_id=application.pk,
-            verb=AuditType.UPDATED_STATUS,
-            payload__status__new__in=closed_statuses,
-        )
-        if closed_status_updates.exists():
-            return closed_status_updates.earliest("created_at").created_at
+        first_closed_status = self.context["first_closed_statuses"].get(str(application.pk))
+        if first_closed_status:
+            return first_closed_status
 
         return None
 
