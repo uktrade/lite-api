@@ -86,8 +86,8 @@ class ApplicationViewSet(BaseViewSet):
 
     def get_first_closed_statuses(self, queryset):
         status_map = dict(CaseStatusEnum.choices)
-        closed_statuses = itertools.chain.from_iterable(
-            (status, status_map[status]) for status in CaseStatusEnum.closed_statuses()
+        closed_statuses = list(
+            itertools.chain.from_iterable((status, status_map[status]) for status in CaseStatusEnum.closed_statuses())
         )
         application_ids = []
         if isinstance(queryset, list):
