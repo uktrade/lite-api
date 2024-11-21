@@ -1,3 +1,5 @@
+import itertools
+
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
@@ -7,8 +9,10 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer
 
 from django.db.models import (
     F,
+    Min,
     Q,
 )
+from django.db.models.query import QuerySet
 from django.http import Http404
 
 from api.applications.models import (
@@ -16,6 +20,8 @@ from api.applications.models import (
     PartyOnApplication,
     StandardApplication,
 )
+from api.audit_trail.enums import AuditType
+from api.audit_trail.models import Audit
 from api.cases.models import (
     Advice,
     LicenceDecision,
@@ -33,12 +39,14 @@ from api.data_workspace.v2.serializers import (
     GoodRatingSerializer,
     LicenceDecisionSerializer,
     LicenceRefusalCriteriaSerializer,
+    StatusSerializer,
     UnitSerializer,
 )
 from api.licences.enums import LicenceStatus
 from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.units.enums import Units
@@ -73,9 +81,45 @@ class ApplicationViewSet(BaseViewSet):
     serializer_class = ApplicationSerializer
     queryset = (
         StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)
-        .select_related("case_type")
-        .prefetch_related("goods")
+        .select_related("case_type", "status")
+        .prefetch_related("goods", "licence_decisions")
     )
+
+    def get_first_closed_statuses(self, queryset):
+        status_map = dict(CaseStatusEnum.choices)
+        closed_statuses = list(
+            itertools.chain.from_iterable((status, status_map[status]) for status in CaseStatusEnum.closed_statuses())
+        )
+        application_ids = []
+        if isinstance(queryset, list):
+            application_ids = [str(s.pk) for s in queryset]
+        elif isinstance(queryset, QuerySet):
+            application_ids = [str(pk) for pk in queryset.values_list("pk", flat=True)]
+
+        first_closed_status_updates = (
+            Audit.objects.filter(
+                target_object_id__in=application_ids,
+                verb=AuditType.UPDATED_STATUS,
+                payload__status__new__in=closed_statuses,
+            )
+            .annotate(first_closed_date=Min("created_at"))
+            .values_list("target_object_id", "first_closed_date")
+        )
+
+        return dict(first_closed_status_updates)
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+
+        context = self.get_serializer_context()
+
+        if args and isinstance(args[0], (QuerySet, list)) and kwargs.get("many", False):
+            context["first_closed_statuses"] = self.get_first_closed_statuses(args[0])
+        elif args and isinstance(args[0], StandardApplication):
+            context["first_closed_statuses"] = self.get_first_closed_statuses([args[0]])
+        kwargs.setdefault("context", context)
+
+        return serializer_class(*args, **kwargs)
 
 
 class CountryViewSet(BaseViewSet):
@@ -122,16 +166,8 @@ class GoodOnLicenceViewSet(BaseViewSet):
 
 class LicenceRefusalCriteriaViewSet(BaseViewSet):
     serializer_class = LicenceRefusalCriteriaSerializer
-    queryset = (
-        Advice.objects.filter(
-            case__licence_decisions__decision="refused",
-            team_id="58e77e47-42c8-499f-a58d-94f94541f8c6",  # Just care about LU advice
-        )
-        .only("denial_reasons__display_value", "case__licence_decisions__id")
-        .exclude(denial_reasons__display_value__isnull=True)  # This removes refusals without any criteria
-        .values("denial_reasons__display_value", "case__licence_decisions__id")
-        .order_by()  # We need to remove the order_by to make sure the distinct works
-        .distinct()
+    queryset = DenialReason.objects.exclude(licencedecision__denial_reasons__isnull=True).annotate(
+        licence_decisions_id=F("licencedecision__id")
     )
 
 
@@ -161,3 +197,21 @@ class UnitViewSet(viewsets.ViewSet):
         except KeyError:
             raise Http404()
         return Response(UnitSerializer({"code": pk, "description": description}).data)
+
+
+class StatusViewSet(viewsets.ViewSet):
+    authentication_classes = (DataWorkspaceOnlyAuthentication,)
+    pagination_class = DisableableLimitOffsetPagination
+    renderer_classes = tuple(api_settings.DEFAULT_RENDERER_CLASSES) + (PaginatedCSVRenderer,)
+
+    def list(self, request):
+        statuses = [{"status": status, "name": name} for status, name in CaseStatusEnum.choices]
+        return Response(StatusSerializer(statuses, many=True).data)
+
+    def retrieve(self, request, pk):
+        statuses = dict(CaseStatusEnum.choices)
+        try:
+            name = statuses[pk]
+        except KeyError:
+            raise Http404()
+        return Response(StatusSerializer({"status": pk, "name": name}).data)

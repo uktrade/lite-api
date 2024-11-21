@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-
 from api.applications.models import (
     GoodOnApplication,
     PartyOnApplication,
@@ -11,7 +10,9 @@ from api.cases.models import LicenceDecision
 from api.licences.models import GoodOnLicence
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
+from api.staticdata.denial_reasons.models import DenialReason
 from api.staticdata.report_summaries.models import ReportSummary
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -39,12 +40,15 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             .last()
         )
 
-        return latest_decision.licence.id if latest_decision.licence else ""
+        return latest_decision.licence.id if latest_decision.licence else None
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
     licence_type = serializers.CharField(source="case_type.reference")
     sub_type = serializers.SerializerMethodField()
+    status = serializers.CharField(source="status.status")
+    processing_time = serializers.IntegerField(source="sla_days")
+    first_closed_at = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -53,6 +57,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "licence_type",
             "reference_code",
             "sub_type",
+            "status",
+            "processing_time",
+            "first_closed_at",
         )
 
     def get_sub_type(self, application):
@@ -63,6 +70,23 @@ class ApplicationSerializer(serializers.ModelSerializer):
             return application.export_type
 
         raise Exception("Unknown sub-type")
+
+    def get_first_closed_at(self, application):
+        if application.licence_decisions.exists():
+            earliest = None
+            for licence_decision in application.licence_decisions.all():
+                if not earliest:
+                    earliest = licence_decision.created_at
+                    continue
+                if licence_decision.created_at < earliest:
+                    earliest = licence_decision.created_at
+            return earliest
+
+        first_closed_status = self.context["first_closed_statuses"].get(str(application.pk))
+        if first_closed_status:
+            return first_closed_status
+
+        return None
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -134,9 +158,13 @@ class GoodDescriptionSerializer(serializers.ModelSerializer):
         )
 
 
-class LicenceRefusalCriteriaSerializer(serializers.Serializer):
-    criteria = serializers.CharField(source="denial_reasons__display_value")
-    licence_decision_id = serializers.UUIDField(source="case__licence_decisions__id")
+class LicenceRefusalCriteriaSerializer(serializers.ModelSerializer):
+    criteria = serializers.CharField(source="display_value")
+    licence_decision_id = serializers.UUIDField(source="licence_decisions_id")
+
+    class Meta:
+        model = DenialReason
+        fields = ("criteria", "licence_decision_id")
 
 
 class FootnoteSerializer(serializers.Serializer):
@@ -149,3 +177,12 @@ class FootnoteSerializer(serializers.Serializer):
 class UnitSerializer(serializers.Serializer):
     code = serializers.CharField()
     description = serializers.CharField()
+
+
+class StatusSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    name = serializers.CharField()
+    is_closed = serializers.SerializerMethodField()
+
+    def get_is_closed(self, status):
+        return CaseStatusEnum.is_closed(status["status"])

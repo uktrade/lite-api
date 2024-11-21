@@ -70,3 +70,9 @@ router_v2.register(
     views.UnitViewSet,
     basename="dw-units",
 )
+
+router_v2.register(
+    "statuses",
+    views.StatusViewSet,
+    basename="dw-statuses",
+)
