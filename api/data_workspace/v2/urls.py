@@ -10,3 +10,5 @@ router_v2.register(
     views.LicenceDecisionViewSet,
     basename="dw-licence-decisions",
 )
+
+router_v2.register("countries", views.CountryViewSet, basename="dw-countries")

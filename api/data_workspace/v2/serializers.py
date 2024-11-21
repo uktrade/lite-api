@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import Case
+from api.staticdata.countries.models import Country
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -31,3 +32,11 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             .earliest("created_at")
             .created_at
         )
+
+
+class CountrySerializer(serializers.ModelSerializer):
+    code = serializers.CharField(source="id")
+
+    class Meta:
+        model = Country
+        fields = ("code", "name")
