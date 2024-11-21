@@ -34,6 +34,9 @@ class BaseViewSet(viewsets.ReadOnlyModelViewSet):
 class LicenceDecisionViewSet(BaseViewSet):
     serializer_class = LicenceDecisionSerializer
 
+    class DataWorkspace:
+        table_name = "licence_decisions"
+
     def get_queryset(self):
         queryset = (
             (
@@ -65,3 +68,6 @@ class LicenceDecisionViewSet(BaseViewSet):
 class CountryViewSet(BaseViewSet):
     serializer_class = CountrySerializer
     queryset = Country.objects.all().order_by("id", "name")
+
+    class DataWorkspace:
+        table_name = "countries"

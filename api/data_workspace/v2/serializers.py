@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 
 from api.cases.enums import LicenceDecisionType
@@ -18,10 +20,10 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             "decision_made_at",
         )
 
-    def get_decision(self, case):
+    def get_decision(self, case) -> str:
         return case.decision
 
-    def get_decision_made_at(self, case):
+    def get_decision_made_at(self, case) -> datetime.datetime:
         if case.decision not in LicenceDecisionType.decisions():
             raise ValueError(f"Unknown decision type `{case.decision}`")  # pragma: no cover
 
