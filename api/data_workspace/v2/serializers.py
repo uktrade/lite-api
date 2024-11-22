@@ -85,6 +85,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
     licence_type = serializers.CharField(source="case_type.reference")
     status = serializers.CharField(source="status.status")
     processing_time = serializers.IntegerField(source="sla_days")
+    sub_type = serializers.CharField(source="export_type")
 
     class Meta:
         model = StandardApplication
@@ -92,6 +93,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "id",
             "licence_type",
             "reference_code",
+            "sub_type",
             "status",
             "processing_time",
         )
