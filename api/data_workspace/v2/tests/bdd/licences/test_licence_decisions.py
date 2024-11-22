@@ -292,6 +292,20 @@ def case_ready_to_be_finalised_after_amending_licence(client, lu_case_officer_he
     return case_with_final_advice
 
 
+@when("a licence needs refusing and case is ready to be finalised", target_fixture="case_with_refused_advice")
+def case_ready_to_be_finalised_after_refusing_licence(client, lu_case_officer_headers, issued_licence):
+    case_with_final_advice = issued_licence.case
+    assert case_with_final_advice.status == CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
+
+    case_with_final_advice.advice.filter(level=AdviceLevel.FINAL).update(
+        type=AdviceType.REFUSE,
+        text="refusing licence",
+    )
+
+    case_with_final_advice = case_reopen_prepare_to_finalise(client, lu_case_officer_headers, case_with_final_advice)
+
+    return case_with_final_advice
+
 @then("a licence decision with an issued_on_appeal decision is created")
 def licence_decision_issued_on_appeal_created(issued_licence):
     all_licence_decisions = LicenceDecision.objects.filter(case=issued_licence.case)

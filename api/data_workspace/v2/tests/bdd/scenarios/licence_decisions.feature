@@ -9,6 +9,7 @@ Scenario: Check that cancelled licences are not included in the extract
     Given a standard licence is cancelled
     Then the cancelled licence is not included in the extract
 
+# [ISSUED]
 Scenario: Issued licence decision is created when licence is issued
     Given a case is ready to be finalised
     When the licence for the case is approved
@@ -18,6 +19,7 @@ Scenario: Issued licence decision is created when licence is issued
     When I fetch all licence decisions
     Then I see issued licence is included in the extract
 
+# [REFUSED]
 Scenario: Refused licence decision is created when licence is refused
     Given a case is ready to be refused
     When the licence for the case is refused
@@ -27,6 +29,7 @@ Scenario: Refused licence decision is created when licence is refused
     When I fetch all licence decisions
     Then I see refused case is included in the extract
 
+# [ISSUED, REVOKED]
 Scenario: Revoked licence decision is created when licence is revoked
     Given a case is ready to be finalised
     When the licence for the case is approved
@@ -37,6 +40,7 @@ Scenario: Revoked licence decision is created when licence is revoked
     And I fetch all licence decisions
     Then I see revoked licence is included in the extract
 
+# [REFUSED, ISSUED_ON_APPEAL]
 Scenario: Licence issued after an appeal is recorded as issued_on_appeal
     Given a case is ready to be refused
     When the licence for the case is refused
@@ -52,6 +56,7 @@ Scenario: Licence issued after an appeal is recorded as issued_on_appeal
     When I fetch all licence decisions
     Then I see issued licence is included in the extract
 
+# [REFUSED, ISSUED_ON_APPEAL, ISSUED_ON_APPEAL]
 Scenario: Licence issued after an appeal and re-issued again
     Given a case is ready to be refused
     When the licence for the case is refused
@@ -73,3 +78,19 @@ Scenario: Licence issued after an appeal and re-issued again
     Then a licence decision with an issued_on_appeal decision is created
     When I fetch all licence decisions
     Then I see issued licence is included in the extract
+
+# [ISSUED, REFUSED]
+Scenario: Licence is issued and refused case
+    Given a case is ready to be finalised
+    When the licence for the case is approved
+    And case officer generates licence documents
+    And case officer issues licence for this case
+    Then a licence decision with an issued decision is created
+    When I fetch all licence decisions
+    Then I see issued licence is included in the extract
+    When a licence needs refusing and case is ready to be finalised
+    And the licence for the case is refused
+    And case officer generates refusal documents
+    And case officer refuses licence for this case
+    When I fetch all licence decisions
+    Then I see refused case is included in the extract
