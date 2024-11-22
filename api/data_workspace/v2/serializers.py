@@ -10,8 +10,8 @@ from api.staticdata.countries.models import Country
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
-    application_id = serializers.CharField(source="case.id")
-    decision_made_at = serializers.CharField(source="created_at")
+    application_id = serializers.UUIDField(source="case.id")
+    decision_made_at = serializers.DateTimeField(source="created_at")
     licence_id = serializers.SerializerMethodField()
 
     class Meta:

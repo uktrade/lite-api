@@ -74,6 +74,11 @@ def get_fields(view):
             if field.allow_null:
                 field_metadata["nullable"] = True
 
+        elif isinstance(field, serializers.DateTimeField):
+            field_metadata["type"] = "DateTime"
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
         elif isinstance(field, serializers.CharField):
             field_metadata["type"] = "String"
             if field.allow_null:
