@@ -34,10 +34,9 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         if licence_decision.decision in [LicenceDecisionType.REFUSED, LicenceDecisionType.REVOKED]:
             return ""
 
-        latest_decision = (
-            licence_decision.case.licence_decisions.exclude(excluded_from_statistics_reason__isnull=False)
-            .last()
-        )
+        latest_decision = licence_decision.case.licence_decisions.exclude(
+            excluded_from_statistics_reason__isnull=False
+        ).last()
 
         return latest_decision.licence.id if latest_decision.licence else None
 
