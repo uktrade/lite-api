@@ -237,6 +237,21 @@ def parse_table(data_table):
     return parsed_data_table
 
 
+def cast_to_types(data, fields_metadata):
+    fields_metadata = {field["name"]: field for field in fields_metadata}
+
+    cast_data = []
+    for row in data:
+        cast_row = row.copy()
+        for key, value in cast_row.items():
+            field_metadata = fields_metadata[key]
+            if field_metadata["type"] == "Integer":
+                cast_row[key] = int(value)
+        cast_data.append(cast_row)
+
+    return cast_data
+
+
 @then(parsers.parse("the `{table_name}` table has the following rows:{rows}"))
 def check_rows(client, unpage_data, table_name, rows):
     metadata_url = reverse("data_workspace:v2:table-metadata")
@@ -251,5 +266,6 @@ def check_rows(client, unpage_data, table_name, rows):
 
     actual_data = unpage_data(table_metadata["endpoint"])
     expected_data = parse_table(rows)
+    expected_data = cast_to_types(expected_data, table_metadata["fields"])
 
     assert actual_data == expected_data
