@@ -16,6 +16,7 @@ test_router.register(views.CharFieldViewSet)
 test_router.register(views.SerializerMethodFieldViewSet)
 test_router.register(views.FloatFieldViewSet)
 test_router.register(views.DecimalFieldViewSet)
+test_router.register(views.IntegerFieldViewSet)
 test_router.register(views.AutoPrimaryKeyViewSet)
 test_router.register(views.ExplicitPrimaryKeyViewSet)
 

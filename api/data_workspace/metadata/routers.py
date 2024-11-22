@@ -106,6 +106,11 @@ def get_fields(view):
             if field.allow_null:
                 field_metadata["nullable"] = True
 
+        elif isinstance(field, serializers.IntegerField):
+            field_metadata["type"] = "Integer"
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
         else:  # pragma: no cover
             raise NotImplementedError(f"Annotation not found for {field}")
 

@@ -104,6 +104,17 @@ class DecimalFieldViewSet(viewsets.ViewSet):
         return Response({})
 
 
+class IntegerFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "integer_field"
+
+    def get_serializer(self):
+        return serializers.IntegerFieldSerializer()
+
+    def list(self, request):
+        return Response({})
+
+
 class AutoPrimaryKeyViewSet(viewsets.ViewSet):
     class DataWorkspace:
         table_name = "auto_primary_key"
