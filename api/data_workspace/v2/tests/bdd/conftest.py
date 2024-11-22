@@ -7,6 +7,7 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
     StandardApplicationFactory,
+    DraftStandardApplicationFactory,
 )
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
@@ -141,3 +142,9 @@ def standard_application():
         application=application, good=good, quantity=100.0, value=1500, unit=Units.NAR
     )
     return application
+
+
+@pytest.fixture()
+def draft_application():
+    draft_application = DraftStandardApplicationFactory()
+    return draft_application
