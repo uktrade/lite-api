@@ -95,6 +95,11 @@ def get_fields(view):
                     f"Return type of {return_type} for {serializer.__class__.__name__}.{field.method_name} not handled"
                 )
 
+        elif isinstance(field, serializers.FloatField):
+            field_metadata["type"] = "Float"
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
         else:  # pragma: no cover
             raise NotImplementedError(f"Annotation not found for {field}")
 

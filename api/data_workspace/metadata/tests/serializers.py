@@ -38,6 +38,11 @@ class SerializerMethodFieldSerializer(serializers.Serializer):
         return None
 
 
+class FloatFieldSerializer(serializers.Serializer):
+    float_field = serializers.FloatField()
+    nullable_float_field = serializers.FloatField(allow_null=True)
+
+
 class AutoPrimaryKeySerializer(serializers.Serializer):
     id = serializers.UUIDField()
     not_a_primary_key = serializers.UUIDField()

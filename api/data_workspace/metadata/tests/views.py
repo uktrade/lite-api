@@ -82,6 +82,17 @@ class SerializerMethodFieldViewSet(viewsets.ViewSet):
         return Response({})
 
 
+class FloatFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "float_field"
+
+    def get_serializer(self):
+        return serializers.FloatFieldSerializer()
+
+    def list(self, request):
+        return Response({})
+
+
 class AutoPrimaryKeyViewSet(viewsets.ViewSet):
     class DataWorkspace:
         table_name = "auto_primary_key"
