@@ -91,6 +91,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "licence_type",
+            "reference_code",
             "status",
             "processing_time",
         )

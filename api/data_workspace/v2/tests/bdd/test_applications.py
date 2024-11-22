@@ -64,7 +64,8 @@ def given_a_draft_standard_application_with_attributes(organisation, attributes)
 
 
 @when("the application is submitted")
-def when_the_application_is_submitted(api_client, exporter_headers, draft_standard_application):
+def when_the_application_is_submitted(api_client, exporter_headers, draft_standard_application, mocker):
+    mocker.patch("api.cases.models.generate_reference_code", return_value="GBSIEL/2024/0000001/P")
     with mock_aws():
         s3 = init_s3_client()
         s3.create_bucket(
