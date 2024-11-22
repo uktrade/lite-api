@@ -11,6 +11,7 @@ from pytest_bdd import (
 from django.conf import settings
 from django.urls import reverse
 
+from api.applications.enums import ApplicationExportType
 from api.applications.tests.factories import DraftStandardApplicationFactory
 from api.documents.libraries.s3_operations import init_s3_client
 from api.parties.tests.factories import PartyDocumentFactory
@@ -63,9 +64,34 @@ def given_a_draft_standard_application_with_attributes(organisation, attributes)
     return application
 
 
+@given(
+    parsers.parse("a draft temporary standard application with attributes:{attributes}"),
+    target_fixture="draft_standard_application",
+)
+def given_a_draft_standard_application_with_attributes(organisation, attributes):
+    application = DraftStandardApplicationFactory(
+        export_type=ApplicationExportType.TEMPORARY,
+        temp_export_details="temporary export details",
+        is_temp_direct_control=True,
+        proposed_return_date="2025-05-11",
+        organisation=organisation,
+        **parse_attributes(attributes),
+    )
+
+    PartyDocumentFactory(
+        party=application.end_user.party,
+        s3_key="party-document",
+        safe=True,
+    )
+
+    return application
+
+
 @when("the application is submitted")
 def when_the_application_is_submitted(api_client, exporter_headers, draft_standard_application, mocker):
-    mocker.patch("api.cases.models.generate_reference_code", return_value="GBSIEL/2024/0000001/P")
+    type_code = "T" if draft_standard_application.export_type == ApplicationExportType.TEMPORARY else "P"
+    reference_code = f"GBSIEL/2024/0000001/{type_code}"
+    mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
     with mock_aws():
         s3 = init_s3_client()
         s3.create_bucket(
