@@ -1,4 +1,5 @@
 import datetime
+import typing
 
 from rest_framework import serializers
 
@@ -86,6 +87,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source="status.status")
     processing_time = serializers.IntegerField(source="sla_days")
     sub_type = serializers.SerializerMethodField()
+    first_closed_at = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -96,6 +98,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "sub_type",
             "status",
             "processing_time",
+            "first_closed_at",
         )
 
     def get_sub_type(self, application) -> str:
@@ -106,3 +109,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
             return application.export_type
 
         raise Exception("Unknown sub-type")
+
+    def get_first_closed_at(self, application) -> typing.Optional[datetime.datetime]:
+        if application.licence_decisions.exists():
+            return application.licence_decisions.earliest("created_at").created_at
+
+        return None

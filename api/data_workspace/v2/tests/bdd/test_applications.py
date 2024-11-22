@@ -1,3 +1,6 @@
+import datetime
+from freezegun import freeze_time
+
 from moto import mock_aws
 
 from pytest_bdd import (
@@ -17,7 +20,10 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
 )
+from api.cases.enums import AdviceType
+from api.cases.tests.factories import FinalAdviceFactory
 from api.documents.libraries.s3_operations import init_s3_client
+from api.flags.enums import SystemFlags
 from api.parties.tests.factories import (
     PartyDocumentFactory,
     UltimateEndUserFactory,
@@ -100,7 +106,10 @@ def given_a_good_is_good_incorporated(draft_standard_application):
         application=draft_standard_application,
         party=UltimateEndUserFactory(organisation=draft_standard_application.organisation),
     )
-    GoodOnApplicationFactory(application=draft_standard_application, is_good_incorporated=True)
+    GoodOnApplicationFactory(
+        application=draft_standard_application,
+        is_good_incorporated=True,
+    )
 
 
 @given("a good where the exporter said yes to the product being incorporated before it is onward exported")
@@ -109,10 +118,13 @@ def given_a_good_is_onward_incorporated(draft_standard_application):
         application=draft_standard_application,
         party=UltimateEndUserFactory(organisation=draft_standard_application.organisation),
     )
-    GoodOnApplicationFactory(application=draft_standard_application, is_onward_incorporated=True)
+    GoodOnApplicationFactory(
+        application=draft_standard_application,
+        is_onward_incorporated=True,
+    )
 
 
-@when("the application is submitted")
+@when("the application is submitted", target_fixture="submitted_standard_application")
 def when_the_application_is_submitted(api_client, exporter_headers, draft_standard_application, mocker):
     type_code = "T" if draft_standard_application.export_type == ApplicationExportType.TEMPORARY else "P"
     reference_code = f"GBSIEL/2024/0000001/{type_code}"
@@ -139,11 +151,76 @@ def when_the_application_is_submitted(api_client, exporter_headers, draft_standa
             **exporter_headers,
         )
         assert response.status_code == 200, response.json()["errors"]
+    draft_standard_application.refresh_from_db()
+    return draft_standard_application
+
+
+@when(parsers.parse("the application is issued at {timestamp}"))
+def when_the_application_is_issued_at(
+    api_client, lu_case_officer, siel_template, gov_headers, submitted_standard_application, timestamp
+):
+    with freeze_time(timestamp):
+        data = {"action": AdviceType.APPROVE, "duration": 24}
+        for good_on_app in submitted_standard_application.goods.all():
+            good_on_app.quantity = 100
+            good_on_app.value = 10000
+            good_on_app.save()
+            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
+            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
+            FinalAdviceFactory(user=lu_case_officer, case=submitted_standard_application, good=good_on_app.good)
+
+        issue_date = datetime.datetime.fromisoformat(timestamp)
+        data.update({"year": issue_date.year, "month": issue_date.month, "day": issue_date.day})
+
+        submitted_standard_application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+        url = reverse("applications:finalise", kwargs={"pk": submitted_standard_application.pk})
+        response = api_client.put(url, data=data, **gov_headers)
+        assert response.status_code == 200, response.content
+        response = response.json()
+
+        with mock_aws():
+            s3 = init_s3_client()
+            s3.create_bucket(
+                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                CreateBucketConfiguration={
+                    "LocationConstraint": settings.AWS_REGION,
+                },
+            )
+            data = {
+                "template": str(siel_template.id),
+                "text": "",
+                "visible_to_exporter": False,
+                "advice_type": AdviceType.APPROVE,
+            }
+            url = reverse(
+                "cases:generated_documents:generated_documents",
+                kwargs={"pk": str(submitted_standard_application.pk)},
+            )
+            response = api_client.post(url, data=data, **gov_headers)
+            assert response.status_code == 201, response.content
+
+        url = reverse(
+            "cases:finalise",
+            kwargs={"pk": str(submitted_standard_application.pk)},
+        )
+        response = api_client.put(url, data={}, **gov_headers)
+        assert response.status_code == 201
 
 
 @then(parsers.parse("the application status is set to {status}"))
-def then_the_application_status_is_set_to(draft_standard_application, status):
-    draft_standard_application.refresh_from_db()
+def then_the_application_status_is_set_to(submitted_standard_application, status):
+    submitted_standard_application.refresh_from_db()
+
     assert (
-        draft_standard_application.status.status == status
-    ), f"Application status is not {status} it is {draft_standard_application.status.status}"
+        submitted_standard_application.status.status == status
+    ), f"Application status is not {status} it is {submitted_standard_application.status.status}"
+
+
+@then(parsers.parse("the application sub-status is set to {sub_status}"))
+def then_the_application_status_is_set_to(submitted_standard_application, sub_status):
+    submitted_standard_application.refresh_from_db()
+
+    assert (
+        submitted_standard_application.sub_status.name == sub_status
+    ), f"Application sub-status status is not {sub_status} it is {submitted_standard_application.sub_status.name}"

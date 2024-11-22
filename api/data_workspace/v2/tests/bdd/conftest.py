@@ -1,5 +1,7 @@
+import datetime
 import json
 import pytest
+import pytz
 
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -245,8 +247,12 @@ def cast_to_types(data, fields_metadata):
         cast_row = row.copy()
         for key, value in cast_row.items():
             field_metadata = fields_metadata[key]
-            if field_metadata["type"] == "Integer":
+            if value == "NULL":
+                cast_row[key] = None
+            elif field_metadata["type"] == "Integer":
                 cast_row[key] = int(value)
+            elif field_metadata["type"] == "DateTime":
+                cast_row[key] = pytz.utc.localize(datetime.datetime.fromisoformat(value))
         cast_data.append(cast_row)
 
     return cast_data
