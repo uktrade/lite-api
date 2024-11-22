@@ -159,6 +159,18 @@ class MetadataTestCase(URLPatternsTestCase):
             ],
         )
 
+    def test_decimal_field(self):
+        response = self.client.get(self.auto_fields_url)
+        output = response.json()
+        self.assertFieldsEqual(
+            output,
+            "decimal_field",
+            [
+                {"name": "decimal_field", "type": "Float", "asdecimal": True},
+                {"name": "nullable_decimal_field", "type": "Float", "asdecimal": True, "nullable": True},
+            ],
+        )
+
     def test_auto_primary_key(self):
         response = self.client.get(self.auto_fields_url)
         output = response.json()

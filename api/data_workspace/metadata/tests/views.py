@@ -93,6 +93,17 @@ class FloatFieldViewSet(viewsets.ViewSet):
         return Response({})
 
 
+class DecimalFieldViewSet(viewsets.ViewSet):
+    class DataWorkspace:
+        table_name = "decimal_field"
+
+    def get_serializer(self):
+        return serializers.DecimalFieldSerializer()
+
+    def list(self, request):
+        return Response({})
+
+
 class AutoPrimaryKeyViewSet(viewsets.ViewSet):
     class DataWorkspace:
         table_name = "auto_primary_key"
