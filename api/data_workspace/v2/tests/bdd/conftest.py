@@ -76,7 +76,11 @@ def gov_user_permissions():
 def lu_case_officer(gov_user, gov_user_permissions):
     gov_user.role = RoleFactory(name="Case officer", type=UserType.INTERNAL)
     gov_user.role.permissions.set(
-        [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
+        [
+            GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
+            GovPermissions.MANAGE_LICENCE_DURATION.name,
+            GovPermissions.REOPEN_CLOSED_CASES.name,
+        ]
     )
     gov_user.save()
     return gov_user
@@ -97,6 +101,11 @@ def lu_senior_manager(lu_user, gov_user_permissions):
 @pytest.fixture()
 def gov_headers(gov_user):
     return {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
+
+
+@pytest.fixture()
+def lu_case_officer_headers(lu_case_officer):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(lu_case_officer.baseuser_ptr)}
 
 
 @pytest.fixture()

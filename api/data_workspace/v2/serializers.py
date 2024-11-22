@@ -17,7 +17,6 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
     application_id = serializers.CharField(source="case.id")
-    decision = serializers.SerializerMethodField()
     decision_made_at = serializers.CharField(source="created_at")
     licence_id = serializers.SerializerMethodField()
 
@@ -31,43 +30,15 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             "licence_id",
         )
 
-    def get_decision(self, licence_decision):
-        if licence_decision.decision != LicenceDecisionType.ISSUED:
-            return licence_decision.decision
-
-        all_issued = all(
-            ld.decision == LicenceDecisionType.ISSUED
-            for ld in licence_decision.case.licence_decisions.all()
-            if not ld.excluded_from_statistics_reason
-        )
-        if all_issued:
-            return licence_decision.decision
-
-        licence_decisions = sorted(
-            [ld for ld in licence_decision.case.licence_decisions.all()], key=lambda ld: ld.created_at
-        )
-        presumed_licence_decision = licence_decisions[-1]
-
-        if presumed_licence_decision.decision == LicenceDecisionType.ISSUED:
-            return "issued_on_appeal"
-
-        return licence_decision.decision
-
     def get_licence_id(self, licence_decision):
-        if licence_decision.decision in [LicenceDecisionType.REFUSED]:
-            return None
+        if licence_decision.decision in [LicenceDecisionType.REFUSED, LicenceDecisionType.REVOKED]:
+            return ""
 
-        licence_decisions = licence_decision.case.licence_decisions.all()
-        licence_decisions = [
-            ld for ld in licence_decision.case.licence_decisions.all() if ld.decision == LicenceDecisionType.ISSUED
-        ]
-        licence_decisions = sorted(licence_decisions, key=lambda ld: ld.created_at)
-        licence_decision = licence_decisions[-1]
+        latest_decision = licence_decision.case.licence_decisions.exclude(
+            excluded_from_statistics_reason__isnull=False
+        ).last()
 
-        if not licence_decision.licence:
-            return None
-
-        return licence_decision.licence.pk
+        return latest_decision.licence.id if latest_decision.licence else None
 
 
 class ApplicationSerializer(serializers.ModelSerializer):

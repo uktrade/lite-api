@@ -382,26 +382,31 @@ class Case(TimestampableModel):
 
         decision_actions = self.get_decision_actions()
         for advice_type in decisions:
+
             decision_actions[advice_type](self)
 
             # NLR is not considered as licence decision
             if advice_type in [AdviceType.APPROVE, AdviceType.REFUSE]:
-                # In case of ISSUED check previous decision exists and accordingly
-                # populate previous_decision field
-                current_decision = LicenceDecisionType.advice_type_to_decision(advice_type)
-                previous_licence_decision = self.licence_decisions.order_by("created_at").last()
-                previous_decision = None
+                decision = LicenceDecisionType.advice_type_to_decision(advice_type)
+                previous_licence_decision = self.licence_decisions.last()
 
-                if (
-                    previous_licence_decision
-                    and current_decision == LicenceDecisionType.ISSUED
-                    and previous_licence_decision.decision == LicenceDecisionType.ISSUED
-                ):
-                    previous_decision = previous_licence_decision
+                previous_decision = None
+                current_decision = decision
+                if previous_licence_decision and decision == LicenceDecisionType.ISSUED:
+                    # In case if it is being issued after an appeal then we want to reflect that in the decision
+                    if previous_licence_decision.decision in [
+                        LicenceDecisionType.REFUSED,
+                        LicenceDecisionType.ISSUED_ON_APPEAL,
+                    ]:
+                        current_decision = LicenceDecisionType.ISSUED_ON_APPEAL
+
+                    # link up to previous instance if the decision remains same
+                    if previous_licence_decision.decision == current_decision:
+                        previous_decision = previous_licence_decision
 
                 licence_decision = LicenceDecision.objects.create(
                     case=self,
-                    decision=LicenceDecisionType.advice_type_to_decision(advice_type),
+                    decision=current_decision,
                     licence=licence,
                     previous_decision=previous_decision,
                 )
@@ -839,6 +844,9 @@ class LicenceDecision(TimestampableModel):
         "self", related_name="previous_decisions", default=None, null=True, on_delete=models.DO_NOTHING
     )
     denial_reasons = models.ManyToManyField(DenialReason)
+
+    class Meta:
+        ordering = ("created_at",)
 
     def __str__(self):
         return f"{self.case.reference_code} - {self.decision} ({self.created_at})"

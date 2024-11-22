@@ -10,11 +10,13 @@ from pytest_bdd import (
 )
 from unittest import mock
 
-from api.cases.enums import AdviceType, LicenceDecisionType
+from api.applications.models import StandardApplication
+from api.cases.enums import AdviceLevel, AdviceType, LicenceDecisionType
 from api.cases.models import LicenceDecision
 from api.licences.enums import LicenceStatus
 from api.licences.models import Licence
 from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
 
 
 scenarios("../scenarios/licence_decisions.feature")
@@ -74,20 +76,21 @@ def refused_case_included_in_extract(refused_case, unpage_data, licence_decision
 
 @given("a case is ready to be finalised", target_fixture="case_with_final_advice")
 def case_ready_to_be_finalised(standard_case_with_final_advice):
-    assert standard_case_with_final_advice.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
+    assert standard_case_with_final_advice.status == CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
     return standard_case_with_final_advice
 
 
 @given("a case is ready to be refused", target_fixture="case_with_refused_advice")
 def case_ready_to_be_refused(standard_case_with_refused_advice):
-    assert standard_case_with_refused_advice.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
+    assert standard_case_with_refused_advice.status == CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
     return standard_case_with_refused_advice
 
 
 @when("the licence for the case is approved")
 def licence_for_case_is_approved(client, gov_headers, case_with_final_advice):
+    application = StandardApplication.objects.get(id=case_with_final_advice.id)
     data = {"action": AdviceType.APPROVE, "duration": 24}
-    for good_on_app in case_with_final_advice.goods.all():
+    for good_on_app in application.goods.all():
         data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
         data[f"value-{good_on_app.id}"] = str(good_on_app.value)
 
@@ -131,21 +134,24 @@ def case_officer_issues_licence(client, gov_headers, case_with_final_advice):
     assert response.status_code == 201
 
     case_with_final_advice.refresh_from_db()
-    assert case_with_final_advice.status.status == CaseStatusEnum.FINALISED
+    assert case_with_final_advice.status == CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
     assert case_with_final_advice.sub_status.name == "Approved"
 
     response = response.json()
     assert response["licence"] is not None
 
     licence = Licence.objects.get(id=response["licence"])
-    assert licence.status == LicenceStatus.ISSUED
-
-    assert LicenceDecision.objects.filter(
-        case=case_with_final_advice,
-        decision=LicenceDecisionType.ISSUED,
-    ).exists()
+    assert licence.status in [LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
 
     return licence
+
+
+@then("a licence decision with an issued decision is created")
+def licence_decision_issued_created(issued_licence):
+    assert LicenceDecision.objects.filter(
+        case=issued_licence.case,
+        decision=LicenceDecisionType.ISSUED,
+    ).exists()
 
 
 @when("the licence for the case is refused")
@@ -184,7 +190,7 @@ def licence_for_case_is_refused(client, gov_headers, case_with_refused_advice):
     assert response.status_code == 201
 
     case_with_refused_advice.refresh_from_db()
-    assert case_with_refused_advice.status.status == CaseStatusEnum.FINALISED
+    assert case_with_refused_advice.status == CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
     assert case_with_refused_advice.sub_status.name == "Refused"
 
     assert LicenceDecision.objects.filter(
@@ -193,6 +199,14 @@ def licence_for_case_is_refused(client, gov_headers, case_with_refused_advice):
     ).exists()
 
     return case_with_refused_advice
+
+
+@then("a licence decision with refused decision is created")
+def licence_decision_refused_created(refused_case):
+    assert LicenceDecision.objects.filter(
+        case=refused_case,
+        decision=LicenceDecisionType.REFUSED,
+    ).exists()
 
 
 @when("case officer revokes issued licence", target_fixture="revoked_licence")
@@ -221,3 +235,66 @@ def revoked_licence_decision_included_in_extract(licence_decisions, revoked_lice
     all_revoked_licences = [item for item in licence_decisions if item["decision"] == "revoked"]
 
     assert str(revoked_licence.case.id) in [item["application_id"] for item in all_revoked_licences]
+
+
+def case_reopen_prepare_to_finalise(client, lu_case_officer_headers, case):
+    url = reverse(
+        "caseworker_applications:change_status",
+        kwargs={
+            "pk": str(case.pk),
+        },
+    )
+    response = client.post(
+        url, {"status": CaseStatusEnum.REOPENED_FOR_CHANGES}, content_type="application/json", **lu_case_officer_headers
+    )
+    assert response.status_code == 200
+    case.refresh_from_db()
+    assert case.status == CaseStatus.objects.get(status=CaseStatusEnum.REOPENED_FOR_CHANGES)
+
+    response = client.post(
+        url, {"status": CaseStatusEnum.UNDER_FINAL_REVIEW}, content_type="application/json", **lu_case_officer_headers
+    )
+    assert response.status_code == 200
+    case.refresh_from_db()
+    assert case.status == CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW)
+
+    return case
+
+
+@when("an appeal is successful and case is ready to be finalised", target_fixture="case_with_final_advice")
+def case_ready_to_be_finalised_after_an_appeal(client, lu_case_officer_headers, refused_case):
+    # Appeal handling is a manual process and we need to remove previous final advice
+    # before the case can be finalised again
+    assert refused_case.status.status == CaseStatusEnum.FINALISED
+
+    refused_case.advice.filter(level=AdviceLevel.FINAL).update(
+        type=AdviceType.APPROVE,
+        text="issued on appeal",
+    )
+
+    successful_appeal_case = case_reopen_prepare_to_finalise(client, lu_case_officer_headers, refused_case)
+
+    return successful_appeal_case
+
+
+@when("a licence needs amending and case is ready to be finalised", target_fixture="case_with_final_advice")
+def case_ready_to_be_finalised_after_amending_licence(client, lu_case_officer_headers, issued_licence):
+    case_with_final_advice = issued_licence.case
+    assert case_with_final_advice.status == CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
+
+    case_with_final_advice.advice.filter(level=AdviceLevel.FINAL).update(
+        type=AdviceType.APPROVE,
+        text="re-issuing licence",
+    )
+
+    case_with_final_advice = case_reopen_prepare_to_finalise(client, lu_case_officer_headers, case_with_final_advice)
+
+    return case_with_final_advice
+
+
+@then("a licence decision with an issued_on_appeal decision is created")
+def licence_decision_issued_on_appeal_created(issued_licence):
+    all_licence_decisions = LicenceDecision.objects.filter(case=issued_licence.case)
+
+    assert all_licence_decisions.first().decision == LicenceDecisionType.REFUSED
+    assert all(item.decision == LicenceDecisionType.ISSUED_ON_APPEAL for item in all_licence_decisions[1:])
