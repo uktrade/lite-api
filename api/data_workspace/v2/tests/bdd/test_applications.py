@@ -27,6 +27,7 @@ from api.cases.enums import (
 from api.cases.tests.factories import FinalAdviceFactory
 from api.documents.libraries.s3_operations import init_s3_client
 from api.flags.enums import SystemFlags
+from api.licences.enums import LicenceStatus
 from api.parties.tests.factories import (
     PartyDocumentFactory,
     UltimateEndUserFactory,
@@ -159,7 +160,7 @@ def when_the_application_is_submitted(api_client, exporter_headers, draft_standa
     return draft_standard_application
 
 
-@when(parsers.parse("the application is issued at {timestamp}"))
+@when(parsers.parse("the application is issued at {timestamp}"), target_fixture="issued_application")
 def when_the_application_is_issued_at(
     api_client, lu_case_officer, siel_template, gov_headers, submitted_standard_application, timestamp
 ):
@@ -210,6 +211,8 @@ def when_the_application_is_issued_at(
         )
         response = api_client.put(url, data={}, **gov_headers)
         assert response.status_code == 201
+
+        return submitted_standard_application
 
 
 @when(parsers.parse("the application is refused at {timestamp}"), target_fixture="refused_application")
@@ -350,6 +353,19 @@ def when_the_application_is_issued_on_appeal_at(
             )
             response = api_client.put(url, data={}, **lu_case_officer_headers)
             assert response.status_code == 201
+
+
+@when(parsers.parse("the issued application is revoked at {timestamp}"))
+def when_the_issued_application_is_revoked(api_client, lu_sr_manager_headers, issued_application, timestamp):
+    with freeze_time(timestamp):
+        issued_licence = issued_application.licences.get()
+        url = reverse("licences:licence_details", kwargs={"pk": str(issued_licence.pk)})
+        response = api_client.patch(
+            url,
+            data={"status": LicenceStatus.REVOKED},
+            **lu_sr_manager_headers,
+        )
+        assert response.status_code == 200, response.status_code
 
 
 @then(parsers.parse("the application status is set to {status}"))
