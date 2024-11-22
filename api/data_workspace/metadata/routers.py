@@ -80,7 +80,10 @@ def get_fields(view):
 
         elif isinstance(field, serializers.SerializerMethodField):
             method = getattr(field.parent, field.method_name)
-            return_type = method.__annotations__.get("return")
+            try:
+                return_type = method.__annotations__["return"]
+            except KeyError:
+                raise NotImplementedError(f"Add a return annotation to the `{field.method_name}` method")
 
             if is_optional(return_type):
                 field_metadata["nullable"] = True
@@ -90,8 +93,6 @@ def get_fields(view):
                 field_metadata["type"] = "String"
             elif return_type is datetime.datetime:
                 field_metadata["type"] = "DateTime"
-            elif return_type is None:
-                field_metadata['type'] = "String"
             else:  # pragma: no cover
                 raise NotImplementedError(
                     f"Return type of {return_type} for {serializer.__class__.__name__}.{field.method_name} not handled"
