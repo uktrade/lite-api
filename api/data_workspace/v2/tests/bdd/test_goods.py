@@ -28,4 +28,15 @@ def fetch_goods(goods_list_url, unpage_data):
 @then("the quantity, unit, value are included in the extract")
 def quantity_unit_value_are_included_in_extract(goods):
     good_on_application = GoodOnApplication.objects.get()
-    assert False
+    quantity = good_on_application.quantity
+    unit = good_on_application.unit
+    value = good_on_application.value
+
+    good = {
+        "id": str(good_on_application.id),
+        "application_id": str(good_on_application.application_id),
+        "quantity": quantity,
+        "unit": unit,
+        "value": str(value),
+    }
+    assert good in goods

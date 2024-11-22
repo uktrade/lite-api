@@ -63,6 +63,9 @@ class DestinationSerializer(serializers.ModelSerializer):
 
 
 class GoodSerializer(serializers.ModelSerializer):
+    application_id = serializers.UUIDField()
+    unit = serializers.CharField()
+
     class Meta:
         model = GoodOnApplication
         fields = (
