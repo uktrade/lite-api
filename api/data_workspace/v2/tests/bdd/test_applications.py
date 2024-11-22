@@ -208,6 +208,61 @@ def when_the_application_is_issued_at(
         assert response.status_code == 201
 
 
+@when(parsers.parse("the application is refused at {timestamp}"))
+def when_the_application_is_issued_at(
+    api_client, lu_case_officer, siel_refusal_template, gov_headers, submitted_standard_application, timestamp
+):
+    with freeze_time(timestamp):
+        data = {"action": AdviceType.REFUSE}
+        for good_on_app in submitted_standard_application.goods.all():
+            good_on_app.quantity = 100
+            good_on_app.value = 10000
+            good_on_app.save()
+            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
+            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
+            FinalAdviceFactory(
+                user=lu_case_officer,
+                case=submitted_standard_application,
+                good=good_on_app.good,
+                type=AdviceType.REFUSE,
+            )
+
+        submitted_standard_application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+        url = reverse("applications:finalise", kwargs={"pk": submitted_standard_application.pk})
+        response = api_client.put(url, data=data, **gov_headers)
+        assert response.status_code == 200, response.content
+        response = response.json()
+
+        with mock_aws():
+            s3 = init_s3_client()
+            s3.create_bucket(
+                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                CreateBucketConfiguration={
+                    "LocationConstraint": settings.AWS_REGION,
+                },
+            )
+            data = {
+                "template": str(siel_refusal_template.id),
+                "text": "",
+                "visible_to_exporter": False,
+                "advice_type": AdviceType.REFUSE,
+            }
+            url = reverse(
+                "cases:generated_documents:generated_documents",
+                kwargs={"pk": str(submitted_standard_application.pk)},
+            )
+            response = api_client.post(url, data=data, **gov_headers)
+            assert response.status_code == 201, response.content
+
+        url = reverse(
+            "cases:finalise",
+            kwargs={"pk": str(submitted_standard_application.pk)},
+        )
+        response = api_client.put(url, data={}, **gov_headers)
+        assert response.status_code == 201, response.content
+
+
 @then(parsers.parse("the application status is set to {status}"))
 def then_the_application_status_is_set_to(submitted_standard_application, status):
     submitted_standard_application.refresh_from_db()
