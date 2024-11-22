@@ -1,4 +1,5 @@
 import typing
+import uuid
 
 from rest_framework import serializers
 
@@ -23,7 +24,7 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             "licence_id",
         )
 
-    def get_licence_id(self, licence_decision) -> typing.Optional[str]:
+    def get_licence_id(self, licence_decision) -> typing.Optional[uuid.UUID]:
         if licence_decision.decision in [LicenceDecisionType.REFUSED]:
             return None
 
@@ -34,7 +35,7 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         if not latest_decision.licence:
             return None
 
-        return str(latest_decision.licence.pk)
+        return latest_decision.licence.pk
 
 
 class CountrySerializer(serializers.ModelSerializer):

@@ -1,5 +1,6 @@
 import datetime
 import typing
+import uuid
 
 from rest_framework import serializers
 from rest_framework.response import Response
@@ -93,6 +94,8 @@ def get_fields(view):
                 field_metadata["type"] = "String"
             elif return_type is datetime.datetime:
                 field_metadata["type"] = "DateTime"
+            elif return_type is uuid.UUID:
+                field_metadata["type"] = "UUID"
             else:  # pragma: no cover
                 raise NotImplementedError(
                     f"Return type of {return_type} for {serializer.__class__.__name__}.{field.method_name} not handled"
