@@ -83,10 +83,12 @@ class GoodSerializer(serializers.ModelSerializer):
 
 class ApplicationSerializer(serializers.ModelSerializer):
     licence_type = serializers.CharField(source="case_type.reference")
+    status = serializers.CharField(source="status.status")
 
     class Meta:
         model = StandardApplication
         fields = (
             "id",
             "licence_type",
+            "status",
         )
