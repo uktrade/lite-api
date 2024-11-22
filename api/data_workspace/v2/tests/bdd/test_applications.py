@@ -12,9 +12,16 @@ from django.conf import settings
 from django.urls import reverse
 
 from api.applications.enums import ApplicationExportType
-from api.applications.tests.factories import DraftStandardApplicationFactory
+from api.applications.tests.factories import (
+    DraftStandardApplicationFactory,
+    GoodOnApplicationFactory,
+    PartyOnApplicationFactory,
+)
 from api.documents.libraries.s3_operations import init_s3_client
-from api.parties.tests.factories import PartyDocumentFactory
+from api.parties.tests.factories import (
+    PartyDocumentFactory,
+    UltimateEndUserFactory,
+)
 
 
 scenarios("./scenarios/applications.feature")
@@ -85,6 +92,24 @@ def given_a_draft_standard_application_with_attributes(organisation, attributes)
     )
 
     return application
+
+
+@given("a good where the exporter said yes to the product being incorporated into another product")
+def given_a_good_is_good_incorporated(draft_standard_application):
+    PartyOnApplicationFactory(
+        application=draft_standard_application,
+        party=UltimateEndUserFactory(organisation=draft_standard_application.organisation),
+    )
+    GoodOnApplicationFactory(application=draft_standard_application, is_good_incorporated=True)
+
+
+@given("a good where the exporter said yes to the product being incorporated before it is onward exported")
+def given_a_good_is_onward_incorporated(draft_standard_application):
+    PartyOnApplicationFactory(
+        application=draft_standard_application,
+        party=UltimateEndUserFactory(organisation=draft_standard_application.organisation),
+    )
+    GoodOnApplicationFactory(application=draft_standard_application, is_onward_incorporated=True)
 
 
 @when("the application is submitted")

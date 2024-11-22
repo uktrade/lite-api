@@ -85,7 +85,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
     licence_type = serializers.CharField(source="case_type.reference")
     status = serializers.CharField(source="status.status")
     processing_time = serializers.IntegerField(source="sla_days")
-    sub_type = serializers.CharField(source="export_type")
+    sub_type = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -97,3 +97,12 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "status",
             "processing_time",
         )
+
+    def get_sub_type(self, application) -> str:
+        if any(g.is_good_incorporated or g.is_onward_incorporated for g in application.goods.all()):
+            return "incorporation"
+
+        if application.export_type:
+            return application.export_type
+
+        raise Exception("Unknown sub-type")
