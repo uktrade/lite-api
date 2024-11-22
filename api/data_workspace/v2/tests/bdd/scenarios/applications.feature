@@ -84,3 +84,17 @@ Scenario: Refused application has first_closed_at set
     And the `applications` table has the following rows:
         | id                                   | licence_type | reference_code            | sub_type      | status     | processing_time | first_closed_at     |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/P     | permanent     | finalised  | 0               | 2024-11-22T13:35:15 |
+
+Scenario: Issued on appeal application has first_closed_at set of original refusal
+    Given a draft standard application with attributes:
+        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+    When the application is submitted
+    And the application is refused at 2024-11-22T13:35:15
+    Then the application status is set to finalised
+    And the application sub-status is set to Refused
+    When the refused application is issued on appeal at 2024-11-25T14:22:09
+    Then the application status is set to finalised
+    And the application sub-status is set to Approved
+    And the `applications` table has the following rows:
+        | id                                   | licence_type | reference_code            | sub_type      | status     | processing_time | first_closed_at     |
+        | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/P     | permanent     | finalised  | 0               | 2024-11-22T13:35:15 |

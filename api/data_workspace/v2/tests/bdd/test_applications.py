@@ -20,7 +20,10 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
 )
-from api.cases.enums import AdviceType
+from api.cases.enums import (
+    AdviceLevel,
+    AdviceType,
+)
 from api.cases.tests.factories import FinalAdviceFactory
 from api.documents.libraries.s3_operations import init_s3_client
 from api.flags.enums import SystemFlags
@@ -28,6 +31,7 @@ from api.parties.tests.factories import (
     PartyDocumentFactory,
     UltimateEndUserFactory,
 )
+from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 scenarios("./scenarios/applications.feature")
@@ -208,8 +212,8 @@ def when_the_application_is_issued_at(
         assert response.status_code == 201
 
 
-@when(parsers.parse("the application is refused at {timestamp}"))
-def when_the_application_is_issued_at(
+@when(parsers.parse("the application is refused at {timestamp}"), target_fixture="refused_application")
+def when_the_application_is_refused_at(
     api_client, lu_case_officer, siel_refusal_template, gov_headers, submitted_standard_application, timestamp
 ):
     with freeze_time(timestamp):
@@ -261,6 +265,91 @@ def when_the_application_is_issued_at(
         )
         response = api_client.put(url, data={}, **gov_headers)
         assert response.status_code == 201, response.content
+
+        return submitted_standard_application
+
+
+@when(parsers.parse("the refused application is issued on appeal at {timestamp}"))
+def when_the_application_is_issued_on_appeal_at(
+    refused_application, api_client, lu_case_officer, lu_case_officer_headers, siel_template, timestamp
+):
+    with freeze_time(timestamp):
+        refused_application.advice.filter(level=AdviceLevel.FINAL).update(
+            type=AdviceType.APPROVE,
+            text="issued on appeal",
+        )
+
+        url = reverse(
+            "caseworker_applications:change_status",
+            kwargs={
+                "pk": str(refused_application.pk),
+            },
+        )
+        response = api_client.post(
+            url,
+            data={"status": CaseStatusEnum.REOPENED_FOR_CHANGES},
+            **lu_case_officer_headers,
+        )
+        assert response.status_code == 200, response.content
+        refused_application.refresh_from_db()
+        assert refused_application.status.status == CaseStatusEnum.REOPENED_FOR_CHANGES
+
+        response = api_client.post(
+            url,
+            data={"status": CaseStatusEnum.UNDER_FINAL_REVIEW},
+            **lu_case_officer_headers,
+        )
+        assert response.status_code == 200, response.content
+        refused_application.refresh_from_db()
+        assert refused_application.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
+
+    with freeze_time(timestamp):
+        data = {"action": AdviceType.APPROVE, "duration": 24}
+        for good_on_app in refused_application.goods.all():
+            good_on_app.quantity = 100
+            good_on_app.value = 10000
+            good_on_app.save()
+            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
+            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
+            FinalAdviceFactory(user=lu_case_officer, case=refused_application, good=good_on_app.good)
+
+            issue_date = datetime.datetime.fromisoformat(timestamp)
+            data.update({"year": issue_date.year, "month": issue_date.month, "day": issue_date.day})
+
+            refused_application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+            url = reverse("applications:finalise", kwargs={"pk": refused_application.pk})
+            response = api_client.put(url, data=data, **lu_case_officer_headers)
+            assert response.status_code == 200, response.content
+            response = response.json()
+
+            with mock_aws():
+                s3 = init_s3_client()
+                s3.create_bucket(
+                    Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                    CreateBucketConfiguration={
+                        "LocationConstraint": settings.AWS_REGION,
+                    },
+                )
+                data = {
+                    "template": str(siel_template.id),
+                    "text": "",
+                    "visible_to_exporter": False,
+                    "advice_type": AdviceType.APPROVE,
+                }
+                url = reverse(
+                    "cases:generated_documents:generated_documents",
+                    kwargs={"pk": str(refused_application.pk)},
+                )
+                response = api_client.post(url, data=data, **lu_case_officer_headers)
+                assert response.status_code == 201, response.content
+
+            url = reverse(
+                "cases:finalise",
+                kwargs={"pk": str(refused_application.pk)},
+            )
+            response = api_client.put(url, data={}, **lu_case_officer_headers)
+            assert response.status_code == 201
 
 
 @then(parsers.parse("the application status is set to {status}"))
