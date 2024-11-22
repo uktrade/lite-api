@@ -158,3 +158,6 @@ class GoodOnLicence(TimestampableModel):
     usage = models.FloatField(null=False, blank=False, default=0)
     quantity = models.FloatField(null=False, blank=False)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=False, blank=False)
+
+    class Meta:
+        unique_together = ("licence", "good")
