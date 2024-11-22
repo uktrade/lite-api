@@ -1,3 +1,5 @@
+import typing
+
 from rest_framework import serializers
 
 from api.applications.models import PartyOnApplication
@@ -21,7 +23,7 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
             "licence_id",
         )
 
-    def get_licence_id(self, licence_decision):
+    def get_licence_id(self, licence_decision) -> typing.Optional[str]:
         if licence_decision.decision in [LicenceDecisionType.REFUSED]:
             return None
 
@@ -32,7 +34,7 @@ class LicenceDecisionSerializer(serializers.ModelSerializer):
         if not latest_decision.licence:
             return None
 
-        return latest_decision.licence.pk
+        return str(latest_decision.licence.pk)
 
 
 class CountrySerializer(serializers.ModelSerializer):
