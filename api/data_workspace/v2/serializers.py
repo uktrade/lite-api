@@ -105,10 +105,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         if any(g.is_good_incorporated or g.is_onward_incorporated for g in application.goods.all()):
             return "incorporation"
 
-        if application.export_type:
-            return application.export_type
-
-        raise Exception("Unknown sub-type")
+        return application.export_type
 
     def get_first_closed_at(self, application) -> typing.Optional[datetime.datetime]:
         if application.licence_decisions.exists():
