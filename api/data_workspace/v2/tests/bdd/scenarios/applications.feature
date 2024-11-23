@@ -113,3 +113,13 @@ Scenario: Revoking an application
     And the `applications` table has the following rows:
         | id                                   | licence_type | reference_code            | sub_type      | status     | processing_time | first_closed_at     |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/P     | permanent     | finalised  | 38              | 2024-11-22T13:35:15 |
+
+Scenario: Withdrawing an application
+    Given a draft standard application with attributes:
+        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+    When the application is submitted at 2024-10-01T11:20:15
+    And the application is withdrawn at 2024-11-22T13:35:15
+    Then the application status is set to withdrawn
+    And the `applications` table has the following rows:
+        | id                                   | licence_type | reference_code            | sub_type      | status     | processing_time | first_closed_at     |
+        | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/P     | permanent     | withdrawn  | 38              | 2024-11-22T13:35:15 |

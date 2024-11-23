@@ -60,6 +60,16 @@ class CaseStatusEnum:
         SUPERSEDED_BY_EXPORTER_EDIT,
     ]
 
+    _closed_statuses = [
+        CLOSED,
+        DEREGISTERED,
+        FINALISED,
+        REGISTERED,
+        REVOKED,
+        SURRENDERED,
+        WITHDRAWN,
+    ]
+
     # Cases with these statuses can be operated upon by caseworkers
     _caseworker_operable_statuses = [
         APPEAL_FINAL_REVIEW,
@@ -226,6 +236,10 @@ class CaseStatusEnum:
         return status in cls._terminal_statuses
 
     @classmethod
+    def is_closed(cls, status):
+        return status in cls._closed_statuses
+
+    @classmethod
     def is_system_status(cls, status):
         return status in cls._system_status
 
@@ -268,6 +282,10 @@ class CaseStatusEnum:
     @classmethod
     def terminal_statuses(cls):
         return cls._terminal_statuses
+
+    @classmethod
+    def closed_statuses(cls):
+        return cls._closed_statuses
 
     @classmethod
     def as_list(cls):
