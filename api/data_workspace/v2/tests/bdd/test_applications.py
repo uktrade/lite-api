@@ -424,29 +424,36 @@ def when_the_issued_application_is_revoked(api_client, lu_sr_manager_headers, is
         assert response.status_code == 200, response.status_code
 
 
+@pytest.fixture()
+def exporter_change_status(api_client, exporter_headers):
+    def _exporter_change_status(application, status):
+        response = api_client.post(
+            reverse(
+                "exporter_applications:change_status",
+                kwargs={
+                    "pk": application.pk,
+                },
+            ),
+            data={
+                "status": status,
+            },
+            **exporter_headers,
+        )
+        assert response.status_code == 200, response.content
+
+    return _exporter_change_status
+
+
 @when(parsers.parse("the application is withdrawn at {timestamp}"))
 def when_the_application_is_withdrawn_at(
     submitted_standard_application,
-    api_client,
-    exporter_headers,
+    exporter_change_status,
     timestamp,
 ):
     run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
-        response = api_client.post(
-            reverse(
-                "exporter_applications:change_status",
-                kwargs={
-                    "pk": submitted_standard_application.pk,
-                },
-            ),
-            data={
-                "status": CaseStatusEnum.WITHDRAWN,
-            },
-            **exporter_headers,
-        )
-        assert response.status_code == 200, response.content
+        exporter_change_status(submitted_standard_application, CaseStatusEnum.WITHDRAWN)
 
     submitted_standard_application.refresh_from_db()
 
@@ -454,26 +461,13 @@ def when_the_application_is_withdrawn_at(
 @when(parsers.parse("the application is surrendered at {timestamp}"))
 def when_the_application_is_surrenderd_at(
     submitted_standard_application,
-    api_client,
-    exporter_headers,
+    exporter_change_status,
     timestamp,
 ):
     run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
-        response = api_client.post(
-            reverse(
-                "exporter_applications:change_status",
-                kwargs={
-                    "pk": submitted_standard_application.pk,
-                },
-            ),
-            data={
-                "status": CaseStatusEnum.SURRENDERED,
-            },
-            **exporter_headers,
-        )
-        assert response.status_code == 200, response.content
+        exporter_change_status(submitted_standard_application, CaseStatusEnum.SURRENDERED)
 
     submitted_standard_application.refresh_from_db()
 
