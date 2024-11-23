@@ -1,4 +1,5 @@
 import datetime
+import pytest
 import pytz
 
 from freezegun import freeze_time
@@ -15,6 +16,7 @@ from pytest_bdd import (
 
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 
 from api.applications.enums import ApplicationExportType
 from api.applications.tests.factories import (
@@ -132,71 +134,57 @@ def given_a_good_is_onward_incorporated(draft_standard_application):
     )
 
 
-@when("the application is submitted", target_fixture="submitted_standard_application")
-def when_the_application_is_submitted(api_client, exporter_headers, draft_standard_application, mocker):
-    type_code = "T" if draft_standard_application.export_type == ApplicationExportType.TEMPORARY else "P"
-    reference_code = f"GBSIEL/2024/0000001/{type_code}"
-    mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
-    with mock_aws():
-        s3 = init_s3_client()
-        s3.create_bucket(
-            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-            CreateBucketConfiguration={
-                "LocationConstraint": settings.AWS_REGION,
-            },
-        )
-        response = api_client.put(
-            reverse(
-                "applications:application_submit",
-                kwargs={
-                    "pk": draft_standard_application.pk,
-                },
-            ),
-            data={
-                "submit_declaration": True,
-                "agreed_to_declaration_text": "i agree",
-            },
-            **exporter_headers,
-        )
-        assert response.status_code == 200, response.json()["errors"]
-    draft_standard_application.refresh_from_db()
-    return draft_standard_application
+@pytest.fixture
+def submit_application(api_client, exporter_headers, mocker):
+    def _submit_application(draft_application, submission_date_time=None):
+        if not submission_date_time:
+            submission_date_time = timezone.now()
+        with freeze_time(submission_date_time):
+            type_code = "T" if draft_application.export_type == ApplicationExportType.TEMPORARY else "P"
+            reference_code = f"GBSIEL/2024/0000001/{type_code}"
+            mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
+            with mock_aws():
+                s3 = init_s3_client()
+                s3.create_bucket(
+                    Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                    CreateBucketConfiguration={
+                        "LocationConstraint": settings.AWS_REGION,
+                    },
+                )
+                response = api_client.put(
+                    reverse(
+                        "applications:application_submit",
+                        kwargs={
+                            "pk": draft_application.pk,
+                        },
+                    ),
+                    data={
+                        "submit_declaration": True,
+                        "agreed_to_declaration_text": "i agree",
+                    },
+                    **exporter_headers,
+                )
+                assert response.status_code == 200, response.json()["errors"]
+        draft_application.refresh_from_db()
+        return draft_application
+
+    return _submit_application
 
 
 @when(
-    parsers.parse("the application is submitted at {submission_time}"), target_fixture="submitted_standard_application"
+    "the application is submitted",
+    target_fixture="submitted_standard_application",
 )
-def when_the_application_is_submitted_at(
-    api_client, exporter_headers, draft_standard_application, mocker, submission_time
-):
-    with freeze_time(submission_time):
-        type_code = "T" if draft_standard_application.export_type == ApplicationExportType.TEMPORARY else "P"
-        reference_code = f"GBSIEL/2024/0000001/{type_code}"
-        mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
-        with mock_aws():
-            s3 = init_s3_client()
-            s3.create_bucket(
-                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                CreateBucketConfiguration={
-                    "LocationConstraint": settings.AWS_REGION,
-                },
-            )
-            response = api_client.put(
-                reverse(
-                    "applications:application_submit",
-                    kwargs={
-                        "pk": draft_standard_application.pk,
-                    },
-                ),
-                data={
-                    "submit_declaration": True,
-                    "agreed_to_declaration_text": "i agree",
-                },
-                **exporter_headers,
-            )
-            assert response.status_code == 200, response.json()["errors"]
-        draft_standard_application.refresh_from_db()
-        return draft_standard_application
+def when_the_application_is_submitted(submit_application, draft_standard_application):
+    return submit_application(draft_standard_application)
+
+
+@when(
+    parsers.parse("the application is submitted at {submission_time}"),
+    target_fixture="submitted_standard_application",
+)
+def when_the_application_is_submitted_at(submit_application, draft_standard_application, submission_time):
+    return submit_application(draft_standard_application, submission_time)
 
 
 def run_processing_time_task(start, up_to):
