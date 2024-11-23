@@ -42,6 +42,25 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 scenarios("./scenarios/applications.feature")
 
 
+def parse_attributes(attributes):
+    kwargs = {}
+    for attribute in attributes.split("\n"):
+        if not attribute:
+            continue
+        key, _, value = attribute.partition(":")
+        kwargs[key.strip()] = value.strip()
+    return kwargs
+
+
+def run_processing_time_task(start, up_to):
+    processing_time_task_run_date_time = start.replace(hour=22, minute=30)
+    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
+    while processing_time_task_run_date_time <= up_to:
+        with freeze_time(processing_time_task_run_date_time):
+            update_cases_sla()
+        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+
+
 @pytest.fixture(autouse=True)
 def mock_s3():
     with mock_aws():
@@ -53,6 +72,120 @@ def mock_s3():
             },
         )
         yield
+
+
+@pytest.fixture
+def submit_application(api_client, exporter_headers, mocker):
+    def _submit_application(draft_application):
+        type_code = "T" if draft_application.export_type == ApplicationExportType.TEMPORARY else "P"
+        reference_code = f"GBSIEL/2024/0000001/{type_code}"
+        mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
+
+        response = api_client.put(
+            reverse(
+                "applications:application_submit",
+                kwargs={
+                    "pk": draft_application.pk,
+                },
+            ),
+            data={
+                "submit_declaration": True,
+                "agreed_to_declaration_text": "i agree",
+            },
+            **exporter_headers,
+        )
+        assert response.status_code == 200, response.json()["errors"]
+
+        draft_application.refresh_from_db()
+        return draft_application
+
+    return _submit_application
+
+
+@pytest.fixture()
+def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
+    def _issue_licence(application):
+        data = {"action": AdviceType.APPROVE, "duration": 24}
+        for good_on_app in application.goods.all():
+            good_on_app.quantity = 100
+            good_on_app.value = 10000
+            good_on_app.save()
+            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
+            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
+            FinalAdviceFactory(user=lu_case_officer, case=application, good=good_on_app.good)
+
+        issue_date = datetime.datetime.now()
+        data.update({"year": issue_date.year, "month": issue_date.month, "day": issue_date.day})
+
+        application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+        url = reverse("applications:finalise", kwargs={"pk": application.pk})
+        response = api_client.put(url, data=data, **gov_headers)
+        assert response.status_code == 200, response.content
+        response = response.json()
+
+        data = {
+            "template": str(siel_template.id),
+            "text": "",
+            "visible_to_exporter": False,
+            "advice_type": AdviceType.APPROVE,
+        }
+        url = reverse(
+            "cases:generated_documents:generated_documents",
+            kwargs={"pk": str(application.pk)},
+        )
+        response = api_client.post(url, data=data, **gov_headers)
+        assert response.status_code == 201, response.content
+
+        url = reverse(
+            "cases:finalise",
+            kwargs={"pk": str(application.pk)},
+        )
+        response = api_client.put(url, data={}, **gov_headers)
+        assert response.status_code == 201
+
+    return _issue_licence
+
+
+@pytest.fixture()
+def caseworker_change_status(api_client, lu_case_officer, lu_case_officer_headers):
+    def _caseworker_change_status(application, status):
+        url = reverse(
+            "caseworker_applications:change_status",
+            kwargs={
+                "pk": str(application.pk),
+            },
+        )
+        response = api_client.post(
+            url,
+            data={"status": status},
+            **lu_case_officer_headers,
+        )
+        assert response.status_code == 200, response.content
+        application.refresh_from_db()
+        assert application.status.status == status
+
+    return _caseworker_change_status
+
+
+@pytest.fixture()
+def exporter_change_status(api_client, exporter_headers):
+    def _exporter_change_status(application, status):
+        response = api_client.post(
+            reverse(
+                "exporter_applications:change_status",
+                kwargs={
+                    "pk": application.pk,
+                },
+            ),
+            data={
+                "status": status,
+            },
+            **exporter_headers,
+        )
+        assert response.status_code == 200, response.content
+
+    return _exporter_change_status
 
 
 @given("a draft standard application", target_fixture="draft_standard_application")
@@ -68,16 +201,6 @@ def given_draft_standard_application(organisation):
     )
 
     return application
-
-
-def parse_attributes(attributes):
-    kwargs = {}
-    for attribute in attributes.split("\n"):
-        if not attribute:
-            continue
-        key, _, value = attribute.partition(":")
-        kwargs[key.strip()] = value.strip()
-    return kwargs
 
 
 @given(
@@ -146,34 +269,6 @@ def given_a_good_is_onward_incorporated(draft_standard_application):
     )
 
 
-@pytest.fixture
-def submit_application(api_client, exporter_headers, mocker):
-    def _submit_application(draft_application):
-        type_code = "T" if draft_application.export_type == ApplicationExportType.TEMPORARY else "P"
-        reference_code = f"GBSIEL/2024/0000001/{type_code}"
-        mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
-
-        response = api_client.put(
-            reverse(
-                "applications:application_submit",
-                kwargs={
-                    "pk": draft_application.pk,
-                },
-            ),
-            data={
-                "submit_declaration": True,
-                "agreed_to_declaration_text": "i agree",
-            },
-            **exporter_headers,
-        )
-        assert response.status_code == 200, response.json()["errors"]
-
-        draft_application.refresh_from_db()
-        return draft_application
-
-    return _submit_application
-
-
 @when(
     "the application is submitted",
     target_fixture="submitted_standard_application",
@@ -189,60 +284,6 @@ def when_the_application_is_submitted(submit_application, draft_standard_applica
 def when_the_application_is_submitted_at(submit_application, draft_standard_application, submission_time):
     with freeze_time(submission_time):
         return submit_application(draft_standard_application)
-
-
-def run_processing_time_task(start, up_to):
-    processing_time_task_run_date_time = start.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
-    while processing_time_task_run_date_time <= up_to:
-        with freeze_time(processing_time_task_run_date_time):
-            update_cases_sla()
-        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
-
-
-@pytest.fixture()
-def issue_licence(api_client, lu_case_officer, gov_headers, siel_template):
-    def _issue_licence(application):
-        data = {"action": AdviceType.APPROVE, "duration": 24}
-        for good_on_app in application.goods.all():
-            good_on_app.quantity = 100
-            good_on_app.value = 10000
-            good_on_app.save()
-            data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
-            data[f"value-{good_on_app.id}"] = str(good_on_app.value)
-            FinalAdviceFactory(user=lu_case_officer, case=application, good=good_on_app.good)
-
-        issue_date = datetime.datetime.now()
-        data.update({"year": issue_date.year, "month": issue_date.month, "day": issue_date.day})
-
-        application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
-
-        url = reverse("applications:finalise", kwargs={"pk": application.pk})
-        response = api_client.put(url, data=data, **gov_headers)
-        assert response.status_code == 200, response.content
-        response = response.json()
-
-        data = {
-            "template": str(siel_template.id),
-            "text": "",
-            "visible_to_exporter": False,
-            "advice_type": AdviceType.APPROVE,
-        }
-        url = reverse(
-            "cases:generated_documents:generated_documents",
-            kwargs={"pk": str(application.pk)},
-        )
-        response = api_client.post(url, data=data, **gov_headers)
-        assert response.status_code == 201, response.content
-
-        url = reverse(
-            "cases:finalise",
-            kwargs={"pk": str(application.pk)},
-        )
-        response = api_client.put(url, data={}, **gov_headers)
-        assert response.status_code == 201
-
-    return _issue_licence
 
 
 @when(parsers.parse("the application is issued at {timestamp}"), target_fixture="issued_application")
@@ -263,7 +304,12 @@ def when_the_application_is_issued_at(
 
 @when(parsers.parse("the application is refused at {timestamp}"), target_fixture="refused_application")
 def when_the_application_is_refused_at(
-    api_client, lu_case_officer, siel_refusal_template, gov_headers, submitted_standard_application, timestamp
+    api_client,
+    lu_case_officer,
+    siel_refusal_template,
+    gov_headers,
+    submitted_standard_application,
+    timestamp,
 ):
     run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
@@ -339,27 +385,6 @@ def when_the_application_is_appealed_at(
     return refused_application
 
 
-@pytest.fixture()
-def caseworker_change_status(api_client, lu_case_officer, lu_case_officer_headers):
-    def _caseworker_change_status(application, status):
-        url = reverse(
-            "caseworker_applications:change_status",
-            kwargs={
-                "pk": str(application.pk),
-            },
-        )
-        response = api_client.post(
-            url,
-            data={"status": status},
-            **lu_case_officer_headers,
-        )
-        assert response.status_code == 200, response.content
-        application.refresh_from_db()
-        assert application.status.status == status
-
-    return _caseworker_change_status
-
-
 @when(parsers.parse("the refused application is issued on appeal at {timestamp}"))
 def when_the_application_is_issued_on_appeal_at(
     appealed_application,
@@ -381,7 +406,12 @@ def when_the_application_is_issued_on_appeal_at(
 
 
 @when(parsers.parse("the issued application is revoked at {timestamp}"))
-def when_the_issued_application_is_revoked(api_client, lu_sr_manager_headers, issued_application, timestamp):
+def when_the_issued_application_is_revoked(
+    api_client,
+    lu_sr_manager_headers,
+    issued_application,
+    timestamp,
+):
     run_processing_time_task(issued_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
@@ -393,26 +423,6 @@ def when_the_issued_application_is_revoked(api_client, lu_sr_manager_headers, is
             **lu_sr_manager_headers,
         )
         assert response.status_code == 200, response.status_code
-
-
-@pytest.fixture()
-def exporter_change_status(api_client, exporter_headers):
-    def _exporter_change_status(application, status):
-        response = api_client.post(
-            reverse(
-                "exporter_applications:change_status",
-                kwargs={
-                    "pk": application.pk,
-                },
-            ),
-            data={
-                "status": status,
-            },
-            **exporter_headers,
-        )
-        assert response.status_code == 200, response.content
-
-    return _exporter_change_status
 
 
 @when(parsers.parse("the application is withdrawn at {timestamp}"))
