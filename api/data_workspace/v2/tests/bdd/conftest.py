@@ -234,18 +234,17 @@ def empty_table(client, unpage_data, table_name):
     assert table_data == [], f"`{table_name}` table should be empty"
 
 
-def parse_table(data_table):
-    lines = data_table.strip().split("\n")
+@pytest.fixture()
+def parse_table():
+    def _parse_table(data_table):
+        lines = data_table.strip().split("\n")
+        rows = []
+        for line in lines:
+            values = [value.strip() for value in line.split("|") if value]
+            rows.append(values)
+        return rows
 
-    keys = [key.strip() for key in lines[0].split("|") if key]
-
-    parsed_data_table = []
-    for line in lines[1:]:
-        values = [value.strip() for value in line.split("|") if value]
-        entry = dict(zip(keys, values))
-        parsed_data_table.append(entry)
-
-    return parsed_data_table
+    return _parse_table
 
 
 def cast_to_types(data, fields_metadata):
@@ -268,7 +267,7 @@ def cast_to_types(data, fields_metadata):
 
 
 @then(parsers.parse("the `{table_name}` table has the following rows:{rows}"))
-def check_rows(client, unpage_data, table_name, rows):
+def check_rows(client, parse_table, unpage_data, table_name, rows):
     metadata_url = reverse("data_workspace:v2:table-metadata")
     response = client.get(metadata_url)
     tables_metadata = response.json()["tables"]
@@ -280,7 +279,10 @@ def check_rows(client, unpage_data, table_name, rows):
         pytest.fail(f"No table called {table_name} found")
 
     actual_data = unpage_data(table_metadata["endpoint"])
-    expected_data = parse_table(rows)
+    parsed_rows = parse_table(rows)
+    keys = parsed_rows[0]
+    expected_data = []
+    for row in parsed_rows[1:]:
+        expected_data.append({key: value for key, value in zip(keys, row)})
     expected_data = cast_to_types(expected_data, table_metadata["fields"])
-
     assert actual_data == expected_data

@@ -7,7 +7,8 @@ Scenario: Draft application
 
 Scenario: Submit an application
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted
     Then the application status is set to submitted
     And the `applications` table has the following rows:
@@ -16,7 +17,8 @@ Scenario: Submit an application
 
 Scenario: Submit a Temporary application
     Given a draft temporary standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted
     Then the application status is set to submitted
     And the `applications` table has the following rows:
@@ -25,7 +27,8 @@ Scenario: Submit a Temporary application
 
 Scenario: Submit a Permanent application with an incorporated good
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     And a good where the exporter said yes to the product being incorporated into another product
     When the application is submitted
     Then the application status is set to submitted
@@ -35,7 +38,8 @@ Scenario: Submit a Permanent application with an incorporated good
 
 Scenario: Submit a Temporary application with an incorporated good
     Given a draft temporary standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     And a good where the exporter said yes to the product being incorporated into another product
     When the application is submitted
     Then the application status is set to submitted
@@ -45,7 +49,8 @@ Scenario: Submit a Temporary application with an incorporated good
 
 Scenario: Submit a Permanent application with an onward incorporated good
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     And a good where the exporter said yes to the product being incorporated before it is onward exported
     When the application is submitted
     Then the application status is set to submitted
@@ -55,7 +60,8 @@ Scenario: Submit a Permanent application with an onward incorporated good
 
 Scenario: Submit a Temporary application with an onward incorporated good
     Given a draft temporary standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     And a good where the exporter said yes to the product being incorporated before it is onward exported
     When the application is submitted
     Then the application status is set to submitted
@@ -65,7 +71,8 @@ Scenario: Submit a Temporary application with an onward incorporated good
 
 Scenario: Issuing an application
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted at 2024-10-01T11:20:15
     And the application is issued at 2024-11-22T13:35:15
     Then the application status is set to finalised
@@ -76,7 +83,8 @@ Scenario: Issuing an application
 
 Scenario: Refusing an application
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted at 2024-10-01T11:20:15
     And the application is refused at 2024-11-22T13:35:15
     Then the application status is set to finalised
@@ -87,7 +95,8 @@ Scenario: Refusing an application
 
 Scenario: Issuing application on appeal
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted at 2024-10-01T11:20:15
     And the application is refused at 2024-11-22T13:35:15
     Then the application status is set to finalised
@@ -103,7 +112,8 @@ Scenario: Issuing application on appeal
 
 Scenario: Revoking an application
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted at 2024-10-01T11:20:15
     And the application is issued at 2024-11-22T13:35:15
     Then the application status is set to finalised
@@ -116,7 +126,8 @@ Scenario: Revoking an application
 
 Scenario: Withdrawing an application
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted at 2024-10-01T11:20:15
     And the application is withdrawn at 2024-11-22T13:35:15
     Then the application status is set to withdrawn
@@ -126,7 +137,8 @@ Scenario: Withdrawing an application
 
 Scenario: Surrendering an application
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted at 2024-10-01T11:20:15
     And the application is issued at 2024-11-22T13:35:15
     Then the application status is set to finalised
@@ -139,7 +151,8 @@ Scenario: Surrendering an application
 
 Scenario: Closing an application
     Given a draft standard application with attributes:
-        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+        | name | value                                |
+        | id   | 03fb08eb-1564-4b68-9336-3ca8906543f9 |
     When the application is submitted at 2024-10-01T11:20:15
     And the application is closed at 2024-11-22T13:35:15
     Then the application status is set to closed

@@ -42,14 +42,16 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 scenarios("./scenarios/applications.feature")
 
 
-def parse_attributes(attributes):
-    kwargs = {}
-    for attribute in attributes.split("\n"):
-        if not attribute:
-            continue
-        key, _, value = attribute.partition(":")
-        kwargs[key.strip()] = value.strip()
-    return kwargs
+@pytest.fixture()
+def parse_attributes(parse_table):
+    def _parse_attributes(attributes):
+        kwargs = {}
+        table_data = parse_table(attributes)
+        for key, value in table_data[1:]:
+            kwargs[key] = value
+        return kwargs
+
+    return _parse_attributes
 
 
 def run_processing_time_task(start, up_to):
@@ -207,7 +209,7 @@ def given_draft_standard_application(organisation):
     parsers.parse("a draft standard application with attributes:{attributes}"),
     target_fixture="draft_standard_application",
 )
-def given_a_draft_standard_application_with_attributes(organisation, attributes):
+def given_a_draft_standard_application_with_attributes(organisation, parse_attributes, attributes):
     application = DraftStandardApplicationFactory(
         organisation=organisation,
         **parse_attributes(attributes),
@@ -226,7 +228,7 @@ def given_a_draft_standard_application_with_attributes(organisation, attributes)
     parsers.parse("a draft temporary standard application with attributes:{attributes}"),
     target_fixture="draft_standard_application",
 )
-def given_a_draft_temporary_standard_application_with_attributes(organisation, attributes):
+def given_a_draft_temporary_standard_application_with_attributes(organisation, parse_attributes, attributes):
     application = DraftStandardApplicationFactory(
         export_type=ApplicationExportType.TEMPORARY,
         temp_export_details="temporary export details",
