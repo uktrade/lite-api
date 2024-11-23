@@ -1,4 +1,6 @@
 import datetime
+import pytz
+
 from freezegun import freeze_time
 
 from moto import mock_aws
@@ -20,6 +22,7 @@ from api.applications.tests.factories import (
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
 )
+from api.cases.celery_tasks import update_cases_sla
 from api.cases.enums import (
     AdviceLevel,
     AdviceType,
@@ -158,6 +161,42 @@ def when_the_application_is_submitted(api_client, exporter_headers, draft_standa
         assert response.status_code == 200, response.json()["errors"]
     draft_standard_application.refresh_from_db()
     return draft_standard_application
+
+
+@when(
+    parsers.parse("the application is submitted at {submission_time}"), target_fixture="submitted_standard_application"
+)
+def when_the_application_is_submitted_at(
+    api_client, exporter_headers, draft_standard_application, mocker, submission_time
+):
+    with freeze_time(submission_time):
+        type_code = "T" if draft_standard_application.export_type == ApplicationExportType.TEMPORARY else "P"
+        reference_code = f"GBSIEL/2024/0000001/{type_code}"
+        mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
+        with mock_aws():
+            s3 = init_s3_client()
+            s3.create_bucket(
+                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                CreateBucketConfiguration={
+                    "LocationConstraint": settings.AWS_REGION,
+                },
+            )
+            response = api_client.put(
+                reverse(
+                    "applications:application_submit",
+                    kwargs={
+                        "pk": draft_standard_application.pk,
+                    },
+                ),
+                data={
+                    "submit_declaration": True,
+                    "agreed_to_declaration_text": "i agree",
+                },
+                **exporter_headers,
+            )
+            assert response.status_code == 200, response.json()["errors"]
+        draft_standard_application.refresh_from_db()
+        return draft_standard_application
 
 
 @when(parsers.parse("the application is issued at {timestamp}"), target_fixture="issued_application")
@@ -366,6 +405,16 @@ def when_the_issued_application_is_revoked(api_client, lu_sr_manager_headers, is
             **lu_sr_manager_headers,
         )
         assert response.status_code == 200, response.status_code
+
+
+@when(parsers.parse("the processing time is calculated up to {up_to}"))
+def when_the_processing_time_is_calculated(submitted_standard_application, up_to):
+    processing_time_task_run_date_time = submitted_standard_application.submitted_at.replace(hour=22, minute=30)
+    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
+    while processing_time_task_run_date_time <= up_to:
+        with freeze_time(processing_time_task_run_date_time):
+            update_cases_sla()
+        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
 
 
 @then(parsers.parse("the application status is set to {status}"))
