@@ -325,12 +325,46 @@ def when_the_application_is_refused_at(
         return submitted_standard_application
 
 
-@when(parsers.parse("the refused application is issued on appeal at {timestamp}"))
-def when_the_application_is_issued_on_appeal_at(
-    refused_application, api_client, lu_case_officer, lu_case_officer_headers, siel_template, timestamp
+@when(parsers.parse("the application is appealed at {timestamp}"), target_fixture="appealed_application")
+def when_the_application_is_appealed_at(
+    refused_application,
+    api_client,
+    exporter_headers,
+    timestamp,
 ):
     with freeze_time(timestamp):
-        refused_application.advice.filter(level=AdviceLevel.FINAL).update(
+        response = api_client.post(
+            reverse(
+                "applications:appeals",
+                kwargs={
+                    "pk": refused_application.pk,
+                },
+            ),
+            data={
+                "grounds_for_appeal": "This is appealing",
+            },
+            **exporter_headers,
+        )
+        assert response.status_code == 201, response.content
+
+    refused_application.refresh_from_db()
+
+    return refused_application
+
+
+@when(parsers.parse("the refused application is issued on appeal at {timestamp}"))
+def when_the_application_is_issued_on_appeal_at(
+    appealed_application, api_client, lu_case_officer, lu_case_officer_headers, siel_template, timestamp
+):
+    processing_time_task_run_date_time = appealed_application.appeal.created_at.replace(hour=22, minute=30)
+    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
+    while processing_time_task_run_date_time <= up_to:
+        with freeze_time(processing_time_task_run_date_time):
+            update_cases_sla()
+        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+
+    with freeze_time(timestamp):
+        appealed_application.advice.filter(level=AdviceLevel.FINAL).update(
             type=AdviceType.APPROVE,
             text="issued on appeal",
         )
@@ -338,7 +372,7 @@ def when_the_application_is_issued_on_appeal_at(
         url = reverse(
             "caseworker_applications:change_status",
             kwargs={
-                "pk": str(refused_application.pk),
+                "pk": str(appealed_application.pk),
             },
         )
         response = api_client.post(
@@ -347,8 +381,8 @@ def when_the_application_is_issued_on_appeal_at(
             **lu_case_officer_headers,
         )
         assert response.status_code == 200, response.content
-        refused_application.refresh_from_db()
-        assert refused_application.status.status == CaseStatusEnum.REOPENED_FOR_CHANGES
+        appealed_application.refresh_from_db()
+        assert appealed_application.status.status == CaseStatusEnum.REOPENED_FOR_CHANGES
 
         response = api_client.post(
             url,
@@ -356,25 +390,25 @@ def when_the_application_is_issued_on_appeal_at(
             **lu_case_officer_headers,
         )
         assert response.status_code == 200, response.content
-        refused_application.refresh_from_db()
-        assert refused_application.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
+        appealed_application.refresh_from_db()
+        assert appealed_application.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
 
     with freeze_time(timestamp):
         data = {"action": AdviceType.APPROVE, "duration": 24}
-        for good_on_app in refused_application.goods.all():
+        for good_on_app in appealed_application.goods.all():
             good_on_app.quantity = 100
             good_on_app.value = 10000
             good_on_app.save()
             data[f"quantity-{good_on_app.id}"] = str(good_on_app.quantity)
             data[f"value-{good_on_app.id}"] = str(good_on_app.value)
-            FinalAdviceFactory(user=lu_case_officer, case=refused_application, good=good_on_app.good)
+            FinalAdviceFactory(user=lu_case_officer, case=appealed_application, good=good_on_app.good)
 
             issue_date = datetime.datetime.fromisoformat(timestamp)
             data.update({"year": issue_date.year, "month": issue_date.month, "day": issue_date.day})
 
-            refused_application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+            appealed_application.flags.remove(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
-            url = reverse("applications:finalise", kwargs={"pk": refused_application.pk})
+            url = reverse("applications:finalise", kwargs={"pk": appealed_application.pk})
             response = api_client.put(url, data=data, **lu_case_officer_headers)
             assert response.status_code == 200, response.content
             response = response.json()
@@ -395,14 +429,14 @@ def when_the_application_is_issued_on_appeal_at(
                 }
                 url = reverse(
                     "cases:generated_documents:generated_documents",
-                    kwargs={"pk": str(refused_application.pk)},
+                    kwargs={"pk": str(appealed_application.pk)},
                 )
                 response = api_client.post(url, data=data, **lu_case_officer_headers)
                 assert response.status_code == 201, response.content
 
             url = reverse(
                 "cases:finalise",
-                kwargs={"pk": str(refused_application.pk)},
+                kwargs={"pk": str(appealed_application.pk)},
             )
             response = api_client.put(url, data={}, **lu_case_officer_headers)
             assert response.status_code == 201
