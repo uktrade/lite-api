@@ -89,7 +89,7 @@ def given_a_draft_standard_application_with_attributes(organisation, attributes)
     parsers.parse("a draft temporary standard application with attributes:{attributes}"),
     target_fixture="draft_standard_application",
 )
-def given_a_draft_standard_application_with_attributes(organisation, attributes):
+def given_a_draft_temporary_standard_application_with_attributes(organisation, attributes):
     application = DraftStandardApplicationFactory(
         export_type=ApplicationExportType.TEMPORARY,
         temp_export_details="temporary export details",
@@ -568,7 +568,7 @@ def then_the_application_status_is_set_to(submitted_standard_application, status
 
 
 @then(parsers.parse("the application sub-status is set to {sub_status}"))
-def then_the_application_status_is_set_to(submitted_standard_application, sub_status):
+def then_the_application_sub_status_is_set_to(submitted_standard_application, sub_status):
     submitted_standard_application.refresh_from_db()
 
     assert (
