@@ -494,6 +494,38 @@ def when_the_application_is_withdrawn_at(
     submitted_standard_application.refresh_from_db()
 
 
+@when(parsers.parse("the application is surrendered at {timestamp}"))
+def when_the_application_is_withdrawn_at(
+    submitted_standard_application,
+    api_client,
+    exporter_headers,
+    timestamp,
+):
+    processing_time_task_run_date_time = submitted_standard_application.submitted_at.replace(hour=22, minute=30)
+    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
+    while processing_time_task_run_date_time <= up_to:
+        with freeze_time(processing_time_task_run_date_time):
+            update_cases_sla()
+        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+
+    with freeze_time(timestamp):
+        response = api_client.post(
+            reverse(
+                "exporter_applications:change_status",
+                kwargs={
+                    "pk": submitted_standard_application.pk,
+                },
+            ),
+            data={
+                "status": CaseStatusEnum.SURRENDERED,
+            },
+            **exporter_headers,
+        )
+        assert response.status_code == 200, response.content
+
+    submitted_standard_application.refresh_from_db()
+
+
 @then(parsers.parse("the application status is set to {status}"))
 def then_the_application_status_is_set_to(submitted_standard_application, status):
     submitted_standard_application.refresh_from_db()
