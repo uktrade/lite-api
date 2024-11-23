@@ -121,15 +121,12 @@ class ApplicationViewSet(BaseViewSet):
     queryset = (
         StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)
         .select_related("case_type", "status")
-        .alias(
-            count_incorporated_goods=Count(
-                "goods", filter=(Q(goods__is_good_incorporated=True) | Q(goods__is_onward_incorporated=True))
+        .annotate(
+            earliest_licence_decision=Min("licence_decisions__created_at"),
+            has_incorporated_goods=GreaterThan(
+                Count("goods", filter=(Q(goods__is_good_incorporated=True) | Q(goods__is_onward_incorporated=True))), 0
             ),
         )
-        .annotate(
-            has_incorporated_goods=GreaterThan(F("count_incorporated_goods"), 0),
-        )
-        .prefetch_related("licence_decisions")
     )
 
     class DataWorkspace:
