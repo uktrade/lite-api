@@ -265,6 +265,13 @@ def when_the_application_is_issued_at(
 def when_the_application_is_refused_at(
     api_client, lu_case_officer, siel_refusal_template, gov_headers, submitted_standard_application, timestamp
 ):
+    processing_time_task_run_date_time = submitted_standard_application.submitted_at.replace(hour=22, minute=30)
+    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
+    while processing_time_task_run_date_time <= up_to:
+        with freeze_time(processing_time_task_run_date_time):
+            update_cases_sla()
+        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+
     with freeze_time(timestamp):
         data = {"action": AdviceType.REFUSE}
         for good_on_app in submitted_standard_application.goods.all():
