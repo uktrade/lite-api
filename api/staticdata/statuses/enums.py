@@ -236,10 +236,6 @@ class CaseStatusEnum:
         return status in cls._terminal_statuses
 
     @classmethod
-    def is_closed(cls, status):
-        return status in cls._closed_statuses
-
-    @classmethod
     def is_system_status(cls, status):
         return status in cls._system_status
 
