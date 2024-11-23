@@ -444,6 +444,13 @@ def when_the_application_is_issued_on_appeal_at(
 
 @when(parsers.parse("the issued application is revoked at {timestamp}"))
 def when_the_issued_application_is_revoked(api_client, lu_sr_manager_headers, issued_application, timestamp):
+    processing_time_task_run_date_time = issued_application.submitted_at.replace(hour=22, minute=30)
+    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
+    while processing_time_task_run_date_time <= up_to:
+        with freeze_time(processing_time_task_run_date_time):
+            update_cases_sla()
+        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+
     with freeze_time(timestamp):
         issued_licence = issued_application.licences.get()
         url = reverse("licences:licence_details", kwargs={"pk": str(issued_licence.pk)})
