@@ -10,7 +10,6 @@ from pytest_bdd import (
     given,
     parsers,
     scenarios,
-    then,
     when,
 )
 
@@ -467,21 +466,3 @@ def when_the_application_is_closed_at(
         caseworker_change_status(submitted_standard_application, CaseStatusEnum.CLOSED)
 
     submitted_standard_application.refresh_from_db()
-
-
-@then(parsers.parse("the application status is set to {status}"))
-def then_the_application_status_is_set_to(submitted_standard_application, status):
-    submitted_standard_application.refresh_from_db()
-
-    assert (
-        submitted_standard_application.status.status == status
-    ), f"Application status is not {status} it is {submitted_standard_application.status.status}"
-
-
-@then(parsers.parse("the application sub-status is set to {sub_status}"))
-def then_the_application_sub_status_is_set_to(submitted_standard_application, sub_status):
-    submitted_standard_application.refresh_from_db()
-
-    assert (
-        submitted_standard_application.sub_status.name == sub_status
-    ), f"Application sub-status status is not {sub_status} it is {submitted_standard_application.sub_status.name}"
