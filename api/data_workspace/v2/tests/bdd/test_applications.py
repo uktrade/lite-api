@@ -43,6 +43,19 @@ from api.staticdata.statuses.enums import CaseStatusEnum
 scenarios("./scenarios/applications.feature")
 
 
+@pytest.fixture(autouse=True)
+def mock_s3():
+    with mock_aws():
+        s3 = init_s3_client()
+        s3.create_bucket(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            CreateBucketConfiguration={
+                "LocationConstraint": settings.AWS_REGION,
+            },
+        )
+        yield
+
+
 @given("a draft standard application", target_fixture="draft_standard_application")
 def given_draft_standard_application(organisation):
     application = DraftStandardApplicationFactory(
@@ -137,34 +150,28 @@ def given_a_good_is_onward_incorporated(draft_standard_application):
 @pytest.fixture
 def submit_application(api_client, exporter_headers, mocker):
     def _submit_application(draft_application, submission_date_time=None):
+        type_code = "T" if draft_application.export_type == ApplicationExportType.TEMPORARY else "P"
+        reference_code = f"GBSIEL/2024/0000001/{type_code}"
+        mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
+
         if not submission_date_time:
             submission_date_time = timezone.now()
+
         with freeze_time(submission_date_time):
-            type_code = "T" if draft_application.export_type == ApplicationExportType.TEMPORARY else "P"
-            reference_code = f"GBSIEL/2024/0000001/{type_code}"
-            mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
-            with mock_aws():
-                s3 = init_s3_client()
-                s3.create_bucket(
-                    Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                    CreateBucketConfiguration={
-                        "LocationConstraint": settings.AWS_REGION,
+            response = api_client.put(
+                reverse(
+                    "applications:application_submit",
+                    kwargs={
+                        "pk": draft_application.pk,
                     },
-                )
-                response = api_client.put(
-                    reverse(
-                        "applications:application_submit",
-                        kwargs={
-                            "pk": draft_application.pk,
-                        },
-                    ),
-                    data={
-                        "submit_declaration": True,
-                        "agreed_to_declaration_text": "i agree",
-                    },
-                    **exporter_headers,
-                )
-                assert response.status_code == 200, response.json()["errors"]
+                ),
+                data={
+                    "submit_declaration": True,
+                    "agreed_to_declaration_text": "i agree",
+                },
+                **exporter_headers,
+            )
+            assert response.status_code == 200, response.json()["errors"]
         draft_application.refresh_from_db()
         return draft_application
 
@@ -222,26 +229,18 @@ def when_the_application_is_issued_at(
         assert response.status_code == 200, response.content
         response = response.json()
 
-        with mock_aws():
-            s3 = init_s3_client()
-            s3.create_bucket(
-                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                CreateBucketConfiguration={
-                    "LocationConstraint": settings.AWS_REGION,
-                },
-            )
-            data = {
-                "template": str(siel_template.id),
-                "text": "",
-                "visible_to_exporter": False,
-                "advice_type": AdviceType.APPROVE,
-            }
-            url = reverse(
-                "cases:generated_documents:generated_documents",
-                kwargs={"pk": str(submitted_standard_application.pk)},
-            )
-            response = api_client.post(url, data=data, **gov_headers)
-            assert response.status_code == 201, response.content
+        data = {
+            "template": str(siel_template.id),
+            "text": "",
+            "visible_to_exporter": False,
+            "advice_type": AdviceType.APPROVE,
+        }
+        url = reverse(
+            "cases:generated_documents:generated_documents",
+            kwargs={"pk": str(submitted_standard_application.pk)},
+        )
+        response = api_client.post(url, data=data, **gov_headers)
+        assert response.status_code == 201, response.content
 
         url = reverse(
             "cases:finalise",
@@ -281,26 +280,18 @@ def when_the_application_is_refused_at(
         assert response.status_code == 200, response.content
         response = response.json()
 
-        with mock_aws():
-            s3 = init_s3_client()
-            s3.create_bucket(
-                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                CreateBucketConfiguration={
-                    "LocationConstraint": settings.AWS_REGION,
-                },
-            )
-            data = {
-                "template": str(siel_refusal_template.id),
-                "text": "",
-                "visible_to_exporter": False,
-                "advice_type": AdviceType.REFUSE,
-            }
-            url = reverse(
-                "cases:generated_documents:generated_documents",
-                kwargs={"pk": str(submitted_standard_application.pk)},
-            )
-            response = api_client.post(url, data=data, **gov_headers)
-            assert response.status_code == 201, response.content
+        data = {
+            "template": str(siel_refusal_template.id),
+            "text": "",
+            "visible_to_exporter": False,
+            "advice_type": AdviceType.REFUSE,
+        }
+        url = reverse(
+            "cases:generated_documents:generated_documents",
+            kwargs={"pk": str(submitted_standard_application.pk)},
+        )
+        response = api_client.post(url, data=data, **gov_headers)
+        assert response.status_code == 201, response.content
 
         url = reverse(
             "cases:finalise",
@@ -400,26 +391,18 @@ def when_the_application_is_issued_on_appeal_at(
             assert response.status_code == 200, response.content
             response = response.json()
 
-            with mock_aws():
-                s3 = init_s3_client()
-                s3.create_bucket(
-                    Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                    CreateBucketConfiguration={
-                        "LocationConstraint": settings.AWS_REGION,
-                    },
-                )
-                data = {
-                    "template": str(siel_template.id),
-                    "text": "",
-                    "visible_to_exporter": False,
-                    "advice_type": AdviceType.APPROVE,
-                }
-                url = reverse(
-                    "cases:generated_documents:generated_documents",
-                    kwargs={"pk": str(appealed_application.pk)},
-                )
-                response = api_client.post(url, data=data, **lu_case_officer_headers)
-                assert response.status_code == 201, response.content
+            data = {
+                "template": str(siel_template.id),
+                "text": "",
+                "visible_to_exporter": False,
+                "advice_type": AdviceType.APPROVE,
+            }
+            url = reverse(
+                "cases:generated_documents:generated_documents",
+                kwargs={"pk": str(appealed_application.pk)},
+            )
+            response = api_client.post(url, data=data, **lu_case_officer_headers)
+            assert response.status_code == 201, response.content
 
             url = reverse(
                 "cases:finalise",
