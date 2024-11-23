@@ -1,5 +1,4 @@
 import datetime
-import itertools
 import typing
 
 from rest_framework import serializers
@@ -9,12 +8,9 @@ from api.applications.models import (
     PartyOnApplication,
     StandardApplication,
 )
-from api.audit_trail.enums import AuditType
-from api.audit_trail.models import Audit
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import Case
 from api.staticdata.countries.models import Country
-from api.staticdata.statuses.enums import CaseStatusEnum
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -116,19 +112,17 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
     def get_first_closed_at(self, application) -> typing.Optional[datetime.datetime]:
         if application.licence_decisions.exists():
-            return application.licence_decisions.earliest("created_at").created_at
+            earliest = None
+            for licence_decision in application.licence_decisions.all():
+                if not earliest:
+                    earliest = licence_decision.created_at
+                    continue
+                if licence_decision.created_at < earliest:
+                    earliest = licence_decision.created_at
+            return earliest
 
-        status_map = dict(CaseStatusEnum.choices)
-        closed_statuses = list(
-            itertools.chain.from_iterable((status, status_map[status]) for status in CaseStatusEnum.closed_statuses())
-        )
-        try:
-            first_closed_status_update = Audit.objects.filter(
-                target_object_id=application.pk,
-                verb=AuditType.UPDATED_STATUS,
-                payload__status__new__in=closed_statuses,
-            ).earliest("created_at")
-        except Audit.DoesNotExist:
-            return None
+        first_closed_status = self.context["first_closed_statuses"].get(str(application.pk))
+        if first_closed_status:
+            return first_closed_status
 
-        return first_closed_status_update.created_at
+        return None
