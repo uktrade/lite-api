@@ -1,11 +1,11 @@
 @db
 Feature: applications Table
 
-Scenario: Draft applications don't appear in applications table
+Scenario: Draft application
     Given a draft standard application
     Then the `applications` table is empty
 
-Scenario: Submitted applications appear in the applications table
+Scenario: Submit an application
     Given a draft standard application with attributes:
         id: 03fb08eb-1564-4b68-9336-3ca8906543f9
     When the application is submitted
@@ -14,7 +14,7 @@ Scenario: Submitted applications appear in the applications table
         | id                                   | licence_type | reference_code            | sub_type  | status     | processing_time | first_closed_at |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/P     | permanent | submitted  | 0               | NULL            |
 
-Scenario: Temporary application sub type appears in applications table
+Scenario: Submit a Temporary application
     Given a draft temporary standard application with attributes:
         id: 03fb08eb-1564-4b68-9336-3ca8906543f9
     When the application is submitted
@@ -23,7 +23,7 @@ Scenario: Temporary application sub type appears in applications table
         | id                                   | licence_type | reference_code            | sub_type  | status     | processing_time | first_closed_at |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/T     | temporary | submitted  | 0               | NULL            |
 
-Scenario: Permanent application with an incorporated good has incorporated sub_type
+Scenario: Submit a Permanent application with an incorporated good
     Given a draft standard application with attributes:
         id: 03fb08eb-1564-4b68-9336-3ca8906543f9
     And a good where the exporter said yes to the product being incorporated into another product
@@ -33,7 +33,7 @@ Scenario: Permanent application with an incorporated good has incorporated sub_t
         | id                                   | licence_type | reference_code            | sub_type      | status     | processing_time | first_closed_at |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/P     | incorporation | submitted  | 0               | NULL            |
 
-Scenario: Temporary application with an incorporated good has incorporated sub_type
+Scenario: Submit a Temporary application with an incorporated good
     Given a draft temporary standard application with attributes:
         id: 03fb08eb-1564-4b68-9336-3ca8906543f9
     And a good where the exporter said yes to the product being incorporated into another product
@@ -43,7 +43,7 @@ Scenario: Temporary application with an incorporated good has incorporated sub_t
         | id                                   | licence_type | reference_code            | sub_type      | status     | processing_time | first_closed_at |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/T     | incorporation | submitted  | 0               | NULL            |
 
-Scenario: Permanent application with an onward incorporated good has incorporated sub_type
+Scenario: Submit a Permanent application with an onward incorporated good
     Given a draft standard application with attributes:
         id: 03fb08eb-1564-4b68-9336-3ca8906543f9
     And a good where the exporter said yes to the product being incorporated before it is onward exported
@@ -53,7 +53,7 @@ Scenario: Permanent application with an onward incorporated good has incorporate
         | id                                   | licence_type | reference_code            | sub_type      | status     | processing_time | first_closed_at |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/P     | incorporation | submitted  | 0               | NULL            |
 
-Scenario: Temporary application with an onward incorporated good has incorporated sub_type
+Scenario: Submit a Temporary application with an onward incorporated good
     Given a draft temporary standard application with attributes:
         id: 03fb08eb-1564-4b68-9336-3ca8906543f9
     And a good where the exporter said yes to the product being incorporated before it is onward exported
@@ -136,3 +136,13 @@ Scenario: Surrendering an application
     And the `applications` table has the following rows:
         | id                                   | licence_type | reference_code            | sub_type      | status      | processing_time | first_closed_at     |
         | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/P     | permanent     | surrendered | 38              | 2024-11-22T13:35:15 |
+
+Scenario: Closing an application
+    Given a draft standard application with attributes:
+        id: 03fb08eb-1564-4b68-9336-3ca8906543f9
+    When the application is submitted at 2024-10-01T11:20:15
+    And the application is closed at 2024-11-22T13:35:15
+    Then the application status is set to closed
+    And the `applications` table has the following rows:
+        | id                                   | licence_type | reference_code            | sub_type      | status | processing_time | first_closed_at     |
+        | 03fb08eb-1564-4b68-9336-3ca8906543f9 | siel         | GBSIEL/2024/0000001/P     | permanent     | closed | 38              | 2024-11-22T13:35:15 |
