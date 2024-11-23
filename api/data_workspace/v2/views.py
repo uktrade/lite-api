@@ -9,8 +9,13 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import (
     F,
+    Q,
+)
+from django.db.models.aggregates import (
+    Count,
     Min,
 )
+from django.db.models.lookups import GreaterThan
 from django.db.models.query import QuerySet
 
 from api.applications.models import (
@@ -116,7 +121,15 @@ class ApplicationViewSet(BaseViewSet):
     queryset = (
         StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)
         .select_related("case_type", "status")
-        .prefetch_related("goods", "licence_decisions")
+        .alias(
+            count_incorporated_goods=Count(
+                "goods", filter=(Q(goods__is_good_incorporated=True) | Q(goods__is_onward_incorporated=True))
+            ),
+        )
+        .annotate(
+            has_incorporated_goods=GreaterThan(F("count_incorporated_goods"), 0),
+        )
+        .prefetch_related("licence_decisions")
     )
 
     class DataWorkspace:

@@ -102,7 +102,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         )
 
     def get_sub_type(self, application) -> str:
-        if any(g.is_good_incorporated or g.is_onward_incorporated for g in application.goods.all()):
+        if application.has_incorporated_goods:
             return "incorporation"
 
         return application.export_type
