@@ -339,9 +339,36 @@ def when_the_application_is_appealed_at(
     return refused_application
 
 
+@pytest.fixture()
+def caseworker_change_status(api_client, lu_case_officer, lu_case_officer_headers):
+    def _caseworker_change_status(application, status):
+        url = reverse(
+            "caseworker_applications:change_status",
+            kwargs={
+                "pk": str(application.pk),
+            },
+        )
+        response = api_client.post(
+            url,
+            data={"status": status},
+            **lu_case_officer_headers,
+        )
+        assert response.status_code == 200, response.content
+        application.refresh_from_db()
+        assert application.status.status == status
+
+    return _caseworker_change_status
+
+
 @when(parsers.parse("the refused application is issued on appeal at {timestamp}"))
 def when_the_application_is_issued_on_appeal_at(
-    appealed_application, api_client, lu_case_officer, lu_case_officer_headers, siel_template, timestamp
+    appealed_application,
+    api_client,
+    lu_case_officer,
+    lu_case_officer_headers,
+    siel_template,
+    timestamp,
+    caseworker_change_status,
 ):
     run_processing_time_task(appealed_application.appeal.created_at, timestamp)
 
@@ -351,31 +378,9 @@ def when_the_application_is_issued_on_appeal_at(
             text="issued on appeal",
         )
 
-        url = reverse(
-            "caseworker_applications:change_status",
-            kwargs={
-                "pk": str(appealed_application.pk),
-            },
-        )
-        response = api_client.post(
-            url,
-            data={"status": CaseStatusEnum.REOPENED_FOR_CHANGES},
-            **lu_case_officer_headers,
-        )
-        assert response.status_code == 200, response.content
-        appealed_application.refresh_from_db()
-        assert appealed_application.status.status == CaseStatusEnum.REOPENED_FOR_CHANGES
+        caseworker_change_status(appealed_application, CaseStatusEnum.REOPENED_FOR_CHANGES)
+        caseworker_change_status(appealed_application, CaseStatusEnum.UNDER_FINAL_REVIEW)
 
-        response = api_client.post(
-            url,
-            data={"status": CaseStatusEnum.UNDER_FINAL_REVIEW},
-            **lu_case_officer_headers,
-        )
-        assert response.status_code == 200, response.content
-        appealed_application.refresh_from_db()
-        assert appealed_application.status.status == CaseStatusEnum.UNDER_FINAL_REVIEW
-
-    with freeze_time(timestamp):
         data = {"action": AdviceType.APPROVE, "duration": 24}
         for good_on_app in appealed_application.goods.all():
             good_on_app.quantity = 100
@@ -496,26 +501,13 @@ def when_the_application_is_surrenderd_at(
 @when(parsers.parse("the application is closed at {timestamp}"))
 def when_the_application_is_closed_at(
     submitted_standard_application,
-    api_client,
-    lu_case_officer_headers,
+    caseworker_change_status,
     timestamp,
 ):
     run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
-        response = api_client.post(
-            reverse(
-                "caseworker_applications:change_status",
-                kwargs={
-                    "pk": submitted_standard_application.pk,
-                },
-            ),
-            data={
-                "status": CaseStatusEnum.CLOSED,
-            },
-            **lu_case_officer_headers,
-        )
-        assert response.status_code == 200, response.content
+        caseworker_change_status(submitted_standard_application, CaseStatusEnum.CLOSED)
 
     submitted_standard_application.refresh_from_db()
 
