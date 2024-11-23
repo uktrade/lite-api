@@ -199,16 +199,20 @@ def when_the_application_is_submitted_at(
         return draft_standard_application
 
 
-@when(parsers.parse("the application is issued at {timestamp}"), target_fixture="issued_application")
-def when_the_application_is_issued_at(
-    api_client, lu_case_officer, siel_template, gov_headers, submitted_standard_application, timestamp
-):
-    processing_time_task_run_date_time = submitted_standard_application.submitted_at.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
+def run_processing_time_task(start, up_to):
+    processing_time_task_run_date_time = start.replace(hour=22, minute=30)
+    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(up_to))
     while processing_time_task_run_date_time <= up_to:
         with freeze_time(processing_time_task_run_date_time):
             update_cases_sla()
         processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+
+
+@when(parsers.parse("the application is issued at {timestamp}"), target_fixture="issued_application")
+def when_the_application_is_issued_at(
+    api_client, lu_case_officer, siel_template, gov_headers, submitted_standard_application, timestamp
+):
+    run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
         data = {"action": AdviceType.APPROVE, "duration": 24}
@@ -265,12 +269,7 @@ def when_the_application_is_issued_at(
 def when_the_application_is_refused_at(
     api_client, lu_case_officer, siel_refusal_template, gov_headers, submitted_standard_application, timestamp
 ):
-    processing_time_task_run_date_time = submitted_standard_application.submitted_at.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
-    while processing_time_task_run_date_time <= up_to:
-        with freeze_time(processing_time_task_run_date_time):
-            update_cases_sla()
-        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+    run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
         data = {"action": AdviceType.REFUSE}
@@ -356,12 +355,7 @@ def when_the_application_is_appealed_at(
 def when_the_application_is_issued_on_appeal_at(
     appealed_application, api_client, lu_case_officer, lu_case_officer_headers, siel_template, timestamp
 ):
-    processing_time_task_run_date_time = appealed_application.appeal.created_at.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
-    while processing_time_task_run_date_time <= up_to:
-        with freeze_time(processing_time_task_run_date_time):
-            update_cases_sla()
-        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+    run_processing_time_task(appealed_application.appeal.created_at, timestamp)
 
     with freeze_time(timestamp):
         appealed_application.advice.filter(level=AdviceLevel.FINAL).update(
@@ -444,12 +438,7 @@ def when_the_application_is_issued_on_appeal_at(
 
 @when(parsers.parse("the issued application is revoked at {timestamp}"))
 def when_the_issued_application_is_revoked(api_client, lu_sr_manager_headers, issued_application, timestamp):
-    processing_time_task_run_date_time = issued_application.submitted_at.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
-    while processing_time_task_run_date_time <= up_to:
-        with freeze_time(processing_time_task_run_date_time):
-            update_cases_sla()
-        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+    run_processing_time_task(issued_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
         issued_licence = issued_application.licences.get()
@@ -469,12 +458,7 @@ def when_the_application_is_withdrawn_at(
     exporter_headers,
     timestamp,
 ):
-    processing_time_task_run_date_time = submitted_standard_application.submitted_at.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
-    while processing_time_task_run_date_time <= up_to:
-        with freeze_time(processing_time_task_run_date_time):
-            update_cases_sla()
-        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+    run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
         response = api_client.post(
@@ -501,12 +485,7 @@ def when_the_application_is_surrenderd_at(
     exporter_headers,
     timestamp,
 ):
-    processing_time_task_run_date_time = submitted_standard_application.submitted_at.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
-    while processing_time_task_run_date_time <= up_to:
-        with freeze_time(processing_time_task_run_date_time):
-            update_cases_sla()
-        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+    run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
         response = api_client.post(
@@ -533,12 +512,7 @@ def when_the_application_is_closed_at(
     lu_case_officer_headers,
     timestamp,
 ):
-    processing_time_task_run_date_time = submitted_standard_application.submitted_at.replace(hour=22, minute=30)
-    up_to = pytz.utc.localize(datetime.datetime.fromisoformat(timestamp))
-    while processing_time_task_run_date_time <= up_to:
-        with freeze_time(processing_time_task_run_date_time):
-            update_cases_sla()
-        processing_time_task_run_date_time = processing_time_task_run_date_time + datetime.timedelta(days=1)
+    run_processing_time_task(submitted_standard_application.submitted_at, timestamp)
 
     with freeze_time(timestamp):
         response = api_client.post(
