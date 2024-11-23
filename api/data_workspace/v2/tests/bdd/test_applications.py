@@ -16,7 +16,6 @@ from pytest_bdd import (
 
 from django.conf import settings
 from django.urls import reverse
-from django.utils import timezone
 
 from api.applications.enums import ApplicationExportType
 from api.applications.tests.factories import (
@@ -149,29 +148,26 @@ def given_a_good_is_onward_incorporated(draft_standard_application):
 
 @pytest.fixture
 def submit_application(api_client, exporter_headers, mocker):
-    def _submit_application(draft_application, submission_date_time=None):
+    def _submit_application(draft_application):
         type_code = "T" if draft_application.export_type == ApplicationExportType.TEMPORARY else "P"
         reference_code = f"GBSIEL/2024/0000001/{type_code}"
         mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
 
-        if not submission_date_time:
-            submission_date_time = timezone.now()
-
-        with freeze_time(submission_date_time):
-            response = api_client.put(
-                reverse(
-                    "applications:application_submit",
-                    kwargs={
-                        "pk": draft_application.pk,
-                    },
-                ),
-                data={
-                    "submit_declaration": True,
-                    "agreed_to_declaration_text": "i agree",
+        response = api_client.put(
+            reverse(
+                "applications:application_submit",
+                kwargs={
+                    "pk": draft_application.pk,
                 },
-                **exporter_headers,
-            )
-            assert response.status_code == 200, response.json()["errors"]
+            ),
+            data={
+                "submit_declaration": True,
+                "agreed_to_declaration_text": "i agree",
+            },
+            **exporter_headers,
+        )
+        assert response.status_code == 200, response.json()["errors"]
+
         draft_application.refresh_from_db()
         return draft_application
 
@@ -191,7 +187,8 @@ def when_the_application_is_submitted(submit_application, draft_standard_applica
     target_fixture="submitted_standard_application",
 )
 def when_the_application_is_submitted_at(submit_application, draft_standard_application, submission_time):
-    return submit_application(draft_standard_application, submission_time)
+    with freeze_time(submission_time):
+        return submit_application(draft_standard_application)
 
 
 def run_processing_time_task(start, up_to):
