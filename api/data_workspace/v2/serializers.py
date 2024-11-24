@@ -111,4 +111,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         if application.first_licence_decision_created_at:
             return application.first_licence_decision_created_at
 
-        return application.first_closed_status_created_at
+        if application.baseapplication_ptr.case_ptr.closed_status_updates:
+            return application.baseapplication_ptr.case_ptr.closed_status_updates[0].created_at
+
+        return None
