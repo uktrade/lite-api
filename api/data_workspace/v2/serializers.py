@@ -108,8 +108,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         return application.export_type
 
     def get_first_closed_at(self, application) -> typing.Optional[datetime.datetime]:
-        if application.earliest_licence_decision:
-            return application.earliest_licence_decision
+        if application.first_licence_decision_created_at:
+            return application.first_licence_decision_created_at
 
-        first_closed_status = self.context["first_closed_statuses"].get(str(application.pk))
-        return first_closed_status
+        return application.first_closed_status_created_at

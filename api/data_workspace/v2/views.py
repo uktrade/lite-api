@@ -16,7 +16,6 @@ from django.db.models.aggregates import (
     Min,
 )
 from django.db.models.lookups import GreaterThan
-from django.db.models.query import QuerySet
 
 from api.applications.models import (
     GoodOnApplication,
@@ -24,7 +23,6 @@ from api.applications.models import (
     StandardApplication,
 )
 from api.audit_trail.enums import AuditType
-from api.audit_trail.models import Audit
 from api.cases.models import Case
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
@@ -116,54 +114,32 @@ class GoodViewSet(BaseViewSet):
         table_name = "goods"
 
 
+def get_closed_statuses():
+    status_map = dict(CaseStatusEnum.choices)
+    return list(
+        itertools.chain.from_iterable((status, status_map[status]) for status in CaseStatusEnum.closed_statuses())
+    )
+
+
 class ApplicationViewSet(BaseViewSet):
     serializer_class = ApplicationSerializer
     queryset = (
         StandardApplication.objects.exclude(status__status=CaseStatusEnum.DRAFT)
         .select_related("case_type", "status")
         .annotate(
-            earliest_licence_decision=Min("licence_decisions__created_at"),
+            first_licence_decision_created_at=Min("licence_decisions__created_at"),
             has_incorporated_goods=GreaterThan(
                 Count("goods", filter=(Q(goods__is_good_incorporated=True) | Q(goods__is_onward_incorporated=True))), 0
+            ),
+            first_closed_status_created_at=Min(
+                "baseapplication_ptr__case_ptr__audit_trail__created_at",
+                filter=Q(
+                    baseapplication_ptr__case_ptr__audit_trail__verb=AuditType.UPDATED_STATUS,
+                    baseapplication_ptr__case_ptr__audit_trail__payload__status__new__in=get_closed_statuses(),
+                ),
             ),
         )
     )
 
     class DataWorkspace:
         table_name = "applications"
-
-    def get_first_closed_statuses(self, queryset):
-        status_map = dict(CaseStatusEnum.choices)
-        closed_statuses = list(
-            itertools.chain.from_iterable((status, status_map[status]) for status in CaseStatusEnum.closed_statuses())
-        )
-        application_ids = []
-        if isinstance(queryset, list):
-            application_ids = [str(s.pk) for s in queryset]
-        elif isinstance(queryset, QuerySet):
-            application_ids = [str(pk) for pk in queryset.values_list("pk", flat=True)]
-
-        first_closed_status_updates = (
-            Audit.objects.filter(
-                target_object_id__in=application_ids,
-                verb=AuditType.UPDATED_STATUS,
-                payload__status__new__in=closed_statuses,
-            )
-            .annotate(first_closed_date=Min("created_at"))
-            .values_list("target_object_id", "first_closed_date")
-        )
-
-        return dict(first_closed_status_updates)
-
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-
-        context = self.get_serializer_context()
-
-        if args and isinstance(args[0], (QuerySet, list)) and kwargs.get("many", False):
-            context["first_closed_statuses"] = self.get_first_closed_statuses(args[0])
-        elif args and isinstance(args[0], StandardApplication):
-            context["first_closed_statuses"] = self.get_first_closed_statuses([args[0]])
-        kwargs.setdefault("context", context)
-
-        return serializer_class(*args, **kwargs)
