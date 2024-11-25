@@ -181,7 +181,7 @@ def generate_refusal_documents(client, siel_refusal_template, gov_headers, case_
 
 
 @when("case officer refuses licence for this case", target_fixture="refused_case")
-def licence_for_case_is_refused(client, gov_headers, case_with_refused_advice):
+def case_officer_refuses_licence(client, gov_headers, case_with_refused_advice):
     url = reverse(
         "cases:finalise",
         kwargs={"pk": str(case_with_refused_advice.pk)},

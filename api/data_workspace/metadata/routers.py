@@ -89,7 +89,7 @@ def get_fields(view):
             try:
                 return_type = method.__annotations__["return"]
             except KeyError:
-                raise NotImplementedError(f"Add a return annotation to the `{field.method_name}` method")
+                raise NotImplementedError(f"Add a return annotation to the `{field.method_name}` method")  # noqa
 
             if is_optional(return_type):
                 field_metadata["nullable"] = True
