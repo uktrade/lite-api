@@ -7,13 +7,14 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import F
 
-from api.applications.models import PartyOnApplication
+from api.applications.models import GoodOnApplication, PartyOnApplication
 from api.cases.models import Case
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
     CountrySerializer,
     DestinationSerializer,
+    GoodSerializer,
     LicenceDecisionSerializer,
     LicenceDecisionType,
 )
@@ -87,3 +88,11 @@ class DestinationViewSet(BaseViewSet):
 
     class DataWorkspace:
         table_name = "destinations"
+
+
+class GoodViewSet(BaseViewSet):
+    serializer_class = GoodSerializer
+    queryset = GoodOnApplication.objects.exclude(application__status__status=CaseStatusEnum.DRAFT)
+
+    class DataWorkspace:
+        table_name = "goods"

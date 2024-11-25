@@ -3,11 +3,21 @@ import pytest
 
 from rest_framework import status
 
+from api.applications.tests.factories import (
+    GoodOnApplicationFactory,
+    PartyOnApplicationFactory,
+    StandardApplicationFactory,
+    DraftStandardApplicationFactory,
+)
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
 from api.core.constants import GovPermissions, Roles
+from api.goods.tests.factories import GoodFactory
 from api.letter_templates.models import LetterTemplate
 from api.staticdata.letter_layouts.models import LetterLayout
+from api.staticdata.statuses.enums import CaseStatusEnum
+from api.staticdata.statuses.models import CaseStatus
+from api.staticdata.units.enums import Units
 from api.users.libraries.user_to_token import user_to_token
 from api.users.enums import SystemUser, UserType
 from api.users.models import BaseUser, Permission
@@ -119,3 +129,22 @@ def unpage_data(client):
         return unpaged_results
 
     return _unpage_data
+
+
+@pytest.fixture()
+def standard_application():
+    application = StandardApplicationFactory(
+        status=CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW),
+    )
+    party_on_application = PartyOnApplicationFactory(application=application)
+    good = GoodFactory(organisation=application.organisation)
+    good_on_application = GoodOnApplicationFactory(
+        application=application, good=good, quantity=100.0, value=1500, unit=Units.NAR
+    )
+    return application
+
+
+@pytest.fixture()
+def draft_application():
+    draft_application = DraftStandardApplicationFactory()
+    return draft_application
