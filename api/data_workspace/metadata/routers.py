@@ -110,6 +110,22 @@ def get_fields(view):
             if field.allow_null:
                 field_metadata["nullable"] = True
 
+        elif isinstance(field, serializers.FloatField):
+            field_metadata["type"] = "Float"
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
+        elif isinstance(field, serializers.DecimalField):
+            field_metadata["type"] = "Float"
+            field_metadata["asdecimal"] = True
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
+        elif isinstance(field, serializers.IntegerField):
+            field_metadata["type"] = "Integer"
+            if field.allow_null:
+                field_metadata["nullable"] = True
+
         else:  # pragma: no cover
             raise NotImplementedError(f"Annotation not found for {field}")
 

@@ -1,9 +1,14 @@
+import datetime
 import typing
 import uuid
 
 from rest_framework import serializers
 
-from api.applications.models import PartyOnApplication
+from api.applications.models import (
+    GoodOnApplication,
+    PartyOnApplication,
+    StandardApplication,
+)
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import LicenceDecision
 from api.staticdata.countries.models import Country
@@ -61,3 +66,53 @@ class DestinationSerializer(serializers.ModelSerializer):
             "country_code",
             "type",
         )
+
+
+class GoodSerializer(serializers.ModelSerializer):
+    application_id = serializers.UUIDField()
+    unit = serializers.CharField()
+
+    class Meta:
+        model = GoodOnApplication
+        fields = (
+            "id",
+            "application_id",
+            "quantity",
+            "unit",
+            "value",
+        )
+
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    licence_type = serializers.CharField(source="case_type.reference")
+    status = serializers.CharField(source="status.status")
+    processing_time = serializers.IntegerField(source="sla_days")
+    sub_type = serializers.SerializerMethodField()
+    first_closed_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StandardApplication
+        fields = (
+            "id",
+            "licence_type",
+            "reference_code",
+            "sub_type",
+            "status",
+            "processing_time",
+            "first_closed_at",
+        )
+
+    def get_sub_type(self, application) -> str:
+        if application.has_incorporated_goods:
+            return "incorporation"
+
+        return application.export_type
+
+    def get_first_closed_at(self, application) -> typing.Optional[datetime.datetime]:
+        if application.first_licence_decision_created_at:
+            return application.first_licence_decision_created_at
+
+        if application.baseapplication_ptr.case_ptr.closed_status_updates:
+            return application.baseapplication_ptr.case_ptr.closed_status_updates[0].created_at
+
+        return None
