@@ -52,6 +52,11 @@ class DecimalFieldSerializer(serializers.Serializer):
     nullable_decimal_field = serializers.DecimalField(max_digits=15, decimal_places=2, allow_null=True)
 
 
+class IntegerFieldSerializer(serializers.Serializer):
+    integer_field = serializers.IntegerField()
+    nullable_integer_field = serializers.IntegerField(allow_null=True)
+
+
 class AutoPrimaryKeySerializer(serializers.Serializer):
     id = serializers.UUIDField()
     not_a_primary_key = serializers.UUIDField()

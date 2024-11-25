@@ -171,6 +171,18 @@ class MetadataTestCase(URLPatternsTestCase):
             ],
         )
 
+    def test_integer_field(self):
+        response = self.client.get(self.auto_fields_url)
+        output = response.json()
+        self.assertFieldsEqual(
+            output,
+            "integer_field",
+            [
+                {"name": "integer_field", "type": "Integer"},
+                {"name": "nullable_integer_field", "type": "Integer", "nullable": True},
+            ],
+        )
+
     def test_auto_primary_key(self):
         response = self.client.get(self.auto_fields_url)
         output = response.json()

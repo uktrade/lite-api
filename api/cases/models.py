@@ -120,6 +120,12 @@ class Case(TimestampableModel):
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
     additional_contacts = models.ManyToManyField("parties.Party", related_name="case")
+    audit_trail = GenericRelation(
+        "audit_trail.Audit",
+        related_query_name="case",
+        content_type_field="target_content_type",
+        object_id_field="target_object_id",
+    )
     # _previous_status is used during post_save signal to check if the status has changed
     _previous_status = None
 
@@ -421,6 +427,17 @@ class Case(TimestampableModel):
             document.send_exporter_notifications()
 
         logging.info("Licence documents published to exporter, notification sent")
+
+    def delete(self, *args, **kwargs):
+        # This simulates `models.SET_NULL` as a `GenericRelation`, which `audit_trail` is, implicitly does a cascased
+        # delete.
+        # Without doing this we would delete the audit trails associated to this case when this case is deleted and
+        # we want to keep them.
+        self.audit_trail.update(
+            target_content_type=None,
+            target_object_id=None,
+        )
+        return super().delete(*args, **kwargs)
 
 
 class CaseQueue(TimestampableModel):
