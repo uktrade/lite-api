@@ -410,12 +410,23 @@ class Case(TimestampableModel):
                     if previous_licence_decision.decision == current_decision:
                         previous_decision = previous_licence_decision
 
-                LicenceDecision.objects.create(
+                licence_decision = LicenceDecision.objects.create(
                     case=self,
                     decision=current_decision,
                     licence=licence,
                     previous_decision=previous_decision,
                 )
+                if advice_type == AdviceType.REFUSE:
+                    denial_reasons = (
+                        self.advice.filter(
+                            level=AdviceLevel.FINAL,
+                            type=AdviceType.REFUSE,
+                        )
+                        .only("denial_reasons__id")
+                        .distinct()
+                        .values_list("denial_reasons__id", flat=True)
+                    )
+                    licence_decision.denial_reasons.set(denial_reasons)
 
             licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
             audit_trail_service.create(
@@ -846,6 +857,7 @@ class LicenceDecision(TimestampableModel):
     licence = models.ForeignKey(
         "licences.Licence", on_delete=models.DO_NOTHING, related_name="licence_decisions", null=True, blank=True
     )
+    denial_reasons = models.ManyToManyField(DenialReason)
     excluded_from_statistics_reason = models.TextField(default=None, blank=True, null=True)
     previous_decision = models.ForeignKey(
         "self", related_name="previous_decisions", default=None, null=True, on_delete=models.DO_NOTHING
