@@ -429,6 +429,10 @@ class Case(TimestampableModel):
         logging.info("Licence documents published to exporter, notification sent")
 
     def delete(self, *args, **kwargs):
+        # This simulates `models.SET_NULL` as a `GenericRelation`, which `audit_trail` is, implicitly does a cascased
+        # delete.
+        # Without doing this we would delete the audit trails associated to this case when this case is deleted and
+        # we want to keep them.
         self.audit_trail.update(
             target_content_type=None,
             target_object_id=None,
