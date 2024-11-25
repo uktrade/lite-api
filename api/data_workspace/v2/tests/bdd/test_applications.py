@@ -441,7 +441,7 @@ def when_the_application_is_withdrawn_at(
 
 
 @when(parsers.parse("the application is surrendered at {timestamp}"))
-def when_the_application_is_surrenderd_at(
+def when_the_application_is_surrendered_at(
     submitted_standard_application,
     exporter_change_status,
     timestamp,
