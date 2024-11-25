@@ -25,10 +25,7 @@ class SerializerMethodFieldSerializer(serializers.Serializer):
     returns_datetime = serializers.SerializerMethodField()
     returns_optional_datetime = serializers.SerializerMethodField()
 
-    def get_returns_string_no_annotation(self, instance):
-        return "string"
-
-    def get_returns_string(self, instance):
+    def get_returns_string(self, instance) -> str:
         return "string"
 
     def get_returns_optional_string(self, instance) -> Optional[str]:
