@@ -894,7 +894,7 @@ class FinaliseView(UpdateAPIView):
             )
 
         # finalises case, grants licence and publishes decision documents
-        licence_id = case.finalise(request, required_decisions)
+        licence_id = case.finalise(request.user, required_decisions, request.data.get("note"))
 
         return JsonResponse({"case": pk, "licence": licence_id}, status=status.HTTP_201_CREATED)
 

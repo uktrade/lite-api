@@ -342,7 +342,7 @@ class Case(TimestampableModel):
         notify_exporter_no_licence_required(self)
 
     @transaction.atomic
-    def finalise(self, request, decisions):
+    def finalise(self, user, decisions, note):
         from api.audit_trail import service as audit_trail_service
         from api.cases.libraries.finalise import remove_flags_on_finalisation, remove_flags_from_audit_trail
         from api.licences.models import Licence
@@ -361,7 +361,7 @@ class Case(TimestampableModel):
 
             if Licence.objects.filter(case=self).count() > 1:
                 audit_trail_service.create(
-                    actor=request.user,
+                    actor=user,
                     verb=AuditType.REINSTATED_APPLICATION,
                     target=self,
                     payload={
@@ -376,12 +376,12 @@ class Case(TimestampableModel):
         self.save()
 
         audit_trail_service.create(
-            actor=request.user,
+            actor=user,
             verb=AuditType.UPDATED_STATUS,
             target=self,
             payload={
                 "status": {"new": self.status.status, "old": old_status},
-                "additional_text": request.data.get("note"),
+                "additional_text": note,
             },
         )
         logging.info("Case is now finalised")
@@ -430,7 +430,7 @@ class Case(TimestampableModel):
 
             licence_reference = licence.reference_code if licence and advice_type == AdviceType.APPROVE else ""
             audit_trail_service.create(
-                actor=request.user,
+                actor=user,
                 verb=AuditType.CREATED_FINAL_RECOMMENDATION,
                 target=self,
                 payload={
