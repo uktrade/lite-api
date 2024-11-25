@@ -95,7 +95,6 @@ class ProductDocumentView(QueryStringValidationMixin, DocumentViewSet):
 
     def get_queryset(self):
         self.search._index = self.get_search_indexes()
-
         self.search.update_from_dict(
             {
                 "collapse": {
@@ -119,7 +118,6 @@ class ProductDocumentView(QueryStringValidationMixin, DocumentViewSet):
                 }
             }
         )
-
         queryset = super().get_queryset()
         return queryset
 
