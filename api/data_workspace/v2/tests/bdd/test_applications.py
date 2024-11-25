@@ -299,9 +299,9 @@ def when_the_application_is_issued_at(
         issue_licence(submitted_standard_application)
 
     submitted_standard_application.refresh_from_db()
-    issed_application = submitted_standard_application
+    issued_application = submitted_standard_application
 
-    return issed_application
+    return issued_application
 
 
 @when(parsers.parse("the application is refused at {timestamp}"), target_fixture="refused_application")
