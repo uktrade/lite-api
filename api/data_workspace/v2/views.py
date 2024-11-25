@@ -128,6 +128,9 @@ class GoodOnLicenceViewSet(BaseViewSet):
         licence__status=LicenceStatus.DRAFT,
     )
 
+    class DataWorkspace:
+        table_name = "goods_on_licences"
+
 
 class ApplicationViewSet(BaseViewSet):
     serializer_class = ApplicationSerializer
