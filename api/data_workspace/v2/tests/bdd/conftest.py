@@ -3,21 +3,27 @@ import json
 import pytest
 import pytz
 
+from moto import mock_aws
+
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from pytest_bdd import (
+    given,
     parsers,
     then,
+    when,
 )
 
+from django.conf import settings
 from django.urls import reverse
 
+from api.applications.enums import ApplicationExportType
 from api.applications.tests.factories import (
+    DraftStandardApplicationFactory,
     GoodOnApplicationFactory,
     PartyOnApplicationFactory,
     StandardApplicationFactory,
-    DraftStandardApplicationFactory,
 )
 from api.cases.enums import CaseTypeEnum
 from api.cases.models import CaseType
@@ -27,15 +33,23 @@ from api.core.constants import (
     Roles,
 )
 from api.goods.tests.factories import GoodFactory
+from api.documents.libraries.s3_operations import init_s3_client
 from api.letter_templates.models import LetterTemplate
+from api.parties.tests.factories import PartyDocumentFactory
 from api.organisations.tests.factories import OrganisationFactory
 from api.staticdata.letter_layouts.models import LetterLayout
 from api.staticdata.statuses.enums import CaseStatusEnum
 from api.staticdata.statuses.models import CaseStatus
 from api.staticdata.units.enums import Units
 from api.users.libraries.user_to_token import user_to_token
-from api.users.enums import SystemUser, UserType
-from api.users.models import BaseUser, Permission
+from api.users.enums import (
+    SystemUser,
+    UserType,
+)
+from api.users.models import (
+    BaseUser,
+    Permission,
+)
 from api.users.tests.factories import (
     BaseUserFactory,
     ExporterUserFactory,
@@ -48,6 +62,19 @@ from api.users.tests.factories import (
 def load_json(filename):
     with open(filename) as f:
         return json.load(f)
+
+
+@pytest.fixture(autouse=True)
+def mock_s3():
+    with mock_aws():
+        s3 = init_s3_client()
+        s3.create_bucket(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            CreateBucketConfiguration={
+                "LocationConstraint": settings.AWS_REGION,
+            },
+        )
+        yield
 
 
 @pytest.fixture()
@@ -215,6 +242,57 @@ def standard_application():
 def draft_application():
     draft_application = DraftStandardApplicationFactory()
     return draft_application
+
+
+@pytest.fixture
+def submit_application(api_client, exporter_headers, mocker):
+    def _submit_application(draft_application):
+        type_code = "T" if draft_application.export_type == ApplicationExportType.TEMPORARY else "P"
+        reference_code = f"GBSIEL/2024/0000001/{type_code}"
+        mocker.patch("api.cases.models.generate_reference_code", return_value=reference_code)
+
+        response = api_client.put(
+            reverse(
+                "applications:application_submit",
+                kwargs={
+                    "pk": draft_application.pk,
+                },
+            ),
+            data={
+                "submit_declaration": True,
+                "agreed_to_declaration_text": "i agree",
+            },
+            **exporter_headers,
+        )
+        assert response.status_code == 200, response.json()["errors"]
+
+        draft_application.refresh_from_db()
+        return draft_application
+
+    return _submit_application
+
+
+@given("a draft standard application", target_fixture="draft_standard_application")
+def given_draft_standard_application(organisation):
+    application = DraftStandardApplicationFactory(
+        organisation=organisation,
+    )
+
+    PartyDocumentFactory(
+        party=application.end_user.party,
+        s3_key="party-document",
+        safe=True,
+    )
+
+    return application
+
+
+@when(
+    "the application is submitted",
+    target_fixture="submitted_standard_application",
+)
+def when_the_application_is_submitted(submit_application, draft_standard_application):
+    return submit_application(draft_standard_application)
 
 
 @then(parsers.parse("the `{table_name}` table is empty"))

@@ -32,11 +32,13 @@ from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
     CountrySerializer,
     DestinationSerializer,
+    GoodDescriptionSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
     LicenceDecisionType,
 )
 from api.staticdata.countries.models import Country
+from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 
@@ -114,6 +116,19 @@ class GoodViewSet(BaseViewSet):
 
     class DataWorkspace:
         table_name = "goods"
+
+
+class GoodDescriptionViewSet(BaseViewSet):
+    serializer_class = GoodDescriptionSerializer
+    queryset = (
+        ReportSummary.objects.select_related("prefix", "subject")
+        .prefetch_related("goods_on_application")
+        .exclude(goods_on_application__isnull=True)
+        .annotate(good_id=F("goods_on_application__id"))
+    )
+
+    class DataWorkspace:
+        table_name = "goods_descriptions"
 
 
 def get_closed_statuses():
