@@ -7,5 +7,9 @@ router_v2.register(views.LicenceDecisionViewSet)
 router_v2.register(views.CountryViewSet)
 router_v2.register(views.DestinationViewSet)
 router_v2.register(views.GoodViewSet)
+<<<<<<< HEAD
 router_v2.register(views.GoodDescriptionViewSet)
+=======
+router_v2.register(views.GoodOnLicenceViewSet)
+>>>>>>> ea66a2a2 (Add goods on licences endpoint initial commit)
 router_v2.register(views.ApplicationViewSet)
