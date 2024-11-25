@@ -1,13 +1,13 @@
 @db
 Feature: Licence Decisions
 
-Scenario: Check that draft licences are not included in the extract
+Scenario: Draft licence
     Given a standard draft licence is created
-    Then the draft licence is not included in the extract
+    Then the `licence_decisions` table is empty
 
-Scenario: Check that cancelled licences are not included in the extract
+Scenario: Cancelled licence
     Given a standard licence is cancelled
-    Then the cancelled licence is not included in the extract
+    Then the `licence_decisions` table is empty
 
 # [ISSUED]
 Scenario: Issued licence decision is created when licence is issued

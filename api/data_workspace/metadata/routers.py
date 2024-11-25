@@ -88,7 +88,7 @@ def get_fields(view):
             method = getattr(field.parent, field.method_name)
             try:
                 return_type = method.__annotations__["return"]
-            except KeyError:
+            except KeyError:  # noqa
                 raise NotImplementedError(f"Add a return annotation to the `{field.method_name}` method")  # noqa
 
             if is_optional(return_type):
