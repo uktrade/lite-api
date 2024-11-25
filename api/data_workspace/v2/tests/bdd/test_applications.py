@@ -299,8 +299,9 @@ def when_the_application_is_issued_at(
         issue_licence(submitted_standard_application)
 
     submitted_standard_application.refresh_from_db()
+    issed_application = submitted_standard_application
 
-    return submitted_standard_application
+    return issed_application
 
 
 @when(parsers.parse("the application is refused at {timestamp}"), target_fixture="refused_application")
@@ -356,7 +357,10 @@ def when_the_application_is_refused_at(
         response = api_client.put(url, data={}, **gov_headers)
         assert response.status_code == 201, response.content
 
-        return submitted_standard_application
+        submitted_standard_application.refresh_from_db()
+        refused_application = submitted_standard_application
+
+        return refused_application
 
 
 @when(parsers.parse("the application is appealed at {timestamp}"), target_fixture="appealed_application")
@@ -382,8 +386,9 @@ def when_the_application_is_appealed_at(
         assert response.status_code == 201, response.content
 
     refused_application.refresh_from_db()
+    appealed_application = refused_application
 
-    return refused_application
+    return appealed_application
 
 
 @when(parsers.parse("the refused application is issued on appeal at {timestamp}"))
