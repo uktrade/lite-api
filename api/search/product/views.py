@@ -95,32 +95,30 @@ class ProductDocumentView(QueryStringValidationMixin, DocumentViewSet):
 
     def get_queryset(self):
         self.search._index = self.get_search_indexes()
-        self.search.update_from_dict(
-            {
-                "collapse": {
-                    "field": "canonical_name",
-                    "inner_hits": {
-                        "size": 200,
-                        "name": "related",
-                        "collapse": {
-                            "field": "context",
-                        },
-                        "sort": [
-                            {
-                                "assessment_date": {
-                                    "order": "desc",
-                                },
-                            }
-                        ],
-                        "highlight": {
-                            "fields": {
-                                "assessment_note": self.highlight_fields["*"]["options"],
-                            }
-                        },
+
+        query = {
+            "collapse": {
+                "field": "canonical_name",
+                "inner_hits": {
+                    "size": 200,
+                    "name": "related",
+                    "sort": [
+                        {
+                            "assessment_date": {
+                                "order": "desc",
+                            },
+                        }
+                    ],
+                    "highlight": {
+                        "fields": {
+                            "assessment_note": self.highlight_fields["*"]["options"],
+                        }
                     },
-                }
+                },
             }
-        )
+        }
+        self.search.update_from_dict(query)
+
         queryset = super().get_queryset()
         return queryset
 
