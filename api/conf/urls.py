@@ -57,7 +57,7 @@ if settings.ADMIN_ENABLED:
             path("admin/login/", api.core.views.LoginProviderView.as_view()),
             path("auth/", include("authbroker_client.urls")),
         ] + urlpatterns
-settings.ENABLE_DJANGO_SILK = False
+
 if settings.ENABLE_DJANGO_SILK:
     urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
 
