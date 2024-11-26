@@ -7,6 +7,7 @@ from rest_framework.settings import api_settings
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
 from django.db.models import (
+    F,
     Prefetch,
     Q,
 )
@@ -30,10 +31,12 @@ from api.data_workspace.v2.serializers import (
     ApplicationSerializer,
     CountrySerializer,
     DestinationSerializer,
+    GoodDescriptionSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
 )
 from api.staticdata.countries.models import Country
+from api.staticdata.report_summaries.models import ReportSummary
 from api.staticdata.statuses.enums import CaseStatusEnum
 
 
@@ -91,6 +94,20 @@ class GoodViewSet(BaseViewSet):
 
     class DataWorkspace:
         table_name = "goods"
+
+
+class GoodDescriptionViewSet(BaseViewSet):
+    serializer_class = GoodDescriptionSerializer
+    queryset = (
+        ReportSummary.objects.select_related("prefix", "subject")
+        .prefetch_related("goods_on_application")
+        .exclude(goods_on_application__isnull=True)
+        .annotate(good_id=F("goods_on_application__id"))
+        .order_by("good_id", "prefix", "subject")
+    )
+
+    class DataWorkspace:
+        table_name = "goods_descriptions"
 
 
 def get_closed_statuses():

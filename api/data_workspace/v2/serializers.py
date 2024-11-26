@@ -12,6 +12,7 @@ from api.applications.models import (
 from api.cases.enums import LicenceDecisionType
 from api.cases.models import LicenceDecision
 from api.staticdata.countries.models import Country
+from api.staticdata.report_summaries.models import ReportSummary
 
 
 class LicenceDecisionSerializer(serializers.ModelSerializer):
@@ -80,6 +81,18 @@ class GoodSerializer(serializers.ModelSerializer):
             "quantity",
             "unit",
             "value",
+        )
+
+
+class GoodDescriptionSerializer(serializers.ModelSerializer):
+    description = serializers.CharField(source="name")
+    good_id = serializers.UUIDField()
+
+    class Meta:
+        model = ReportSummary
+        fields = (
+            "description",
+            "good_id",
         )
 
 
