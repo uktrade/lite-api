@@ -423,6 +423,8 @@ class ProductSearchSuggestionsTests(BaseProductSearchTests):
                 {"q": "sporting rif"},
                 [
                     {"field": "name", "value": "Bolt action sporting rifle", "index": "lite"},
+                    {"field": "name", "value": "Spring action sporting rifle", "index": "lite"},
+                    {"field": "name", "value": "Powder action sporting rifle", "index": "lite"},
                 ],
             ),
             (
