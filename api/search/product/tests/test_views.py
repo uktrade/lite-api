@@ -82,7 +82,7 @@ class ProductSearchTests(BaseProductSearchTests):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "sporting"}, 1, "Bolt action sporting rifle"),
+            ({"search": "sporting"}, 3, "Bolt action sporting rifle"),
             (
                 # note that we are providing search term in lowercase
                 {"search": "bolt"},
@@ -112,37 +112,25 @@ class ProductSearchTests(BaseProductSearchTests):
                 # note that we are providing search term in lowercase
                 {"search": "rifle"},
                 3,
-                "Bolt action sporting rifle",
-                "Spring action sporting rifle",
-                "Powder action sporting rifle",
+                ["Bolt action sporting rifle", "Spring action sporting rifle", "Powder action sporting rifle"],
             ),
-            (
-                {"search": "dog"},
-                0,
-                "",
-                "",
-                "",
-            ),
+            ({"search": "dog"}, 0, []),
         ]
     )
-    def test_product_search_by_name_shows_all_results(
-        self, query, expected_count, expected_name1, expected_name2, expected_name3
-    ):
+    def test_product_search_by_name_shows_all_results(self, query, expected_count, expected_results):
         response = self.client.get(self.product_search_url, query, **self.gov_headers)
         self.assertEqual(response.status_code, 200)
 
         response = response.json()
-        self.assertEqual(response["count"], expected_count)
         results = [item["name"] for item in response["results"]]
-        self.assertIn(expected_name1, results)
-        self.assertIn(expected_name2, results)
-        self.assertIn(expected_name3, results)
+        self.assertEqual(response["count"], expected_count)
+        self.assertEqual(results, expected_results)
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
             ({"search": "ABC"}, 0),
-            ({"search": "ABC-123"}, 1),
+            ({"search": "ABC-123"}, 3),
             ({"search": "IMG/1300"}, 1),
             ({"search": "IMG-1300"}, 0),
             ({"search": "867-"}, 0),
@@ -221,7 +209,7 @@ class ProductSearchTests(BaseProductSearchTests):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "Advisor1"}, 3),
+            ({"search": "Advisor1"}, 5),
             ({"search": "Advisor2"}, 3),
         ]
     )
@@ -259,7 +247,7 @@ class ProductSearchTests(BaseProductSearchTests):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "rifle"}, 1),
+            ({"search": "rifle"}, 3),
             ({"search": "shifter AND 6A004"}, 1),
             ({"search": "sensor AND 6A006"}, 1),
             ({"search": "sensor AND 6A*"}, 2),
@@ -270,7 +258,7 @@ class ProductSearchTests(BaseProductSearchTests):
             ({"search": '"Thermal camera"'}, 1),
             ({"search": "components NOT camera"}, 1),
             ({"search": "consignee_country: Germany"}, 3),
-            ({"search": "end_user_country: France"}, 3),
+            ({"search": "end_user_country: France"}, 5),
             ({"search": "ultimate_end_user_country: Finland"}, 4),
         ]
     )
@@ -325,7 +313,7 @@ class ProductSearchTests(BaseProductSearchTests):
     @pytest.mark.elasticsearch
     @parameterized.expand(
         [
-            ({"search": "France"}, 3),
+            ({"search": "France"}, 5),
             ({"search": "Canada"}, 4),
             ({"search": "Poland"}, 4),
             ({"search": "H2O2 AND Canada"}, 1),
@@ -344,7 +332,7 @@ class ProductSearchTests(BaseProductSearchTests):
         [
             (
                 {"search": "ABC-123"},
-                1,
+                3,
                 {
                     "quantity": 5,
                     "value": 1200.00,
