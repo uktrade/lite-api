@@ -63,8 +63,8 @@ def attach_licence_to_licence_decisions(apps, schema_editor):
             continue
 
         decision = LicenceDecisionType.advice_type_to_decision(advice_type)
-        start_date = audit_log.created_at - timedelta(seconds=1)
-        end_date = audit_log.created_at + timedelta(seconds=1)
+        start_date = audit_log.created_at - timedelta(microseconds=audit_log.created_at.microsecond - 1)
+        end_date = audit_log.created_at + timedelta(microseconds=999999 - audit_log.created_at.microsecond)
 
         obj = LicenceDecision.objects.get(
             case_id=str(audit_log.target_object_id),
