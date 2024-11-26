@@ -91,7 +91,7 @@ class ProductSearchTests(BaseProductSearchTests):
             ),
             (
                 {"search": "rifle"},
-                1,
+                3,
                 "Bolt action sporting rifle",
             ),
             ({"search": "thermal"}, 1, "Thermal camera"),
@@ -104,6 +104,39 @@ class ProductSearchTests(BaseProductSearchTests):
         response = response.json()
         self.assertEqual(response["count"], expected_count)
         self.assertIn(expected_name, [item["name"] for item in response["results"]])
+
+    @pytest.mark.elasticsearch
+    @parameterized.expand(
+        [
+            (
+                # note that we are providing search term in lowercase
+                {"search": "rifle"},
+                3,
+                "Bolt action sporting rifle",
+                "Spring action sporting rifle",
+                "Powder action sporting rifle",
+            ),
+            (
+                {"search": "dog"},
+                0,
+                "",
+                "",
+                "",
+            ),
+        ]
+    )
+    def test_product_search_by_name_shows_all_results(
+        self, query, expected_count, expected_name1, expected_name2, expected_name3
+    ):
+        response = self.client.get(self.product_search_url, query, **self.gov_headers)
+        self.assertEqual(response.status_code, 200)
+
+        response = response.json()
+        self.assertEqual(response["count"], expected_count)
+        results = [item["name"] for item in response["results"]]
+        self.assertIn(expected_name1, results)
+        self.assertIn(expected_name2, results)
+        self.assertIn(expected_name3, results)
 
     @pytest.mark.elasticsearch
     @parameterized.expand(
