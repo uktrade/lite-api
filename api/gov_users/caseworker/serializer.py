@@ -50,13 +50,13 @@ class GovUserUpdateSerializer(serializers.ModelSerializer):
         default_queue = value or self.instance.default_queue
         team = self.initial_data.get("team") or self.instance.team_id
         is_system_queue = str(default_queue) in SYSTEM_QUEUES.keys()
-        try:
-            if not is_system_queue:
+        if not is_system_queue:
+            try:
                 queue = Queue.objects.get(id=default_queue)
                 if str(queue.team_id) != team:
                     raise serializers.ValidationError("select a valid queue for team")
-        except Queue.DoesNotExist:
-            raise serializers.ValidationError("select a valid queue")
+            except Queue.DoesNotExist:
+                raise serializers.ValidationError("select a valid queue")
 
         return default_queue
 

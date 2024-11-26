@@ -14,7 +14,7 @@ class GovUsersList(ListAPIView):
         queryset = GovUser.objects.all().select_related("role", "team", "baseuser_ptr")
         email = self.request.GET.get("email")
         if email is not None:
-            queryset = queryset.filter(baseuser_ptr__email=email)
+            queryset = queryset.filter(baseuser_ptr__email__iexact=email)
         return queryset
 
 
