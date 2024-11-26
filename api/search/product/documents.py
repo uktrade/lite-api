@@ -114,7 +114,7 @@ class GovUser(InnerDoc):
 
 
 class ProductDocumentType(Document):
-    # purposefully not DED field - this is just for collecting other field values for wilcard search
+    # Purposefully not DED field - this is just for collecting other field values for wilcard search
     wildcard = Text(
         analyzer=ngram_analyzer,
         search_analyzer=whitespace_analyzer,
