@@ -1,12 +1,11 @@
-from rest_framework.routers import DefaultRouter
-
+from api.data_workspace.metadata.routers import TableMetadataRouter
 from api.data_workspace.v2 import views
 
 
-router_v2 = DefaultRouter()
-
-router_v2.register(
-    "licence-decisions",
-    views.LicenceDecisionViewSet,
-    basename="dw-licence-decisions",
-)
+router_v2 = TableMetadataRouter()
+router_v2.register(views.LicenceDecisionViewSet)
+router_v2.register(views.CountryViewSet)
+router_v2.register(views.DestinationViewSet)
+router_v2.register(views.GoodViewSet)
+router_v2.register(views.GoodDescriptionViewSet)
+router_v2.register(views.ApplicationViewSet)

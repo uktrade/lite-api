@@ -1,6 +1,12 @@
 import pytest
 
-from api.applications.tests.factories import GoodOnApplicationFactory, StandardApplicationFactory
+from api.applications.models import PartyOnApplication
+from api.applications.tests.factories import (
+    GoodOnApplicationFactory,
+    StandardApplicationFactory,
+    PartyOnApplicationFactory,
+    DraftStandardApplicationFactory,
+)
 from api.cases.enums import AdviceType
 from api.cases.tests.factories import FinalAdviceFactory
 from api.goods.tests.factories import GoodFactory
@@ -36,6 +42,7 @@ def standard_licence():
     application = StandardApplicationFactory(
         status=CaseStatus.objects.get(status=CaseStatusEnum.FINALISED),
     )
+    party_on_application = PartyOnApplicationFactory(application=application)
     good = GoodFactory(organisation=application.organisation)
     good_on_application = GoodOnApplicationFactory(
         application=application, good=good, quantity=100.0, value=1500, unit=Units.NAR
@@ -70,3 +77,19 @@ def standard_case_with_final_advice(lu_case_officer):
 def standard_case_with_refused_advice(lu_case_officer, standard_case_with_final_advice):
     standard_case_with_final_advice.advice.update(type=AdviceType.REFUSE)
     return standard_case_with_final_advice
+
+
+@pytest.fixture()
+def licence_with_deleted_party(standard_licence):
+    licence = standard_licence
+    application = licence.case.baseapplication
+    old_party_on_application = PartyOnApplication.objects.get(application=application)
+    new_party_on_application = PartyOnApplicationFactory(application=application)
+    old_party_on_application.delete()
+    return licence
+
+
+@pytest.fixture()
+def draft_application():
+    draft_application = DraftStandardApplicationFactory()
+    return draft_application
