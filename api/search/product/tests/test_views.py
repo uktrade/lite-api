@@ -115,6 +115,7 @@ class ProductSearchTests(BaseProductSearchTests):
                 ["Bolt action sporting rifle", "Spring action sporting rifle", "Powder action sporting rifle"],
             ),
             ({"search": "dog"}, 0, []),
+            ({"search": "thermal"}, 1, ["Thermal camera"]),
         ]
     )
     def test_product_search_by_name_shows_all_results(self, query, expected_count, expected_results):
