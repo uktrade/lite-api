@@ -105,6 +105,7 @@ class GoodDescriptionViewSet(BaseViewSet):
         .prefetch_related("goods_on_application")
         .exclude(goods_on_application__isnull=True)
         .annotate(good_id=F("goods_on_application__id"))
+        .order_by("good_id", "prefix", "subject")
     )
 
     class DataWorkspace:

@@ -48,6 +48,40 @@ test_applications_data = [
             },
             {
                 "good": {
+                    "name": "Spring action sporting rifle",
+                    "part_number": "ABC-123",
+                    "is_good_controlled": True,
+                    "control_list_entries": ["FR AI"],
+                },
+                "good_on_application": {
+                    "is_good_controlled": True,
+                    "report_summary": "sniper rifles",
+                    "assessment_date": parse("2021-06-08T15:51:28.529110+00:00"),
+                    "comment": "no concerns",
+                    "control_list_entries": ["FR AI"],
+                    "quantity": 5,
+                    "value": 1200.00,
+                },
+            },
+            {
+                "good": {
+                    "name": "Powder action sporting rifle",
+                    "part_number": "ABC-123",
+                    "is_good_controlled": True,
+                    "control_list_entries": ["FR AI"],
+                },
+                "good_on_application": {
+                    "is_good_controlled": True,
+                    "report_summary": "sniper rifles",
+                    "assessment_date": parse("2021-06-08T15:51:28.529110+00:00"),
+                    "comment": "no concerns",
+                    "control_list_entries": ["FR AI"],
+                    "quantity": 5,
+                    "value": 1200.00,
+                },
+            },
+            {
+                "good": {
                     "name": "Thermal camera",
                     "part_number": "IMG/1300",
                     "is_good_controlled": True,
