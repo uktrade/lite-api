@@ -16,7 +16,6 @@ class GovUserUpdateSerializer(serializers.ModelSerializer):
     # from baseuser
     id = serializers.ReadOnlyField(source="baseuser_ptr_id")
 
-    # status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     team = PrimaryKeyRelatedField(
         queryset=Team.objects.all(),
     )
