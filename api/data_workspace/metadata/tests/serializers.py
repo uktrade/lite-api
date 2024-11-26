@@ -65,3 +65,13 @@ class AutoPrimaryKeySerializer(serializers.Serializer):
 class ExplicitPrimaryKeySerializer(serializers.Serializer):
     a_different_id = serializers.UUIDField()
     not_a_primary_key = serializers.UUIDField()
+
+
+class DateTimeSerializer(serializers.Serializer):
+    date_time_field = serializers.DateTimeField()
+    nullable_date_time_field = serializers.DateTimeField(allow_null=True)
+
+
+class ChoiceFieldSerializer(serializers.Serializer):
+    choice_field = serializers.ChoiceField(choices=[("1", "one"), ("2", "two")])
+    nullable_choice_field = serializers.ChoiceField(choices=[], allow_null=True)

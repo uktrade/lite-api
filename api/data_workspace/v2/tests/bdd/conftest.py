@@ -149,11 +149,6 @@ def lu_case_officer(gov_user, gov_user_permissions):
 
 
 @pytest.fixture()
-def lu_case_officer_headers(lu_case_officer):
-    return {"HTTP_GOV_USER_TOKEN": user_to_token(lu_case_officer.baseuser_ptr)}
-
-
-@pytest.fixture()
 def lu_senior_manager(lu_user, gov_user_permissions):
     lu_user.role = RoleFactory(
         id=Roles.INTERNAL_LU_SENIOR_MANAGER_ROLE_ID, name="LU Senior Manager", type=UserType.INTERNAL
@@ -168,6 +163,11 @@ def lu_senior_manager(lu_user, gov_user_permissions):
 @pytest.fixture()
 def gov_headers(gov_user):
     return {"HTTP_GOV_USER_TOKEN": user_to_token(gov_user.baseuser_ptr)}
+
+
+@pytest.fixture()
+def lu_case_officer_headers(lu_case_officer):
+    return {"HTTP_GOV_USER_TOKEN": user_to_token(lu_case_officer.baseuser_ptr)}
 
 
 @pytest.fixture()

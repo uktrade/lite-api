@@ -417,11 +417,13 @@ class LicenceDecisionType:
     ISSUED = "issued"
     REFUSED = "refused"
     REVOKED = "revoked"
+    ISSUED_ON_APPEAL = "issued_on_appeal"
 
     choices = [
         (ISSUED, "issued"),
         (REFUSED, "refused"),
         (REVOKED, "revoked"),
+        (ISSUED_ON_APPEAL, "issued_on_appeal"),
     ]
 
     decision_map = {
@@ -439,6 +441,7 @@ class LicenceDecisionType:
             cls.ISSUED: SIEL_LICENCE_TEMPLATE_ID,
             cls.REFUSED: SIEL_REFUSAL_TEMPLATE_ID,
             cls.REVOKED: None,
+            cls.ISSUED_ON_APPEAL: None,
         }
 
     @classmethod

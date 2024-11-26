@@ -6,7 +6,6 @@ from rest_framework.settings import api_settings
 
 from rest_framework_csv.renderers import PaginatedCSVRenderer
 
-from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import (
     F,
     Prefetch,
@@ -25,7 +24,7 @@ from api.applications.models import (
 )
 from api.audit_trail.enums import AuditType
 from api.audit_trail.models import Audit
-from api.cases.models import Case
+from api.cases.models import LicenceDecision
 from api.core.authentication import DataWorkspaceOnlyAuthentication
 from api.core.helpers import str_to_bool
 from api.data_workspace.v2.serializers import (
@@ -36,7 +35,6 @@ from api.data_workspace.v2.serializers import (
     GoodDescriptionSerializer,
     GoodSerializer,
     LicenceDecisionSerializer,
-    LicenceDecisionType,
 )
 from api.staticdata.control_list_entries.models import ControlListEntry
 from api.staticdata.countries.models import Country
@@ -60,36 +58,16 @@ class BaseViewSet(viewsets.ReadOnlyModelViewSet):
 
 class LicenceDecisionViewSet(BaseViewSet):
     serializer_class = LicenceDecisionSerializer
+    queryset = (
+        LicenceDecision.objects.filter(previous_decision__isnull=True)
+        .exclude(excluded_from_statistics_reason__isnull=False)
+        .prefetch_related("case__licence_decisions", "case__licence_decisions__licence")
+        .select_related("case")
+        .order_by("-case__reference_code")
+    )
 
     class DataWorkspace:
         table_name = "licence_decisions"
-
-    def get_queryset(self):
-        queryset = (
-            (
-                Case.objects.filter(
-                    licence_decisions__decision__in=[LicenceDecisionType.ISSUED, LicenceDecisionType.REFUSED],
-                )
-                .annotate(
-                    unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
-                )
-                .filter(unique_decisions__len=1)
-                .annotate(decision=F("unique_decisions__0"))
-            )
-            .union(
-                Case.objects.filter(
-                    licence_decisions__decision__in=[LicenceDecisionType.REVOKED],
-                )
-                .annotate(
-                    unique_decisions=ArrayAgg("licence_decisions__decision", distinct=True),
-                )
-                .filter(unique_decisions__len=1)
-                .annotate(decision=F("unique_decisions__0")),
-                all=True,
-            )
-            .order_by("-reference_code")
-        )
-        return queryset
 
 
 class CountryViewSet(BaseViewSet):
