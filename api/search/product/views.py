@@ -102,9 +102,6 @@ class ProductDocumentView(QueryStringValidationMixin, DocumentViewSet):
                     "inner_hits": {
                         "size": 200,
                         "name": "related",
-                        "collapse": {
-                            "field": "context",
-                        },
                         "sort": [
                             {
                                 "assessment_date": {
